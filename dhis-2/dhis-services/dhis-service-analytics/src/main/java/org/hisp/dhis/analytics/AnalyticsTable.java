@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics;
  */
 
 import java.util.List;
+import java.util.Date;
 
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.period.Period;
@@ -47,6 +48,8 @@ public class AnalyticsTable
     private Period period;
 
     private Program program;
+    
+    private Date created;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -54,26 +57,25 @@ public class AnalyticsTable
 
     public AnalyticsTable()
     {
+        this.created = new Date();
     }
 
     public AnalyticsTable( String baseName, List<AnalyticsTableColumn> dimensionColumns )
     {
         this.baseName = baseName;
         this.dimensionColumns = dimensionColumns;
+        this.created = new Date();
     }
 
     public AnalyticsTable( String baseName, List<AnalyticsTableColumn> dimensionColumns, Period period )
     {
-        this.baseName = baseName;
-        this.dimensionColumns = dimensionColumns;
+        this( baseName, dimensionColumns );
         this.period = period;
     }
 
     public AnalyticsTable( String baseName, List<AnalyticsTableColumn> dimensionColumns, Period period, Program program )
     {
-        this.baseName = baseName;
-        this.dimensionColumns = dimensionColumns;
-        this.period = period;
+        this( baseName, dimensionColumns, period );
         this.program = program;
     }
 
@@ -167,6 +169,11 @@ public class AnalyticsTable
     public void setProgram( Program program )
     {
         this.program = program;
+    }
+
+    public Date getCreated()
+    {
+        return created;
     }
 
     // -------------------------------------------------------------------------

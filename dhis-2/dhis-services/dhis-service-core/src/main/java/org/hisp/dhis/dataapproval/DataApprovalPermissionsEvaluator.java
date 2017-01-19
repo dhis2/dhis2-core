@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataapproval;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -109,7 +109,7 @@ class DataApprovalPermissionsEvaluator
         ev.user = currentUserService.getCurrentUser();
 
         ev.acceptanceRequiredForApproval = (Boolean) systemSettingManager.getSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
-        boolean hideUnapprovedData = (Boolean) systemSettingManager.getSystemSetting( SettingKey.HIDE_UNAPPROVED_DATA_IN_ANALYTICS );
+        boolean hideUnapprovedData = systemSettingManager.hideUnapprovedDataInAnalytics();
 
         ev.authorizedToApprove = ev.user.getUserCredentials().isAuthorized( DataApproval.AUTH_APPROVE );
         ev.authorizedToApproveAtLowerLevels = ev.user.getUserCredentials().isAuthorized( DataApproval.AUTH_APPROVE_LOWER_LEVELS );

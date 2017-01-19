@@ -1,5 +1,7 @@
+package org.hisp.dhis.webapi.controller.metadata.sync;
+
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.webapi.controller.metadata.sync;
 
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
@@ -90,10 +90,15 @@ public class MetadataSyncController
             try
             {
                 metadataSyncSummary = metadataSyncService.doMetadataSync( syncParams );
+
+                if ( metadataSyncSummary.getImportReport() == null && metadataSyncSummary.getMetadataVersion() != null )
+                {
+                    throw new MetadataSyncServiceException( metadataSyncSummary.getMetadataVersion().getName() + " already exists in system and hence not starting the sync." );
+                }
             }
             catch ( MetadataSyncServiceException serviceException )
             {
-                throw new MetadataSyncException( "Exception occurred while doing metadata sync " + serviceException.getMessage() );
+                throw new MetadataSyncException( "Exception occurred while doing metadata sync: " + serviceException.getMessage() );
             }
         }
         return metadataSyncSummary;

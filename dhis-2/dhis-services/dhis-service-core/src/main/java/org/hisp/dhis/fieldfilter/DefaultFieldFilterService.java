@@ -1,7 +1,7 @@
 package org.hisp.dhis.fieldfilter;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeTransformer;
@@ -483,7 +484,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private boolean isProperIdObject( Class<?> klass )
     {
-        return !(DataElementOperand.class.isAssignableFrom( klass ) || UserCredentials.class.isAssignableFrom( klass )
-            || ReportingRate.class.isAssignableFrom( klass ));
+        return !(DataElementOperand.class.isAssignableFrom( klass ) || UserCredentials.class.isAssignableFrom( klass ) ||
+            ReportingRate.class.isAssignableFrom( klass ) || DataSetElement.class.isAssignableFrom( klass ));
     }
 }

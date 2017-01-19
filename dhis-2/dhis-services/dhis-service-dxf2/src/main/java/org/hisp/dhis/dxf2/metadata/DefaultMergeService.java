@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,7 @@ import java.util.List;
  */
 public class DefaultMergeService implements MergeService
 {
-    private static final List<String> sharingProps = Arrays.asList(
+    private static final List<String> SHARING_PROPS = Arrays.asList(
         "publicAccess", "externalAccess", "userGroupAccesses", "userAccesses" );
 
     private final SchemaService schemaService;
@@ -126,6 +126,6 @@ public class DefaultMergeService implements MergeService
 
     private boolean isSharingProperty( Property property )
     {
-        return sharingProps.contains( property.getName() ) || sharingProps.contains( property.getCollectionName() );
+        return SHARING_PROPS.contains( property.getName() ) || SHARING_PROPS.contains( property.getCollectionName() );
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,46 +28,11 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
-import org.hisp.dhis.period.PeriodType;
-
 /**
- * Holds information for each validation rule that is needed during a validation
- * run (either interactive or a scheduled run).
- * 
- * By computing these values once at the start of a validation run, we avoid the
- * overhead of having to compute them during the processing of every
- * organisation unit. For some of these properties this is also important
- * because they should be copied from Hibernate lazy collections before the
- * multithreaded part of the run starts, otherwise the threads may not be able
- * to access these values.
- * 
- * @author Jim Grace
+ * Defines the types of alert run.
  */
-public class ValidationRuleExtended
+public enum ValidationRunType
 {
-    private ValidationRule rule;
-
-    private Set<PeriodType> allowedPastPeriodTypes;
-
-    public ValidationRuleExtended( ValidationRule rule, Set<PeriodType> allowedPastPeriodTypes )
-    {
-        this.rule = rule;
-        this.allowedPastPeriodTypes = allowedPastPeriodTypes;
-    }
-
-    // -------------------------------------------------------------------------
-    // Set and get methods
-    // -------------------------------------------------------------------------
-
-    public ValidationRule getRule()
-    {
-        return rule;
-    }
-
-    public Set<PeriodType> getAllowedPastPeriodTypes()
-    {
-        return allowedPastPeriodTypes;
-    }
+    INTERACTIVE,
+    SCHEDULED
 }

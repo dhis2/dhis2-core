@@ -1,7 +1,7 @@
 package org.hisp.dhis.notification;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -74,6 +74,7 @@ public abstract class BaseNotificationMessageRenderer<T>
 
     protected static final String CONFIDENTIAL_VALUE_REPLACEMENT = "[CONFIDENTIAL]"; // TODO reconsider this...
     protected static final String MISSING_VALUE_REPLACEMENT = "[N/A]";
+    protected static final String VALUE_ON_ERROR = "[SERVER ERROR]";
 
     protected static final Pattern VAR_CONTENT_PATTERN = Pattern.compile( "^[A-Za-z0-9_]+$" );
     protected static final Pattern ATTR_CONTENT_PATTERN = Pattern.compile( "[A-Za-z][A-Za-z0-9]{10}" );
@@ -89,8 +90,8 @@ public abstract class BaseNotificationMessageRenderer<T>
 
     protected enum ExpressionType
     {
-        VARIABLE( VARIABLE_PATTERN, VAR_CONTENT_PATTERN ),
-        ATTRIBUTE( ATTRIBUTE_PATTERN, ATTR_CONTENT_PATTERN );
+        VARIABLE ( VARIABLE_PATTERN, VAR_CONTENT_PATTERN ),
+        ATTRIBUTE ( ATTRIBUTE_PATTERN, ATTR_CONTENT_PATTERN );
 
         private final Pattern expressionPattern;
         private final Pattern contentPattern;
@@ -180,11 +181,41 @@ public abstract class BaseNotificationMessageRenderer<T>
         return variables.stream()
             .collect( Collectors.toMap(
                 v -> v,
-                v -> {
-                    Function<T, String> resolver = getVariableResolvers().get( fromVariableName( v ) );
-                    return resolver != null ? resolver.apply( entity ) : "";
-                }
+                v -> resolveValue( v, entity )
             ) );
+    }
+
+    private String resolveValue( String variableName, T entity )
+    {
+        Function<T, String> resolver = getVariableResolvers().get( fromVariableName( variableName ) );
+
+        if ( resolver == null )
+        {
+            log.warn( String.format( "Cannot resolve value for expression '%s': no resolver", variableName ) );
+
+            return StringUtils.EMPTY;
+        }
+
+        if ( entity == null )
+        {
+            log.warn( String.format( "Cannot resolve value for expression '%s': entity is null", variableName ) );
+
+            return StringUtils.EMPTY;
+        }
+
+        String value;
+
+        try
+        {
+            value = resolver.apply( entity );
+        }
+        catch ( Exception ex )
+        {
+            log.warn( "Caught exception when running value resolver for variable: " + variableName , ex );
+            value = VALUE_ON_ERROR;
+        }
+
+        return value != null ? value : StringUtils.EMPTY;
     }
 
     private NotificationMessage createNotificationMessage( NotificationTemplate template, Map<String, String> expressionToValueMap )
@@ -200,18 +231,13 @@ public abstract class BaseNotificationMessageRenderer<T>
         return new NotificationMessage( subject, message );
     }
 
-    private static String replaceExpressions( String input, Map<String, String> expressionToValueMap )
+    private static String replaceExpressions( String input, final Map<String, String> expressionToValueMap )
     {
         if ( StringUtils.isEmpty( input ) )
         {
-            return "";
+            return StringUtils.EMPTY;
         }
 
-        return replaceWithValues( input, expressionToValueMap );
-    }
-
-    private static String replaceWithValues( String input, final Map<String, String> expressionToValueMap )
-    {
         return Stream.of( ExpressionType.values() )
             .map( ExpressionType::getExpressionPattern )
             .reduce(
@@ -224,6 +250,7 @@ public abstract class BaseNotificationMessageRenderer<T>
                     {
                         String key = matcher.group( 1 );
                         String value = expressionToValueMap.getOrDefault( key, MISSING_VALUE_REPLACEMENT );
+                        value = StringUtils.defaultIfBlank( value, StringUtils.EMPTY );
 
                         matcher.appendReplacement( sb, value );
                     }

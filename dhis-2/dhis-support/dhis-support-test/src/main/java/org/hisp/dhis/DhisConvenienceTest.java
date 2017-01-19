@@ -1,7 +1,7 @@
 package org.hisp.dhis;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -114,6 +114,7 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.validation.ValidationCriteria;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
+import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.joda.time.DateTime;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
@@ -1681,6 +1682,18 @@ public abstract class DhisConvenienceTest
             days,
             null
         );
+    }
+
+    protected static ValidationNotificationTemplate createValidationNotificationTemplate( String name )
+    {
+        ValidationNotificationTemplate template = new ValidationNotificationTemplate();
+
+        template.setName( name );
+        template.setSubjectTemplate( "Subject" );
+        template.setMessageTemplate( "Message" );
+        template.setNotifyUsersInHierarchyOnly( false );
+
+        return template;
     }
 
     // -------------------------------------------------------------------------

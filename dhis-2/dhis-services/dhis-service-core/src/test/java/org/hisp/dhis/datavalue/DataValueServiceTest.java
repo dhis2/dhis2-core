@@ -31,6 +31,7 @@ package org.hisp.dhis.datavalue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+
 import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
@@ -48,7 +49,6 @@ import com.google.common.collect.Sets;
 
 /**
  * @author Kristian Nordal
- * @version $Id: DataValueServiceTest.java 5715 2008-09-17 14:05:28Z larshelg $
  */
 public class DataValueServiceTest
     extends DhisSpringTest
@@ -319,5 +319,19 @@ public class DataValueServiceTest
 
         assertEquals( 1, dataValueService.getDataValues( Sets.newHashSet( dataElementA ), Sets.newHashSet( periodA ), Sets.newHashSet( sourceB ) ).size() );
         assertEquals( dataValueB, dataValueService.getDataValues( Sets.newHashSet( dataElementA ), Sets.newHashSet( periodA ), Sets.newHashSet( sourceB ) ).iterator().next() );        
+    }
+    
+    @Test
+    public void testGetDataValueCountLastUpdatedBetween()
+    {
+        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo );
+        dataValueA.setValue( "1" );
+        DataValue dataValueB = new DataValue( dataElementA, periodA, sourceB, optionCombo, optionCombo );
+        dataValueB.setValue( "2" );
+        
+        dataValueService.addDataValue( dataValueA );
+        dataValueService.addDataValue( dataValueB );
+        
+        assertEquals( 2, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null ) );
     }
 }

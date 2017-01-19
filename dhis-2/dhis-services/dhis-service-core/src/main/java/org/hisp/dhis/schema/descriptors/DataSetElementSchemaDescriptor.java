@@ -1,8 +1,8 @@
 package org.hisp.dhis.schema.descriptors;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
- *  All rights reserved.
+ * Copyright (c) 2004-2017, University of Oslo
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -51,7 +51,7 @@ public class DataSetElementSchemaDescriptor implements SchemaDescriptor
     {
         Schema schema = new Schema( DataSetElement.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1350 );
+        schema.setMetadata( false );
 
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE,
             Lists.newArrayList( "F_DATASET_PUBLIC_ADD", "F_DATASET_PRIVATE_ADD" ) ) );

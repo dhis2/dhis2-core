@@ -36,6 +36,8 @@ function showProgramIndicatorDetails( context ) {
     setInnerHTML('idField', json.programIndicator.uid);
     setInnerHTML('programIndicatorAnalayticsTypeField', json.programIndicator.programIndicatorAnalayticsType);
     
+    programIndicatorAnalyticsTypeChanged();
+        
     showDetails();
   });
 }
@@ -160,28 +162,26 @@ function getExpressionDescription( type ) {
 	}
 }
 
-function programIndicatorOnChange() {
-  var valueType = getFieldValue('valueType');
-  if( valueType == 'int' ) {
-    hideById('rootDateTR');
-    disable('rootDate');
-  }
-  else {
-    showById('rootDateTR');
-    enable('rootDate');
-  }
+function programIndicatorAnalyticsTypeChanged() {
+    var analyticsType = getFieldValue('programIndicatorAnalyticsType');
+    if ('ENROLLMENT' === analyticsType) {
+        $("#event_count_variable").wrap('<span/>');
+    }
+    else {
+        $('#event_count_variable').unwrap();
+    }
 }
 
 function setExpressionCount(type) {
 	$('#aggregationType').val('COUNT');
 	
-	if ('psi' == type) {
+	if ('psi' === type) {
 		$('#expression').val('V{event_count}');
 	}
-	else if ('pi' == type) {
+	else if ('pi' === type) {
 		$('#expression').val('V{enrollment_count}');
 	}
-	else if ('tei' == type) {
+	else if ('tei' === type) {
 		$('#expression').val('V{tei_count}');
 	}
 }

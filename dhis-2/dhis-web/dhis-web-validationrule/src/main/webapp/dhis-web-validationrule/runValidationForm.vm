@@ -49,10 +49,10 @@
     </tr>
     <tr>
     	<td>
-    		<label for="sendAlerts">$i18n.getString( "send_alerts" )</label>
+    		<label for="sendNotifications">$i18n.getString( "send_notifications" )</label>
     	</td>
     	<td>
-    		<input type="checkbox" id="sendAlerts" name="sendAlerts">
+    		<input type="checkbox" id="sendNotifications" name="sendNotifications">
 	    </td>
     </tr>
     <tr>

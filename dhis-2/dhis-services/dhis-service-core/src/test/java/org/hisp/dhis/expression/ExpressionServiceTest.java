@@ -43,6 +43,7 @@ import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.constant.Constant;
@@ -314,10 +315,22 @@ public class ExpressionServiceTest
     public void testGetDimensionalItemObjectsInExpression()
     {
         Set<DimensionalItemObject> items = expressionService.getDimensionalItemObjectsInExpression( expressionI );
-        
+                
         assertEquals( 5, items.size() );
         assertTrue( items.contains( opA ) );
         assertTrue( items.contains( deB ) );
+        assertTrue( items.contains( piA ) );
+    }
+
+    @Test
+    public void testGetDimensionalItemObjectsOfTypeInExpression()
+    {
+        Set<DimensionItemType> itemTypes = Sets.newHashSet( DimensionItemType.DATA_ELEMENT_OPERAND, DimensionItemType.PROGRAM_INDICATOR );
+        
+        Set<DimensionalItemObject> items = expressionService.getDimensionalItemObjectsInExpression( expressionI, itemTypes );
+        
+        assertEquals( 2, items.size() );
+        assertTrue( items.contains( opA ) );
         assertTrue( items.contains( piA ) );
     }
 

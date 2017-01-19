@@ -1,9 +1,7 @@
 package org.hisp.dhis.datavalue.hibernate;
 
-import org.apache.commons.lang3.StringUtils;
-
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,13 +28,14 @@ import org.apache.commons.lang3.StringUtils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang3.StringUtils;
+
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -75,8 +74,6 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 public class HibernateDataValueStore
     implements DataValueStore
 {
-    private static final Log log = LogFactory.getLog( HibernateDataValueStore.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -326,6 +323,11 @@ public class HibernateDataValueStore
         String sourcePrefix = source.getPath();
         Integer sourceId = source.getId();
 
+        if ( periodIdList.size() == 0 )
+        {
+            return result;
+        }
+
         String castType = statementBuilder.getDoubleColumnType();
 
         String sql = "select dataelementid, categoryoptioncomboid, attributeoptioncomboid, periodid, " +
@@ -351,39 +353,51 @@ public class HibernateDataValueStore
 
             if ( value != null )
             {
-                DeflatedDataValue dv = new DeflatedDataValue( dataElementId, periodId, sourceId,
-                    categoryOptionComboId, attributeOptionComboId, value );
+                DeflatedDataValue dv = new DeflatedDataValue( dataElementId, periodId, 
+                    sourceId, categoryOptionComboId, attributeOptionComboId, value );
 
                 result.add( dv );
             }
         }
 
-        log.debug("sumRecursiveDeflatedDataValues: " + result.size() + " results from \"" + sql + "\"");
-
         return result;
     }
 
     @Override
-    public int getDataValueCountLastUpdatedAfter( Date date )
+    public int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate )
     {
+        if ( startDate == null && endDate == null )
+        {
+            throw new IllegalArgumentException( "Start date or end date must be specified" );
+        }
+        
         Criteria criteria = sessionFactory.getCurrentSession()
             .createCriteria( DataValue.class )
-            .add( Restrictions.ge( "lastUpdated", date ) )
             .add( Restrictions.eq( "deleted", false ) )
             .setProjection( Projections.rowCount() );
 
+        if ( startDate != null )
+        {
+            criteria.add( Restrictions.ge( "lastUpdated", startDate ) );
+        }
+        
+        if ( endDate != null )
+        {
+            criteria.add( Restrictions.le( "lastUpdated", endDate ) );
+        }
+        
         Number rs = (Number) criteria.uniqueResult();
 
         return rs != null ? rs.intValue() : 0;
     }
 
     @Override
-    public MapMap<Integer, DataElementOperand, Double> getDataValueMapByAttributeCombo( Collection<DataElement> dataElements, Date date,
+    public MapMap<String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo( Collection<DataElement> dataElements, Date date,
         OrganisationUnit source, Collection<PeriodType> periodTypes, DataElementCategoryOptionCombo attributeCombo,
         Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints,
-        MapMap<Integer, DataElementOperand, Date> lastUpdatedMap )
+        MapMap<String, DataElementOperand, Date> lastUpdatedMap )
     {
-        MapMap<Integer, DataElementOperand, Double> map = new MapMap<>();
+        MapMap<String, DimensionalItemObject, Double> map = new MapMap<>();
 
         if ( dataElements.isEmpty() || periodTypes.isEmpty()
             || ( cogDimensionConstraints != null && cogDimensionConstraints.isEmpty() )
@@ -407,11 +421,12 @@ public class HibernateDataValueStore
         String whereCombo = attributeCombo == null ? StringUtils.EMPTY :
             "and dv.attributeoptioncomboid = " + attributeCombo.getId() + " ";
 
-        String sql = "select de.uid, coc.uid, dv.attributeoptioncomboid, dv.value, dv.lastupdated, p.startdate, p.enddate " +
+        String sql = "select de.uid, coc.uid, aoc.uid, dv.value, dv.lastupdated, p.startdate, p.enddate " +
             "from datavalue dv " +
-            "join dataelement de on dv.dataelementid = de.dataelementid " +
-            "join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
-            "join period p on p.periodid = dv.periodid " + joinCo + joinCog +
+            "inner join dataelement de on dv.dataelementid = de.dataelementid " +
+            "inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
+            "inner join categoryoptioncombo aoc on dv.attributeoptioncomboid = aoc.categoryoptioncomboid " +
+            "inner join period p on p.periodid = dv.periodid " + joinCo + joinCog +
             "where dv.dataelementid in (" + TextUtils.getCommaDelimitedString( getIdentifiers( dataElements ) ) + ") " +
             "and dv.sourceid = " + source.getId() + " " +
             "and p.startdate <= '" + DateUtils.getMediumDateString( date ) + "' " +
@@ -422,13 +437,13 @@ public class HibernateDataValueStore
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
-        MapMap<Integer, DataElementOperand, Long> checkForDuplicates = new MapMap<>();
+        MapMap<String, DataElementOperand, Long> checkForDuplicates = new MapMap<>();
 
         while ( rowSet.next() )
         {
             String dataElement = rowSet.getString( 1 );
             String categoryOptionCombo = rowSet.getString( 2 );
-            Integer attributeOptionComboId = rowSet.getInt( 3 );
+            String attributeOptionCombo = rowSet.getString( 3 );
             Double value = MathUtils.parseDouble( rowSet.getString( 4 ) );
             Date lastUpdated = rowSet.getDate( 5 );
             Date periodStartDate = rowSet.getDate( 6 );
@@ -439,21 +454,21 @@ public class HibernateDataValueStore
             {
                 DataElementOperand dataElementOperand = new DataElementOperand( dataElement, categoryOptionCombo );
 
-                Long existingPeriodInterval = checkForDuplicates.getValue( attributeOptionComboId, dataElementOperand );
+                Long existingPeriodInterval = checkForDuplicates.getValue( attributeOptionCombo, dataElementOperand );
 
                 if ( existingPeriodInterval != null && existingPeriodInterval < periodInterval )
                 {                    
                     continue; // Do not overwrite the previous value if for a shorter interval
                 }
                 
-                map.putEntry( attributeOptionComboId, dataElementOperand, value );
+                map.putEntry( attributeOptionCombo, dataElementOperand, value );
 
                 if ( lastUpdatedMap != null )
                 {
-                    lastUpdatedMap.putEntry( attributeOptionComboId, dataElementOperand, lastUpdated );
+                    lastUpdatedMap.putEntry( attributeOptionCombo, dataElementOperand, lastUpdated );
                 }
 
-                checkForDuplicates.putEntry( attributeOptionComboId, dataElementOperand, periodInterval );
+                checkForDuplicates.putEntry( attributeOptionCombo, dataElementOperand, periodInterval );
             }
         }
 

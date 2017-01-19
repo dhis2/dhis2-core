@@ -1,0 +1,1193 @@
+commit 45ded8bc1d0e1b0a42036d9fe96549e7c2435ea8
+Author: Jan Henrik Overland <janhenrik.overland@gmail.com>
+Date:   Fri Jan 6 13:22:07 2017 +0100
+
+    removed logs
+
+commit 51164ad7e820ad40e7d9c9cdf63edec3f9a42d8d
+Author: Jan Henrik Overland <janhenrik.overland@gmail.com>
+Date:   Fri Jan 6 12:51:56 2017 +0100
+
+    conflict
+
+commit 4c7a621595a93d54cbcf59d333c807ceff2233e0
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Fri Jan 6 12:25:04 2017 +0700
+
+    switched to jsonEncode for ou.name in ouwt
+
+commit cecf382b499b62f33cd1fa1f7f386d7fc8845b47
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Tue Jan 3 19:34:07 2017 +0100
+
+    Category option, removed lazy false mapping
+
+commit 301c20e3f094cd1d63e4fef71865f5f6a0d410d7
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Tue Jan 3 18:31:10 2017 +0100
+
+    Category option combo, introduced equals based on id object (#449)
+    
+    Better performance and avoid lazy load issues.
+    (cherry picked from commit 72bdb498184331cbd87d5cc5d1f0cc401843caa9)
+
+commit a7c656b7c971f10e77de4d9b1d8896da5cd96d79
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Tue Jan 3 16:33:40 2017 +0100
+
+    Revert "Category option, removed lazy false from hibernate mapping"
+    
+    This reverts commit 8997c54815cefacc5fc1dc8eb57f2476a269515a.
+
+commit b1558f8b3f4034640977daf6b53c3ccc749330b6
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Tue Jan 3 16:23:31 2017 +0100
+
+    Using Guava cache
+
+commit 932e6f42e8ab1bd624f54b8f4faad9a228564487
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Wed Dec 28 16:51:43 2016 +0100
+
+    User cache, allow null
+    
+    (cherry picked from commit fd5b849c458ada0def9600bee9cc047ad465450c)
+
+commit d05065294ad67b7767c8d40cd94e151a4a099473
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Wed Dec 28 16:36:38 2016 +0100
+
+    Introduced UserInfo and getCurrentUserInfo
+    
+    (cherry picked from commit 7f5a0a52a69371e3a8051240870858717d1156f2)
+
+commit 8997c54815cefacc5fc1dc8eb57f2476a269515a
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Tue Jan 3 15:44:09 2017 +0100
+
+    Category option, removed lazy false from hibernate mapping
+    
+    (cherry picked from commit 64068565d3e786b8bcccb5bada9e474f71435e77)
+
+commit b4ef5b7a14f19833b419edbb19eea2944c4cfa13
+Author: zubaira <zubair@dhis2.org>
+Date:   Mon Jan 2 19:48:36 2017 +0100
+
+    Significant zero for TEXT type OptionSet
+
+commit a38380bfbc6fae41083bf17352d1de98329b4023
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Mon Jan 2 11:31:05 2017 +0100
+
+    ConfigurationDeletionHandler, proper handling of indicator groups, etc
+    
+    (cherry picked from commit b958641dc875257a320dc70a8e7d4f9b7d89de0e)
+
+commit 54efaf742cba573a46538efbfe0790b612981c46
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Wed Dec 28 18:24:09 2016 +0100
+
+    ConvenienceTest, fixed issue with population of Authentication
+    
+    (cherry picked from commit 1e549c651882a723d1a19c948a9d81f423364625)
+
+commit b60a2e1c0f9c0b5be4461db8c6667a90985bf51a
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Tue Dec 27 16:51:08 2016 +0100
+
+    Data approval, moved lowestApprovalLevel to DataApproval class
+
+commit 3381e9db5ced9fe127798c082553c54f044335c4
+Merge: 81a14c62 b6ffbc25
+Author: Jan Henrik Overland <janhenrik.overland@gmail.com>
+Date:   Tue Dec 27 13:50:55 2016 +0100
+
+    Merge branch '2.24' of github.com:dhis2/dhis2-core into 2.24
+
+commit 81a14c622b6cca3623179399f3f72f9361ceabb2
+Author: Jan Henrik Overland <janhenrik.overland@gmail.com>
+Date:   Tue Dec 27 13:45:38 2016 +0100
+
+    dv url encoding
+
+commit b6ffbc25c5d3b80a573565ce74fee5e5bf0d3645
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Tue Dec 27 13:32:38 2016 +0100
+
+    Data value set import, data set locking, performance improvement
+
+commit 7a746e63a72f3a11ddcf0c4711bec87a5c373f2a
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Tue Dec 27 10:35:25 2016 +0100
+
+    CachingMap, returning cached entry even for null values
+    Improves performance when high cache miss ratio.
+    
+    (cherry picked from commit fefb2b26065ef0f3eb0890c2a84a1f8b9b06f4f5)
+
+commit 836f0777c4915ae0d2c02ad65e19389f92f5be57
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Tue Dec 27 09:16:08 2016 +0100
+
+    Data import, missing parenthesis
+    
+    (cherry picked from commit 309eca5c08425f8998705b3276b4706294250315)
+
+commit 6951477a4514d147f44338922ea18fcb45c3c1a1
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Tue Dec 27 08:16:27 2016 +0100
+
+    CategoryOptionComboNameResourceTable, centralizing latest/earliest date methods
+
+commit ede405182451fef0d1a8353975bf9759b04b1b31
+Author: Jim Grace <jimgrace@users.noreply.github.com>
+Date:   Mon Dec 26 13:48:39 2016 -0500
+
+    DHIS2-428 fix catComboUpdate fail from DataElementOperand FK (#430)
+    
+    (cherry picked from commit a45b399611aa93010dd55ac1064fd70406d8da16)
+
+commit 17ce0b5d6988b19ae4620c5e838f46afbc862626
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Sat Dec 24 16:01:48 2016 +0100
+
+    DV, encoding URLs
+
+commit 459314e692a49b2500b4da78834d077cdf101104
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Wed Dec 21 22:03:31 2016 +0100
+
+    minor fix
+
+commit 3d1751b23fe24e156d939637033b8fb5e827a995
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Wed Dec 21 19:03:14 2016 +0100
+
+    have inviteUser return full object report
+
+commit 24f905d1fe83ad75fdb87fa852493e2b04021d0a
+Author: Bekkalizer <markus.bekken@gmail.com>
+Date:   Wed Dec 21 17:06:07 2016 +0100
+
+    Bugfixes
+
+commit a66137d0b54c720ab0d2769dd262d7fffb9a9162
+Author: zubaira <zubair@dhis2.org>
+Date:   Wed Dec 21 17:01:01 2016 +0100
+
+    bug fix: related to non-functional gateway
+
+commit a47401ebf0f01773fb0f2c00058d100d22920500
+Merge: ef5bb5a0 31c4403d
+Author: Bekkalizer <markus.bekken@gmail.com>
+Date:   Wed Dec 21 00:02:35 2016 +0100
+
+    Merge pull request #414 from dhis2/markus-224-general-error-registration-form
+    
+    Markus 224 general error registration form
+
+commit 31c4403ddb64a36afd730b1d812d4b25247286a7
+Author: Bekkalizer <markus.bekken@gmail.com>
+Date:   Tue Dec 20 22:43:49 2016 +0100
+
+    Support for general errors, errors on complete and warnings on complete in registration form
+
+commit 0f7eabceb4378690d5755deaf3047c61755a3c16
+Author: Bekkalizer <markus.bekken@gmail.com>
+Date:   Tue Dec 20 12:42:16 2016 +0100
+
+    Support for general errors in the TEI registration
+
+commit ef5bb5a087d5d5b44d96cf71b43ca4106ed0f2ab
+Author: Jim Grace <jimgrace@users.noreply.github.com>
+Date:   Mon Dec 19 17:25:35 2016 -0500
+
+    Fix pre-check for AUTH_ADD_MEMBERS_TO_READ_ONLY_USER_GROUPS (#407)
+    
+    (cherry picked from commit 847b8d3324b53952d9e7d24567ae51e78a9c341a)
+
+commit dae55d2c874aa81c989ba5d077bac4dd2a42be4a
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Sun Dec 18 19:12:52 2016 +0700
+
+    protected POST/PUT/DELETE of orgUnitLevels with F_ORGANISATIONUNITLEVEL_UPDATE authority
+
+commit 9f000769f3efdf350af2b49ea5d95efd1710ad8d
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Thu Dec 15 10:36:26 2016 +0700
+
+    UserService methods to accept currentUser, used in UserController to optimize performance for create user (for invites, etc) (#403)
+
+commit 9d9fb0363d9414f8f4e439c847659836b3da4d4c
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Thu Dec 15 09:28:25 2016 +0700
+
+    User invite new importer 224 (#400)
+    
+    * switched to new importer for UserController
+    
+    * minor fix
+
+commit 4134f4ab9cfa40548a59d9fff224577957d88fb6
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Thu Dec 15 09:27:17 2016 +0700
+
+    ignore password check if it matches bcrypt in password validator
+
+commit 0b56c6ebb1a9e068b6136e36a3338dd7b2eb0897
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Wed Dec 14 11:51:01 2016 +0700
+
+    Readable properties 224 (#397)
+    
+    * add Access to @Property, allows overriding visibility of properties.. READ_ONLY, WRITE_ONLY, READ_WRITE
+    
+    * add back required for @Property
+    
+    * minor fix
+    
+    * minor fix #2
+
+commit fe8c4da5a175949c1dc12f2eeffd67f76913dab9
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Wed Dec 14 10:41:41 2016 +0700
+
+    update schemavalidator to also scan usercredentials (#394)
+
+commit acdc17b3ee6b967b95d4bb49ec6f0a7d7af162ff
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Tue Dec 13 12:36:37 2016 +0100
+
+    Geo features API resource, added expiry cache 1 hour private
+    
+    (cherry picked from commit 1cd441296fe938de5fabf89f361ea2c50a252816)
+
+commit e91205e031c5b5b5e1d409cdeb1031c217fee186
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Tue Dec 13 12:49:18 2016 +0100
+
+    ExcludableShallowEtagHeaderFilter, using find() instead of matches() for more flexible matching
+    
+    (cherry picked from commit 7efd3b08ee9e19223c911564c7ef6da7c3d047be)
+
+commit 29b1087c2cc93810eb34e926d4da2e0146bc150a
+Author: Jason Pickering <jason.p.pickering@gmail.com>
+Date:   Tue Dec 13 10:42:59 2016 +0100
+
+    Update .travis.yml (#387)
+    
+    Execute tests with Travis.
+
+commit 783946502bce1ec7832764d728fe0f349abb680f
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Tue Dec 13 15:24:30 2016 +0700
+
+    disable preheat for single invite, and bulk invites less than 20
+
+commit 036452a272a73d711772b7dd3a4fc7f0076c9c18
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Tue Dec 13 15:21:35 2016 +0700
+
+    minor update, give createUser explicit import options
+
+commit 2f06c23fe41f8e629b0806469e9195bcbb6d593a
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Mon Dec 12 15:39:03 2016 +0100
+
+    PreheatService, fixed bug with program indicators not saving in favorites
+    A data dimension item can only contain a reference to a single dimenion item object, so it is simpler and less error prone to invoke getDimensionalItemObject instead of calling every individual getter.
+    
+    (cherry picked from commit cd668804e006b9115b0ec99dcecdf2164bade3f8)
+
+commit e3de8cb6a5e612336a73918a22fbe79fa3bb035a
+Author: Bekkalizer <markus.bekken@gmail.com>
+Date:   Mon Dec 12 15:40:11 2016 +0100
+
+    Bugfix: future date validation
+
+commit ce14f1bd27a4a60a7c7d1aedca886b453d6c615b
+Author: zubaira <zubair@dhis2.org>
+Date:   Mon Dec 12 12:09:31 2016 +0100
+
+    Support dates & comments in DataValueSMS
+
+commit 1d4233c1da54b9e614e139d300a3dd76e7995b80
+Author: vietnguyen <viet@dhis2.org>
+Date:   Sat Dec 10 18:25:11 2016 +0700
+
+    fix bug of missing objectid column in translation table (#380)
+
+commit 0a934384b13d6e1db54c8ff3cef6cb20c20c0662
+Author: abyot <abyota@gmail.com>
+Date:   Wed Dec 7 17:20:24 2016 +0100
+
+    dataentry offline status check every 15 sec
+
+commit 3523cf8320e0fe59975c59112ef6637fa821f312
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Tue Dec 6 13:16:47 2016 +0100
+
+    Approval, loading all data sets without paging
+
+commit a18541795f0a3ee421eff50baa9e9aab90a46b13
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Tue Dec 6 10:35:24 2016 +0100
+
+    Analytics tables, analyze table operation
+    
+    (cherry picked from commit 190ee09fcde7428b06c0950d39067431f791c3ab)
+
+commit 1162c11355c4274ef23adcfe8acdc72695b2ef5a
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Mon Dec 5 13:42:47 2016 +0100
+
+    ?_rev={buildRevision}
+
+commit 5d6787729ed46f2375b6b026b5b3a63697e26fde
+Merge: 707b643d 0531d8be
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Mon Dec 5 13:41:05 2016 +0100
+
+    Merge branch '2.24' of github.com:dhis2/dhis2-core into 2.24
+
+commit 0531d8be284997b54fcac630dc3218dd58bcf1a9
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Fri Dec 2 11:39:38 2016 +0700
+
+    minor bugfix, don't refresh when PATCHING specific properties
+
+commit 707b643da47023c5159d853d9881eb1e4406901b
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Wed Nov 30 18:21:27 2016 +0100
+
+    Data import, option combo id scheme fix
+
+commit 99b9d466084487bae1b33b014e0be0b14e541a77
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Wed Nov 30 16:35:30 2016 +0100
+
+    Analtics tables. Using inner joins for better performance.
+    
+    (cherry picked from commit 254a9a9daf04cc7dac23295a8fdd43445d0a2284)
+
+commit 02e74677c9cbcebbbf418f36c4e7dd0ac80f9ac4
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Mon Nov 28 23:46:41 2016 -0500
+
+    Data value import, added support for categoryOptionComboIdScheme
+
+commit eea04b2c304be5d8a6fe30ab4752ef01f6f4a79a
+Merge: d970a5a9 08c6f04c
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Thu Nov 24 09:35:57 2016 +0700
+
+    Merge pull request #337 from dhis2/importer-coc-fix-224
+    
+    Importer coc fix 224
+
+commit 08c6f04cd59be7a2e3255bd44607636f61d98379
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Thu Nov 24 09:27:37 2016 +0700
+
+    minor testfix
+
+commit fdf2a3cb3ce7b6df40a3bfefa0b8481e4d074023
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Thu Nov 24 09:15:49 2016 +0700
+
+    add COC to list of classes with default
+
+commit d970a5a9ce3ce52141393d87df30d79489db3d7e
+Merge: 8275122a f2045d6c
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Thu Nov 24 08:15:52 2016 +0700
+
+    Merge pull request #334 from dhis2/collection-api-224
+    
+    Collection API optimisations, speed up using IN queries for refs
+
+commit f2045d6c93097d7dcea24e80bf6ef4562c5020f9
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Thu Nov 24 07:41:12 2016 +0700
+
+    use CollectionService in AbstractCrudController
+
+commit bccb46f5c3d0086038c528b939e28ec08d155cbd
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Thu Nov 24 07:20:10 2016 +0700
+
+    move WebMessageUtils to dxf2, adds CollectionService
+
+commit 8275122ae70c33efbaa7b851f5ff3c2c2c42b435
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Wed Nov 23 15:00:40 2016 +0700
+
+    add @ResponseStatus( HttpStatus.NO_CONTENT ) to method which don't return anything in MaintenanceController
+
+commit 57640e240bce336e227bb556f8fb0b66ccd65027
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Fri Nov 18 14:16:40 2016 +0100
+
+    Analytics, code style
+    
+    (cherry picked from commit af7874f65ea22eaa76d9b2543b467b383ee64537)
+
+commit bfd8b973c8bf8477e173ad885808f946fc9ef532
+Author: Stian Sandvold <stian@dhis2.org>
+Date:   Fri Nov 18 14:12:26 2016 +0100
+
+    Hide out of date category options in analytics (#319)
+    
+    ref: https://jira.dhis2.org/browse/DHIS2-85
+    (cherry picked from commit aab4dc3c343be20d662f7023091316ebf8d8908c)
+
+commit f6c9e07f78697657f96119306de182dd5d6fffdf
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Thu Nov 17 16:31:45 2016 +0100
+
+    Analytics, properly supporting sum average operator with filter periods
+
+commit 29f9424e3fcc782e005893779da4d0bbf04d50f4
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Thu Nov 17 15:06:43 2016 +0100
+
+    Analytics, added javadoc
+    
+    (cherry picked from commit 97ac47cfc45a5ebde09e3c8e684e41d0ed1882af)
+
+commit f99200e119ba346d7d37ffac7e924a87066eb289
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Wed Nov 16 11:32:36 2016 +0100
+
+    Added missing call to getScheme in IdSchemes
+    
+    (cherry picked from commit dd0f43db54a527af1ab4b14e85cbe6f912f01082)
+
+commit d4a9806950317f35e54cb23f7bc8916391d8373e
+Merge: 88a44149 37d6e1f4
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Wed Nov 16 13:12:12 2016 +0700
+
+    Merge pull request #305 from dhis2/legacy-importer-user-role-fix-224
+    
+    validate user role / user group in legacy dxf2 importer
+
+commit 37d6e1f42864587f37237c595b3555f20f2e6d0a
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Wed Nov 16 13:00:30 2016 +0700
+
+    validate user role / user group in legacy dxf2 importer
+
+commit 88a44149709909e3535bfaaca7f6f2d89ced6d01
+Merge: 93d868fe 1cb8264c
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Wed Nov 16 12:15:04 2016 +0700
+
+    Merge pull request #303 from dhis2/importer-expression-fixed-224
+    
+    manually attach data elements for expressions in importer hook
+
+commit 1cb8264cbfa88a1707ed77e81e7edd03613abb07
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Wed Nov 16 12:02:17 2016 +0700
+
+    manually attach data elements for expressions in importer hook
+
+commit 93d868feae87c5c548839a018599bf8d4166ae75
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Tue Nov 15 13:47:32 2016 +0100
+
+    Security, controlling access to web apps based on see app authorities
+
+commit 8e78b568aa13c9415100d65c74a2f2d2f0119cfd
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Tue Nov 15 12:20:01 2016 +0100
+
+    IdSchemes, allowed for overriding general id scheme with object specific schemes
+    This makes it possible to e.g. specify a general id scheme = CODE and override the id scheme for organisation units specifically with UID. Allows for more flexibility than the current behavior where the general id schemes trumps everything.
+    
+    (cherry picked from commit 89e26367f5c668a0f6d2f319e5b453cc4661f5a2)
+
+commit 69aa25dc856707cac25d57a682db0d55a8e282e2
+Merge: 63478937 00cb4d2d
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Tue Nov 15 11:02:05 2016 +0100
+
+    Merge branch '2.24' of github.com:dhis2/dhis2-core into 2.24
+
+commit 6347893753c484ab728ec695b3d3b181b8a4c49e
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Tue Nov 15 11:00:10 2016 +0100
+
+    ADX import, binding hibernate session to AdxPipedImporter
+    
+    (cherry picked from commit 48b6b8eab81e25392ce847fe4e27a8f1518009c6)
+
+commit 00cb4d2d9e7942e28688748ebe0a6c06e883d2fb
+Merge: a1fbf8aa 1dc1f9f8
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Tue Nov 15 13:40:06 2016 +0700
+
+    validate users grant userRole/userGroup for dxf2 importer (#300)
+
+commit 1dc1f9f829a558825e6b304b72c6259ff0627e02
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Tue Nov 15 13:12:41 2016 +0700
+
+    validate users grant userRole/userGroup for dxf2 importer
+
+commit a1fbf8aaba6e077986ddb985e133c19833a0db53
+Merge: 37211f2e ae7b7200
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Mon Nov 14 18:36:09 2016 +0100
+
+    Merge branch '2.24' of github.com:dhis2/dhis2-core into 2.24
+
+commit 37211f2e9d95ab029371398a43ea4eea356c4363
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Mon Nov 14 18:22:23 2016 +0100
+
+    Data value controller, checking if value part of data element option set
+    
+    (cherry picked from commit 4b276c0e676561676476e444c3cfb3977f5b2cb3)
+
+commit ae7b7200a3f3101a365036e6639da58c3ae98dc9
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Fri Nov 11 12:47:02 2016 +0700
+
+    minor adjustment to PATCH, don't refresh object references
+
+commit c6413ad1c4116a83e67a95847eac3b9322d0c6a6
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Wed Nov 9 23:38:18 2016 +0000
+
+    Added criteria support to SQL views of type query
+
+commit 753573226342f554fe04a571003bd1db8296427e
+Author: Jim Grace <jimgrace@gmail.com>
+Date:   Mon Nov 7 15:45:32 2016 -0500
+
+    Validation rule exclusive pair fixes
+
+commit de39c6a4cbd45230c7a6e521166676f131d10bbb
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Mon Nov 7 14:27:17 2016 +0700
+
+    various fixes to AnalyticalObjectHook, needs manual handling of most types.. so using preheat to manually fetch object based on identifiers
+
+commit 21948a17d6e734d576dfbc5e1489e45e044408e1
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Mon Nov 7 10:52:42 2016 +0700
+
+    skip openFuture period test if calendar is non-iso8601
+
+commit 5092f8a9699879b1632d4eae7235a21d8d0ff763
+Merge: 87b3e7f7 80aaf2e6
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Fri Nov 4 17:51:48 2016 +0100
+
+    Merge branch '2.24' of github.com:dhis2/dhis2-core into 2.24
+
+commit 87b3e7f77e67411a0ba336d430220fbdd8928e0f
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Fri Nov 4 17:51:44 2016 +0100
+
+    Data entry option set bugfix
+
+commit 80aaf2e618060e977c8fac76b8ea8ce02a693edf
+Author: Mark Polak <mark@thedutchies.com>
+Date:   Fri Nov 4 14:28:04 2016 +0100
+
+    Minor header-bar style update for IE11
+
+commit 6a58ba0046a129e36ae047eeb13e6e0270e75e33
+Author: Jan Henrik Overland <janhenrik.overland@gmail.com>
+Date:   Fri Nov 4 11:19:14 2016 +0100
+
+    css
+
+commit 813dac164b27cffe8995f7698b5078df829a3824
+Author: Mark Polak <mark@thedutchies.com>
+Date:   Fri Nov 4 03:06:03 2016 +0100
+
+    Break cache for each api request by header-bar
+    
+    This is not ideal but solves the issue with IE11
+    caching issues. This probably needs better investigation
+    into the caching strategy used.
+
+commit 8fb5e1688433e056f461232a9f9279344de48749
+Author: Jim Grace <jimgrace@gmail.com>
+Date:   Thu Nov 3 07:56:33 2016 -0400
+
+    Expirydays for least restrictive dataset
+
+commit 000643b0e206b6a25d14ccfb28e8cb4f4fc9d9d2
+Author: Jiju K Jose <jijukjose@gmail.com>
+Date:   Thu Nov 3 11:54:56 2016 +0100
+
+    Minor fix
+
+commit d663dcc20777f603cbeecb21dc524213136f904d
+Author: Jiju K Jose <jijukjose@gmail.com>
+Date:   Thu Nov 3 11:32:29 2016 +0100
+
+    Modified formatFromApiToUser function to prevent formatting a date value that is already formatted
+
+commit 8cb3ab4ff34471db46170b1242df7045d0e16b83
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Fri Oct 28 10:26:20 2016 +0700
+
+    adds /me/password endpoint for changing password of current user, send POST/PUT with password and ct text/plain (#267)
+
+commit 3c294e7c9c05794a2e51444d5ad4df5af06835bb
+Author: Mark Polak <mark@thedutchies.com>
+Date:   Thu Oct 27 20:33:55 2016 +0200
+
+    Fire a selection of the data entry events on the data set report
+
+commit eff28837bbc01347af495095695bbca5c831ae2e
+Merge: 0c05a80e a2ef9c77
+Author: Jan Henrik Øverland <janhenrik.overland@gmail.com>
+Date:   Thu Oct 27 14:35:49 2016 +0200
+
+    Merge pull request #262 from dhis2/backport-2.24
+    
+    EV i18n
+
+commit a2ef9c779fe43c80e90b123f6785a3b75655d1c8
+Author: Jan Henrik Overland <jan@dhis2.org>
+Date:   Thu Oct 27 14:07:23 2016 +0200
+
+    EV i18n
+
+commit 0c05a80e58f11ad69c8a448f84db6d95005bd2d5
+Author: zubaira <zubair@dhis2.org>
+Date:   Wed Oct 26 17:43:05 2016 +0200
+
+    Option value instead code in sms alerts
+
+commit ad257857ea257583bbc88c6c3d7dbaf0c376b180
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Fri Oct 21 09:12:32 2016 +0200
+
+    SQL view controller, conflict on execute of query-type SQL views
+    
+    (cherry picked from commit 75769b886251d44320172b7bbcb0c713d20e1325)
+
+commit 037a39f2fb4ee35dd26e0474bf73d6e93863f2ee
+Merge: 7f702bad a7f7b54e
+Author: Bekkalizer <markus.bekken@gmail.com>
+Date:   Wed Oct 19 16:25:14 2016 +0200
+
+    Merge pull request #242 from dhis2/markus-2-24-optionsetcodeattributefix
+    
+    program indicator fix
+
+commit a7f7b54e5316fc4a60f1f9539b69019e422bcfb7
+Author: Bekkalizer <markus.bekken@gmail.com>
+Date:   Wed Oct 19 15:43:01 2016 +0200
+
+    program indicator fix
+    
+    Fix of client evaluation of attribute values for program indicators
+
+commit 7f702badae3d701b864b0938c728f5993fb1ecd0
+Author: vietnguyen <viet@dhis2.org>
+Date:   Mon Oct 17 15:24:10 2016 +0700
+
+    Fix translation bug: saving translation value to ObjectTranslation table in TranslationAction (#235)
+
+commit 9d1eb33511283e51b63ca2bcbe423f34525e6f75
+Author: Halvdan Hoem Grelland <halvdanhg@gmail.com>
+Date:   Thu Oct 13 16:56:43 2016 +0200
+
+    Fix NPE when no feedback recipient user group is set
+    
+    (cherry picked from commit 8f278bd553275d57a2fd59be9186502bf9aeb55d)
+
+commit e2f8d0ecec68d6d7f362bda07e5d0985734a2c4d
+Merge: 5a252857 9222b423
+Author: Bekkalizer <markus.bekken@gmail.com>
+Date:   Tue Oct 11 21:09:02 2016 +0200
+
+    Merge pull request #227 from dhis2/markus-2-24-ruleeffect-fix
+    
+    Null checks
+
+commit 9222b423c943b52bdeb6015d3091b6318eb5697b
+Author: Bekkalizer <markus.bekken@gmail.com>
+Date:   Tue Oct 11 21:07:22 2016 +0200
+
+    Null checks
+
+commit 5a25285744df4321d1a5bfa48a471d84f7ebc608
+Merge: 3375aed8 0cdbbc00
+Author: Bekkalizer <markus.bekken@gmail.com>
+Date:   Tue Oct 11 10:32:13 2016 +0200
+
+    Merge pull request #223 from dhis2/markus-dhis2-core-2-24
+    
+    Fix for competing hide and warning actions
+
+commit 0cdbbc0005af4d29603594de64a17f90917b7ce7
+Author: Bekkalizer <markus.bekken@gmail.com>
+Date:   Tue Oct 11 10:31:36 2016 +0200
+
+    Fix for competing hide and warning actions
+    
+    ...and some cleanup
+
+commit 3375aed8b846def362707c5181fe75d3d4672ee5
+Merge: d248715c 3c52443e
+Author: Bekkalizer <markus.bekken@gmail.com>
+Date:   Tue Oct 11 00:57:23 2016 +0200
+
+    Merge pull request #221 from dhis2/markus-2-24-programruleeditor
+    
+    Minor fix: id-> uid
+
+commit d248715c202981189837a7d6d2242d38b3bb04f5
+Author: Mark Polak <mark@thedutchies.com>
+Date:   Mon Oct 10 17:36:26 2016 +0200
+
+    Improve loading speed of header-bar
+
+commit 3c52443e221193bcbe25e4608a3b51ba286c1cbe
+Author: Bekkalizer <markus.bekken@gmail.com>
+Date:   Mon Oct 10 16:43:07 2016 +0200
+
+    Minor fix: id-> uid
+
+commit 32aec494613bb9c36cb4a37a560358ca81e47fb2
+Author: vietnguyen <viet@dhis2.org>
+Date:   Mon Oct 10 19:56:06 2016 +0700
+
+    Add access authorities check for assignedDataSet API (#215)
+
+commit c27cfc144d5043348aee1d16c48efe8658419db8
+Author: vietnguyen <viet@dhis2.org>
+Date:   Mon Oct 10 19:55:27 2016 +0700
+
+    Fix translations for ProgramStage and ProgramStageSection (#219)
+
+commit 1aa6c9fd64aefac278864c35a92f35f056df5840
+Author: Lars Helge Overland <larshelge@gmail.com>
+Date:   Fri Oct 7 15:20:53 2016 +0200
+
+    Increased analytics max records default to 100k
+    
+    (cherry picked from commit bb1d83037f2bbc760aebac580c8168c6579b0a9b)
+
+commit 704143a6e55959820ba98b0a8e9930a112d502cb
+Author: Lars Helge Overland <larshelge@gmail.com>
+Date:   Wed Oct 5 23:12:03 2016 +0200
+
+    User deletion, fixed bug with deletion of user credentials
+    Users with user roles could not be deleted. User credentials were deleted in the UserDeletionHandler, but there was no guarantee that the associations of UserCredentials had been cleaned up first. Moved UserCredentials cleanup into separate deletion handler, and invoking that explicitly.
+    
+    (cherry picked from commit 6cbbc02f3fb274e81663d0f0c86172e59fa8ba4d)
+
+commit ed52a39bd7590aaa9ae1d837d763f8e62840c7d2
+Author: Lars Helge Overland <larshelge@gmail.com>
+Date:   Wed Oct 5 21:21:53 2016 +0200
+
+    Improved user deletion handling vs dashboad items
+    
+    (cherry picked from commit 0478369c65555b3c1649da240cffea6594d690b0)
+
+commit bd529753828dce115fb42c7603de843e38583793
+Author: Lars Helge Overland <larshelge@gmail.com>
+Date:   Tue Oct 4 19:01:52 2016 +0200
+
+    Data set, added missing properties to mergeWith
+    
+    (cherry picked from commit de2d86d945c6073ad1311ce01818c1e3e5adc022)
+
+commit a95ff400d2c11879f7d03b03cad5ab7d48766841
+Author: vietnguyen <viet@dhis2.org>
+Date:   Tue Oct 4 21:08:17 2016 +0700
+
+    assignedDataSet api: merge from 2.23 (#192)
+    
+    filter categoryOptions based on access to OU
+
+commit ac9e4703ed117709b5f3d7035785e2c6b1fc6630
+Author: Lars Helge Overland <larshelge@gmail.com>
+Date:   Tue Oct 4 13:17:40 2016 +0200
+
+    BaseIdentifiableObject compareTo, using display name on both sides
+
+commit 7322ca2c75cffba59e21f380b78f35eb1fb36d58
+Author: Lars Helge Overland <larshelge@gmail.com>
+Date:   Tue Oct 4 09:53:44 2016 +0200
+
+    Removed unique constraint on data element operand
+
+commit 5517166c212325361d1848ecf1ad1194c3faf5fc
+Author: Lars Helge Overland <larshelge@gmail.com>
+Date:   Fri Sep 30 13:01:33 2016 +0200
+
+    Backport, cat option group sets in analytics reporting rates
+
+commit c60fa353ad39d2cc24facc65b5744854e7c6677b
+Author: Lars Helge Overland <larshelge@gmail.com>
+Date:   Fri Sep 30 12:03:44 2016 +0200
+
+    Including attribute option combo in completeness target table
+    
+    (cherry picked from commit 9bd6bb35b90981c83ac5952056d1f5b9e8af7663)
+
+commit dd739207a07719c93e970fd8a99c9768420bb303
+Author: Lars Helge Overland <larshelge@gmail.com>
+Date:   Fri Sep 30 10:15:11 2016 +0200
+
+    Faster UID generation, using Random
+    
+    (cherry picked from commit ad2d5dea959aff3146d8fe5796cf0b75eb6ee5d8)
+
+commit cf3287a14a5e18b0b48fa331bded2613a25cb72d
+Author: Jan Henrik Overland <janhenrik.overland@gmail.com>
+Date:   Thu Sep 29 12:18:03 2016 +0200
+
+    DV data element selection bug fixed
+
+commit 0098232c81acbb9fdd0e451b96084bfe5f1dcadc
+Author: zubaira <zubair@dhis2.org>
+Date:   Thu Sep 29 11:05:06 2016 +0200
+
+    saving outboundsms after enrollment
+
+commit 1502fe26c3514e0dcdb423302697922cfa66eca1
+Author: Lars Helge Overland <larshelge@gmail.com>
+Date:   Wed Sep 28 16:39:06 2016 +0200
+
+    Async tasks, consistent way of reporting system errors.
+    
+    (cherry picked from commit a3956ef10326362144c8bf0ad1e6019902de8fdb)
+
+commit 56b84c82cac8671786602018ecb5ed127453e21a
+Merge: 4a986988 25a73c7e
+Author: Bekkalizer <markus.bekken@gmail.com>
+Date:   Tue Sep 27 14:40:17 2016 +0200
+
+    Merge pull request #167 from dhis2/markus-2-24-fix-programruleseditor
+    
+    Bugfix: Show tracked entity attribute
+
+commit 25a73c7e8439849f40ed880850f6e56d5da5c982
+Author: Bekkalizer <markus.bekken@gmail.com>
+Date:   Tue Sep 27 14:38:15 2016 +0200
+
+    Bugfix: Show tracked entity attribute
+
+commit 4a986988055953340290a19d06a7f9e9190a6cb2
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Tue Sep 27 10:14:05 2016 +0700
+
+    changed TrackedEntityDataElementDimensionSchemaDescriptor to use proper API paths (#163)
+
+commit 760b6ebd3f26ae9e23187d928e32a55db9ff1598
+Author: Mark Polak <mark@thedutchies.com>
+Date:   Mon Sep 26 22:34:58 2016 +0200
+
+    Ie11 fix (#158)
+    
+    * Add polyfill for IE10/11 (#137)
+    
+    * Adjust headerbar for IE11
+
+commit d62d8e590cad0d07b6372fc0b7282eeb71f26d8c
+Author: Lars Helge Overland <larshelge@gmail.com>
+Date:   Sun Sep 25 21:58:01 2016 +0200
+
+    Maintenance. Corrected wrong SQL query
+    Removed now obsolete statement builder methods.
+    
+    (cherry picked from commit 24c9ddc575186a7bb3210bacd5695118b82ff36c)
+
+commit a75a710112f34bb80d1ee745d4696d800a085601
+Author: Lars Helge Overland <larshelge@gmail.com>
+Date:   Sat Sep 24 17:08:59 2016 +0200
+
+    Fixed bug for deletion of category combos, data sets should be set to default category combo instead of null.
+    
+    (cherry picked from commit 9f3c3ee06748d76c11fb1387ddb9a3b643c6def1)
+
+commit 21416754afd18a15315c02f552e453d04292a3e0
+Merge: d54dbc77 89de7b50
+Author: Lars Helge Overland <larshelge@gmail.com>
+Date:   Sat Sep 24 13:56:57 2016 +0200
+
+    Merge branch '2.24' of github.com:dhis2/dhis2-core into 2.24
+
+commit d54dbc777fe08af0f4bfeccc0a7a3fb404612b17
+Author: Lars Helge Overland <larshelge@gmail.com>
+Date:   Sat Sep 24 13:56:05 2016 +0200
+
+    Event analytics, skip index if no text or long text element.
+    
+    (cherry picked from commit 6ff4d07e635d2bae560cfebdd722ec5e109f362d)
+
+commit 89de7b500a28b0f11343c2da95aecf98cc427bfe
+Author: Jim Grace <jimgrace@users.noreply.github.com>
+Date:   Fri Sep 23 09:04:12 2016 -0400
+
+    Backport: Improve SqlView ProtectedTables security
+
+commit 88b0a620ee2b96173acb6537dd96f7d3cf4ad335
+Author: Jim Grace <jimgrace@users.noreply.github.com>
+Date:   Thu Sep 22 22:42:28 2016 -0400
+
+    Backport Restrict SQL view invalid keywords to whole words
+
+commit 2a97e8353fef8ca360815a4b35867484013c5384
+Author: Lars Helge Øverland <lars@dhis2.org>
+Date:   Fri Sep 16 08:36:20 2016 +0200
+
+    Backport of translations fix. Removed Hibernate filter.
+
+commit f25d31ac50c54ca7a7e6b75582d0dc3305a1d44e
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Tue Sep 20 21:54:19 2016 +0700
+
+    bugfix for single object post/put (#125)
+
+commit bcb3776cf9fec49249e8f86a804b4a0e423c4845
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Tue Sep 20 16:45:29 2016 +0700
+
+    adds support for ImportReportMode to importer (#122)
+
+commit 6573659e443c255a75ca4f799d5f434e7184314d
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Mon Sep 19 18:14:53 2016 +0700
+
+    bugfixes for in-memory (simple) collection filtering (#116)
+
+commit fff20a33d28be73f374c5cf686f624189789f8cf
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Fri Sep 16 16:38:13 2016 +0700
+
+    Make sure IN operator is using itemKlass. InOperator checks for value = collection, and if so iterates over the collection comparing with item collection. (#112)
+
+commit 7d5a247538dc5114b509ae793a603698367e74b4
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Fri Sep 16 11:16:07 2016 +0700
+
+    allow filters with simple collections (#108)
+
+commit 5e615d9df877468e0eb2b250435019e60a43db12
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Fri Sep 16 10:59:22 2016 +0700
+
+    use getUserInfo instead of getUser in UserSettingController, getUser is the creator of the object, while getUserInfo points back to the actual user (#106)
+
+commit 53fddd66ae93a5e715c8da163a3b2d8e3cb4de9d
+Author: Halvdan Hoem Grelland <halvdanhg@gmail.com>
+Date:   Thu Sep 15 14:33:52 2016 +0200
+
+    Fix wrong mapping of non-primitive Boolean field with is*-getter, removed wrong annotation for same field. Caused complete breakdown of jackson in some cases.
+    
+    (cherry picked from commit a93ca0271b5324ddef7b0a3e3a3016d79484a45e)
+
+commit 593a9bcd505bf53587aa63d48d8286230223fff0
+Author: Lars Helge Overland <larshelge@gmail.com>
+Date:   Thu Sep 15 13:36:05 2016 +0200
+
+    UserSettingController. Using @ResponseBody for user settings as map.
+    
+    (cherry picked from commit 54c2863e360374ccc8e13e1a9bfe2273540c2e66)
+
+commit d0d6223056035c0f0da63d7c54379cd69884b55e
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Thu Sep 15 16:43:04 2016 +0700
+
+    in collection-api, PUT now replaces current collection items (#98)
+
+commit e51faf91c205ef2ce5ca07fa9c0b500bec233ee7
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Wed Sep 14 14:38:41 2016 +0700
+
+    in collection-api, allow updating even if inverse side is owner (#91)
+
+commit 310618fa06832da4f50482ab60a74f992a23fd74
+Author: Jason Pickering <jason.p.pickering@gmail.com>
+Date:   Tue Sep 13 13:44:43 2016 +0200
+
+    Adding flag for Equatorial Guinea (#87)
+
+commit f02eb6df543f39d9941fc5415a84910bfdbf8582
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Mon Sep 12 13:28:42 2016 +0700
+
+    htmlEncode() for inputReportParamsForm.vm (#84)
+
+commit 84d0192973b3f1c9c0e6f2cdb38ff0cfd0e40c8d
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Mon Sep 12 11:55:33 2016 +0700
+
+    htmlEncode() links for paging.vm (#77)
+
+commit 63d6cda6149297b0b3c6ea15943d2f04e349814a
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Mon Sep 12 10:58:03 2016 +0700
+
+    return INPUT for invalid parentId in ExpandSubTreeAction (#71)
+
+commit 3449fb401f0a8a8daef76e5e5443a782d989f1f5
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Mon Sep 12 10:25:14 2016 +0700
+
+    check for illegal enums by wrapping in try/catch block (#69)
+
+commit 892c9595a1149ad40f1021a2ca26de8cd41fe3b4
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Mon Sep 12 09:37:39 2016 +0700
+
+    change order of PTEA to 1500
+
+commit f834cb04fa6775389d9292a8096b34c31b15e02c
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Fri Sep 9 15:52:27 2016 +0700
+
+    Update AccountController.java (#55)
+
+commit fec9b0a04d50f64ec24d7c6c3a1358151a0dddf6
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Thu Sep 8 14:11:10 2016 +0700
+
+    split IN queries into 20k batches for PreheatService (#45)
+
+commit 56d59236045df0a7c2170695769668d3a9998586
+Author: Lars Helge Overland <larshelge@gmail.com>
+Date:   Wed Sep 7 23:30:52 2016 +0200
+
+    Attribute service. Nullpointer checks.
+
+commit f5f7619bf14c6634ae0363a84f734e45d621655b
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Wed Sep 7 16:06:03 2016 +0700
+
+    npe fix for attributeservice (#41)
+
+commit 89ebbb06e044a57f8e1c74993587dc1c1727ab44
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Wed Sep 7 13:40:53 2016 +0700
+
+    fixes issues with legacy importer and translations (#40)
+
+commit f7ebb8c25730c1e278ff7cca0c2391020b73f70a
+Author: Lars Helge Overland <larshelge@gmail.com>
+Date:   Tue Sep 6 21:33:32 2016 +0200
+
+    Added build.sh
+
+commit 4cf341b51fc79b9dafeb23d0c0fa9a208a56c880
+Author: Lars Helge Overland <larshelge@gmail.com>
+Date:   Tue Sep 6 19:01:41 2016 +0200
+
+    Hiding notification area
+    
+    (cherry picked from commit 6bfb303201c5b4ac459dbcaef6330afd0bc9a6f7)
+
+commit 74781fd293e977eb48d9a79aab9d10f0c2703833
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Tue Sep 6 11:02:30 2016 +0700
+
+    Check for duplicate IDs in payload, remove duplicate objects if found (follows normal `atomicMode` functionality) (#35) (#36)
+    
+    * added failing test case for cases where same file has duplicate uid
+    
+    * adds new validation check for duplicate IDs in payload, keep first object, then removes the rest (if duplicates are found)
+
+commit be38c6da9dae4b917993429e4ada0a22b860eff2
+Author: Halvdan Hoem Grelland <halvdan@dhis2.org>
+Date:   Fri Sep 2 16:35:37 2016 +0200
+
+    Fix bug with file upload fields and locked data sets in data entry (#25)
+    
+    * Remove locking validation from GET on api/dataSet
+    
+    * Properly handle 'locked' data sets in data entry for file uploads.
+
+commit e97816b3fe35bae5924bcda863bbc5f19f6ae838
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Mon Sep 5 14:07:40 2016 +0700
+
+    Update ObjectBundle.java, remove debug output (#31)
+
+commit 0034d8f2b0227b32c880efd3e7a36f1599fb52b8
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Mon Sep 5 12:36:50 2016 +0700
+
+    attribute.optionSet merge (#29)
+
+commit f468bff133720d95c942d156138966850b7ddcd9
+Author: vietnguyen <viet@dhis2.org>
+Date:   Mon Sep 5 11:20:13 2016 +0700
+
+    ProgramInstance.incidentDate is nullable (#27)
+    
+    ProgramInstance.incidentDate is nullable unless displayIncidentdate is true
+
+commit 7f8fc3992f910085c4f88214ce4e266bdcfd9737
+Author: Lars Helge Overland <larshelge@gmail.com>
+Date:   Fri Sep 2 18:47:44 2016 +0200
+
+    Added Save the children flag.
+
+commit b20effde2db162fbe40b0ac413cc443a3b2e9b2f
+Author: Lars Helge Overland <larshelge@gmail.com>
+Date:   Thu Sep 1 16:15:22 2016 +0200
+
+    Merge branch 'lars-dhis2-core'
+
+commit 34c63094882f444f57ce9684bc6ade4449ba9b3f
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Fri Sep 2 15:08:09 2016 +0700
+
+    support mix of persisted/non-persisted parents
+
+commit ea897042934492816e496cd8677d3045a5a96915
+Merge: 209aaccb e4ef7a73
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Thu Sep 1 09:25:55 2016 +0700
+
+    Merge pull request #16 from mortenoh/2.24
+    
+    set min of dataSet.expiryDays to Double.MIN
+
+commit e4ef7a731d9c085139e0473d940ead8ae24527ad
+Author: Morten Olav Hansen <mortenoh@gmail.com>
+Date:   Thu Sep 1 08:56:14 2016 +0700
+
+    set min of dataSet.expiryDays to Double.MIN
+
+commit 209aaccb292ad076da07c507eac95d9a100c1b1e
+Author: Halvdan Hoem Grelland <halvdan@dhis2.org>
+Date:   Wed Aug 31 13:07:42 2016 +0200
+
+    Merge pull request #9 from dhis2/hotfix-dataentry-form-auth
+    
+    Remove pre-auth check for 'ALL' on api/dataSets/<uid>/form.
+
+commit 0d52b6abbe2397a2d5e229aa75f969cfe6159057
+Author: Lars Helge Overland <larshelge@gmail.com>
+Date:   Wed Aug 31 12:13:15 2016 +0200
+
+    Added gitignore
+
+commit 3f7949444c0e8efc96e7e120aacfeface2513537
+Author: Lars Helge Øverland <larshelge@gmail.com>
+Date:   Wed Aug 31 10:12:58 2016 +0200
+
+    Adjusted timestamps cache in mem value
+
+commit 7adfba57149855ddf79d6cdfe9466795b9840071
+Author: Jason P. Pickering <jason.p.pickering@gmail.com>
+Date:   Wed Aug 31 08:52:35 2016 +0200
+
+    Initial commit of 2.24 branch from bzr rev 23587.
+    
+    For revisions before this please consult https://code.launchpad.net/~dhis2-devs-core/dhis2/2.24

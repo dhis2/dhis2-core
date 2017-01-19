@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,7 @@ import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED;
 
 /**
- * This class manages the analytics table. The analytics table is a denormalized
+ * This class manages the analytics tables. The analytics table is a denormalized
  * table designed for analysis which contains raw data values. It has columns for
  * each organisation unit group set and organisation unit level. Also, columns
  * for dataelementid, periodid, organisationunitid, categoryoptioncomboid, value.
@@ -83,9 +83,15 @@ public class JdbcAnalyticsTableManager
     // -------------------------------------------------------------------------
 
     @Override
+    public AnalyticsTableType getAnalyticsTableType()
+    {
+        return AnalyticsTableType.DATA_VALUE;
+    }
+    
+    @Override
     public Set<String> getExistingDatabaseTables()
     {
-        return partitionManager.getAnalyticsPartitions();
+        return partitionManager.getDataValueAnalyticsPartitions();
     }
     
     @Override
@@ -105,15 +111,7 @@ public class JdbcAnalyticsTableManager
             return "No organisation unit levels exist, not updating aggregate analytics tables";
         }
 
-        log.info( "Approval enabled: " + isApprovalEnabled( null ) );
-
         return null;
-    }
-
-    @Override
-    public String getTableName()
-    {
-        return ANALYTICS_TABLE_NAME;
     }
 
     @Override
@@ -147,11 +145,9 @@ public class JdbcAnalyticsTableManager
             sqlCreate += col.getName() + " " + col.getDataType() + ",";
         }
 
-        sqlCreate += "daysxvalue " + dbl + ", daysno integer not null, value " + dbl + ", textvalue text) ";
+        sqlCreate += "daysxvalue " + dbl + ", daysno integer not null, value " + dbl + ", textvalue text)";
 
-        sqlCreate += statementBuilder.getTableOptions( false );
-
-        log.info( "Creating table: " + tableName + ", columns: " + columns.size() );
+        log.info( String.format( "Creating table: %s, columns: %d", tableName, columns.size() ) );
 
         log.debug( "Create SQL: " + sqlCreate );
 
@@ -472,17 +468,18 @@ public class JdbcAnalyticsTableManager
         boolean setting = systemSettingManager.hideUnapprovedDataInAnalytics();
         boolean levels = !dataApprovalLevelService.getAllDataApprovalLevels().isEmpty();
         Integer maxYears = (Integer) systemSettingManager.getSystemSetting( SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD );
-
+        
+        log.debug( String.format( "Hide approval setting: %b, approval levels exists: %b, max years threshold: %d", setting, levels, maxYears ) );
+        
         if ( table != null )
         {
             boolean periodOverMaxYears = AnalyticsUtils.periodIsOutsideApprovalMaxYears( table.getPeriod(), maxYears );
-
+            
             return setting && levels && !periodOverMaxYears;
         }
         else
         {
             return setting && levels;
         }
-
     }
 }

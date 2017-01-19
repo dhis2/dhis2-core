@@ -1,7 +1,7 @@
 package org.hisp.dhis.resourcetable.jdbc;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -140,7 +140,15 @@ public class JdbcResourceTableStore
         
         jdbcTemplate.execute( resourceTable.getRenameTempTableStatement() );
         
-        log.info( "Swapped resource table, done: " + resourceTable.getTableName() + " in: " + clock.time() );
+        log.info( "Swapped resource table: " + resourceTable.getTableName() );
+
+        // ---------------------------------------------------------------------
+        // Analyze
+        // ---------------------------------------------------------------------
+
+        jdbcTemplate.execute( resourceTable.getAnalyzeTableStatement() );
+        
+        log.info( "Analyzed resource table: " + resourceTable.getTableName() + ", done in: " + clock.time() );
     }
     
     @Override

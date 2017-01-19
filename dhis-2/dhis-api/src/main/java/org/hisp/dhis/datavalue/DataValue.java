@@ -1,7 +1,7 @@
 package org.hisp.dhis.datavalue;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -100,6 +100,7 @@ public class DataValue
     public DataValue()
     {
         this.created = new Date();
+        this.lastUpdated = new Date();
     }
 
     /**
@@ -117,6 +118,7 @@ public class DataValue
         this.categoryOptionCombo = categoryOptionCombo;
         this.attributeOptionCombo = attributeOptionCombo;
         this.created = new Date();
+        this.lastUpdated = new Date();
     }
 
     /**

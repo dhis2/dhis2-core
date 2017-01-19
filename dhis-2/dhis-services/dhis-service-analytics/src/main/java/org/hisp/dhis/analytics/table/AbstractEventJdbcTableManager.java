@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,9 +67,7 @@ public abstract class AbstractEventJdbcTableManager
             sqlCreate += col.getName() + " " + col.getDataType() + ",";
         }
 
-        sqlCreate = removeLast( sqlCreate, 1 ) + ") ";
-
-        sqlCreate += statementBuilder.getTableOptions( false );
+        sqlCreate = removeLast( sqlCreate, 1 ) + ")";
 
         log.info( "Creating table: " + tableName + ", columns: " + columns.size() );
         

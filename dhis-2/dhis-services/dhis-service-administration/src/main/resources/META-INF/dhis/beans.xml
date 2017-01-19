@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd">
 
   <!-- App store -->
 
@@ -64,15 +64,10 @@
   
   <!-- Scheduled tasks -->
   
-  <bean id="resourceTableTask" class="org.hisp.dhis.resourcetable.scheduling.ResourceTableTask" scope="prototype" />
-
-  <bean id="resourceTable15MinTask" class="org.hisp.dhis.resourcetable.scheduling.ResourceTableTask" scope="prototype" />
-
   <bean id="sendScheduledMessageTaskNow" class="org.hisp.dhis.sms.scheduling.SendScheduledMessageTask" scope="prototype">
 		<property name="outboundSmsService" ref="org.hisp.dhis.sms.outbound.OutboundSmsService" />
 		<property name="smsSender" ref="smsMessageSender" />
 		<property name="notifier" ref="notifier" />
 	</bean>
-
 
 </beans>

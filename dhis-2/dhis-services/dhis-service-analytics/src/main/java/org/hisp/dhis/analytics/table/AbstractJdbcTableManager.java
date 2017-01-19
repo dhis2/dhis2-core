@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -145,22 +145,18 @@ public abstract class AbstractJdbcTableManager
 
         Collections.sort( dataYears );
         
-        String baseName = getTableName();
+        String baseName = getAnalyticsTableType().getTableName();
         
         for ( Integer year : dataYears )
         {
             Period period = PartitionUtils.getPeriod( calendar, year );
             
-            tables.add( new AnalyticsTable( baseName, getDimensionColumns( null ), period ) );
+            AnalyticsTable table = new AnalyticsTable( baseName, getDimensionColumns( null ), period );
+            
+            tables.add( table );
         }
 
         return tables;
-    }
-    
-    @Override
-    public String getTempTableName()
-    {
-        return getTableName() + TABLE_TEMP_SUFFIX;
     }
     
     @Override
@@ -249,11 +245,19 @@ public abstract class AbstractJdbcTableManager
     {
         tables.forEach( table -> analyzeTable( table.getTempTableName() ) );
     }
-
+    
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
   
+    /**
+     * Returns the analytics table name.
+     */
+    protected String getTableName()
+    {
+        return getAnalyticsTableType().getTableName();
+    }
+    
     /**
      * Quotes the given column name.
      */
@@ -275,7 +279,7 @@ public abstract class AbstractJdbcTableManager
      */
     private String shortenTableName( String table )
     {
-        table = table.replaceAll( ANALYTICS_TABLE_NAME, "ax" );
+        table = table.replaceAll( getAnalyticsTableType().getTableName(), "ax" );
         table = table.replaceAll( TABLE_TEMP_SUFFIX, StringUtils.EMPTY );
         
         return table;
@@ -351,12 +355,12 @@ public abstract class AbstractJdbcTableManager
      */
     protected void populateAndLog( String sql, String tableName )
     {
-        log.debug( "Populate table: " + tableName + " SQL: " + sql );
+        log.debug( String.format( "Populate table: %s with SQL: ", tableName, sql ) );
 
         Timer timer = new SystemTimer().start();
         
         jdbcTemplate.execute( sql );
         
-        log.info( "Populated table in " + timer.stop().toString() + ": " + tableName );
+        log.info( String.format( "Populated table in %s: %s", timer.stop().toString(), tableName ) );
     }
 }

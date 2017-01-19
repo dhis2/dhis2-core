@@ -1,7 +1,7 @@
-package org.hisp.dhis.validation;
+package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,38 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.commons.filter.Filter;
+import java.util.Set;
 
-public class ValidationResultToAlertFilter
-    implements Filter<ValidationResult>
+import javax.annotation.Nullable;
+
+import org.hisp.dhis.analytics.table.AnalyticsTableType;
+import org.hisp.dhis.scheduling.TaskId;
+
+/**
+ * Interface responsible for generating analytics tables. Will look for and
+ * invoke implementations of interface {@link AnalyticsTableService}.
+ * 
+ * @author Lars Helge Overland
+ */
+public interface AnalyticsTableGenerator
 {
-    @Override
-    public boolean retain( ValidationResult result )
-    {
-        return result != null && result.getValidationRule() != null && result.getValidationRule().hasUserGroupsToAlert();
-    }
+    /**
+     * Generates analytics tables.
+     * 
+     * @param lastYears the number of years relative to now to include,
+     *        can be null.
+     * @param taskId the task identifier, can be null.
+     * @param skipTableTypes indicates the types of analytics tables for 
+     *        which to skip generation.
+     * @param skipResourceTables indicates whether to skip generation of
+     *        resource tables.
+     */
+    void generateTables( @Nullable Integer lastYears, @Nullable TaskId taskId, Set<AnalyticsTableType> skipTableTypes, boolean skipResourceTables );
+    
+    /**
+     * Generates all resource tables.
+     * 
+     * @param taskId the task identifier, can be null.
+     */
+    void generateResourceTables( @Nullable TaskId taskId );
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataadmin.action.scheduling;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,7 +63,6 @@ import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_6AM;
 import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_7AM;
 import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_8AM;
 import static org.hisp.dhis.system.scheduling.Scheduler.CRON_EVERY_15MIN;
-import static org.hisp.dhis.system.scheduling.Scheduler.CRON_EVERY_MIN;
 
 /**
  * @author Lars Helge Overland
@@ -243,6 +242,17 @@ public class ScheduleTasksAction
         this.metadataSyncCron = metadataSyncCron;
     }
 
+    private String dataSyncCron;
+
+    public String getDataSyncCron()
+    {
+        return dataSyncCron;
+    }
+
+    public void setDataSyncCron( String dataSyncCron )
+    {
+        this.dataSyncCron = dataSyncCron;
+    }
     // -------------------------------------------------------------------------
     // Output
     // -------------------------------------------------------------------------
@@ -411,7 +421,8 @@ public class ScheduleTasksAction
 
                 if ( STRATEGY_ENABLED.equals( dataSynchStrategy ) )
                 {
-                    cronKeyMap.putValue( CRON_EVERY_MIN, TASK_DATA_SYNCH );
+                    cronKeyMap.putValue( dataSyncCron, TASK_DATA_SYNCH );
+                    systemSettingManager.saveSystemSetting( SettingKey.DATA_SYNC_CRON, dataSyncCron );
                 }
 
                 if ( STRATEGY_ENABLED.equals( metadataSyncStrategy ) )
@@ -444,7 +455,6 @@ public class ScheduleTasksAction
                 // -------------------------------------------------------------
 
                 schedulingManager.scheduleTasks( cronKeyMap );
-
             }
         }
         else
@@ -497,6 +507,7 @@ public class ScheduleTasksAction
             if ( keys.contains( TASK_DATA_SYNCH ) )
             {
                 dataSynchStrategy = STRATEGY_ENABLED;
+                dataSyncCron = (String) systemSettingManager.getSystemSetting( SettingKey.DATA_SYNC_CRON );
             }
 
             // -------------------------------------------------------------

@@ -1,7 +1,7 @@
-package org.hisp.dhis.validation.notification;
+package org.hisp.dhis.feedback;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,27 +28,10 @@ package org.hisp.dhis.validation.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.notification.NotificationRecipient;
-
 /**
- * @author Halvdan Hoem Grelland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum ValidationNotificationRecipient
-    implements NotificationRecipient
+public enum Status
 {
-    USER_GROUPS( false ),
-    ORGANISATION_UNIT_CONTACT( true );
-
-    private boolean external;
-
-    ValidationNotificationRecipient( boolean external )
-    {
-        this.external = external;
-    }
-
-    @Override
-    public boolean isExternalRecipient()
-    {
-        return external;
-    }
+    OK, WARNING, ERROR
 }

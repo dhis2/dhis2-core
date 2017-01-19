@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -112,7 +112,7 @@ public class AnalyticsController
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
             ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, false, approvalLevel, relativePeriodDate, userOrgUnit, apiVersion );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
     }
 
@@ -147,7 +147,7 @@ public class AnalyticsController
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
             ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, false, approvalLevel, relativePeriodDate, userOrgUnit, apiVersion );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
         GridUtils.toXml( grid, response.getOutputStream() );
     }
@@ -183,7 +183,7 @@ public class AnalyticsController
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
             ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, false, approvalLevel, relativePeriodDate, userOrgUnit, apiVersion );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
         GridUtils.toHtml( grid, response.getWriter() );
     }
@@ -219,7 +219,7 @@ public class AnalyticsController
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
             ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, false, approvalLevel, relativePeriodDate, userOrgUnit, apiVersion );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
         GridUtils.toHtmlCss( grid, response.getWriter() );
     }
@@ -255,7 +255,7 @@ public class AnalyticsController
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
             ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, false, approvalLevel, relativePeriodDate, userOrgUnit, apiVersion );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.csv", true );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.csv", true, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
         GridUtils.toCsv( grid, response.getWriter() );
     }
@@ -291,7 +291,7 @@ public class AnalyticsController
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
             ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, false, approvalLevel, relativePeriodDate, userOrgUnit, apiVersion );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.xls", true );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.xls", true, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
         GridUtils.toXls( grid, response.getOutputStream() );
     }
@@ -328,7 +328,7 @@ public class AnalyticsController
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, null, null, null,
             true, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, apiVersion );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.jrxml", false );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.jrxml", false, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params );
 
         GridUtils.toJrxml( grid, null, response.getWriter() );
@@ -365,7 +365,7 @@ public class AnalyticsController
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
             ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, false, approvalLevel, relativePeriodDate, userOrgUnit, apiVersion );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_TEXT, CacheStrategy.NO_CACHE, "debug.sql", false );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_TEXT, CacheStrategy.NO_CACHE, "debug.sql", false, params.getLatestEndDate() );
         return AnalyticsUtils.getDebugDataSql( params );
     }
 
@@ -397,7 +397,7 @@ public class AnalyticsController
             .withStartDate( startDate )
             .withEndDate( endDate ).build();
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getRawDataValues( params );
     }
 
@@ -425,7 +425,7 @@ public class AnalyticsController
             .withStartDate( startDate )
             .withEndDate( endDate ).build();
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         Grid grid = analyticsService.getRawDataValues( params );
         GridUtils.toCsv( grid, response.getWriter() );
     }
@@ -466,7 +466,7 @@ public class AnalyticsController
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
             ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, duplicatesOnly, approvalLevel, relativePeriodDate, userOrgUnit, apiVersion );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getAggregatedDataValueSet( params );
     }
 
@@ -502,7 +502,7 @@ public class AnalyticsController
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
             ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, duplicatesOnly, approvalLevel, relativePeriodDate, userOrgUnit, apiVersion );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getAggregatedDataValueSet( params );
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,18 +45,39 @@ import java.util.Set;
  */
 public class MetadataExportParams
 {
+    /**
+     * User to use for sharing filtering.
+     */
     private User user;
 
+    /**
+     * If doing full export, this contains the list of classes you want exported.
+     */
     private Set<Class<? extends IdentifiableObject>> classes = new HashSet<>();
 
+    /**
+     * Contains a set of queries that allows for filtered export.
+     */
     private Map<Class<? extends IdentifiableObject>, Query> queries = new HashMap<>();
 
+    /**
+     * Contains a set of field filters that allows the default field filter (:owner) to be overridden.
+     */
     private Map<Class<? extends IdentifiableObject>, List<String>> fields = new HashMap<>();
 
+    /**
+     * Default field filter applied to exports.
+     */
     private List<String> defaultFields = Lists.newArrayList( ":owner" );
 
+    /**
+     * Default object filter to apply to exports (default is no filter)
+     */
     private List<String> defaultFilter = new ArrayList<>();
 
+    /**
+     * Default order to apply to all exports.
+     */
     private List<String> defaultOrder = new ArrayList<>();
 
     public MetadataExportParams()

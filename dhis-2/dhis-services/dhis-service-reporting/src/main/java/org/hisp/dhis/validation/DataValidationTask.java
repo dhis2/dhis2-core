@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,12 @@ package org.hisp.dhis.validation;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -49,17 +55,19 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.system.util.MathUtils.expressionIsTrue;
 import static org.hisp.dhis.system.util.MathUtils.roundSignificant;
 import static org.hisp.dhis.system.util.MathUtils.zeroIfNull;
-import static org.hisp.dhis.validation.ValidationRuleService.MAX_INTERACTIVE_ALERTS;
-import static org.hisp.dhis.validation.ValidationRuleService.MAX_SCHEDULED_ALERTS;
+import static org.hisp.dhis.validation.ValidationService.MAX_INTERACTIVE_ALERTS;
+import static org.hisp.dhis.validation.ValidationService.MAX_SCHEDULED_ALERTS;
 
 /**
  * Runs a validation task on a thread within a multi-threaded validation run.
@@ -71,16 +79,19 @@ import static org.hisp.dhis.validation.ValidationRuleService.MAX_SCHEDULED_ALERT
 public class DataValidationTask
     implements ValidationTask
 {
-    public static final String NAME = "validationTask";
-
     private static final Log log = LogFactory.getLog( DataValidationTask.class );
 
+    public static final String NAME = "validationTask";
+    
     @Autowired
     private ExpressionService expressionService;
 
     @Autowired
     private DataValueService dataValueService;
 
+    @Autowired
+    private AnalyticsService analyticsService;
+    
     @Autowired
     private DataElementCategoryService categoryService;
 
@@ -106,7 +117,7 @@ public class DataValidationTask
         {
             runInternal();
         }
-        catch ( RuntimeException ex )
+        catch ( Exception ex )
         {
             log.error( DebugUtils.getStackTrace( ex ) );
 
@@ -125,36 +136,40 @@ public class DataValidationTask
                 Set<DataElement> sourceDataElements = periodTypeX.getSourceDataElements().get( sourceX.getSource() );
                 
                 Set<ValidationRule> rules = getRulesBySourceAndPeriodType( periodTypeX, sourceDataElements );
-
+                
                 expressionService.explodeValidationRuleExpressions( rules );
 
                 if ( !rules.isEmpty() )
                 {
                     for ( Period period : periodTypeX.getPeriods() )
                     {
-                        MapMap<Integer, DataElementOperand, Date> lastUpdatedMap = new MapMap<>();
+                        MapMap<String, DataElementOperand, Date> lastUpdatedMap = new MapMap<>();
 
-                        MapMap<Integer, DataElementOperand, Double> dataValueMap = getDataValueMap( 
+                        MapMap<String, DimensionalItemObject, Double> dataValueMap = getDataValueMap( 
                             periodTypeX.getDataElements(), sourceDataElements, periodTypeX.getAllowedPeriodTypes(), 
                             period, sourceX.getSource(), lastUpdatedMap );
+                        
+                        MapMap<String, DimensionalItemObject, Double> eventMap = getEventMap( context.getDimensionItems(), period, sourceX.getSource() );
+                        
+                        dataValueMap.putMap( eventMap );
 
                         log.trace( "Source " + sourceX.getSource().getName() + " [" + period.getStartDate() + " - "
                             + period.getEndDate() + "]" + " currentValueMap[" + dataValueMap.size() + "]" );
 
                         for ( ValidationRule rule : rules )
                         {
-                            if ( evaluateValidationCheck( dataValueMap, lastUpdatedMap, rule ) )
+                            if ( evaluateValidationCheck( dataValueMap, lastUpdatedMap, rule ) || !eventMap.isEmpty() )
                             {
-                                Map<Integer, Double> leftSideValues =
+                                Map<String, Double> leftSideValues =
                                     getExpressionValueMap( rule.getLeftSide(), dataValueMap );
 
-                                Map<Integer, Double> rightSideValues =
+                                Map<String, Double> rightSideValues =
                                     getExpressionValueMap( rule.getRightSide(), dataValueMap );
 
-                                Set<Integer> attributeOptionCombos = Sets.newHashSet( leftSideValues.keySet() );
+                                Set<String> attributeOptionCombos = Sets.newHashSet( leftSideValues.keySet() );
                                 attributeOptionCombos.addAll( rightSideValues.keySet() );
 
-                                for ( int optionCombo : attributeOptionCombos )
+                                for ( String optionCombo : attributeOptionCombos )
                                 {
                                     Double leftSide = leftSideValues.get( optionCombo );
                                     Double rightSide = rightSideValues.get( optionCombo );
@@ -271,8 +286,8 @@ public class DataValidationTask
      * @param rule              the rule that may be evaluated
      * @return true if the rule should be evaluated with this data, false if not
      */
-    private boolean evaluateValidationCheck( MapMap<Integer, DataElementOperand, Double> currentValueMapMap,
-        MapMap<Integer, DataElementOperand, Date> lastUpdatedMapMap, ValidationRule rule )
+    private boolean evaluateValidationCheck( MapMap<String, DimensionalItemObject, Double> currentValueMapMap,
+        MapMap<String, DataElementOperand, Date> lastUpdatedMapMap, ValidationRule rule )
     {
         boolean evaluate = true; // Assume true for now
 
@@ -289,7 +304,7 @@ public class DataValidationTask
                     // scheduled run, otherwise return false
                     evaluate = false;
 
-                    for ( Map.Entry<Integer, Map<DataElementOperand, Date>> entry : lastUpdatedMapMap.entrySet() )
+                    for ( Map.Entry<String, Map<DataElementOperand, Date>> entry : lastUpdatedMapMap.entrySet() )
                     {
                         boolean saveCombo = false;
 
@@ -325,12 +340,12 @@ public class DataValidationTask
      * @param valueMap            Map of value maps, by attribute option combo.
      * @return map of values.
      */
-    private Map<Integer, Double> getExpressionValueMap( Expression expression,
-        MapMap<Integer, DataElementOperand, Double> valueMap )
+    private Map<String, Double> getExpressionValueMap( Expression expression,
+        MapMap<String, DimensionalItemObject, Double> valueMap )
     {
-        Map<Integer, Double> expressionValueMap = new HashMap<>();
+        Map<String, Double> expressionValueMap = new HashMap<>();
 
-        for ( Map.Entry<Integer, Map<DataElementOperand, Double>> entry : valueMap.entrySet() )
+        for ( Map.Entry<String, Map<DimensionalItemObject, Double>> entry : valueMap.entrySet() )
         {
             Double value = expressionService.getExpressionValue( expression, entry.getValue(),
                 context.getConstantMap(), null, null );
@@ -356,10 +371,10 @@ public class DataValidationTask
      * @param lastUpdatedMap        map showing when each data values was last updated
      * @return map of attribute option combo to map of values found.
      */
-    private MapMap<Integer, DataElementOperand, Double> getDataValueMap( 
+    private MapMap<String, DimensionalItemObject, Double> getDataValueMap( 
         Set<DataElement> ruleDataElements, Set<DataElement> sourceDataElements,
         Set<PeriodType> allowedPeriodTypes, Period period,
-        OrganisationUnit source, MapMap<Integer, DataElementOperand, Date> lastUpdatedMap )
+        OrganisationUnit source, MapMap<String, DataElementOperand, Date> lastUpdatedMap )
     {
         Set<DataElement> dataElementsToGet = new HashSet<>( ruleDataElements );
         dataElementsToGet.retainAll( sourceDataElements );
@@ -371,5 +386,48 @@ public class DataValidationTask
         return dataValueService.getDataValueMapByAttributeCombo( dataElementsToGet,
             period.getStartDate(), source, allowedPeriodTypes, context.getAttributeCombo(),
             context.getCogDimensionConstraints(), context.getCoDimensionConstraints(), lastUpdatedMap );
+    }
+
+    /**
+     * Returns aggregated event data for the given parameters.
+     * 
+     * @param dimensionItems the data dimension items.
+     * @param period the period.
+     * @param organisationUnit the organisation unit.
+     * @return a map mapping of attribute option combo identifier to data element operand
+     *         and value.
+     */
+    private MapMap<String, DimensionalItemObject, Double> getEventMap( Set<DimensionalItemObject> dimensionItems, Period period, OrganisationUnit organisationUnit )
+    {
+        MapMap<String, DimensionalItemObject, Double> map = new MapMap<>();
+        
+        if ( dimensionItems.isEmpty() || period == null || organisationUnit == null )
+        {
+            return map;
+        }
+        
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataDimensionItems( Lists.newArrayList( dimensionItems ) )
+            .withAttributeOptionCombos( Lists.newArrayList() )
+            .withFilterPeriods( Lists.newArrayList( period ) )
+            .withFilterOrganisationUnits( Lists.newArrayList( organisationUnit ) )
+            .build();
+        
+        Grid grid = analyticsService.getAggregatedDataValues( params );
+        
+        int dxInx = grid.getIndexOfHeader( DimensionalObject.DATA_X_DIM_ID );
+        int aoInx = grid.getIndexOfHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID );
+        int vlInx = grid.getWidth() - 1;
+        
+        for ( List<Object> row : grid.getRows() )
+        {
+            String dx = (String) row.get( dxInx );
+            String ao = (String) row.get( aoInx );
+            Double vl = (Double) row.get( vlInx );
+            
+            map.putEntry( ao, new BaseDimensionalItemObject( dx ), vl );            
+        }
+        
+        return map;
     }
 }

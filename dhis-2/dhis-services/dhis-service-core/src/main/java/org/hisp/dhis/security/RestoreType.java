@@ -1,7 +1,7 @@
 package org.hisp.dhis.security;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@ import java.util.Calendar;
 public enum RestoreType
 {
     RECOVER_PASSWORD( Calendar.DAY_OF_MONTH, 2, "restore_message", "email_restore_subject", "restore.action" ),
-    INVITE( Calendar.MONTH, 3, "invite_message", "email_invite_subject", "invite.action" );
+    INVITE( Calendar.DAY_OF_YEAR, 7, "invite_message", "email_invite_subject", "invite.action" );
 
     /**
      * Type of Calendar interval before the restore expires.
@@ -71,7 +71,7 @@ public enum RestoreType
     // -------------------------------------------------------------------------
 
     private RestoreType( int expiryIntervalType, int expiryIntervalCount,
-                 String emailTemplate, String emailSubject, String action )
+        String emailTemplate, String emailSubject, String action )
     {
         this.expiryIntervalType = expiryIntervalType;
         this.expiryIntervalCount = expiryIntervalCount;

@@ -1,9 +1,7 @@
 package org.hisp.dhis.setting;
 
-import com.google.common.collect.ImmutableSet;
-
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +27,8 @@ import com.google.common.collect.ImmutableSet;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import com.google.common.collect.ImmutableSet;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.LocaleUtils;
@@ -80,6 +80,7 @@ public enum SettingKey
     SMS_CONFIG( "keySmsConfigurations", SmsConfiguration.class ),
     CACHE_STRATEGY( "keyCacheStrategy", "CACHE_6AM_TOMORROW", String.class ),
     CACHEABILITY( "keyCacheability", Cacheability.PUBLIC, Cacheability.class ),
+    CACHE_ANALYTICS_DATA_YEAR_THRESHOLD( "keyCacheAnalyticsDataYearThreshold", 0, Integer.class ),
     PHONE_NUMBER_AREA_CODE( "phoneNumberAreaCode" ),
     MULTI_ORGANISATION_UNIT_FORMS( "multiOrganisationUnitForms", Boolean.FALSE, Boolean.class ),
     CONFIGURATION( "keyConfig", Configuration.class ),
@@ -90,7 +91,6 @@ public enum SettingKey
     OPENID_PROVIDER( "keyOpenIdProvider" ),
     OPENID_PROVIDER_LABEL( "keyOpenIdProviderLabel" ),
     CAN_GRANT_OWN_USER_AUTHORITY_GROUPS( "keyCanGrantOwnUserAuthorityGroups", Boolean.FALSE, Boolean.class ),
-    HIDE_UNAPPROVED_DATA_IN_ANALYTICS( "keyHideUnapprovedDataInAnalytics", Boolean.FALSE, Boolean.class ),
     IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD( "keyIgnoreAnalyticsApprovalYearThreshold", 0, Integer.class ),
     ANALYTICS_MAX_LIMIT( "keyAnalyticsMaxLimit", 100000, Integer.class ),
     RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT( "keyRespectMetaDataStartEndDatesInAnalyticsTableExport", Boolean.FALSE, Boolean.class ),
@@ -139,6 +139,7 @@ public enum SettingKey
     METADATA_FAILED_VERSION( "keyMetadataFailedVersion", String.class ),
     METADATA_LAST_FAILED_TIME( "keyMetadataLastFailedTime", Date.class ),
     METADATA_SYNC_CRON( "metaDataSyncCron", String.class ),
+    DATA_SYNC_CRON( "dataSyncCron", String.class ),
     LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS( "keyLastSuccessfulScheduledProgramNotifications", Date.class ),
     REMOTE_METADATA_VERSION( "keyRemoteMetadataVersion", String.class ),
     SYSTEM_METADATA_VERSION( "keySystemMetadataVersion", String.class );

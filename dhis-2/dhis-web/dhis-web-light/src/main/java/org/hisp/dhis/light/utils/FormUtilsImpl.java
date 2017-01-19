@@ -1,7 +1,7 @@
 package org.hisp.dhis.light.utils;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,7 @@ import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationRule;
-import org.hisp.dhis.validation.ValidationRuleService;
+import org.hisp.dhis.validation.ValidationService;
 import org.joda.time.DateTime;
 
 import com.google.common.collect.Sets;
@@ -128,11 +128,11 @@ public class FormUtilsImpl
         this.systemSettingManager = systemSettingManager;
     }
 
-    private ValidationRuleService validationRuleService;
+    private ValidationService validationService;
 
-    public void setValidationRuleService( ValidationRuleService validationRuleService )
+    public void setValidationService( ValidationService validationService )
     {
-        this.validationRuleService = validationRuleService;
+        this.validationService = validationService;
     }
 
     private ExpressionService expressionService;
@@ -178,7 +178,7 @@ public class FormUtilsImpl
     @Override
     public List<String> getValidationRuleViolations( OrganisationUnit organisationUnit, DataSet dataSet, Period period )
     {
-        List<ValidationResult> validationRuleResults = new ArrayList<>( validationRuleService.validate(
+        List<ValidationResult> validationRuleResults = new ArrayList<>( validationService.validate(
             dataSet, period, organisationUnit, null ) );
 
         List<String> validationRuleViolations = new ArrayList<>( validationRuleResults.size() );

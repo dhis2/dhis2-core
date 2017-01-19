@@ -1,7 +1,7 @@
 package org.hisp.dhis.datavalue;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@ package org.hisp.dhis.datavalue;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
@@ -158,6 +159,7 @@ public class DefaultDataValueService
         }
 
         dataValue.setCreated( new Date() );
+        dataValue.setLastUpdated( new Date() );
 
         // ---------------------------------------------------------------------
         // Check and restore soft deleted value
@@ -190,6 +192,8 @@ public class DefaultDataValueService
         }
         else if ( dataValueIsValid( dataValue.getValue(), dataValue.getDataElement() ) == null )
         {
+            dataValue.setLastUpdated( new Date() );
+            
             DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(), dataValue.getStoredBy(), AuditType.UPDATE );
 
             dataValueAuditService.addDataValueAudit( dataValueAudit );
@@ -210,6 +214,7 @@ public class DefaultDataValueService
             fileResourceService.deleteFileResource( dataValue.getValue() );
         }
 
+        dataValue.setLastUpdated( new Date() );
         dataValue.setDeleted( true );
         
         dataValueStore.updateDataValue( dataValue );
@@ -385,20 +390,26 @@ public class DefaultDataValueService
         Calendar cal = PeriodType.createCalendarInstance();
         cal.add( Calendar.DAY_OF_YEAR, (days * -1) );
 
-        return dataValueStore.getDataValueCountLastUpdatedAfter( cal.getTime() );
+        return dataValueStore.getDataValueCountLastUpdatedBetween( cal.getTime(), null );
     }
 
     @Override
     public int getDataValueCountLastUpdatedAfter( Date date )
     {
-        return dataValueStore.getDataValueCountLastUpdatedAfter( date );
+        return dataValueStore.getDataValueCountLastUpdatedBetween( date, null );
     }
 
     @Override
-    public MapMap<Integer, DataElementOperand, Double> getDataValueMapByAttributeCombo( Collection<DataElement> dataElements, Date date,
+    public int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate )
+    {
+        return dataValueStore.getDataValueCountLastUpdatedBetween( startDate, endDate );
+    }
+
+    @Override
+    public MapMap<String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo( Collection<DataElement> dataElements, Date date,
         OrganisationUnit source, Collection<PeriodType> periodTypes, DataElementCategoryOptionCombo attributeCombo,
         Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints,
-        MapMap<Integer, DataElementOperand, Date> lastUpdatedMap )
+        MapMap<String, DataElementOperand, Date> lastUpdatedMap )
     {
         return dataValueStore.getDataValueMapByAttributeCombo( dataElements, date, source, periodTypes, attributeCombo,
             cogDimensionConstraints, coDimensionConstraints, lastUpdatedMap );

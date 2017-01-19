@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
+import org.hisp.dhis.analytics.table.AnalyticsTableType;
+
 /**
  * Manager for the analytics database tables.
  * 
@@ -43,12 +45,11 @@ import java.util.concurrent.Future;
 public interface AnalyticsTableManager
 {
     public static final String TABLE_TEMP_SUFFIX = "_temp";
-    public static final String ANALYTICS_TABLE_NAME = "analytics";
-    public static final String COMPLETENESS_TABLE_NAME = "analytics_completeness";
-    public static final String COMPLETENESS_TARGET_TABLE_NAME = "analytics_completenesstarget";
-    public static final String ORGUNIT_TARGET_TABLE_NAME = "analytics_orgunittarget";
-    public static final String EVENT_ANALYTICS_TABLE_NAME = "analytics_event";
-    public static final String ENROLLMENT_ANALYTICS_TABLE_NAME = "analytics_enrollment";
+    
+    /**
+     * Returns the type of analytics table which this manager handles.
+     */
+    AnalyticsTableType getAnalyticsTableType();
     
     /**
      * Returns a list of generated analytics tables for yearly partitions.
@@ -68,16 +69,6 @@ public interface AnalyticsTableManager
      * Returns null if valid, a descriptive string if invalid.
      */
     String validState();
-    
-    /**
-     * Returns the base table name.
-     */
-    String getTableName();
-    
-    /**
-     * Returns the temporary table name.
-     */
-    String getTempTableName();
     
     /**
      * Performs work before tables are being created.

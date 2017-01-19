@@ -1,7 +1,7 @@
 package org.hisp.dhis.expression;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.expression;
  */
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.dataelement.DataElement;
@@ -288,6 +289,16 @@ public interface ExpressionService
      * @return a set of dimensional item objects.
      */
     Set<DimensionalItemObject> getDimensionalItemObjectsInExpression( String expression );
+
+    /**
+     * Returns all dimensional item objects of the given dimension item types  which 
+     * are present in the given expression.
+     *
+     * @param expression the expression.
+     * @param dimensionItemTypes the dimension item types.
+     * @return a set of dimensional item objects.
+     */
+    Set<DimensionalItemObject> getDimensionalItemObjectsInExpression( String expression, Set<DimensionItemType> dimensionItemTypes );
 
     /**
      * Returns all dimensional item objects which are present in numerator and

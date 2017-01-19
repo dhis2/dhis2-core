@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -180,22 +180,6 @@ public class ValidationRule
     public String getDescriptionNameFallback()
     {
         return description != null && !description.trim().isEmpty() ? description : name;
-    }
-
-    /**
-     * Indicates whether this validation rule has user groups to alert.
-     */
-    public boolean hasUserGroupsToAlert()
-    {
-        for ( ValidationRuleGroup group : groups )
-        {
-            if ( group.hasUserGroupsToAlert() )
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**

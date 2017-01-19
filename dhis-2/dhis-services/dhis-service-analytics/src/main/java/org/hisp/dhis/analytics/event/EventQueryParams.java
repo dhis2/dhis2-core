@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,10 +68,20 @@ import com.google.common.collect.ImmutableMap;
 
 /**
  * Class representing query parameters for retrieving event data from the
- * event analytics service.
+ * event analytics service. Example instantiation:
+ * 
+ * <pre>
+ * {@code
+ * EventQueryParams params = new EventQueryParams.Builder()
+ *      .addItem( qiA )
+ *      .addItemFilter( qiB )
+ *      .withOrganisationUnits( ouA, ouB )
+ *      .build();
+ * }
+ * </pre>
  * 
  * @author Lars Helge Overland
- */
+ */ 
 public class EventQueryParams
     extends DataQueryParams
 {

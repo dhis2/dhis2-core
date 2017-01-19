@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.utils;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,10 +49,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.apache.commons.lang3.StringUtils.trimToNull;
@@ -97,6 +94,22 @@ public class ContextUtils
     public void configureResponse( HttpServletResponse response, String contentType, CacheStrategy cacheStrategy )
     {
         configureResponse( response, contentType, cacheStrategy, null, false );
+    }
+
+    public void configureAnalyticsResponse( HttpServletResponse response, String contentType, CacheStrategy cacheStrategy, String filename, boolean attachment, Date latestEndDate )
+    {
+        int cacheThreshold = (int) systemSettingManager.getSystemSetting( SettingKey.CACHE_ANALYTICS_DATA_YEAR_THRESHOLD );
+        Calendar threshold = Calendar.getInstance();
+        threshold.add( Calendar.YEAR, cacheThreshold * -1 );
+
+        if ( latestEndDate != null && cacheThreshold > 0 && threshold.getTime().before( latestEndDate ) )
+        {
+            configureResponse( response, contentType, CacheStrategy.NO_CACHE, filename, attachment );
+        }
+        else
+        {
+            configureResponse( response, contentType, cacheStrategy, filename, attachment );
+        }
     }
 
     public void configureResponse( HttpServletResponse response, String contentType, CacheStrategy cacheStrategy,

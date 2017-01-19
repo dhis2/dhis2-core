@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -437,7 +437,6 @@ public class DefaultMetadataExportService implements MetadataExportService
     private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleDataSetElement( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, DataSetElement dataSetElement )
     {
         if ( dataSetElement == null ) return metadata;
-        metadata.putValue( DataSetElement.class, dataSetElement );
 
         handleDataElement( metadata, dataSetElement.getDataElement() );
         handleCategoryCombo( metadata, dataSetElement.getCategoryCombo() );

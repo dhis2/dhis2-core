@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:aop="http://www.springframework.org/schema/aop"
-  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
-    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.2.xsd">
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd">
 
-
+  <!-- PushAnalysis -->
 
   <bean id="org.hisp.dhis.pushanalysis.PushAnalysisService" class="org.hisp.dhis.pushanalysis.DefaultPushAnalysisService">
     <property name="pushAnalysisStore" ref="org.hisp.dhis.pushanalysis.PushAnalysisStore" />
@@ -147,6 +147,14 @@
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
   </bean>
+  
+  <!-- Validation -->
+
+  <bean id="org.hisp.dhis.validation.ValidationService" class="org.hisp.dhis.validation.DefaultValidationService" />
+
+  <bean id="validationTask" class="org.hisp.dhis.validation.DataValidationTask" scope="prototype" />
+
+  <bean id="monitoringLastDayTask" class="org.hisp.dhis.validation.scheduling.MonitoringTask" scope="prototype" />
 
   <!-- Scheduling -->
 

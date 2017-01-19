@@ -1,7 +1,7 @@
 package org.hisp.dhis.datavalue;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -216,6 +217,17 @@ public interface DataValueService
     int getDataValueCountLastUpdatedAfter( Date date );
 
     /**
+     * Gets the number of DataValues which have been updated between the given 
+     * start and end date. The <pre>startDate</pre> and <pre>endDate</pre> parameters
+     * can both be null but one must be defined.
+     * 
+     * @param startDate the start date to compare against data value last updated.
+     * @param endDate the end date to compare against data value last updated.
+     * @return the number of DataValues.
+     */
+    int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate );
+
+    /**
      * Returns a map of values for each attribute option combo found.
      * <p>
      * In the (unlikely) event that the same dataElement/optionCombo is found in
@@ -228,10 +240,10 @@ public interface DataValueService
      * @param periodTypes allowable period types in which to find the data
      * @param attributeCombo the attribute combo to check (if restricted)
      * @param lastUpdatedMap map in which to return the lastUpdated date for each value
-     * @return map of values by attribute option combo id, then DataElementOperand
+     * @return map of values by attribute option combo UID, then DataElementOperand
      */
-    MapMap<Integer, DataElementOperand, Double> getDataValueMapByAttributeCombo( Collection<DataElement> dataElements, Date date,
+    MapMap<String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo( Collection<DataElement> dataElements, Date date,
         OrganisationUnit source, Collection<PeriodType> periodTypes, DataElementCategoryOptionCombo attributeCombo,
         Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints,
-        MapMap<Integer, DataElementOperand, Date> lastUpdatedMap );
+        MapMap<String, DataElementOperand, Date> lastUpdatedMap );
 }

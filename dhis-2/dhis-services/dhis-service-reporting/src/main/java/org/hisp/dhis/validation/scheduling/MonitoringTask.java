@@ -1,7 +1,7 @@
-package org.hisp.dhis.reporting.datamart.action;
+package org.hisp.dhis.validation.scheduling;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,66 +28,71 @@ package org.hisp.dhis.reporting.datamart.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.table.scheduling.AnalyticsTableTask;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.scheduling.Scheduler;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 
-import com.opensymphony.xwork2.Action;
+import java.util.Date;
+
+import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.validation.ValidationService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
+ * @author Jim Grace
  */
-public class StartExportAction
-    implements Action
+public class MonitoringTask
+    implements Runnable
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    @Autowired
+    private ValidationService validationService;
 
-    private CurrentUserService currentUserService;
-    
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
-
-    private Scheduler scheduler;
-    
-    public void setScheduler( Scheduler scheduler )
-    {
-        this.scheduler = scheduler;
-    }
-
-    private AnalyticsTableTask analyticsTableTask;
-    
-    public void setAnalyticsTableTask( AnalyticsTableTask analyticsTableTask )
-    {
-        this.analyticsTableTask = analyticsTableTask;
-    }
-    
     @Autowired
     private Notifier notifier;
 
+    @Autowired
+    private MessageService messageService;
+    
+    @Autowired
+    private SystemSettingManager systemSettingManager;
+
+    private TaskId taskId;
+
+    public void setTaskId( TaskId taskId )
+    {
+        this.taskId = taskId;
+    }
+
     // -------------------------------------------------------------------------
-    // Action implementation
+    // Runnable implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public String execute()
-        throws Exception
+    public void run()
     {
-        TaskId taskId = new TaskId( TaskCategory.ANALYTICSTABLE_UPDATE, currentUserService.getCurrentUser() );
+        final Date startTime = new Date();
         
-        notifier.clear( taskId );
+        notifier.clear( taskId ).notify( taskId, "Monitoring data" );
         
-        analyticsTableTask.setTaskId( taskId );
+        try
+        {
+            validationService.scheduledRun();
+            
+            notifier.notify( taskId, INFO, "Monitoring process done", true );
+        }
+        catch ( RuntimeException ex )
+        {
+            notifier.notify( taskId, ERROR, "Process failed: " + ex.getMessage(), true );
+            
+            messageService.sendSystemErrorNotification( "Monitoring process failed", ex );
+            
+            throw ex;
+        }
         
-        scheduler.executeTask( analyticsTableTask );
-        
-        return SUCCESS;
+        systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_MONITORING, startTime );
     }
 }

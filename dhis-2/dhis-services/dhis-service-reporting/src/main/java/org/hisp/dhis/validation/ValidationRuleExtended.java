@@ -1,7 +1,7 @@
-package org.hisp.dhis.dxf2.common;
+package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,41 +28,46 @@ package org.hisp.dhis.dxf2.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Set;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import org.hisp.dhis.period.PeriodType;
 
 /**
- * @author Ovidiu Rosu <rosu.ovi@gmail.com>
+ * Holds information for each validation rule that is needed during a validation
+ * run (either interactive or a scheduled run).
+ * 
+ * By computing these values once at the start of a validation run, we avoid the
+ * overhead of having to compute them during the processing of every
+ * organisation unit. For some of these properties this is also important
+ * because they should be copied from Hibernate lazy collections before the
+ * multithreaded part of the run starts, otherwise the threads may not be able
+ * to access these values.
+ * 
+ * @author Jim Grace
  */
-public class FilterOptions
-    extends Options
+public class ValidationRuleExtended
 {
-    private JsonNode restrictionsJson;
+    private ValidationRule rule;
 
-    //--------------------------------------------------------------------------
-    // Constructors
-    //--------------------------------------------------------------------------
+    private Set<PeriodType> allowedPastPeriodTypes;
 
-    public FilterOptions()
+    public ValidationRuleExtended( ValidationRule rule, Set<PeriodType> allowedPastPeriodTypes )
     {
+        this.rule = rule;
+        this.allowedPastPeriodTypes = allowedPastPeriodTypes;
     }
 
-    public FilterOptions( JsonNode restrictionsJson )
+    // -------------------------------------------------------------------------
+    // Set and get methods
+    // -------------------------------------------------------------------------
+
+    public ValidationRule getRule()
     {
-        this.restrictionsJson = restrictionsJson;
+        return rule;
     }
 
-    //--------------------------------------------------------------------------
-    // Getters & Setters
-    //--------------------------------------------------------------------------
-
-    public JsonNode getRestrictionsJson()
+    public Set<PeriodType> getAllowedPastPeriodTypes()
     {
-        return restrictionsJson;
-    }
-
-    public void setRestrictionsJson( JsonNode restrictionsJson )
-    {
-        this.restrictionsJson = restrictionsJson;
+        return allowedPastPeriodTypes;
     }
 }

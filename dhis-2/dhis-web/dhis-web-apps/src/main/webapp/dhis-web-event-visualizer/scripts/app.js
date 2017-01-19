@@ -2688,7 +2688,7 @@ Ext.onReady( function() {
 				dimensions;
 
 			if (ns.app.layout) {
-				favorite = Ext.clone(ns.app.layout);
+				favorite = Object.assign({}, ns.app.layout);
 
 				// server sync
                 favorite.type = chartConf.c2s[favorite.type];
@@ -2711,7 +2711,6 @@ Ext.onReady( function() {
 				favorite.rangeAxisLabel = favorite.rangeAxisTitle;
 				delete favorite.rangeAxisTitle;
 
-				delete favorite.id;
 				delete favorite.parentGraphMap;
                 delete favorite.displayName;
                 delete favorite.access;
@@ -2744,6 +2743,8 @@ Ext.onReady( function() {
 				text: NS.i18n.create,
 				handler: function() {
 					var favorite = getBody();
+
+                    delete favorite.id;
 					favorite.name = nameTextfield.getValue();
 
 					//tmp
@@ -2784,7 +2785,7 @@ Ext.onReady( function() {
 
 					if (id && name) {
 						Ext.Ajax.request({
-							url: ns.core.init.contextPath + '/api/eventCharts/' + id + '.json?fields=' + ns.core.conf.url.analysisFields.join(','),
+							url: encodeURI(ns.core.init.contextPath + '/api/eventCharts/' + id + '.json?fields=' + ns.core.conf.url.analysisFields.join(',')),
 							method: 'GET',
 							failure: function(r) {
 								ns.core.web.mask.show();
@@ -2889,7 +2890,7 @@ Ext.onReady( function() {
 							this.currentValue = this.getValue();
 
 							var value = this.getValue(),
-								url = value ? ns.core.init.contextPath + '/api/eventCharts.json?fields=id,displayName|rename(name),access&filter=displayName:ilike:' + value : null;
+								url = value ? encodeURI(ns.core.init.contextPath + '/api/eventCharts.json?fields=id,displayName|rename(name),access&filter=displayName:ilike:' + value) : null;
 								store = ns.app.stores.eventChart;
 
 							store.page = 1;
@@ -2905,7 +2906,7 @@ Ext.onReady( function() {
 			text: NS.i18n.prev,
 			handler: function() {
 				var value = searchTextfield.getValue(),
-					url = value ? ns.core.init.contextPath + '/api/eventCharts.json?fields=id,displayName|rename(name),access&filter=displayName:ilike:' + value : null;
+					url = value ? encodeURI(ns.core.init.contextPath + '/api/eventCharts.json?fields=id,displayName|rename(name),access&filter=displayName:ilike:' + value) : null;
 					store = ns.app.stores.eventChart;
 
 				store.page = store.page <= 1 ? 1 : store.page - 1;
@@ -2917,7 +2918,7 @@ Ext.onReady( function() {
 			text: NS.i18n.next,
 			handler: function() {
 				var value = searchTextfield.getValue(),
-					url = value ? ns.core.init.contextPath + '/api/eventCharts.json?fields=id,displayName|rename(name),access&filter=displayName:ilike:' + value : null;
+					url = value ? encodeURI(ns.core.init.contextPath + '/api/eventCharts.json?fields=id,displayName|rename(name),access&filter=displayName:ilike:' + value) : null;
 					store = ns.app.stores.eventChart;
 
 				store.page = store.page + 1;
@@ -2930,6 +2931,62 @@ Ext.onReady( function() {
 			width: 300,
 			height: 22
 		});
+
+        var defaultSharing = {
+            externalAccess: false,
+            publicAccess: 'rw------'
+        };
+
+        var getSharing = function(id, callbackFn) {
+            Ext.Ajax.request({
+                url: ns.core.init.contextPath + '/api/sharing?type=eventChart&id=' + id,
+                method: 'GET',
+                failure: function(r) {
+                    ns.app.viewport.mask.hide();
+                    ns.alert(r);
+                },
+                success: function(r) {
+                    var sharing = Ext.decode(r.responseText),
+                        config = {};
+
+                    if (!sharing.object) {
+                        return config;
+                    }
+
+                    if (Ext.isString(sharing.object.publicAccess)) {
+                        config.publicAccess = sharing.object.publicAccess;
+                    }
+
+                    if (Ext.isBoolean(sharing.object.externalAccess)) {
+                        config.externalAccess = sharing.object.externalAccess;
+                    }
+
+                    if (Ext.isArray(sharing.object.userGroupAccesses) && sharing.object.userGroupAccesses.length) {
+                        config.userGroupAccesses = sharing.object.userGroupAccesses;
+                    }
+
+                    if (Ext.isArray(sharing.object.userAccesses) && sharing.object.userAccesses.length) {
+                        config.userAccesses = sharing.object.userAccesses;
+                    }
+
+                    if (callbackFn) {
+                        callbackFn(config);
+                    }
+                }
+            });
+        };
+
+        var overwrite = function(favorite, id) {
+            Ext.Ajax.request({
+                url: ns.core.init.contextPath + '/api/eventCharts/' + id,
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                params: Ext.encode(favorite),
+                success: function(r) {
+                    ns.app.stores.eventChart.loadStore();
+                }
+            });
+        };
 
 		grid = Ext.create('Ext.grid.Panel', {
 			cls: 'ns-grid',
@@ -2993,32 +3050,23 @@ Ext.onReady( function() {
 									message = NS.i18n.overwrite_favorite + '?\n\n' + record.data.name;
 									favorite = getBody();
 
-									if (favorite) {
-										favorite.name = record.data.name;
+									if (!favorite) {
+                                        ns.alert(NS.i18n.please_create_a_table_first);
+                                        return;
+                                    }
 
-										if (confirm(message)) {
-											Ext.Ajax.request({
-												url: ns.core.init.contextPath + '/api/eventCharts/' + record.data.id + '?mergeStrategy=REPLACE',
-												method: 'PUT',
-												headers: {'Content-Type': 'application/json'},
-												params: Ext.encode(favorite),
-												success: function(r) {
-													ns.app.layout.id = record.data.id;
-													ns.app.xLayout.id = record.data.id;
+                                    favorite.name = record.data.name;
 
-													ns.app.layout.name = true;
-													ns.app.xLayout.name = true;
-
-													ns.app.stores.eventChart.loadStore();
-
-													ns.app.shareButton.enable();
-												}
-											});
-										}
-									}
-									else {
-										ns.alert(NS.i18n.please_create_a_table_first);
-									}
+                                    if (confirm(message)) {
+                                        if (favorite.id) {
+                                            getSharing(favorite.id, function(sharing) {
+                                                overwrite(Object.assign(favorite, sharing), record.data.id);
+                                            });
+                                        }
+                                        else {
+                                            overwrite(Object.assign(favorite, defaultSharing), record.data.id);
+                                        }
+                                    }
 								}
 							}
 						},
@@ -3767,7 +3815,7 @@ Ext.onReady( function() {
 			fields: ['id', 'name'],
 			proxy: {
 				type: 'ajax',
-				url: ns.core.init.contextPath + '/api/programs.json?fields=id,' + namePropertyUrl + '&paging=false',
+				url: encodeURI(ns.core.init.contextPath + '/api/programs.json?fields=id,' + namePropertyUrl + '&paging=false'),
 				reader: {
 					type: 'json',
 					root: 'programs'
@@ -3822,7 +3870,7 @@ Ext.onReady( function() {
 			fields: ['id', 'name'],
 			proxy: {
 				type: 'ajax',
-				url: ns.core.init.contextPath + '/api/organisationUnitGroups.json?fields=id,' + ns.core.init.namePropertyUrl + '&paging=false',
+				url: encodeURI(ns.core.init.contextPath + '/api/organisationUnitGroups.json?fields=id,' + ns.core.init.namePropertyUrl + '&paging=false'),
 				reader: {
 					type: 'json',
 					root: 'organisationUnitGroups'
@@ -4039,7 +4087,7 @@ Ext.onReady( function() {
             }
             else {
                 Ext.Ajax.request({
-                    url: ns.core.init.contextPath + '/api/programs.json?filter=id:eq:' + programId + '&fields=programStages[id,displayName|rename(name)],programIndicators[id,' + namePropertyUrl + '],programTrackedEntityAttributes[trackedEntityAttribute[id,' + namePropertyUrl + ',valueType,confidential,optionSet[id,displayName|rename(name)],legendSet[id,displayName|rename(name)]]]&paging=false',
+                    url: encodeURI(ns.core.init.contextPath + '/api/programs.json?filter=id:eq:' + programId + '&fields=programStages[id,displayName|rename(name)],programIndicators[id,' + namePropertyUrl + '],programTrackedEntityAttributes[trackedEntityAttribute[id,' + namePropertyUrl + ',valueType,confidential,optionSet[id,displayName|rename(name)],legendSet[id,displayName|rename(name)]]]&paging=false'),
                     success: function(r) {
                         var program = Ext.decode(r.responseText).programs[0],
                             stages,
@@ -4166,7 +4214,7 @@ Ext.onReady( function() {
             }
             else {
                 Ext.Ajax.request({
-                    url: ns.core.init.contextPath + '/api/programStages.json?filter=id:eq:' + stageId + '&fields=programStageDataElements[dataElement[id,' + namePropertyUrl + ',valueType,optionSet[id,displayName|rename(name)],legendSet|rename(storageLegendSet)[id,displayName|rename(name)]]]',
+                    url: encodeURI(ns.core.init.contextPath + '/api/programStages.json?filter=id:eq:' + stageId + '&fields=programStageDataElements[dataElement[id,' + namePropertyUrl + ',valueType,optionSet[id,displayName|rename(name)],legendSet|rename(storageLegendSet)[id,displayName|rename(name)]]]'),
                     success: function(r) {
                         var objects = Ext.decode(r.responseText).programStages,
                             types = ns.core.conf.valueType.tAggregateTypes,
@@ -5888,7 +5936,7 @@ Ext.onReady( function() {
 					store.isPending = true;
 
 					Ext.Ajax.request({
-						url: ns.core.init.contextPath + '/api' + path,
+						url: encodeURI(ns.core.init.contextPath + '/api' + path),
 						params: {
 							page: store.nextPage,
 							pageSize: 50
@@ -6876,7 +6924,7 @@ Ext.onReady( function() {
 				}
 
 				Ext.Ajax.request({
-					url: init.contextPath + '/api/eventCharts/' + id + '.json?fields=' + conf.url.analysisFields.join(','),
+					url: encodeURI(init.contextPath + '/api/eventCharts/' + id + '.json?fields=' + conf.url.analysisFields.join(',')),
 					failure: function(r) {
 						web.mask.hide(ns.app.centerRegion);
 
@@ -7430,7 +7478,7 @@ Ext.onReady( function() {
 					rowNames = Ext.Array.clean([].concat(rowDimNames, (Ext.Array.contains(rowObjNames, dc) ? co : []))),
 					url = '';
 
-				url += ns.core.init.contextPath + '/api/analytics.' + type + getParamString();
+				url += ns.core.init.contextPath + '/api/25/analytics.' + type + getParamString();
 				url += '&tableLayout=true';
 				url += '&columns=' + columnNames.join(';');
 				url += '&rows=' + rowNames.join(';');
@@ -8186,7 +8234,7 @@ Ext.onReady( function() {
 
                                         // root nodes
                                         requests.push({
-                                            url: contextPath + '/api/organisationUnits.json?userDataViewFallback=true&paging=false&fields=id,' + namePropertyUrl,
+                                            url: encodeURI(contextPath + '/api/organisationUnits.json?userDataViewFallback=true&paging=false&fields=id,' + namePropertyUrl),
                                             success: function(r) {
                                                 init.rootNodes = Ext.decode(r.responseText).organisationUnits || [];
                                                 fn();
@@ -8195,7 +8243,7 @@ Ext.onReady( function() {
 
                                         // organisation unit levels
                                         requests.push({
-                                            url: contextPath + '/api/organisationUnitLevels.json?fields=id,displayName|rename(name),level&paging=false',
+                                            url: encodeURI(contextPath + '/api/organisationUnitLevels.json?fields=id,displayName|rename(name),level&paging=false'),
                                             success: function(r) {
                                                 init.organisationUnitLevels = Ext.decode(r.responseText).organisationUnitLevels || [];
 
@@ -8209,7 +8257,7 @@ Ext.onReady( function() {
 
                                         // user orgunits and children
                                         requests.push({
-                                            url: contextPath + '/api/organisationUnits.json?userOnly=true&fields=id,' + namePropertyUrl + ',children[id,' + namePropertyUrl + ']&paging=false',
+                                            url: encodeURI(contextPath + '/api/organisationUnits.json?userOnly=true&fields=id,' + namePropertyUrl + ',children[id,' + namePropertyUrl + ']&paging=false'),
                                             success: function(r) {
                                                 var organisationUnits = Ext.decode(r.responseText).organisationUnits || [],
                                                     ou = [],
@@ -8240,7 +8288,7 @@ Ext.onReady( function() {
 
                                         // legend sets
                                         requests.push({
-                                            url: contextPath + '/api/legendSets.json?fields=id,displayName|rename(name),legends[id,displayName|rename(name),startValue,endValue,color]&paging=false',
+                                            url: encodeURI(contextPath + '/api/legendSets.json?fields=id,displayName|rename(name),legends[id,displayName|rename(name),startValue,endValue,color]&paging=false'),
                                             success: function(r) {
                                                 init.legendSets = Ext.decode(r.responseText).legendSets || [];
                                                 fn();
@@ -8249,7 +8297,7 @@ Ext.onReady( function() {
 
                                         // dimensions
                                         requests.push({
-                                            url: contextPath + '/api/dimensions.json?fields=id,' + namePropertyUrl + '&filter=dimensionType:eq:ORGANISATION_UNIT_GROUP_SET&paging=false',
+                                            url: encodeURI(contextPath + '/api/dimensions.json?fields=id,' + namePropertyUrl + '&filter=dimensionType:eq:ORGANISATION_UNIT_GROUP_SET&paging=false'),
                                             success: function(r) {
                                                 init.dimensions = Ext.decode(r.responseText).dimensions || [];
                                                 fn();

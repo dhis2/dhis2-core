@@ -1,6 +1,7 @@
-package org.hisp.dhis.dataset.hibernate;
+package org.hisp.dhis.analytics.table;
+
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +28,34 @@ package org.hisp.dhis.dataset.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.dataset.DataInputPeriod;
-import org.hisp.dhis.dataset.DataInputPeriodStore;
+import org.hisp.dhis.analytics.AnalyticsTableManager;
 
 /**
- * @author Stian Sandvold
- */
-public class HibernateDataInputPeriodStore
-    extends HibernateIdentifiableObjectStore<DataInputPeriod>
-    implements DataInputPeriodStore
+* @author Lars Helge Overland
+*/
+public enum AnalyticsTableType
 {
+    DATA_VALUE( "analytics" ),
+    COMPLETENESS( "analytics_completeness" ),
+    COMPLETENESS_TARGET( "analytics_completenesstarget" ),
+    ORG_UNIT_TARGET( "analytics_orgunittarget" ),
+    EVENT( "analytics_event" ),
+    ENROLLMENT( "analytics_enrollment" );
+    
+    private String tableName;
+    
+    private AnalyticsTableType( String tableName )
+    {
+        this.tableName = tableName;
+    }
+
+    public String getTableName()
+    {
+        return tableName;
+    }
+    
+    public String getTempTableName()
+    {
+        return tableName + AnalyticsTableManager.TABLE_TEMP_SUFFIX;
+    }
 }

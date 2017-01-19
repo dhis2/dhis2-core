@@ -30,13 +30,13 @@ package org.hisp.dhis.analytics.data;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DimensionItem;
 import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
+import org.hisp.dhis.analytics.table.AnalyticsTableType;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -51,6 +51,8 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -79,7 +81,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import static org.hisp.dhis.analytics.AnalyticsTableManager.ANALYTICS_TABLE_NAME;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.junit.Assert.*;
@@ -91,6 +92,8 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_P
 public class QueryPlannerTest
     extends DhisSpringTest
 {
+    private static final String ANALYTICS_TABLE_NAME = AnalyticsTableType.DATA_VALUE.getTableName();
+    
     @Autowired
     private QueryPlanner queryPlanner;
 
@@ -146,8 +149,10 @@ public class QueryPlannerTest
     private OrganisationUnit ouC;
     private OrganisationUnit ouD;
     private OrganisationUnit ouE;
-
-    //TODO test for indicators, periods in filter
+    
+    private DataElementGroup degA;
+    
+    private DataElementGroupSet dgsA;
 
     @Override
     public void setUpTest()
@@ -223,6 +228,17 @@ public class QueryPlannerTest
         organisationUnitService.addOrganisationUnit( ouC );
         organisationUnitService.addOrganisationUnit( ouD );
         organisationUnitService.addOrganisationUnit( ouE );
+        
+        degA = createDataElementGroup( 'A' );
+        degA.addDataElement( deA );
+        degA.addDataElement( deB );
+        
+        dataElementService.addDataElementGroup( degA );
+        
+        dgsA = createDataElementGroupSet( 'A' );
+        dgsA.getMembers().add( degA );
+        
+        dataElementService.addDataElementGroupSet( dgsA );
     }
 
     // -------------------------------------------------------------------------
@@ -1030,7 +1046,7 @@ public class QueryPlannerTest
     }
     
     @Test( expected = IllegalQueryException.class )
-    public void validateFailureA()
+    public void validateFailureSingleIndicatorAsFilter()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
@@ -1046,6 +1062,17 @@ public class QueryPlannerTest
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
             .addFilter( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( inA, inB ) ) ).build();
+        
+        queryPlanner.validate( params );
+    }
+
+    @Test( expected = IllegalQueryException.class )
+    public void validateFailureReportingRatesAndDataElementGroupSetAsDimensions()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( rrA, inA ) ) )
+            .addDimension( new BaseDimensionalObject( dgsA.getDimension(), DimensionType.DATA_ELEMENT_GROUP_SET, getList( deA ) ) ).build();
         
         queryPlanner.validate( params );
     }
@@ -1109,7 +1136,7 @@ public class QueryPlannerTest
         assertTrue( params.hasStartEndDate() );
         
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
-            .withTableName( AnalyticsTableManager.ANALYTICS_TABLE_NAME ).build();
+            .withTableName( ANALYTICS_TABLE_NAME ).build();
         
         List<DataQueryParams> queries = queryPlanner.groupByPartition( params, plannerParams );
         
@@ -1121,9 +1148,9 @@ public class QueryPlannerTest
         
         assertNotNull( partitions );
         assertEquals( 3, partitions.size() );
-        assertEquals( AnalyticsTableManager.ANALYTICS_TABLE_NAME + "_2014", partitions.get( 0 ) );
-        assertEquals( AnalyticsTableManager.ANALYTICS_TABLE_NAME + "_2015", partitions.get( 1 ) );
-        assertEquals( AnalyticsTableManager.ANALYTICS_TABLE_NAME + "_2016", partitions.get( 2 ) );
+        assertEquals( ANALYTICS_TABLE_NAME + "_2014", partitions.get( 0 ) );
+        assertEquals( ANALYTICS_TABLE_NAME + "_2015", partitions.get( 1 ) );
+        assertEquals( ANALYTICS_TABLE_NAME + "_2016", partitions.get( 2 ) );
     }
         
     // -------------------------------------------------------------------------

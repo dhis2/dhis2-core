@@ -1,7 +1,7 @@
-package org.hisp.dhis.validation;
+package org.hisp.dhis.schema.descriptors;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,29 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public interface ValidationTask
-    extends Runnable
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.springframework.core.Ordered;
+
+/**
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
+public class AttributeValueSchemaDescriptor implements SchemaDescriptor
 {
-    void init( OrganisationUnitExtended sourceX, ValidationRunContext context );
+    public static final String SINGULAR = "attributeValue";
+
+    public static final String PLURAL = "attributeValues";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
+    {
+        Schema schema = new Schema( AttributeValue.class, SINGULAR, PLURAL );
+        schema.setMetadata( false );
+        schema.setOrder( Ordered.HIGHEST_PRECEDENCE );
+
+        return schema;
+    }
 }

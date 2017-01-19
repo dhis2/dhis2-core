@@ -1,5 +1,7 @@
+package org.hisp.dhis.dxf2.metadata.version;
+
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata.version;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -59,7 +60,7 @@ public class MetadataVersionDelegate
     private static final Log log = LogFactory.getLog( MetadataVersionDelegate.class );
 
     @Autowired
-    DefaultMetadataSystemSettingService metadataSystemSettingService;
+    private DefaultMetadataSystemSettingService metadataSystemSettingService;
 
     @Autowired
     private SynchronizationManager synchronizationManager;
@@ -151,14 +152,10 @@ public class MetadataVersionDelegate
     public synchronized void addNewMetadataVersion( MetadataVersion version )
     {
         version.setImportDate( new Date() );
-        boolean isVersionExists = metadataVersionService.getVersionByName( version.getName() ) != null;
 
         try
         {
-            if ( !isVersionExists )
-            {
-                metadataVersionService.addVersion( version );
-            }
+            metadataVersionService.addVersion( version );
         }
         catch ( Exception e )
         {

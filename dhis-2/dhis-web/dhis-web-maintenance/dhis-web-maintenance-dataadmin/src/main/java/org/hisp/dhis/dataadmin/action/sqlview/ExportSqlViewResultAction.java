@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataadmin.action.sqlview;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -104,7 +104,7 @@ public class ExportSqlViewResultAction
     {
         sqlView = sqlViewService.getSqlView( id );
 
-        grid = sqlViewService.getSqlViewGrid( sqlView, null, null );
+        grid = sqlViewService.getSqlViewGrid( sqlView, null, null, null, null );
 
         return type != null ? type : DEFAULT_TYPE;
     }

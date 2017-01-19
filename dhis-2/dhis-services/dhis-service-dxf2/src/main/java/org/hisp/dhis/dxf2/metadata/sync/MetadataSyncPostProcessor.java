@@ -1,5 +1,7 @@
+package org.hisp.dhis.dxf2.metadata.sync;
+
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,11 +28,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.metadata.sync;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.dxf2.common.Status;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.dxf2.metadata.tasks.MetadataRetryContext;
 import org.hisp.dhis.dxf2.metadata.tasks.MetadataSyncTask;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;

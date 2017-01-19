@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,6 @@ import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.MergeParams;
 import org.hisp.dhis.dxf2.metadata.MergeService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
-import org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ObjectBundleHook;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.preheat.Preheat;
@@ -113,6 +112,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
         preheatParams.setObjects( params.getObjects() );
 
         ObjectBundle bundle = new ObjectBundle( params, preheatService.preheat( preheatParams ), params.getObjects() );
+        bundle.setObjectBundleStatus( ObjectBundleStatus.CREATED );
         bundle.setObjectReferences( preheatService.collectObjectReferences( params.getObjects() ) );
 
         return bundle;

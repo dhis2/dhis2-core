@@ -1,7 +1,7 @@
 package org.hisp.dhis.validationrule.action;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@ import org.hisp.dhis.util.SessionUtils;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.ValidationRuleService;
+import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.comparator.ValidationResultComparator;
 
 import com.opensymphony.xwork2.Action;
@@ -69,6 +70,13 @@ public class RunValidationAction
     public void setValidationRuleService( ValidationRuleService validationRuleService )
     {
         this.validationRuleService = validationRuleService;
+    }
+
+    private ValidationService validationService;
+    
+    public void setValidationService( ValidationService validationService )
+    {
+        this.validationService = validationService;
     }
 
     private I18nFormat format;
@@ -141,11 +149,11 @@ public class RunValidationAction
         this.validationRuleGroupId = validationRuleGroupId;
     }
 
-    private boolean sendAlerts;
+    private boolean sendNotifications;
 
-    public void setSendAlerts( boolean sendAlerts )
+    public void setSendNotifications( boolean sendNotifications )
     {
-        this.sendAlerts = sendAlerts;
+        this.sendNotifications = sendNotifications;
     }
 
     private List<ValidationResult> validationResults = new ArrayList<>();
@@ -193,10 +201,10 @@ public class RunValidationAction
 
         log.info( "Validating data for " + ( group == null ? "all rules" : "group: " + group.getName() ) );
 
-        validationResults = new ArrayList<>( validationRuleService.validate( format
-                .parseDate( startDate ), format.parseDate( endDate ), organisationUnits, attributeOptionCombo, group, sendAlerts, format ) );
+        validationResults = new ArrayList<>( validationService.validate( format.parseDate( startDate ), format.parseDate( endDate ),
+                organisationUnits, attributeOptionCombo, group, sendNotifications, format ) );
 
-        maxExceeded = validationResults.size() > ValidationRuleService.MAX_INTERACTIVE_ALERTS;
+        maxExceeded = validationResults.size() > ValidationService.MAX_INTERACTIVE_ALERTS;
 
         Collections.sort( validationResults, new ValidationResultComparator() );
 
