@@ -41,7 +41,7 @@ import java.util.List;
  *
  * @author Torgeir Lorange Ostby
  */
-public class DailyPeriodType
+public class    DailyPeriodType
     extends CalendarPeriodType
 {
     /**

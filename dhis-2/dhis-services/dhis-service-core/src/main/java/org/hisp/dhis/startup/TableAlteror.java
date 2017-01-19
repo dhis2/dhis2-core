@@ -1148,6 +1148,49 @@ public class TableAlteror
         executeSql( "update relativeperiods set lastquarter = false where lastquarter is null" );
         executeSql( "update relativeperiods set lastsixmonth = false where lastsixmonth is null" );
         executeSql( "update relativeperiods set lastweek = false where lastweek is null" );
+
+        executeSql( "update relativeperiods set today = false where today is null" );
+        executeSql( "update relativeperiods set yesterday = false where yesterday is null" );
+        executeSql( "update relativeperiods set last3days = false where last3days is null" );
+        executeSql( "update relativeperiods set last7days = false where last7days is null" );
+        executeSql( "update relativeperiods set last14days = false where last14days is null" );
+
+
+        // Set non-null constraint on fields
+        executeSql( "alter table relativeperiods alter column today set not null" );
+        executeSql( "alter table relativeperiods alter column yesterday set not null" );
+        executeSql( "alter table relativeperiods alter column last3Days set not null" );
+        executeSql( "alter table relativeperiods alter column last7Days set not null" );
+        executeSql( "alter table relativeperiods alter column last14Days set not null" );
+        executeSql( "alter table relativeperiods alter column thisMonth set not null" );
+        executeSql( "alter table relativeperiods alter column lastMonth set not null" );
+        executeSql( "alter table relativeperiods alter column thisBimonth set not null" );
+        executeSql( "alter table relativeperiods alter column lastBimonth set not null" );
+        executeSql( "alter table relativeperiods alter column thisQuarter set not null" );
+        executeSql( "alter table relativeperiods alter column lastQuarter set not null" );
+        executeSql( "alter table relativeperiods alter column thisSixMonth set not null" );
+        executeSql( "alter table relativeperiods alter column lastSixMonth set not null" );
+        executeSql( "alter table relativeperiods alter column monthsThisYear set not null" );
+        executeSql( "alter table relativeperiods alter column quartersThisYear set not null" );
+        executeSql( "alter table relativeperiods alter column thisYear set not null" );
+        executeSql( "alter table relativeperiods alter column monthsLastYear set not null" );
+        executeSql( "alter table relativeperiods alter column quartersLastYear set not null" );
+        executeSql( "alter table relativeperiods alter column lastYear set not null" );
+        executeSql( "alter table relativeperiods alter column last5Years set not null" );
+        executeSql( "alter table relativeperiods alter column last12Months set not null" );
+        executeSql( "alter table relativeperiods alter column last6Months set not null" );
+        executeSql( "alter table relativeperiods alter column last3Months set not null" );
+        executeSql( "alter table relativeperiods alter column last6BiMonths set not null" );
+        executeSql( "alter table relativeperiods alter column last4Quarters set not null" );
+        executeSql( "alter table relativeperiods alter column last2SixMonths set not null" );
+        executeSql( "alter table relativeperiods alter column thisFinancialYear set not null" );
+        executeSql( "alter table relativeperiods alter column lastFinancialYear set not null" );
+        executeSql( "alter table relativeperiods alter column last5FinancialYears set not null" );
+        executeSql( "alter table relativeperiods alter column thisWeek set not null" );
+        executeSql( "alter table relativeperiods alter column lastWeek set not null" );
+        executeSql( "alter table relativeperiods alter column last4Weeks set not null" );
+        executeSql( "alter table relativeperiods alter column last12Weeks set not null" );
+        executeSql( "alter table relativeperiods alter column last52Weeks set not null" );
     }
 
     private void updateNameColumnLengths()
