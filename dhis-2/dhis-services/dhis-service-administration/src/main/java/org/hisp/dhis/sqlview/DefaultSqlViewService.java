@@ -28,10 +28,6 @@ package org.hisp.dhis.sqlview;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,8 +35,15 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Dang Duy Hieu
@@ -169,7 +172,7 @@ public class DefaultSqlViewService
     }
     
     @Override
-    public Grid getSqlViewGrid( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables )
+    public Grid getSqlViewGrid( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables, List<String> filters, List<String> fields  )
     {
         Grid grid = new ListGrid();
         grid.setTitle( sqlView.getName() );
@@ -178,27 +181,66 @@ public class DefaultSqlViewService
         validateSqlView( sqlView, criteria, variables );
 
         String sql = sqlView.isQuery() ?
-            getSqlForQuery( grid, sqlView, criteria, variables ) :
-            getSqlForView( grid, sqlView, criteria );
+            getSqlForQuery( grid, sqlView, criteria, variables, filters, fields ) :
+            getSqlForView( grid, sqlView, criteria, filters, fields );
 
         sqlViewStore.populateSqlViewGrid( grid, sql );
 
         return grid;
     }
 
-    private String getSqlForQuery( Grid grid, SqlView sqlView, Map<String, String> criteria, Map<String, String> variables )
+
+    private String parseFilters(List<String> filters, SqlHelper sqlHelper ) throws QueryParserException
+    {
+        String query = StringUtils.EMPTY;
+
+        for ( String filter : filters )
+        {
+            String[] split = filter.split( ":" );
+
+            if ( split.length == 3 )
+            {
+                int index = split[0].length() + ":".length() + split[1].length() + ":".length();
+                query +=  getFilterQuery(sqlHelper, split[0], split[1], filter.substring( index ) ) ;
+            }
+            else
+            {
+                throw new QueryParserException( "Invalid filter => " + filter );
+            }
+        }
+
+        return query;
+    }
+
+    private String getFilterQuery( SqlHelper sqlHelper, String columnName, String operator, String value ) {
+
+        String query = StringUtils.EMPTY;
+
+        query += sqlHelper.whereAnd() + " " + columnName + " " + QueryUtils.parseFilterOperator( operator, value );
+
+        return query;
+    }
+
+
+    private String getSqlForQuery( Grid grid, SqlView sqlView, Map<String, String> criteria, Map<String, String> variables, List<String> filters, List<String> fields )
     {
         boolean hasCriteria = criteria != null && !criteria.isEmpty();
 
+        boolean hasFilter = filters != null && !filters.isEmpty();
+
         String sql = SqlViewUtils.substituteSqlVariables( sqlView.getSqlQuery(), variables );
 
-        if ( hasCriteria )
+        if ( hasCriteria || hasFilter )
         {
             sql = SqlViewUtils.removeQuerySeparator( sql );
 
-            String outerSql = PREFIX_SELECT_QUERY + "(" + sql + ") as qry ";
+            String outerSql = "select " + QueryUtils.parseSelectFields( fields ) + " from " + "(" + sql + ") as qry ";
 
-            outerSql += getCriteriaSqlClause( criteria );
+            SqlHelper sqlHelper = new SqlHelper();
+
+            if ( hasCriteria ) outerSql += getCriteriaSqlClause( criteria, sqlHelper );
+
+            if ( hasFilter ) outerSql += parseFilters( filters, sqlHelper );
 
             sql = outerSql;
         }
@@ -206,27 +248,44 @@ public class DefaultSqlViewService
         return sql;
     }
 
-    private String getSqlForView( Grid grid, SqlView sqlView, Map<String, String> criteria )
+    private String getSqlForView( Grid grid, SqlView sqlView, Map<String, String> criteria, List<String> filters, List<String> fields )
     {
-        String sql = PREFIX_SELECT_QUERY + statementBuilder.columnQuote( sqlView.getViewName() ) + " ";
+        String sql = "select " + QueryUtils.parseSelectFields( fields ) + " from " + statementBuilder.columnQuote( sqlView.getViewName() ) + " ";
 
-        sql += getCriteriaSqlClause( criteria );
+        boolean hasCriteria = criteria != null && !criteria.isEmpty();
+
+        boolean hasFilter = filters != null && !filters.isEmpty();
+
+        if ( hasCriteria || hasFilter )
+        {
+            SqlHelper sqlHelper = new SqlHelper();
+
+            if ( hasCriteria )
+            {
+                sql += getCriteriaSqlClause( criteria, sqlHelper );
+            }
+
+            if ( hasFilter )
+            {
+                sql += parseFilters( filters, sqlHelper );
+            }
+        }
 
         return sql;
     }
 
     @Override
-    public String getCriteriaSqlClause( Map<String, String> criteria )
+    public String getCriteriaSqlClause(Map<String, String> criteria,  SqlHelper sqlHelper )
     {
         String sql = StringUtils.EMPTY;
 
         if ( criteria != null && !criteria.isEmpty() )
         {
-            SqlHelper helper = new SqlHelper();
+            sqlHelper = ObjectUtils.firstNonNull( sqlHelper, new SqlHelper() );
 
             for ( String filter : criteria.keySet() )
             {
-                sql += helper.whereAnd() + " " + statementBuilder.columnQuote( filter ) + "='" + criteria.get( filter ) + "' ";
+                sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( filter ) + "='" + criteria.get( filter ) + "' ";
             }
         }
 
@@ -333,4 +392,7 @@ public class DefaultSqlViewService
         
         return sqlViewStore.refreshMaterializedView( sqlView );
     }
+
+
+
 }

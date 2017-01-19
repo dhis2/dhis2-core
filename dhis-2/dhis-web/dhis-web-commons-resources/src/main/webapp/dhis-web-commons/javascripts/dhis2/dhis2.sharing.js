@@ -62,6 +62,8 @@ function addAccessSelectedItem(e) {
     id: sharingSelectedItem.id,
     type: sharingSelectedItem.type,
     label: sharingSelectedItem.label,
+    label_can_view : window.i18n_can_view,
+    label_can_edit_and_view : window.i18n_can_edit_and_view,
     access: "r-------"
   } );
 
@@ -93,6 +95,8 @@ function setAccesses(userGroupAccesses, userAccesses) {
         label: item.name,
         id: item.id,
         type: 'userGroup',
+        label_can_view : window.i18n_can_view,
+        label_can_edit_and_view : window.i18n_can_edit_and_view,
         access: item.access
       } );
 
@@ -108,6 +112,8 @@ function setAccesses(userGroupAccesses, userAccesses) {
         label: item.name,
         id: item.id,
         type: 'user',
+        label_can_view : window.i18n_can_view,
+        label_can_edit_and_view : window.i18n_can_edit_and_view,
         access: item.access
       } );
 
