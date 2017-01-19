@@ -28,6 +28,7 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -48,6 +49,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -76,7 +78,10 @@ public class SqlViewController
             throw new WebMessageException( WebMessageUtils.notFound( "SQL view does not exist: " + uid ) );
         }
 
-        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ) );
+        List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters, fields );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, sqlView.getCacheStrategy() );
 
@@ -94,8 +99,10 @@ public class SqlViewController
         {
             throw new WebMessageException( WebMessageUtils.notFound( "SQL view does not exist: " + uid ) );
         }
+        List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
-        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ) );
+        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters, fields );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, sqlView.getCacheStrategy() );
 
@@ -113,8 +120,10 @@ public class SqlViewController
         {
             throw new WebMessageException( WebMessageUtils.notFound( "SQL view does not exist: " + uid ) );
         }
+        List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
-        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ) );
+        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters, fields );
 
         String filename = CodecUtils.filenameEncode( grid.getTitle() ) + ".csv";
 
@@ -135,7 +144,10 @@ public class SqlViewController
             throw new WebMessageException( WebMessageUtils.notFound( "SQL view does not exist: " + uid ) );
         }
 
-        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ) );
+        List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters, fields );
 
         String filename = CodecUtils.filenameEncode( grid.getTitle() ) + ".xls";
 
@@ -156,7 +168,10 @@ public class SqlViewController
             throw new WebMessageException( WebMessageUtils.notFound( "SQL view does not exist: " + uid ) );
         }
 
-        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ) );
+        List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters, fields );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, sqlView.getCacheStrategy() );
 
@@ -175,7 +190,10 @@ public class SqlViewController
             throw new WebMessageException( WebMessageUtils.notFound( "SQL view does not exist: " + uid ) );
         }
 
-        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ) );
+        List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters, fields );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, sqlView.getCacheStrategy() );
 
@@ -194,7 +212,11 @@ public class SqlViewController
             throw new WebMessageException( WebMessageUtils.notFound( "SQL view does not exist: " + uid ) );
         }
 
-        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ) );
+        List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters, fields );
+
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, sqlView.getCacheStrategy() );
 
