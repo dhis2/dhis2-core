@@ -41,7 +41,7 @@ import java.util.List;
  *
  * @author Torgeir Lorange Ostby
  */
-public class    DailyPeriodType
+public class DailyPeriodType
     extends CalendarPeriodType
 {
     /**
@@ -172,7 +172,6 @@ public class    DailyPeriodType
     {
         return ISO8601_DURATION;
     }
-
 
     @Override
     public Date getRewindedDate( Date date, Integer rewindedPeriods )

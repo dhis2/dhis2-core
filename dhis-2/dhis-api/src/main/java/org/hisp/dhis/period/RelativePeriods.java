@@ -243,13 +243,13 @@ public class RelativePeriods
      * @param last52Weeks           last 52 weeks
      */
     public RelativePeriods( boolean thisDay, boolean yesterday, boolean last3Days, boolean last7Days, boolean last14Days,
-                            boolean thisMonth, boolean lastMonth, boolean thisBimonth, boolean lastBimonth,
-                            boolean thisQuarter, boolean lastQuarter, boolean thisSixMonth, boolean lastSixMonth,
-                            boolean monthsThisYear, boolean quartersThisYear, boolean thisYear,
-                            boolean monthsLastYear, boolean quartersLastYear, boolean lastYear, boolean last5Years,
-                            boolean last12Months, boolean last6Months, boolean last3Months, boolean last6BiMonths, boolean last4Quarters, boolean last2SixMonths,
-                            boolean thisFinancialYear, boolean lastFinancialYear, boolean last5FinancialYears,
-                            boolean thisWeek, boolean lastWeek, boolean last4Weeks, boolean last12Weeks, boolean last52Weeks )
+        boolean thisMonth, boolean lastMonth, boolean thisBimonth, boolean lastBimonth,
+        boolean thisQuarter, boolean lastQuarter, boolean thisSixMonth, boolean lastSixMonth,
+        boolean monthsThisYear, boolean quartersThisYear, boolean thisYear,
+        boolean monthsLastYear, boolean quartersLastYear, boolean lastYear, boolean last5Years,
+        boolean last12Months, boolean last6Months, boolean last3Months, boolean last6BiMonths, boolean last4Quarters, boolean last2SixMonths,
+        boolean thisFinancialYear, boolean lastFinancialYear, boolean last5FinancialYears,
+        boolean thisWeek, boolean lastWeek, boolean last4Weeks, boolean last12Weeks, boolean last52Weeks )
     {
         this.thisDay = thisDay;
         this.yesterday = yesterday;
@@ -499,27 +499,27 @@ public class RelativePeriods
 
         if ( isThisDay() )
         {
-            periods.add( getRelativePeriod(  new DailyPeriodType(), THISDAY, date, dynamicNames, format ) );
+            periods.add( getRelativePeriod( new DailyPeriodType(), THISDAY, date, dynamicNames, format ) );
         }
 
         if ( isYesterday() )
         {
-            periods.add( getRelativePeriod(  new DailyPeriodType(), YESTERDAY, new DateTime( date ).minusDays( 1 ).toDate(), dynamicNames, format ) );
+            periods.add( getRelativePeriod( new DailyPeriodType(), YESTERDAY, new DateTime( date ).minusDays( 1 ).toDate(), dynamicNames, format ) );
         }
 
         if ( isLast3Days() )
         {
-            periods.addAll( getRollingRelativePeriodList(  new DailyPeriodType(), DAYS_IN_YEAR, new DateTime( date ).minusDays( 1 ).toDate(), dynamicNames, format ).subList( 362, 365 ) );
+            periods.addAll( getRollingRelativePeriodList( new DailyPeriodType(), DAYS_IN_YEAR, new DateTime( date ).minusDays( 1 ).toDate(), dynamicNames, format ).subList( 362, 365 ) );
         }
 
         if ( isLast7Days() )
         {
-            periods.addAll( getRollingRelativePeriodList(  new DailyPeriodType(), DAYS_IN_YEAR, new DateTime( date ).minusDays( 1 ).toDate(), dynamicNames, format ).subList( 358, 365 ) );
+            periods.addAll( getRollingRelativePeriodList( new DailyPeriodType(), DAYS_IN_YEAR, new DateTime( date ).minusDays( 1 ).toDate(), dynamicNames, format ).subList( 358, 365 ) );
         }
 
         if ( isLast14Days() )
         {
-            periods.addAll( getRollingRelativePeriodList(  new DailyPeriodType(), DAYS_IN_YEAR, new DateTime( date ).minusDays( 1 ).toDate(), dynamicNames, format ).subList( 351, 365 ) );
+            periods.addAll( getRollingRelativePeriodList( new DailyPeriodType(), DAYS_IN_YEAR, new DateTime( date ).minusDays( 1 ).toDate(), dynamicNames, format ).subList( 351, 365 ) );
         }
 
         if ( isThisWeek() )
