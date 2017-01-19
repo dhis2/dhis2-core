@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.table.scheduling;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,38 +28,29 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
-import javax.annotation.Nullable;
-
-import org.hisp.dhis.analytics.table.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.scheduling.TaskId;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Interface responsible for generating analytics tables. Will look for and
- * invoke implementations of interface {@link AnalyticsTableService}.
- * 
  * @author Lars Helge Overland
  */
-public interface AnalyticsTableGenerator
+public class ResourceTableTask
+    implements Runnable
 {
-    /**
-     * Generates analytics tables.
-     * 
-     * @param lastYears the number of years relative to now to include,
-     *        can be null.
-     * @param taskId the task identifier, can be null.
-     * @param skipTableTypes indicates the types of analytics tables for 
-     *        which to skip generation.
-     * @param skipResourceTables indicates whether to skip generation of
-     *        resource tables.
-     */
-    void generateTables( @Nullable Integer lastYears, @Nullable TaskId taskId, Set<AnalyticsTableType> skipTableTypes, boolean skipResourceTables );
+    @Autowired
+    private AnalyticsTableGenerator analyticsTableGenerator;
+
+    private TaskId taskId;
+
+    public void setTaskId( TaskId taskId )
+    {
+        this.taskId = taskId;
+    }
     
-    /**
-     * Generates all resource tables.
-     * 
-     * @param taskId the task identifier, can be null.
-     */
-    void generateResourceTables( @Nullable TaskId taskId );
+    @Override
+    public void run()
+    {
+        analyticsTableGenerator.generateResourceTables( taskId );        
+    }
 }

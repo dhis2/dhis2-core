@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.resourcetable.scheduling.ResourceTableTask;
 import org.hisp.dhis.scheduling.TaskCategory;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.system.scheduling.Scheduler;
@@ -64,9 +63,6 @@ public class ResourceTableController
 {
     public static final String RESOURCE_PATH = "/resourceTables";
 
-    @Autowired
-    private ResourceTableTask resourceTableTask;
-    
     @Autowired
     private AnalyticsTableGenerator analyticsTableGenerator;
 
@@ -122,9 +118,9 @@ public class ResourceTableController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void resourceTables( HttpServletResponse response, HttpServletRequest request )
     {
-        resourceTableTask.setTaskId( new TaskId( TaskCategory.RESOURCETABLE_UPDATE, currentUserService.getCurrentUser() ) );
+        TaskId taskId = new TaskId( TaskCategory.RESOURCETABLE_UPDATE, currentUserService.getCurrentUser() );
 
-        scheduler.executeTask( resourceTableTask );
+        scheduler.executeTask( () -> analyticsTableGenerator.generateResourceTables( taskId ) );
 
         webMessageService.send( WebMessageUtils.ok( "Initiated resource table update" ), response, request );
     }

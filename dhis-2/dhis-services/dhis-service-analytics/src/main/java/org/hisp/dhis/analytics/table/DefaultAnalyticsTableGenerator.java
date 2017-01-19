@@ -46,6 +46,7 @@ import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.DateUtils;
@@ -129,12 +130,37 @@ public class DefaultAnalyticsTableGenerator
         systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME, DateUtils.getPrettyInterval( clock.getSplitTime() ) );        
     }
 
+    @Override
+    public void generateResourceTables( TaskId taskId )
+    {        
+        final Clock clock = new Clock().startClock();
+        
+        notifier.notify( taskId, "Generating resource tables" );
+        
+        try
+        {
+            generateResourceTables();
+            
+            notifier.notify( taskId, NotificationLevel.INFO, "Resource tables generated: " + clock.time(), true );
+        }
+        catch ( RuntimeException ex )
+        {
+            notifier.notify( taskId, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
+            
+            messageService.sendSystemErrorNotification( "Resource table process failed", ex );
+            
+            throw ex;
+        }
+    }   
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
     
     private void generateResourceTables()
     {
+        final Date startTime = new Date();
+        
         resourceTableService.dropAllSqlViews();
         resourceTableService.generateOrganisationUnitStructures();
         resourceTableService.generateDataSetOrganisationUnitCategoryTable();
@@ -148,5 +174,7 @@ public class DefaultAnalyticsTableGenerator
         resourceTableService.generateDatePeriodTable();
         resourceTableService.generateDataElementCategoryOptionComboTable();        
         resourceTableService.createAllSqlViews();
-    }    
+        
+        systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, startTime );
+    }
 }

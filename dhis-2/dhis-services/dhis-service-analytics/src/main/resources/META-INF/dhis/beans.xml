@@ -88,4 +88,8 @@
     <property name="lastYears" value="3" />
   </bean>
 
+  <bean id="resourceTableTask" class="org.hisp.dhis.analytics.table.scheduling.ResourceTableTask" scope="prototype" />
+
+  <bean id="resourceTable15MinTask" class="org.hisp.dhis.analytics.table.scheduling.ResourceTableTask" scope="prototype" />
+
 </beans>
