@@ -54,8 +54,6 @@ public class DefaultSqlViewService
 {
     private static final Log log = LogFactory.getLog( DefaultSqlViewService.class );
 
-    private static final String PREFIX_SELECT_QUERY = "select * from ";
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
