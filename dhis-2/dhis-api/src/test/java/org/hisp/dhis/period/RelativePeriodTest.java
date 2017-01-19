@@ -53,9 +53,9 @@ public class RelativePeriodTest
     }
 
     @Test
-    public void testGetToday()
+    public void testGetThisToday()
     {
-        RelativePeriods periods = new RelativePeriods().setToday( true );
+        RelativePeriods periods = new RelativePeriods().setThisDay( true );
 
         List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 1 ), I18N_FORMAT, false );
 
