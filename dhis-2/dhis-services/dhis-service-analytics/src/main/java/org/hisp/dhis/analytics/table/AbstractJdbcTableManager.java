@@ -360,21 +360,14 @@ public abstract class AbstractJdbcTableManager
     {
         Date lastResourceTableUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE );
         
-        System.out.println( "getCreated " + lastResourceTableUpdate );
-        
         if ( lastResourceTableUpdate == null )
         {
             return columns;
         }
         
-        List<AnalyticsTableColumn> l = columns.stream()
+        return columns.stream()
             .filter( c -> c.getCreated() == null || c.getCreated().before( lastResourceTableUpdate ) )
             .collect( Collectors.toList() );
-        
-        if ( columns.size() != l.size() )
-            System.out.println( "NOT SAME SIZE: " + columns.size() + ", " + l.size() );
-        
-        return l;
     }
 
     /**
