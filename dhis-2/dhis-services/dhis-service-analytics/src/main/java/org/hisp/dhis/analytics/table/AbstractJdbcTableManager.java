@@ -50,6 +50,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
+import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -346,6 +347,34 @@ public abstract class AbstractJdbcTableManager
         {
             throw new IllegalStateException( "Analytics table dimensions contain duplicates: " + duplicates );
         }
+    }
+    
+    /**
+     * Filters out analytics table columns which were created
+     * after the time of the last successful resource table update.
+     * 
+     * @param columns the analytics table columns.
+     * @return
+     */
+    protected List<AnalyticsTableColumn> filterDimensionColumns( List<AnalyticsTableColumn> columns )
+    {
+        Date lastResourceTableUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE );
+        
+        System.out.println( "getCreated " + lastResourceTableUpdate );
+        
+        if ( lastResourceTableUpdate == null )
+        {
+            return columns;
+        }
+        
+        List<AnalyticsTableColumn> l = columns.stream()
+            .filter( c -> c.getCreated() == null || c.getCreated().before( lastResourceTableUpdate ) )
+            .collect( Collectors.toList() );
+        
+        if ( columns.size() != l.size() )
+            System.out.println( "NOT SAME SIZE: " + columns.size() + ", " + l.size() );
+        
+        return l;
     }
 
     /**
