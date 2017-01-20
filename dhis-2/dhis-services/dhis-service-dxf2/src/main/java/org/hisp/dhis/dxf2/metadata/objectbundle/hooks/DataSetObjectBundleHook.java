@@ -38,6 +38,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.preheat.PreheatIdentifier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -114,6 +115,7 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
 
         for ( DataInputPeriod dataInputPeriod : dataSet.getDataInputPeriods() )
         {
+            bundle.getPreheat().put( PreheatIdentifier.UID, dataInputPeriod );
             preheatService.connectReferences( dataInputPeriod, bundle.getPreheat(), bundle.getPreheatIdentifier() );
             session.save( dataInputPeriod );
         }
