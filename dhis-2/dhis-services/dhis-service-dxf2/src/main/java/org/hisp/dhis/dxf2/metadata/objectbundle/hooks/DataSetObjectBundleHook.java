@@ -53,41 +53,39 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
     @Override
     public List<ErrorReport> validate( IdentifiableObject object, ObjectBundle bundle )
     {
-        ArrayList<ErrorReport> errorList = new ArrayList<>();
+        List<ErrorReport> errorList = new ArrayList<>();
 
-        if ( DataSet.class.isInstance( object ) )
+        if ( !DataSet.class.isInstance( object ) ) return errorList;
+        DataSet dataSet = (DataSet) object;
+
+        if ( !dataSet.getDataInputPeriods().isEmpty() )
         {
-            DataSet dataSet = (DataSet) object;
+            errorList.addAll( dataSet.getDataInputPeriods().stream()
+                // Get DataInputPeriod objects
+                .map( dataInputPeriod ->
+                    {
+                        DataInputPeriod dip = bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataInputPeriod );
 
-            if ( !dataSet.getDataInputPeriods().isEmpty() )
-            {
-                errorList.addAll( dataSet.getDataInputPeriods().stream()
-                    // Get DataInputPeriod objects
-                    .map( dataInputPeriod ->
+                        if ( dip == null )
                         {
-                            DataInputPeriod dip = bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataInputPeriod );
-
-                            if ( dip == null )
-                            {
-                                preheatService.connectReferences( dataInputPeriod, bundle.getPreheat(), bundle.getPreheatIdentifier() );
-                                sessionFactory.getCurrentSession().save( dataInputPeriod );
-                                return dataInputPeriod;
-                            }
-                            else
-                            {
-                                return dip;
-                            }
+                            preheatService.connectReferences( dataInputPeriod, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+                            sessionFactory.getCurrentSession().save( dataInputPeriod );
+                            return dataInputPeriod;
                         }
-                    )
+                        else
+                        {
+                            return dip;
+                        }
+                    }
+                )
 
-                    // Get DataInputPeriods where PeriodType != dataSet.periodType
-                    .filter( dataInputPeriod -> !dataInputPeriod.getPeriod().getPeriodType().equals( dataSet.getPeriodType() ) )
+                // Get DataInputPeriods where PeriodType != dataSet.periodType
+                .filter( dataInputPeriod -> !dataInputPeriod.getPeriod().getPeriodType().equals( dataSet.getPeriodType() ) )
 
-                    // Add Error reports for all incidents
-                    .map( dataInputPeriod -> new ErrorReport( object.getClass(), ErrorCode.E4012, "dataInputPeriods" ) )
+                // Add Error reports for all incidents
+                .map( dataInputPeriod -> new ErrorReport( object.getClass(), ErrorCode.E4012, "dataInputPeriods" ) )
 
-                    .collect( Collectors.toList() ) );
-            }
+                .collect( Collectors.toList() ) );
         }
 
         return errorList;
