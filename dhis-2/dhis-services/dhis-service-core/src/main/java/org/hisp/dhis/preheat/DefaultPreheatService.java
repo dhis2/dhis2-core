@@ -48,6 +48,7 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataelement.DataElementCategoryDimension;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -438,6 +439,16 @@ public class DefaultPreheatService implements PreheatService
             scanObjects.put( UserCredentials.class, userCredentials );
         }
 
+        if ( scanObjects.containsKey( DataSet.class ) )
+        {
+            List<DataSet> dataSets = (List<DataSet>) scanObjects.get( DataSet.class );
+            List<DataSetElement> dataSetElements = new ArrayList<>();
+
+            dataSets.forEach( ds -> dataSetElements.addAll( ds.getDataSetElements() ) );
+
+            scanObjects.put( DataSetElement.class, dataSetElements );
+        }
+
         for ( Class<?> klass : scanObjects.keySet() )
         {
             Schema schema = schemaService.getDynamicSchema( klass );
@@ -487,17 +498,6 @@ public class DefaultPreheatService implements PreheatService
                                 DataElementOperand dataElementOperand = (DataElementOperand) identifiableObject;
                                 addIdentifiers( map, dataElementOperand.getDataElement() );
                                 addIdentifiers( map, dataElementOperand.getCategoryOptionCombo() );
-                            } );
-                        }
-
-                        if ( DataSetElement.class.isAssignableFrom( p.getItemKlass() ) )
-                        {
-                            CollectionUtils.nullSafeForEach( reference, identifiableObject ->
-                            {
-                                DataSetElement dataSetElement = (DataSetElement) identifiableObject;
-                                addIdentifiers( map, dataSetElement.getDataSet() );
-                                addIdentifiers( map, dataSetElement.getCategoryCombo() );
-                                addIdentifiers( map, dataSetElement.getDataElement() );
                             } );
                         }
                     }
