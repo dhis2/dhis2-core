@@ -48,6 +48,7 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataelement.DataElementCategoryDimension;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataset.DataInputPeriod;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.period.Period;
@@ -679,11 +680,18 @@ public class DefaultPreheatService implements PreheatService
         if ( targets.containsKey( DataSet.class ) )
         {
             List<DataSet> dataSets = (List<DataSet>) targets.get( DataSet.class );
-            List<DataSetElement> dataSetElements = new ArrayList<>();
 
-            dataSets.forEach( ds -> dataSetElements.addAll( ds.getDataSetElements() ) );
+            List<DataSetElement> dataSetElements = new ArrayList<>();
+            List<DataInputPeriod> dataInputPeriods = new ArrayList<>();
+
+            dataSets.forEach( ds ->
+            {
+                dataSetElements.addAll( ds.getDataSetElements() );
+                dataInputPeriods.addAll( ds.getDataInputPeriods() );
+            } );
 
             targets.put( DataSetElement.class, dataSetElements );
+            targets.put( DataInputPeriod.class, dataInputPeriods );
         }
     }
 
@@ -719,54 +727,56 @@ public class DefaultPreheatService implements PreheatService
 
         Schema schema = schemaService.getDynamicSchema( object.getClass() );
 
-        schema.getProperties().stream()
+        List<Property> properties = schema.getProperties().stream()
             .filter( p -> p.isPersisted() && p.isOwner() && (PropertyType.REFERENCE == p.getPropertyType() || PropertyType.REFERENCE == p.getItemPropertyType()) )
-            .forEach( p ->
+            .collect( Collectors.toList() );
+
+        for ( Property property : properties )
+        {
+            if ( skipConnect( property.getKlass() ) || skipConnect( property.getItemKlass() ) )
             {
-                if ( skipConnect( p.getKlass() ) || skipConnect( p.getItemKlass() ) )
+                continue;
+            }
+
+            if ( !property.isCollection() )
+            {
+                IdentifiableObject refObject = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+                IdentifiableObject ref = getPersistedObject( preheat, identifier, refObject );
+
+                if ( Preheat.isDefaultClass( property.getKlass() ) && (ref == null || refObject == null || "default".equals( refObject.getName() )) )
                 {
-                    return;
+                    ref = defaults.get( property.getKlass() );
                 }
 
-                if ( !p.isCollection() )
+                if ( ref != null && ref.getId() == 0 )
                 {
-                    IdentifiableObject refObject = ReflectionUtils.invokeMethod( object, p.getGetterMethod() );
-                    IdentifiableObject ref = getPersistedObject( preheat, identifier, refObject );
-
-                    if ( Preheat.isDefaultClass( p.getKlass() ) && (ref == null || refObject == null || "default".equals( refObject.getName() )) )
-                    {
-                        ref = defaults.get( p.getKlass() );
-                    }
-
-                    if ( ref != null && ref.getId() == 0 )
-                    {
-                        ReflectionUtils.invokeMethod( object, p.getSetterMethod(), (Object) null );
-                    }
-                    else
-                    {
-                        ReflectionUtils.invokeMethod( object, p.getSetterMethod(), ref );
-                    }
+                    ReflectionUtils.invokeMethod( object, property.getSetterMethod(), (Object) null );
                 }
                 else
                 {
-                    Collection<IdentifiableObject> objects = ReflectionUtils.newCollectionInstance( p.getKlass() );
-                    Collection<IdentifiableObject> refObjects = ReflectionUtils.invokeMethod( object, p.getGetterMethod() );
+                    ReflectionUtils.invokeMethod( object, property.getSetterMethod(), ref );
+                }
+            }
+            else
+            {
+                Collection<IdentifiableObject> objects = ReflectionUtils.newCollectionInstance( property.getKlass() );
+                Collection<IdentifiableObject> refObjects = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
 
-                    for ( IdentifiableObject refObject : refObjects )
+                for ( IdentifiableObject refObject : refObjects )
+                {
+                    IdentifiableObject ref = getPersistedObject( preheat, identifier, refObject );
+
+                    if ( Preheat.isDefaultClass( refObject ) && (ref == null || "default".equals( refObject.getName() )) )
                     {
-                        IdentifiableObject ref = getPersistedObject( preheat, identifier, refObject );
-
-                        if ( Preheat.isDefaultClass( refObject ) && (ref == null || "default".equals( refObject.getName() )) )
-                        {
-                            ref = defaults.get( refObject.getClass() );
-                        }
-
-                        if ( ref != null && ref.getId() != 0 ) objects.add( ref );
+                        ref = defaults.get( refObject.getClass() );
                     }
 
-                    ReflectionUtils.invokeMethod( object, p.getSetterMethod(), objects );
+                    if ( ref != null && ref.getId() != 0 ) objects.add( ref );
                 }
-            } );
+
+                ReflectionUtils.invokeMethod( object, property.getSetterMethod(), objects );
+            }
+        }
     }
 
     @Override
@@ -868,6 +878,7 @@ public class DefaultPreheatService implements PreheatService
     private boolean skipConnect( Class<?> klass )
     {
         return klass != null && (DataElementOperand.class.isAssignableFrom( klass ) || UserCredentials.class.isAssignableFrom( klass ) ||
-            ReportingRate.class.isAssignableFrom( klass ) || DataSetElement.class.isAssignableFrom( klass ));
+            ReportingRate.class.isAssignableFrom( klass ) || DataSetElement.class.isAssignableFrom( klass ) ||
+            DataInputPeriod.class.isAssignableFrom( klass ));
     }
 }
