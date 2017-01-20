@@ -61,7 +61,6 @@ import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.anySetOf;
@@ -75,9 +74,6 @@ import static org.mockito.Mockito.when;
  * responsible for generating and sending the messages/summaries for each recipient.
  *
  * See {@link org.hisp.dhis.notification.BaseNotificationMessageRendererTest}.
- * TODO
- *  - Add test which asserts messages are split/summarized correctly for multiple recipient groups.
- *  - Consider splitting up the hierarchy test
  *
  * @author Halvdan Hoem Grelland
  */
@@ -142,16 +138,14 @@ public class ValidationNotificationServiceTest
     // Test fixtures
     // -------------------------------------------------------------------------
 
-    private OrganisationUnit orgUnitA, orgUnitB;
-    private User userA, userB;
-    private DataElementCategoryOptionCombo catOptCombo = createCategoryOptionCombo( 'A', 'x', 'y', 'z' );
-    private ValidationRule valRuleA, valRuleB;
-    private ValidationNotificationTemplate templateA, templateB;
-    private UserGroup userGroupA, userGroupB;
+    private OrganisationUnit orgUnitA;
+    private DataElementCategoryOptionCombo catOptCombo = createCategoryOptionCombo( 'A', 'r', 'i', 'b', 'a' );
+    private ValidationRule valRuleA;
+    private UserGroup userGroupA;
 
     private void setUpEntitiesA()
     {
-        userA = createUser( 'A' );
+        User userA = createUser( 'A' );
 
         orgUnitA = createOrganisationUnit( 'A' );
         orgUnitA.addUser( userA );
@@ -167,32 +161,9 @@ public class ValidationNotificationServiceTest
             PeriodType.getPeriodTypeByName( QuarterlyPeriodType.NAME )
         );
 
-        templateA = createValidationNotificationTemplate( "Template A" );
+        ValidationNotificationTemplate templateA = createValidationNotificationTemplate( "Template A" );
         templateA.addValidationRule( valRuleA );
         templateA.setRecipientUserGroups( Sets.newHashSet( userGroupA ) );
-    }
-
-    private void setUpEntitiesB()
-    {
-        userB = createUser( 'B' );
-
-        orgUnitB = createOrganisationUnit( 'B' );
-        orgUnitB.addUser( userA );
-
-        userGroupB = createUserGroup( 'B', Sets.newHashSet( userB ) );
-        userB.setGroups( Sets.newHashSet( userGroupB ) );
-
-        valRuleB = createValidationRule(
-            'A',
-            Operator.equal_to,
-            createExpression2( 'A', "X" ),
-            createExpression2( 'B', "Y" ),
-            PeriodType.getPeriodTypeByName( QuarterlyPeriodType.NAME )
-        );
-
-        templateB = createValidationNotificationTemplate( "Template A" );
-        templateB.addValidationRule( valRuleB );
-        templateB.setRecipientUserGroups( Sets.newHashSet( userGroupB ) );
     }
 
     private ValidationResult createValidationResult( OrganisationUnit ou, ValidationRule rule )
@@ -214,18 +185,6 @@ public class ValidationNotificationServiceTest
             orgUnitA,
             catOptCombo,
             valRuleA,
-            RandomUtils.nextDouble( 10, 1000 ),
-            RandomUtils.nextDouble( 10, 1000 )
-        );
-    }
-
-    private ValidationResult createValidationResultB()
-    {
-        return new ValidationResult(
-            createPeriod( "2017Q1" ),
-            orgUnitB,
-            catOptCombo,
-            valRuleB,
             RandomUtils.nextDouble( 10, 1000 ),
             RandomUtils.nextDouble( 10, 1000 )
         );
@@ -284,7 +243,7 @@ public class ValidationNotificationServiceTest
         throws Exception
     {
         setUpEntitiesA();
-        userB = createUser( 'B' );
+        User userB = createUser( 'B' );
         userGroupA.addUser( userB );
 
         ValidationResult validationResult = createValidationResultA();
@@ -364,7 +323,6 @@ public class ValidationNotificationServiceTest
         ugB.addUser( uA );
 
         // Validation rule and template
-
         ValidationRule rule = createValidationRule(
             'V',
             Operator.equal_to,
@@ -384,7 +342,7 @@ public class ValidationNotificationServiceTest
 
         // Perform tests
 
-        // 1
+        // Uno
 
         service.sendNotifications( Sets.newHashSet( resultFromMiddleLeft ) );
 
@@ -395,7 +353,7 @@ public class ValidationNotificationServiceTest
         assertEquals( 2, rcpt.size() );
         assertTrue( rcpt.containsAll( Sets.newHashSet( uB, uC ) ) );
 
-        // 2
+        // Dos
 
         sentMessages = new ArrayList<>();
 
@@ -411,7 +369,7 @@ public class ValidationNotificationServiceTest
         assertEquals( 3, rcpt.size() );
         assertTrue( rcpt.containsAll( Sets.newHashSet( uA, uB, uC ) ) );
 
-        // 3
+        // Tres
 
         sentMessages = new ArrayList<>();
 
@@ -427,16 +385,6 @@ public class ValidationNotificationServiceTest
 
         assertEquals( 4, rcpt.size() );
         assertTrue( rcpt.containsAll( Sets.newHashSet( uA, uB, uC, uF ) ) );
-    }
-
-    @Test
-    public void testNotificationsAreGroupedCorrectlyForMultipleRecipients()
-        throws Exception
-    {
-        setUpEntitiesA();
-        setUpEntitiesB();
-
-        // TODO
     }
 
     // -------------------------------------------------------------------------
