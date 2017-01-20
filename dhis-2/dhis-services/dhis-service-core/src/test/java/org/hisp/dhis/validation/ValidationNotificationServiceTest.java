@@ -415,19 +415,5 @@ public class ValidationNotificationServiceTest
             this.includeFeedbackRecipients = (boolean) args[5];
             this.forceNotifications = (boolean) args[6];
         }
-
-        @Override
-        public String toString()
-        {
-            return MoreObjects.toStringHelper( this )
-                .add( "subject", subject )
-                .add( "text", text )
-                .add( "metaData", metaData )
-                .add( "users", users )
-                .add( "sender", sender )
-                .add( "includeFeedbackRecipients", includeFeedbackRecipients )
-                .add( "forceNotifications", forceNotifications )
-                .toString();
-        }
     }
 }
