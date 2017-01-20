@@ -223,19 +223,17 @@ public class JdbcEnrollmentAnalyticsTableManager
         AnalyticsTableColumn erd = new AnalyticsTableColumn( quote( "enrollmentdate" ), "timestamp", "pi.enrollmentdate" );
         AnalyticsTableColumn id = new AnalyticsTableColumn( quote( "incidentdate" ), "timestamp", "pi.incidentdate" );
                 
-        final String executionDateSql = "(select psi.executionDate from programstageinstance psi " + 
-            "join programinstance pi " + 
-            "on psi.programinstanceid = pi.programinstanceid " + 
-            "where psi.executiondate is not null " + 
+        final String executionDateSql = "(select psi.executionDate from programstageinstance psi " +
+            "where psi.programinstanceid = pi.programinstanceid " + 
+            "and psi.executiondate is not null " + 
             "and psi.deleted is not true " +
             "order by psi.executiondate desc " +
             "limit 1) as " + quote( "executiondate" );        
         AnalyticsTableColumn ed = new AnalyticsTableColumn( quote( "executiondate" ), "timestamp", executionDateSql );
         
         final String dueDateSql = "(select psi.duedate FROM programstageinstance psi " + 
-            "join programinstance pi " + 
-            "on psi.programinstanceid = pi.programinstanceid " + 
-            "where psi.duedate is not null " + 
+            "where psi.programinstanceid = pi.programinstanceid " + 
+            "and psi.duedate is not null " + 
             "and psi.deleted is not true " +
             "order by psi.duedate desc " +
             "limit 1) as " + quote( "duedate" );        
