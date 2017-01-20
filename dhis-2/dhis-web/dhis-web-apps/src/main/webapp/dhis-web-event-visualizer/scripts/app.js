@@ -3752,6 +3752,7 @@ Ext.onReady( function() {
             onCheckboxAdd,
             intervalListeners,
             relativePeriodCmpMap = {},
+            days,
             weeks,
             months,
             biMonths,
@@ -4813,6 +4814,46 @@ Ext.onReady( function() {
             }
         };
 
+        days = Ext.create('Ext.container.Container', {
+            defaults: {
+                labelSeparator: '',
+                style: 'margin-bottom:0',
+                listeners: intervalListeners
+            },
+            items: [
+                {
+                    xtype: 'label',
+                    text: NS.i18n.days,
+                    cls: 'ns-label-period-heading'
+                },
+                {
+                    xtype: 'checkbox',
+                    relativePeriodId: 'TODAY',
+                    boxLabel: NS.i18n['today']
+                },
+                {
+                    xtype: 'checkbox',
+                    relativePeriodId: 'YESTERDAY',
+                    boxLabel: NS.i18n['yesterday']
+                },
+                {
+                    xtype: 'checkbox',
+                    relativePeriodId: 'LAST_3_DAYS',
+                    boxLabel: NS.i18n['last_3_days']
+                },
+                {
+                    xtype: 'checkbox',
+                    relativePeriodId: 'LAST_7_DAYS',
+                    boxLabel: NS.i18n['last_7_days']
+                },
+                {
+                    xtype: 'checkbox',
+                    relativePeriodId: 'LAST_14_DAYS',
+                    boxLabel: NS.i18n['last_14_days']
+                }
+            ]
+        });
+
         weeks = Ext.create('Ext.container.Container', {
             defaults: {
                 labelSeparator: '',
@@ -4985,7 +5026,6 @@ Ext.onReady( function() {
         });
 
         financialYears = Ext.create('Ext.container.Container', {
-            style: 'margin-top: 36px',
             defaults: {
                 labelSeparator: '',
                 style: 'margin-bottom:0',
@@ -5059,9 +5099,22 @@ Ext.onReady( function() {
                         style: 'margin-top: 4px'
                     },
 					items: [
+                        days,
+                        biMonths,
+                        financialYears
+					]
+				},
+				{
+					xtype: 'container',
+                    columnWidth: 0.33,
+                    defaults: {
+                        style: 'margin-top: 4px'
+                    },
+					items: [
                         weeks,
 						quarters,
                         years
+                        
 					]
 				},
 				{
@@ -5073,17 +5126,6 @@ Ext.onReady( function() {
 					items: [
 						months,
 						sixMonths
-					]
-				},
-				{
-					xtype: 'container',
-                    columnWidth: 0.33,
-                    defaults: {
-                        style: 'margin-top: 4px'
-                    },
-					items: [
-                        biMonths,
-						financialYears
 					]
 				}
 			],
