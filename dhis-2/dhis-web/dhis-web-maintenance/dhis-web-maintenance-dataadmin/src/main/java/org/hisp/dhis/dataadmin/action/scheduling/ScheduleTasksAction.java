@@ -457,7 +457,6 @@ public class ScheduleTasksAction
                 // -------------------------------------------------------------
 
                 schedulingManager.scheduleTasks( cronKeyMap );
-
             }
         }
         else
