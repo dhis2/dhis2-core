@@ -1759,6 +1759,10 @@
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
+  <bean id="org.hisp.dhis.dataset.DataInputPeriodDeletionHandler" class="org.hisp.dhis.dataset.DataInputPeriodDeletionHandler">
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
   <bean id="org.hisp.dhis.datavalue.DataValueAuditDeletionHandler" class="org.hisp.dhis.datavalue.DataValueAuditDeletionHandler">
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
