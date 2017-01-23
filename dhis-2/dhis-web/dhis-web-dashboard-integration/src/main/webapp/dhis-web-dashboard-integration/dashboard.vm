@@ -40,6 +40,8 @@ jQuery( document ).ready( function() {
 
 </script>
 <div id="interpretationPopup">
+<div id="dashboardItemInterpretationContainer" style="width:50%;float:left;"></div>
+<div id="interpretationContainer" style="width:46%;float:right;"></div>
 </div>
 
 <div id="dashboardHeader"><h3>
