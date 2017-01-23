@@ -88,4 +88,9 @@ public class DefaultMetadataSystemSettingService
         return (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_METADATA_VERSION );
     }
 
+    public Boolean getStopMetadataSyncSetting()
+    {
+        return (Boolean) systemSettingManager.getSystemSetting( SettingKey.STOP_METADATA_SYNC );
+    }
+
 }

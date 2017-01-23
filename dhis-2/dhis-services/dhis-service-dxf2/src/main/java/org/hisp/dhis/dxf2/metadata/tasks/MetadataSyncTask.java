@@ -36,6 +36,7 @@ import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPreProcessor;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
+import org.hisp.dhis.dxf2.metadata.sync.exception.DHISVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.setting.SettingKey;
@@ -107,13 +108,17 @@ public class MetadataSyncTask
                     return null;
                 } );
         }
+        catch ( DHISVersionMismatchException e )
+        {
+            log.info( "Stopping sync as DHIS versions are different " + e.getMessage(), e );
+        }
         catch ( Exception e )
         {
             log.error( "Exception occurred while executing metadata sync task." + e.getMessage(), e );
         }
     }
 
-    public synchronized void runSyncTask( MetadataRetryContext context ) throws MetadataSyncServiceException
+    public synchronized void runSyncTask( MetadataRetryContext context ) throws MetadataSyncServiceException, DHISVersionMismatchException
     {
         metadataSyncPreProcessor.setUp( context );
 
@@ -155,7 +160,7 @@ public class MetadataSyncTask
     // Private Methods
     //----------------------------------------------------------------------------------------
 
-    private MetadataSyncSummary handleMetadataSync( MetadataRetryContext context, MetadataVersion dataVersion )
+    private MetadataSyncSummary handleMetadataSync( MetadataRetryContext context, MetadataVersion dataVersion ) throws DHISVersionMismatchException
     {
 
         MetadataSyncParams syncParams = new MetadataSyncParams( new MetadataImportParams(), dataVersion );

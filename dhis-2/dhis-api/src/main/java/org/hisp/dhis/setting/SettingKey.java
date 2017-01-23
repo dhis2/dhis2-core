@@ -142,7 +142,8 @@ public enum SettingKey
     DATA_SYNC_CRON( "dataSyncCron", String.class ),
     LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS( "keyLastSuccessfulScheduledProgramNotifications", Date.class ),
     REMOTE_METADATA_VERSION( "keyRemoteMetadataVersion", String.class ),
-    SYSTEM_METADATA_VERSION( "keySystemMetadataVersion", String.class );
+    SYSTEM_METADATA_VERSION( "keySystemMetadataVersion", String.class ),
+    STOP_METADATA_SYNC("keyStopMetadataSync", Boolean.FALSE, Boolean.class );
 
     private final String name;
 

@@ -181,6 +181,42 @@ public class DefaultRenderService
 
     @Override
     @SuppressWarnings( "unchecked" )
+    public JsonNode getSystemObject( InputStream inputStream, RenderFormat format ) throws IOException
+    {
+
+        ObjectMapper mapper;
+
+        if ( RenderFormat.JSON == format )
+        {
+            mapper = jsonMapper;
+        }
+        else if ( RenderFormat.XML == format )
+        {
+            // mapper = xmlMapper;
+            throw new IllegalArgumentException( "XML format is not supported." );
+        }
+        else
+        {
+            return null;
+        }
+
+        JsonNode rootNode = mapper.readTree( inputStream );
+        Iterator<String> fieldNames = rootNode.fieldNames();
+
+        while ( fieldNames.hasNext() )
+        {
+            String fieldName = fieldNames.next();
+            JsonNode node = rootNode.get( fieldName );
+            if ( "system".equals( fieldName ) )
+            {
+                return node;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
     public Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> fromMetadata( InputStream inputStream, RenderFormat format ) throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> map = new HashMap<>();

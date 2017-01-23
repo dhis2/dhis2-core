@@ -32,6 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
+import org.hisp.dhis.dxf2.metadata.sync.exception.DHISVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
@@ -101,7 +102,7 @@ public class DefaultMetadataSyncService
 
     @Override
     public synchronized MetadataSyncSummary doMetadataSync( MetadataSyncParams syncParams )
-        throws MetadataSyncServiceException
+        throws MetadataSyncServiceException, DHISVersionMismatchException
     {
         MetadataVersion version = getMetadataVersion( syncParams );
         boolean isVersionExists = metadataVersionService.getVersionByName( version.getName() ) != null;
@@ -135,6 +136,13 @@ public class DefaultMetadataSyncService
             if ( metadataVersionSnapshot == null )
             {
                 throw new MetadataSyncServiceException( "Metadata snapshot can't be null." );
+            }
+            else
+            {
+                if ( metadataVersionDelegate.shouldStopSync( metadataVersionSnapshot ) )
+                {
+                    throw new DHISVersionMismatchException("DHIS version mismatch exception");
+                }
             }
 
             if ( ( metadataVersionService.isMetadataPassingIntegrity( version, metadataVersionSnapshot ) ) )

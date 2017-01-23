@@ -28,6 +28,8 @@ package org.hisp.dhis.dxf2.metadata.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.dxf2.metadata.sync.exception.DHISVersionMismatchException;
+
 import java.util.List;
 import java.util.Map;
 
@@ -53,5 +55,5 @@ public interface MetadataSyncService
      * @param syncParams
      * @return
      */
-    MetadataSyncSummary doMetadataSync( MetadataSyncParams syncParams );
+    MetadataSyncSummary doMetadataSync( MetadataSyncParams syncParams ) throws DHISVersionMismatchException;
 }

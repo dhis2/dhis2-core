@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.metadata.systemsettings;
+package org.hisp.dhis.dxf2.metadata.sync.exception;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -29,28 +29,22 @@ package org.hisp.dhis.dxf2.metadata.systemsettings;
  */
 
 /**
- * MetadataSystemSettingService is the helper class for getting the Versioning
- * endpoint specific constructs.
- *
- * Created by vanyas on 6/27/16.
+ * @author aamerm
  */
-public interface MetadataSystemSettingService
+public class DHISVersionMismatchException extends Exception
 {
-    String getRemoteInstanceUserName();
+    public DHISVersionMismatchException( String message )
+    {
+        super( message );
+    }
 
-    String getRemoteInstancePassword();
+    public DHISVersionMismatchException( Throwable cause )
+    {
+        super( cause );
+    }
 
-    String getVersionDetailsUrl( String versionName );
-
-    String getDownloadVersionSnapshotURL( String versionName );
-
-    String getMetaDataDifferenceURL( String versionName );
-
-    String getEntireVersionHistory();
-
-    void setSystemMetadataVersion(String versionName);
-
-    String getSystemMetadataVersion();
-
-    Boolean getStopMetadataSyncSetting();
+    public DHISVersionMismatchException( String message, Throwable cause )
+    {
+        super( message, cause );
+    }
 }
