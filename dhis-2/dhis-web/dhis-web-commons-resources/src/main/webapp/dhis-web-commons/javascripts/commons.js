@@ -1956,3 +1956,12 @@ var getMinutes = function (minutes)
 {
     return minutes == 0 ? "00" : minutes;
 };
+
+function calendarPickerInRange ( startdate, enddate)
+{
+	s = jQuery("#" + startdate );
+	e = jQuery("#" + enddate );
+	calendar = dhis2.period.calendar;
+	s.calendarsPicker({ calendar: calendar,dateFormat: 'yyyy-mm-dd'});
+	e.calendarsPicker({ calendar: calendar,dateFormat: 'yyyy-mm-dd'});
+}
