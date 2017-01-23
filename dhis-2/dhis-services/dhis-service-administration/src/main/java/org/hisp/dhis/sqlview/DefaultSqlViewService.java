@@ -218,7 +218,6 @@ public class DefaultSqlViewService
         return query;
     }
 
-
     private String getSqlForQuery( Grid grid, SqlView sqlView, Map<String, String> criteria, Map<String, String> variables, List<String> filters, List<String> fields )
     {
         boolean hasCriteria = criteria != null && !criteria.isEmpty();
@@ -370,7 +369,6 @@ public class DefaultSqlViewService
             
             throw new IllegalQueryException( violation );
         }
-
     }
 
     @Override
@@ -395,7 +393,4 @@ public class DefaultSqlViewService
         
         return sqlViewStore.refreshMaterializedView( sqlView );
     }
-
-
-
 }
