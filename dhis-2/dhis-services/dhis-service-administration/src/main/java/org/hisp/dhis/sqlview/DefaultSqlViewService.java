@@ -187,7 +187,6 @@ public class DefaultSqlViewService
         return grid;
     }
 
-
     private String parseFilters(List<String> filters, SqlHelper sqlHelper ) throws QueryParserException
     {
         String query = StringUtils.EMPTY;
@@ -236,9 +235,15 @@ public class DefaultSqlViewService
 
             SqlHelper sqlHelper = new SqlHelper();
 
-            if ( hasCriteria ) outerSql += getCriteriaSqlClause( criteria, sqlHelper );
+            if ( hasCriteria )
+            {
+                outerSql += getCriteriaSqlClause( criteria, sqlHelper );
+            }
 
-            if ( hasFilter ) outerSql += parseFilters( filters, sqlHelper );
+            if ( hasFilter )
+            {
+                outerSql += parseFilters( filters, sqlHelper );
+            }
 
             sql = outerSql;
         }
