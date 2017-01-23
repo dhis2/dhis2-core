@@ -372,88 +372,92 @@ public class ScheduleTasksAction
             {
                 schedulingManager.stopTasks();
             }
-
-            // -------------------------------------------------------------
-            // Build new schedule
-            // -------------------------------------------------------------
-
-            ListMap<String, String> cronKeyMap = new ListMap<>();
-
-            // -------------------------------------------------------------
-            // Resource tables
-            // -------------------------------------------------------------
-
-            if ( STRATEGY_ALL_DAILY.equals( resourceTableStrategy ) )
+            else
             {
-                cronKeyMap.putValue( CRON_DAILY_11PM, TASK_RESOURCE_TABLE );
-            }
-            else if ( STRATEGY_ALL_15_MIN.equals( resourceTableStrategy ) )
-            {
-                cronKeyMap.putValue( CRON_EVERY_15MIN, TASK_RESOURCE_TABLE_15_MINS );
-            }
 
-            // -------------------------------------------------------------
-            // Analytics
-            // -------------------------------------------------------------
+                // -------------------------------------------------------------
+                // Build new schedule
+                // -------------------------------------------------------------
 
-            if ( STRATEGY_ALL_DAILY.equals( analyticsStrategy ) )
-            {
-                cronKeyMap.putValue( CRON_DAILY_0AM, TASK_ANALYTICS_ALL );
-            }
-            else if ( STRATEGY_LAST_3_YEARS_DAILY.equals( analyticsStrategy ) )
-            {
-                cronKeyMap.putValue( CRON_DAILY_0AM, TASK_ANALYTICS_LAST_3_YEARS );
-            }
+                ListMap<String, String> cronKeyMap = new ListMap<>();
 
-            // -------------------------------------------------------------
-            // Monitoring
-            // -------------------------------------------------------------
+                // -------------------------------------------------------------
+                // Resource tables
+                // -------------------------------------------------------------
 
-            if ( STRATEGY_ALL_DAILY.equals( monitoringStrategy ) )
-            {
-                cronKeyMap.putValue( CRON_DAILY_0AM, TASK_MONITORING_LAST_DAY );
-            }
-
-            // -------------------------------------------------------------
-            // Data synch
-            // -------------------------------------------------------------
-
-            if ( STRATEGY_ENABLED.equals( dataSynchStrategy ) )
-            {
-                cronKeyMap.putValue( dataSyncCron, TASK_DATA_SYNCH );
-                systemSettingManager.saveSystemSetting( SettingKey.DATA_SYNC_CRON, dataSyncCron );
-            }
-
-            if ( STRATEGY_ENABLED.equals( metadataSyncStrategy ) )
-            {
-                cronKeyMap.putValue( metadataSyncCron, TASK_META_DATA_SYNC );
-                systemSettingManager.saveSystemSetting( SettingKey.METADATA_SYNC_CRON, metadataSyncCron );
-                systemSettingManager.saveSystemSetting( SettingKey.METADATAVERSION_ENABLED, true );
-            }
-
-            // -------------------------------------------------------------
-            // Program notifications scheduler
-            // -------------------------------------------------------------
-
-            if ( StringUtils.isNotEmpty( programNotificationSchedulerStrategy ) )
-            {
-                String cron = STRATEGY_TO_CRON.get( programNotificationSchedulerStrategy );
-
-                if ( cron == null )
+                if ( STRATEGY_ALL_DAILY.equals( resourceTableStrategy ) )
                 {
-                    log.warn( "Unrecognized scheduling strategy for program notifications: " + programNotificationSchedulerStrategy );
+                    cronKeyMap.putValue( CRON_DAILY_11PM, TASK_RESOURCE_TABLE );
                 }
-                else
+                else if ( STRATEGY_ALL_15_MIN.equals( resourceTableStrategy ) )
                 {
-                    cronKeyMap.putValue( cron, TASK_SCHEDULED_PROGRAM_NOTIFICATIONS );
+                    cronKeyMap.putValue( CRON_EVERY_15MIN, TASK_RESOURCE_TABLE_15_MINS );
                 }
+
+                // -------------------------------------------------------------
+                // Analytics
+                // -------------------------------------------------------------
+
+                if ( STRATEGY_ALL_DAILY.equals( analyticsStrategy ) )
+                {
+                    cronKeyMap.putValue( CRON_DAILY_0AM, TASK_ANALYTICS_ALL );
+                }
+                else if ( STRATEGY_LAST_3_YEARS_DAILY.equals( analyticsStrategy ) )
+                {
+                    cronKeyMap.putValue( CRON_DAILY_0AM, TASK_ANALYTICS_LAST_3_YEARS );
+                }
+
+                // -------------------------------------------------------------
+                // Monitoring
+                // -------------------------------------------------------------
+
+                if ( STRATEGY_ALL_DAILY.equals( monitoringStrategy ) )
+                {
+                    cronKeyMap.putValue( CRON_DAILY_0AM, TASK_MONITORING_LAST_DAY );
+                }
+
+                // -------------------------------------------------------------
+                // Data synch
+                // -------------------------------------------------------------
+
+                if ( STRATEGY_ENABLED.equals( dataSynchStrategy ) )
+                {
+                    cronKeyMap.putValue( dataSyncCron, TASK_DATA_SYNCH );
+                    systemSettingManager.saveSystemSetting( SettingKey.DATA_SYNC_CRON, dataSyncCron );
+                }
+
+                if ( STRATEGY_ENABLED.equals( metadataSyncStrategy ) )
+                {
+                    cronKeyMap.putValue( metadataSyncCron, TASK_META_DATA_SYNC );
+                    systemSettingManager.saveSystemSetting( SettingKey.METADATA_SYNC_CRON, metadataSyncCron );
+                    systemSettingManager.saveSystemSetting( SettingKey.METADATAVERSION_ENABLED, true );
+                }
+
+                // -------------------------------------------------------------
+                // Program notifications scheduler
+                // -------------------------------------------------------------
+
+                if ( StringUtils.isNotEmpty( programNotificationSchedulerStrategy ) )
+                {
+                    String cron = STRATEGY_TO_CRON.get( programNotificationSchedulerStrategy );
+
+                    if ( cron == null )
+                    {
+                        log.warn( "Unrecognized scheduling strategy for program notifications: " +
+                            programNotificationSchedulerStrategy );
+                    }
+                    else
+                    {
+                        cronKeyMap.putValue( cron, TASK_SCHEDULED_PROGRAM_NOTIFICATIONS );
+                    }
+                }
+
+                // -------------------------------------------------------------
+                // Commit new schedule
+                // -------------------------------------------------------------
+
+                schedulingManager.scheduleTasks( cronKeyMap );
             }
-
-            // -------------------------------------------------------------
-            // Commit new schedule
-            // -------------------------------------------------------------
-
-            schedulingManager.scheduleTasks( cronKeyMap );
         }
         else
         {
