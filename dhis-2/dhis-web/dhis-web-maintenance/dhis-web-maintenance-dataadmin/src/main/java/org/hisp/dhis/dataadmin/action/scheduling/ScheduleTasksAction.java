@@ -374,6 +374,7 @@ public class ScheduleTasksAction
             }
             else
             {
+
                 // -------------------------------------------------------------
                 // Build new schedule
                 // -------------------------------------------------------------
@@ -442,7 +443,8 @@ public class ScheduleTasksAction
 
                     if ( cron == null )
                     {
-                        log.warn( "Unrecognized scheduling strategy for program notifications: " + programNotificationSchedulerStrategy );
+                        log.warn( "Unrecognized scheduling strategy for program notifications: " +
+                            programNotificationSchedulerStrategy );
                     }
                     else
                     {

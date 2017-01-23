@@ -66,7 +66,7 @@ public class BiMonthlyPeriodType
     public Period createPeriod( DateTimeUnit dateTimeUnit, Calendar calendar )
     {
         DateTimeUnit start = new DateTimeUnit( dateTimeUnit );
-        start.setMonth( ((start.getMonth() - 1) - (start.getMonth() - 1) % 2) + 1 );
+        start.setMonth( ((start.getMonth() - 1) - ((start.getMonth() - 1) % 2)) + 1 );
         start.setDay( 1 );
 
         DateTimeUnit end = new DateTimeUnit( start );

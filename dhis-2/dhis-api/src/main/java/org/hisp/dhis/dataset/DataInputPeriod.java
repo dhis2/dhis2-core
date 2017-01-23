@@ -68,7 +68,7 @@ public class DataInputPeriod
 
     public DataInputPeriod()
     {
-        super.setAutoFields();
+        setAutoFields();
     }
 
     /**
@@ -93,8 +93,8 @@ public class DataInputPeriod
      */
     public boolean isDateWithinOpenCloseDates( Date date )
     {
-        return ( openingDate == null || date.after( openingDate ) )
-            && ( closingDate == null || date.before( closingDate ) );
+        return (openingDate == null || date.after( openingDate ))
+            && (closingDate == null || date.before( closingDate ));
     }
 
     /**

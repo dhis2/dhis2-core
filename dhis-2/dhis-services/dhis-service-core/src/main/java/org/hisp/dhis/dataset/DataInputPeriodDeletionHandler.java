@@ -1,5 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
-
+package org.hisp.dhis.dataset;
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -28,29 +27,42 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataset.DataInputPeriod;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Stian Sandvold
  */
-public class DataInputPeriodSchemaDescriptor implements SchemaDescriptor
+public class DataInputPeriodDeletionHandler
+    extends DeletionHandler
 {
-    public static final String SINGULAR = "dataInputPeriod";
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-    public static final String PLURAL = "dataInputPeriods";
+    private JdbcTemplate jdbcTemplate;
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
 
     @Override
-    public Schema getSchema()
+    public String allowDeletePeriod( Period period )
     {
-        Schema schema = new Schema( DataInputPeriod.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setMetadata( false );
-        schema.setOrder( 1230 );
+        String sql = "SELECT COUNT(*) FROM datainputperiod where periodid=" + period.getId();
 
-        return schema;
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    }
+
+    @Override
+    protected String getClassName()
+    {
+        return DataInputPeriod.class.getSimpleName();
     }
 }

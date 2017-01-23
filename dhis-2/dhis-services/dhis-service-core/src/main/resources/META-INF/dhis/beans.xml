@@ -83,6 +83,12 @@
 
   <!-- Store definitions -->
 
+  <bean id="org.hisp.dhis.dataset.DataInputPeriodStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.dataset.DataInputPeriod" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
   <bean id="org.hisp.dhis.report.ReportStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
     <property name="clazz" value="org.hisp.dhis.report.Report" />
     <property name="sessionFactory" ref="sessionFactory" />
@@ -1750,6 +1756,10 @@
     class="org.hisp.dhis.validation.ValidationRuleGroupDeletionHandler" />
 
   <bean id="org.hisp.dhis.datavalue.DataValueDeletionHandler" class="org.hisp.dhis.datavalue.DataValueDeletionHandler">
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.DataInputPeriodDeletionHandler" class="org.hisp.dhis.dataset.DataInputPeriodDeletionHandler">
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 

@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.webapi.mvc;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,29 +28,38 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataset.DataInputPeriod;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserInfo;
+import org.springframework.core.MethodParameter;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
 
 /**
- * @author Stian Sandvold
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DataInputPeriodSchemaDescriptor implements SchemaDescriptor
+@Component
+public class CurrentUserInfoHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver
 {
-    public static final String SINGULAR = "dataInputPeriod";
+    private final CurrentUserService currentUserService;
 
-    public static final String PLURAL = "dataInputPeriods";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    public CurrentUserInfoHandlerMethodArgumentResolver( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
+    }
 
     @Override
-    public Schema getSchema()
+    public boolean supportsParameter( MethodParameter parameter )
     {
-        Schema schema = new Schema( DataInputPeriod.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setMetadata( false );
-        schema.setOrder( 1230 );
+        return "currentUser".equals( parameter.getParameterName() )
+            && UserInfo.class.isAssignableFrom( parameter.getParameterType() );
+    }
 
-        return schema;
+    @Override
+    public Object resolveArgument( MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory ) throws Exception
+    {
+        return currentUserService.getCurrentUserInfo();
     }
 }
