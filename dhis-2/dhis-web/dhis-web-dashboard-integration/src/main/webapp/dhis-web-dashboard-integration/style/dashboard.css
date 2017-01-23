@@ -825,18 +825,27 @@ div#selectionTree
 
 #interpretationPopup
 {
-  position: absolute;
   padding: 6px;
-  top: 0;
-  left: 0;
   display: none;
   z-index: 1000000;
   background-color: #fff;
   border-radius: 3px;
   border: 1px solid #ccc;
   box-shadow: #ddd 0 1px 2px 0;
-  width: 408px;
+  list-style-type: none;
+  white-space: pre-wrap;
 }
+
+#dashboardItemInterpretationContainer{
+  overflow: auto;
+}
+
+#favoriteDescription {
+  border-bottom: 1px solid grey;
+  padding-bottom: 18px;
+  cursor: initial;
+}
+
 
 #interpretationPopup a{
   color: #000;
@@ -845,13 +854,15 @@ div#selectionTree
 
 #interpretationContainer{
   margin-bottom: 8px;
+  margin-top: 10px;
+  overflow: auto;
 }
 
 #interpretationContainer,
-#interpretationContainer div,
+#interpretationContainer div:not(#favoriteDescription),
 #interpretationContainer label
 {
-  cursor:pointer !important;	
+  cursor:pointer !important;
 }
 
 #interpretationContainer.div{
