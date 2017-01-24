@@ -157,6 +157,11 @@ public class DefaultEventQueryPlanner
             {
                 violation = "Query item cannot specify both legend set and option set: " + item.getItemId();
             }
+            
+            if ( params.isAggregateData() && !item.getAggregationType().isAggregateable() )
+            {
+                violation = "Query item must be aggregateable when used in aggregate query: " + item.getItemId();
+            }
         }
         
         if ( violation != null )

@@ -56,6 +56,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -418,6 +419,8 @@ public class JdbcEventAnalyticsManager
         
         if ( params.hasValueDimension() ) // TODO && isNumeric
         {
+            Assert.isTrue( params.getAggregationTypeFallback().isAggregateable() );
+            
             String function = params.getAggregationTypeFallback().getValue();
             
             String expression = statementBuilder.columnQuote( params.getValue().getUid() );
@@ -425,7 +428,7 @@ public class JdbcEventAnalyticsManager
             return function + "(" + expression + ")";
         }
         else if ( params.hasEventProgramIndicatorDimension() )
-        {
+        {            
             String function = params.getProgramIndicator().getAggregationTypeFallback().getValue();
             
             function = TextUtils.emptyIfEqual( function, AggregationType.CUSTOM.getValue() );
