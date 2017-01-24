@@ -102,15 +102,11 @@ public class MetadataSyncTask
                 }
                 , retryContext ->
                 {
-                    log.info( "Retries Exhausted. Sending mail to Admin" );
+                    log.info( "Metadata Sync failed! Sending mail to Admin" );
                     updateMetadataVersionFailureDetails( metadataRetryContext );
                     metadataSyncPostProcessor.sendFailureMailToAdmin( metadataRetryContext );
                     return null;
                 } );
-        }
-        catch ( DHISVersionMismatchException e )
-        {
-            log.info( "Stopping sync as DHIS versions are different " + e.getMessage(), e );
         }
         catch ( Exception e )
         {
@@ -176,7 +172,11 @@ public class MetadataSyncTask
             context.updateRetryContext( METADATA_SYNC, e.getMessage(), dataVersion );
             throw e;
         }
-
+        catch ( DHISVersionMismatchException e )
+        {
+            context.updateRetryContext( METADATA_SYNC, e.getMessage(), dataVersion );
+            throw e;
+        }
         return metadataSyncSummary;
 
     }

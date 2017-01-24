@@ -35,6 +35,7 @@ import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPreProcessor;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
+import org.hisp.dhis.dxf2.metadata.sync.exception.DHISVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -142,6 +143,24 @@ public class MetadataSyncTaskTest
         verify( metadataSyncPreProcessor ).handleMetadataVersionsList( metadataRetryContext, metadataVersion );
         verify( metadataSyncService ).doMetadataSync( any( MetadataSyncParams.class ) );
         verify( metadataSyncPostProcessor, never() ).handleSyncNotificationsAndAbortStatus( metadataSyncSummary, metadataRetryContext, metadataVersion );
+    }
+
+    @Test( expected = DHISVersionMismatchException.class )
+    public void testShouldAbortIfDHISVersionMismatch() throws Exception
+    {
+        metadataVersions.add( metadataVersion );
+
+        when( metadataSyncPreProcessor.handleCurrentMetadataVersion( metadataRetryContext ) ).thenReturn( metadataVersion );
+        when( metadataSyncPreProcessor.handleMetadataVersionsList( metadataRetryContext, metadataVersion ) ).thenReturn( metadataVersions );
+        when( metadataSyncService.doMetadataSync( any( MetadataSyncParams.class ) ) ).thenThrow( new DHISVersionMismatchException( "" ) );
+        metadataSyncTask.runSyncTask( metadataRetryContext );
+
+        verify (metadataSyncPreProcessor, times( 1 ) ).setUp( metadataRetryContext );
+        verify( metadataSyncPreProcessor, times( 1 ) ).handleAggregateDataPush( metadataRetryContext );
+        verify( metadataSyncPreProcessor, times( 1 ) ).handleEventDataPush( metadataRetryContext );
+        verify( metadataSyncPreProcessor, times( 1 ) ).handleCurrentMetadataVersion( metadataRetryContext );
+        verify( metadataSyncPreProcessor, times( 1 ) ).handleMetadataVersionsList( metadataRetryContext, metadataVersion );
+        verify( metadataSyncService, times( 1 ) ).doMetadataSync( any( MetadataSyncParams.class ) );
     }
 
     @Test

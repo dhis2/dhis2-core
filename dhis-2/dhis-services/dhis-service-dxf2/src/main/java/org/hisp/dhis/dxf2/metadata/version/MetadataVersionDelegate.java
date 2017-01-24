@@ -175,7 +175,7 @@ public class MetadataVersionDelegate
         SystemInfo systemInfo = systemService.getSystemInfo();
         String systemVersion = systemInfo.getVersion();
 
-        if ( systemVersion == null )
+        if ( systemVersion == null  || !metadataSystemSettingService.getStopMetadataSyncSetting() )
         {
             return false;
         }
@@ -197,7 +197,7 @@ public class MetadataVersionDelegate
         {
             e.printStackTrace();
         }
-        return metadataSystemSettingService.getStopMetadataSyncSetting() &&  ! systemVersion.equals( remoteVersion );
+        return !systemVersion.equals( remoteVersion );
     }
 
     //----------------------------------------------------------------------------------------
