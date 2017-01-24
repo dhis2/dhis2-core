@@ -36,11 +36,23 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.VersionedObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -476,20 +488,20 @@ public class DataSet
     {
         return categoryCombo != null && !DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME.equals( categoryCombo.getName() );
     }
-    
+
     /**
-     * Indicates whether the data set is locked for data entry based on the 
+     * Indicates whether the data set is locked for data entry based on the
      * expiry days.
-     * 
+     *
      * @param period the period to compare with.
-     * @param now the date indicating now, uses current date if null.
+     * @param now    the date indicating now, uses current date if null.
      */
     public boolean isLocked( Period period, Date now )
     {
         DateTime date = now != null ? new DateTime( now ) : new DateTime();
-        
-        return expiryDays != DataSet.NO_EXPIRY && 
-            new DateTime( period.getEndDate() ).plusDays( expiryDays ).isBefore( date  );
+
+        return expiryDays != DataSet.NO_EXPIRY &&
+            new DateTime( period.getEndDate() ).plusDays( expiryDays ).isBefore( date );
     }
 
     /**
@@ -672,7 +684,7 @@ public class DataSet
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = -Double.MAX_VALUE )
+    @PropertyRange( min = Integer.MIN_VALUE )
     public int getExpiryDays()
     {
         return expiryDays;
