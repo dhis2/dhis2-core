@@ -173,7 +173,6 @@ public class DailyPeriodType
         return ISO8601_DURATION;
     }
 
-
     @Override
     public Date getRewindedDate( Date date, Integer rewindedPeriods )
     {

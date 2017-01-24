@@ -129,8 +129,8 @@ function toggleFollowUp( id, followUp )
     } );
 }
 
-function updatePriority(id) {
-    togglePriority(id, $("#message-priority").val());
+function updatePriority(element, id) {
+    togglePriority(id, element.value);
 }
 
 function togglePriority( id, priority) {
@@ -145,8 +145,8 @@ function togglePriority( id, priority) {
 
 }
 
-function updateAssignee(id) {
-    toggleAssignee(id, $("#message-assignee").val());
+function updateAssignee(element, id) {
+    toggleAssignee(id, element.value);
 }
 
 function toggleAssignee( id, assignee) {
@@ -179,8 +179,8 @@ function setStatusFilter(status) {
         return window.location.replace(window.location.origin + window.location.pathname);
 }
 
-function updateStatus(id) {
-    toggleStatus(id, $("#message-status").val());
+function updateStatus(element, id) {
+    toggleStatus(id, element.value);
 }
 
 function toggleStatus( id, status) {

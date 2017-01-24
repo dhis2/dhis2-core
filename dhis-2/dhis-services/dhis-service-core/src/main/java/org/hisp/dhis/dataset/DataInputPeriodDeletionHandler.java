@@ -1,5 +1,4 @@
-package org.hisp.dhis.analytics;
-
+package org.hisp.dhis.dataset;
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -28,38 +27,42 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
-import javax.annotation.Nullable;
-
-import org.hisp.dhis.analytics.table.AnalyticsTableType;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * Interface responsible for generating analytics tables. Will look for and
- * invoke implementations of interface {@link AnalyticsTableService}.
- * 
- * @author Lars Helge Overland
+ * @author Stian Sandvold
  */
-public interface AnalyticsTableGenerator
+public class DataInputPeriodDeletionHandler
+    extends DeletionHandler
 {
-    /**
-     * Generates analytics tables.
-     * 
-     * @param lastYears the number of years relative to now to include,
-     *        can be null.
-     * @param taskId the task identifier, can be null.
-     * @param skipTableTypes indicates the types of analytics tables for 
-     *        which to skip generation.
-     * @param skipResourceTables indicates whether to skip generation of
-     *        resource tables.
-     */
-    void generateTables( @Nullable Integer lastYears, @Nullable TaskId taskId, Set<AnalyticsTableType> skipTableTypes, boolean skipResourceTables );
-    
-    /**
-     * Generates all resource tables.
-     * 
-     * @param taskId the task identifier, can be null.
-     */
-    void generateResourceTables( @Nullable TaskId taskId );
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
+
+    private JdbcTemplate jdbcTemplate;
+
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public String allowDeletePeriod( Period period )
+    {
+        String sql = "SELECT COUNT(*) FROM datainputperiod where periodid=" + period.getId();
+
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    }
+
+    @Override
+    protected String getClassName()
+    {
+        return DataInputPeriod.class.getSimpleName();
+    }
 }

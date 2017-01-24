@@ -50,6 +50,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
+import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,7 +116,11 @@ public abstract class AbstractJdbcTableManager
      * Returns a list of analytics table columns. Column names are quoted.
      */
     protected abstract List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTable table );
-    
+
+    // -------------------------------------------------------------------------
+    // Implementation
+    // -------------------------------------------------------------------------
+
     /**
      * Override in order to perform work before tables are being generated.
      */
@@ -124,10 +129,6 @@ public abstract class AbstractJdbcTableManager
     {
     }
     
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
-
     @Override
     @Transactional
     public List<AnalyticsTable> getTables( Date earliest )
@@ -337,9 +338,7 @@ public abstract class AbstractJdbcTableManager
         {
             throw new IllegalStateException( "Analytics table dimensions are empty" );
         }
-        
-        columns = new ArrayList<>( columns );
-        
+                
         List<String> columnNames = columns.stream().map( d -> d.getName() ).collect( Collectors.toList() );
                 
         Set<String> duplicates = ListUtils.getDuplicates( columnNames );
@@ -348,6 +347,27 @@ public abstract class AbstractJdbcTableManager
         {
             throw new IllegalStateException( "Analytics table dimensions contain duplicates: " + duplicates );
         }
+    }
+    
+    /**
+     * Filters out analytics table columns which were created
+     * after the time of the last successful resource table update.
+     * 
+     * @param columns the analytics table columns.
+     * @return
+     */
+    protected List<AnalyticsTableColumn> filterDimensionColumns( List<AnalyticsTableColumn> columns )
+    {
+        Date lastResourceTableUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE );
+        
+        if ( lastResourceTableUpdate == null )
+        {
+            return columns;
+        }
+        
+        return columns.stream()
+            .filter( c -> c.getCreated() == null || c.getCreated().before( lastResourceTableUpdate ) )
+            .collect( Collectors.toList() );
     }
 
     /**

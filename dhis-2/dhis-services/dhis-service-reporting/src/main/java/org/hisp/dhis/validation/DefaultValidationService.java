@@ -70,10 +70,12 @@ import org.springframework.context.ApplicationContext;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jim Grace
  */
+@Transactional
 public class DefaultValidationService
     implements ValidationService
 {

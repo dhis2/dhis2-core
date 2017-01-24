@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.webapi.mvc;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,38 +28,38 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
-import javax.annotation.Nullable;
-
-import org.hisp.dhis.analytics.table.AnalyticsTableType;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserInfo;
+import org.springframework.core.MethodParameter;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
 
 /**
- * Interface responsible for generating analytics tables. Will look for and
- * invoke implementations of interface {@link AnalyticsTableService}.
- * 
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface AnalyticsTableGenerator
+@Component
+public class CurrentUserInfoHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver
 {
-    /**
-     * Generates analytics tables.
-     * 
-     * @param lastYears the number of years relative to now to include,
-     *        can be null.
-     * @param taskId the task identifier, can be null.
-     * @param skipTableTypes indicates the types of analytics tables for 
-     *        which to skip generation.
-     * @param skipResourceTables indicates whether to skip generation of
-     *        resource tables.
-     */
-    void generateTables( @Nullable Integer lastYears, @Nullable TaskId taskId, Set<AnalyticsTableType> skipTableTypes, boolean skipResourceTables );
-    
-    /**
-     * Generates all resource tables.
-     * 
-     * @param taskId the task identifier, can be null.
-     */
-    void generateResourceTables( @Nullable TaskId taskId );
+    private final CurrentUserService currentUserService;
+
+    public CurrentUserInfoHandlerMethodArgumentResolver( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
+    }
+
+    @Override
+    public boolean supportsParameter( MethodParameter parameter )
+    {
+        return "currentUser".equals( parameter.getParameterName() )
+            && UserInfo.class.isAssignableFrom( parameter.getParameterType() );
+    }
+
+    @Override
+    public Object resolveArgument( MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory ) throws Exception
+    {
+        return currentUserService.getCurrentUserInfo();
+    }
 }

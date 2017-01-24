@@ -34,6 +34,11 @@ import java.util.List;
 
 public enum RelativePeriodEnum
 {
+    TODAY,
+    YESTERDAY,
+    LAST_3_DAYS,
+    LAST_7_DAYS,
+    LAST_14_DAYS,
     THIS_MONTH,
     LAST_MONTH,
     THIS_BIMONTH,
@@ -65,7 +70,8 @@ public enum RelativePeriodEnum
     LAST_52_WEEKS;
     
     public static List<String> OPTIONS = new ArrayList<String>() { {
-        addAll( Arrays.asList( THIS_MONTH.toString(), LAST_MONTH.toString(), THIS_BIMONTH.toString(), LAST_BIMONTH.toString(), 
+        addAll( Arrays.asList( TODAY.toString(), YESTERDAY.toString(), LAST_3_DAYS.toString(), LAST_7_DAYS.toString(), LAST_14_DAYS.toString(),
+            THIS_MONTH.toString(), LAST_MONTH.toString(), THIS_BIMONTH.toString(), LAST_BIMONTH.toString(),
             THIS_QUARTER.toString(), LAST_QUARTER.toString(), THIS_SIX_MONTH.toString(), LAST_SIX_MONTH.toString(),
             MONTHS_THIS_YEAR.toString(), QUARTERS_THIS_YEAR.toString(), THIS_YEAR.toString(), MONTHS_LAST_YEAR.toString(), QUARTERS_LAST_YEAR.toString(),
             LAST_YEAR.toString(), LAST_5_YEARS.toString(), LAST_12_MONTHS.toString(), LAST_6_MONTHS.toString(), LAST_3_MONTHS.toString(), LAST_6_BIMONTHS.toString(), 

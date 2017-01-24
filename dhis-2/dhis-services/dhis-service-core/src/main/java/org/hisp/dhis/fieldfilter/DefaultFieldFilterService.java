@@ -36,6 +36,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataset.DataInputPeriod;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
@@ -45,6 +46,8 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -485,6 +488,8 @@ public class DefaultFieldFilterService implements FieldFilterService
     private boolean isProperIdObject( Class<?> klass )
     {
         return !(DataElementOperand.class.isAssignableFrom( klass ) || UserCredentials.class.isAssignableFrom( klass ) ||
-            ReportingRate.class.isAssignableFrom( klass ) || DataSetElement.class.isAssignableFrom( klass ));
+            ReportingRate.class.isAssignableFrom( klass ) || DataSetElement.class.isAssignableFrom( klass ) ||
+            DataInputPeriod.class.isAssignableFrom( klass ) || ProgramStageDataElement.class.isAssignableFrom( klass ) ||
+            ProgramTrackedEntityAttribute.class.isAssignableFrom( klass ));
     }
 }

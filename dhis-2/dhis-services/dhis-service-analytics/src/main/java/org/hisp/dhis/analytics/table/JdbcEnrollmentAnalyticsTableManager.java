@@ -164,12 +164,12 @@ public class JdbcEnrollmentAnalyticsTableManager
         for ( OrganisationUnitLevel level : levels )
         {
             String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
-            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column ) );
+            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column, level.getCreated() ) );
         }
         
         for ( OrganisationUnitGroupSet groupSet : orgUnitGroupSets )
         {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "ougs." + quote( groupSet.getUid() ) ) );
+            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "ougs." + quote( groupSet.getUid() ), groupSet.getCreated() ) );
         }
 
         for ( PeriodType periodType : PeriodType.getAvailablePeriodTypes() )
@@ -223,19 +223,17 @@ public class JdbcEnrollmentAnalyticsTableManager
         AnalyticsTableColumn erd = new AnalyticsTableColumn( quote( "enrollmentdate" ), "timestamp", "pi.enrollmentdate" );
         AnalyticsTableColumn id = new AnalyticsTableColumn( quote( "incidentdate" ), "timestamp", "pi.incidentdate" );
                 
-        final String executionDateSql = "(select psi.executionDate from programstageinstance psi " + 
-            "join programinstance pi " + 
-            "on psi.programinstanceid = pi.programinstanceid " + 
-            "where psi.executiondate is not null " + 
+        final String executionDateSql = "(select psi.executionDate from programstageinstance psi " +
+            "where psi.programinstanceid = pi.programinstanceid " + 
+            "and psi.executiondate is not null " + 
             "and psi.deleted is not true " +
             "order by psi.executiondate desc " +
             "limit 1) as " + quote( "executiondate" );        
         AnalyticsTableColumn ed = new AnalyticsTableColumn( quote( "executiondate" ), "timestamp", executionDateSql );
         
         final String dueDateSql = "(select psi.duedate FROM programstageinstance psi " + 
-            "join programinstance pi " + 
-            "on psi.programinstanceid = pi.programinstanceid " + 
-            "where psi.duedate is not null " + 
+            "where psi.programinstanceid = pi.programinstanceid " + 
+            "and psi.duedate is not null " + 
             "and psi.deleted is not true " +
             "order by psi.duedate desc " +
             "limit 1) as " + quote( "duedate" );        
@@ -262,6 +260,6 @@ public class JdbcEnrollmentAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( quote( "tei" ), "character(11)", "tei.uid" ) );
         }
                 
-        return columns;
+        return filterDimensionColumns( columns );
     }    
 }
