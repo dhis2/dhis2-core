@@ -1108,7 +1108,7 @@ public abstract class BaseAnalyticalObject
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = -Double.MIN_VALUE )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public int getSortOrder()
     {
         return sortOrder;
