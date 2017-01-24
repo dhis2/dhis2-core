@@ -1527,6 +1527,7 @@ public abstract class DhisConvenienceTest
         attribute.setName( "Attribute" + uniqueChar );
         attribute.setDescription( "Attribute" + uniqueChar );
         attribute.setValueType( ValueType.TEXT );
+        attribute.setAggregationType( AggregationType.NONE );
 
         return attribute;
     }
@@ -1554,6 +1555,7 @@ public abstract class DhisConvenienceTest
         attribute.setName( "Attribute" + uniqueChar );
         attribute.setDescription( "Attribute" + uniqueChar );
         attribute.setValueType( valueType );
+        attribute.setAggregationType( AggregationType.NONE );
 
         return attribute;
     }
