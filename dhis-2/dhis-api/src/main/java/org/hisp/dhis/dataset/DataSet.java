@@ -295,16 +295,16 @@ public class DataSet
         element.getDataElement().getDataSetElements().add( element );
         return dataSetElements.add( element );
     }
-    
+
     /**
      * Adds a data set element using this data set, the given data element and
      * no category combo.
-     * 
+     *
      * @param dataElement the data element.
      */
     public boolean addDataSetElement( DataElement dataElement )
     {
-        DataSetElement element = new DataSetElement( this, dataElement, null );      
+        DataSetElement element = new DataSetElement( this, dataElement, null );
         dataElement.getDataSetElements().add( element );
         return dataSetElements.add( element );
     }
@@ -312,8 +312,8 @@ public class DataSet
     /**
      * Adds a data set element using this data set, the given data element and
      * the given category combo.
-     * 
-     * @param dataElement the data element.
+     *
+     * @param dataElement   the data element.
      * @param categoryCombo the category combination.
      */
     public boolean addDataSetElement( DataElement dataElement, DataElementCategoryCombo categoryCombo )
@@ -322,23 +322,23 @@ public class DataSet
         dataElement.getDataSetElements().add( element );
         return dataSetElements.add( element );
     }
-        
+
     public boolean removeDataSetElement( DataSetElement element )
     {
         dataSetElements.remove( element );
         return element.getDataElement().getDataSetElements().remove( element );
     }
-    
+
     public void removeDataSetElement( DataElement dataElement )
     {
         Iterator<DataSetElement> elements = dataSetElements.iterator();
-        
+
         while ( elements.hasNext() )
         {
             DataSetElement element = elements.next();
-            
+
             DataSetElement other = new DataSetElement( this, dataElement );
-            
+
             if ( element.objectEquals( other ) )
             {
                 elements.remove();
@@ -346,17 +346,17 @@ public class DataSet
             }
         }
     }
-    
+
     public void removeAllDataSetElements()
     {
         for ( DataSetElement element : dataSetElements )
         {
             element.getDataElement().getDataSetElements().remove( element );
         }
-        
+
         dataSetElements.clear();
     }
-    
+
     public void addIndicator( Indicator indicator )
     {
         indicators.add( indicator );
@@ -414,17 +414,17 @@ public class DataSet
 
         return FormType.DEFAULT;
     }
-    
+
     /**
      * Note that this method returns an immutable set and can not be used to
-     * modify the model. Returns an immutable set of data sets associated with 
+     * modify the model. Returns an immutable set of data sets associated with
      * this data element.
      */
     public Set<DataElement> getDataElements()
     {
         return ImmutableSet.copyOf( dataSetElements.stream().map( e -> e.getDataElement() ).collect( Collectors.toSet() ) );
     }
-    
+
     public Set<DataElement> getDataElementsInSections()
     {
         Set<DataElement> dataElements = new HashSet<>();
@@ -502,20 +502,20 @@ public class DataSet
 
         return true;
     }
-    
+
     /**
-     * Indicates whether the data set is locked for data entry based on the 
+     * Indicates whether the data set is locked for data entry based on the
      * expiry days.
-     * 
+     *
      * @param period the period to compare with.
-     * @param now the date indicating now, uses current date if null.
+     * @param now    the date indicating now, uses current date if null.
      */
     public boolean isLocked( Period period, Date now )
     {
         DateTime date = now != null ? new DateTime( now ) : new DateTime();
-        
-        return expiryDays != DataSet.NO_EXPIRY && 
-            new DateTime( period.getEndDate() ).plusDays( expiryDays ).isBefore( date  );
+
+        return expiryDays != DataSet.NO_EXPIRY &&
+            new DateTime( period.getEndDate() ).plusDays( expiryDays ).isBefore( date );
     }
 
     // -------------------------------------------------------------------------
@@ -675,7 +675,7 @@ public class DataSet
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = -Double.MIN_VALUE )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public int getExpiryDays()
     {
         return expiryDays;
@@ -687,8 +687,8 @@ public class DataSet
     }
 
     @JsonProperty
-    @Property( value = PropertyType.DATE, required = Property.Value.FALSE )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( value = PropertyType.DATE, required = Property.Value.FALSE )
     public Date getStartDate()
     {
         return startDate;
