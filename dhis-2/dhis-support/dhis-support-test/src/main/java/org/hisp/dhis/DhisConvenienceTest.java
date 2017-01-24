@@ -1058,6 +1058,9 @@ public abstract class DhisConvenienceTest
     public static ValidationRule createValidationRule( String uniqueCharacter, Operator operator, Expression leftSide,
         Expression rightSide, PeriodType periodType )
     {
+        Assert.notNull( leftSide, "Left side expression must be specified" );
+        Assert.notNull( rightSide, "Rigth side expression must be specified" );
+        
         ValidationRule validationRule = new ValidationRule();
         validationRule.setAutoFields();
 

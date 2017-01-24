@@ -335,8 +335,8 @@ public class ValidationRuleServiceTest
     @Test
     public void testAddValidationRuleGroup()
     {
-        ValidationRule ruleA = createValidationRule( "A", equal_to, null, null, periodTypeMonthly );
-        ValidationRule ruleB = createValidationRule( "B", equal_to, null, null, periodTypeMonthly );
+        ValidationRule ruleA = createValidationRule( "A", equal_to, expressionA, expressionA, periodTypeMonthly );
+        ValidationRule ruleB = createValidationRule( "B", equal_to, expressionB, expressionB, periodTypeMonthly );
 
         validationRuleService.saveValidationRule( ruleA );
         validationRuleService.saveValidationRule( ruleB );
@@ -362,8 +362,8 @@ public class ValidationRuleServiceTest
     @Test
     public void testUpdateValidationRuleGroup()
     {
-        ValidationRule ruleA = createValidationRule( "A", equal_to, null, null, periodTypeMonthly );
-        ValidationRule ruleB = createValidationRule( "B", equal_to, null, null, periodTypeMonthly );
+        ValidationRule ruleA = createValidationRule( "A", equal_to, expressionA, expressionB, periodTypeMonthly );
+        ValidationRule ruleB = createValidationRule( "B", equal_to, expressionA, expressionB, periodTypeMonthly );
 
         validationRuleService.saveValidationRule( ruleA );
         validationRuleService.saveValidationRule( ruleB );
@@ -398,8 +398,8 @@ public class ValidationRuleServiceTest
     @Test
     public void testDeleteValidationRuleGroup()
     {
-        ValidationRule ruleA = createValidationRule( "A", equal_to, null, null, periodTypeMonthly );
-        ValidationRule ruleB = createValidationRule( "B", equal_to, null, null, periodTypeMonthly );
+        ValidationRule ruleA = createValidationRule( "A", equal_to, expressionA, expressionB, periodTypeMonthly );
+        ValidationRule ruleB = createValidationRule( "B", equal_to, expressionA, expressionB, periodTypeMonthly );
 
         validationRuleService.saveValidationRule( ruleA );
         validationRuleService.saveValidationRule( ruleB );
@@ -435,8 +435,8 @@ public class ValidationRuleServiceTest
     @Test
     public void testGetAllValidationRuleGroup()
     {
-        ValidationRule ruleA = createValidationRule( "A", equal_to, null, null, periodTypeMonthly );
-        ValidationRule ruleB = createValidationRule( "B", equal_to, null, null, periodTypeMonthly );
+        ValidationRule ruleA = createValidationRule( "A", equal_to, expressionA, expressionB, periodTypeMonthly );
+        ValidationRule ruleB = createValidationRule( "B", equal_to, expressionA, expressionB, periodTypeMonthly );
 
         validationRuleService.saveValidationRule( ruleA );
         validationRuleService.saveValidationRule( ruleB );
@@ -465,8 +465,8 @@ public class ValidationRuleServiceTest
     @Test
     public void testGetValidationRuleGroupByName()
     {
-        ValidationRule ruleA = createValidationRule( "A", equal_to, null, null, periodTypeMonthly );
-        ValidationRule ruleB = createValidationRule( "B", equal_to, null, null, periodTypeMonthly );
+        ValidationRule ruleA = createValidationRule( "A", equal_to, expressionA, expressionB, periodTypeMonthly );
+        ValidationRule ruleB = createValidationRule( "B", equal_to, expressionA, expressionB, periodTypeMonthly );
 
         validationRuleService.saveValidationRule( ruleA );
         validationRuleService.saveValidationRule( ruleB );

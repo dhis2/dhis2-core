@@ -128,8 +128,8 @@ public class ValidationRuleGroupStoreTest
     @Test
     public void testAddValidationRuleGroup()
     {
-        ValidationRule ruleA = createValidationRule( 'A', equal_to, null, null, periodType );
-        ValidationRule ruleB = createValidationRule( 'B', equal_to, null, null, periodType );
+        ValidationRule ruleA = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
+        ValidationRule ruleB = createValidationRule( 'B', equal_to, expressionA, expressionB, periodType );
 
         validationRuleStore.save( ruleA );
         validationRuleStore.save( ruleB );
@@ -155,8 +155,8 @@ public class ValidationRuleGroupStoreTest
     @Test
     public void testUpdateValidationRuleGroup()
     {
-        ValidationRule ruleA = createValidationRule( 'A', equal_to, null, null, periodType );
-        ValidationRule ruleB = createValidationRule( 'B', equal_to, null, null, periodType );
+        ValidationRule ruleA = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
+        ValidationRule ruleB = createValidationRule( 'B', equal_to, expressionA, expressionB, periodType );
 
         validationRuleStore.save( ruleA );
         validationRuleStore.save( ruleB );
@@ -191,8 +191,8 @@ public class ValidationRuleGroupStoreTest
     @Test
     public void testDeleteValidationRuleGroup()
     {
-        ValidationRule ruleA = createValidationRule( 'A', equal_to, null, null, periodType );
-        ValidationRule ruleB = createValidationRule( 'B', equal_to, null, null, periodType );
+        ValidationRule ruleA = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
+        ValidationRule ruleB = createValidationRule( 'B', equal_to, expressionA, expressionB, periodType );
 
         validationRuleStore.save( ruleA );
         validationRuleStore.save( ruleB );
@@ -228,8 +228,8 @@ public class ValidationRuleGroupStoreTest
     @Test
     public void testGetAllValidationRuleGroup()
     {
-        ValidationRule ruleA = createValidationRule( 'A', equal_to, null, null, periodType );
-        ValidationRule ruleB = createValidationRule( 'B', equal_to, null, null, periodType );
+        ValidationRule ruleA = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
+        ValidationRule ruleB = createValidationRule( 'B', equal_to, expressionA, expressionB, periodType );
 
         validationRuleStore.save( ruleA );
         validationRuleStore.save( ruleB );
@@ -258,8 +258,8 @@ public class ValidationRuleGroupStoreTest
     @Test
     public void testGetValidationRuleGroupByName()
     {
-        ValidationRule ruleA = createValidationRule( 'A', equal_to, null, null, periodType );
-        ValidationRule ruleB = createValidationRule( 'B', equal_to, null, null, periodType );
+        ValidationRule ruleA = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
+        ValidationRule ruleB = createValidationRule( 'B', equal_to, expressionA, expressionB, periodType );
 
         validationRuleStore.save( ruleA );
         validationRuleStore.save( ruleB );
