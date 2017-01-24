@@ -420,6 +420,7 @@
       "displayOnVisitSchedule": false,
       "confidential": false,
       "valueType": "TEXT",
+      "aggregationType": "NONE",
       "displayInListNoProgram": false,
       "name": "TrackedEntityAttributeA",
       "orgunitScope": false,

@@ -259,9 +259,12 @@ public class TableAlteror
 
         executeSql( "ALTER TABLE programstageinstance DROP COLUMN completed" );
 
-        executeSql( "update program_attributes set mandatory = false where mandatory is null;" );
+        executeSql( "update program_attributes set mandatory = false where mandatory is null" );
 
         executeSql( "update trackedentityattribute set confidential = false where confidential is null;" );
+        
+        executeSql( "update trackedentityattribute set aggregationtype = 'NONE' where aggregationtype is null" );
+        executeSql( "alter table trackedentityattribute alter column aggregationtype set not null" );
 
         executeSql( "update programstage_dataelements set allowfuturedate = allowdateinfuture where allowfuturedate is null" );
         executeSql( "update programstage_dataelements set allowfuturedate = false where allowfuturedate is null" );

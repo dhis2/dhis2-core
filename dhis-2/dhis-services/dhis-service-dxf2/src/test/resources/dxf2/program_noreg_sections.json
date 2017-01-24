@@ -548,6 +548,7 @@
       "name": "TrackedEntityAttributeA",
       "attributeValues": [ ],
       "valueType": "TEXT",
+      "aggregationType": "NONE",
       "publicAccess": "rw------",
       "orgunitScope": false,
       "trackedEntityAttributeGroup": {

@@ -292,13 +292,15 @@
       "searchScope": "SEARCH_ORG_UNITS",
       "orgunitScope": false,
       "programScope": false,
-      "valueType": "TEXT"
+      "valueType": "TEXT",
+      "aggregationType": "NONE"
     },
     {
       "orgunitScope": false,
       "searchScope": "SEARCH_ORG_UNITS",
       "programScope": false,
       "valueType": "TEXT",
+      "aggregationType": "NONE",
       "user": {
         "id": "A3U6uPM3H58"
       },
