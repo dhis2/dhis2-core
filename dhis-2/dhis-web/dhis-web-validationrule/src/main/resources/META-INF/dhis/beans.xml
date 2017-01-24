@@ -7,22 +7,6 @@
 
   <!-- ValidationRule CRUD operations -->
 
-  <bean id="org.hisp.dhis.validationrule.action.AddValidationRuleAction" 
-    class="org.hisp.dhis.validationrule.action.AddValidationRuleAction"
-    scope="prototype">
-    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
-    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.validationrule.action.ShowUpdateValidationRuleFormAction"
-    class="org.hisp.dhis.validationrule.action.ShowUpdateValidationRuleFormAction"
-    scope="prototype">
-    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
-    <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
-    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
-    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
-  </bean>
-
   <bean id="org.hisp.dhis.validationrule.action.GetValidationRuleAction" 
     class="org.hisp.dhis.validationrule.action.GetValidationRuleAction"
     scope="prototype">
@@ -34,19 +18,6 @@
     class="org.hisp.dhis.validationrule.action.GetValidationRuleListAction"
     scope="prototype">
     <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.validationrule.action.RemoveValidationRuleAction"
-    class="org.hisp.dhis.validationrule.action.RemoveValidationRuleAction"
-    scope="prototype">
-    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.validationrule.action.UpdateValidationRuleAction"
-    class="org.hisp.dhis.validationrule.action.UpdateValidationRuleAction"
-    scope="prototype">
-    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
-    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
   </bean>
 
   <bean id="org.hisp.dhis.validationrule.action.ValidateValidationRuleAction"
@@ -71,12 +42,6 @@
 
   <!-- ValidationRuleGroup CRUD operations -->
 
-  <bean id="org.hisp.dhis.validationrule.action.validationrulegroup.AddValidationRuleGroupAction"
-    class="org.hisp.dhis.validationrule.action.validationrulegroup.AddValidationRuleGroupAction"
-    scope="prototype">
-    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
-  </bean>
-
   <bean id="org.hisp.dhis.validationrule.action.validationrulegroup.GetValidationRuleGroupAction"
     class="org.hisp.dhis.validationrule.action.validationrulegroup.GetValidationRuleGroupAction"
     scope="prototype">
@@ -85,24 +50,6 @@
 
   <bean id="org.hisp.dhis.validationrule.action.validationrulegroup.GetValidationRuleGroupListAction"
     class="org.hisp.dhis.validationrule.action.validationrulegroup.GetValidationRuleGroupListAction"
-    scope="prototype">
-    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.validationrule.action.validationrulegroup.RemoveValidationRuleGroupAction"
-    class="org.hisp.dhis.validationrule.action.validationrulegroup.RemoveValidationRuleGroupAction"
-    scope="prototype">
-    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.validationrule.action.validationrulegroup.ShowUpdateValidationRuleGroupFormAction"
-    class="org.hisp.dhis.validationrule.action.validationrulegroup.ShowUpdateValidationRuleGroupFormAction"
-    scope="prototype">
-    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.validationrule.action.validationrulegroup.UpdateValidationRuleGroupAction"
-    class="org.hisp.dhis.validationrule.action.validationrulegroup.UpdateValidationRuleGroupAction"
     scope="prototype">
     <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
   </bean>
