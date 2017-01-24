@@ -187,7 +187,6 @@ public class DefaultSqlViewService
         return grid;
     }
 
-
     private String parseFilters(List<String> filters, SqlHelper sqlHelper ) throws QueryParserException
     {
         String query = StringUtils.EMPTY;
@@ -219,7 +218,6 @@ public class DefaultSqlViewService
         return query;
     }
 
-
     private String getSqlForQuery( Grid grid, SqlView sqlView, Map<String, String> criteria, Map<String, String> variables, List<String> filters, List<String> fields )
     {
         boolean hasCriteria = criteria != null && !criteria.isEmpty();
@@ -236,9 +234,15 @@ public class DefaultSqlViewService
 
             SqlHelper sqlHelper = new SqlHelper();
 
-            if ( hasCriteria ) outerSql += getCriteriaSqlClause( criteria, sqlHelper );
+            if ( hasCriteria )
+            {
+                outerSql += getCriteriaSqlClause( criteria, sqlHelper );
+            }
 
-            if ( hasFilter ) outerSql += parseFilters( filters, sqlHelper );
+            if ( hasFilter )
+            {
+                outerSql += parseFilters( filters, sqlHelper );
+            }
 
             sql = outerSql;
         }
@@ -365,7 +369,6 @@ public class DefaultSqlViewService
             
             throw new IllegalQueryException( violation );
         }
-
     }
 
     @Override
@@ -390,7 +393,4 @@ public class DefaultSqlViewService
         
         return sqlViewStore.refreshMaterializedView( sqlView );
     }
-
-
-
 }

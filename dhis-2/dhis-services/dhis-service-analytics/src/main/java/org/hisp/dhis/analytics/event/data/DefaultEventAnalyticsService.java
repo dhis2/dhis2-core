@@ -174,7 +174,7 @@ public class DefaultEventAnalyticsService
             List<EventQueryParams> queries = queryPlanner.planAggregateQuery( params );
     
             timer.getSplitTime( "Planned event query, got partitions: " + params.getPartitions() );
-    
+
             for ( EventQueryParams query : queries )
             {
                 if ( query.hasEnrollmentProgramIndicatorDimension() )
