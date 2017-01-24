@@ -263,7 +263,7 @@ public class DefaultDataQueryService
                 }
                 else
                 {
-                    DimensionalItemObject dimItemObject = dimensionService.getOrAddDataDimensionalItemObject( inputIdScheme, uid );
+                    DimensionalItemObject dimItemObject = dimensionService.getDataDimensionalItemObject( inputIdScheme, uid );
 
                     if ( dimItemObject != null )
                     {

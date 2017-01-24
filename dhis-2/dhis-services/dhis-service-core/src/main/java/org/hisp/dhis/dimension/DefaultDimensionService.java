@@ -387,6 +387,12 @@ public class DefaultDimensionService
     @Override
     public DimensionalItemObject getDataDimensionalItemObject( String dimensionItem )
     {
+        return getDataDimensionalItemObject( IdScheme.UID, dimensionItem );
+    }
+    
+    @Override
+    public DimensionalItemObject getDataDimensionalItemObject( IdScheme idScheme, String dimensionItem )
+    {
         if ( DimensionalObjectUtils.isCompositeDimensionalObject( dimensionItem ) )
         {
             String id0 = splitSafe( dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 0 );
@@ -401,7 +407,7 @@ public class DefaultDimensionService
             {
                 return operand;
             }
-            else if ( ( dataSet = identifiableObjectManager.get( DataSet.class, id0 ) ) != null && isValidEnum( ReportingRateMetric.class, id1 ) )
+            else if ( ( dataSet = identifiableObjectManager.getObject( DataSet.class, idScheme, id0 ) ) != null && isValidEnum( ReportingRateMetric.class, id1 ) )
             {
                 return new ReportingRate( dataSet, ReportingRateMetric.valueOf( id1 ) );
             }
@@ -414,10 +420,10 @@ public class DefaultDimensionService
                 return programAttribute;
             }
         }
-        else if ( CodeGenerator.isValidCode( dimensionItem ) )
+        else if ( !idScheme.is( IdentifiableProperty.UID ) || CodeGenerator.isValidCode( dimensionItem ) )
         {
             DimensionalItemObject itemObject = identifiableObjectManager.
-                get( DataDimensionItem.DATA_DIMENSION_CLASSES, dimensionItem );
+                get( DataDimensionItem.DATA_DIMENSION_CLASSES, idScheme, dimensionItem );
             
             if ( itemObject != null )
             {
@@ -426,7 +432,7 @@ public class DefaultDimensionService
 
             // TODO Maintain DataSet compatibility from 2.23 until 2.25
             
-            DataSet dataSet = identifiableObjectManager.get( DataSet.class, dimensionItem );
+            DataSet dataSet = identifiableObjectManager.getObject( DataSet.class, idScheme, dimensionItem );
             
             if ( dataSet != null )
             {
