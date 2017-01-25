@@ -335,7 +335,7 @@ public final class QueryUtils
             }
             case "!like":
             {
-                return "not like '" + value + "'"  ;
+                return "not like '%" + value + "%'"  ;
             }
             case "^like":
             {
@@ -359,7 +359,7 @@ public final class QueryUtils
             }
             case "!ilike":
             {
-                return " not ilike '" + value + "'";
+                return " not ilike '%" + value + "%'";
             }
             case "^ilike":
             {
