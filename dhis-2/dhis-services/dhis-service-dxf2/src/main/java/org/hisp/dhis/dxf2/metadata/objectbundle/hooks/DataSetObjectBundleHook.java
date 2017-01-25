@@ -68,7 +68,7 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
                         if ( dip == null )
                         {
                             preheatService.connectReferences( dataInputPeriod, bundle.getPreheat(), bundle.getPreheatIdentifier() );
-                            sessionFactory.getCurrentSession().save( dataInputPeriod );
+                            // sessionFactory.getCurrentSession().save( dataInputPeriod );
                             return dataInputPeriod;
                         }
                         else
