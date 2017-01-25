@@ -31,19 +31,19 @@ package org.hisp.dhis.dxf2.metadata.sync.exception;
 /**
  * @author aamerm
  */
-public class DHISVersionMismatchException extends Exception
+public class DhisVersionMismatchException extends Exception
 {
-    public DHISVersionMismatchException( String message )
+    public DhisVersionMismatchException( String message )
     {
         super( message );
     }
 
-    public DHISVersionMismatchException( Throwable cause )
+    public DhisVersionMismatchException( Throwable cause )
     {
         super( cause );
     }
 
-    public DHISVersionMismatchException( String message, Throwable cause )
+    public DhisVersionMismatchException( String message, Throwable cause )
     {
         super( message, cause );
     }

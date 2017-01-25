@@ -41,10 +41,6 @@ import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.system.SystemInfo;
-import org.hisp.dhis.system.SystemService;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.system.util.DhisHttpResponse;
 import org.hisp.dhis.system.util.HttpUtils;
 import org.junit.Before;
@@ -63,12 +59,12 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 /**
@@ -94,10 +90,6 @@ public class MetadataVersionDelegateTest
     @Autowired
     @Mock
     private DefaultMetadataSystemSettingService metadataSystemSettingService;
-
-    @Autowired
-    @Mock
-    private SystemService systemService;
 
     @Autowired
     @Mock
@@ -379,76 +371,6 @@ public class MetadataVersionDelegateTest
         String actualVersionSnapShot = metadataVersionDelegate.downloadMetadataVersion( metadataVersion );
 
         assertEquals( response, actualVersionSnapShot );
-    }
-
-    @Test
-    public void testShouldVerifyIfStopSyncReturnFalseIfNoSystemVersionInLocal()
-    {
-        String versionSnapshot = "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
-        SystemInfo systemInfo = new SystemInfo();
-        when ( systemService.getSystemInfo() ).thenReturn( systemInfo );
-        boolean shouldStopSync = metadataVersionDelegate.shouldStopSync( versionSnapshot );
-        assertFalse(shouldStopSync);
-    }
-
-    @Test
-    public void testShouldVerifyIfStopSyncReturnFalseIfNoSystemVersionInRemote() throws IOException
-    {
-        String versionSnapshot = "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
-        SystemInfo systemInfo = new SystemInfo();
-        systemInfo.setVersion( "2.26" );
-        when ( systemService.getSystemInfo() ).thenReturn( systemInfo );
-        when ( renderService.getSystemObject(any( ByteArrayInputStream.class), eq( RenderFormat.JSON ) ) ).thenReturn( null );
-        boolean shouldStopSync = metadataVersionDelegate.shouldStopSync( versionSnapshot );
-        assertFalse(shouldStopSync);
-    }
-
-    @Test
-    public void testShouldVerifyIfStopSyncReturnTrueIfDHISVersionMismatch() throws IOException
-    {
-        String versionSnapshot = "{\"system:\": {\"date\":\"2016-06-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\"," +
-            "\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
-        String systemNodeString = "{\"date\":\"2016-06-24T05:27:25.128+0000\", \"version\": \"2.26\"}";
-        SystemInfo systemInfo = new SystemInfo();
-        systemInfo.setVersion( "2.25" );
-        when ( systemService.getSystemInfo() ).thenReturn( systemInfo );
-        when ( metadataSystemSettingService.getStopMetadataSyncSetting() ).thenReturn( true );
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode jsonNode = mapper.readTree( systemNodeString );
-        when ( renderService.getSystemObject(any( ByteArrayInputStream.class), eq( RenderFormat.JSON ) ) ).thenReturn( jsonNode);
-
-        boolean shouldStopSync = metadataVersionDelegate.shouldStopSync( versionSnapshot );
-        assertTrue(shouldStopSync);
-    }
-
-    @Test
-    public void testShouldVerifyIfStopSyncReturnFalseIfDHISVersionSame() throws IOException
-    {
-        String versionSnapshot = "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
-        String systemNodeString = "{\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}";
-        SystemInfo systemInfo = new SystemInfo();
-        systemInfo.setVersion( "2.26" );
-        when ( systemService.getSystemInfo() ).thenReturn( systemInfo );
-        when ( metadataSystemSettingService.getStopMetadataSyncSetting() ).thenReturn( true );
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode jsonNode = mapper.readTree( systemNodeString );
-        when ( renderService.getSystemObject(any( ByteArrayInputStream.class), eq( RenderFormat.JSON ) ) ).thenReturn( jsonNode);
-
-        boolean shouldStopSync = metadataVersionDelegate.shouldStopSync( versionSnapshot );
-        assertFalse(shouldStopSync);
-    }
-
-    @Test
-    public void testShouldVerifyIfStopSyncReturnFalseIfStopSyncIsNotSet() throws IOException
-    {
-        String versionSnapshot = "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
-        SystemInfo systemInfo = new SystemInfo();
-        systemInfo.setVersion( "2.26" );
-
-        when ( systemService.getSystemInfo() ).thenReturn( systemInfo );
-        when ( metadataSystemSettingService.getStopMetadataSyncSetting() ).thenReturn( false );
-        boolean shouldStopSync = metadataVersionDelegate.shouldStopSync( versionSnapshot );
-        assertFalse(shouldStopSync);
     }
 
     @Test

@@ -29,7 +29,7 @@
 package org.hisp.dhis.dxf2.metadata.sync;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.dxf2.metadata.sync.exception.DHISVersionMismatchException;
+import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
 import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
@@ -70,6 +70,10 @@ public class DefaultMetadataSyncServiceTest
     @Autowired
     @Mock
     private MetadataVersionDelegate metadataVersionDelegate;
+
+    @Autowired
+    @Mock
+    private MetadataSyncDelegate metadataSyncDelegate;
 
     @Autowired
     @Mock
@@ -183,7 +187,7 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldThrowExceptionWhenSyncParamsIsNull() throws DHISVersionMismatchException
+    public void testShouldThrowExceptionWhenSyncParamsIsNull() throws DhisVersionMismatchException
     {
         expectedException.expect( MetadataSyncServiceException.class );
         expectedException.expectMessage( "MetadataSyncParams cant be null" );
@@ -192,7 +196,7 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldThrowExceptionWhenVersionIsNulInSyncParams() throws DHISVersionMismatchException
+    public void testShouldThrowExceptionWhenVersionIsNulInSyncParams() throws DhisVersionMismatchException
     {
         MetadataSyncParams syncParams = new MetadataSyncParams();
         syncParams.setVersion( null );
@@ -204,7 +208,7 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldThrowExceptionWhenSnapshotReturnsNullForGivenVersion() throws DHISVersionMismatchException
+    public void testShouldThrowExceptionWhenSnapshotReturnsNullForGivenVersion() throws DhisVersionMismatchException
     {
 
         MetadataSyncParams syncParams = Mockito.mock( MetadataSyncParams.class );
@@ -220,7 +224,7 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldNotCallDownloadMetadataWhenMetadataSnapshotPresentInLocalAndNotPassIntegrity() throws DHISVersionMismatchException
+    public void testShouldNotCallDownloadMetadataWhenMetadataSnapshotPresentInLocalAndNotPassIntegrity() throws DhisVersionMismatchException
     {
         MetadataSyncParams syncParams = Mockito.mock( MetadataSyncParams.class );
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.ATOMIC );
@@ -239,7 +243,7 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldThrowExceptionWhenDHISVersionsMismatch() throws DHISVersionMismatchException
+    public void testShouldThrowExceptionWhenDHISVersionsMismatch() throws DhisVersionMismatchException
     {
         MetadataSyncParams syncParams = Mockito.mock( MetadataSyncParams.class );
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.ATOMIC );
@@ -247,16 +251,16 @@ public class DefaultMetadataSyncServiceTest
 
         when( syncParams.getVersion() ).thenReturn( metadataVersion );
         when( metadataVersionDelegate.downloadMetadataVersion( metadataVersion ) ).thenReturn( expectedMetadataSnapshot );
-        when ( metadataVersionDelegate.shouldStopSync( expectedMetadataSnapshot ) ).thenReturn( true );
+        when ( metadataSyncDelegate.shouldStopSync( expectedMetadataSnapshot ) ).thenReturn( true );
 
-        expectedException.expect( DHISVersionMismatchException.class );
-        expectedException.expectMessage( "DHIS version mismatch exception" );
+        expectedException.expect( DhisVersionMismatchException.class );
+        expectedException.expectMessage( "Dhis version of metadata snapshot is not same as current system version" );
 
         metadataSyncService.doMetadataSync( syncParams );
     }
 
     @Test
-    public void testShouldNotThrowExceptionWhenDHISVersionsMismatch() throws DHISVersionMismatchException
+    public void testShouldNotThrowExceptionWhenDHISVersionsMismatch() throws DhisVersionMismatchException
     {
         MetadataSyncParams syncParams = Mockito.mock( MetadataSyncParams.class );
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.ATOMIC );
@@ -264,14 +268,14 @@ public class DefaultMetadataSyncServiceTest
 
         when( syncParams.getVersion() ).thenReturn( metadataVersion );
         when( metadataVersionDelegate.downloadMetadataVersion( metadataVersion ) ).thenReturn( expectedMetadataSnapshot );
-        when ( metadataVersionDelegate.shouldStopSync( expectedMetadataSnapshot ) ).thenReturn( false );
+        when ( metadataSyncDelegate.shouldStopSync( expectedMetadataSnapshot ) ).thenReturn( false );
         when( metadataVersionService.isMetadataPassingIntegrity( metadataVersion, expectedMetadataSnapshot ) ).thenReturn( true );
 
         metadataSyncService.doMetadataSync( syncParams );
     }
 
     @Test
-    public void testShouldThrowExceptionWhenSnapshotNotPassingIntegrity() throws DHISVersionMismatchException
+    public void testShouldThrowExceptionWhenSnapshotNotPassingIntegrity() throws DhisVersionMismatchException
     {
         MetadataSyncParams syncParams = Mockito.mock( MetadataSyncParams.class );
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.ATOMIC );
@@ -288,7 +292,7 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldStoreMetadataSnapshotInDataStoreAndImport() throws DHISVersionMismatchException
+    public void testShouldStoreMetadataSnapshotInDataStoreAndImport() throws DhisVersionMismatchException
     {
         MetadataSyncParams syncParams = Mockito.mock( MetadataSyncParams.class );
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.ATOMIC );
@@ -313,7 +317,7 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldNotStoreMetadataSnapshotInDataStoreWhenAlreadyExistsInLocalStore() throws DHISVersionMismatchException
+    public void testShouldNotStoreMetadataSnapshotInDataStoreWhenAlreadyExistsInLocalStore() throws DhisVersionMismatchException
     {
         MetadataSyncParams syncParams = Mockito.mock( MetadataSyncParams.class );
 
@@ -342,7 +346,7 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldVerifyImportParamsAtomicTypeForTheGivenBestEffortVersion() throws DHISVersionMismatchException
+    public void testShouldVerifyImportParamsAtomicTypeForTheGivenBestEffortVersion() throws DhisVersionMismatchException
     {
         MetadataSyncParams syncParams = new MetadataSyncParams();
 

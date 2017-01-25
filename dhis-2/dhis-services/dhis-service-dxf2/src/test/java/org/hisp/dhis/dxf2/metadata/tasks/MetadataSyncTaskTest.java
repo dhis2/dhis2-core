@@ -35,7 +35,7 @@ import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPreProcessor;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
-import org.hisp.dhis.dxf2.metadata.sync.exception.DHISVersionMismatchException;
+import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -145,14 +145,14 @@ public class MetadataSyncTaskTest
         verify( metadataSyncPostProcessor, never() ).handleSyncNotificationsAndAbortStatus( metadataSyncSummary, metadataRetryContext, metadataVersion );
     }
 
-    @Test( expected = DHISVersionMismatchException.class )
+    @Test( expected = DhisVersionMismatchException.class )
     public void testShouldAbortIfDHISVersionMismatch() throws Exception
     {
         metadataVersions.add( metadataVersion );
 
         when( metadataSyncPreProcessor.handleCurrentMetadataVersion( metadataRetryContext ) ).thenReturn( metadataVersion );
         when( metadataSyncPreProcessor.handleMetadataVersionsList( metadataRetryContext, metadataVersion ) ).thenReturn( metadataVersions );
-        when( metadataSyncService.doMetadataSync( any( MetadataSyncParams.class ) ) ).thenThrow( new DHISVersionMismatchException( "" ) );
+        when( metadataSyncService.doMetadataSync( any( MetadataSyncParams.class ) ) ).thenThrow( new DhisVersionMismatchException( "" ) );
         metadataSyncTask.runSyncTask( metadataRetryContext );
 
         verify (metadataSyncPreProcessor, times( 1 ) ).setUp( metadataRetryContext );

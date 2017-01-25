@@ -32,7 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
-import org.hisp.dhis.dxf2.metadata.sync.exception.DHISVersionMismatchException;
+import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
@@ -60,6 +60,9 @@ public class DefaultMetadataSyncService
 
     @Autowired
     private MetadataVersionService metadataVersionService;
+
+    @Autowired
+    private MetadataSyncDelegate metadataSyncDelegate;
 
     @Autowired
     private MetadataSyncImportHandler metadataSyncImportHandler;
@@ -102,7 +105,7 @@ public class DefaultMetadataSyncService
 
     @Override
     public synchronized MetadataSyncSummary doMetadataSync( MetadataSyncParams syncParams )
-        throws MetadataSyncServiceException, DHISVersionMismatchException
+        throws MetadataSyncServiceException, DhisVersionMismatchException
     {
         MetadataVersion version = getMetadataVersion( syncParams );
         boolean isVersionExists = metadataVersionService.getVersionByName( version.getName() ) != null;
@@ -139,9 +142,9 @@ public class DefaultMetadataSyncService
             }
             else
             {
-                if ( metadataVersionDelegate.shouldStopSync( metadataVersionSnapshot ) )
+                if ( metadataSyncDelegate.shouldStopSync( metadataVersionSnapshot ) )
                 {
-                    throw new DHISVersionMismatchException("DHIS version mismatch exception");
+                    throw new DhisVersionMismatchException("Dhis version of metadata snapshot is not same as current system version");
                 }
             }
 

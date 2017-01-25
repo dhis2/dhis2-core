@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.metadata.version;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
@@ -40,7 +39,6 @@ import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.util.DhisHttpResponse;
 import org.hisp.dhis.system.util.HttpUtils;
@@ -49,7 +47,6 @@ import org.springframework.http.HttpStatus;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -168,36 +165,6 @@ public class MetadataVersionDelegate
         {
             throw new MetadataVersionServiceException( "Exception occurred while trying to add metadata version" + version, e );
         }
-    }
-
-    public boolean shouldStopSync( String metadataVersionSnapshot )
-    {
-        SystemInfo systemInfo = systemService.getSystemInfo();
-        String systemVersion = systemInfo.getVersion();
-
-        if ( systemVersion == null  || !metadataSystemSettingService.getStopMetadataSyncSetting() )
-        {
-            return false;
-        }
-
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(
-            metadataVersionSnapshot.getBytes( StandardCharsets.UTF_8 ) );
-        String remoteVersion = "";
-        try
-        {
-            JsonNode systemObject = renderService.getSystemObject( byteArrayInputStream, RenderFormat.JSON );
-
-            if ( systemObject == null )
-            {
-                return false;
-            }
-            remoteVersion = systemObject.get( "version" ).textValue();
-        }
-        catch ( IOException e )
-        {
-            e.printStackTrace();
-        }
-        return !systemVersion.equals( remoteVersion );
     }
 
     //----------------------------------------------------------------------------------------

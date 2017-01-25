@@ -201,18 +201,7 @@ public class DefaultRenderService
         }
 
         JsonNode rootNode = mapper.readTree( inputStream );
-        Iterator<String> fieldNames = rootNode.fieldNames();
-
-        while ( fieldNames.hasNext() )
-        {
-            String fieldName = fieldNames.next();
-            JsonNode node = rootNode.get( fieldName );
-            if ( "system".equals( fieldName ) )
-            {
-                return node;
-            }
-        }
-        return null;
+        return rootNode.get( "system" );
     }
 
     @Override

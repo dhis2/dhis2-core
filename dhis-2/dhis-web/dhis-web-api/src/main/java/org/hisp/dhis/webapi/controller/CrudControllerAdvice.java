@@ -36,7 +36,7 @@ import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
 import org.hisp.dhis.dxf2.adx.AdxException;
-import org.hisp.dhis.dxf2.metadata.sync.exception.DHISVersionMismatchException;
+import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.dxf2.metadata.MetadataExportException;
 import org.hisp.dhis.dxf2.metadata.MetadataImportException;
@@ -221,8 +221,8 @@ public class CrudControllerAdvice
         webMessageService.send( WebMessageUtils.error( metadataSyncException.getMessage() ), response, request );
     }
 
-    @ExceptionHandler( DHISVersionMismatchException.class )
-    public void handleDHISVersionMismatchException( DHISVersionMismatchException versionMismatchException, HttpServletResponse response, HttpServletRequest request )
+    @ExceptionHandler( DhisVersionMismatchException.class )
+    public void handleDHISVersionMismatchException( DhisVersionMismatchException versionMismatchException, HttpServletResponse response, HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.forbidden( versionMismatchException.getMessage() ), response, request );
     }
