@@ -79,7 +79,7 @@ public class JdbcEventStore
         .put( "eventDate", "psi_executiondate" ).put( "followup", "pi_followup" ).put( "status", "psi_status" )
         .put( "dueDate", "psi_duedate" ).put( "storedBy", "psi_storedby" ).put( "created", "psi_created" )
         .put( "lastUpdated", "psi_lastupdated" ).put( "completedBy", "psi_completedby" )
-        .put( "completedDate", "psi_completeddate" ).build();
+        .put( "attributeOptionCombo", "psi_aoc" ).put( "completedDate", "psi_completeddate" ).build();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -148,6 +148,7 @@ public class JdbcEventStore
                     event.setFollowup( rowSet.getBoolean( "pi_followup" ) );
                 }
 
+                event.setAttributeOptionCombo( rowSet.getString( "coc_categoryoptioncombouid" ) );
                 event.setAttributeCategoryOptions( rowSet.getString( "deco_uid" ) );
                 event.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
 
@@ -228,7 +229,7 @@ public class JdbcEventStore
                 event.getNotes().add( note );
                 notes.add( rowSet.getString( "psinote_id" ) );
             }
-        }        
+        }
 
         return events;
     }

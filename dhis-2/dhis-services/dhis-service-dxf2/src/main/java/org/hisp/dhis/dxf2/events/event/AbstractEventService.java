@@ -51,6 +51,7 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -129,7 +130,8 @@ public abstract class AbstractEventService
     public static final List<String> STATIC_EVENT_COLUMNS = Arrays.asList( EVENT_ID, EVENT_CREATED_ID,
         EVENT_LAST_UPDATED_ID, EVENT_STORED_BY_ID, EVENT_COMPLETED_BY_ID, EVENT_COMPLETED_DATE_ID,
         EVENT_EXECUTION_DATE_ID, EVENT_DUE_DATE_ID, EVENT_ORG_UNIT_ID, EVENT_ORG_UNIT_NAME, EVENT_STATUS_ID,
-        EVENT_LONGITUDE_ID, EVENT_LATITUDE_ID, EVENT_PROGRAM_STAGE_ID, EVENT_PROGRAM_ID, EVENT_ATTRIBUTE_OPTION_COMBO_ID );
+        EVENT_LONGITUDE_ID, EVENT_LATITUDE_ID, EVENT_PROGRAM_STAGE_ID, EVENT_PROGRAM_ID,
+        EVENT_ATTRIBUTE_OPTION_COMBO_ID );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -494,17 +496,19 @@ public abstract class AbstractEventService
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
 
         // ---------------------------------------------------------------------
-        // If no data element is specified, use those configured for 
+        // If no data element is specified, use those configured for
         // display in report
         // ---------------------------------------------------------------------
-        if ( params.getDataElements().isEmpty() && params.getProgramStage() != null && params.getProgramStage().getProgramStageDataElements() != null )
+        if ( params.getDataElements().isEmpty() && params.getProgramStage() != null
+            && params.getProgramStage().getProgramStageDataElements() != null )
         {
             for ( ProgramStageDataElement pde : params.getProgramStage().getProgramStageDataElements() )
             {
                 if ( pde.getDisplayInReports() )
                 {
-                    QueryItem qi = new QueryItem( pde.getDataElement(), pde.getDataElement().getLegendSet(), pde.getDataElement().getValueType(), pde.getDataElement().getAggregationType(), pde.getDataElement().hasOptionSet() ? pde.getDataElement()
-                        .getOptionSet() : null );
+                    QueryItem qi = new QueryItem( pde.getDataElement(), pde.getDataElement().getLegendSet(),
+                        pde.getDataElement().getValueType(), pde.getDataElement().getAggregationType(),
+                        pde.getDataElement().hasOptionSet() ? pde.getDataElement().getOptionSet() : null );
                     params.getDataElements().add( qi );
                 }
             }
@@ -609,10 +613,11 @@ public abstract class AbstractEventService
     @Override
     public EventSearchParams getFromUrl( String program, String programStage, ProgramStatus programStatus,
         Boolean followUp, String orgUnit, OrganisationUnitSelectionMode orgUnitSelectionMode,
-        String trackedEntityInstance, Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd, Date lastUpdatedStartDate, Date lastUpdatedEndDate, EventStatus status,
+        String trackedEntityInstance, Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd,
+        Date lastUpdatedStartDate, Date lastUpdatedEndDate, EventStatus status,
         DataElementCategoryOptionCombo attributeCoc, IdSchemes idSchemes, Integer page, Integer pageSize,
-        boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes, Set<String> events,
-        Set<String> filters, Set<String> dataElements, boolean includeDeleted )
+        boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes,
+        Set<String> events, Set<String> filters, Set<String> dataElements, boolean includeDeleted )
     {
         UserCredentials userCredentials = currentUserService.getCurrentUser().getUserCredentials();
 
@@ -694,7 +699,6 @@ public abstract class AbstractEventService
                 params.getDataElements().add( dataElement );
             }
         }
-
 
         params.setProgram( pr );
         params.setProgramStage( ps );
@@ -855,21 +859,39 @@ public abstract class AbstractEventService
 
         if ( !singleValue )
         {
-            if ( programStageInstance.getProgramStage().getCaptureCoordinates() && event.getCoordinate().isValid() )
+            if ( programStageInstance.getProgramStage().getCaptureCoordinates() )
             {
-                programStageInstance.setLatitude( event.getCoordinate().getLatitude() );
-                programStageInstance.setLongitude( event.getCoordinate().getLongitude() );
-            }
-            else
-            {
-                programStageInstance.setLatitude( null );
-                programStageInstance.setLongitude( null );
+                if ( event.getCoordinate().isValid() )
+                {
+                    programStageInstance.setLatitude( event.getCoordinate().getLatitude() );
+                    programStageInstance.setLongitude( event.getCoordinate().getLongitude() );
+                }
+                else
+                {
+                    programStageInstance.setLatitude( null );
+                    programStageInstance.setLongitude( null );
+                }
             }
         }
 
         Program program = getProgram( importOptions.getIdSchemes().getProgramIdScheme(), event.getProgram() );
 
         validateExpiryDays( event, program, programStageInstance );
+
+        if ( event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null )
+        {
+            DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(
+                program.getCategoryCombo().getUid(), event.getAttributeCategoryOptions(), false );
+
+            if ( attributeOptionCombo == null )
+            {
+                importSummary.getConflicts().add( new ImportConflict( "Invalid attribute option combo identifier:",
+                    event.getAttributeCategoryOptions() ) );
+                return importSummary.incrementIgnored();
+            }
+
+            programStageInstance.setAttributeOptionCombo( attributeOptionCombo );
+        }
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
 
@@ -878,35 +900,6 @@ public abstract class AbstractEventService
         Set<TrackedEntityDataValue> dataValues = new HashSet<>(
             dataValueService.getTrackedEntityDataValues( programStageInstance ) );
         Map<String, TrackedEntityDataValue> existingDataValues = getDataElementDataValueMap( dataValues );
-
-        if ( programStageInstance.getProgramStage().getCaptureCoordinates() )
-        {
-            Coordinate coordinate = null;
-
-            if ( programStageInstance.getLongitude() != null && programStageInstance.getLatitude() != null )
-            {
-                coordinate = new Coordinate( programStageInstance.getLongitude(), programStageInstance.getLatitude() );
-
-                try
-                {
-                    List<Double> list = OBJECT_MAPPER.readValue( coordinate.getCoordinateString(),
-                        new TypeReference<List<Double>>()
-                        {
-                        } );
-
-                    coordinate.setLongitude( list.get( 0 ) );
-                    coordinate.setLatitude( list.get( 1 ) );
-                }
-                catch ( IOException ignored )
-                {
-                }
-            }
-
-            if ( coordinate != null && coordinate.isValid() )
-            {
-                event.setCoordinate( coordinate );
-            }
-        }
 
         for ( DataValue value : event.getDataValues() )
         {
@@ -1136,6 +1129,10 @@ public abstract class AbstractEventService
         event.setProgram( program.getUid() );
         event.setEnrollment( programStageInstance.getProgramInstance().getUid() );
         event.setProgramStage( programStageInstance.getProgramStage().getUid() );
+        event.setAttributeOptionCombo( programStageInstance.getAttributeOptionCombo().getUid() );
+        event.setAttributeCategoryOptions(
+            String.join( ";", programStageInstance.getAttributeOptionCombo().getCategoryOptions().stream()
+                .map( DataElementCategoryOption::getUid ).collect( Collectors.toList() ) ) );
 
         if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
         {
@@ -1461,8 +1458,8 @@ public abstract class AbstractEventService
             programStageInstance.setCompletedDate( new Date() );
             programStageInstance.setCompletedBy( completedBy );
 
-            programStageInstanceService.completeProgramStageInstance( programStageInstance, importOptions.isSkipNotifications(),
-                i18nManager.getI18nFormat() );
+            programStageInstanceService.completeProgramStageInstance( programStageInstance,
+                importOptions.isSkipNotifications(), i18nManager.getI18nFormat() );
         }
     }
 
@@ -1535,7 +1532,8 @@ public abstract class AbstractEventService
 
     private OrganisationUnit getOrganisationUnit( IdSchemes idSchemes, String id )
     {
-        return organisationUnitCache.get( id, () -> manager.getObject( OrganisationUnit.class, idSchemes.getOrgUnitIdScheme(), id ) );
+        return organisationUnitCache.get( id,
+            () -> manager.getObject( OrganisationUnit.class, idSchemes.getOrgUnitIdScheme(), id ) );
     }
 
     private Program getProgram( IdScheme idScheme, String id )
