@@ -254,7 +254,7 @@ public class DefaultMetadataSyncServiceTest
         when ( metadataSyncDelegate.shouldStopSync( expectedMetadataSnapshot ) ).thenReturn( true );
 
         expectedException.expect( DhisVersionMismatchException.class );
-        expectedException.expectMessage( "Dhis version of metadata snapshot is not same as current system version" );
+        expectedException.expectMessage( "Metadata sync failed because your version of DHIS does not match the master version" );
 
         metadataSyncService.doMetadataSync( syncParams );
     }

@@ -144,7 +144,7 @@ public class DefaultMetadataSyncService
             {
                 if ( metadataSyncDelegate.shouldStopSync( metadataVersionSnapshot ) )
                 {
-                    throw new DhisVersionMismatchException("Dhis version of metadata snapshot is not same as current system version");
+                    throw new DhisVersionMismatchException("Metadata sync failed because your version of DHIS does not match the master version");
                 }
             }
 
