@@ -91,6 +91,7 @@ public class JdbcEventStore
         put( "created", "psi_created" ).
         put( "lastUpdated", "psi_lastupdated" ).
         put( "completedBy", "psi_completedby" ).
+        put( "attributeOptionCombo", "coc_categoryoptioncombouid" ).
         put( "completedDate", "psi_completeddate" ).build();
 
     // -------------------------------------------------------------------------
@@ -153,6 +154,7 @@ public class JdbcEventStore
                     event.setFollowup( rowSet.getBoolean( "pi_followup" ) );
                 }
 
+                event.setAttributeOptionCombo( rowSet.getString( "coc_categoryoptioncombouid" ) );
                 event.setAttributeCategoryOptions( rowSet.getString( "deco_uid" ) );
                 event.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
 

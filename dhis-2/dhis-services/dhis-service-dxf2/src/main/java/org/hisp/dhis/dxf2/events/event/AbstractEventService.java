@@ -45,6 +45,7 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -766,21 +767,40 @@ public abstract class AbstractEventService
 
         if ( !singleValue )
         {
-            if ( programStageInstance.getProgramStage().getCaptureCoordinates() && event.getCoordinate().isValid() )
+            if ( programStageInstance.getProgramStage().getCaptureCoordinates() )
             {
-                programStageInstance.setLatitude( event.getCoordinate().getLatitude() );
-                programStageInstance.setLongitude( event.getCoordinate().getLongitude() );
-            }
-            else
-            {
-                programStageInstance.setLatitude( null );
-                programStageInstance.setLongitude( null );
+                
+                if ( event.getCoordinate().isValid() )
+                {
+                    programStageInstance.setLatitude( event.getCoordinate().getLatitude() );
+                    programStageInstance.setLongitude( event.getCoordinate().getLongitude() );
+                }
+                else
+                {
+                    programStageInstance.setLatitude( null );
+                    programStageInstance.setLongitude( null );
+                }
             }
         }
 
         Program program = getProgram( importOptions.getIdSchemes().getProgramIdScheme(), event.getProgram() );
 
         validateExpiryDays( event, program, programStageInstance );
+        
+        if ( event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null )
+        {
+            DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(
+                program.getCategoryCombo().getUid(), event.getAttributeCategoryOptions(), false );
+
+            if ( attributeOptionCombo == null )
+            {
+                importSummary.getConflicts().add( new ImportConflict( "Invalid attribute option combo identifier:",
+                    event.getAttributeCategoryOptions() ) );
+                return importSummary.incrementIgnored();
+            }
+
+            programStageInstance.setAttributeOptionCombo( attributeOptionCombo );
+        }
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
 
@@ -788,36 +808,7 @@ public abstract class AbstractEventService
 
         Set<TrackedEntityDataValue> dataValues = new HashSet<>(
             dataValueService.getTrackedEntityDataValues( programStageInstance ) );
-        Map<String, TrackedEntityDataValue> existingDataValues = getDataElementDataValueMap( dataValues );
-
-        if ( programStageInstance.getProgramStage().getCaptureCoordinates() )
-        {
-            Coordinate coordinate = null;
-
-            if ( programStageInstance.getLongitude() != null && programStageInstance.getLatitude() != null )
-            {
-                coordinate = new Coordinate( programStageInstance.getLongitude(), programStageInstance.getLatitude() );
-
-                try
-                {
-                    List<Double> list = OBJECT_MAPPER.readValue( coordinate.getCoordinateString(),
-                        new TypeReference<List<Double>>()
-                        {
-                        } );
-
-                    coordinate.setLongitude( list.get( 0 ) );
-                    coordinate.setLatitude( list.get( 1 ) );
-                }
-                catch ( IOException ignored )
-                {
-                }
-            }
-
-            if ( coordinate != null && coordinate.isValid() )
-            {
-                event.setCoordinate( coordinate );
-            }
-        }
+        Map<String, TrackedEntityDataValue> existingDataValues = getDataElementDataValueMap( dataValues );        
 
         for ( DataValue value : event.getDataValues() )
         {
@@ -1019,6 +1010,10 @@ public abstract class AbstractEventService
         event.setProgram( program.getUid() );
         event.setEnrollment( programStageInstance.getProgramInstance().getUid() );
         event.setProgramStage( programStageInstance.getProgramStage().getUid() );
+        event.setAttributeOptionCombo( programStageInstance.getAttributeOptionCombo().getUid() );
+        event.setAttributeCategoryOptions(
+            String.join( ";", programStageInstance.getAttributeOptionCombo().getCategoryOptions().stream()
+                .map( DataElementCategoryOption::getUid ).collect( Collectors.toList() ) ) );
 
         if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
         {
