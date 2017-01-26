@@ -190,16 +190,7 @@ function showSharingDialog( type, uid ) {
 
       data.object.publicAccess = getPublicAccess();
       data.object.externalAccess = getExternalAccess();
-
-      var allAccesses = getAccesses();
-
-      data.object.userGroupAccesses = allAccesses.filter( function(item) {
-        return item.type === 'userGroup';
-      } );
-
-      data.object.userAccesses = allAccesses.filter( function(item) {
-        return item.type === 'user';
-      } );
+      data.object.userGroupAccesses = getUserGroupAccesses();
 
       saveSharingSettings( type, uid, data ).done( function() {
         $( '#sharingSearch' ).autocomplete( 'destroy' );
