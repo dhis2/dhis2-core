@@ -36,7 +36,7 @@ import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.legend.LegendService;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramIndicatorAnalyticsType;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -175,9 +175,9 @@ public class UpdateProgramIndicatorAction
         this.jsonAttributeValues = jsonAttributeValues;
     }
     
-    private ProgramIndicatorAnalyticsType analyticsType;
+    private AnalyticsType analyticsType;
     
-    public void setAnalyticsType( ProgramIndicatorAnalyticsType analyticsType )
+    public void setAnalyticsType( AnalyticsType analyticsType )
     {
         this.analyticsType = analyticsType;
     }

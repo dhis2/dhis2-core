@@ -260,13 +260,13 @@ public class DefaultProgramIndicatorService
     }
 
     @Override
-    public String getAnalyticsSQl( String expression, ProgramIndicatorAnalyticsType programIndicatorAnalyticsType )
+    public String getAnalyticsSQl( String expression, AnalyticsType analyticsType )
     {
-        return getAnalyticsSQl( expression, programIndicatorAnalyticsType, true );
+        return getAnalyticsSQl( expression, analyticsType, true );
     }
 
     @Override
-    public String getAnalyticsSQl( String expression, ProgramIndicatorAnalyticsType programIndicatorAnalyticsType, boolean ignoreMissingValues )
+    public String getAnalyticsSQl( String expression, AnalyticsType analyticsType, boolean ignoreMissingValues )
     {
         if ( expression == null )
         {
@@ -275,17 +275,17 @@ public class DefaultProgramIndicatorService
 
         expression = TextUtils.removeNewlines( expression );
 
-        expression = getSubstitutedVariablesForAnalyticsSql( expression, programIndicatorAnalyticsType );
+        expression = getSubstitutedVariablesForAnalyticsSql( expression, analyticsType );
 
-        expression = getSubstitutedFunctionsAnalyticsSql( expression, false, programIndicatorAnalyticsType );
+        expression = getSubstitutedFunctionsAnalyticsSql( expression, false, analyticsType );
 
-        expression = getSubstitutedElementsAnalyticsSql( expression, ignoreMissingValues, programIndicatorAnalyticsType );
+        expression = getSubstitutedElementsAnalyticsSql( expression, ignoreMissingValues, analyticsType );
 
         return expression;
     }
 
     private String getSubstitutedFunctionsAnalyticsSql( String expression, boolean ignoreMissingValues, 
-        ProgramIndicatorAnalyticsType programIndicatorAnalyticsType )
+        AnalyticsType analyticsType )
     {
         if ( expression == null )
         {
@@ -307,7 +307,7 @@ public class DefaultProgramIndicatorService
 
                 for ( int i = 0; i < args.length; i++ )
                 {
-                    String arg = getSubstitutedElementsAnalyticsSql( trim( args[i] ), false, programIndicatorAnalyticsType );
+                    String arg = getSubstitutedElementsAnalyticsSql( trim( args[i] ), false, analyticsType );
                     args[i] = arg;
                 }
 
@@ -327,7 +327,7 @@ public class DefaultProgramIndicatorService
         return TextUtils.appendTail( matcher, buffer );
     }
 
-    private String getSubstitutedVariablesForAnalyticsSql( String expression, ProgramIndicatorAnalyticsType programIndicatorAnalyticsType )
+    private String getSubstitutedVariablesForAnalyticsSql( String expression, AnalyticsType analyticsType )
     {
         if ( expression == null )
         {
@@ -342,7 +342,7 @@ public class DefaultProgramIndicatorService
         {
             String var = matcher.group( 1 );
 
-            String sql = getVariableAsSql( var, expression, programIndicatorAnalyticsType );
+            String sql = getVariableAsSql( var, expression, analyticsType );
 
             if ( sql != null )
             {
@@ -353,7 +353,7 @@ public class DefaultProgramIndicatorService
         return TextUtils.appendTail( matcher, buffer );
     }
 
-    private String getSubstitutedElementsAnalyticsSql( String expression, boolean ignoreMissingValues, ProgramIndicatorAnalyticsType programIndicatorAnalyticsType  )
+    private String getSubstitutedElementsAnalyticsSql( String expression, boolean ignoreMissingValues, AnalyticsType analyticsType  )
     {
         if ( expression == null )
         {
@@ -372,7 +372,7 @@ public class DefaultProgramIndicatorService
 
             if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
             {                
-                String columnName = ProgramIndicatorAnalyticsType.ENROLLMENT == programIndicatorAnalyticsType ? 
+                String columnName = AnalyticsType.ENROLLMENT == analyticsType ? 
                     statementBuilder.columnQuote( el1 + ProgramIndicator.DB_SEPARATOR_ID + el2 ) : statementBuilder.columnQuote( el2 );
                 
                 String de = ignoreMissingValues ? getIgnoreNullSql( columnName ) : columnName;
@@ -400,9 +400,9 @@ public class DefaultProgramIndicatorService
     }
 
     @Override
-    public String getAnyValueExistsClauseAnalyticsSql( String expression, ProgramIndicatorAnalyticsType programIndicatorAnalyticsType )
+    public String getAnyValueExistsClauseAnalyticsSql( String expression, AnalyticsType analyticsType )
     {
-        Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, programIndicatorAnalyticsType );
+        Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, analyticsType );
 
         if ( uids.isEmpty() )
         {
@@ -544,7 +544,7 @@ public class DefaultProgramIndicatorService
      * @param expression the program indicator expression.
      * @return a SQL select clause.
      */
-    private String getVariableAsSql( String var, String expression, ProgramIndicatorAnalyticsType programIndicatorAnalyticsType )
+    private String getVariableAsSql( String var, String expression, AnalyticsType analyticsType )
     {
         final String dbl = statementBuilder.getDoubleColumnType();
 
@@ -580,7 +580,7 @@ public class DefaultProgramIndicatorService
         {
             String sql = "nullif(cast((";
 
-            for ( String uid : ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, programIndicatorAnalyticsType ) )
+            for ( String uid : ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, analyticsType ) )
             {
                 sql += "case when " + statementBuilder.columnQuote( uid ) + " is not null then 1 else 0 end + ";
             }
@@ -591,7 +591,7 @@ public class DefaultProgramIndicatorService
         {
             String sql = "nullif(cast((";
 
-            for ( String uid : ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, programIndicatorAnalyticsType ) )
+            for ( String uid : ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, analyticsType ) )
             {
                 sql += "case when " + statementBuilder.columnQuote( uid ) + " >= 0 then 1 else 0 end + ";
             }

@@ -111,7 +111,7 @@ public class ProgramIndicator
 
     private Set<ProgramIndicatorGroup> groups = new HashSet<>();
     
-    private ProgramIndicatorAnalyticsType analyticsType;
+    private AnalyticsType analyticsType;
  
     // -------------------------------------------------------------------------
     // Constructors
@@ -150,9 +150,9 @@ public class ProgramIndicator
      * @param input the expression.
      * @return a set of UIDs.
      */
-    public static Set<String> getDataElementAndAttributeIdentifiers( String input, ProgramIndicatorAnalyticsType programIndicatorAnalyticsType )
+    public static Set<String> getDataElementAndAttributeIdentifiers( String input, AnalyticsType analyticsType )
     {
-        if ( ProgramIndicatorAnalyticsType.ENROLLMENT.equals( programIndicatorAnalyticsType ) )
+        if ( AnalyticsType.ENROLLMENT.equals( analyticsType ) )
         {
             Set<String> allElementsAndAttributes = RegexUtils.getMatches( ATTRIBUTE_PATTERN, input, 1 );
             
@@ -292,12 +292,12 @@ public class ProgramIndicator
     
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramIndicatorAnalyticsType getAnalyticsType()
+    public AnalyticsType getAnalyticsType()
     {
         return analyticsType;
     }
 
-    public void setAnalyticsType( ProgramIndicatorAnalyticsType analyticsType )
+    public void setAnalyticsType( AnalyticsType analyticsType )
     {
         this.analyticsType = analyticsType;
     }

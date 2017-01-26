@@ -981,8 +981,12 @@ public class TableAlteror
 
         updateLegendRelationship();
         
-        executeSql( "update programindicator set programindicatoranalyticstype = 'EVENT' where programindicatoranalyticstype is null" );
-        executeSql( "alter table programindicator alter column programindicatoranalyticstype set not null" );
+        executeSql( "update programindicator set analyticstype = 'EVENT' where analyticstype is null" );
+        executeSql( "alter table programindicator alter column analyticstype set not null" );
+        
+        //TODO: remove - not needed in release 2.26.
+        executeSql( "update programindicator set analyticstype = programindicatoranalyticstype" );
+        executeSql( "alter table programindicator drop programindicatoranalyticstype" );
 
         log.info( "Tables updated" );
     }
