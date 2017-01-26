@@ -111,7 +111,7 @@ public class ProgramIndicator
 
     private Set<ProgramIndicatorGroup> groups = new HashSet<>();
     
-    private ProgramIndicatorAnalyticsType programIndicatorAnalyticsType;
+    private AnalyticsType analyticsType;
  
     // -------------------------------------------------------------------------
     // Constructors
@@ -150,9 +150,9 @@ public class ProgramIndicator
      * @param input the expression.
      * @return a set of UIDs.
      */
-    public static Set<String> getDataElementAndAttributeIdentifiers( String input, ProgramIndicatorAnalyticsType programIndicatorAnalyticsType )
+    public static Set<String> getDataElementAndAttributeIdentifiers( String input, AnalyticsType analyticsType )
     {
-        if ( ProgramIndicatorAnalyticsType.ENROLLMENT.equals( programIndicatorAnalyticsType ) )
+        if ( AnalyticsType.ENROLLMENT.equals( analyticsType ) )
         {
             Set<String> allElementsAndAttributes = RegexUtils.getMatches( ATTRIBUTE_PATTERN, input, 1 );
             
@@ -292,14 +292,14 @@ public class ProgramIndicator
     
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramIndicatorAnalyticsType getProgramIndicatorAnalyticsType()
+    public AnalyticsType getAnalyticsType()
     {
-        return programIndicatorAnalyticsType;
+        return analyticsType;
     }
 
-    public void setProgramIndicatorAnalyticsType( ProgramIndicatorAnalyticsType programIndicatorAnalyticsType )
+    public void setAnalyticsType( AnalyticsType analyticsType )
     {
-        this.programIndicatorAnalyticsType = programIndicatorAnalyticsType;
+        this.analyticsType = analyticsType;
     }
 
     @Override
@@ -318,7 +318,7 @@ public class ProgramIndicator
                 filter = programIndicator.getFilter();
                 decimals = programIndicator.getDecimals();
                 displayInForm = programIndicator.getDisplayInForm();
-                programIndicatorAnalyticsType = programIndicator.getProgramIndicatorAnalyticsType();
+                analyticsType = programIndicator.getAnalyticsType();
             }
             else if ( mergeMode.isMerge() )
             {
@@ -327,8 +327,8 @@ public class ProgramIndicator
                 filter = programIndicator.getFilter() == null ? filter : programIndicator.getFilter();
                 decimals = programIndicator.getDecimals() == null ? decimals : programIndicator.getDecimals();
                 displayInForm = programIndicator.getDisplayInForm() == null ? displayInForm : programIndicator.getDisplayInForm();
-                programIndicatorAnalyticsType = programIndicator.getProgramIndicatorAnalyticsType() == null ?
-                    programIndicatorAnalyticsType : programIndicator.getProgramIndicatorAnalyticsType();
+                analyticsType = programIndicator.getAnalyticsType() == null ?
+                    analyticsType : programIndicator.getAnalyticsType();
             }
         }
     }

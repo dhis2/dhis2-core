@@ -36,7 +36,7 @@ function showProgramIndicatorDetails( context ) {
     setInnerHTML('idField', json.programIndicator.uid);
     setInnerHTML('programIndicatorAnalayticsTypeField', json.programIndicator.programIndicatorAnalayticsType);
     
-    programIndicatorAnalyticsTypeChanged();
+    analyticsTypeChanged();
         
     showDetails();
   });
@@ -162,8 +162,8 @@ function getExpressionDescription( type ) {
 	}
 }
 
-function programIndicatorAnalyticsTypeChanged() {
-    var analyticsType = getFieldValue('programIndicatorAnalyticsType');
+function analyticsTypeChanged() {
+    var analyticsType = getFieldValue('analyticsType');
     if ('ENROLLMENT' === analyticsType) {
         $("#event_count_variable").wrap('<span/>');
     }

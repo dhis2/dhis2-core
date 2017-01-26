@@ -85,6 +85,8 @@ public class Event
 
     private String lastUpdated;
 
+    private String attributeOptionCombo;
+    
     private String attributeCategoryOptions;
 
     private String completedBy;
@@ -311,6 +313,18 @@ public class Event
     public void setLastUpdated( String lastUpdated )
     {
         this.lastUpdated = lastUpdated;
+    }    
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getAttributeOptionCombo()
+    {
+        return attributeOptionCombo;
+    }
+
+    public void setAttributeOptionCombo( String attributeOptionCombo )
+    {
+        this.attributeOptionCombo = attributeOptionCombo;
     }
 
     @JsonProperty
@@ -395,6 +409,7 @@ public class Event
             ", storedBy='" + storedBy + '\'' +
             ", coordinate=" + coordinate +
             ", dataValues=" + dataValues +
+            ", attributeOptionCombo=" + attributeOptionCombo +
             ", attributeCategoryOptions=" + attributeCategoryOptions +
             ", completedBy=" + completedBy +
             ", completedDate=" + completedDate +

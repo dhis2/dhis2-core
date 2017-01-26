@@ -237,7 +237,7 @@ public class JdbcEnrollmentAnalyticsManager
             function = TextUtils.emptyIfEqual( function, AggregationType.CUSTOM.getValue() );
             
             String expression = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getExpression(), 
-                params.getProgramIndicator().getProgramIndicatorAnalyticsType() );
+                params.getProgramIndicator().getAnalyticsType() );
             
             return function + "(" + expression + ")";
         }
@@ -274,7 +274,7 @@ public class JdbcEnrollmentAnalyticsManager
                 ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
                 
                 String asClause = " as " + statementBuilder.columnQuote( in.getUid() );
-                columns.add( "(" + programIndicatorService.getAnalyticsSQl( in.getExpression(), in.getProgramIndicatorAnalyticsType() ) + ")" + asClause );
+                columns.add( "(" + programIndicatorService.getAnalyticsSQl( in.getExpression(), in.getAnalyticsType() ) + ")" + asClause );
             }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
             {
@@ -400,7 +400,7 @@ public class JdbcEnrollmentAnalyticsManager
         if ( params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasFilter() )
         {
             String filter = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getFilter(), 
-                params.getProgramIndicator().getProgramIndicatorAnalyticsType(), false );
+                params.getProgramIndicator().getAnalyticsType(), false );
             
             String sqlFilter = ExpressionUtils.asSql( filter );
             
@@ -409,7 +409,7 @@ public class JdbcEnrollmentAnalyticsManager
         
         if ( params.hasProgramIndicatorDimension() )
         {
-            String anyValueFilter = programIndicatorService.getAnyValueExistsClauseAnalyticsSql( params.getProgramIndicator().getExpression(), params.getProgramIndicator().getProgramIndicatorAnalyticsType() );
+            String anyValueFilter = programIndicatorService.getAnyValueExistsClauseAnalyticsSql( params.getProgramIndicator().getExpression(), params.getProgramIndicator().getAnalyticsType() );
             
             if ( anyValueFilter != null )
             {

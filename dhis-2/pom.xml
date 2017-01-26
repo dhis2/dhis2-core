@@ -1106,7 +1106,7 @@
   <properties>
     <rootDir></rootDir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spring.version>4.3.5.RELEASE</spring.version>
+    <spring.version>4.3.6.RELEASE</spring.version>
     <spring.security.version>3.2.10.RELEASE</spring.security.version>
     <spring.security.oauth2.version>2.0.5.RELEASE</spring.security.oauth2.version>
     <struts.version>2.3.24.1</struts.version>

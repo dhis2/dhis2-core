@@ -32,25 +32,25 @@ package org.hisp.dhis.program;
  * @author Markus Bekken
  */
 
-public enum ProgramIndicatorAnalyticsType
+public enum AnalyticsType
 {
     EVENT( "event" ), 
     ENROLLMENT( "enrollment" );
     
     private final String value;
 
-    private ProgramIndicatorAnalyticsType( String value )
+    private AnalyticsType( String value )
     {
         this.value = value;
     }
 
-    public static ProgramIndicatorAnalyticsType fromValue( String value )
+    public static AnalyticsType fromValue( String value )
     {
-        for ( ProgramIndicatorAnalyticsType programIndicatorAnalyticsType : ProgramIndicatorAnalyticsType.values() )
+        for ( AnalyticsType analyticsType : AnalyticsType.values() )
         {
-            if ( programIndicatorAnalyticsType.getValue().equalsIgnoreCase( value ) )
+            if ( analyticsType.getValue().equalsIgnoreCase( value ) )
             {
-                return programIndicatorAnalyticsType;
+                return analyticsType;
             }
         }
 

@@ -46,7 +46,7 @@ public class ProgramIndicatorTest
         
         Set<String> expected = Sets.newHashSet( "yD5mUKAm3aK", "UaGD9u0kaur", "y1Bhi6xHtVk" );
         
-        assertEquals( expected, ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, ProgramIndicatorAnalyticsType.EVENT ) );
+        assertEquals( expected, ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, AnalyticsType.EVENT ) );
     }
     
     @Test
@@ -56,6 +56,6 @@ public class ProgramIndicatorTest
         
         Set<String> expected = Sets.newHashSet( "chG8sINMf11_yD5mUKAm3aK", "chG8sINMf11_UaGD9u0kaur", "y1Bhi6xHtVk" );
         
-        assertEquals( expected, ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, ProgramIndicatorAnalyticsType.ENROLLMENT ) );
+        assertEquals( expected, ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, AnalyticsType.ENROLLMENT ) );
     }
 }

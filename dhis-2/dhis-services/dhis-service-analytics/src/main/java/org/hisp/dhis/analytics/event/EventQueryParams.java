@@ -561,13 +561,13 @@ public class EventQueryParams
     public boolean hasEventProgramIndicatorDimension()
     {
         return programIndicator != null &&
-            ProgramIndicatorAnalyticsType.EVENT.equals( programIndicator.getProgramIndicatorAnalyticsType() );
+            AnalyticsType.EVENT.equals( programIndicator.getAnalyticsType() );
     }
     
     public boolean hasEnrollmentProgramIndicatorDimension()
     {
         return programIndicator != null &&
-            ProgramIndicatorAnalyticsType.ENROLLMENT.equals( programIndicator.getProgramIndicatorAnalyticsType() );
+            AnalyticsType.ENROLLMENT.equals( programIndicator.getAnalyticsType() );
     }
 
     /**

@@ -66,26 +66,26 @@ public final class QueryUtils
 
         String value = (String) objectValue;
 
-        if ( Boolean.class.isAssignableFrom( klass ) )
-        {
-            try
-            {
-                return (T) Boolean.valueOf( value );
-            }
-            catch ( Exception ignored )
-            {
-                throw new QueryParserException( "Unable to parse `" + value + "` as `Boolean`." );
-            }
-        }
-        else if ( Integer.class.isAssignableFrom( klass ) )
+        if ( Integer.class.isAssignableFrom( klass ) )
         {
             try
             {
                 return (T) Integer.valueOf( value );
             }
-            catch ( Exception ignored )
+            catch ( Exception ex )
             {
                 throw new QueryParserException( "Unable to parse `" + value + "` as `Integer`." );
+            }
+        }
+        else if ( Boolean.class.isAssignableFrom( klass ) )
+        {
+            try
+            {
+                return (T) Boolean.valueOf( value );
+            }
+            catch ( Exception ex )
+            {
+                throw new QueryParserException( "Unable to parse `" + value + "` as `Boolean`." );
             }
         }
         else if ( Float.class.isAssignableFrom( klass ) )
@@ -94,7 +94,7 @@ public final class QueryUtils
             {
                 return (T) Float.valueOf( value );
             }
-            catch ( Exception ignored )
+            catch ( Exception ex )
             {
                 throw new QueryParserException( "Unable to parse `" + value + "` as `Float`." );
             }
@@ -105,7 +105,7 @@ public final class QueryUtils
             {
                 return (T) Double.valueOf( value );
             }
-            catch ( Exception ignored )
+            catch ( Exception ex )
             {
                 throw new QueryParserException( "Unable to parse `" + value + "` as `Double`." );
             }
@@ -192,21 +192,23 @@ public final class QueryUtils
 
     public static Object parseValue( String value )
     {
-        if ( value == null || StringUtils.isEmpty( value ))
+        if ( value == null || StringUtils.isEmpty( value ) )
         {
             return null;
         }
-        else if( NumberUtils.isNumber( value ) )
+        else if ( NumberUtils.isNumber( value ) )
         {
             return value;
         }
-        else {
+        else
+        {
             return "'" + value + "'";
         }
     }
 
     /**
      * Convert a List of select fields into a string as in sql select query.
+     *
      * @param fields: list of fields in a select query
      * @return a string which is concat of list fields, separate by comma character.
      * If input is null, return "*" means the query will select all fields.
@@ -217,14 +219,15 @@ public final class QueryUtils
         {
             return " * ";
         }
-        else {
+        else
+        {
             String str = StringUtils.EMPTY;
-            for( int i = 0; i < fields.size(); i++ )
+            for ( int i = 0; i < fields.size(); i++ )
             {
                 str += fields.get( i );
                 if ( i < fields.size() - 1 )
                 {
-                    str +=  ",";
+                    str += ",";
                 }
             }
             return str;
@@ -234,10 +237,11 @@ public final class QueryUtils
 
     /**
      * Convert a String with json format [x,y,z] into sql query collection format (x,y,z)
+     *
      * @param value a string contains a collection with json format [x,y,z]
      * @return a string contains a collection with sql query format (x,y,z)
      */
-    public  static String convertCollectionValue( String value )
+    public static String convertCollectionValue( String value )
     {
         if ( StringUtils.isEmpty( value ) )
         {
@@ -274,8 +278,9 @@ public final class QueryUtils
 
     /**
      * Convert a DHIS2 filter operator into SQl operator
+     *
      * @param operator the filter operator of DHIS2
-     * @param value value of the current sql query condition
+     * @param value    value of the current sql query condition
      * @return a string contains an sql expression with operator and value.
      * Example parseFilterOperator('eq', 5)  will return "=5"
      */
@@ -291,43 +296,43 @@ public final class QueryUtils
         {
             case "eq":
             {
-                return "= " + QueryUtils.parseValue( value ) ;
+                return "= " + QueryUtils.parseValue( value );
             }
             case "!eq":
             {
-                return "!= " + QueryUtils.parseValue( value ) ;
+                return "!= " + QueryUtils.parseValue( value );
             }
             case "ne":
             {
-                return "!= " + QueryUtils.parseValue( value ) ;
+                return "!= " + QueryUtils.parseValue( value );
             }
             case "neq":
             {
-                return "!= " + QueryUtils.parseValue( value ) ;
+                return "!= " + QueryUtils.parseValue( value );
             }
             case "gt":
             {
-                return "> " + QueryUtils.parseValue( value ) ;
+                return "> " + QueryUtils.parseValue( value );
             }
             case "lt":
             {
-                return "< " + QueryUtils.parseValue( value ) ;
+                return "< " + QueryUtils.parseValue( value );
             }
             case "gte":
             {
-                return ">= " + QueryUtils.parseValue( value ) ;
+                return ">= " + QueryUtils.parseValue( value );
             }
             case "ge":
             {
-                return ">= " + QueryUtils.parseValue( value ) ;
+                return ">= " + QueryUtils.parseValue( value );
             }
             case "lte":
             {
-                return "<= " + QueryUtils.parseValue( value ) ;
+                return "<= " + QueryUtils.parseValue( value );
             }
             case "le":
             {
-                return "<= " + QueryUtils.parseValue( value ) ;
+                return "<= " + QueryUtils.parseValue( value );
             }
             case "like":
             {
@@ -335,7 +340,7 @@ public final class QueryUtils
             }
             case "!like":
             {
-                return "not like '" + value + "'"  ;
+                return "not like '%" + value + "%'";
             }
             case "^like":
             {
@@ -359,7 +364,7 @@ public final class QueryUtils
             }
             case "!ilike":
             {
-                return " not ilike '" + value + "'";
+                return " not ilike '%" + value + "%'";
             }
             case "^ilike":
             {
@@ -371,7 +376,7 @@ public final class QueryUtils
             }
             case "$ilike":
             {
-                return  " ilike '%" + value + "'";
+                return " ilike '%" + value + "'";
             }
             case "!$ilike":
             {
