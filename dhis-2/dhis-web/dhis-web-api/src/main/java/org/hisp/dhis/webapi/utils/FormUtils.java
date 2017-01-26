@@ -176,7 +176,7 @@ public class FormUtils
 
                             Option o = new Option();
                             o.setId( option.getUid() );
-                            o.setLabel( option.getName() );
+                            o.setLabel( option.getDisplayName() );
                             o.setStartDate( option.getStartDate() );
                             o.setEndDate( option.getEndDate() );
 
@@ -308,11 +308,11 @@ public class FormUtils
 
                     if ( categoryOptionCombo.isDefault() )
                     {
-                        field.setLabel( dataElement.getFormNameFallback() );
+                        field.setLabel( dataElement.getDisplayFormName() );
                     }
                     else
                     {
-                        field.setLabel( dataElement.getFormNameFallback() + " " + categoryOptionCombo.getDisplayName() );
+                        field.setLabel( dataElement.getDisplayFormName() + " " + categoryOptionCombo.getDisplayName() );
                     }
 
                     field.setDataElement( dataElement.getUid() );
