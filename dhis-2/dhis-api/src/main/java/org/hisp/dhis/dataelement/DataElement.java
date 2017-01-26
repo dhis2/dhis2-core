@@ -476,7 +476,7 @@ public class DataElement
     public String getDisplayFormName()
     {
         displayFormName = getTranslation( TranslationProperty.FORM_NAME, displayFormName );
-        return displayFormName != null ? displayFormName : getFormName() != null && !getFormName().isEmpty() ? getFormName() : getDisplayName();
+        return displayFormName != null ? displayFormName : getFormNameFallback();
     }
 
     public void setDisplayFormName( String displayFormName )
