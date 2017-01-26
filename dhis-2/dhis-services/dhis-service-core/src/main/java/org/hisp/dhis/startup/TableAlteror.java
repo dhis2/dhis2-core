@@ -1682,7 +1682,7 @@ public class TableAlteror
 
     private void updateLegendRelationship()
     {
-        String sql = " update maplegend l set  maplegendsetid = ( select legendsetid from maplegendsetmaplegend m where m.maplegendid = l.maplegendid );";
+        String sql = "update maplegend l set maplegendsetid = (select legendsetid from maplegendsetmaplegend m where m.maplegendid = l.maplegendid);";
         executeSql( sql );
 
         sql = " drop table maplegendsetmaplegend";
