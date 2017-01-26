@@ -118,7 +118,7 @@
 	
 	<tr>
 		<td><label for="autoGenerateEvent">$i18n.getString( "auto_generate_event" )</label></td>
-		<td><input type="checkbox" id="autoGenerateEvent" name="autoGenerateEvent" value='true' checked onchange='autoGenerateEventOnChange("$openAfterEnrollment")' /></td>
+		<td><input type="checkbox" id="autoGenerateEvent" name="autoGenerateEvent" value='true' onchange='autoGenerateEventOnChange("$openAfterEnrollment")' #if($program.hasCategoryCombo() ) disabled #else checked #end /></td>
 	</tr>
 	
 	#if($program.programType.value=="with_registration")
