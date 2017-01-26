@@ -191,15 +191,15 @@ public class JdbcEnrollmentAnalyticsTableManager
                 boolean skipIndex = NO_INDEX_VAL_TYPES.contains( dataElement.getValueType() ) && !dataElement.hasOptionSet();
 
                 String sql = "(select " + select + " from trackedentitydatavalue tedv " + 
-                     "inner join programstageinstance psi on psi.programstageinstanceid = tedv.programstageinstanceid " + 
-                     "where psi.executiondate is not null " + 
-                     "and psi.deleted is false " + 
-                     "and psi.programinstanceid=pi.programinstanceid " +
-                     dataClause + " " +
-                     "and tedv.dataelementid=" + dataElement.getId() + " " +
-                     "and psi.programstageid=" + programStage.getId() + " " +
-                     "order by psi.executiondate desc " +
-                     "limit 1) as " + quote( programStage.getUid() + DB_SEPARATOR_ID + dataElement.getUid() );
+                    "inner join programstageinstance psi on psi.programstageinstanceid = tedv.programstageinstanceid " + 
+                    "where psi.executiondate is not null " + 
+                    "and psi.deleted is false " + 
+                    "and psi.programinstanceid=pi.programinstanceid " +
+                    dataClause + " " +
+                    "and tedv.dataelementid=" + dataElement.getId() + " " +
+                    "and psi.programstageid=" + programStage.getId() + " " +
+                    "order by psi.executiondate desc " +
+                    "limit 1) as " + quote( programStage.getUid() + DB_SEPARATOR_ID + dataElement.getUid() );
 
                 columns.add( new AnalyticsTableColumn( quote( programStage.getUid() + DB_SEPARATOR_ID + dataElement.getUid() ), dataType, sql, skipIndex ) ); 
             }
@@ -222,7 +222,7 @@ public class JdbcEnrollmentAnalyticsTableManager
         AnalyticsTableColumn pi = new AnalyticsTableColumn( quote( "pi" ), "character(11) not null", "pi.uid" );
         AnalyticsTableColumn erd = new AnalyticsTableColumn( quote( "enrollmentdate" ), "timestamp", "pi.enrollmentdate" );
         AnalyticsTableColumn id = new AnalyticsTableColumn( quote( "incidentdate" ), "timestamp", "pi.incidentdate" );
-                
+        
         final String executionDateSql = "(select psi.executionDate from programstageinstance psi " +
             "where psi.programinstanceid=pi.programinstanceid " + 
             "and psi.executiondate is not null " + 
@@ -259,7 +259,7 @@ public class JdbcEnrollmentAnalyticsTableManager
         {
             columns.add( new AnalyticsTableColumn( quote( "tei" ), "character(11)", "tei.uid" ) );
         }
-                
+        
         return filterDimensionColumns( columns );
     }    
 }
