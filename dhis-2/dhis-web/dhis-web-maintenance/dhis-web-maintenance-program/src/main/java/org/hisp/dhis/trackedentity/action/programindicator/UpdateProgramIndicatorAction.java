@@ -175,11 +175,11 @@ public class UpdateProgramIndicatorAction
         this.jsonAttributeValues = jsonAttributeValues;
     }
     
-    private ProgramIndicatorAnalyticsType programIndicatorAnalyticsType;
+    private ProgramIndicatorAnalyticsType analyticsType;
     
-    public void setProgramIndicatorAnalyticsType( ProgramIndicatorAnalyticsType programIndicatorAnalyticsType )
+    public void setAnalyticsType( ProgramIndicatorAnalyticsType analyticsType )
     {
-        this.programIndicatorAnalyticsType = programIndicatorAnalyticsType;
+        this.analyticsType = analyticsType;
     }
     
     // -------------------------------------------------------------------------
@@ -206,7 +206,7 @@ public class UpdateProgramIndicatorAction
         indicator.setDisplayInForm( displayInForm );
         indicator.setAggregateExportCategoryOptionCombo( aggregateExportCategoryOptionCombo );
         indicator.setAggregateExportAttributeOptionCombo( aggregateExportAttributeOptionCombo );
-        indicator.setProgramIndicatorAnalyticsType( programIndicatorAnalyticsType );
+        indicator.setAnalyticsType( analyticsType );
 
         if ( jsonAttributeValues != null )
         {

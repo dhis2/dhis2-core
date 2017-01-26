@@ -215,7 +215,7 @@ public class AddProgramIndicatorAction
         indicator.setDisplayInForm( displayInForm );
         indicator.setAggregateExportCategoryOptionCombo( aggregateExportCategoryOptionCombo );
         indicator.setAggregateExportAttributeOptionCombo( aggregateExportAttributeOptionCombo );
-        indicator.setProgramIndicatorAnalyticsType( programIndicatorAnalyticsType );
+        indicator.setAnalyticsType( programIndicatorAnalyticsType );
 
         if ( jsonAttributeValues != null )
         {
