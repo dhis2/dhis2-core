@@ -239,7 +239,10 @@ public class JdbcEventAnalyticsTableManager
             
             for ( DataElementCategory category : categories )
             {
-                columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "acs." + quote( category.getUid() ) ) );
+                if ( category.isDataDimension() )
+                {
+                    columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "acs." + quote( category.getUid() ) ) );
+                }
             }
         }
 
