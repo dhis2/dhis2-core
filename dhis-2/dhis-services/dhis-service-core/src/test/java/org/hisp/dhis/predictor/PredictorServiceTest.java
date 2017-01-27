@@ -283,9 +283,9 @@ public class PredictorServiceTest
 
     private Double getDataValue( DataElement dataElement, DataElementCategoryOptionCombo combo, OrganisationUnit source, Period period )
     {
-        Collection<DataValue> results = dataValueService.getDataValues( source, period, Sets.newHashSet( dataElement ), combo );
+        DataValue v =  dataValueService.getDataValue( dataElement, period, source, combo, defaultCombo );
 
-        for ( DataValue v : results )
+        if ( v != null )
         {
             return Double.valueOf( v.getValue() );
         }
@@ -718,5 +718,3 @@ public class PredictorServiceTest
 
     }
 }
-
-
