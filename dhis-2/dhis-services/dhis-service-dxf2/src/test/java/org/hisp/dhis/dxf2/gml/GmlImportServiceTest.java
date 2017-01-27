@@ -76,7 +76,7 @@ public class GmlImportServiceTest
     private OrganisationUnitService organisationUnitService;
     
     @Autowired
-    private UserService userService;
+    private UserService _userService;
 
     @Override
     public void setUpTest()
@@ -96,6 +96,8 @@ public class GmlImportServiceTest
          * Note: some of these are included to cover different coordinate element schemes
          *       such as <posList>, <coordinates> and <pos>.
          */
+
+        userService = _userService;
 
         boOrgUnit = createOrganisationUnit( 'A' );
         boOrgUnit.setName( "Bo" );
@@ -119,8 +121,7 @@ public class GmlImportServiceTest
         forskOrgUnit.setName( "Forskningsparken" );
         organisationUnitService.addOrganisationUnit( forskOrgUnit );
 
-        user = createUser( 'X' );
-        userService.addUser( user );
+        user = createAndInjectAdminUser();
 
         taskId = new TaskId( TaskCategory.METADATA_IMPORT, user );
 
