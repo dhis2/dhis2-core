@@ -317,8 +317,7 @@ public class DefaultDataValueService
         Collection<Period> periods, Collection<OrganisationUnit> sources )
     {
         List<DataValue> result = new ArrayList<DataValue>();
-        DataElementCategoryOptionCombo dcoc = categoryService.getDefaultDataElementCategoryOptionCombo();
-        DataElementCategoryOptionCombo coc = categoryOptionCombo == null || categoryOptionCombo == dcoc ? 
+        DataElementCategoryOptionCombo coc = categoryOptionCombo == null || categoryOptionCombo.isDefault() ?
             null : categoryOptionCombo;
 
         Map<Integer, Period> periodIds = new HashMap<Integer, Period>();
@@ -358,7 +357,7 @@ public class DefaultDataValueService
                     if ( dv == null )
                     {
                         dv = new DataValue( dataElement, periodIds.get( periodId ), 
-                            source, dcoc, getCategoryOptionCombo( aoc ) );
+                            source, null, getCategoryOptionCombo( aoc ) );
 
                         dv.setValue( ddv.getValue() );
                         accumulatedValues.putEntry( periodId, aoc, dv );

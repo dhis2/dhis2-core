@@ -206,8 +206,10 @@ public class DefaultPredictorService
         Set<Period> basePeriods = periodMaps.keySet();
         Set<Period> samplePeriods = periodMaps.uniqueValues();
 
-        if ( outputCombo == null ) outputCombo =
-            categoryService.getDefaultDataElementCategoryOptionCombo();
+        if ( outputCombo == null )
+        {
+            outputCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        }
 
         // Aggregates are subexpressions which are passed to aggregate
         // functions (such as AVG, STDDEV, etc) and which generate
@@ -363,13 +365,13 @@ public class DefaultPredictorService
 
         for ( BaseDimensionalItemObject input : inputs )
         {
-            gatherDataValues( input, sources, periods, result );
+            getDataValues( input, sources, periods, result );
         }
 
         return result;
     }
 
-    private void gatherDataValues( BaseDimensionalItemObject input, Collection<OrganisationUnit> sources,
+    private void getDataValues( BaseDimensionalItemObject input, Collection<OrganisationUnit> sources,
         Collection<Period> periods, MapMap<OrganisationUnit, Period,
         MapMap<Integer, BaseDimensionalItemObject, Double>> result )
     {
@@ -593,6 +595,25 @@ public class DefaultPredictorService
             periodService.getPeriod( period.getStartDate(), period.getEndDate(), period.getPeriodType() );
     }
 
+    private void addOrUpdateDataValue( DataValue value )
+    {
+        DataValue existingValue = dataValueService.getDataValue( value.getDataElement(), value.getPeriod(),
+            value.getSource(), value.getCategoryOptionCombo(), value.getAttributeOptionCombo() );
+
+        if ( existingValue == null )
+        {
+            dataValueService.addDataValue( value );
+        }
+        else
+        {
+            existingValue.setValue( value.getValue() );
+            existingValue.setStoredBy( value.getStoredBy() );
+            existingValue.setLastUpdated( new Date() );
+
+            dataValueService.updateDataValue( existingValue );
+        }
+    }
+
     @Override
     public int predict( Predictor predictor, Date start, Date end )
     {
@@ -604,7 +625,7 @@ public class DefaultPredictorService
 
         for ( DataValue value : values )
         {
-            dataValueService.addDataValue( value );
+            addOrUpdateDataValue( value );
         }
 
         log.info("Saved " + values.size() + " predicted values for " + predictor.getName() + " from " + start.toString() + " to " + end.toString() );
@@ -623,7 +644,7 @@ public class DefaultPredictorService
 
         for ( DataValue value : values )
         {
-            dataValueService.addDataValue( value );
+            addOrUpdateDataValue( value );
         }
 
         log.info("Saved " + values.size() + " values for " + predictor.getName() + " from orgUnits and periods " );

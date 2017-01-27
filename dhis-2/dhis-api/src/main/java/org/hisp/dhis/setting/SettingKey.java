@@ -235,6 +235,10 @@ public enum SettingKey
             {
                 return DigitGroupSeparator.valueOf( value );
             }
+            else if ( Cacheability.class.isAssignableFrom( settingClazz ) )
+            {
+                return Cacheability.valueOf( value );
+            }
 
             //TODO handle Dates
         }
