@@ -175,7 +175,10 @@ public class JdbcEventAnalyticsTableManager
             
             for ( DataElementCategory category : categories )
             {
-                columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "acs." + quote( category.getUid() ), category.getCreated() ) );
+                if ( category.isDataDimension() )
+                {
+                    columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "acs." + quote( category.getUid() ), category.getCreated() ) );
+                }
             }
         }
 
@@ -226,7 +229,6 @@ public class JdbcEventAnalyticsTableManager
 
         for ( DataElement dataElement : table.getProgram().getDataElementsWithLegendSet() )
         {
-
             for ( LegendSet legendSet : dataElement.getLegendSets() )
             {
                 String column = quote(

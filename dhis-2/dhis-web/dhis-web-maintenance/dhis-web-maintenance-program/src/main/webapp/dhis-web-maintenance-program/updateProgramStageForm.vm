@@ -139,7 +139,7 @@
 			#if($programStage.program.programType.value=="with_registration")
 			<tr>
 				<td><label for="autoGenerateEvent">$i18n.getString( "auto_generate_event" )</label></td>
-				<td><input type="checkbox" id="autoGenerateEvent" name="autoGenerateEvent" value='true' onchange='autoGenerateEventOnChange("$openAfterEnrollment")' #if( $programStage.autoGenerateEvent && $programStage.autoGenerateEvent=='true' ) checked #end /></td>
+				<td><input type="checkbox" id="autoGenerateEvent" name="autoGenerateEvent" value='true' onchange='autoGenerateEventOnChange("$openAfterEnrollment")' #if( $programStage.program.hasCategoryCombo() )  disabled #else #if( $programStage.autoGenerateEvent && $programStage.autoGenerateEvent=='true' ) checked #end #end /></td>
 			</tr>
 			#end
 			
