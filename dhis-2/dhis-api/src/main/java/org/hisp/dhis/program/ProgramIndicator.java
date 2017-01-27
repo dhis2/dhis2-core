@@ -34,7 +34,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Sets;
-
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -56,7 +55,7 @@ public class ProgramIndicator
     extends BaseDataDimensionalItemObject
 {
     public static final String DB_SEPARATOR_ID = "_";
-    
+
     public static final String SEPARATOR_ID = "\\.";
     public static final String SEP_OBJECT = ":";
     public static final String KEY_DATAELEMENT = "#";
@@ -110,9 +109,9 @@ public class ProgramIndicator
     private Boolean displayInForm;
 
     private Set<ProgramIndicatorGroup> groups = new HashSet<>();
-    
-    private AnalyticsType analyticsType;
- 
+
+    private AnalyticsType analyticsType = AnalyticsType.EVENT;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -155,14 +154,14 @@ public class ProgramIndicator
         if ( AnalyticsType.ENROLLMENT.equals( analyticsType ) )
         {
             Set<String> allElementsAndAttributes = RegexUtils.getMatches( ATTRIBUTE_PATTERN, input, 1 );
-            
+
             Set<String> programStagesAndDataElements =
                 RegexUtils.getMatches( PROGRAMSTAGE_DATAELEMENT_GROUP_PATTERN, input, 1 );
             for ( String programStageAndDataElement : programStagesAndDataElements )
             {
                 allElementsAndAttributes.add( programStageAndDataElement.replace( '.', '_' ) );
             }
-            
+
             return allElementsAndAttributes;
         }
         else
@@ -289,7 +288,7 @@ public class ProgramIndicator
     {
         this.groups = groups;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public AnalyticsType getAnalyticsType()
