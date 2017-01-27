@@ -206,8 +206,10 @@ public class DefaultPredictorService
         Set<Period> basePeriods = periodMaps.keySet();
         Set<Period> samplePeriods = periodMaps.uniqueValues();
 
-        if ( outputCombo == null ) outputCombo =
-            categoryService.getDefaultDataElementCategoryOptionCombo();
+        if ( outputCombo == null )
+        {
+            outputCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        }
 
         // Aggregates are subexpressions which are passed to aggregate
         // functions (such as AVG, STDDEV, etc) and which generate
@@ -363,13 +365,13 @@ public class DefaultPredictorService
 
         for ( BaseDimensionalItemObject input : inputs )
         {
-            gatherDataValues( input, sources, periods, result );
+            getDataValues( input, sources, periods, result );
         }
 
         return result;
     }
 
-    private void gatherDataValues( BaseDimensionalItemObject input, Collection<OrganisationUnit> sources,
+    private void getDataValues( BaseDimensionalItemObject input, Collection<OrganisationUnit> sources,
         Collection<Period> periods, MapMap<OrganisationUnit, Period,
         MapMap<Integer, BaseDimensionalItemObject, Double>> result )
     {
