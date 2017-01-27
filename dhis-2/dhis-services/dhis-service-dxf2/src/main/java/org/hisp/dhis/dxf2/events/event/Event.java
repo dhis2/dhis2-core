@@ -79,7 +79,7 @@ public class Event
 
     private Boolean followup;
 
-    private boolean deleted;
+    private Boolean deleted;
 
     private String created;
 
@@ -365,12 +365,12 @@ public class Event
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isDeleted()
+    public Boolean isDeleted()
     {
         return deleted;
     }
 
-    public void setDeleted( boolean deleted )
+    public void setDeleted( Boolean deleted )
     {
         this.deleted = deleted;
     }
