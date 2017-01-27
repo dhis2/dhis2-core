@@ -693,6 +693,13 @@ public class PredictorServiceTest
         assertEquals( new Double( 5.5 ), getDataValue( dataElementX, sourceA, makeMonth( 2001, 9 ) ) );
         assertEquals( new Double( 5.0 ), getDataValue( dataElementX, sourceA, makeMonth( 2001, 8 ) ) );
         assertNull( getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 8 ) ) );
+
+        // Make sure we can do it again.
+        predictorService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ) );
+
+        assertEquals( new Double( 5.5 ), getDataValue( dataElementX, sourceA, makeMonth( 2001, 9 ) ) );
+        assertEquals( new Double( 5.0 ), getDataValue( dataElementX, sourceA, makeMonth( 2001, 8 ) ) );
+        assertNull( getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 8 ) ) );
     }
 
     @Test
