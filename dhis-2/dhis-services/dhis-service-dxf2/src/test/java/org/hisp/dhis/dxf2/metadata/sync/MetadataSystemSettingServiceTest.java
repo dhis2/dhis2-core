@@ -38,7 +38,6 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
 
 /**
  * @author anilkumk
@@ -123,7 +122,7 @@ public class MetadataSystemSettingServiceTest
     @Test
     public void testShouldReturnFalseIfStopMetadataSyncSettingValueIsNull()
     {
-        when ( systemSettingManager.getSystemSetting( SettingKey.STOP_METADATA_SYNC ) ).thenReturn( null );
+        systemSettingManager.saveSystemSetting( SettingKey.STOP_METADATA_SYNC, null );
         Boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting(  );
 
         assertEquals( false, stopMetadataSync );
