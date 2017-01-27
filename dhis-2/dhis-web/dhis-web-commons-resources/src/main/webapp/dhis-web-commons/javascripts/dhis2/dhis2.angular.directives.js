@@ -123,28 +123,37 @@ var d2Directives = angular.module('d2Directives', [])
         restrict: 'EA',
         scope: {
             content: '=',
+            program: '=',
             title: '@details',
             template: "@template",
             placement: "@placement",
             trigger: "@trigger"
         },
-        link: function (scope, element, attrs) {
-            var content = $templateCache.get(scope.template);
-            content = $compile(content)(scope);
-            var options = {
-                content: content,
-                placement: scope.placement ? scope.placement : 'auto',
-                trigger: scope.trigger ? scope.trigger : 'hover',
-                html: true,
-                title: $translate.instant('_details')
-            };
-            element.popover(options);
-
-            $('body').on('click', function (e) {
-                if( !element[0].contains(e.target) ) {
-                    element.popover('hide');
+        link: function (scope, element) {
+            var content, program;
+            if (scope.content) {
+                content = $templateCache.get(scope.template);
+                content = $compile(content)(scope);
+                if( scope.program ){
+                    program = $templateCache.get(scope.template);
+                    program = $compile(program)(scope);
                 }
-            });
+                var options = {
+                    content: content,
+                    program: program,
+                    placement: scope.placement ? scope.placement : 'auto',
+                    trigger: scope.trigger ? scope.trigger : 'hover',
+                    html: true,
+                    title: $translate.instant('_details')
+                };
+                element.popover(options);
+
+                $('body').on('click', function (e) {
+                    if (!element[0].contains(e.target)) {
+                        element.popover('hide');
+                    }
+                });
+            }
         }
     };
 })
