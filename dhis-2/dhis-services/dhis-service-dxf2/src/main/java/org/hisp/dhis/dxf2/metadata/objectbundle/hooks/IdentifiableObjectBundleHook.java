@@ -42,6 +42,8 @@ import org.hisp.dhis.user.UserGroupAccess;
 import org.springframework.core.annotation.Order;
 import org.springframework.util.StringUtils;
 
+import java.util.Iterator;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -99,11 +101,22 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
             return;
         }
 
-        for ( UserGroupAccess userGroupAccess : identifiableObject.getUserGroupAccesses() )
+        Iterator<UserGroupAccess> userGroupAccessIterator = identifiableObject.getUserGroupAccesses().iterator();
+
+        while ( userGroupAccessIterator.hasNext() )
         {
+            UserGroupAccess userGroupAccess = userGroupAccessIterator.next();
             UserGroup userGroup = bundle.getPreheat().get( bundle.getPreheatIdentifier(), userGroupAccess.getUserGroup() );
-            userGroupAccess.setUserGroup( userGroup );
-            session.save( userGroupAccess );
+
+            if ( userGroup != null )
+            {
+                userGroupAccess.setUserGroup( userGroup );
+                session.save( userGroupAccess );
+            }
+            else
+            {
+                userGroupAccessIterator.remove();
+            }
         }
     }
 
@@ -117,11 +130,22 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
             return;
         }
 
-        for ( UserAccess userAccess : identifiableObject.getUserAccesses() )
+        Iterator<UserAccess> userAccessIterator = identifiableObject.getUserAccesses().iterator();
+
+        while ( userAccessIterator.hasNext() )
         {
+            UserAccess userAccess = userAccessIterator.next();
             User user = bundle.getPreheat().get( bundle.getPreheatIdentifier(), userAccess.getUser() );
-            userAccess.setUser( user );
-            session.save( userAccess );
+
+            if ( user != null )
+            {
+                userAccess.setUser( user );
+                session.save( userAccess );
+            }
+            else
+            {
+                userAccessIterator.remove();
+            }
         }
     }
 
