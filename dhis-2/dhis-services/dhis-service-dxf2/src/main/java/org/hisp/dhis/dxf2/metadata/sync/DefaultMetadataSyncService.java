@@ -125,10 +125,20 @@ public class DefaultMetadataSyncService
         {
             throw new DhisVersionMismatchException("Metadata sync failed because your version of DHIS does not match the master version");
         }
-
+        saveMetadataVersionSnapshotLocally(version, metadataVersionSnapshot);
         MetadataSyncSummary metadataSyncSummary = metadataSyncImportHandler.importMetadata( syncParams, metadataVersionSnapshot );
         log.info( "Metadata Sync Summary: " + metadataSyncSummary );
         return metadataSyncSummary;
+    }
+
+    private void saveMetadataVersionSnapshotLocally(MetadataVersion version, String metadataVersionSnapshot) {
+
+        if ( getLocalVersionSnapshot( version ) == null )
+        {
+            metadataVersionService.createMetadataVersionInDataStore( version.getName(), metadataVersionSnapshot );
+            log.info( "Downloaded the metadata snapshot from remote and saved in Data Store for the version: " + version );
+        }
+
     }
 
     private String getMetadataVersionSnapshot(MetadataVersion version) {
@@ -141,12 +151,7 @@ public class DefaultMetadataSyncService
 
         metadataVersionSnapshot = getMetadataVersionSnapshotFromRemote(version);
 
-        if ( ( metadataVersionService.isMetadataPassingIntegrity( version, metadataVersionSnapshot ) ) )
-        {
-            metadataVersionService.createMetadataVersionInDataStore( version.getName(), metadataVersionSnapshot );
-            log.info( "Downloaded the metadata snapshot from remote and saved in Data Store for the version: " + version );
-        }
-        else
+        if ( !( metadataVersionService.isMetadataPassingIntegrity( version, metadataVersionSnapshot ) ) )
         {
             throw new MetadataSyncServiceException( "Metadata snapshot is corrupted. Not saving it locally" );
         }
