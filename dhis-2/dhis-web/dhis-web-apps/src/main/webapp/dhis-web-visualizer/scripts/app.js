@@ -5680,7 +5680,7 @@ Ext.onReady( function() {
 					format: 'json',
 					noCache: false,
 					extraParams: {
-						fields: encodeURI('children[id,' + namePropertyUrl + ',children::isNotEmpty|rename(hasChildren)]&paging=false')
+						fields: 'children[id,' + namePropertyUrl + ',children::isNotEmpty|rename(hasChildren)]&paging=false'
 					},
 					url: ns.core.init.contextPath + '/api/organisationUnits',
 					reader: {
