@@ -118,57 +118,66 @@ public class DefaultMetadataSyncService
             return metadataSyncSummary;
         }
 
-        if ( VersionType.BEST_EFFORT.equals( version.getType() ) )
+        setMetadataImportMode(syncParams, version);
+        String metadataVersionSnapshot = getMetadataVersionSnapshot(version);
+
+        if ( metadataSyncDelegate.shouldStopSync( metadataVersionSnapshot ) )
         {
-            syncParams.getImportParams().setAtomicMode( AtomicMode.NONE );
-        }
-
-        String metadataVersionSnapshot = getLocalVersionSnapshot( version );
-
-        if ( metadataVersionSnapshot == null )
-        {
-            try
-            {
-                metadataVersionSnapshot = metadataVersionDelegate.downloadMetadataVersion( version );
-            }
-            catch ( MetadataVersionServiceException e )
-            {
-                throw new MetadataSyncServiceException( e.getMessage(), e );
-            }
-
-            if ( metadataVersionSnapshot == null )
-            {
-                throw new MetadataSyncServiceException( "Metadata snapshot can't be null." );
-            }
-            else
-            {
-                if ( metadataSyncDelegate.shouldStopSync( metadataVersionSnapshot ) )
-                {
-                    throw new DhisVersionMismatchException("Metadata sync failed because your version of DHIS does not match the master version");
-                }
-            }
-
-            if ( ( metadataVersionService.isMetadataPassingIntegrity( version, metadataVersionSnapshot ) ) )
-            {
-                metadataVersionService.createMetadataVersionInDataStore( version.getName(), metadataVersionSnapshot );
-                log.info( "Downloaded the metadata snapshot from remote and saved in Data Store for the version: " + version );
-            }
-            else
-            {
-                throw new MetadataSyncServiceException( "Metadata snapshot is corrupted. Not saving it locally" );
-            }
-        }
-
-        if ( !(metadataVersionService.isMetadataPassingIntegrity( version, metadataVersionSnapshot ) ) )
-        {
-            metadataVersionService.deleteMetadataVersionInDataStore( version.getName() );
-            throw new MetadataSyncServiceException(
-                "Metadata snapshot is corrupted. Deleting from locally the version: " + version );
+            throw new DhisVersionMismatchException("Metadata sync failed because your version of DHIS does not match the master version");
         }
 
         MetadataSyncSummary metadataSyncSummary = metadataSyncImportHandler.importMetadata( syncParams, metadataVersionSnapshot );
         log.info( "Metadata Sync Summary: " + metadataSyncSummary );
         return metadataSyncSummary;
+    }
+
+    private String getMetadataVersionSnapshot(MetadataVersion version) {
+        String metadataVersionSnapshot = getLocalVersionSnapshot( version );
+
+        if ( metadataVersionSnapshot != null )
+        {
+            return metadataVersionSnapshot;
+        }
+
+        metadataVersionSnapshot = getMetadataVersionSnapshotFromRemote(version);
+
+        if ( ( metadataVersionService.isMetadataPassingIntegrity( version, metadataVersionSnapshot ) ) )
+        {
+            metadataVersionService.createMetadataVersionInDataStore( version.getName(), metadataVersionSnapshot );
+            log.info( "Downloaded the metadata snapshot from remote and saved in Data Store for the version: " + version );
+        }
+        else
+        {
+            throw new MetadataSyncServiceException( "Metadata snapshot is corrupted. Not saving it locally" );
+        }
+
+        return metadataVersionSnapshot;
+    }
+
+    private String getMetadataVersionSnapshotFromRemote(MetadataVersion version) {
+        String metadataVersionSnapshot;
+        try
+        {
+            metadataVersionSnapshot = metadataVersionDelegate.downloadMetadataVersionSnapshot( version );
+        }
+        catch ( MetadataVersionServiceException e )
+        {
+            throw new MetadataSyncServiceException( e.getMessage(), e );
+        }
+
+        if ( metadataVersionSnapshot == null )
+        {
+            throw new MetadataSyncServiceException( "Metadata snapshot can't be null." );
+        }
+
+        return metadataVersionSnapshot;
+    }
+
+    private void setMetadataImportMode(MetadataSyncParams syncParams, MetadataVersion version) {
+        if ( VersionType.BEST_EFFORT.equals( version.getType() ) )
+        {
+            syncParams.getImportParams().setAtomicMode( AtomicMode.NONE );
+        }
     }
 
     //----------------------------------------------------------------------------------------

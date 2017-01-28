@@ -139,7 +139,7 @@ public class MetadataVersionDelegate
         return metadataVersions;
     }
 
-    public String downloadMetadataVersion( MetadataVersion version )
+    public String downloadMetadataVersionSnapshot(MetadataVersion version )
         throws MetadataVersionServiceException
     {
         String downloadVersionSnapshotURL = metadataSystemSettingService.getDownloadVersionSnapshotURL( version.getName() );

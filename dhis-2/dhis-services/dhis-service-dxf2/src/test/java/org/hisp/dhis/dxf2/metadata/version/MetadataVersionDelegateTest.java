@@ -368,7 +368,7 @@ public class MetadataVersionDelegateTest
 
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
         PowerMockito.when( HttpUtils.httpGET( downloadUrl, true, username, password, null, DOWNLOAD_TIMEOUT, true ) ).thenReturn( dhisHttpResponse );
-        String actualVersionSnapShot = metadataVersionDelegate.downloadMetadataVersion( metadataVersion );
+        String actualVersionSnapShot = metadataVersionDelegate.downloadMetadataVersionSnapshot( metadataVersion );
 
         assertEquals( response, actualVersionSnapShot );
     }
@@ -387,7 +387,7 @@ public class MetadataVersionDelegateTest
 
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
         PowerMockito.when( HttpUtils.httpGET( downloadUrl, true, username, password, null, DOWNLOAD_TIMEOUT, true ) ).thenReturn( null );
-        String actualMetadataVersionSnapshot = metadataVersionDelegate.downloadMetadataVersion( metadataVersion );
+        String actualMetadataVersionSnapshot = metadataVersionDelegate.downloadMetadataVersionSnapshot( metadataVersion );
 
         assertEquals( null, actualMetadataVersionSnapshot );
     }

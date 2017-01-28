@@ -215,31 +215,12 @@ public class DefaultMetadataSyncServiceTest
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.ATOMIC );
 
         when( syncParams.getVersion() ).thenReturn( metadataVersion );
-        when( metadataVersionDelegate.downloadMetadataVersion( metadataVersion ) ).thenReturn( null );
+        when( metadataVersionDelegate.downloadMetadataVersionSnapshot( metadataVersion ) ).thenReturn( null );
 
         expectedException.expect( MetadataSyncServiceException.class );
         expectedException.expectMessage( "Metadata snapshot can't be null." );
 
         metadataSyncService.doMetadataSync( syncParams );
-    }
-
-    @Test
-    public void testShouldNotCallDownloadMetadataWhenMetadataSnapshotPresentInLocalAndNotPassIntegrity() throws DhisVersionMismatchException
-    {
-        MetadataSyncParams syncParams = Mockito.mock( MetadataSyncParams.class );
-        MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.ATOMIC );
-        String expectedMetadataSnapshot = "{\"date\":\"2016-05-24T05:27:25.128+0000\"}";
-
-        when( syncParams.getVersion() ).thenReturn( metadataVersion );
-        when( metadataVersionService.getVersionData( "testVersion" ) ).thenReturn( expectedMetadataSnapshot );
-        when( metadataVersionService.isMetadataPassingIntegrity( metadataVersion, expectedMetadataSnapshot ) ).thenReturn( false );
-
-        expectedException.expect( MetadataSyncServiceException.class );
-        expectedException.expectMessage( "Metadata snapshot is corrupted." );
-
-        metadataSyncService.doMetadataSync( syncParams );
-        verify( metadataVersionService, never() ).createMetadataVersionInDataStore( metadataVersion.getName(), expectedMetadataSnapshot );
-        verify( metadataVersionDelegate, never() ).downloadMetadataVersion( metadataVersion );
     }
 
     @Test
@@ -250,8 +231,9 @@ public class DefaultMetadataSyncServiceTest
         String expectedMetadataSnapshot = "{\"date\":\"2016-05-24T05:27:25.128+0000\"}";
 
         when( syncParams.getVersion() ).thenReturn( metadataVersion );
-        when( metadataVersionDelegate.downloadMetadataVersion( metadataVersion ) ).thenReturn( expectedMetadataSnapshot );
+        when( metadataVersionDelegate.downloadMetadataVersionSnapshot( metadataVersion ) ).thenReturn( expectedMetadataSnapshot );
         when ( metadataSyncDelegate.shouldStopSync( expectedMetadataSnapshot ) ).thenReturn( true );
+        when( metadataVersionService.isMetadataPassingIntegrity( metadataVersion, expectedMetadataSnapshot)).thenReturn( true );
 
         expectedException.expect( DhisVersionMismatchException.class );
         expectedException.expectMessage( "Metadata sync failed because your version of DHIS does not match the master version" );
@@ -267,7 +249,7 @@ public class DefaultMetadataSyncServiceTest
         String expectedMetadataSnapshot = "{\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}";
 
         when( syncParams.getVersion() ).thenReturn( metadataVersion );
-        when( metadataVersionDelegate.downloadMetadataVersion( metadataVersion ) ).thenReturn( expectedMetadataSnapshot );
+        when( metadataVersionDelegate.downloadMetadataVersionSnapshot( metadataVersion ) ).thenReturn( expectedMetadataSnapshot );
         when ( metadataSyncDelegate.shouldStopSync( expectedMetadataSnapshot ) ).thenReturn( false );
         when( metadataVersionService.isMetadataPassingIntegrity( metadataVersion, expectedMetadataSnapshot ) ).thenReturn( true );
 
@@ -282,7 +264,7 @@ public class DefaultMetadataSyncServiceTest
         String expectedMetadataSnapshot = "{\"date\":\"2016-05-24T05:27:25.128+0000\"}";
 
         when( syncParams.getVersion() ).thenReturn( metadataVersion );
-        when( metadataVersionDelegate.downloadMetadataVersion( metadataVersion ) ).thenReturn( expectedMetadataSnapshot );
+        when( metadataVersionDelegate.downloadMetadataVersionSnapshot( metadataVersion ) ).thenReturn( expectedMetadataSnapshot );
         when( metadataVersionService.isMetadataPassingIntegrity( metadataVersion, expectedMetadataSnapshot ) ).thenReturn( false );
 
         expectedException.expect( MetadataSyncServiceException.class );
@@ -304,7 +286,7 @@ public class DefaultMetadataSyncServiceTest
         when( syncParams.getVersion() ).thenReturn( metadataVersion );
         when( syncParams.getImportParams() ).thenReturn( metadataImportParams );
         when( metadataVersionService.getVersionData( "testVersion" ) ).thenReturn( null );
-        when( metadataVersionDelegate.downloadMetadataVersion( metadataVersion ) ).thenReturn( expectedMetadataSnapshot );
+        when( metadataVersionDelegate.downloadMetadataVersionSnapshot( metadataVersion ) ).thenReturn( expectedMetadataSnapshot );
         when( metadataVersionService.isMetadataPassingIntegrity( metadataVersion, expectedMetadataSnapshot ) ).thenReturn( true );
         when( metadataSyncImportHandler.importMetadata(syncParams,expectedMetadataSnapshot) ).thenReturn( metadataSyncSummary );
 
@@ -339,7 +321,7 @@ public class DefaultMetadataSyncServiceTest
         MetadataSyncSummary actualSummary = metadataSyncService.doMetadataSync( syncParams );
 
         verify( metadataVersionService, never() ).createMetadataVersionInDataStore( metadataVersion.getName(), expectedMetadataSnapshot );
-        verify( metadataVersionDelegate, never() ).downloadMetadataVersion( metadataVersion );
+        verify( metadataVersionDelegate, never() ).downloadMetadataVersionSnapshot( metadataVersion );
         assertEquals( null, actualSummary.getImportReport() );
         assertEquals( null, actualSummary.getImportSummary() );
         assertEquals( metadataVersion, actualSummary.getMetadataVersion() );
@@ -373,7 +355,7 @@ public class DefaultMetadataSyncServiceTest
         })), eq(expectedMetadataSnapshot));
 
         verify( metadataVersionService, never() ).createMetadataVersionInDataStore( metadataVersion.getName(), expectedMetadataSnapshot );
-        verify( metadataVersionDelegate, never() ).downloadMetadataVersion( metadataVersion );
+        verify( metadataVersionDelegate, never() ).downloadMetadataVersionSnapshot( metadataVersion );
 
     }
 }
