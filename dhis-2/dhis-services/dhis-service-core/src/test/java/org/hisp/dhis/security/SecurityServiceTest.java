@@ -91,7 +91,7 @@ public class SecurityServiceTest
     public void testUserAuthenticationLockout()
     {
         systemSettingManager.saveSystemSetting( 
-            SettingKey.BLOCK_MULTIPLE_FAILED_LOGINS, Boolean.TRUE );
+            SettingKey.LOCK_MULTIPLE_FAILED_LOGINS, Boolean.TRUE );
         
         String username = "dr_evil";
                 
@@ -120,7 +120,7 @@ public class SecurityServiceTest
         assertFalse( securityService.isLocked( username ) );
         
         systemSettingManager.saveSystemSetting( 
-            SettingKey.BLOCK_MULTIPLE_FAILED_LOGINS, Boolean.FALSE );
+            SettingKey.LOCK_MULTIPLE_FAILED_LOGINS, Boolean.FALSE );
     }
 
     @Test

@@ -179,7 +179,7 @@ public class DefaultSecurityService
     
     private boolean isBlockFailedLogins()
     {
-        return (Boolean) systemSettingManager.getSystemSetting( SettingKey.BLOCK_MULTIPLE_FAILED_LOGINS );
+        return (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOCK_MULTIPLE_FAILED_LOGINS );
     }
     
     @Override
