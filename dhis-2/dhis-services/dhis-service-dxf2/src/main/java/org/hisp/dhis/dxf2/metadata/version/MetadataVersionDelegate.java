@@ -39,7 +39,6 @@ import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.util.DhisHttpResponse;
 import org.hisp.dhis.system.util.HttpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,9 +70,6 @@ public class MetadataVersionDelegate
 
     @Autowired
     private MetadataVersionService metadataVersionService;
-
-    @Autowired
-    private SystemService systemService;
 
     private int VERSION_TIMEOUT = 120000;
 
