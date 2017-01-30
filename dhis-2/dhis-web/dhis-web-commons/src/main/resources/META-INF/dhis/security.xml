@@ -50,6 +50,7 @@
 
   <bean id="defaultAuthenticationSuccessHandler" class="org.hisp.dhis.security.DefaultAuthenticationSuccessHandler">
     <property name="redirectStrategy" ref="mappedRedirectStrategy" />
+    <property name="sessionTimeout" ref="sessionTimeout" />
   </bean>
 
   <bean id="customAuthenticationFilter" class="org.hisp.dhis.security.filter.CustomAuthenticationFilter" />
