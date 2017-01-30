@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.metadata.sync;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
+import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.exception.RemoteServerUnavailableException;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
@@ -65,7 +66,7 @@ public class MetadataSyncController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_MANAGE')" )
     @RequestMapping( method = RequestMethod.GET )
-    public @ResponseBody MetadataSyncSummary metadataSync() throws MetadataSyncException, BadRequestException
+    public @ResponseBody MetadataSyncSummary metadataSync() throws MetadataSyncException, DhisVersionMismatchException, BadRequestException
     {
         MetadataSyncParams syncParams;
         MetadataSyncSummary metadataSyncSummary;
@@ -99,6 +100,10 @@ public class MetadataSyncController
             catch ( MetadataSyncServiceException serviceException )
             {
                 throw new MetadataSyncException( "Exception occurred while doing metadata sync: " + serviceException.getMessage() );
+            }
+            catch ( DhisVersionMismatchException versionMismatchException )
+            {
+                throw new DhisVersionMismatchException( "Exception occurred while doing metadata sync: " + versionMismatchException.getMessage() );
             }
         }
         return metadataSyncSummary;

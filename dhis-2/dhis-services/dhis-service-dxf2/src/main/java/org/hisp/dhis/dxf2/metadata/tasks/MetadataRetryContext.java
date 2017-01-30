@@ -95,7 +95,6 @@ public class MetadataRetryContext
 
         if ( Status.ERROR.equals( status ) )
         {
-
             StringBuilder report = new StringBuilder();
             List<ErrorReport> errorReports = importReport.getErrorReports();
 

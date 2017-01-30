@@ -1,5 +1,7 @@
+package org.hisp.dhis.dxf2.metadata.sync.exception;
+
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,33 +28,23 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.metadata.sync;
-import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
-
-import java.util.List;
-import java.util.Map;
-
 /**
- * MetadataSyncService defines the methods avaibale for initiating sync related methods
- *
- * @author vanyas
+ * @author aamerm
  */
-public interface MetadataSyncService
+public class DhisVersionMismatchException extends Exception
 {
-    /**
-     * Gets the MetadataSyncParams from the map of parameters in the incoming request.
-     *
-     * @param parameters
-     * @return MetadataSyncParams
-     */
-    MetadataSyncParams getParamsFromMap( Map<String, List<String>> parameters );
+    public DhisVersionMismatchException( String message )
+    {
+        super( message );
+    }
 
-    /**
-     * Does the actual metadata sync logic. Calls the underlying importer to import the relevant
-     * MetadataVersion snapshot downloaded from the remote server.
-     *
-     * @param syncParams
-     * @return
-     */
-    MetadataSyncSummary doMetadataSync( MetadataSyncParams syncParams ) throws DhisVersionMismatchException;
+    public DhisVersionMismatchException( Throwable cause )
+    {
+        super( cause );
+    }
+
+    public DhisVersionMismatchException( String message, Throwable cause )
+    {
+        super( message, cause );
+    }
 }
