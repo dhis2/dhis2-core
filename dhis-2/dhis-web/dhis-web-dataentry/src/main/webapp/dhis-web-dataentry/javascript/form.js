@@ -1687,6 +1687,10 @@ function getAndInsertDataValues()
             $( '.indicator' ).attr( 'readonly', 'readonly' );
             $( '.dataelementtotal' ).attr( 'readonly', 'readonly' );
             $( document ).trigger( dhis2.de.event.dataValuesLoaded, dhis2.de.currentDataSetId );
+                     
+            //populate section row/column totals
+            dhis2.de.populateRowTotals();
+            dhis2.de.populateColumnTotals();
         }
 	} );
 }
@@ -1869,9 +1873,6 @@ function insertDataValues( json )
         dataValueMap[value.id] = value.val;
 
         dhis2.period.picker.updateDate(fieldId);
-        
-        dhis2.de.populateRowTotals();
-        dhis2.de.populateColumnTotals();
         
     } );
 
