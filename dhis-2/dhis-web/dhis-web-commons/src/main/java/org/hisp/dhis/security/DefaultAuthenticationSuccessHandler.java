@@ -69,6 +69,9 @@ public class DefaultAuthenticationSuccessHandler
     
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private SecurityService securityService;
 
     @Autowired
     private DhisConfigurationProvider config;
@@ -101,7 +104,7 @@ public class DefaultAuthenticationSuccessHandler
     {   
         HttpSession session = request.getSession();
         
-        String username = authentication.getName();
+        final String username = authentication.getName();
         
         session.setAttribute( "userIs", username );
         session.setAttribute( LoginInterceptor.JLI_SESSION_VARIABLE, Boolean.TRUE );
@@ -115,6 +118,11 @@ public class DefaultAuthenticationSuccessHandler
         {
             credentials.updateLastLogin();
             userService.updateUserCredentials( credentials );            
+        }
+        
+        if ( credentials != null )
+        {
+            securityService.registerSuccessfulLogin( username );
         }
         
         super.onAuthenticationSuccess( request, response, authentication );
