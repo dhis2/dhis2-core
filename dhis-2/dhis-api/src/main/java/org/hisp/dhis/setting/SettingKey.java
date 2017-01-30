@@ -81,6 +81,7 @@ public enum SettingKey
     MULTI_ORGANISATION_UNIT_FORMS( "multiOrganisationUnitForms", Boolean.FALSE, Boolean.class ),
     CONFIGURATION( "keyConfig", Configuration.class ),
     ACCOUNT_RECOVERY( "keyAccountRecovery", Boolean.FALSE, Boolean.class ),
+    LOCK_MULTIPLE_FAILED_LOGINS( "keyLockMultipleFailedLogins", Boolean.FALSE, Boolean.class ),
     GOOGLE_ANALYTICS_UA( "googleAnalyticsUA" ),
     CREDENTIALS_EXPIRES( "credentialsExpires", 0, Integer.class ),
     SELF_REGISTRATION_NO_RECAPTCHA( "keySelfRegistrationNoRecaptcha", Boolean.FALSE, Boolean.class ),
