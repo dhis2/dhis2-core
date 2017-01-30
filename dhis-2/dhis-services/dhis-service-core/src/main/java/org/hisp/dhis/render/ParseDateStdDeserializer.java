@@ -30,8 +30,7 @@ package org.hisp.dhis.render;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
-import com.fasterxml.jackson.databind.deser.std.StringDeserializer;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import org.hisp.dhis.system.util.DateUtils;
 
 import java.io.IOException;
@@ -40,17 +39,11 @@ import java.util.Date;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ParseDateStdDeserializer extends StdScalarDeserializer<Date>
+public class ParseDateStdDeserializer extends JsonDeserializer<Date>
 {
-    public ParseDateStdDeserializer()
-    {
-        super( Date.class );
-    }
-
     @Override
-    public Date deserialize( JsonParser p, DeserializationContext ctxt ) throws IOException
+    public Date deserialize( JsonParser parser, DeserializationContext context ) throws IOException
     {
-        String result = StringDeserializer.instance.deserialize( p, ctxt );
-        return DateUtils.parseDate( result );
+        return DateUtils.parseDate( parser.getValueAsString() );
     }
 }

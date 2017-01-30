@@ -645,7 +645,6 @@ public class DataElement
     }
 
     @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "dataSetElements", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "dataSetElements", namespace = DxfNamespaces.DXF_2_0 )
     public Set<DataSetElement> getDataSetElements()
@@ -710,7 +709,7 @@ public class DataElement
      * Checks if the combination of period and date is allowed for any of the dataSets associated with the dataElement
      *
      * @param period period to check
-     * @param date date to check
+     * @param date   date to check
      * @return true if no dataSets exists, or at least one dataSet has a valid DataInputPeriod for the period and date.
      */
     public boolean isDataInputAllowedForPeriodAndDate( Period period, Date date )

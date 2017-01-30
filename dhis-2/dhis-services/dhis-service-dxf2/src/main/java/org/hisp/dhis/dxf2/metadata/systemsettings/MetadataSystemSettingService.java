@@ -51,4 +51,6 @@ public interface MetadataSystemSettingService
     void setSystemMetadataVersion(String versionName);
 
     String getSystemMetadataVersion();
+
+    Boolean getStopMetadataSyncSetting();
 }

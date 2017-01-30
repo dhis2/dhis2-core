@@ -1,4 +1,4 @@
-package org.hisp.dhis.render;
+package org.hisp.dhis.dxf2.metadata.sync.exception;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,22 +28,23 @@ package org.hisp.dhis.render;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import org.hisp.dhis.system.util.DateUtils;
-
-import java.io.IOException;
-import java.util.Date;
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author aamerm
  */
-public class WriteDateStdSerializer extends JsonSerializer<Date>
+public class DhisVersionMismatchException extends Exception
 {
-    @Override
-    public void serialize( Date date, JsonGenerator generator, SerializerProvider provider ) throws IOException
+    public DhisVersionMismatchException( String message )
     {
-        generator.writeString( DateUtils.getIso8601NoTz( date ) );
+        super( message );
+    }
+
+    public DhisVersionMismatchException( Throwable cause )
+    {
+        super( cause );
+    }
+
+    public DhisVersionMismatchException( String message, Throwable cause )
+    {
+        super( message, cause );
     }
 }

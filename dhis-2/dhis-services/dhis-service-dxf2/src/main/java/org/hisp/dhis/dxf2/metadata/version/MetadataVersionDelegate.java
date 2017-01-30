@@ -39,6 +39,7 @@ import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.util.DhisHttpResponse;
 import org.hisp.dhis.system.util.HttpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +71,9 @@ public class MetadataVersionDelegate
 
     @Autowired
     private MetadataVersionService metadataVersionService;
+
+    @Autowired
+    private SystemService systemService;
 
     private int VERSION_TIMEOUT = 120000;
 
@@ -135,7 +139,7 @@ public class MetadataVersionDelegate
         return metadataVersions;
     }
 
-    public String downloadMetadataVersion( MetadataVersion version )
+    public String downloadMetadataVersionSnapshot(MetadataVersion version )
         throws MetadataVersionServiceException
     {
         String downloadVersionSnapshotURL = metadataSystemSettingService.getDownloadVersionSnapshotURL( version.getName() );
@@ -161,7 +165,6 @@ public class MetadataVersionDelegate
         {
             throw new MetadataVersionServiceException( "Exception occurred while trying to add metadata version" + version, e );
         }
-
     }
 
     //----------------------------------------------------------------------------------------

@@ -36,11 +36,12 @@ import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
 import org.hisp.dhis.dxf2.adx.AdxException;
-import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.dxf2.metadata.MetadataExportException;
 import org.hisp.dhis.dxf2.metadata.MetadataImportException;
+import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterException;
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryParserException;
@@ -218,6 +219,12 @@ public class CrudControllerAdvice
     public void handleMetaDataSyncException( MetadataSyncException metadataSyncException, HttpServletResponse response, HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.error( metadataSyncException.getMessage() ), response, request );
+    }
+
+    @ExceptionHandler( DhisVersionMismatchException.class )
+    public void handleDhisVersionMismatchException( DhisVersionMismatchException versionMismatchException, HttpServletResponse response, HttpServletRequest request )
+    {
+        webMessageService.send( WebMessageUtils.forbidden( versionMismatchException.getMessage() ), response, request );
     }
 
     // Catch default exception and send back to user, but rethrow internally so it still ends up in server logs
