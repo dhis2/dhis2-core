@@ -143,7 +143,7 @@ public class MetadataSyncPostProcessor
 
             }
 
-            text.append( "\n \n" );
+            text.append( "\n\n" );
 
         }
 
