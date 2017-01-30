@@ -34,7 +34,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -48,6 +47,7 @@ import org.springframework.util.StringUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -561,7 +561,7 @@ public class Schema implements Ordered, Klass
     @Override
     public int hashCode()
     {
-        return Objects.hashCode( klass, identifiableObject, nameableObject, singular, plural, namespace, name,
+        return Objects.hash( klass, identifiableObject, nameableObject, singular, plural, namespace, name,
             collectionName, shareable, relativeApiEndpoint, metadata, authorities, propertyMap, order );
     }
 
@@ -579,13 +579,13 @@ public class Schema implements Ordered, Klass
 
         final Schema other = (Schema) obj;
 
-        return Objects.equal( this.klass, other.klass ) && Objects.equal( this.identifiableObject, other.identifiableObject )
-            && Objects.equal( this.nameableObject, other.nameableObject ) && Objects.equal( this.singular, other.singular )
-            && Objects.equal( this.plural, other.plural ) && Objects.equal( this.namespace, other.namespace )
-            && Objects.equal( this.name, other.name ) && Objects.equal( this.collectionName, other.collectionName )
-            && Objects.equal( this.shareable, other.shareable ) && Objects.equal( this.relativeApiEndpoint, other.relativeApiEndpoint )
-            && Objects.equal( this.metadata, other.metadata ) && Objects.equal( this.authorities, other.authorities )
-            && Objects.equal( this.propertyMap, other.propertyMap ) && Objects.equal( this.order, other.order );
+        return java.util.Objects.equals( this.klass, other.klass ) && Objects.equals( this.identifiableObject, other.identifiableObject )
+            && Objects.equals( this.nameableObject, other.nameableObject ) && Objects.equals( this.singular, other.singular )
+            && Objects.equals( this.plural, other.plural ) && Objects.equals( this.namespace, other.namespace )
+            && Objects.equals( this.name, other.name ) && Objects.equals( this.collectionName, other.collectionName )
+            && Objects.equals( this.shareable, other.shareable ) && Objects.equals( this.relativeApiEndpoint, other.relativeApiEndpoint )
+            && Objects.equals( this.metadata, other.metadata ) && Objects.equals( this.authorities, other.authorities )
+            && Objects.equals( this.propertyMap, other.propertyMap ) && Objects.equals( this.order, other.order );
     }
 
     @Override
