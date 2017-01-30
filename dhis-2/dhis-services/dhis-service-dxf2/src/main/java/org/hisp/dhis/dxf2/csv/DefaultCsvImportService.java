@@ -71,7 +71,7 @@ import static org.hisp.dhis.system.util.DateUtils.getMediumDate;
 
 /**
  * TODO Unit testing
- * 
+ *
  * @author Lars Helge Overland
  */
 public class DefaultCsvImportService
@@ -209,17 +209,16 @@ public class DefaultCsvImportService
                 String commentOptionSetUid = getSafe( values, 13, null, 11 );
                 object.setAutoFields();
 
-                if ( categoryComboUid != null )
+                DataElementCategoryCombo cc = new DataElementCategoryCombo();
+                cc.setUid( categoryComboUid );
+                cc.setAutoFields();
+
+                if ( categoryComboUid == null )
                 {
-                    DataElementCategoryCombo cc = new DataElementCategoryCombo();
-                    cc.setUid( categoryComboUid );
-                    cc.setAutoFields();
-                    object.setDataElementCategoryCombo( cc );
+                    cc.setUid( categoryCombo.getUid() );
                 }
-                else
-                {
-                    object.setDataElementCategoryCombo( categoryCombo );
-                }
+
+                object.setDataElementCategoryCombo( cc );
 
                 if ( optionSetUid != null )
                 {
