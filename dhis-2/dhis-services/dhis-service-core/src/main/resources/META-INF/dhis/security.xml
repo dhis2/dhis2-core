@@ -4,6 +4,7 @@
 
   <bean id="userDetailsService" class="org.hisp.dhis.security.DefaultUserDetailsService">
     <property name="userService" ref="org.hisp.dhis.user.UserService" />
+    <property name="securityService" ref="org.hisp.dhis.security.SecurityService" />
   </bean>
 
   <bean id="bCryptPasswordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />

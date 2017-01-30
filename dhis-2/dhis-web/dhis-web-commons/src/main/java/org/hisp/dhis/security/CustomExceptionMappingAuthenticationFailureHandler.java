@@ -30,6 +30,7 @@ package org.hisp.dhis.security;
 
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.ExceptionMappingAuthenticationFailureHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -39,13 +40,21 @@ import java.io.IOException;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class CustomExceptionMappingAuthenticationFailureHandler extends ExceptionMappingAuthenticationFailureHandler
+public class CustomExceptionMappingAuthenticationFailureHandler 
+    extends ExceptionMappingAuthenticationFailureHandler
 {
+    @Autowired
+    private SecurityService securityService;
+    
     @Override
     public void onAuthenticationFailure( HttpServletRequest request, HttpServletResponse response, AuthenticationException exception ) throws IOException, ServletException
     {
-        request.getSession().setAttribute( "username", request.getParameter( "j_username" ) );
-
+        final String username = request.getParameter( "j_username" );
+        
+        request.getSession().setAttribute( "username", username );
+        
+        securityService.registerFailedLogin( username );
+        
         super.onAuthenticationFailure( request, response, exception );
     }
 }

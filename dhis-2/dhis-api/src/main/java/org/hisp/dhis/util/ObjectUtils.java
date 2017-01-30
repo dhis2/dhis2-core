@@ -114,6 +114,28 @@ public class ObjectUtils
     }
     
     /**
+     * Indicates whether any of the given conditions are not null and false.
+     *
+     * @param conditions the conditions.
+     * @return whether any of the given conditions are not null and false.
+     */
+    public static boolean anyIsFalse( Boolean... conditions )
+    {
+        if ( conditions != null )
+        {
+            for ( Boolean condition : conditions )
+            {
+                if ( condition != null && !condition.booleanValue() )
+                {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
+
+    /**
      * Returns a list of strings, where the strings are the result of calling
      * String.valueOf( Object ) of each object in the given collection.
      * 

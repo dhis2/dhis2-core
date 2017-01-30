@@ -38,6 +38,29 @@ import org.hisp.dhis.user.UserCredentials;
 public interface SecurityService
 {
     /**
+     * Register a failed login attempt for the given user account.
+     * 
+     * @param username the username of the user account.
+     */
+    void registerFailedLogin( String username );
+
+    /**
+     * Register a successful login attempt for the given user account.
+     * 
+     * @param username the username of the user account.
+     */
+    void registerSuccessfulLogin( String username );
+
+    /**
+     * Indicates whether the given user account is locked out due to too 
+     * many successive failed login attempts within a specific time span. 
+     * The max number of attempts is 5 and the time span is 15 minutes.
+     * 
+     * @param username the username of the user account.
+     */
+    boolean isLocked( String username );
+    
+    /**
      * Sets information for a user who will be invited by email to finish
      * setting up their user account.
      *

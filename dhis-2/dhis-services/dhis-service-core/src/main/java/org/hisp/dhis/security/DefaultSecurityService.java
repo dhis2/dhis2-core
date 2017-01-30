@@ -52,12 +52,16 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 /**
@@ -77,7 +81,13 @@ public class DefaultSecurityService
 
     private static final int RESTORE_TOKEN_LENGTH = 50;
     private static final int RESTORE_CODE_LENGTH = 15;
+    private static final int LOGIN_MAX_FAILED_ATTEMPTS = 5;
+    private static final int LOGIN_LOCKOUT_MINS = 15;
 
+    private final LoadingCache<String, Integer> CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS = Caffeine.newBuilder()
+        .expireAfterWrite( LOGIN_LOCKOUT_MINS, TimeUnit.MINUTES )
+        .build( ( u ) -> 0 );
+    
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -130,6 +140,48 @@ public class DefaultSecurityService
     // SecurityService implementation
     // -------------------------------------------------------------------------
 
+    @Override
+    public void registerFailedLogin( String username )
+    {
+        if ( !isBlockFailedLogins() || username == null )
+        {
+            return;
+        }
+        
+        Integer attempts = CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS.get( username );
+        
+        attempts++;
+        
+        CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS.put( username, attempts );
+    }
+
+    @Override
+    public void registerSuccessfulLogin( String username )
+    {
+        if ( !isBlockFailedLogins() || username == null )
+        {
+            return;
+        }
+        
+        CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS.invalidate( username );        
+    }
+
+    @Override
+    public boolean isLocked( String username )
+    {
+        if ( !isBlockFailedLogins() || username == null )
+        {
+            return false;
+        }
+        
+        return CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS.get( username ) > LOGIN_MAX_FAILED_ATTEMPTS;
+    }
+    
+    private boolean isBlockFailedLogins()
+    {
+        return (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOCK_MULTIPLE_FAILED_LOGINS );
+    }
+    
     @Override
     public boolean prepareUserForInvite( User user )
     {
