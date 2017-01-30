@@ -29,7 +29,6 @@ package org.hisp.dhis.setting;
  */
 
 import com.google.common.collect.ImmutableSet;
-
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.LocaleUtils;
 import org.hisp.dhis.common.DigitGroupSeparator;
@@ -143,7 +142,7 @@ public enum SettingKey
     LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS( "keyLastSuccessfulScheduledProgramNotifications", Date.class ),
     REMOTE_METADATA_VERSION( "keyRemoteMetadataVersion", String.class ),
     SYSTEM_METADATA_VERSION( "keySystemMetadataVersion", String.class ),
-    STOP_METADATA_SYNC("keyStopMetadataSync", Boolean.FALSE, Boolean.class );
+    STOP_METADATA_SYNC( "keyStopMetadataSync", Boolean.FALSE, Boolean.class );
 
     private final String name;
 

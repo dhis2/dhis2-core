@@ -28,6 +28,7 @@ package org.hisp.dhis.webapi.controller.metadata.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
@@ -38,14 +39,12 @@ import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Controller for the automated sync of the metadata
@@ -53,7 +52,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author vanyas
  */
 
-@Controller
+@RestController
 @RequestMapping( "/metadata/sync" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class MetadataSyncController
@@ -66,8 +65,8 @@ public class MetadataSyncController
     private MetadataSyncService metadataSyncService;
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_MANAGE')" )
-    @RequestMapping( method = RequestMethod.GET )
-    public @ResponseBody MetadataSyncSummary metadataSync() throws MetadataSyncException, DhisVersionMismatchException, BadRequestException
+    @GetMapping
+    public MetadataSyncSummary metadataSync() throws MetadataSyncException, DhisVersionMismatchException, BadRequestException
     {
         MetadataSyncParams syncParams;
         MetadataSyncSummary metadataSyncSummary;
@@ -106,6 +105,7 @@ public class MetadataSyncController
                 throw new DhisVersionMismatchException( "Exception occurred while doing metadata sync: " + versionMismatchException.getMessage() );
             }
         }
+
         return metadataSyncSummary;
     }
 }

@@ -67,13 +67,14 @@ public class MetadataSyncDelegate
         SystemInfo systemInfo = systemService.getSystemInfo();
         String systemVersion = systemInfo.getVersion();
 
-        if ( StringUtils.isEmpty(systemVersion)  || !metadataSystemSettingService.getStopMetadataSyncSetting() )
+        if ( StringUtils.isEmpty( systemVersion ) || !metadataSystemSettingService.getStopMetadataSyncSetting() )
         {
             return false;
         }
 
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream( metadataVersionSnapshot.getBytes( StandardCharsets.UTF_8 ) );
         String remoteVersion = "";
+
         try
         {
             JsonNode systemObject = renderService.getSystemObject( byteArrayInputStream, RenderFormat.JSON );
@@ -82,9 +83,10 @@ public class MetadataSyncDelegate
             {
                 return false;
             }
+
             remoteVersion = systemObject.get( "version" ).textValue();
 
-            if( StringUtils.isEmpty( remoteVersion ) )
+            if ( StringUtils.isEmpty( remoteVersion ) )
             {
                 return false;
             }
@@ -95,6 +97,5 @@ public class MetadataSyncDelegate
         }
 
         return !systemVersion.trim().equals( remoteVersion.trim() );
-
     }
 }

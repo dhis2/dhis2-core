@@ -30,13 +30,13 @@ package org.hisp.dhis.dxf2.metadata.sync;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.tasks.MetadataRetryContext;
 import org.hisp.dhis.dxf2.metadata.tasks.MetadataSyncTask;
-import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.email.Email;
 import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.feedback.Stats;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.VersionType;
@@ -57,7 +57,8 @@ public class MetadataSyncPostProcessor
     @Autowired
     private EmailService emailService;
 
-    public boolean handleSyncNotificationsAndAbortStatus( MetadataSyncSummary metadataSyncSummary, MetadataRetryContext retryContext, MetadataVersion dataVersion )
+    public boolean handleSyncNotificationsAndAbortStatus( MetadataSyncSummary metadataSyncSummary, MetadataRetryContext retryContext,
+        MetadataVersion dataVersion )
     {
 
         ImportReport importReport = metadataSyncSummary.getImportReport();
@@ -78,6 +79,7 @@ public class MetadataSyncPostProcessor
             sendSuccessMailToAdmin( metadataSyncSummary );
             return false;
         }
+
         if ( Status.ERROR.equals( syncStatus ) )
         {
             handleImportFailedContext( metadataSyncSummary, retryContext, dataVersion );
@@ -111,9 +113,9 @@ public class MetadataSyncPostProcessor
         else if ( typeReportMap != null )
         {
             text.append( "Imported Object Details: \n" );
+
             for ( Map.Entry<Class<?>, TypeReport> typeReportEntry : typeReportMap.entrySet() )
             {
-
                 if ( typeReportEntry != null )
                 {
                     Class<?> key = typeReportEntry.getKey();
@@ -140,7 +142,6 @@ public class MetadataSyncPostProcessor
                     {
                         text.append( " ignored: " + stats.getIgnored() + "\n" );
                     }
-
                 }
 
             }
@@ -158,8 +159,8 @@ public class MetadataSyncPostProcessor
 
     public void sendFailureMailToAdmin( MetadataRetryContext retryContext )
     {
-
         StringBuilder text = new StringBuilder( "Following Exceptions were encountered while the scheduler run for metadata sync \n\n" );
+
         for ( String name : MetadataSyncTask.keys )
         {
             Object value = retryContext.getRetryContext().getAttribute( name );
@@ -183,7 +184,6 @@ public class MetadataSyncPostProcessor
         }
         else
         {
-
             if ( retryContext.getRetryContext().getLastThrowable() != null )
             {
                 text.append( retryContext.getRetryContext().getLastThrowable().getMessage() );
@@ -196,6 +196,5 @@ public class MetadataSyncPostProcessor
             log.info( "Failure mail will be sent with the following message: " + text );
             emailService.sendSystemEmail( new Email( "Action Required: MetadataSync Failed Notification", text.toString() ) );
         }
-
     }
 }

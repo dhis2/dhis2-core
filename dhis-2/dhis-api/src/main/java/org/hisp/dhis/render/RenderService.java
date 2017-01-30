@@ -67,8 +67,9 @@ public interface RenderService
 
     /**
      * Gets the DHIS version from the metadata export
+     *
      * @param inputStream Stream to read from
-     * @param format Payload format (only JSON is supported)
+     * @param format      Payload format (only JSON is supported)
      * @return JsonNode object
      * @throws IOException
      */
@@ -93,5 +94,5 @@ public interface RenderService
      * @return List of MetadataVersion objects.
      * @throws IOException
      */
-    List<MetadataVersion> fromMetadataVersion(InputStream inputStream, RenderFormat format) throws IOException;
+    List<MetadataVersion> fromMetadataVersion( InputStream inputStream, RenderFormat format ) throws IOException;
 }

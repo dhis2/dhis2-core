@@ -183,7 +183,6 @@ public class DefaultRenderService
     @SuppressWarnings( "unchecked" )
     public JsonNode getSystemObject( InputStream inputStream, RenderFormat format ) throws IOException
     {
-
         ObjectMapper mapper;
 
         if ( RenderFormat.JSON == format )
@@ -201,6 +200,7 @@ public class DefaultRenderService
         }
 
         JsonNode rootNode = mapper.readTree( inputStream );
+
         return rootNode.get( "system" );
     }
 
