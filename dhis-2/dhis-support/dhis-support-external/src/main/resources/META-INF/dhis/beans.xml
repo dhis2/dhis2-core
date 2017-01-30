@@ -19,19 +19,8 @@
     <property name="systemProperty" value="dhis2.home" />
   </bean>
 
-  <bean id="maxAttempts" class="org.hisp.dhis.external.conf.DhisConfigurationPropertyFactoryBean">
-    <property name="dhisConfigurationProvider" ref="dhisConfigurationProvider" />
-    <property name="dhisProperty" value="META_DATA_SYNC_RETRY" />
-  </bean>
-
-  <bean id="initialInterval" class="org.hisp.dhis.external.conf.DhisConfigurationPropertyFactoryBean">
-    <property name="dhisConfigurationProvider" ref="dhisConfigurationProvider" />
-    <property name="dhisProperty" value="META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC" />
-  </bean>
-
-  <bean id="sessionTimeout" class="org.hisp.dhis.external.conf.DhisConfigurationPropertyFactoryBean">
-    <property name="dhisConfigurationProvider" ref="dhisConfigurationProvider" />
-    <property name="dhisProperty" value="SYSTEM_SESSION_TIMEOUT" />
-  </bean>
+  <bean id="maxAttempts" class="org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean"><constructor-arg value="META_DATA_SYNC_RETRY" /></bean>
+  <bean id="initialInterval" class="org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean"><constructor-arg value="META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC" /></bean>
+  <bean id="sessionTimeout" class="org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean"><constructor-arg value="SYSTEM_SESSION_TIMEOUT" /></bean>
 
 </beans>
