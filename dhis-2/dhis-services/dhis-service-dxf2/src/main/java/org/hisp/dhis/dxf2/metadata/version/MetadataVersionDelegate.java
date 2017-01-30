@@ -191,7 +191,7 @@ public class MetadataVersionDelegate
         }
         catch ( Exception e )
         {
-            String message = "Exception occurred while trying to make the GET call to" + url;
+            String message = "Exception occurred while trying to make the GET call to URL: " + url;
             log.error( message, e );
             throw new MetadataVersionServiceException( message, e );
         }

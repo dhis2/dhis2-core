@@ -149,7 +149,7 @@ public class MetadataSyncTask
             }
         }
 
-        log.info( "Metadata Sync cron Job ended " );
+        log.info( "Metadata sync cron job ended " );
     }
 
     //----------------------------------------------------------------------------------------
