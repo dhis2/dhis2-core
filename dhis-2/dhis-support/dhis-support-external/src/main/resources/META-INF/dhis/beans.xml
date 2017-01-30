@@ -29,4 +29,9 @@
     <property name="dhisProperty" value="META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC" />
   </bean>
 
+  <bean id="sessionTimeout" class="org.hisp.dhis.external.conf.DhisConfigurationPropertyFactoryBean">
+    <property name="dhisConfigurationProvider" ref="dhisConfigurationProvider" />
+    <property name="dhisProperty" value="SYSTEM_SESSION_TIMEOUT" />
+  </bean>
+
 </beans>
