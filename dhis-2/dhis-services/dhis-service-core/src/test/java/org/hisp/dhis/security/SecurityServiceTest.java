@@ -31,6 +31,8 @@ package org.hisp.dhis.security;
 import static org.junit.Assert.*;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
@@ -55,6 +57,9 @@ public class SecurityServiceTest
     
     @Autowired
     private SecurityService securityService;
+
+    @Autowired
+    private SystemSettingManager systemSettingManager;
     
     @Override
     public void setUpTest()
@@ -80,6 +85,42 @@ public class SecurityServiceTest
         userB.setUserCredentials( otherCredentials );
         otherCredentials.setUserInfo( userB );
         userService.addUserCredentials( otherCredentials );
+    }
+    
+    @Test
+    public void testUserAuthenticationLockout()
+    {
+        systemSettingManager.saveSystemSetting( 
+            SettingKey.LOCK_MULTIPLE_FAILED_LOGINS, Boolean.TRUE );
+        
+        String username = "dr_evil";
+                
+        securityService.registerFailedLogin( username );
+        assertFalse( securityService.isLocked( username ) );
+        
+        securityService.registerFailedLogin( username );
+        assertFalse( securityService.isLocked( username ) );
+        
+        securityService.registerFailedLogin( username );
+        assertFalse( securityService.isLocked( username ) );
+        
+        securityService.registerFailedLogin( username );
+        assertFalse( securityService.isLocked( username ) );
+        
+        securityService.registerFailedLogin( username );
+        assertFalse( securityService.isLocked( username ) );
+        
+        securityService.registerFailedLogin( username );
+        assertTrue( securityService.isLocked( username ) );
+
+        securityService.registerFailedLogin( username );
+        assertTrue( securityService.isLocked( username ) );
+        
+        securityService.registerSuccessfulLogin( username );
+        assertFalse( securityService.isLocked( username ) );
+        
+        systemSettingManager.saveSystemSetting( 
+            SettingKey.LOCK_MULTIPLE_FAILED_LOGINS, Boolean.FALSE );
     }
 
     @Test
