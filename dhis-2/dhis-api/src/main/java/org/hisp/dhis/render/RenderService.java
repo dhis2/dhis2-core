@@ -28,6 +28,7 @@ package org.hisp.dhis.render;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 
@@ -63,6 +64,15 @@ public interface RenderService
     <T> T fromXml( String input, Class<T> klass ) throws IOException;
 
     boolean isValidJson( String json ) throws IOException;
+
+    /**
+     * Gets the DHIS version from the metadata export
+     * @param inputStream Stream to read from
+     * @param format Payload format (only JSON is supported)
+     * @return JsonNode object
+     * @throws IOException
+     */
+    JsonNode getSystemObject( InputStream inputStream, RenderFormat format ) throws IOException;
 
     /**
      * Parses metadata stream and automatically finds collections of id object based on root properties.

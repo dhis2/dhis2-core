@@ -194,7 +194,7 @@ public class MetadataSyncPostProcessor
         if ( text.length() > 0 )
         {
             log.info( "Failure mail will be sent with the following message: " + text );
-            emailService.sendSystemEmail( new Email( "Action Required: MetaData SyncFailed Notification", text.toString() ) );
+            emailService.sendSystemEmail( new Email( "Action Required: MetadataSync Failed Notification", text.toString() ) );
         }
 
     }
