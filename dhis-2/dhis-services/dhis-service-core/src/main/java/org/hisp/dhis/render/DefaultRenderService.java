@@ -180,7 +180,6 @@ public class DefaultRenderService
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public JsonNode getSystemObject( InputStream inputStream, RenderFormat format ) throws IOException
     {
         ObjectMapper mapper;
@@ -191,7 +190,6 @@ public class DefaultRenderService
         }
         else if ( RenderFormat.XML == format )
         {
-            // mapper = xmlMapper;
             throw new IllegalArgumentException( "XML format is not supported." );
         }
         else
@@ -218,7 +216,6 @@ public class DefaultRenderService
         }
         else if ( RenderFormat.XML == format )
         {
-            // mapper = xmlMapper;
             throw new IllegalArgumentException( "XML format is not supported." );
         }
         else

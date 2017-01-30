@@ -48,8 +48,8 @@ public interface SecurityService
 
     /**
      * Indicates whether a restore/invite is allowed for the given user. The
-     * requirements are:</p>
-     * <p/>
+     * requirements are:
+     * <p>
      * <ul>
      * <li>email_not_configured_for_system</li>
      * <li>no_user_credentials</li>
@@ -65,7 +65,7 @@ public interface SecurityService
     /**
      * Indicates whether an invite is allowed for the given user. Delegates to
      * validateRestore( UserCredentials ). The requirements are.
-     * <p/>
+     * <p>
      * <ul>
      * <li>no_user_credentials</li>
      * <li>username_taken</li>
@@ -79,7 +79,7 @@ public interface SecurityService
     /**
      * Invokes the initRestore method and dispatches email messages with
      * restore information to the user.
-     * <p/>
+     * <p>
      * In the case of inviting a user to finish setting up an account,
      * the user account must already be configured with the profile desired
      * for the user (e.g., locale, organisation unit(s), role(s), etc.)
@@ -97,7 +97,7 @@ public interface SecurityService
      * credentials with a hashed version of auto-generated values. Sets the
      * restoreExpiry property with a date time some interval from now depending
      * on the restore type. Changes are persisted.
-     *
+     * 
      * @param credentials    the user credentials.
      * @param restoreOptions restore options, including type of restore.
      * @return an array where index 0 is the clear-text token and index 1 the
@@ -247,5 +247,12 @@ public interface SecurityService
      */
     boolean canManage( IdentifiableObject identifiableObject );
 
+    /**
+     * Indicates whether the current user has been granted any of
+     * the given authorities.
+     * 
+     * @param authorities the authorities.
+     * @return true if the current user has any of the given authorities.
+     */
     boolean hasAnyAuthority( String... authorities );
 }
