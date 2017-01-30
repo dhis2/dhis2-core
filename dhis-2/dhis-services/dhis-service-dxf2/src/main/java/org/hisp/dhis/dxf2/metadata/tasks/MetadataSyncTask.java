@@ -149,7 +149,7 @@ public class MetadataSyncTask
             }
         }
 
-        log.info( "Metadata Sync cron Job ended " );
+        log.info( "Metadata sync cron job ended " );
     }
 
     //----------------------------------------------------------------------------------------
@@ -191,7 +191,6 @@ public class MetadataSyncTask
             systemSettingManager.saveSystemSetting( SettingKey.METADATA_FAILED_VERSION, metadataVersion.getName() );
             systemSettingManager.saveSystemSetting( SettingKey.METADATA_LAST_FAILED_TIME, new Date() );
         }
-
     }
 
     private void clearFailedVersionSettings()

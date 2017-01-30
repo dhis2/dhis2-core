@@ -39,7 +39,6 @@ import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.util.DhisHttpResponse;
 import org.hisp.dhis.system.util.HttpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +51,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Handling remote calls for metadata version
+ * Handling remote calls for metadata version.
  *
  * @author anilkumk
  */
@@ -71,9 +70,6 @@ public class MetadataVersionDelegate
 
     @Autowired
     private MetadataVersionService metadataVersionService;
-
-    @Autowired
-    private SystemService systemService;
 
     private int VERSION_TIMEOUT = 120000;
 
@@ -106,6 +102,7 @@ public class MetadataVersionDelegate
     {
         String url;
         List<MetadataVersion> metadataVersions = new ArrayList<>();
+        
         if ( metadataVersion == null )
         {
             url = metadataSystemSettingService.getEntireVersionHistory();
@@ -175,7 +172,7 @@ public class MetadataVersionDelegate
     {
         AvailabilityStatus remoteServerAvailable = synchronizationManager.isRemoteServerAvailable();
 
-        if ( !(remoteServerAvailable.isAvailable()) )
+        if ( !( remoteServerAvailable.isAvailable() ) )
         {
             String message = remoteServerAvailable.getMessage();
             log.error( message );
@@ -194,18 +191,16 @@ public class MetadataVersionDelegate
         }
         catch ( Exception e )
         {
-            String message = "Exception occurred while trying to make the GET call to" + url;
+            String message = "Exception occurred while trying to make the GET call to URL: " + url;
             log.error( message, e );
             throw new MetadataVersionServiceException( message, e );
         }
 
         return dhisHttpResponse;
-
     }
 
     private boolean isValidDhisHttpResponse( DhisHttpResponse dhisHttpResponse )
     {
-
         if ( dhisHttpResponse == null || dhisHttpResponse.getResponse().isEmpty() )
         {
             log.warn( "Dhis http response is null" );
