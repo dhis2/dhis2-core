@@ -1,7 +1,7 @@
 var startDate;
 var endDate;
 var validationRuleGroupId;
-var sendAlerts;
+var sendNotifications;
 var organisationUnitId;
 
 function organisationUnitSelected( ids )
@@ -14,7 +14,7 @@ function validateRunValidation()
 	startDate = $( '#startDate' ).val();
 	endDate = $( '#endDate' ).val();
 	validationRuleGroupId = $( '#validationRuleGroupId' ).val();
-	sendAlerts =  $( '#sendAlerts' ).is( ':checked' );
+    sendNotifications =  $( '#sendNotifications' ).is( ':checked' );
 
 	$.getJSON( 'validateRunValidation.action', 
 	{ 
@@ -34,7 +34,7 @@ function validateRunValidation()
 	        	organisationUnitId: organisationUnitId, 
 	        	startDate:startDate, endDate:endDate, 
 	        	validationRuleGroupId: validationRuleGroupId,
-	        	sendAlerts: sendAlerts
+                sendNotifications: sendNotifications
 	        }, 
 	        function( data )
 	        {
