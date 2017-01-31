@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.messageconverter;
+package org.hisp.dhis.webapi.mvc.messageconverter;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -29,7 +29,11 @@ package org.hisp.dhis.webapi.messageconverter;
  */
 
 import com.google.common.collect.ImmutableList;
-import org.hisp.dhis.render.RenderService;
+import com.google.common.collect.Lists;
+import org.hisp.dhis.node.NodeService;
+import org.hisp.dhis.node.serializers.Jackson2JsonNodeSerializer;
+import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -39,21 +43,28 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class RenderServiceMessageConverter extends AbstractHttpMessageConverter<Object>
+public class JsonPMessageConverter extends AbstractHttpMessageConverter<RootNode>
 {
+    public static final String DEFAULT_CALLBACK_PARAMETER = "callback";
+
     public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
-        .add( new MediaType( "application", "json" ) )
-        .add( new MediaType( "application", "xml" ) )
+        .add( new MediaType( "application", "javascript" ) )
+        .add( new MediaType( "application", "x-javascript" ) )
+        .add( new MediaType( "text", "javascript" ) )
         .build();
 
     @Autowired
-    private RenderService renderService;
+    private NodeService nodeService;
 
-    public RenderServiceMessageConverter()
+    @Autowired
+    private ContextService contextService;
+
+    public JsonPMessageConverter()
     {
         setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
     }
@@ -61,49 +72,39 @@ public class RenderServiceMessageConverter extends AbstractHttpMessageConverter<
     @Override
     protected boolean supports( Class<?> clazz )
     {
-        return Object.class.isAssignableFrom( clazz );
+        return RootNode.class.equals( clazz );
     }
 
     @Override
-    protected Object readInternal( Class<?> clazz, HttpInputMessage inputMessage ) throws IOException, HttpMessageNotReadableException
+    protected boolean canRead( MediaType mediaType )
     {
-        MediaType mediaType = inputMessage.getHeaders().getContentType();
+        return false;
+    }
 
-        if ( isJson( mediaType ) )
-        {
-            return renderService.fromJson( inputMessage.getBody(), clazz );
-        }
-        else if ( isXml( mediaType ) )
-        {
-            return renderService.fromXml( inputMessage.getBody(), clazz );
-        }
-
+    @Override
+    protected RootNode readInternal( Class<? extends RootNode> clazz, HttpInputMessage inputMessage ) throws IOException, HttpMessageNotReadableException
+    {
         return null;
     }
 
     @Override
-    protected void writeInternal( Object object, HttpOutputMessage outputMessage ) throws IOException, HttpMessageNotWritableException
+    protected void writeInternal( RootNode rootNode, HttpOutputMessage outputMessage ) throws IOException, HttpMessageNotWritableException
     {
-        MediaType mediaType = outputMessage.getHeaders().getContentType();
+        List<String> callbacks = Lists.newArrayList( contextService.getParameterValues( DEFAULT_CALLBACK_PARAMETER ) );
 
-        if ( isJson( mediaType ) )
+        String callbackParam;
+
+        if ( callbacks.isEmpty() )
         {
-            renderService.toJson( outputMessage.getBody(), object );
+            callbackParam = DEFAULT_CALLBACK_PARAMETER;
         }
-        else if ( isXml( mediaType ) )
+        else
         {
-            renderService.toXml( outputMessage.getBody(), object );
+            callbackParam = callbacks.get( 0 );
         }
-    }
 
-    private boolean isXml( MediaType mediaType )
-    {
-        return (mediaType.getType().equals( "application" ) || mediaType.getType().equals( "text" ))
-            && mediaType.getSubtype().equals( "xml" );
-    }
+        rootNode.getConfig().getProperties().put( Jackson2JsonNodeSerializer.JSONP_CALLBACK, callbackParam );
 
-    private boolean isJson( MediaType mediaType )
-    {
-        return mediaType.getType().equals( "application" ) && mediaType.getSubtype().equals( "json" );
+        nodeService.serialize( rootNode, "application/json", outputMessage.getBody() );
     }
 }

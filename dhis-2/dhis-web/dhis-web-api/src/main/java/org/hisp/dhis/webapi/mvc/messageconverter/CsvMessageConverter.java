@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.messageconverter;
+package org.hisp.dhis.webapi.mvc.messageconverter;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -46,16 +46,17 @@ import java.io.IOException;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class ExcelMessageConverter extends AbstractHttpMessageConverter<RootNode>
+public class CsvMessageConverter extends AbstractHttpMessageConverter<RootNode>
 {
     public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
-        .add( new MediaType( "application", "vnd.ms-excel" ) )
+        .add( new MediaType( "application", "csv" ) )
+        .add( new MediaType( "text", "csv" ) )
         .build();
 
     @Autowired
     private NodeService nodeService;
 
-    public ExcelMessageConverter()
+    public CsvMessageConverter()
     {
         setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
     }
@@ -81,6 +82,6 @@ public class ExcelMessageConverter extends AbstractHttpMessageConverter<RootNode
     @Override
     protected void writeInternal( RootNode rootNode, HttpOutputMessage outputMessage ) throws IOException, HttpMessageNotWritableException
     {
-        nodeService.serialize( rootNode, "application/vnd.ms-excel", outputMessage.getBody() );
+        nodeService.serialize( rootNode, "application/csv", outputMessage.getBody() );
     }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.messageconverter;
+package org.hisp.dhis.webapi.mvc.messageconverter;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -29,8 +29,7 @@ package org.hisp.dhis.webapi.messageconverter;
  */
 
 import com.google.common.collect.ImmutableList;
-import org.hisp.dhis.node.NodeService;
-import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.render.RenderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -38,24 +37,23 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component
-public class PdfMessageConverter extends AbstractHttpMessageConverter<RootNode>
+public class RenderServiceMessageConverter extends AbstractHttpMessageConverter<Object>
 {
     public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
-        .add( new MediaType( "application", "pdf" ) )
+        .add( new MediaType( "application", "json" ) )
+        .add( new MediaType( "application", "xml" ) )
         .build();
 
     @Autowired
-    private NodeService nodeService;
+    private RenderService renderService;
 
-    public PdfMessageConverter()
+    public RenderServiceMessageConverter()
     {
         setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
     }
@@ -63,24 +61,49 @@ public class PdfMessageConverter extends AbstractHttpMessageConverter<RootNode>
     @Override
     protected boolean supports( Class<?> clazz )
     {
-        return RootNode.class.equals( clazz );
+        return Object.class.isAssignableFrom( clazz );
     }
 
     @Override
-    protected boolean canRead( MediaType mediaType )
+    protected Object readInternal( Class<?> clazz, HttpInputMessage inputMessage ) throws IOException, HttpMessageNotReadableException
     {
-        return false;
-    }
+        MediaType mediaType = inputMessage.getHeaders().getContentType();
 
-    @Override
-    protected RootNode readInternal( Class<? extends RootNode> clazz, HttpInputMessage inputMessage ) throws IOException, HttpMessageNotReadableException
-    {
+        if ( isJson( mediaType ) )
+        {
+            return renderService.fromJson( inputMessage.getBody(), clazz );
+        }
+        else if ( isXml( mediaType ) )
+        {
+            return renderService.fromXml( inputMessage.getBody(), clazz );
+        }
+
         return null;
     }
 
     @Override
-    protected void writeInternal( RootNode rootNode, HttpOutputMessage outputMessage ) throws IOException, HttpMessageNotWritableException
+    protected void writeInternal( Object object, HttpOutputMessage outputMessage ) throws IOException, HttpMessageNotWritableException
     {
-        nodeService.serialize( rootNode, "application/pdf", outputMessage.getBody() );
+        MediaType mediaType = outputMessage.getHeaders().getContentType();
+
+        if ( isJson( mediaType ) )
+        {
+            renderService.toJson( outputMessage.getBody(), object );
+        }
+        else if ( isXml( mediaType ) )
+        {
+            renderService.toXml( outputMessage.getBody(), object );
+        }
+    }
+
+    private boolean isXml( MediaType mediaType )
+    {
+        return (mediaType.getType().equals( "application" ) || mediaType.getType().equals( "text" ))
+            && mediaType.getSubtype().equals( "xml" );
+    }
+
+    private boolean isJson( MediaType mediaType )
+    {
+        return mediaType.getType().equals( "application" ) && mediaType.getSubtype().equals( "json" );
     }
 }

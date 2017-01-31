@@ -16,7 +16,7 @@
   <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver" />
 
   <bean id="renderServiceMessageConverter"
-    class="org.hisp.dhis.webapi.messageconverter.RenderServiceMessageConverter" />
+    class="org.hisp.dhis.webapi.mvc.messageconverter.RenderServiceMessageConverter" />
 
   <bean id="requestMappingHandlerMapping" class="org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping">
     <property name="contentNegotiationManager" ref="contentNegotiationManager" />
@@ -34,31 +34,31 @@
 
   <bean class="org.springframework.web.util.UrlPathHelper" />
 
-  <bean id="jsonMessageConverter" class="org.hisp.dhis.webapi.messageconverter.JsonMessageConverter">
+  <bean id="jsonMessageConverter" class="org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter">
     <constructor-arg name="compression" value="NONE" />
   </bean>
 
-  <bean id="jsonMessageConverterGZIP" class="org.hisp.dhis.webapi.messageconverter.JsonMessageConverter">
+  <bean id="jsonMessageConverterGZIP" class="org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter">
     <constructor-arg name="compression" value="GZIP" />
   </bean>
 
-  <bean id="jsonMessageConverterZIP" class="org.hisp.dhis.webapi.messageconverter.JsonMessageConverter">
+  <bean id="jsonMessageConverterZIP" class="org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter">
     <constructor-arg name="compression" value="ZIP" />
   </bean>
 
-  <bean id="xmlMessageConverter" class="org.hisp.dhis.webapi.messageconverter.XmlMessageConverter">
+  <bean id="xmlMessageConverter" class="org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter">
     <constructor-arg name="compression" value="NONE" />
   </bean>
 
-  <bean id="xmlMessageConverterGZIP" class="org.hisp.dhis.webapi.messageconverter.XmlMessageConverter">
+  <bean id="xmlMessageConverterGZIP" class="org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter">
     <constructor-arg name="compression" value="GZIP" />
   </bean>
 
-  <bean id="xmlMessageConverterZIP" class="org.hisp.dhis.webapi.messageconverter.XmlMessageConverter">
+  <bean id="xmlMessageConverterZIP" class="org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter">
     <constructor-arg name="compression" value="ZIP" />
   </bean>
 
-  <bean id="jsonPMessageConverter" class="org.hisp.dhis.webapi.messageconverter.JsonPMessageConverter" />
+  <bean id="jsonPMessageConverter" class="org.hisp.dhis.webapi.mvc.messageconverter.JsonPMessageConverter" />
 
   <bean id="stringHttpMessageConverter" class="org.springframework.http.converter.StringHttpMessageConverter" />
 

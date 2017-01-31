@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.messageconverter;
+package org.hisp.dhis.webapi.mvc.messageconverter;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -49,18 +49,21 @@ import java.util.zip.ZipOutputStream;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class JsonMessageConverter extends AbstractHttpMessageConverter<RootNode>
+public class XmlMessageConverter extends AbstractHttpMessageConverter<RootNode>
 {
     public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
-        .add( new MediaType( "application", "json" ) )
+        .add( new MediaType( "application", "xml" ) )
+        .add( new MediaType( "text", "xml" ) )
         .build();
 
     public static final ImmutableList<MediaType> GZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
-        .add( new MediaType( "application", "json+gzip" ) )
+        .add( new MediaType( "application", "xml+gzip" ) )
+        .add( new MediaType( "text", "xml+gzip" ) )
         .build();
 
     public static final ImmutableList<MediaType> ZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
-        .add( new MediaType( "application", "json+zip" ) )
+        .add( new MediaType( "application", "xml+zip" ) )
+        .add( new MediaType( "text", "xml+zip" ) )
         .build();
 
     @Autowired
@@ -68,7 +71,7 @@ public class JsonMessageConverter extends AbstractHttpMessageConverter<RootNode>
 
     private Compression compression;
 
-    public JsonMessageConverter( Compression compression )
+    public XmlMessageConverter( Compression compression )
     {
         this.compression = compression;
 
@@ -108,24 +111,24 @@ public class JsonMessageConverter extends AbstractHttpMessageConverter<RootNode>
     {
         if ( Compression.GZIP == compression )
         {
-            outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=metadata.json.gz" );
+            outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=metadata.xml.gz" );
             outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             GZIPOutputStream outputStream = new GZIPOutputStream( outputMessage.getBody() );
-            nodeService.serialize( rootNode, "application/json", outputStream );
+            nodeService.serialize( rootNode, "application/xml", outputStream );
             outputStream.close();
         }
-        else if ( Compression.ZIP == compression )
+        if ( Compression.ZIP == compression )
         {
-            outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=metadata.json.zip" );
+            outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=metadata.xml.zip" );
             outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             ZipOutputStream outputStream = new ZipOutputStream( outputMessage.getBody() );
-            outputStream.putNextEntry( new ZipEntry( "metadata.json" ) );
-            nodeService.serialize( rootNode, "application/json", outputStream );
+            outputStream.putNextEntry( new ZipEntry( "metadata.xml" ) );
+            nodeService.serialize( rootNode, "application/xml", outputStream );
             outputStream.close();
         }
         else
         {
-            nodeService.serialize( rootNode, "application/json", outputMessage.getBody() );
+            nodeService.serialize( rootNode, "application/xml", outputMessage.getBody() );
             outputMessage.getBody().close();
         }
     }

@@ -716,6 +716,11 @@ Ext.onReady( function() {
 					{id: 'FinancialApril', name: NS.i18n.financial_april}
 				],
                 relativePeriods: [
+                    'TODAY',
+                    'YESTERDAY',
+                    'LAST_3_DAYS',
+                    'LAST_7_DAYS',
+                    'LAST_14_DAYS',
                     'THIS_WEEK',
                     'LAST_WEEK',
                     'LAST_4_WEEKS',

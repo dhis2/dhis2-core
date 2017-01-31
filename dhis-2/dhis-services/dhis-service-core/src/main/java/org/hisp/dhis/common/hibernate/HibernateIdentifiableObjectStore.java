@@ -29,7 +29,6 @@ package org.hisp.dhis.common.hibernate;
  */
 
 import org.apache.commons.lang3.StringUtils;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
@@ -122,6 +121,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public final void updateNoAcl( T object )
     {
+        object.setAutoFields();
         getSession().update( object );
     }
 

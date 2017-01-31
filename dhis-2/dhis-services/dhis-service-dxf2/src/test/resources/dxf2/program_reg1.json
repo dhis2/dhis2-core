@@ -209,10 +209,30 @@
       "notificationTemplates": [ ],
       "programTrackedEntityAttributes": [
         {
-          "id": "zReHWMUoEDQ"
+          "created": "2016-03-11T07:00:28.968+0000",
+          "mandatory": true,
+          "lastUpdated": "2016-03-11T07:00:28.968+0000",
+          "allowFutureDate": false,
+          "displayInList": false,
+          "program": {
+            "id": "lVYxQwbXaj7"
+          },
+          "trackedEntityAttribute": {
+            "id": "cpaMZredRXb"
+          }
         },
         {
-          "id": "vCj7Gz6297Y"
+          "displayInList": true,
+          "allowFutureDate": false,
+          "lastUpdated": "2016-03-11T07:00:28.963+0000",
+          "created": "2016-03-11T07:00:28.963+0000",
+          "mandatory": false,
+          "trackedEntityAttribute": {
+            "id": "QhEcRpLZwMb"
+          },
+          "program": {
+            "id": "lVYxQwbXaj7"
+          }
         }
       ],
       "onlyEnrollOnce": false,
@@ -506,36 +526,6 @@
       "programs": [ ],
       "id": "RrHdx6L9ksj",
       "lastUpdated": "2016-03-11T06:51:52.447+0000"
-    }
-  ],
-  "programTrackedEntityAttributes": [
-    {
-      "created": "2016-03-11T07:00:28.968+0000",
-      "mandatory": true,
-      "lastUpdated": "2016-03-11T07:00:28.968+0000",
-      "allowFutureDate": false,
-      "id": "vCj7Gz6297Y",
-      "displayInList": false,
-      "program": {
-        "id": "lVYxQwbXaj7"
-      },
-      "trackedEntityAttribute": {
-        "id": "cpaMZredRXb"
-      }
-    },
-    {
-      "displayInList": true,
-      "allowFutureDate": false,
-      "lastUpdated": "2016-03-11T07:00:28.963+0000",
-      "id": "zReHWMUoEDQ",
-      "created": "2016-03-11T07:00:28.963+0000",
-      "mandatory": false,
-      "trackedEntityAttribute": {
-        "id": "QhEcRpLZwMb"
-      },
-      "program": {
-        "id": "lVYxQwbXaj7"
-      }
     }
   ],
   "date": "2016-03-11T07:01:59.096+0000",
