@@ -52,8 +52,9 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -61,6 +62,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -84,9 +86,15 @@ public class DefaultSecurityService
     private static final int LOGIN_MAX_FAILED_ATTEMPTS = 5;
     private static final int LOGIN_LOCKOUT_MINS = 15;
 
-    private final LoadingCache<String, Integer> CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS = Caffeine.newBuilder()
+    private final LoadingCache<String, Integer> CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS = CacheBuilder.newBuilder()
         .expireAfterWrite( LOGIN_LOCKOUT_MINS, TimeUnit.MINUTES )
-        .build( ( u ) -> 0 );
+        .build( new CacheLoader<String, Integer>() {
+            @Override 
+            public Integer load( String key ) throws Exception
+            {
+                return 0;
+            }            
+        } );
     
     // -------------------------------------------------------------------------
     // Dependencies
@@ -148,7 +156,7 @@ public class DefaultSecurityService
             return;
         }
         
-        Integer attempts = CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS.get( username );
+        Integer attempts = getAuthAttempts( username );
         
         attempts++;
         
@@ -174,7 +182,19 @@ public class DefaultSecurityService
             return false;
         }
         
-        return CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS.get( username ) > LOGIN_MAX_FAILED_ATTEMPTS;
+        return getAuthAttempts( username ) > LOGIN_MAX_FAILED_ATTEMPTS;
+    }
+    
+    private int getAuthAttempts( String username )
+    {
+        try
+        {
+            return CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS.get( username );
+        }
+        catch ( ExecutionException ex )
+        {
+            return 0;
+        }
     }
     
     private boolean isBlockFailedLogins()
