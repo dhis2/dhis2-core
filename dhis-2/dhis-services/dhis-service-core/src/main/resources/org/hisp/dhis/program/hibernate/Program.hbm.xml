@@ -66,7 +66,7 @@
     <many-to-one name="expiryPeriodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="expiryperiodtypeid"
       foreign-key="fk_program_expiryperiodtypeid" />
 
-    <list name="programAttributes" cascade="all">
+    <list name="programAttributes" cascade="all-delete-orphan">
       <key column="programid" />
       <list-index column="sort_order" base="1" />
       <one-to-many class="org.hisp.dhis.program.ProgramTrackedEntityAttribute" />
