@@ -54,6 +54,8 @@ import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodStore;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
@@ -693,6 +695,16 @@ public class DefaultPreheatService implements PreheatService
             targets.put( DataSetElement.class, dataSetElements );
             targets.put( DataInputPeriod.class, dataInputPeriods );
         }
+
+        if ( targets.containsKey( Program.class ) )
+        {
+            List<Program> programs = (List<Program>) targets.get( Program.class );
+            List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = new ArrayList<>();
+
+            programs.forEach( p -> programTrackedEntityAttributes.addAll( p.getProgramAttributes() ) );
+
+            targets.put( ProgramTrackedEntityAttribute.class, programTrackedEntityAttributes );
+        }
     }
 
     @Override
@@ -879,6 +891,6 @@ public class DefaultPreheatService implements PreheatService
     {
         return klass != null && (DataElementOperand.class.isAssignableFrom( klass ) || UserCredentials.class.isAssignableFrom( klass ) ||
             ReportingRate.class.isAssignableFrom( klass ) || DataSetElement.class.isAssignableFrom( klass ) ||
-            DataInputPeriod.class.isAssignableFrom( klass ));
+            DataInputPeriod.class.isAssignableFrom( klass ) || ProgramTrackedEntityAttribute.class.isAssignableFrom( klass ));
     }
 }
