@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.messageconverter;
+package org.hisp.dhis.webapi.mvc.messageconverter;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -29,8 +29,10 @@ package org.hisp.dhis.webapi.messageconverter;
  */
 
 import com.google.common.collect.ImmutableList;
+import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -38,27 +40,49 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component
-public class CsvMessageConverter extends AbstractHttpMessageConverter<RootNode>
+public class JsonMessageConverter extends AbstractHttpMessageConverter<RootNode>
 {
     public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
-        .add( new MediaType( "application", "csv" ) )
-        .add( new MediaType( "text", "csv" ) )
+        .add( new MediaType( "application", "json" ) )
+        .build();
+
+    public static final ImmutableList<MediaType> GZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
+        .add( new MediaType( "application", "json+gzip" ) )
+        .build();
+
+    public static final ImmutableList<MediaType> ZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
+        .add( new MediaType( "application", "json+zip" ) )
         .build();
 
     @Autowired
     private NodeService nodeService;
 
-    public CsvMessageConverter()
+    private Compression compression;
+
+    public JsonMessageConverter( Compression compression )
     {
-        setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
+        this.compression = compression;
+
+        switch ( this.compression )
+        {
+            case NONE:
+                setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
+                break;
+            case GZIP:
+                setSupportedMediaTypes( GZIP_SUPPORTED_MEDIA_TYPES );
+                break;
+            case ZIP:
+                setSupportedMediaTypes( ZIP_SUPPORTED_MEDIA_TYPES );
+        }
     }
 
     @Override
@@ -82,6 +106,27 @@ public class CsvMessageConverter extends AbstractHttpMessageConverter<RootNode>
     @Override
     protected void writeInternal( RootNode rootNode, HttpOutputMessage outputMessage ) throws IOException, HttpMessageNotWritableException
     {
-        nodeService.serialize( rootNode, "application/csv", outputMessage.getBody() );
+        if ( Compression.GZIP == compression )
+        {
+            outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=metadata.json.gz" );
+            outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
+            GZIPOutputStream outputStream = new GZIPOutputStream( outputMessage.getBody() );
+            nodeService.serialize( rootNode, "application/json", outputStream );
+            outputStream.close();
+        }
+        else if ( Compression.ZIP == compression )
+        {
+            outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=metadata.json.zip" );
+            outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
+            ZipOutputStream outputStream = new ZipOutputStream( outputMessage.getBody() );
+            outputStream.putNextEntry( new ZipEntry( "metadata.json" ) );
+            nodeService.serialize( rootNode, "application/json", outputStream );
+            outputStream.close();
+        }
+        else
+        {
+            nodeService.serialize( rootNode, "application/json", outputMessage.getBody() );
+            outputMessage.getBody().close();
+        }
     }
 }
