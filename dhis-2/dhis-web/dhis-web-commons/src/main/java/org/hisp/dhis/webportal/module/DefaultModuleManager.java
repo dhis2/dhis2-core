@@ -157,11 +157,10 @@ public class DefaultModuleManager
     {
         List<Module> modules = getAccessibleMenuModules();
         List<App> apps = appManager
-                .getAccessibleApps( contextPath )
-                .stream()
-                // Prevent widgets and resource type apps from showing up as menu modules
-                .filter( app -> app.getAppType() == AppType.APP )
-                .collect( Collectors.toList() );
+            .getAccessibleApps( contextPath )
+            .stream()
+            .filter( app -> app.getAppType() == AppType.APP )
+            .collect( Collectors.toList() );
 
         modules.addAll( apps.stream().map( Module::getModule ).collect( Collectors.toList() ) );
 
