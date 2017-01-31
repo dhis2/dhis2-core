@@ -8,10 +8,7 @@ addons:
 before_install:
 - rm ~/.m2/settings.xml
 script:
-- MAVEN_SKIP_RC=true MAVEN_OPTS="-Xss4M" mvn clean test -f ./dhis-2/pom-full.xml
-cache:
-  directories:
-  - "$HOME/.m2"
+-  mvn clean  install -DskipTests=false -f ./dhis-2/pom-full.xml
 branches:
   only:
   - master
