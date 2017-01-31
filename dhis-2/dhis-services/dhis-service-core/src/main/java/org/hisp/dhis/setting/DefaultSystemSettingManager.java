@@ -424,6 +424,7 @@ public class DefaultSystemSettingManager
     @Override
     public boolean hideUnapprovedDataInAnalytics()
     {
+        // -1 means approval is disabled
         return (int) getSystemSetting( SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD ) >= 0;
     }
 
