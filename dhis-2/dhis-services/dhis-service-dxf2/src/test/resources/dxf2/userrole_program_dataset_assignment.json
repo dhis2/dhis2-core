@@ -98,22 +98,6 @@
       "fieldCombinationRequired": false
     }
   ],
-  "programTrackedEntityAttributes": [
-    {
-      "created": "2016-03-31T05:16:08.202+0000",
-      "id": "QSWm5Yk4nYK",
-      "trackedEntityAttribute": {
-        "id": "DmvXbwPCYgm"
-      },
-      "program": {
-        "id": "MBhDW2M2mtT"
-      },
-      "allowFutureDate": false,
-      "lastUpdated": "2016-03-31T05:16:08.202+0000",
-      "displayInList": true,
-      "mandatory": false
-    }
-  ],
   "categories": [
     {
       "lastUpdated": "2016-03-31T05:10:45.115+0000",
@@ -397,7 +381,18 @@
       "selectIncidentDatesInFuture": false,
       "programTrackedEntityAttributes": [
         {
-          "id": "QSWm5Yk4nYK"
+          "created": "2016-03-31T05:16:08.202+0000",
+          "id": "QSWm5Yk4nYK",
+          "trackedEntityAttribute": {
+            "id": "DmvXbwPCYgm"
+          },
+          "program": {
+            "id": "MBhDW2M2mtT"
+          },
+          "allowFutureDate": false,
+          "lastUpdated": "2016-03-31T05:16:08.202+0000",
+          "displayInList": true,
+          "mandatory": false
         }
       ],
       "lastUpdated": "2016-03-31T05:16:13.196+0000",
