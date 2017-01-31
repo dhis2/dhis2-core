@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.metadata.sync;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.HttpResponse;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
@@ -38,7 +37,6 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
-import org.hisp.dhis.system.util.DhisHttpResponse;
 import org.hisp.dhis.system.util.HttpUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -90,7 +88,6 @@ public class MetadataSyncDelegateTest
     @Mock
     private RenderService renderService;
 
-    private HttpResponse httpResponse;
     private String username = "username";
     private String password = "password";
 
@@ -100,12 +97,10 @@ public class MetadataSyncDelegateTest
         MockitoAnnotations.initMocks( this );
 
         PowerMockito.mockStatic( HttpUtils.class );
-        httpResponse = mock( HttpResponse.class );
 
         when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
         when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
     }
-
 
     @Test
     public void testShouldVerifyIfStopSyncReturnFalseIfNoSystemVersionInLocal()
@@ -137,11 +132,11 @@ public class MetadataSyncDelegateTest
         String systemNodeString = "{\"date\":\"2016-06-24T05:27:25.128+0000\", \"version\": \"2.26\"}";
         SystemInfo systemInfo = new SystemInfo();
         systemInfo.setVersion( "2.25" );
-        when ( systemService.getSystemInfo() ).thenReturn( systemInfo );
-        when ( metadataSystemSettingService.getStopMetadataSyncSetting() ).thenReturn( true );
+        when( systemService.getSystemInfo() ).thenReturn( systemInfo );
+        when( metadataSystemSettingService.getStopMetadataSyncSetting() ).thenReturn( true );
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree( systemNodeString );
-        when ( renderService.getSystemObject(any( ByteArrayInputStream.class), eq( RenderFormat.JSON ) ) ).thenReturn( jsonNode);
+        when( renderService.getSystemObject( any( ByteArrayInputStream.class), eq( RenderFormat.JSON ) ) ).thenReturn( jsonNode);
 
         boolean shouldStopSync = metadataSyncDelegate.shouldStopSync( versionSnapshot );
         assertTrue(shouldStopSync);
@@ -154,11 +149,11 @@ public class MetadataSyncDelegateTest
         String systemNodeString = "{\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}";
         SystemInfo systemInfo = new SystemInfo();
         systemInfo.setVersion( "2.26" );
-        when ( systemService.getSystemInfo() ).thenReturn( systemInfo );
-        when ( metadataSystemSettingService.getStopMetadataSyncSetting() ).thenReturn( true );
+        when( systemService.getSystemInfo() ).thenReturn( systemInfo );
+        when( metadataSystemSettingService.getStopMetadataSyncSetting() ).thenReturn( true );
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree( systemNodeString );
-        when ( renderService.getSystemObject(any( ByteArrayInputStream.class), eq( RenderFormat.JSON ) ) ).thenReturn( jsonNode);
+        when( renderService.getSystemObject(any( ByteArrayInputStream.class), eq( RenderFormat.JSON ) ) ).thenReturn( jsonNode);
 
         boolean shouldStopSync = metadataSyncDelegate.shouldStopSync( versionSnapshot );
         assertFalse(shouldStopSync);
@@ -171,10 +166,9 @@ public class MetadataSyncDelegateTest
         SystemInfo systemInfo = new SystemInfo();
         systemInfo.setVersion( "2.26" );
 
-        when ( systemService.getSystemInfo() ).thenReturn( systemInfo );
-        when ( metadataSystemSettingService.getStopMetadataSyncSetting() ).thenReturn( false );
+        when( systemService.getSystemInfo() ).thenReturn( systemInfo );
+        when( metadataSystemSettingService.getStopMetadataSyncSetting() ).thenReturn( false );
         boolean shouldStopSync = metadataSyncDelegate.shouldStopSync( versionSnapshot );
         assertFalse(shouldStopSync);
     }
-
 }

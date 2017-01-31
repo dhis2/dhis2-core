@@ -32,7 +32,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -78,6 +77,7 @@ public class ProgramTrackedEntityAttribute
 
     public ProgramTrackedEntityAttribute()
     {
+        setAutoFields();
     }
 
     public ProgramTrackedEntityAttribute( Program program, TrackedEntityAttribute attribute )
