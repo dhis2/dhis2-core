@@ -186,6 +186,7 @@ public class DefaultAclService implements AclService
         }
 
         List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.UPDATE );
+        anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE ) );
         anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ) );
         anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE_PUBLIC ) );
 

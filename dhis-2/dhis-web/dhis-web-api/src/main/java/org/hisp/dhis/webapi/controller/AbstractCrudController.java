@@ -369,6 +369,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         manager.updateTranslations( persistedObject, object.getTranslations() );
+        manager.update( persistedObject );
 
         response.setStatus( HttpServletResponse.SC_NO_CONTENT );
     }

@@ -40,6 +40,8 @@ import org.hisp.dhis.user.UserGroupAccess;
 import org.springframework.core.annotation.Order;
 import org.springframework.util.StringUtils;
 
+import java.util.Iterator;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -95,11 +97,22 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
             return;
         }
 
-        for ( UserGroupAccess userGroupAccess : identifiableObject.getUserGroupAccesses() )
+        Iterator<UserGroupAccess> userGroupAccessIterator = identifiableObject.getUserGroupAccesses().iterator();
+
+        while ( userGroupAccessIterator.hasNext() )
         {
+            UserGroupAccess userGroupAccess = userGroupAccessIterator.next();
             UserGroup userGroup = bundle.getPreheat().get( bundle.getPreheatIdentifier(), userGroupAccess.getUserGroup() );
-            userGroupAccess.setUserGroup( userGroup );
-            session.save( userGroupAccess );
+
+            if ( userGroup != null )
+            {
+                userGroupAccess.setUserGroup( userGroup );
+                session.save( userGroupAccess );
+            }
+            else
+            {
+                userGroupAccessIterator.remove();
+            }
         }
     }
 

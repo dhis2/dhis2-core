@@ -150,7 +150,7 @@ public class DataElement
      * The option set for comments linked to this data element, can be null.
      */
     private OptionSet commentOptionSet;
-    
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -174,7 +174,7 @@ public class DataElement
         groups.add( group );
         group.getMembers().add( this );
     }
-    
+
     public void removeDataElementGroup( DataElementGroup group )
     {
         groups.remove( group );
@@ -201,7 +201,7 @@ public class DataElement
     }
 
     /**
-     * Returns the resolved category combinations by joining the category 
+     * Returns the resolved category combinations by joining the category
      * combinations of the data set elements of which this data element is part
      * of and the category combination linked directly with this data element.
      * The returned set is immutable, will never be null and will contain at
@@ -216,9 +216,9 @@ public class DataElement
                 .collect( Collectors.toSet() ) )
             .add( dataElementCategoryCombo ).build();
     }
-    
+
     /**
-     * Returns the category combination of the data set element matching the 
+     * Returns the category combination of the data set element matching the
      * given data set for this data element. If not present, returns the
      * category combination for this data element.
      */
@@ -231,13 +231,13 @@ public class DataElement
                 return element.getCategoryCombo();
             }
         }
-        
+
         return dataElementCategoryCombo;
     }
-    
+
     /**
      * Returns the category option combinations of the resolved category
-     * combinations of this data element. The returned set is immutable, will 
+     * combinations of this data element. The returned set is immutable, will
      * never be null and will contain at least one item.
      */
     public Set<DataElementCategoryOptionCombo> getCategoryOptionCombos()
@@ -247,7 +247,7 @@ public class DataElement
 
     /**
      * Returns the sorted category option combinations of the resolved category
-     * combinations of this data element. The returned list is immutable, will 
+     * combinations of this data element. The returned list is immutable, will
      * never be null and will contain at least one item.
      */
     public List<DataElementCategoryOptionCombo> getSortedCategoryOptionCombos()
@@ -256,7 +256,7 @@ public class DataElement
         getCategoryCombos().stream().forEach( cc -> optionCombos.addAll( cc.getSortedOptionCombos() ) );
         return optionCombos;
     }
-    
+
     /**
      * Indicates whether the value type of this data element is numeric.
      */
@@ -299,16 +299,16 @@ public class DataElement
 
     /**
      * Note that this method returns an immutable set and can not be used to
-     * modify the model. Returns an immutable set of data sets associated with 
+     * modify the model. Returns an immutable set of data sets associated with
      * this data element.
      */
     public Set<DataSet> getDataSets()
     {
         return ImmutableSet.copyOf( dataSetElements.stream().map( e -> e.getDataSet() ).collect( Collectors.toSet() ) );
     }
-    
+
     /**
-     * Returns the attribute category combinations associated with the data sets 
+     * Returns the attribute category combinations associated with the data sets
      * of this data element.
      */
     public Set<DataElementCategoryCombo> getDataSetCategoryCombos()
@@ -324,7 +324,7 @@ public class DataElement
     }
 
     /**
-     * Returns the attribute category options combinations associated with the 
+     * Returns the attribute category options combinations associated with the
      * data sets of this data element.
      */
     public Set<DataElementCategoryOptionCombo> getDataSetCategoryOptionCombos()
@@ -554,7 +554,7 @@ public class DataElement
     // -------------------------------------------------------------------------
     // Helper getters
     // -------------------------------------------------------------------------
-        
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isOptionSetValue()
@@ -646,7 +646,6 @@ public class DataElement
     }
 
     @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "dataSetElements", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "dataSetElements", namespace = DxfNamespaces.DXF_2_0 )
     public Set<DataSetElement> getDataSetElements()

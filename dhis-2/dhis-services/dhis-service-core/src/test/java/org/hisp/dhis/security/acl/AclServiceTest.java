@@ -36,6 +36,7 @@ import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.mapping.Map;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -398,5 +399,20 @@ public class AclServiceTest
         assertTrue( AccessStringHelper.READ_WRITE.equals( reportTable.getPublicAccess() ) );
         assertFalse( reportTable.getExternalAccess() );
         assertTrue( reportTable.getUserGroupAccesses().isEmpty() );
+    }
+
+    @Test
+    public void testCreateNoSharingObject()
+    {
+        User user = createAdminUser();
+        assertFalse( aclService.canCreate( user, OrganisationUnit.class ) );
+    }
+
+    @Test
+    public void testUpdateNoSharingObject()
+    {
+        User user = createAdminUser();
+        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
+        assertFalse( aclService.canUpdate( user, organisationUnit ) );
     }
 }
