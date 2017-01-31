@@ -188,8 +188,8 @@ public class DefaultDataValueSetService
 
     @Override
     public DataExportParams getFromUrl( Set<String> dataSets, Set<String> dataElementGroups, Set<String> periods, Date startDate, Date endDate,
-        Set<String> organisationUnits, boolean includeChildren, Set<String> organisationUnitGroups, boolean includeDeleted, Date lastUpdated,
-        String lastUpdatedDuration, Integer limit, IdSchemes outputIdSchemes )
+        Set<String> organisationUnits, boolean includeChildren, Set<String> organisationUnitGroups, Set<String> attributeOptionCombos,
+        boolean includeDeleted, Date lastUpdated, String lastUpdatedDuration, Integer limit, IdSchemes outputIdSchemes )
     {
         DataExportParams params = new DataExportParams();
 
@@ -204,7 +204,7 @@ public class DefaultDataValueSetService
             params.getDataElementGroups().addAll( identifiableObjectManager.getObjects(
                 DataElementGroup.class, IdentifiableProperty.UID, dataElementGroups ) );
         }
-
+        
         if ( periods != null && !periods.isEmpty() )
         {
             params.getPeriods().addAll( periodService.reloadIsoPeriods( new ArrayList<>( periods ) ) );
@@ -226,6 +226,12 @@ public class DefaultDataValueSetService
         {
             params.getOrganisationUnitGroups().addAll( identifiableObjectManager.getObjects(
                 OrganisationUnitGroup.class, IdentifiableProperty.UID, organisationUnitGroups ) );
+        }
+        
+        if ( attributeOptionCombos != null )
+        {
+            params.getAttributeOptionCombos().addAll( identifiableObjectManager.getObjects( 
+                DataElementCategoryOptionCombo.class, IdentifiableProperty.UID, attributeOptionCombos ) );
         }
 
         return params
