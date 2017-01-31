@@ -698,7 +698,8 @@ public class AnalyticsUtils
     }
     
     /**
-     * returns true if the given period occurs less than maxYears before the current date.
+     * Returns true if the given period occurs less than maxYears before the current date.
+     * 
      * @param period periods to check
      * @param maxYears amount of years back to check
      * @return false if maxYears is 0 or period occurs earlier than maxYears years since now.
