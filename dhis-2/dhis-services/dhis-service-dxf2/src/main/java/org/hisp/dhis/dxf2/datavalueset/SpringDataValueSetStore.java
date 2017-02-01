@@ -298,7 +298,7 @@ public class SpringDataValueSetStore
 
             sql += ") ";
         }
-
+        
         if ( !params.isIncludeDeleted() )
         {
             sql += "and dv.deleted is false ";
@@ -311,6 +311,11 @@ public class SpringDataValueSetStore
         else if ( params.hasPeriods() )
         {
             sql += "and dv.periodid in (" + getCommaDelimitedString( getIdentifiers( params.getPeriods() ) ) + ") ";
+        }
+
+        if ( params.hasAttributeOptionCombos() )
+        {
+            sql += "and dv.attributeoptioncomboid in (" + getCommaDelimitedString( getIdentifiers( params.getAttributeOptionCombos() ) ) + ") ";
         }
 
         if ( params.hasLastUpdated() )

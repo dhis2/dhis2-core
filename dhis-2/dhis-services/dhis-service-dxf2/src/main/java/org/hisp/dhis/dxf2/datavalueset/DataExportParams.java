@@ -34,6 +34,7 @@ import com.google.common.collect.Sets;
 
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -64,6 +65,8 @@ public class DataExportParams
     private boolean includeChildren;
 
     private Set<OrganisationUnitGroup> organisationUnitGroups = new HashSet<>();
+
+    private Set<DataElementCategoryOptionCombo> attributeOptionCombos = new HashSet<>();
     
     private boolean includeDeleted;
 
@@ -107,6 +110,11 @@ public class DataExportParams
         return periods != null && !periods.isEmpty() ? periods.iterator().next() : null;
     }
 
+    public boolean hasPeriods()
+    {
+        return periods != null && !periods.isEmpty();
+    }
+    
     public boolean hasStartEndDate()
     {
         return startDate != null && endDate != null;
@@ -126,12 +134,12 @@ public class DataExportParams
     {
         return organisationUnitGroups != null && !organisationUnitGroups.isEmpty();
     }
-
-    public boolean hasPeriods()
-    {
-        return periods != null && !periods.isEmpty();
-    }
     
+    public boolean hasAttributeOptionCombos()
+    {
+        return attributeOptionCombos != null && !attributeOptionCombos.isEmpty();
+    }
+
     public boolean hasLastUpdated()
     {
         return lastUpdated != null;
@@ -166,6 +174,7 @@ public class DataExportParams
             add( "org units", organisationUnits ).
             add( "children", includeChildren ).
             add( "org unit groups", organisationUnitGroups ).
+            add( "attribute option combos", attributeOptionCombos ).
             add( "deleted", includeDeleted ).
             add( "output id schemes", outputIdSchemes ).toString();
     }
@@ -259,6 +268,17 @@ public class DataExportParams
     public DataExportParams setOrganisationUnitGroups( Set<OrganisationUnitGroup> organisationUnitGroups )
     {
         this.organisationUnitGroups = organisationUnitGroups;
+        return this;
+    }
+
+    public Set<DataElementCategoryOptionCombo> getAttributeOptionCombos()
+    {
+        return attributeOptionCombos;
+    }
+
+    public DataExportParams setAttributeOptionCombos( Set<DataElementCategoryOptionCombo> attributeOptionCombos )
+    {
+        this.attributeOptionCombos = attributeOptionCombos;
         return this;
     }
 
