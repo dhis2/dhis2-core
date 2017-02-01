@@ -82,7 +82,7 @@ public class DocumentController
         else
         {
             contextUtils.configureResponse( response, document.getContentType(), CacheStrategy.CACHE_TWO_WEEKS, document.getUrl(),
-                document.getAttachment() );
+                document.getAttachment() == null ? false : document.getAttachment() );
 
             InputStream in = null;
 
