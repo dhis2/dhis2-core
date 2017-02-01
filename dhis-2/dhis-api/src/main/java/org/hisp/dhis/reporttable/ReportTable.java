@@ -55,6 +55,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.legend.LegendDisplayStrategy;
 import org.hisp.dhis.legend.LegendDisplayStyle;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -176,6 +177,11 @@ public class ReportTable
      * The legend set in the table.
      */
     private LegendSet legendSet;
+    
+    /**
+     * The legend set display strategy.
+     */
+    private LegendDisplayStrategy legendDisplayStrategy;
 
     /**
      * The legend set display type.
@@ -929,6 +935,18 @@ public class ReportTable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public LegendDisplayStrategy getLegendDisplayStrategy()
+    {
+        return legendDisplayStrategy;
+    }
+
+    public void setLegendDisplayStrategy( LegendDisplayStrategy legendDisplayStrategy )
+    {
+        this.legendDisplayStrategy = legendDisplayStrategy;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public LegendDisplayStyle getLegendDisplayStyle()
     {
         return legendDisplayStyle;
@@ -1051,6 +1069,7 @@ public class ReportTable
             hideEmptyRows = reportTable.isHideEmptyRows();
             topLimit = reportTable.getTopLimit();
             sortOrder = reportTable.getSortOrder();
+            legendDisplayStrategy = reportTable.getLegendDisplayStrategy();
             legendDisplayStyle = reportTable.getLegendDisplayStyle();
 
             if ( mergeMode.isReplace() )
