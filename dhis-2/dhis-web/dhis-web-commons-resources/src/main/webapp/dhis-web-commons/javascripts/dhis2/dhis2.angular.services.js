@@ -2438,7 +2438,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                             //from earlier evaluation, the data portion of the ruleeffect now contains the value of the variable to be assigned.
                             //the content portion of the ruleeffect defines the name for the variable, when the qualidisers are removed:
                             var variabletoassign = $rootScope.ruleeffects[ruleEffectKey][action.id].content ?
-                                $rootScope.ruleeffects[ruleEffectKey][action.id].content.replace("#{","").replace("}","") : null;
+                                $rootScope.ruleeffects[ruleEffectKey][action.id].content.replace("#{","").replace("A{","").replace("}","") : null;
 
                             if(variabletoassign && !angular.isDefined(variablesHash[variabletoassign])){
                                 //If a variable is mentioned in the content of the rule, but does not exist in the variables hash, show a warning:
@@ -2460,7 +2460,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                     variableType:valueType,
                                     hasValue:true,
                                     variableEventDate:'',
-                                    variablePrefix:'#',
+                                    variablePrefix: variablesHash[variabletoassign].variablePrefix ? variablesHash[variabletoassign].variablePrefix : '#',
                                     allValues:[updatedValue]
                                 };
                                 
