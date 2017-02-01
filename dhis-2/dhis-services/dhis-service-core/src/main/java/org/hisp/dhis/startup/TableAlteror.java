@@ -496,6 +496,7 @@ public class TableAlteror
         executeSql( "update reporttable set toplimit = 0 where toplimit is null" );
         executeSql( "update reporttable set showhierarchy = false where showhierarchy is null" );
         executeSql( "update reporttable set legenddisplaystyle = 'FILL' where legenddisplaystyle is null" );
+        executeSql( "update reporttable set legenddisplaystrategy = 'FIXED' where legenddisplaystrategy is null" );
 
         // reporttable col/row totals = keep existing || copy from totals || true
         executeSql( "update reporttable set totals = true where totals is null" );
