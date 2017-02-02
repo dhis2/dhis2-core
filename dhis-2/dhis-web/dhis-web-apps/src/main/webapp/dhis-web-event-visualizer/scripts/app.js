@@ -8139,8 +8139,8 @@ Ext.onReady( function() {
 
                 ns.core.app.getViewportWidth = function() { return ns.app.viewport.getWidth(); };
                 ns.core.app.getViewportHeight = function() { return ns.app.viewport.getHeight(); };
-                ns.core.app.getCenterRegionWidth = function() { return ns.app.viewport.centerRegion.getWidth(); };
-                ns.core.app.getCenterRegionHeight = function() { return ns.app.viewport.centerRegion.getHeight(); };
+                ns.core.app.getCenterRegionWidth = function() { return ns.app.centerRegion.getWidth(); };
+                ns.core.app.getCenterRegionHeight = function() { return ns.app.centerRegion.getHeight(); };
 
                 NS.instances.push(ns);
 			}
