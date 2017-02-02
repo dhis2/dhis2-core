@@ -197,6 +197,14 @@
       </type>
     </property>
 
+    <property name="legendDisplayStrategy" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.legend.LegendDisplayStrategy</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
     <property name="showHierarchy" />
 
     <property name="showDimensionLabels" />
