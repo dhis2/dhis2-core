@@ -2467,7 +2467,7 @@ Ext.onReady( function() {
 			},
 			setOptions: function(layout) {
 				showValues.setValue(Ext.isBoolean(layout.showValues) ? layout.showValues : false);
-				regressionType.setValue(isString(layout.regressionType) ? layout.regressionType : 'NONE');
+				regressionType.setValue(Ext.isString(layout.regressionType) ? layout.regressionType : 'NONE');
 				hideEmptyRows.setValue(Ext.isBoolean(layout.hideEmptyRows) ? layout.hideEmptyRows : false);
 				hideNaData.setValue(Ext.isBoolean(layout.hideNaData) ? layout.hideNaData : false);
                 completedOnly.setValue(Ext.isBoolean(layout.completedOnly) ? layout.completedOnly : false);
