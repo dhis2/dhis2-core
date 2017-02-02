@@ -3348,7 +3348,7 @@ Ext.onReady( function() {
                     }
 
                     // trend lines
-                    if (xLayout.showTrendLine) {
+                    if (xLayout.regressionType === 'LINEAR') {
                         var regression,
                             regressionKey;
 
@@ -3534,7 +3534,7 @@ Ext.onReady( function() {
 
                     // set maximum if stacked + extra line
                     if ((xLayout.type === typeConf.stackedcolumn || xLayout.type === typeConf.stackedbar) &&
-                        (xLayout.showTrendLine || xLayout.targetLineValue || xLayout.baseLineValue)) {
+                        (xLayout.regressionType === 'LINEAR' || xLayout.targetLineValue || xLayout.baseLineValue)) {
                         var a = [store.getMaximum(), store.getMaximumSum()];
                         maximum = Math.ceil(Ext.Array.max(a) * 1.1);
                         maximum = Math.floor(maximum / 10) * 10;
@@ -4313,7 +4313,7 @@ Ext.onReady( function() {
                         series = [getDefaultSeries(store)];
 
                     // options
-                    if (xLayout.showTrendLine) {
+                    if (xLayout.regressionType === 'LINEAR') {
                         series = series.concat(getDefaultTrendLines(store, isStacked));
                     }
 
@@ -4381,7 +4381,7 @@ Ext.onReady( function() {
 
                     series = [series];
 
-                    if (xLayout.showTrendLine) {
+                    if (xLayout.regressionType === 'LINEAR') {
                         trendLines = getDefaultTrendLines(store, isStacked);
 
                         for (var i = 0; i < trendLines.length; i++) {
@@ -4474,7 +4474,7 @@ Ext.onReady( function() {
                     }
 
                     // Options, theme colors
-                    if (xLayout.showTrendLine) {
+                    if (xLayout.regressionType === 'LINEAR') {
                         series = getDefaultTrendLines(store).concat(series);
 
                         colors = colors.concat(colors);
@@ -4528,7 +4528,7 @@ Ext.onReady( function() {
                     series = [series];
 
                     // Options
-                    if (xLayout.showTrendLine) {
+                    if (xLayout.regressionType === 'LINEAR') {
                         series = series.concat(getDefaultTrendLines(store, true));
                     }
 

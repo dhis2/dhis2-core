@@ -2108,7 +2108,7 @@ Ext.onReady( function() {
 
     AggregateOptionsWindow = function() {
 		var showValues,
-            showTrendLine,
+            regressionType,
             hideEmptyRows,
             hideNaData,
             completedOnly,
@@ -2149,11 +2149,6 @@ Ext.onReady( function() {
 			checked: true
 		});
 
-		showTrendLine = Ext.create('Ext.form.field.Checkbox', {
-			boxLabel: NS.i18n.trend_line,
-			style: 'margin-bottom:' + checkboxBottomMargin + 'px'
-		});
-
 		hideEmptyRows = Ext.create('Ext.form.field.Checkbox', {
 			boxLabel: NS.i18n.hide_empty_category_items,
 			style: 'margin-bottom:' + checkboxBottomMargin + 'px'
@@ -2167,6 +2162,26 @@ Ext.onReady( function() {
 		completedOnly = Ext.create('Ext.form.field.Checkbox', {
 			boxLabel: NS.i18n.include_only_completed_events_only,
 			style: 'margin-bottom:' + checkboxBottomMargin + 'px',
+		});
+
+		regressionType = Ext.create('Ext.form.field.ComboBox', {
+			cls: 'ns-combo',
+			style: 'margin-bottom:' + comboBottomMargin + 'px',
+			width: cmpWidth,
+			labelWidth: 125,
+			fieldLabel: NS.i18n.trend_line,
+			labelStyle: 'color:#333',
+			queryMode: 'local',
+			valueField: 'id',
+			editable: false,
+			value: 'NONE',
+			store: Ext.create('Ext.data.Store', {
+				fields: ['id', 'text'],
+				data: [
+					{id: 'NONE', text: NS.i18n.none},
+					{id: 'LINEAR', text: NS.i18n.linear}
+				]
+			})
 		});
 
 		targetLineValue = Ext.create('Ext.form.field.Number', {
@@ -2346,10 +2361,10 @@ Ext.onReady( function() {
 			style: 'margin-left:14px',
 			items: [
 				showValues,
-				showTrendLine,
 				hideEmptyRows,
                 hideNaData,
                 completedOnly,
+				regressionType,
 				{
 					xtype: 'container',
 					layout: 'column',
@@ -2429,7 +2444,7 @@ Ext.onReady( function() {
 			getOptions: function() {
 				return {
 					showValues: showValues.getValue(),
-					showTrendLine: showTrendLine.getValue(),
+					regressionType: regressionType.getValue(),
                     hideEmptyRows: hideEmptyRows.getValue(),
                     hideNaData: hideNaData.getValue(),
 					completedOnly: completedOnly.getValue(),
@@ -2452,7 +2467,7 @@ Ext.onReady( function() {
 			},
 			setOptions: function(layout) {
 				showValues.setValue(Ext.isBoolean(layout.showValues) ? layout.showValues : false);
-				showTrendLine.setValue(Ext.isBoolean(layout.showTrendLine) ? layout.showTrendLine : false);
+				regressionType.setValue(Ext.isString(layout.regressionType) ? layout.regressionType : 'NONE');
 				hideEmptyRows.setValue(Ext.isBoolean(layout.hideEmptyRows) ? layout.hideEmptyRows : false);
 				hideNaData.setValue(Ext.isBoolean(layout.hideNaData) ? layout.hideNaData : false);
                 completedOnly.setValue(Ext.isBoolean(layout.completedOnly) ? layout.completedOnly : false);
@@ -2604,7 +2619,7 @@ Ext.onReady( function() {
 
 					// cmp
 					w.showValues = showValues;
-					w.showTrendLine = showTrendLine;
+					w.regressionType = regressionType;
                     w.hideEmptyRows = hideEmptyRows;
                     w.hideNaData = hideNaData;
                     w.completedOnly = completedOnly;
@@ -2695,9 +2710,6 @@ Ext.onReady( function() {
                 
 				favorite.showData = favorite.showValues;
 				delete favorite.showValues;
-
-				favorite.regression = favorite.showTrendLine;
-				delete favorite.showTrendLine;
 
 				favorite.targetLineLabel = favorite.targetLineTitle;
 				delete favorite.targetLineTitle;
@@ -3791,6 +3803,9 @@ Ext.onReady( function() {
 			getDimensionPanel,
 			getDimensionPanels,
 
+            defaultItems,
+            getItems,
+
             accordionBody,
 			accordionPanels = [],
             accordion,
@@ -4058,7 +4073,8 @@ Ext.onReady( function() {
 		});
 
 		onProgramSelect = function(programId, layout) {
-            var load;
+            var load,
+                getCategories;
 
             programId = layout ? layout.program.id : programId;
 
@@ -4068,7 +4084,42 @@ Ext.onReady( function() {
 			dataElementSelected.removeAllDataElements(true);
             ns.app.aggregateLayoutWindow.value.resetData();
 
-            load = function(stages) {
+            getCategories = function(categoryCombo) {
+                if (!(Ext.isObject(categoryCombo) && Ext.isArray(categoryCombo.categories) && categoryCombo.categories.length)) {
+                    return;
+                }
+                
+                var cats = categoryCombo.categories;
+
+                if (cats.length === 1 && cats[0].name === 'default') {
+                    return;
+                }
+
+                var arraySort = ns.core.support.prototype.array.sort;
+
+                // sort categories
+                arraySort(cats);
+
+                // sort category options
+                cats.forEach(cat => {
+                    cat.items = cat.categoryOptions;
+
+                    if (Ext.isArray(cat.items)) {
+                        arraySort(cat.items);
+                    }
+                });
+
+                return cats;
+            };
+
+            load = function(stages, categories) {
+                
+                // categories
+                if (categories) {
+                    accordionBody.addItems(categories);
+                }
+
+                // stages
                 stage.enable();
                 stage.clearValue();
 
@@ -4088,12 +4139,21 @@ Ext.onReady( function() {
             }
             else {
                 Ext.Ajax.request({
-                    url: encodeURI(ns.core.init.contextPath + '/api/programs.json?filter=id:eq:' + programId + '&fields=programStages[id,displayName|rename(name)],programIndicators[id,' + namePropertyUrl + '],programTrackedEntityAttributes[trackedEntityAttribute[id,' + namePropertyUrl + ',valueType,confidential,optionSet[id,displayName|rename(name)],legendSet[id,displayName|rename(name)]]]&paging=false'),
+                    url: encodeURI([
+                        ns.core.init.contextPath + '/api/programs.json',
+                        '?filter=id:eq:' + programId,
+                        '&fields=programStages[id,displayName|rename(name)]',
+                        ',programIndicators[id,' + namePropertyUrl + ']',
+                        ',programTrackedEntityAttributes[trackedEntityAttribute[id,' + namePropertyUrl +',valueType,confidential,optionSet[id,displayName|rename(name)],legendSet[id,displayName|rename(name)]]]',
+                        ',categoryCombo[id,' + namePropertyUrl + ',categories[id,' + namePropertyUrl + ',categoryOptions[id,' + namePropertyUrl + ']]]',
+                        '&paging=false'
+                    ].join('')),
                     success: function(r) {
                         var program = Ext.decode(r.responseText).programs[0],
                             stages,
                             attributes,
                             programIndicators,
+                            categoryCombo,
                             stageId;
 
                         if (!program) {
@@ -4103,6 +4163,7 @@ Ext.onReady( function() {
                         stages = program.programStages;
                         attributes = Ext.Array.pluck(program.programTrackedEntityAttributes, 'trackedEntityAttribute');
                         programIndicators = program.programIndicators;
+                        categoryCombo = program.categoryCombo;
 
                         // filter confidential, mark as attribute
                         attributes.filter(function(item) {
@@ -4130,7 +4191,7 @@ Ext.onReady( function() {
                             // stages cache
                             stageStorage[programId] = stages;
 
-                            load(stages);
+                            load(stages, getCategories(categoryCombo));
                         }
                     }
                 });
@@ -4617,9 +4678,8 @@ Ext.onReady( function() {
 					for (var i = 0, store, record, dim; i < layout.filters.length; i++) {
                         dim = layout.filters[i];
 						record = recordMap[dim.dimension];
-						store = Ext.Array.contains(includeKeys, element.valueType) || element.optionSet ? aggWindow.filterStore : aggWindow.fixedFilterStore;
+                        store = record.valueType && !Ext.Array.contains(includeKeys, record.valueType) ? aggWindow.fixedFilterStore : aggWindow.filterStore;
 
-                        //aggWindow.addDimension(record || extendDim(Ext.clone(dim)), store, null, true);
                         store.add(record || extendDim(Ext.clone(dim)));
 					}
 				}
@@ -4647,6 +4707,7 @@ Ext.onReady( function() {
 
         data = Ext.create('Ext.panel.Panel', {
             title: '<div class="ns-panel-title-data">Data</div>',
+            cls: 'ns-accordion-first',
             bodyStyle: 'padding:1px',
             hideCollapseTool: true,
             items: [
@@ -4654,17 +4715,18 @@ Ext.onReady( function() {
                 dataElementAvailable,
                 dataElementSelected
             ],
+            getHeightValue: function() {
+                return ns.app.westRegion.hasScrollbar ?
+                    ns.core.conf.layout.west_scrollbarheight_accordion_indicator :
+                    ns.core.conf.layout.west_maxheight_accordion_indicator;
+             },
             onExpand: function() {
-				var h = ns.app.westRegion.hasScrollbar ?
-					ns.core.conf.layout.west_scrollbarheight_accordion_indicator : ns.core.conf.layout.west_maxheight_accordion_indicator;
-
-				accordion.setThisHeight(h);
+				accordion.setThisHeight(this.getHeightValue());
 
                 var msHeight = this.getHeight() - 28 - programStagePanel.getHeight() - 6;
 
                 dataElementAvailable.setHeight(msHeight * 0.4);
-                dataElementSelected.setHeight(msHeight * 0.6);
-
+                dataElementSelected.setHeight(msHeight * 0.6 - 1);
             },
             listeners: {
 				added: function(cmp) {
@@ -5353,10 +5415,14 @@ Ext.onReady( function() {
             bodyStyle: 'padding:1px',
             hideCollapseTool: true,
             width: accBaseWidth,
-			onExpand: function() {
-				var h = ns.app.westRegion.hasScrollbar ?
-					ns.core.conf.layout.west_scrollbarheight_accordion_period : ns.core.conf.layout.west_maxheight_accordion_period;
-				accordion.setThisHeight(h);
+			getHeightValue: function() {
+                return ns.app.westRegion.hasScrollbar ?
+                    ns.core.conf.layout.west_scrollbarheight_accordion_period :
+                    ns.core.conf.layout.west_maxheight_accordion_period;
+            },
+            onExpand: function() {
+                accordion.setThisHeight(this.getHeightValue());
+ 
 				ns.core.web.multiSelect.setHeight(
 					[fixedPeriodAvailable, fixedPeriodSelected],
 					this,
@@ -5905,10 +5971,14 @@ Ext.onReady( function() {
                 },
                 treePanel
             ],
+            getHeightValue: function() {
+                return ns.app.westRegion.hasScrollbar ?
+                    ns.core.conf.layout.west_scrollbarheight_accordion_organisationunit :
+                    ns.core.conf.layout.west_maxheight_accordion_organisationunit;
+            },
             onExpand: function() {
-                var h = ns.app.westRegion.hasScrollbar ?
-                    ns.core.conf.layout.west_scrollbarheight_accordion_organisationunit : ns.core.conf.layout.west_maxheight_accordion_organisationunit;
-                accordion.setThisHeight(h);
+                accordion.setThisHeight(this.getHeightValue());
+                
                 treePanel.setHeight(this.getHeight() - ns.core.conf.layout.west_fill_accordion_organisationunit);
             },
             listeners: {
@@ -6122,6 +6192,7 @@ Ext.onReady( function() {
 			//});
 
 			panel = {
+                itemId: dimension.itemId,
 				xtype: 'panel',
 				title: '<div class="' + iconCls + '">' + dimension.name + '</div>',
 				hideCollapseTool: true,
@@ -6139,14 +6210,24 @@ Ext.onReady( function() {
 
 					return config.items.length ? config : null;
 				},
+                getHeightValue: function() {
+                    return ns.app.westRegion.hasScrollbar ?
+                        ns.core.conf.layout.west_scrollbarheight_accordion_indicator :
+                        ns.core.conf.layout.west_maxheight_accordion_indicator;
+                },
 				onExpand: function() {
 					if (!availableStore.isLoaded) {
-						availableStore.loadPage();
+                        if (Ext.isArray(dimension.items) && dimension.items.length) {
+                            availableStore.loadData(dimension.items);
+                            availableStore.isLoaded = true;
+                        }
+                        else {
+                            availableStore.loadPage();
+                        }
 					}
-
-					var h = ns.app.westRegion.hasScrollbar ?
-						ns.core.conf.layout.west_scrollbarheight_accordion_dataset : ns.core.conf.layout.west_maxheight_accordion_dataset;
-					accordion.setThisHeight(h);
+                    
+                    accordion.setThisHeight(this.getHeightValue());
+                    
 					ns.core.web.multiSelect.setHeight(
 						[available, selected],
 						this,
@@ -6188,34 +6269,39 @@ Ext.onReady( function() {
 		};
 
             // accordion
+        defaultItems = [
+            data,
+            period,
+            organisationUnit,
+            ...ns.core.init.dimensions.map(panel => getDimensionPanel(panel, 'ns-panel-title-dimension'))
+        ];
+        
+        getItems = function(dimensions = []) {
+            return dimensions.map(dimension => getDimensionPanel(dimension, 'ns-panel-title-dimension'));
+        };
+        
         accordionBody = Ext.create('Ext.panel.Panel', {
 			layout: 'accordion',
 			activeOnTop: true,
 			cls: 'ns-accordion',
 			bodyStyle: 'border:0 none',
 			height: 700,
-			items: function() {
-                var panels = [
-                    data,
-                    period,
-                    organisationUnit
-                ],
-				dims = Ext.clone(ns.core.init.dimensions);
-
-				panels = panels.concat(getDimensionPanels(dims, 'ns-panel-title-dimension'));
-
-				last = panels[panels.length - 1];
-				last.cls = 'ns-accordion-last';
-
-				return panels;
-            }(),
-            listeners: {
-                afterrender: function() { // nasty workaround, should be fixed
-                    //organisationUnit.expand();
-                    //period.expand();
-                    //data.expand();
-                }
-            }
+			toBeRemoved: [],
+            addItems: function(dimensions) {
+                this.removeItems();
+                this.add(getItems(dimensions));
+                this.toBeRemoved = dimensions.map(dimension => dimension.itemId);
+                
+                accordion.setThisHeight();
+            },
+            removeItems: function() {
+                this.toBeRemoved.forEach(id => {
+                    accordionBody.remove(id);
+                });
+                
+                this.toBeRemoved = [];
+            },
+            items: defaultItems
 		});
 
 		// functions
@@ -6444,13 +6530,15 @@ Ext.onReady( function() {
 			map: layer ? layer.map : null,
 			layer: layer ? layer : null,
 			menu: layer ? layer.menu : null,
-
 			setThisHeight: function(mx) {
-				var settingsHeight = 41,
-					containerHeight = settingsHeight + (this.panels.length * 28) + mx,
+                mx = mx || this.getExpandedPanel().getHeightValue();
+                
+				var settingsHeight = 41;
+
+                var containerHeight = settingsHeight + (accordionBody.items.items.length * 28) + mx,
 					accordionHeight = ns.app.westRegion.getHeight() - settingsHeight - ns.core.conf.layout.west_fill,
                     accordionBodyHeight;
-
+                    
 				if (ns.app.westRegion.hasScrollbar) {
                     accordionBodyHeight = containerHeight - settingsHeight - ns.core.conf.layout.west_fill;
 				}
@@ -7112,7 +7200,7 @@ Ext.onReady( function() {
                         web.storage.session.set(layout, 'eventchart');
                     }
 
-                    ns.app.accordion.setGui(layout, xLayout, response, isUpdateGui);
+                    ns.app.accordion.setGui(layout, response, isUpdateGui);
 
                     web.mask.hide(ns.app.centerRegion);
 
@@ -8137,10 +8225,10 @@ Ext.onReady( function() {
                 chartConf = ns.core.conf.finals.chart;
 				ns.app.viewport = createViewport();
 
-                ns.core.app.getViewportWidth = function() { return ns.app.viewport.getWidth(); };
-                ns.core.app.getViewportHeight = function() { return ns.app.viewport.getHeight(); };
-                ns.core.app.getCenterRegionWidth = function() { return ns.app.viewport.centerRegion.getWidth(); };
-                ns.core.app.getCenterRegionHeight = function() { return ns.app.viewport.centerRegion.getHeight(); };
+                ns.core.app.getViewportWidth = function() { return ns.app.viewport ? ns.app.viewport.getWidth() : Function.prototype; };
+                ns.core.app.getViewportHeight = function() { return ns.app.getHeight ? ns.app.viewport.getHeight() : Function.prototype; };
+                ns.core.app.getCenterRegionWidth = function() { return ns.app.centerRegion ? ns.app.centerRegion.getWidth() : Function.prototype; };
+                ns.core.app.getCenterRegionHeight = function() { return ns.app.centerRegion ? ns.app.centerRegion.getHeight() : Function.prototype; };
 
                 NS.instances.push(ns);
 			}

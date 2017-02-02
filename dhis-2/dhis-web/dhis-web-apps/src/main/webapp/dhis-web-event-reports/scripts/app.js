@@ -4980,7 +4980,7 @@ Ext.onReady( function() {
                         ux.setRecord(element);
                     }
                 }
-
+                
                 store = Ext.Array.contains(includeKeys, element.valueType) || element.optionSet ? aggWindow.rowStore : aggWindow.fixedFilterStore;
 
                 aggWindow.addDimension(element, store, valueStore);
@@ -5024,9 +5024,8 @@ Ext.onReady( function() {
 					for (var i = 0, store, record, dim; i < layout.filters.length; i++) {
                         dim = layout.filters[i];
 						record = recordMap[dim.dimension];
-						store = Ext.Array.contains(includeKeys, element.valueType) || element.optionSet ? aggWindow.filterStore : aggWindow.fixedFilterStore;
+                        store = record.valueType && !Ext.Array.contains(includeKeys, record.valueType) ? aggWindow.fixedFilterStore : aggWindow.filterStore;
 
-                        //aggWindow.addDimension(record || extendDim(Ext.clone(dim)), store, null, true);
                         store.add(record || extendDim(Ext.clone(dim)));
 					}
 				}
@@ -8551,10 +8550,10 @@ Ext.onReady( function() {
 
 				ns.app.viewport = createViewport();
 
-                ns.core.app.getViewportWidth = function() { return ns.app.viewport.getWidth(); };
-                ns.core.app.getViewportHeight = function() { return ns.app.viewport.getHeight(); };
-                ns.core.app.getCenterRegionWidth = function() { return ns.app.viewport.centerRegion.getWidth(); };
-                ns.core.app.getCenterRegionHeight = function() { return ns.app.viewport.centerRegion.getHeight(); };
+                ns.core.app.getViewportWidth = function() { return ns.app.viewport ? ns.app.viewport.getWidth() : Function.prototype; };
+                ns.core.app.getViewportHeight = function() { return ns.app.getHeight ? ns.app.viewport.getHeight() : Function.prototype; };
+                ns.core.app.getCenterRegionWidth = function() { return ns.app.centerRegion ? ns.app.centerRegion.getWidth() : Function.prototype; };
+                ns.core.app.getCenterRegionHeight = function() { return ns.app.centerRegion ? ns.app.centerRegion.getHeight() : Function.prototype; };
 
                 NS.instances.push(ns);
 			}
