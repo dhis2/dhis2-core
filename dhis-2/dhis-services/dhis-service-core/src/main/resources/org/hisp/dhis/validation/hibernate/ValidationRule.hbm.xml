@@ -53,7 +53,7 @@
       foreign-key="fk_validationrule_periodtypeid" not-null="true" />
 
     <!-- Object Translation -->
-    <set name="translations" table="validationruletranslations" cascade="delete-orphan">
+    <set name="translations" table="validationruletranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="validationruleid" foreign-key="fk_objecttranslation_validationruleid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -64,13 +64,13 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="validationruleusergroupaccesses">
+    <set name="userGroupAccesses" table="validationruleusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="validationruleid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <set name="userAccesses" table="validationruleuseraccesses">
+    <set name="userAccesses" table="validationruleuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="validationruleid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />

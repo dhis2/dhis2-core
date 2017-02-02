@@ -79,14 +79,14 @@
     </list>
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="dataelementattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="dataelementattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="dataelementid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="dataelementtranslations" cascade="delete-orphan">
+    <set name="translations" table="dataelementtranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="dataelementid" foreign-key="fk_objecttranslation_dataelementid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -97,13 +97,13 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="dataelementusergroupaccesses">
+    <set name="userGroupAccesses" table="dataelementusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="dataelementid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <set name="userAccesses" table="dataelementuseraccesses">
+    <set name="userAccesses" table="dataelementuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="dataelementid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />

@@ -18,11 +18,11 @@
     <property name="name" not-null="true" length="230" />
 
     <property name="level" not-null="true" unique="true" />
-    
+
     <property name="offlineLevels" />
 
     <!-- Object Translation -->
-    <set name="translations" table="orgunitleveltranslations" cascade="delete-orphan">
+    <set name="translations" table="orgunitleveltranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="orgunitlevelid" foreign-key="fk_objecttranslation_orgunitlevelid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

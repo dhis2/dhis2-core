@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Session;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -56,11 +55,9 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
         ((BaseIdentifiableObject) identifiableObject).setAutoFields();
 
         Schema schema = schemaService.getDynamicSchema( identifiableObject.getClass() );
-        Session session = sessionFactory.getCurrentSession();
-        handleAttributeValues( session, identifiableObject, bundle, schema );
-        handleUserGroupAccesses( session, identifiableObject, bundle, schema );
-        handleUserAccesses( session, identifiableObject, bundle, schema );
-        handleObjectTranslations( session, identifiableObject, bundle, schema );
+        handleAttributeValues( identifiableObject, bundle, schema );
+        handleUserGroupAccesses( identifiableObject, bundle, schema );
+        handleUserAccesses( identifiableObject, bundle, schema );
     }
 
     @Override
@@ -69,14 +66,12 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
         ((BaseIdentifiableObject) object).setAutoFields();
 
         Schema schema = schemaService.getDynamicSchema( object.getClass() );
-        Session session = sessionFactory.getCurrentSession();
-        handleAttributeValues( session, object, bundle, schema );
-        handleUserGroupAccesses( session, object, bundle, schema );
-        handleUserAccesses( session, object, bundle, schema );
-        handleObjectTranslations( session, object, bundle, schema );
+        handleAttributeValues( object, bundle, schema );
+        handleUserGroupAccesses( object, bundle, schema );
+        handleUserAccesses( object, bundle, schema );
     }
 
-    private void handleAttributeValues( Session session, IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
+    private void handleAttributeValues( IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
     {
         if ( !schema.havePersistedProperty( "attributeValues" ) ) return;
 
@@ -87,11 +82,10 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
 
             Attribute attribute = bundle.getPreheat().get( bundle.getPreheatIdentifier(), attributeValue.getAttribute() );
             attributeValue.setAttribute( attribute );
-            session.save( attributeValue );
         }
     }
 
-    private void handleUserGroupAccesses( Session session, IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
+    private void handleUserGroupAccesses( IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
     {
         if ( !schema.havePersistedProperty( "userGroupAccesses" ) ) return;
 
@@ -111,7 +105,6 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
             if ( userGroup != null )
             {
                 userGroupAccess.setUserGroup( userGroup );
-                session.save( userGroupAccess );
             }
             else
             {
@@ -120,7 +113,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
         }
     }
 
-    private void handleUserAccesses( Session session, IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
+    private void handleUserAccesses( IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
     {
         if ( !schema.havePersistedProperty( "userAccesses" ) ) return;
 
@@ -140,18 +133,11 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
             if ( user != null )
             {
                 userAccess.setUser( user );
-                session.save( userAccess );
             }
             else
             {
                 userAccessIterator.remove();
             }
         }
-    }
-
-    private void handleObjectTranslations( Session session, IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
-    {
-        if ( !schema.havePersistedProperty( "translations" ) ) return;
-        identifiableObject.getTranslations().forEach( session::save );
     }
 }

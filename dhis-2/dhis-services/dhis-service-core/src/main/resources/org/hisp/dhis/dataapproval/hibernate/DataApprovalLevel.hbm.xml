@@ -25,7 +25,7 @@
     </properties>
 
     <!-- Object Translation -->
-    <set name="translations" table="dataapprovalleveltranslations" cascade="delete-orphan">
+    <set name="translations" table="dataapprovalleveltranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="dataapprovallevelid" foreign-key="fk_objecttranslation_dataapprovallevelid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -36,13 +36,13 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="dataapprovallevelusergroupaccesses">
+    <set name="userGroupAccesses" table="dataapprovallevelusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="dataapprovallevelid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <set name="userAccesses" table="dataapprovalleveluseraccesses">
+    <set name="userAccesses" table="dataapprovalleveluseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="dataapprovallevelid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />

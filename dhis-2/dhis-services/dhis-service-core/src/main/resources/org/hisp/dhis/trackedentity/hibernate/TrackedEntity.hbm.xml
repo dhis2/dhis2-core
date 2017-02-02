@@ -9,7 +9,7 @@
   <class name="org.hisp.dhis.trackedentity.TrackedEntity" table="trackedentity">
 
     <cache usage="read-write" />
-    
+
     <id name="id" column="trackedentityid">
       <generator class="native" />
     </id>
@@ -20,15 +20,14 @@
     <property name="description" type="text" />
 
     <!-- Dynamic attribute values -->
-
-    <set name="attributeValues" table="trackedentityattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="trackedentityattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="trackedentityid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="trackedentitytranslations" cascade="delete-orphan">
+    <set name="translations" table="trackedentitytranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="trackedentityid" foreign-key="fk_objecttranslation_trackedentityid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

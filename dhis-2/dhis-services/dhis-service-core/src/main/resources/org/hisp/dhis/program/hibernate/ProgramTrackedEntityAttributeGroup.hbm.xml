@@ -55,16 +55,15 @@
       <many-to-many class="org.hisp.dhis.program.ProgramTrackedEntityAttribute" column="programtrackedentityattributeid" foreign-key="fk_programtrackedentityattributegroup_attributeid" />
     </set>
 
-    <property name="uniqunessType" column="uniqunessype"  not-null="true"/>
+    <property name="uniqunessType" column="uniqunessype" not-null="true" />
 
     <!-- Object Translation -->
 
-    <set name="translations" table="programtrackedentityattributegrouptranslations" cascade="delete-orphan">
+    <set name="translations" table="programtrackedentityattributegrouptranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="programtrackedentityattributegroupid" foreign-key="fk_objecttranslation_programtrackedentityattributegroupid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
-
 
   </class>
 
