@@ -130,11 +130,18 @@ public class MetadataSyncTask
         {
             for ( MetadataVersion dataVersion : metadataVersionList )
             {
-                MetadataSyncSummary metadataSyncSummary = handleMetadataSync( context, dataVersion );
+                MetadataSyncParams syncParams = new MetadataSyncParams( new MetadataImportParams(), dataVersion );
+                boolean isSyncRequired = metadataSyncService.isSyncRequired(syncParams);
+                MetadataSyncSummary metadataSyncSummary = null;
 
-                if ( metadataSyncSummary.getImportReport() == null && metadataSyncSummary.getMetadataVersion() != null )
+                if ( isSyncRequired )
                 {
-                    log.error( metadataSyncSummary.getMetadataVersion().getName() + " already exists in system and hence stopping the sync." );
+                    metadataSyncSummary = handleMetadataSync( context, dataVersion );
+                }
+                else
+                {
+                    metadataSyncPostProcessor.handleVersionAlreadyExists( context, dataVersion );
+                    break;
                 }
 
                 boolean abortStatus = metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus( metadataSyncSummary, context, dataVersion );
