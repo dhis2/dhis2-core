@@ -64,7 +64,7 @@ import java.util.regex.Pattern;
  */
 public class DefaultFieldFilterService implements FieldFilterService
 {
-    private final Pattern MUTATOR_PATTERN = Pattern.compile( "(\\w+)(?:::(\\w+))?(?:\\|rename\\((\\w+)\\))?" );
+    private final Pattern MUTATOR_PATTERN = Pattern.compile( "(\\w+)(?:::(\\w+))?(?:(?:\\||~)rename\\((\\w+)\\))?" );
 
     @Autowired
     private FieldParser fieldParser;
