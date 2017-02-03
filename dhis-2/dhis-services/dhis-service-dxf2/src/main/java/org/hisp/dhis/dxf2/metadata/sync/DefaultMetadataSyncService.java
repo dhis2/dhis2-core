@@ -107,16 +107,6 @@ public class DefaultMetadataSyncService
         throws MetadataSyncServiceException, DhisVersionMismatchException
     {
         MetadataVersion version = getMetadataVersion( syncParams );
-        boolean isVersionExists = metadataVersionService.getVersionByName( version.getName() ) != null;
-
-        if ( isVersionExists )
-        {
-            MetadataSyncSummary metadataSyncSummary = new MetadataSyncSummary();
-            metadataSyncSummary.setMetadataVersion( version );
-            metadataSyncSummary.setImportReport( null );
-
-            return metadataSyncSummary;
-        }
 
         setMetadataImportMode( syncParams, version );
         String metadataVersionSnapshot = getMetadataVersionSnapshot( version );
@@ -132,6 +122,13 @@ public class DefaultMetadataSyncService
         log.info( "Metadata Sync Summary: " + metadataSyncSummary );
 
         return metadataSyncSummary;
+    }
+
+    @Override
+    public boolean isSyncRequired ( MetadataSyncParams syncParams )
+    {
+        MetadataVersion version = getMetadataVersion( syncParams );
+        return ( metadataVersionService.getVersionByName( version.getName() ) == null );
     }
 
     private void saveMetadataVersionSnapshotLocally( MetadataVersion version, String metadataVersionSnapshot )

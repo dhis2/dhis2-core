@@ -85,6 +85,13 @@ public class MetadataSyncPostProcessor
         return false;
     }
 
+    public void handleVersionAlreadyExists ( MetadataRetryContext retryContext, MetadataVersion dataVersion )
+    {
+        retryContext.updateRetryContext( MetadataSyncTask.METADATA_SYNC, "Version already exists in system and hence stopping the sync", dataVersion, null );
+        sendFailureMailToAdmin( retryContext );
+        log.info( "Aborting Metadata sync. Version already exists in system and hence stopping the sync. Check mail and logs for more details." );
+    }
+
     private void handleImportFailedContext( MetadataSyncSummary metadataSyncSummary, MetadataRetryContext retryContext, MetadataVersion dataVersion )
     {
         retryContext.updateRetryContext( MetadataSyncTask.METADATA_SYNC, "Import of metadata objects was unsuccessful", dataVersion, metadataSyncSummary );

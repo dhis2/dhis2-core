@@ -89,11 +89,15 @@ public class MetadataSyncController
 
             try
             {
-                metadataSyncSummary = metadataSyncService.doMetadataSync( syncParams );
+                boolean isSyncRequired = metadataSyncService.isSyncRequired(syncParams);
 
-                if ( metadataSyncSummary.getImportReport() == null && metadataSyncSummary.getMetadataVersion() != null )
+                if( isSyncRequired )
                 {
-                    throw new MetadataSyncServiceException( metadataSyncSummary.getMetadataVersion().getName() + " already exists in system and hence not starting the sync." );
+                    metadataSyncSummary = metadataSyncService.doMetadataSync( syncParams );
+                }
+                else
+                {
+                    throw new MetadataSyncServiceException( "Version already exists in system and hence not starting the sync." );
                 }
 
             }
