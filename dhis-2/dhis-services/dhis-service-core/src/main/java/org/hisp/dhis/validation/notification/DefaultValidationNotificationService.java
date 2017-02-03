@@ -254,8 +254,8 @@ public class DefaultValidationNotificationService
 
         if ( limitToHierarchy )
         {
-            orgUnitsToInclude.add( validationResult.getOrgUnit() ); // Include self
-            orgUnitsToInclude.addAll( validationResult.getOrgUnit().getAncestors() );
+            orgUnitsToInclude.add( validationResult.getOrganisationUnit() ); // Include self
+            orgUnitsToInclude.addAll( validationResult.getOrganisationUnit().getAncestors() );
         }
 
         // Get all distinct users in configured user groups

@@ -168,10 +168,10 @@ public class ValidationNotificationServiceTest
     private ValidationResult createValidationResult( OrganisationUnit ou, ValidationRule rule )
     {
         return new ValidationResult(
+            rule,
             createPeriod( "2017Q1" ),
             ou,
             catOptCombo,
-            rule,
             RandomUtils.nextDouble( 10, 1000 ),
             RandomUtils.nextDouble( 10, 1000 )
         );
@@ -180,10 +180,10 @@ public class ValidationNotificationServiceTest
     private ValidationResult createValidationResultA()
     {
         return new ValidationResult(
+            valRuleA,
             createPeriod( "2017Q1" ),
             orgUnitA,
             catOptCombo,
-            valRuleA,
             RandomUtils.nextDouble( 10, 1000 ),
             RandomUtils.nextDouble( 10, 1000 )
         );
