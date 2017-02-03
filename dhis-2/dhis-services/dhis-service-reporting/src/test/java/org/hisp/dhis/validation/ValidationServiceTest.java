@@ -396,15 +396,15 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleA, 3.0, -1.0 ) );
-        reference.add( new ValidationResult( periodB, sourceA, defaultCombo, validationRuleA, 3.0, -1.0 ) );
-        reference.add( new ValidationResult( periodA, sourceB, defaultCombo, validationRuleA, 3.0, -1.0 ) );
-        reference.add( new ValidationResult( periodB, sourceB, defaultCombo, validationRuleA, 3.0, -1.0 ) );
+        reference.add( new ValidationResult( validationRuleA, periodA, sourceA, defaultCombo, 3.0, -1.0 ) );
+        reference.add( new ValidationResult( validationRuleA, periodB, sourceA, defaultCombo, 3.0, -1.0 ) );
+        reference.add( new ValidationResult( validationRuleA, periodA, sourceB, defaultCombo, 3.0, -1.0 ) );
+        reference.add( new ValidationResult( validationRuleA, periodB, sourceB, defaultCombo, 3.0, -1.0 ) );
 
-        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleB, -1.0, 4.0 ) );
-        reference.add( new ValidationResult( periodB, sourceA, defaultCombo, validationRuleB, -1.0, 4.0 ) );
-        reference.add( new ValidationResult( periodA, sourceB, defaultCombo, validationRuleB, -1.0, 4.0 ) );
-        reference.add( new ValidationResult( periodB, sourceB, defaultCombo, validationRuleB, -1.0, 4.0 ) );
+        reference.add( new ValidationResult( validationRuleB, periodA, sourceA, defaultCombo, -1.0, 4.0 ) );
+        reference.add( new ValidationResult( validationRuleB, periodB, sourceA, defaultCombo, -1.0, 4.0 ) );
+        reference.add( new ValidationResult( validationRuleB, periodA, sourceB, defaultCombo, -1.0, 4.0 ) );
+        reference.add( new ValidationResult( validationRuleB, periodB, sourceB, defaultCombo, -1.0, 4.0 ) );
 
         for ( ValidationResult result : results )
         {
@@ -454,10 +454,10 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleA, 3.0, -1.0 ) );
-        reference.add( new ValidationResult( periodB, sourceA, defaultCombo, validationRuleA, 3.0, -1.0 ) );
-        reference.add( new ValidationResult( periodA, sourceB, defaultCombo, validationRuleA, 3.0, -1.0 ) );
-        reference.add( new ValidationResult( periodB, sourceB, defaultCombo, validationRuleA, 3.0, -1.0 ) );
+        reference.add( new ValidationResult( validationRuleA, periodA, sourceA, defaultCombo, 3.0, -1.0 ) );
+        reference.add( new ValidationResult( validationRuleA, periodB, sourceA, defaultCombo, 3.0, -1.0 ) );
+        reference.add( new ValidationResult( validationRuleA, periodA, sourceB, defaultCombo, 3.0, -1.0 ) );
+        reference.add( new ValidationResult( validationRuleA, periodB, sourceB, defaultCombo, 3.0, -1.0 ) );
 
         for ( ValidationResult result : results )
         {
@@ -486,8 +486,8 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleA, 3.0, -1.0 ) );
-        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleB, -1.0, 4.0 ) );
+        reference.add( new ValidationResult( validationRuleA, periodA, sourceA, defaultCombo, 3.0, -1.0 ) );
+        reference.add( new ValidationResult( validationRuleB, periodA, sourceA, defaultCombo, -1.0, 4.0 ) );
 
         for ( ValidationResult result : results )
         {
@@ -520,7 +520,7 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> results = validationService.validate( dataSetMonthly, periodA, sourceA, null );
 
-        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleG, 0.0, 1.0 ) );
+        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 0.0, 1.0 ) );
 
         assertEquals( 1, results.size() );
         assertEquals( orderedList( reference ), orderedList( results ) );
@@ -537,7 +537,7 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> results = validationService.validate( dataSetMonthly, periodA, sourceA, null );
 
-        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleG, 1.0, 0.0 ) );
+        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 1.0, 0.0 ) );
 
         assertEquals( 1, results.size() );
         assertEquals( orderedList( reference ), orderedList( results ) );
@@ -575,7 +575,7 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleE, 0.0, 1.0 ) );
+        reference.add( new ValidationResult( validationRuleE, periodA, sourceA, defaultCombo, 0.0, 1.0 ) );
 
         assertEquals( 1, results.size() );
         assertEquals( orderedList( reference ), orderedList( results ) );
@@ -592,7 +592,7 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleE, 1.0, 0.0 ) );
+        reference.add( new ValidationResult( validationRuleE, periodA, sourceA, defaultCombo, 1.0, 0.0 ) );
 
         assertEquals( 1, results.size() );
         assertEquals( orderedList( reference ), orderedList( results ) );
@@ -623,7 +623,7 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleG, 99.0, 0.0 ) );
+        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 99.0, 0.0 ) );
 
         assertEquals( 1, results.size() );
         assertEquals( orderedList( reference ), orderedList( results ) );
@@ -643,7 +643,7 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleG, 99.0, 0.0 ) );
+        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 99.0, 0.0 ) );
 
         assertEquals( 1, results.size() );
         assertEquals( orderedList( reference ), orderedList( results ) );
@@ -663,7 +663,7 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleG, 99.0, 0.0 ) );
+        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 99.0, 0.0 ) );
 
         assertEquals( 1, results.size() );
         assertEquals( orderedList( reference ), orderedList( results ) );
@@ -684,8 +684,8 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleF, 1.0, 2.0 ) );
-        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleG, 99.0, 0.0 ) );
+        reference.add( new ValidationResult( validationRuleF, periodA, sourceA, defaultCombo, 1.0, 2.0 ) );
+        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 99.0, 0.0 ) );
 
         assertEquals( 2, results.size() );
         assertEquals( orderedList( reference ), orderedList( results ) );
@@ -737,7 +737,7 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleF, 1.0, 2.0 ) );
+        reference.add( new ValidationResult( validationRuleF, periodA, sourceA, defaultCombo, 1.0, 2.0 ) );
 
         assertEquals( 1, results.size() );
         assertEquals( orderedList( reference ), orderedList( results ) );
@@ -791,8 +791,8 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( periodA, sourceA, optionComboAC, validationRuleD, 7.0, 6.0 ) );
-        reference.add( new ValidationResult( periodA, sourceA, optionComboAC, validationRuleX, 7.0, 6.0 ) );
+        reference.add( new ValidationResult( validationRuleD, periodA, sourceA, optionComboAC, 7.0, 6.0 ) );
+        reference.add( new ValidationResult( validationRuleX, periodA, sourceA, optionComboAC, 7.0, 6.0 ) );
 
         for ( ValidationResult result : results )
         {
@@ -810,10 +810,10 @@ public class ValidationServiceTest
 
         reference = new HashSet<>();
 
-        reference.add( new ValidationResult( periodA, sourceA, optionComboAC, validationRuleD, 7.0, 6.0 ) );
-        reference.add( new ValidationResult( periodA, sourceA, optionComboAC, validationRuleX, 7.0, 6.0 ) );
-        reference.add( new ValidationResult( periodA, sourceA, optionComboBC, validationRuleD, 3.0, 2.0 ) );
-        reference.add( new ValidationResult( periodA, sourceA, optionComboBC, validationRuleX, 3.0, 2.0 ) );
+        reference.add( new ValidationResult( validationRuleD, periodA, sourceA, optionComboAC, 7.0, 6.0 ) );
+        reference.add( new ValidationResult( validationRuleX, periodA, sourceA, optionComboAC, 7.0, 6.0 ) );
+        reference.add( new ValidationResult( validationRuleD, periodA, sourceA, optionComboBC, 3.0, 2.0 ) );
+        reference.add( new ValidationResult( validationRuleX, periodA, sourceA, optionComboBC, 3.0, 2.0 ) );
 
         for ( ValidationResult result : results )
         {

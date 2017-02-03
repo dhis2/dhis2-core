@@ -205,9 +205,9 @@ public class DataValidationTask
                                     if ( violation )
                                     {
                                         context.getValidationResults().add( new ValidationResult( 
-                                            period, sourceX.getSource(),
+                                            rule, period, sourceX.getSource(),
                                             categoryService.getDataElementCategoryOptionCombo( optionCombo ),
-                                            rule, roundSignificant( zeroIfNull( leftSide ) ),
+                                            roundSignificant( zeroIfNull( leftSide ) ),
                                             roundSignificant( zeroIfNull( rightSide ) ) ) );
                                     }
 
