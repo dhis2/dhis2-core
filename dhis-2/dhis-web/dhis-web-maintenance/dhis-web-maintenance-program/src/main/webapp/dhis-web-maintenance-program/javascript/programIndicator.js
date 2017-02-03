@@ -73,7 +73,7 @@ function getTrackedEntityDataElements( type ) {
 	var programStageId = getFieldValue(psSelectId);
 
 	if(programStageId) {
-		jQuery.getJSON('../api/programStages/' + programStageId + '.json?fields=programStageDataElements[dataElement[id,displayName|rename(name),valueType]',
+		jQuery.getJSON('../api/programStages/' + programStageId + '.json?fields=programStageDataElements[dataElement[id,displayName,valueType]',
 		{
 			programId: getFieldValue('programId'),
 			programStageUid: programStageId
@@ -83,7 +83,7 @@ function getTrackedEntityDataElements( type ) {
 			$.each( json.programStageDataElements, function(inx, val) {
 				var de = val.dataElement;
 				if ( !('expression' == type && de.valueType && dhis2.pi.aggregatableValueTypes.indexOf(de.valueType) == -1)) {
-					dataElements.append("<option value='" + de.id + "'>" + de.name + "</option>");
+					dataElements.append("<option value='" + de.id + "'>" + de.displayName + "</option>");
 				}
 			} );
 		});
