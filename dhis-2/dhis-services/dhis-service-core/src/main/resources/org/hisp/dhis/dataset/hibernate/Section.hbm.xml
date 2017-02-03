@@ -39,7 +39,7 @@
         foreign-key="fk_section_indicatorid" />
     </list>
 
-    <set name="greyedFields" table="sectiongreyedfields" cascade="delete-orphan">
+    <set name="greyedFields" table="sectiongreyedfields" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="sectionid" foreign-key="fk_sectiongreyedfields_sectionid" />
       <many-to-many class="org.hisp.dhis.dataelement.DataElementOperand" column="dataelementoperandid"

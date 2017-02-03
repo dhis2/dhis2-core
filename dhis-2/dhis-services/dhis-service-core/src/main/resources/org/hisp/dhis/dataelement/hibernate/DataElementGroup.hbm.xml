@@ -28,7 +28,7 @@
 
     <!-- Dynamic attribute values -->
 
-    <set name="attributeValues" table="dataelementgroupattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="dataelementgroupattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="dataelementgroupid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
