@@ -26,7 +26,7 @@
     <property name="attachment" />
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="documentattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="documentattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="documentid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
@@ -52,7 +52,7 @@
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="documenttranslations" cascade="delete-orphan">
+    <set name="translations" table="documenttranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="documentid" foreign-key="fk_objecttranslation_documentid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

@@ -24,14 +24,14 @@
         foreign-key="fk_categoryoptioncombo_categoryoptionid" />
     </set>
 
-    <set name="attributeValues" table="categoryoptioncomboattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="categoryoptioncomboattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="categoryoptioncomboid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="categoryoptioncombotranslations" cascade="delete-orphan">
+    <set name="translations" table="categoryoptioncombotranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="categoryoptioncomboid" foreign-key="fk_objecttranslation_categoryoptioncomboid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -43,7 +43,6 @@
       <key column="categoryoptioncomboid" />
       <many-to-one name="categoryCombo" column="categorycomboid" not-null="true" />
     </join>
-
 
 
   </class>

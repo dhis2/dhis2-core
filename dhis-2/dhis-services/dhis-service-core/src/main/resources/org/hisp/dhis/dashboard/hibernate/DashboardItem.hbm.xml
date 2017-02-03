@@ -44,7 +44,7 @@
     </list>
 
     <!-- Object Translation -->
-    <set name="translations" table="dashboarditemtranslations" cascade="delete-orphan">
+    <set name="translations" table="dashboarditemtranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="dashboarditemid" foreign-key="fk_objecttranslation_dashboarditemid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

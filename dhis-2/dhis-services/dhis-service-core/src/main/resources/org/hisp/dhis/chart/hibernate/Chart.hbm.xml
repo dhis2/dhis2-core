@@ -176,7 +176,7 @@
     <property name="sortOrder" />
 
     <!-- Object Translation -->
-    <set name="translations" table="charttranslations" cascade="delete-orphan">
+    <set name="translations" table="charttranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="chartid" foreign-key="fk_objecttranslation_chartid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -189,13 +189,13 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="chartusergroupaccesses">
+    <set name="userGroupAccesses" table="chartusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="chartid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <set name="userAccesses" table="chartuseraccesses">
+    <set name="userAccesses" table="chartuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="chartid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />

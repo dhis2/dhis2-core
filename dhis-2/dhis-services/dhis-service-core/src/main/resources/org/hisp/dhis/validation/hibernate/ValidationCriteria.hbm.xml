@@ -2,8 +2,8 @@
 <!DOCTYPE hibernate-mapping PUBLIC
   "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
-   [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
->
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
 
 <hibernate-mapping>
   <class name="org.hisp.dhis.validation.ValidationCriteria" table="validationcriteria">
@@ -12,7 +12,7 @@
       <generator class="native" />
     </id>
     &identifiableProperties;
-    
+
     <property name="name" column="name" not-null="true" unique="true" length="230" />
 
     <property name="description" />
@@ -26,7 +26,7 @@
     <property name="value" type="serializable" length="65535" />
 
     <!-- Object Translation -->
-    <set name="translations" table="validationcriteriatranslations" cascade="delete-orphan">
+    <set name="translations" table="validationcriteriatranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="validationcriteriaid" foreign-key="fk_objecttranslation_validationcriteriaid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

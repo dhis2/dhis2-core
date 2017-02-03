@@ -63,7 +63,7 @@
       column="programstageinstanceid" foreign-key="fk_programmessage_programstageinstanceid" not-null="false" />
 
     <!-- Object Translation -->
-    <set name="translations" table="programmessagetranslations" cascade="delete-orphan">
+    <set name="translations" table="programmessagetranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="id" foreign-key="fk_objecttranslation_programmessageid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
