@@ -52,7 +52,7 @@
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="documenttranslations" cascade="delete-orphan">
+    <set name="translations" table="documenttranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="documentid" foreign-key="fk_objecttranslation_documentid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

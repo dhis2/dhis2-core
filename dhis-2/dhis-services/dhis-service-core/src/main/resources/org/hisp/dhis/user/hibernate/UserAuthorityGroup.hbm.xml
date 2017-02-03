@@ -45,20 +45,20 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="userroleusergroupaccesses">
+    <set name="userGroupAccesses" table="userroleusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="userroleid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <set name="userAccesses" table="userroleuseraccesses">
+    <set name="userAccesses" table="userroleuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="userroleid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="userroletranslations" cascade="delete-orphan">
+    <set name="translations" table="userroletranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="userroleid" foreign-key="fk_objecttranslation_userroleid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

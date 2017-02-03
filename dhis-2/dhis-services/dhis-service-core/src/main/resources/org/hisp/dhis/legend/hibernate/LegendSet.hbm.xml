@@ -26,14 +26,14 @@
     </set>
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="legendsetattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="legendsetattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="legendsetid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="maplegendsettranslations" cascade="delete-orphan">
+    <set name="translations" table="maplegendsettranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="maplegendsetid" foreign-key="fk_objecttranslation_maplegendsetid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -44,13 +44,13 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="legendsetusergroupaccesses">
+    <set name="userGroupAccesses" table="legendsetusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="maplegendsetid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <set name="userAccesses" table="legendsetuseraccesses">
+    <set name="userAccesses" table="legendsetuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="maplegendsetid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />

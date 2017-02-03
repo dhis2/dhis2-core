@@ -170,6 +170,8 @@ public interface IdentifiableObjectManager
 
     void refresh( Object object );
 
+    void flush();
+
     void evict( Object object );
 
     <T extends IdentifiableObject> List<AttributeValue> getAttributeValueByAttribute( Class<T> klass, Attribute attribute );

@@ -32,7 +32,7 @@
     <property name="dataDimensionType" column="datadimensiontype" type="org.hisp.dhis.common.DataDimensionTypeUserType" />
 
     <!-- Object Translation -->
-    <set name="translations" table="categoryoptiongroupsettranslations" cascade="delete-orphan">
+    <set name="translations" table="categoryoptiongroupsettranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="categoryoptiongroupsetid" foreign-key="fk_objecttranslation_categoryoptiongroupsetid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -43,13 +43,13 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="categoryoptiongroupsetusergroupaccesses">
+    <set name="userGroupAccesses" table="categoryoptiongroupsetusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="categoryoptiongroupsetid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <set name="userAccesses" table="categoryoptiongroupsetuseraccesses">
+    <set name="userAccesses" table="categoryoptiongroupsetuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="categoryoptiongroupsetid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />

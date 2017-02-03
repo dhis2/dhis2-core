@@ -117,7 +117,7 @@
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="datasettranslations" cascade="delete-orphan">
+    <set name="translations" table="datasettranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="datasetid" foreign-key="fk_objecttranslation_datasetid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -128,13 +128,13 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="datasetusergroupaccesses">
+    <set name="userGroupAccesses" table="datasetusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="datasetid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <set name="userAccesses" table="datasetuseraccesses">
+    <set name="userAccesses" table="datasetuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="datasetid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
