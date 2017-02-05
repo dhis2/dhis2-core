@@ -35,11 +35,14 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
+import org.hisp.dhis.system.util.HttpHeadersBuilder;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.TaskScheduler;
@@ -103,12 +106,17 @@ public class DefaultMonitoringService
 
         systemInfo.clearSensitiveInfo();
         
+        HttpHeaders headers = new HttpHeadersBuilder()
+            .withContentTypeJson().build();
+        
+        HttpEntity<SystemInfo> requestEntity = new HttpEntity<>( systemInfo, headers );
+        
         ResponseEntity<String> response = null;
         HttpStatus sc = null;
         
         try
         {
-            response = restTemplate.postForEntity( url, systemInfo, String.class );
+            response = restTemplate.postForEntity( url, requestEntity, String.class );
             sc = response.getStatusCode();
         }
         catch ( HttpClientErrorException | HttpServerErrorException ex )
