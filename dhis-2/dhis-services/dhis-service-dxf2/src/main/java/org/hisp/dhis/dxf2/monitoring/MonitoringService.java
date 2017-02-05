@@ -1,4 +1,4 @@
-package org.hisp.dhis.system;
+package org.hisp.dhis.dxf2.monitoring;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -31,7 +31,7 @@ package org.hisp.dhis.system;
 /**
  * @author Lars Helge Overland
  */
-public interface SystemService
+public interface MonitoringService
 {
-    SystemInfo getSystemInfo();
+    void pushMonitoringInfo();
 }

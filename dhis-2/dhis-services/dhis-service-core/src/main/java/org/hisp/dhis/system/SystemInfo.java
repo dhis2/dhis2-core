@@ -145,7 +145,6 @@ public class SystemInfo
         this.externalDirectory = null;
         this.memoryInfo = null;
         this.cpuCores = null;
-        this.systemId = null;
         this.readReplicaCount = null;
 
         if ( this.databaseInfo != null )
