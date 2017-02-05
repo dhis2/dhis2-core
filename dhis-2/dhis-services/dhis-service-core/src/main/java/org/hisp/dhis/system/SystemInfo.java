@@ -111,6 +111,8 @@ public class SystemInfo
     private boolean encryption;
 
     private String systemId;
+    
+    private String systemName;
 
     private String systemMetadataVersion;
 
@@ -490,6 +492,18 @@ public class SystemInfo
     public void setSystemId( String systemId )
     {
         this.systemId = systemId;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getSystemName()
+    {
+        return systemName;
+    }
+
+    public void setSystemName( String systemName )
+    {
+        this.systemName = systemName;
     }
 
     @JsonProperty
