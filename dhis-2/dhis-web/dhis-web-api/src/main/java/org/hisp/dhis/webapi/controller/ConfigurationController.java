@@ -61,6 +61,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * @author Lars Helge Overland
@@ -106,6 +107,16 @@ public class ConfigurationController
         return configurationService.getConfiguration().getSystemId();
     }
 
+    @PreAuthorize( "hasRole('ALL')" )
+    @ResponseStatus( value = HttpStatus.OK )
+    @RequestMapping( value = "/systemId", method = RequestMethod.POST )
+    public void setSystemId()
+    {
+        Configuration config = configurationService.getConfiguration();
+        config.setSystemId( UUID.randomUUID().toString() );
+        configurationService.setConfiguration( config );
+    }
+    
     @RequestMapping( value = "/feedbackRecipients", method = RequestMethod.GET )
     public @ResponseBody UserGroup getFeedbackRecipients( Model model, HttpServletRequest request )
     {
