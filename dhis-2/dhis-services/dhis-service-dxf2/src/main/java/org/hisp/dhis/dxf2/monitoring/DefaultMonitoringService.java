@@ -39,8 +39,6 @@ import org.hisp.dhis.system.util.HttpHeadersBuilder;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -53,6 +51,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
 
+import javax.annotation.PostConstruct;
+
 /**
  * @author Lars Helge Overland
  */
@@ -62,6 +62,7 @@ public class DefaultMonitoringService
     private static final Log log = LogFactory.getLog( DefaultMonitoringService.class );
     
     private static final int PUSH_INTERVAL = DateTimeConstants.MILLIS_PER_SECOND * 5;
+    private static final int PUSH_INITIAL_DELAY = DateTimeConstants.MILLIS_PER_SECOND * 20;
     
     @Autowired
     private SystemService systemService;
@@ -75,10 +76,10 @@ public class DefaultMonitoringService
     @Autowired
     private TaskScheduler scheduler;
 
-    @EventListener
-    public void handleContextRefresh( ContextRefreshedEvent event )
+    @PostConstruct
+    public void init()
     {
-        Date date = new DateTime().plus( PUSH_INTERVAL ).toDate();
+        Date date = new DateTime().plus( PUSH_INITIAL_DELAY ).toDate();
         
         scheduler.scheduleWithFixedDelay( () -> pushMonitoringInfo(), date, PUSH_INTERVAL );
         
