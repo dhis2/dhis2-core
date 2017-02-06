@@ -34,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
@@ -43,7 +44,6 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,7 +95,6 @@ public class AppController
     @Autowired
     protected ContextService contextService;
 
-
     // -------------------------------------------------------------------------
     // Resources
     // -------------------------------------------------------------------------
@@ -135,7 +134,7 @@ public class AppController
     }
 
     @RequestMapping( method = RequestMethod.POST )
-    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-maintenance-appmanager')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void installApp( @RequestParam( "file" ) MultipartFile file )
         throws IOException, WebMessageException
@@ -154,7 +153,7 @@ public class AppController
     }
 
     @RequestMapping( method = RequestMethod.PUT )
-    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-maintenance-appmanager')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void reloadApps()
     {
@@ -229,7 +228,7 @@ public class AppController
     }
 
     @RequestMapping( value = "/{app}", method = RequestMethod.DELETE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-maintenance-appmanager')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteApp( @PathVariable( "app" ) String app, @RequestParam( required = false ) boolean deleteAppData )
         throws WebMessageException
@@ -247,7 +246,7 @@ public class AppController
 
     @SuppressWarnings( "unchecked" )
     @RequestMapping( value = "/config", method = RequestMethod.POST, consumes = ContextUtils.CONTENT_TYPE_JSON )
-    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-maintenance-appmanager')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void setConfig( HttpServletRequest request )
         throws IOException, WebMessageException
