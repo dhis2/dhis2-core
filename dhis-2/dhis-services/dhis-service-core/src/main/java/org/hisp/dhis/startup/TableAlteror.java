@@ -1431,7 +1431,7 @@ public class TableAlteror
         List<Map<String, String>> listTables = new ArrayList<>();
 
         addTranslationTable( listTables, "DataElement", "dataelementtranslations", "dataelement", "dataelementid" );
-        addTranslationTable( listTables, "DataElementCategory", "dataelementcategorytranslations", "dataelementcategory", "dataelementcategoryid" );
+        addTranslationTable( listTables, "DataElementCategory", "dataelementcategorytranslations", "dataelementcategory", "categoryid" );
         addTranslationTable( listTables, "Attribute", "attributetranslations", "attribute", "attributeid" );
         addTranslationTable( listTables, "Indicator", "indicatortranslations", "indicator", "indicatorid" );
         addTranslationTable( listTables, "OrganisationUnit", "organisationUnittranslations", "organisationunit", "organisationunitid" );
