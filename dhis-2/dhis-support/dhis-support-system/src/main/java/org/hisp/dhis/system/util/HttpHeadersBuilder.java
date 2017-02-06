@@ -30,8 +30,11 @@ package org.hisp.dhis.system.util;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.CacheControl;
 
 /**
+ * Builder of Spring {@link HttpHeaders} instances.
+ * 
  * @author Lars Helge Overland
  */
 public class HttpHeadersBuilder
@@ -43,6 +46,9 @@ public class HttpHeadersBuilder
         this.headers = new HttpHeaders();
     }
     
+    /**
+     * Builds the {@link HttpHeaders} instance.
+     */
     public HttpHeaders build()
     {
         return headers;
@@ -69,6 +75,12 @@ public class HttpHeadersBuilder
     public HttpHeadersBuilder withAcceptXml()
     {
         this.headers.set( HttpHeaders.ACCEPT, MediaType.APPLICATION_XML_VALUE );
+        return this;
+    }
+    
+    public HttpHeadersBuilder withNoCache()
+    {
+        this.headers.set( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
         return this;
     }
     
