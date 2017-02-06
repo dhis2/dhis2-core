@@ -389,7 +389,7 @@ public class DefaultFieldFilterService implements FieldFilterService
             {
                 cleanupFields.add( fieldKey );
             }
-            else if ( fieldKey.contains( "::" ) || fieldKey.contains( "|rename(" ) )
+            else if ( fieldKey.contains( "::" ) || fieldKey.contains( "|rename(" ) || fieldKey.contains( "~rename(" ) )
             {
                 Matcher matcher = MUTATOR_PATTERN.matcher( fieldKey );
 
