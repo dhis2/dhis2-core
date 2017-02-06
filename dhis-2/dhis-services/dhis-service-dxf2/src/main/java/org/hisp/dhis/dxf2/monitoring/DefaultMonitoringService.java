@@ -40,7 +40,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.TaskScheduler;
@@ -61,8 +60,8 @@ public class DefaultMonitoringService
 {
     private static final Log log = LogFactory.getLog( DefaultMonitoringService.class );
     
-    private static final int PUSH_INTERVAL = DateTimeConstants.MILLIS_PER_SECOND * 5;
-    private static final int PUSH_INITIAL_DELAY = DateTimeConstants.MILLIS_PER_SECOND * 20;
+    private static final int PUSH_INTERVAL = DateTimeConstants.MILLIS_PER_MINUTE * 5;
+    private static final int PUSH_INITIAL_DELAY = DateTimeConstants.MILLIS_PER_SECOND * 30;
     
     @Autowired
     private SystemService systemService;
@@ -90,10 +89,12 @@ public class DefaultMonitoringService
     public void pushMonitoringInfo()
     {
         String url = (String) systemSettingManager.getSystemSetting( SettingKey.MONITORING_SERVICE_URL );
+        String username = (String) systemSettingManager.getSystemSetting( SettingKey.MONITORING_SERVICE_USERNAME );
+        String password = (String) systemSettingManager.getSystemSetting( SettingKey.MONITORING_SERVICE_PASSWORD );
         
-        if ( StringUtils.trimToNull( url ) == null )
+        if ( StringUtils.isBlank( url ) )
         {
-            log.warn( "Monitoring service URL not configured, aborting monitoring request" );
+            log.debug( "Monitoring service URL not configured, aborting monitoring request" );
             return;
         }
         
@@ -107,10 +108,14 @@ public class DefaultMonitoringService
 
         systemInfo.clearSensitiveInfo();
         
-        HttpHeaders headers = new HttpHeadersBuilder()
-            .withContentTypeJson().build();
+        HttpHeadersBuilder headersBuilder = new HttpHeadersBuilder().withContentTypeJson();
         
-        HttpEntity<SystemInfo> requestEntity = new HttpEntity<>( systemInfo, headers );
+        if ( StringUtils.isNotBlank( username ) && StringUtils.isNotBlank( password ) )
+        {
+            headersBuilder.withBasicAuth( username, password );
+        }
+                
+        HttpEntity<SystemInfo> requestEntity = new HttpEntity<>( systemInfo, headersBuilder.build() );
         
         ResponseEntity<String> response = null;
         HttpStatus sc = null;
@@ -127,13 +132,13 @@ public class DefaultMonitoringService
         }
         catch ( ResourceAccessException ex )
         {
-            log.warn( "Monitoring request failed, network is unreachable" );
+            log.info( "Monitoring request failed, network is unreachable" );
             return;
         }
         
         if ( response != null && sc != null && sc.is2xxSuccessful() )
         {
-            log.info( "Monitoring request successfully sent" );
+            log.debug( "Monitoring request successfully sent" );
         }
         else
         {

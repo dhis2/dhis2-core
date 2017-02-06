@@ -35,7 +35,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 public class DatabaseInfo
 {

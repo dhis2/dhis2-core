@@ -136,6 +136,7 @@ public class SystemInfo
     public void clearSensitiveInfo()
     {
         this.fileStoreProvider = null;
+        this.readOnlyMode = null;
         this.javaVersion = null;
         this.javaVendor = null;
         this.javaOpts = null;
@@ -143,14 +144,10 @@ public class SystemInfo
         this.osArchitecture = null;
         this.osVersion = null;
         this.externalDirectory = null;
+        this.databaseInfo = null;
+        this.readReplicaCount = null;
         this.memoryInfo = null;
         this.cpuCores = null;
-        this.readReplicaCount = null;
-
-        if ( this.databaseInfo != null )
-        {
-            this.databaseInfo.clearSensitiveInfo();
-        }
     }
 
     // -------------------------------------------------------------------------
