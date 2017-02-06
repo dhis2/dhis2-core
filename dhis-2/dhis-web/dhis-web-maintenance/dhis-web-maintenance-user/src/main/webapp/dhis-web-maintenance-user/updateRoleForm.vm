@@ -2,7 +2,7 @@
 <script type="text/javascript">
 	jQuery(function() {
 		jQuery("#availableList").dhisAjaxSelect({
-			source: "../api/dataSets.json?paging=false&fields=id,displayName|rename(name)",
+			source: "../api/dataSets.json?paging=false&fields=id,displayName~rename(name)",
 			iterator: 'dataSets',
 			connectedTo: 'selectedList',
 			handler: function(item) {
@@ -15,7 +15,7 @@
 		});
 		
 		jQuery("#availableProgramList").dhisAjaxSelect({
-			source: "../api/programs.json?paging=false&fields=id,displayName|rename(name),programType",
+			source: "../api/programs.json?paging=false&fields=id,displayName~rename(name),programType",
 			iterator: 'programs',
 			connectedTo: 'selectedProgramList',
 			handler: function(item) {
