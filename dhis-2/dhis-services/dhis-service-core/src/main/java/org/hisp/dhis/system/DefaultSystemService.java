@@ -120,34 +120,33 @@ public class DefaultSystemService
     @Override
     public SystemInfo getSystemInfo()
     {
+        SystemInfo info = systemInfo.instance();
+        
+        if ( info == null )
+        {
+            return null;
+        }
+        
         Date lastAnalyticsTableSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
         String lastAnalyticsTableRuntime = (String) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME );
+        String systemName = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
+
+        Configuration config = configurationService.getConfiguration();
 
         Date now = new Date();
-        SystemInfo info = systemInfo.instance();
 
         info.setCalendar( calendarService.getSystemCalendar().name() );
         info.setDateFormat( calendarService.getSystemDateFormat().getJs() );
         info.setServerDate( new Date() );
         info.setLastAnalyticsTableSuccess( lastAnalyticsTableSuccess );
         info.setIntervalSinceLastAnalyticsTableSuccess( DateUtils.getPrettyInterval( lastAnalyticsTableSuccess, now ) );
+        info.setSystemId( config.getSystemId() );
         info.setLastAnalyticsTableRuntime( lastAnalyticsTableRuntime );
+        info.setSystemName( systemName );
 
         setSystemMetadataVersionInfo( info );
 
         return info;
-    }
-
-    @Override
-    public SystemInfo getMinimalSystemInfo()
-    {
-        SystemInfo fixedInfo = systemInfo.instance();
-        
-        SystemInfo minimalInfo = new SystemInfo();
-        minimalInfo.setVersion( fixedInfo.getVersion() );
-        minimalInfo.setRevision( fixedInfo.getRevision() );
-        
-        return fixedInfo;
     }
 
     private SystemInfo getFixedSystemInfo()
@@ -243,10 +242,6 @@ public class DefaultSystemService
         info.setMemoryInfo( SystemUtils.getMemoryString() );
         info.setCpuCores( SystemUtils.getCpuCores() );
         info.setEncryption( dhisConfig.getEncryptionStatus().isOk() );
-
-        Configuration config = configurationService.getConfiguration();
-
-        info.setSystemId( config.getSystemId() );
 
         return info;
     }

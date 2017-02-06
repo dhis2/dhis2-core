@@ -1,4 +1,4 @@
-package org.hisp.dhis.configuration;
+package org.hisp.dhis.dxf2.monitoring;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,39 +28,10 @@ package org.hisp.dhis.configuration;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.user.User;
-
 /**
  * @author Lars Helge Overland
  */
-public interface ConfigurationService
+public interface MonitoringService
 {
-    String ID = ConfigurationService.class.getName();
-    
-    /**
-     * Sets the configuration.
-     * 
-     * @param configuration the configuration.
-     */
-    void setConfiguration( Configuration configuration );
-    
-    /**
-     * Gets the configuration.
-     * 
-     * @return the configuration.
-     */
-    Configuration getConfiguration();
-    
-    /**
-     * Indicates whether the given origin is CORS white listed.
-     * 
-     * @param origin the origin.
-     * @return true if the given origin is CORS white listed.
-     */
-    boolean isCorsWhitelisted( String origin );
-
-    /**
-     * Indicates whether the current user is part of the feedback Recipients group
-     */
-    boolean isUserInFeedbackRecipientUserGroup( User user );
+    void pushMonitoringInfo();
 }

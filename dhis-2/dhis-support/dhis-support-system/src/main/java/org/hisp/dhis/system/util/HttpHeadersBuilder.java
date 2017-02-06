@@ -1,4 +1,4 @@
-package org.hisp.dhis.configuration;
+package org.hisp.dhis.system.util;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,39 +28,65 @@ package org.hisp.dhis.configuration;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.user.User;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.CacheControl;
 
 /**
+ * Builder of Spring {@link HttpHeaders} instances.
+ * 
  * @author Lars Helge Overland
  */
-public interface ConfigurationService
+public class HttpHeadersBuilder
 {
-    String ID = ConfigurationService.class.getName();
+    private HttpHeaders headers;
+    
+    public HttpHeadersBuilder()
+    {
+        this.headers = new HttpHeaders();
+    }
     
     /**
-     * Sets the configuration.
-     * 
-     * @param configuration the configuration.
+     * Builds the {@link HttpHeaders} instance.
      */
-    void setConfiguration( Configuration configuration );
+    public HttpHeaders build()
+    {
+        return headers;
+    }
     
-    /**
-     * Gets the configuration.
-     * 
-     * @return the configuration.
-     */
-    Configuration getConfiguration();
+    public HttpHeadersBuilder withContentTypeJson()
+    {
+        this.headers.set( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
+        return this;
+    }
     
-    /**
-     * Indicates whether the given origin is CORS white listed.
-     * 
-     * @param origin the origin.
-     * @return true if the given origin is CORS white listed.
-     */
-    boolean isCorsWhitelisted( String origin );
-
-    /**
-     * Indicates whether the current user is part of the feedback Recipients group
-     */
-    boolean isUserInFeedbackRecipientUserGroup( User user );
+    public HttpHeadersBuilder withContentTypeXml()
+    {
+        this.headers.set( HttpHeaders.CONTENT_TYPE,  MediaType.APPLICATION_XML_VALUE );
+        return this;
+    }
+    
+    public HttpHeadersBuilder withAcceptJson()
+    {
+        this.headers.set( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE );
+        return this;
+    }
+    
+    public HttpHeadersBuilder withAcceptXml()
+    {
+        this.headers.set( HttpHeaders.ACCEPT, MediaType.APPLICATION_XML_VALUE );
+        return this;
+    }
+    
+    public HttpHeadersBuilder withNoCache()
+    {
+        this.headers.set( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+        return this;
+    }
+    
+    public HttpHeadersBuilder withBasicAuth( String username, String password )
+    {
+        this.headers.set( HttpHeaders.AUTHORIZATION, CodecUtils.getBasicAuthString( username, password ) );
+        return this;
+    }
 }
