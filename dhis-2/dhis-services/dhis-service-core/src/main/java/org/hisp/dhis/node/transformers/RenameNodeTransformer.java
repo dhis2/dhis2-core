@@ -54,7 +54,7 @@ public class RenameNodeTransformer implements NodeTransformer
     public Node transform( Node node, List<String> args )
     {
         checkNotNull( node );
-        checkArgument( args.size() > 0, "rename requires a name parameter, .e.g: property|rename(newName)" );
+        checkArgument( args.size() > 0, "rename requires a name parameter, .e.g: property~rename(newName)" );
         ((AbstractNode) node).setName( args.get( 0 ) );
 
         return node;
