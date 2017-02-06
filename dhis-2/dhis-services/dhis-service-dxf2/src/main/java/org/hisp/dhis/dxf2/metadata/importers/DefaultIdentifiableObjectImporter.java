@@ -300,7 +300,7 @@ public class DefaultIdentifiableObjectImporter<T extends BaseIdentifiableObject>
         if ( User.class.isInstance( object ) )
         {
             User user = (User) object;
-            errorReports = userService.validateUser( currentUser, user );
+            errorReports = userService.validateUser( user, currentUser );
 
             if ( !errorReports.isEmpty() )
             {
@@ -439,7 +439,7 @@ public class DefaultIdentifiableObjectImporter<T extends BaseIdentifiableObject>
         if ( User.class.isInstance( object ) )
         {
             User user = (User) object;
-            errorReports = userService.validateUser( currentUser, user );
+            errorReports = userService.validateUser( user, currentUser );
 
             if ( !errorReports.isEmpty() )
             {
