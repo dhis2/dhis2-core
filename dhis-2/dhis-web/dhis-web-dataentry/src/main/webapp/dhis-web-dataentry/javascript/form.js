@@ -1724,7 +1724,7 @@ function insertDataValues( json )
             {
                 $( fieldId ).attr( 'checked', true );
             }
-            else if ( $( fieldId ).attr( 'name' ) == 'entryoptionset' )
+            else if ( $( fieldId ).attr( 'name' ) == 'entryoptionset' || $( fieldId ).hasClass( "entryoptionset" ) )
             {
                 dhis2.de.setOptionNameInField( fieldId, value );
             }
@@ -2975,7 +2975,7 @@ dhis2.de.setOptionNameInField = function( fieldId, value )
 				if ( option && option.code == value.val ) {
                     option.id = option.code;
                     option.text = option.name;
-                    $(fieldId).val(option.id).change();
+                    $( fieldId ).select2('data', option);
                 }
 			} );
 		}		
