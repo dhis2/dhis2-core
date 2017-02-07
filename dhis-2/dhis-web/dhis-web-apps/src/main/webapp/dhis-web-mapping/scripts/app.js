@@ -613,7 +613,7 @@ Ext.onReady( function() {
 				fields: ['id', 'name'],
 				proxy: {
 					type: 'ajax',
-					url: gis.init.contextPath + '/api/legendSets.json?fields=id,displayName|rename(name)&paging=false',
+					url: gis.init.contextPath + '/api/legendSets.json?fields=id,displayName~rename(name)&paging=false',
 					reader: {
 						type: 'json',
 						root: 'legendSets'
@@ -650,7 +650,7 @@ Ext.onReady( function() {
 				isLoaded: false,
 				pageSize: 10,
 				page: 1,
-				defaultUrl: gis.init.contextPath + '/api/maps.json?fields=id,displayName|rename(name),access',
+				defaultUrl: gis.init.contextPath + '/api/maps.json?fields=id,displayName~rename(name),access',
 				loadStore: function(url) {
 					this.proxy.url = url || this.defaultUrl;
 
@@ -2847,7 +2847,7 @@ Ext.onReady( function() {
 							this.currentValue = this.getValue();
 
 							var value = this.getValue(),
-								url = value ? gis.init.contextPath + '/api/maps.json?fields=id,displayName|rename(name),access' + (value ? '&filter=displayName:ilike:' + value : '') : null;
+								url = value ? gis.init.contextPath + '/api/maps.json?fields=id,displayName~rename(name),access' + (value ? '&filter=displayName:ilike:' + value : '') : null;
 								store = gis.store.maps;
 
 							store.page = 1;
@@ -2863,7 +2863,7 @@ Ext.onReady( function() {
 			text: GIS.i18n.prev,
 			handler: function() {
 				var value = searchTextfield.getValue(),
-					url = value ? gis.init.contextPath + '/api/maps.json?fields=id,displayName|rename(name),access' + (value ? '&filter=displayName:ilike:' + value : '') : null;
+					url = value ? gis.init.contextPath + '/api/maps.json?fields=id,displayName~rename(name),access' + (value ? '&filter=displayName:ilike:' + value : '') : null;
 					store = gis.store.maps;
 
 				store.page = store.page <= 1 ? 1 : store.page - 1;
@@ -2875,7 +2875,7 @@ Ext.onReady( function() {
 			text: GIS.i18n.next,
 			handler: function() {
 				var value = searchTextfield.getValue(),
-					url = value ? gis.init.contextPath + '/api/maps.json?fields=id,displayName|rename(name),access' + (value ? '&filter=displayName:ilike:' + value : '') : null;
+					url = value ? gis.init.contextPath + '/api/maps.json?fields=id,displayName~rename(name),access' + (value ? '&filter=displayName:ilike:' + value : '') : null;
 					store = gis.store.maps;
 
 				store.page = store.page + 1;
@@ -3255,7 +3255,7 @@ Ext.onReady( function() {
 			fields: ['id', 'name'],
 			proxy: {
 				type: 'ajax',
-				url: gis.init.contextPath + '/api/legendSets.json?fields=id,displayName|rename(name)&paging=false',
+				url: gis.init.contextPath + '/api/legendSets.json?fields=id,displayName~rename(name)&paging=false',
 				reader: {
 					type: 'json',
 					root: 'legendSets'
@@ -3842,7 +3842,7 @@ Ext.onReady( function() {
 			});
 
 			if (id) {
-				legendStore.proxy.url = gis.init.contextPath + '/api/legendSets/' + id + '.json?fields=legends[id,displayName|rename(name),startValue,endValue,color]';
+				legendStore.proxy.url = gis.init.contextPath + '/api/legendSets/' + id + '.json?fields=legends[id,displayName~rename(name),startValue,endValue,color]';
 				legendStore.load();
 
 				legendSetName.setValue(legendSetStore.getById(id).data.name);
@@ -4385,7 +4385,7 @@ Ext.onReady( function() {
 			fields: ['id', 'name'],
 			proxy: {
 				type: 'ajax',
-				url: gis.init.contextPath + '/api/programs.json?fields=id,displayName|rename(name)&paging=false',
+				url: gis.init.contextPath + '/api/programs.json?fields=id,displayName~rename(name)&paging=false',
 				reader: {
 					type: 'json',
 					root: 'programs'
@@ -4517,7 +4517,7 @@ Ext.onReady( function() {
             }
             else {
                 Ext.Ajax.request({
-                    url: gis.init.contextPath + '/api/programs.json?filter=id:eq:' + programId + '&fields=programStages[id,displayName|rename(name)],programTrackedEntityAttributes[trackedEntityAttribute[id,displayName|rename(name),valueType,optionSet[id,displayName|rename(name)]]]&paging=false',
+                    url: gis.init.contextPath + '/api/programs.json?filter=id:eq:' + programId + '&fields=programStages[id,displayName~rename(name)],programTrackedEntityAttributes[trackedEntityAttribute[id,displayName~rename(name),valueType,optionSet[id,displayName~rename(name)]]]&paging=false',
                     success: function(r) {
                         var program = Ext.decode(r.responseText).programs[0],
                             stages,
@@ -4626,7 +4626,7 @@ Ext.onReady( function() {
             }
             else {
                 Ext.Ajax.request({
-                    url: gis.init.contextPath + '/api/programStages.json?filter=id:eq:' + stageId + '&fields=programStageDataElements[dataElement[id,' + gis.init.namePropertyUrl + ',type,optionSet[id,displayName|rename(name)]]]',
+                    url: gis.init.contextPath + '/api/programStages.json?filter=id:eq:' + stageId + '&fields=programStageDataElements[dataElement[id,' + gis.init.namePropertyUrl + ',type,optionSet[id,displayName~rename(name)]]]',
                     success: function(r) {
                         var objects = Ext.decode(r.responseText).programStages,
                             dataElements;
@@ -5022,7 +5022,7 @@ Ext.onReady( function() {
 					format: 'json',
 					noCache: false,
 					extraParams: {
-						fields: 'children[id,' + gis.init.namePropertyUrl + ',children::isNotEmpty|rename(hasChildren)&paging=false'
+						fields: 'children[id,' + gis.init.namePropertyUrl + ',children::isNotEmpty~rename(hasChildren)&paging=false'
 					},
 					url: gis.init.contextPath + '/api/organisationUnits',
 					reader: {
@@ -5736,7 +5736,7 @@ Ext.onReady( function() {
 					format: 'json',
 					noCache: false,
 					extraParams: {
-						fields: 'children[id,' + gis.init.namePropertyUrl + ',children::isNotEmpty|rename(hasChildren)&paging=false'
+						fields: 'children[id,' + gis.init.namePropertyUrl + ',children::isNotEmpty~rename(hasChildren)&paging=false'
 					},
 					url: gis.init.contextPath + '/api/organisationUnits',
 					reader: {
@@ -6496,7 +6496,7 @@ Ext.onReady( function() {
 					format: 'json',
 					noCache: false,
 					extraParams: {
-						fields: 'children[id,' + gis.init.namePropertyUrl + ',children::isNotEmpty|rename(hasChildren)&paging=false'
+						fields: 'children[id,' + gis.init.namePropertyUrl + ',children::isNotEmpty~rename(hasChildren)&paging=false'
 					},
 					url: gis.init.contextPath + '/api/organisationUnits',
 					reader: {
@@ -7190,7 +7190,7 @@ Ext.onReady( function() {
 			},
 			setTotalsProxy: function(uid, preventLoad, callbackFn) {
                 var types = gis.conf.valueType.aAggregateTypes.join(','),
-                    path = '/dataElements.json?fields=dimensionItem|rename(id),' + gis.init.namePropertyUrl + '&filter=valueType:in:[' + types + ']&domainType=aggregate&paging=false';
+                    path = '/dataElements.json?fields=dimensionItem~rename(id),' + gis.init.namePropertyUrl + '&filter=valueType:in:[' + types + ']&domainType=aggregate&paging=false';
 
 				if (Ext.isString(uid)) {
                     path += '&filter=dataElementGroups.id:eq:' + uid;
@@ -7229,7 +7229,7 @@ Ext.onReady( function() {
                         
 					this.setProxy({
 						type: 'ajax',
-						url: gis.init.contextPath + '/api/dataElementOperands.json?fields=dimensionItem|rename(id),' + gis.init.namePropertyUrl + '&filter=valueType:in:[' + types + ']&filter=dataElement.dataElementGroups.id:eq:' + uid + '&paging=false',
+						url: gis.init.contextPath + '/api/dataElementOperands.json?fields=dimensionItem~rename(id),' + gis.init.namePropertyUrl + '&filter=valueType:in:[' + types + ']&filter=dataElement.dataElementGroups.id:eq:' + uid + '&paging=false',
 						reader: {
 							type: 'json',
 							root: 'dataElementOperands'
@@ -7288,7 +7288,7 @@ Ext.onReady( function() {
 			fields: ['id', 'name'],
 			proxy: {
 				type: 'ajax',
-				url: gis.init.contextPath + '/api/programs.json?fields=id,displayName|rename(name)&paging=false',
+				url: gis.init.contextPath + '/api/programs.json?fields=id,displayName~rename(name)&paging=false',
 				reader: {
 					type: 'json',
 					root: 'programs'
@@ -7768,7 +7768,7 @@ Ext.onReady( function() {
                 namePropertyUrl = gis.init.namePropertyUrl;
             
             Ext.Ajax.request({
-                url: gis.init.contextPath + '/api/programDataElements.json?program=' + programId + '&filter=valueType:in:[' + types + ']&fields=dimensionItem|rename(id),name,valueType&paging=false',
+                url: gis.init.contextPath + '/api/programDataElements.json?program=' + programId + '&filter=valueType:in:[' + types + ']&fields=dimensionItem~rename(id),name,valueType&paging=false',
                 disableCaching: false,
                 success: function(r) {
                     var elements = Ext.decode(r.responseText).programDataElements,
@@ -7776,7 +7776,7 @@ Ext.onReady( function() {
                         isO = Ext.isObject;
 
                     Ext.Ajax.request({
-                        url: gis.init.contextPath + '/api/programs.json?filter=id:eq:' + programId + '&filter=programTrackedEntityAttributes.trackedEntityAttribute.confidential:eq:false&filter=programTrackedEntityAttributes.valueType:in:[' + types + ']&fields=programTrackedEntityAttributes[dimensionItem|rename(id),' + namePropertyUrl + '|rename(name),valueType]&paging=false',
+                        url: gis.init.contextPath + '/api/programs.json?filter=id:eq:' + programId + '&filter=programTrackedEntityAttributes.trackedEntityAttribute.confidential:eq:false&filter=programTrackedEntityAttributes.valueType:in:[' + types + ']&fields=programTrackedEntityAttributes[dimensionItem~rename(id),' + namePropertyUrl + '~rename(name),valueType]&paging=false',
                         disableCaching: false,
                         success: function(r) {
                             var attributes = (Ext.decode(r.responseText).programs[0] || {}).programTrackedEntityAttributes || [],
@@ -7828,7 +7828,7 @@ Ext.onReady( function() {
             programIndicator.clearValue();
 
             Ext.Ajax.request({
-                url: gis.init.contextPath + '/api/programs.json?paging=false&fields=programIndicators[id,displayName|rename(name)]&filter=id:eq:' + programId,
+                url: gis.init.contextPath + '/api/programs.json?paging=false&fields=programIndicators[id,displayName~rename(name)]&filter=id:eq:' + programId,
                 success: function(r) {
                     r = Ext.decode(r.responseText);
 
@@ -8117,7 +8117,7 @@ Ext.onReady( function() {
 					format: 'json',
 					noCache: false,
 					extraParams: {
-						fields: 'children[id,' + gis.init.namePropertyUrl + ',children::isNotEmpty|rename(hasChildren)&paging=false'
+						fields: 'children[id,' + gis.init.namePropertyUrl + ',children::isNotEmpty~rename(hasChildren)&paging=false'
 					},
 					url: gis.init.contextPath + '/api/organisationUnits',
 					reader: {
@@ -10132,7 +10132,7 @@ Ext.onReady( function() {
                                         contextPath = init.contextPath;
                                         keyUiLocale = init.userAccount.settings.keyUiLocale;
                                         keyAnalysisDisplayProperty = init.userAccount.settings.keyAnalysisDisplayProperty;
-                                        namePropertyUrl = keyAnalysisDisplayProperty + '|rename(name)';
+                                        namePropertyUrl = keyAnalysisDisplayProperty + '~rename(name)';
                                         dateFormat = init.systemInfo.dateFormat;
 
                                         init.namePropertyUrl = namePropertyUrl;
@@ -10214,7 +10214,7 @@ Ext.onReady( function() {
 
                                         // organisation unit levels
                                         requests.push({
-                                            url: contextPath + '/api/organisationUnitLevels.json?fields=id,displayName|rename(name),level&paging=false',
+                                            url: contextPath + '/api/organisationUnitLevels.json?fields=id,displayName~rename(name),level&paging=false',
                                             success: function(r) {
                                                 init.organisationUnitLevels = Ext.decode(r.responseText).organisationUnitLevels || [];
 
@@ -10268,7 +10268,7 @@ Ext.onReady( function() {
 
                                         // indicator groups
                                         requests.push({
-                                            url: init.contextPath + '/api/indicatorGroups.json?fields=id,displayName|rename(name)&paging=false',
+                                            url: init.contextPath + '/api/indicatorGroups.json?fields=id,displayName~rename(name)&paging=false',
                                             success: function(r) {
                                                 init.indicatorGroups = Ext.decode(r.responseText).indicatorGroups || [];
                                                 fn();
@@ -10293,7 +10293,7 @@ Ext.onReady( function() {
 
                                                 if (!Ext.isObject(obj)) {
                                                     Ext.Ajax.request({
-                                                        url: init.contextPath + '/api/indicatorGroups.json?fields=id,displayName|rename(name),indicators[id,' + namePropertyUrl + ']&pageSize=1',
+                                                        url: init.contextPath + '/api/indicatorGroups.json?fields=id,displayName~rename(name),indicators[id,' + namePropertyUrl + ']&pageSize=1',
                                                         success: function(r) {
                                                             r = Ext.decode(r.responseText);
                                                             init.systemSettings.infrastructuralIndicatorGroup = r.indicatorGroups ? r.indicatorGroups[0] : null;
@@ -10354,7 +10354,7 @@ Ext.onReady( function() {
                                                     store.getKeys('optionSets').done( function(keys) {
                                                         if (keys.length === 0) {
                                                             Ext.Ajax.request({
-                                                                url: contextPath + '/api/optionSets.json?fields=id,displayName|rename(name),version,options[code,displayName|rename(name)]&paging=false',
+                                                                url: contextPath + '/api/optionSets.json?fields=id,displayName~rename(name),version,options[code,displayName~rename(name)]&paging=false',
                                                                 success: function(r) {
                                                                     var sets = Ext.decode(r.responseText).optionSets;
 
@@ -10390,7 +10390,7 @@ Ext.onReady( function() {
                                                                             }
 
                                                                             Ext.Ajax.request({
-                                                                                url: contextPath + '/api/optionSets.json?fields=id,displayName|rename(name),version,options[code,displayName|rename(name)]&paging=false' + url,
+                                                                                url: contextPath + '/api/optionSets.json?fields=id,displayName~rename(name),version,options[code,displayName~rename(name)]&paging=false' + url,
                                                                                 success: function(r) {
                                                                                     var sets = Ext.decode(r.responseText).optionSets;
 

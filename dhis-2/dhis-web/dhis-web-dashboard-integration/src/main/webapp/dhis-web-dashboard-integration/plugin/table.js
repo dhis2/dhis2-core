@@ -283,11 +283,11 @@ Ext.onReady( function() {
             conf.url = {
                 analysisFields: [
                     '*',
-                    'program[id,displayName|rename(name)]',
-                    'programStage[id,displayName|rename(name)]',
-                    'columns[dimension,filter,items[dimensionItem|rename(id),' + init.namePropertyUrl + ']]',
-                    'rows[dimension,filter,items[dimensionItem|rename(id),' + init.namePropertyUrl + ']]',
-                    'filters[dimension,filter,items[dimensionItem|rename(id),' + init.namePropertyUrl + ']]',
+                    'program[id,displayName~rename(name)]',
+                    'programStage[id,displayName~rename(name)]',
+                    'columns[dimension,filter,items[dimensionItem~rename(id),' + init.namePropertyUrl + ']]',
+                    'rows[dimension,filter,items[dimensionItem~rename(id),' + init.namePropertyUrl + ']]',
+                    'filters[dimension,filter,items[dimensionItem~rename(id),' + init.namePropertyUrl + ']]',
                     '!lastUpdated',
                     '!href',
                     '!created',
@@ -3227,7 +3227,7 @@ Ext.onReady( function() {
                 contextPath = init.contextPath;
                 keyUiLocale = init.userAccount.settings.keyUiLocale;
                 keyAnalysisDisplayProperty = init.userAccount.settings.keyAnalysisDisplayProperty;
-                namePropertyUrl = keyAnalysisDisplayProperty + '|rename(name)';
+                namePropertyUrl = keyAnalysisDisplayProperty + '~rename(name)';
 
                 init.namePropertyUrl = namePropertyUrl;
 
@@ -3269,7 +3269,7 @@ Ext.onReady( function() {
 
         // dimensions
 		requests.push({
-			url: init.contextPath + '/api/dimensions.' + type + '?fields=id,displayName|rename(name)&paging=false',
+			url: init.contextPath + '/api/dimensions.' + type + '?fields=id,displayName~rename(name)&paging=false',
             disableCaching: false,
 			success: function(r) {
 				init.dimensions = r.responseText ? Ext.decode(r.responseText).dimensions : r.dimensions;
@@ -3279,7 +3279,7 @@ Ext.onReady( function() {
 
         // legend sets
         requests.push({
-            url: init.contextPath + '/api/legendSets.json?fields=id,displayName|rename(name),legends[id,displayName|rename(name),startValue,endValue,color]&paging=false',
+            url: init.contextPath + '/api/legendSets.json?fields=id,displayName~rename(name),legends[id,displayName~rename(name),startValue,endValue,color]&paging=false',
             success: function(r) {
                 init.legendSets = Ext.decode(r.responseText).legendSets || [];
                 fn();

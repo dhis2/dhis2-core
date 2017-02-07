@@ -3800,7 +3800,7 @@ Ext.onReady( function() {
                             contextPath = init.contextPath;
                             keyUiLocale = init.userAccount.settings.keyUiLocale;
                             keyAnalysisDisplayProperty = init.userAccount.settings.keyAnalysisDisplayProperty;
-                            namePropertyUrl = keyAnalysisDisplayProperty === defaultKeyAnalysisDisplayProperty ? keyAnalysisDisplayProperty : keyAnalysisDisplayProperty + '|rename(' + defaultKeyAnalysisDisplayProperty + ')';
+                            namePropertyUrl = keyAnalysisDisplayProperty === defaultKeyAnalysisDisplayProperty ? keyAnalysisDisplayProperty : keyAnalysisDisplayProperty + '~rename(' + defaultKeyAnalysisDisplayProperty + ')';
                             dateFormat = init.systemInfo.dateFormat;
 
                             init.namePropertyUrl = namePropertyUrl;

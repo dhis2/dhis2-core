@@ -6778,7 +6778,7 @@ Ext.onReady(function() {
                             contextPath = init.contextPath;
                             keyUiLocale = init.userAccount.settings.keyUiLocale;
                             keyAnalysisDisplayProperty = init.userAccount.settings.keyAnalysisDisplayProperty;
-                            namePropertyUrl = keyAnalysisDisplayProperty + '|rename(name)';
+                            namePropertyUrl = keyAnalysisDisplayProperty + '~rename(name)';
                             dateFormat = init.systemInfo.dateFormat;
 
                             init.namePropertyUrl = namePropertyUrl;
@@ -6916,7 +6916,7 @@ Ext.onReady(function() {
 
         // dimensions
         requests.push({
-            url: init.contextPath + '/api/dimensions.json?fields=id,displayName|rename(name)&paging=false',
+            url: init.contextPath + '/api/dimensions.json?fields=id,displayName~rename(name)&paging=false',
             disableCaching: false,
             success: function(r) {
                 init.dimensions = r.responseText ? Ext.decode(r.responseText).dimensions : r.dimensions;

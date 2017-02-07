@@ -2614,7 +2614,7 @@ Ext.onReady( function() {
                 }
 
                 Ext.Ajax.request({
-                    url: gis.init.contextPath + '/api/' + elementUrl + '.json?fields=legendSet[id,displayName|rename(name)]&paging=false&filter=id:eq:' + id,
+                    url: gis.init.contextPath + '/api/' + elementUrl + '.json?fields=legendSet[id,displayName~rename(name)]&paging=false&filter=id:eq:' + id,
                     success: function(r) {
                         var elements = Ext.decode(r.responseText)[elementUrl],
                             set;
@@ -3072,7 +3072,7 @@ Ext.onReady( function() {
             ];
 
             conf.url.legendSetFields = [
-                'id,displayName|rename(name),legends[' + conf.url.legendFields.join(',') + ']'
+                'id,displayName~rename(name),legends[' + conf.url.legendFields.join(',') + ']'
             ];
         }());
 

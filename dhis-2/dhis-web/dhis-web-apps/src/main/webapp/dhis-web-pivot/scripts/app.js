@@ -2921,10 +2921,10 @@ console.log(table);
                 }
 
 				if (Ext.isString(uid)) {
-					path = '/indicators.json?fields=dimensionItem|rename(id),' + namePropertyUrl + '&filter=indicatorGroups.id:eq:' + uid + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
+					path = '/indicators.json?fields=dimensionItem~rename(id),' + namePropertyUrl + '&filter=indicatorGroups.id:eq:' + uid + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
 				}
 				else if (uid === 0) {
-					path = '/indicators.json?fields=dimensionItem|rename(id),' + namePropertyUrl + '' + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
+					path = '/indicators.json?fields=dimensionItem~rename(id),' + namePropertyUrl + '' + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
 				}
 
 				if (!path) {
@@ -2990,7 +2990,7 @@ console.log(table);
 			fields: ['id', 'name', 'index'],
 			proxy: {
 				type: 'ajax',
-				url: ns.core.init.contextPath + '/api/indicatorGroups.json?fields=id,displayName|rename(name)&paging=false',
+				url: ns.core.init.contextPath + '/api/indicatorGroups.json?fields=id,displayName~rename(name)&paging=false',
 				reader: {
 					type: 'json',
 					root: 'indicatorGroups'
@@ -3097,10 +3097,10 @@ console.log(table);
                 }
 
 				if (Ext.isString(uid)) {
-					path = '/dataElements.json?fields=dimensionItem|rename(id),' + namePropertyUrl + '&filter=valueType:in:[' + types + ']&filter=dataElementGroups.id:eq:' + uid + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
+					path = '/dataElements.json?fields=dimensionItem~rename(id),' + namePropertyUrl + '&filter=valueType:in:[' + types + ']&filter=dataElementGroups.id:eq:' + uid + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
 				}
 				else if (uid === 0) {
-					path = '/dataElements.json?fields=dimensionItem|rename(id),' + namePropertyUrl + '&filter=valueType:in:[' + types + ']&filter=domainType:eq:AGGREGATE' + '' + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
+					path = '/dataElements.json?fields=dimensionItem~rename(id),' + namePropertyUrl + '&filter=valueType:in:[' + types + ']&filter=domainType:eq:AGGREGATE' + '' + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
 				}
 
 				if (!path) {
@@ -3145,10 +3145,10 @@ console.log(table);
                 }
 
 				if (Ext.isString(uid)) {
-					path = '/dataElementOperands.json?fields=dimensionItem|rename(id),' + namePropertyUrl + '&filter=valueType:in:[' + types + ']&filter=dataElement.dataElementGroups.id:eq:' + uid + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
+					path = '/dataElementOperands.json?fields=dimensionItem~rename(id),' + namePropertyUrl + '&filter=valueType:in:[' + types + ']&filter=dataElement.dataElementGroups.id:eq:' + uid + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
 				}
 				else if (uid === 0) {
-					path = '/dataElementOperands.json?fields=dimensionItem|rename(id),' + namePropertyUrl + '&filter=valueType:in:[' + types + ']' + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
+					path = '/dataElementOperands.json?fields=dimensionItem~rename(id),' + namePropertyUrl + '&filter=valueType:in:[' + types + ']' + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
 				}
 
 				if (!path) {
@@ -3295,7 +3295,7 @@ console.log(table);
                     return;
                 }
 
-                path = '/dataSets.json?fields=dimensionItem|rename(id),' + namePropertyUrl + '' + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
+                path = '/dataSets.json?fields=dimensionItem~rename(id),' + namePropertyUrl + '' + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
 
 				if (noPaging) {
 					params.paging = false;
@@ -3445,7 +3445,7 @@ console.log(table);
 			fields: ['id', 'name'],
 			proxy: {
 				type: 'ajax',
-				url: ns.core.init.contextPath + '/api/programs.json?fields=id,displayName|rename(name)&paging=false',
+				url: ns.core.init.contextPath + '/api/programs.json?fields=id,displayName~rename(name)&paging=false',
 				reader: {
 					type: 'json',
 					root: 'programs'
@@ -3588,7 +3588,7 @@ console.log(table);
 			isLoaded: false,
 			pageSize: 10,
 			page: 1,
-			defaultUrl: ns.core.init.contextPath + '/api/reportTables.json?fields=id,displayName|rename(name),access',
+			defaultUrl: ns.core.init.contextPath + '/api/reportTables.json?fields=id,displayName~rename(name),access',
 			loadStore: function(url) {
 				this.proxy.url = url || this.defaultUrl;
 
@@ -4475,7 +4475,7 @@ console.log(table);
             var types = ns.core.conf.valueType.tAggregateTypes.join(',');
 
             Ext.Ajax.request({
-                url: ns.core.init.contextPath + '/api/programDataElements.json?program=' + programId + '&filter=valueType:in:[' + types + ']&fields=dimensionItem|rename(id),name,valueType&paging=false',
+                url: ns.core.init.contextPath + '/api/programDataElements.json?program=' + programId + '&filter=valueType:in:[' + types + ']&fields=dimensionItem~rename(id),name,valueType&paging=false',
                 disableCaching: false,
                 success: function(r) {
                     var elements = Ext.decode(r.responseText).programDataElements,
@@ -4483,7 +4483,7 @@ console.log(table);
                         isO = Ext.isObject;
 
                     Ext.Ajax.request({
-                        url: ns.core.init.contextPath + '/api/programs.json?filter=id:eq:' + programId + '&filter=programTrackedEntityAttributes.trackedEntityAttribute.confidential:eq:false&filter=programTrackedEntityAttributes.valueType:in:[' + types + ']&fields=programTrackedEntityAttributes[dimensionItem|rename(id),' + namePropertyUrl + '|rename(name),valueType]&paging=false',
+                        url: ns.core.init.contextPath + '/api/programs.json?filter=id:eq:' + programId + '&filter=programTrackedEntityAttributes.trackedEntityAttribute.confidential:eq:false&filter=programTrackedEntityAttributes.valueType:in:[' + types + ']&fields=programTrackedEntityAttributes[dimensionItem~rename(id),' + namePropertyUrl + '~rename(name),valueType]&paging=false',
                         disableCaching: false,
                         success: function(r) {
                             var attributes = (Ext.decode(r.responseText).programs[0] || {}).programTrackedEntityAttributes || [],
@@ -4725,7 +4725,7 @@ console.log(table);
             }
 
             Ext.Ajax.request({
-                url: ns.core.init.contextPath + '/api/programs.json?filter=id:eq:' + programId + '&fields=programIndicators[dimensionItem|rename(id),' + namePropertyUrl + ']&paging=false',
+                url: ns.core.init.contextPath + '/api/programs.json?filter=id:eq:' + programId + '&fields=programIndicators[dimensionItem~rename(id),' + namePropertyUrl + ']&paging=false',
                 disableCaching: false,
                 success: function(r) {
                     var indicators = (Ext.decode(r.responseText).programs[0] || {}).programIndicators || [],
@@ -5632,7 +5632,7 @@ console.log(table);
 					format: 'json',
 					noCache: false,
 					extraParams: {
-						fields: 'children[id,' + namePropertyUrl + ',children::isNotEmpty|rename(hasChildren)&paging=false'
+						fields: 'children[id,' + namePropertyUrl + ',children::isNotEmpty~rename(hasChildren)&paging=false'
 					},
 					url: ns.core.init.contextPath + '/api/organisationUnits',
 					reader: {
@@ -7948,7 +7948,7 @@ console.log(table);
                                         contextPath = init.contextPath;
                                         keyUiLocale = init.userAccount.settings.keyUiLocale;
                                         keyAnalysisDisplayProperty = init.userAccount.settings.keyAnalysisDisplayProperty;
-                                        namePropertyUrl = keyAnalysisDisplayProperty + '|rename(name)';
+                                        namePropertyUrl = keyAnalysisDisplayProperty + '~rename(name)';
                                         dateFormat = init.systemInfo.dateFormat;
 
                                         init.namePropertyUrl = namePropertyUrl;
@@ -8085,7 +8085,7 @@ console.log(table);
 
                                         // legend sets
                                         requests.push({
-                                            url: contextPath + '/api/legendSets.json?fields=id,displayName|rename(name),legends[id,displayName|rename(name),startValue,endValue,color]&paging=false',
+                                            url: contextPath + '/api/legendSets.json?fields=id,displayName~rename(name),legends[id,displayName~rename(name),startValue,endValue,color]&paging=false',
                                             success: function(r) {
                                                 init.legendSets = Ext.decode(r.responseText).legendSets || [];
                                                 fn();
@@ -8103,7 +8103,7 @@ console.log(table);
 
                                         // approval levels
                                         requests.push({
-                                            url: contextPath + '/api/dataApprovalLevels.json?fields=id,displayName|rename(name)&paging=false&order=level:asc',
+                                            url: contextPath + '/api/dataApprovalLevels.json?fields=id,displayName~rename(name)&paging=false&order=level:asc',
                                             success: function(r) {
                                                 init.dataApprovalLevels = Ext.decode(r.responseText).dataApprovalLevels || [];
                                                 fn();
