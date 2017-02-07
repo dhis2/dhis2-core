@@ -232,6 +232,13 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             dateAfterOffset = Date.parse(dateAfterOffset);
             dateAfterOffset = $filter('date')(dateAfterOffset, calendarSetting.keyDateFormat);
             return dateAfterOffset;
+        },
+        isValid: function( dateValue ){
+            if( !dateValue ){
+                return false;
+            }
+            var convertedDate = this.format(angular.copy(dateValue));
+            return dateValue === convertedDate;
         }
     };
 })
