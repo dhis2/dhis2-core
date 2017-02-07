@@ -858,19 +858,11 @@ Ext.onReady(function() {
             conf.url = {
                 analysisFields: [
                     '*',
-<<<<<<< HEAD
-                    'program[id,displayName|rename(name)]',
-                    'programStage[id,displayName|rename(name)]',
-                    'columns[dimension,filter,items[id,' + init.namePropertyUrl + ']]',
-                    'rows[dimension,filter,items[id,' + init.namePropertyUrl + ']]',
-                    'filters[dimension,filter,items[id,' + init.namePropertyUrl + ']]',
-=======
                     'program[id,displayName~rename(name)]',
                     'programStage[id,displayName~rename(name)]',
                     'columns[dimension,filter,items[dimensionItem~rename(id),' + init.namePropertyUrl + ']]',
                     'rows[dimension,filter,items[dimensionItem~rename(id),' + init.namePropertyUrl + ']]',
                     'filters[dimension,filter,items[dimensionItem~rename(id),' + init.namePropertyUrl + ']]',
->>>>>>> 17a0a5f... Analysis, web api operator fix
                     '!lastUpdated',
                     '!href',
                     '!created',
