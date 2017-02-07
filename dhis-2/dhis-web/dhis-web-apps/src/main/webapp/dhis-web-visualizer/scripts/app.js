@@ -3074,7 +3074,7 @@ Ext.onReady( function() {
 			fields: ['id', 'name', 'index'],
 			proxy: {
 				type: 'ajax',
-				url: ns.core.init.contextPath + '/api/indicatorGroups.json?fields=id,displayName|rename(name)&paging=false',
+				url: ns.core.init.contextPath + '/api/indicatorGroups.json?fields=id,displayName~rename(name)&paging=false',
 				reader: {
 					type: 'json',
 					root: 'indicatorGroups'
@@ -3181,10 +3181,10 @@ Ext.onReady( function() {
                 }
 
 				if (Ext.isString(uid)) {
-					path = '/dataElements.json?fields=dimensionItem|rename(id),' + namePropertyUrl + '&filter=valueType:in:[' + types + ']&filter=dataElementGroups.id:eq:' + uid + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
+					path = '/dataElements.json?fields=dimensionItem~rename(id),' + namePropertyUrl + '&filter=valueType:in:[' + types + ']&filter=dataElementGroups.id:eq:' + uid + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
 				}
 				else if (uid === 0) {
-					path = '/dataElements.json?fields=dimensionItem|rename(id),' + namePropertyUrl + '&filter=valueType:in:[' + types + ']&filter=domainType:eq:AGGREGATE' + '' + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
+					path = '/dataElements.json?fields=dimensionItem~rename(id),' + namePropertyUrl + '&filter=valueType:in:[' + types + ']&filter=domainType:eq:AGGREGATE' + '' + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
 				}
 
 				if (!path) {
@@ -3229,10 +3229,10 @@ Ext.onReady( function() {
                 }
 
 				if (Ext.isString(uid)) {
-					path = '/dataElementOperands.json?fields=dimensionItem|rename(id),' + namePropertyUrl + '&filter=valueType:in:[' + types + ']&filter=dataElement.dataElementGroups.id:eq:' + uid + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
+					path = '/dataElementOperands.json?fields=dimensionItem~rename(id),' + namePropertyUrl + '&filter=valueType:in:[' + types + ']&filter=dataElement.dataElementGroups.id:eq:' + uid + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
 				}
 				else if (uid === 0) {
-					path = '/dataElementOperands.json?fields=dimensionItem|rename(id),' + namePropertyUrl + '&filter=valueType:in:[' + types + ']' + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
+					path = '/dataElementOperands.json?fields=dimensionItem~rename(id),' + namePropertyUrl + '&filter=valueType:in:[' + types + ']' + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
 				}
 
 				if (!path) {
@@ -3529,7 +3529,7 @@ Ext.onReady( function() {
 			fields: ['id', 'name'],
 			proxy: {
 				type: 'ajax',
-				url: ns.core.init.contextPath + '/api/programs.json?fields=id,displayName|rename(name)&paging=false',
+				url: ns.core.init.contextPath + '/api/programs.json?fields=id,displayName~rename(name)&paging=false',
 				reader: {
 					type: 'json',
 					root: 'programs'
@@ -3672,7 +3672,7 @@ Ext.onReady( function() {
 			isLoaded: false,
 			pageSize: 10,
 			page: 1,
-			defaultUrl: ns.core.init.contextPath + '/api/charts.json?fields=id,displayName|rename(name),access',
+			defaultUrl: ns.core.init.contextPath + '/api/charts.json?fields=id,displayName~rename(name),access',
 			loadStore: function(url) {
 				this.proxy.url = url || this.defaultUrl;
 
@@ -4545,7 +4545,7 @@ Ext.onReady( function() {
             var types = ns.core.conf.valueType.tAggregateTypes.join(',');
 
             Ext.Ajax.request({
-                url: ns.core.init.contextPath + '/api/programDataElements.json?program=' + programId + '&filter=valueType:in:[' + types + ']&fields=dimensionItem|rename(id),name,valueType&paging=false',
+                url: ns.core.init.contextPath + '/api/programDataElements.json?program=' + programId + '&filter=valueType:in:[' + types + ']&fields=dimensionItem~rename(id),name,valueType&paging=false',
                 disableCaching: false,
                 success: function(r) {
                     var elements = Ext.decode(r.responseText).programDataElements,
@@ -4553,7 +4553,7 @@ Ext.onReady( function() {
                         isO = Ext.isObject;
 
                     Ext.Ajax.request({
-                        url: ns.core.init.contextPath + '/api/programs.json?filter=id:eq:' + programId + '&filter=programTrackedEntityAttributes.trackedEntityAttribute.confidential:eq:false&filter=programTrackedEntityAttributes.valueType:in:[' + types + ']&fields=programTrackedEntityAttributes[dimensionItem|rename(id),' + namePropertyUrl + '|rename(name),valueType]&paging=false',
+                        url: ns.core.init.contextPath + '/api/programs.json?filter=id:eq:' + programId + '&filter=programTrackedEntityAttributes.trackedEntityAttribute.confidential:eq:false&filter=programTrackedEntityAttributes.valueType:in:[' + types + ']&fields=programTrackedEntityAttributes[dimensionItem~rename(id),' + namePropertyUrl + '~rename(name),valueType]&paging=false',
                         disableCaching: false,
                         success: function(r) {
                             var attributes = (Ext.decode(r.responseText).programs[0] || {}).programTrackedEntityAttributes || [],
@@ -4795,7 +4795,7 @@ Ext.onReady( function() {
             }
 
             Ext.Ajax.request({
-                url: ns.core.init.contextPath + '/api/programs.json?filter=id:eq:' + programId + '&fields=programIndicators[dimensionItem|rename(id),' + namePropertyUrl + ']&paging=false',
+                url: ns.core.init.contextPath + '/api/programs.json?filter=id:eq:' + programId + '&fields=programIndicators[dimensionItem~rename(id),' + namePropertyUrl + ']&paging=false',
 				disableCaching: false,
 				success: function(r) {
                     var indicators = (Ext.decode(r.responseText).programs[0] || {}).programIndicators || [],
@@ -5700,7 +5700,7 @@ Ext.onReady( function() {
 					format: 'json',
 					noCache: false,
 					extraParams: {
-						fields: 'children[id,' + namePropertyUrl + ',children::isNotEmpty|rename(hasChildren)&paging=false'
+						fields: 'children[id,' + namePropertyUrl + ',children::isNotEmpty~rename(hasChildren)&paging=false'
 					},
 					url: ns.core.init.contextPath + '/api/organisationUnits',
 					reader: {
@@ -7904,7 +7904,7 @@ Ext.onReady( function() {
                                         contextPath = init.contextPath;
                                         keyUiLocale = init.userAccount.settings.keyUiLocale;
                                         keyAnalysisDisplayProperty = init.userAccount.settings.keyAnalysisDisplayProperty;
-                                        namePropertyUrl = keyAnalysisDisplayProperty + '|rename(name)';
+                                        namePropertyUrl = keyAnalysisDisplayProperty + '~rename(name)';
                                         dateFormat = init.systemInfo.dateFormat;
 
                                         init.namePropertyUrl = namePropertyUrl;
@@ -7986,7 +7986,7 @@ Ext.onReady( function() {
 
                                         // organisation unit levels
                                         requests.push({
-                                            url: contextPath + '/api/organisationUnitLevels.json?fields=id,displayName|rename(name),level&paging=false',
+                                            url: contextPath + '/api/organisationUnitLevels.json?fields=id,displayName~rename(name),level&paging=false',
                                             success: function(r) {
                                                 init.organisationUnitLevels = Ext.decode(r.responseText).organisationUnitLevels || [];
 

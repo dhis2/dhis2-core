@@ -858,11 +858,19 @@ Ext.onReady(function() {
             conf.url = {
                 analysisFields: [
                     '*',
+<<<<<<< HEAD
                     'program[id,displayName|rename(name)]',
                     'programStage[id,displayName|rename(name)]',
                     'columns[dimension,filter,items[id,' + init.namePropertyUrl + ']]',
                     'rows[dimension,filter,items[id,' + init.namePropertyUrl + ']]',
                     'filters[dimension,filter,items[id,' + init.namePropertyUrl + ']]',
+=======
+                    'program[id,displayName~rename(name)]',
+                    'programStage[id,displayName~rename(name)]',
+                    'columns[dimension,filter,items[dimensionItem~rename(id),' + init.namePropertyUrl + ']]',
+                    'rows[dimension,filter,items[dimensionItem~rename(id),' + init.namePropertyUrl + ']]',
+                    'filters[dimension,filter,items[dimensionItem~rename(id),' + init.namePropertyUrl + ']]',
+>>>>>>> 17a0a5f... Analysis, web api operator fix
                     '!lastUpdated',
                     '!href',
                     '!created',
@@ -4201,7 +4209,7 @@ Ext.onReady(function() {
                 contextPath = init.contextPath;
                 keyUiLocale = init.userAccount.settings.keyUiLocale;
                 keyAnalysisDisplayProperty = init.userAccount.settings.keyAnalysisDisplayProperty;
-                namePropertyUrl = keyAnalysisDisplayProperty + '|rename(name)';
+                namePropertyUrl = keyAnalysisDisplayProperty + '~rename(name)';
 
                 init.namePropertyUrl = namePropertyUrl;
 
@@ -4211,7 +4219,7 @@ Ext.onReady(function() {
 
         // user orgunit
 		requests.push({
-			url: init.contextPath + '/api/organisationUnits.' + type + '?userOnly=true&fields=id,displayName|rename(name),children[id,displayName|rename(name)]&paging=false',
+			url: init.contextPath + '/api/organisationUnits.' + type + '?userOnly=true&fields=id,displayName~rename(name),children[id,displayName~rename(name)]&paging=false',
             disableCaching: false,
 			success: function(r) {
 				var organisationUnits = (r.responseText ? Ext.decode(r.responseText).organisationUnits : r) || [],
@@ -4243,7 +4251,7 @@ Ext.onReady(function() {
 		});
 
 		requests.push({
-			url: init.contextPath + '/api/dimensions.' + type + '?fields=id,displayName|rename(name)&paging=false',
+			url: init.contextPath + '/api/dimensions.' + type + '?fields=id,displayName~rename(name)&paging=false',
             disableCaching: false,
 			success: function(r) {
 				init.dimensions = r.responseText ? Ext.decode(r.responseText).dimensions : r.dimensions;
