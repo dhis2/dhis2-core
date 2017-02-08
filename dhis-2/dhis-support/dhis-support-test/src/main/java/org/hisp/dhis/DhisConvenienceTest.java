@@ -634,9 +634,6 @@ public abstract class DhisConvenienceTest
     /**
      * @param uniqueCharacter A unique character to identify the object.
      */
-<<<<<<<HEAD
-=======
-
     public static Attribute createAttribute( char uniqueCharacter )
     {
         Attribute attribute = new Attribute( "Attribute" + uniqueCharacter, ValueType.TEXT );
@@ -1058,12 +1055,6 @@ public abstract class DhisConvenienceTest
     public static ValidationRule createValidationRule( String uniqueCharacter, Operator operator, Expression leftSide,
         Expression rightSide, PeriodType periodType )
     {
-<<<<<<<HEAD
-        =======
-        Assert.notNull( leftSide, "Left side expression must be specified" );
-        Assert.notNull( rightSide, "Rigth side expression must be specified" );
-
->>>>>>>cb4757b4...Take UGA/UG into account for AclService.canUpdate
         ValidationRule validationRule = new ValidationRule();
         validationRule.setAutoFields();
 
