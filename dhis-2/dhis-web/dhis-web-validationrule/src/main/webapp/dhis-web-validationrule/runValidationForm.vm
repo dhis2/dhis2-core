@@ -1,6 +1,12 @@
 <script type="text/javascript">
 	jQuery(document).ready(function(){
+		calendar = dhis2.period.calendar;
+		if(calendar.name=='Nepali'){
+		calendarPickerInRange( 'startDate' , 'endDate' );
+		}
+		else{
 		datePickerInRange( 'startDate' , 'endDate' );
+		}
 
 		selectionTreeSelection.setMultipleSelectionAllowed( false );
 		selectionTreeSelection.setListenerFunction( organisationUnitSelected );

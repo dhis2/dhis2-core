@@ -28,6 +28,7 @@ package org.hisp.dhis.validationrule.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,17 +36,22 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.calendar.DateTimeUnit;
+import org.hisp.dhis.calendar.impl.NepaliCalendar;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.util.SessionUtils;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.comparator.ValidationResultComparator;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.opensymphony.xwork2.Action;
 
@@ -183,6 +189,9 @@ public class RunValidationAction
     {
         return organisationUnit;
     }
+    
+    @Autowired
+    private SystemSettingManager systemSettingManager;
 
     // -------------------------------------------------------------------------
     // Execute
@@ -200,9 +209,68 @@ public class RunValidationAction
         DataElementCategoryOptionCombo attributeOptionCombo = attributeOptionComboId == null || attributeOptionComboId == -1 ? null : dataElementCategoryService.getDataElementCategoryOptionCombo( attributeOptionComboId );
 
         log.info( "Validating data for " + ( group == null ? "all rules" : "group: " + group.getName() ) );
-
-        validationResults = new ArrayList<>( validationService.validate( format.parseDate( startDate ), format.parseDate( endDate ),
+       
+        Serializable calendar=systemSettingManager.getSystemSetting(SettingKey.CALENDAR);
+        
+        if(calendar.equals("nepali")){
+        	String[] startDateParts=startDate.split("-");
+            int startDatePart1 = Integer.parseInt(startDateParts[0]); 
+            int startDatePart2 = Integer.parseInt(startDateParts[1]); 
+            int startDatePart3 = Integer.parseInt(startDateParts[2]); 
+            
+            String[] endDateParts=endDate.split("-");
+            int endDatePart1 = Integer.parseInt(endDateParts[0]); 
+            int endDatePart2 = Integer.parseInt(endDateParts[1]); 
+            int endDatePart3 = Integer.parseInt(endDateParts[2]); 
+            
+            NepaliCalendar nepaliCalendar=new NepaliCalendar();
+            DateTimeUnit startDateTimeUnit=nepaliCalendar.toIso(startDatePart1,startDatePart2,startDatePart3);
+            DateTimeUnit endDateTimeUnit=nepaliCalendar.toIso(endDatePart1,endDatePart2,endDatePart3);
+     
+            String adStartYear=Integer.toString(startDateTimeUnit.getYear());
+            String adStartMonth=Integer.toString(startDateTimeUnit.getMonth());
+            String adStartDay=Integer.toString(startDateTimeUnit.getDay());
+            
+            String adEndYear=Integer.toString(endDateTimeUnit.getYear());
+            String adEndMonth=Integer.toString(endDateTimeUnit.getMonth());
+            String adEndDay=Integer.toString(endDateTimeUnit.getDay());
+            
+            String adStartDate="";
+            String adEndDate="";
+            
+            if(startDateTimeUnit.getMonth()<10 && startDateTimeUnit.getDay()<10){
+            	adStartDate=adStartYear+"-"+"0"+adStartMonth+"-"+"0"+adStartDay;
+            }
+            else if(startDateTimeUnit.getMonth()<10 && startDateTimeUnit.getDay()>10){
+            	adStartDate=adStartYear+"-"+"0"+adStartMonth+"-"+adStartDay;	
+            }
+            else if(startDateTimeUnit.getMonth()>10 && startDateTimeUnit.getDay()<10){
+            	adStartDate=adStartYear+"-"+adStartMonth+"-"+"0"+adStartDay;	
+            }
+            else{
+            	adStartDate=adStartYear+"-"+adStartMonth+"-"+adStartDay;
+            }
+            
+            if(endDateTimeUnit.getMonth()<10 && endDateTimeUnit.getDay()<10){
+            	adEndDate=adEndYear+"-"+"0"+adEndMonth+"-"+"0"+adEndDay;
+            }
+            else if(endDateTimeUnit.getMonth()<10 && endDateTimeUnit.getDay()>10){
+            	adEndDate=adEndYear+"-"+"0"+adEndMonth+"-"+adEndDay;	
+            }
+            else if(endDateTimeUnit.getMonth()>10 && endDateTimeUnit.getDay()<10){
+            	adEndDate=adEndYear+"-"+adEndMonth+"-"+"0"+adEndDay;
+            }
+            else{
+            	adEndDate=adEndYear+"-"+adEndMonth+"-"+adEndDay;	
+            }
+        	
+        	validationResults = new ArrayList<>( validationService.validate( format.parseDate( adStartDate ), format.parseDate( adEndDate ),
                 organisationUnits, attributeOptionCombo, group, sendNotifications, format ) );
+        }
+        else{
+        	validationResults = new ArrayList<>( validationService.validate( format.parseDate( startDate ), format.parseDate( endDate ),
+                    organisationUnits, attributeOptionCombo, group, sendNotifications, format ) );	
+        }
 
         maxExceeded = validationResults.size() > ValidationService.MAX_INTERACTIVE_ALERTS;
 
