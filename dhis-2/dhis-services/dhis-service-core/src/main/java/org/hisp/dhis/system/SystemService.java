@@ -34,6 +34,4 @@ package org.hisp.dhis.system;
 public interface SystemService
 {
     SystemInfo getSystemInfo();
-    
-    SystemInfo getMinimalSystemInfo();
 }

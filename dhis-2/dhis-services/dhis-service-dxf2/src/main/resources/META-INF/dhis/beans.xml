@@ -88,6 +88,8 @@
 
   <bean id="dataSynchTask" class="org.hisp.dhis.dxf2.synch.DataSynchronizationTask" scope="prototype" />
 
+  <bean id="org.hisp.dhis.dxf2.monitoring.MonitoringService" class="org.hisp.dhis.dxf2.monitoring.DefaultMonitoringService" />
+
   <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService" class="org.hisp.dhis.dxf2.metadata.sync.DefaultMetadataSyncService" />
 
   <bean id="metadataSyncTask" class="org.hisp.dhis.dxf2.metadata.tasks.MetadataSyncTask" scope="prototype" />
