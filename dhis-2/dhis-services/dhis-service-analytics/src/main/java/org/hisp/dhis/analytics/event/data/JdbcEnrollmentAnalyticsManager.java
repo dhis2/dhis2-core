@@ -59,7 +59,6 @@ import java.util.List;
 
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.*;
@@ -94,17 +93,6 @@ public class JdbcEnrollmentAnalyticsManager
     @Override
     public Grid getAggregatedEventData( EventQueryParams params, Grid grid, int maxLimit )
     {
-        // ---------------------------------------------------------------------
-        // Remove invalid dimensions
-        // ---------------------------------------------------------------------
-
-        if ( params.hasDimension( ATTRIBUTEOPTIONCOMBO_DIM_ID ) )
-        {
-            params = new EventQueryParams.Builder()
-                .removeDimension( ATTRIBUTEOPTIONCOMBO_DIM_ID )
-                .build();
-        }
-
         // ---------------------------------------------------------------------
         // Select
         // ---------------------------------------------------------------------
