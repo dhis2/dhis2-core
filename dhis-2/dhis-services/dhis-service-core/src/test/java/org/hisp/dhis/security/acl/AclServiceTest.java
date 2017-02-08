@@ -30,6 +30,7 @@ package org.hisp.dhis.security.acl;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.chart.Chart;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventchart.EventChart;
@@ -39,9 +40,13 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.HashSet;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -58,6 +63,9 @@ public class AclServiceTest
 
     @Autowired
     private UserService _userService;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
 
     @Override
     protected void setUpTest() throws Exception
@@ -414,5 +422,29 @@ public class AclServiceTest
         User user = createAdminUser();
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         assertFalse( aclService.canUpdate( user, organisationUnit ) );
+    }
+
+    @Test
+    public void testSharingPrivateRW()
+    {
+        User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
+        User user2 = createUser( "user2" );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setUser( user1 );
+        manager.save( dataElement );
+
+        assertFalse( aclService.canUpdate( user2, dataElement ) );
+
+        UserGroup userGroup = createUserGroup( 'A', new HashSet<>() );
+        userGroup.getMembers().add( user1 );
+        userGroup.getMembers().add( user2 );
+
+        manager.save( userGroup );
+
+        dataElement.getUserGroupAccesses().add( new UserGroupAccess( userGroup, "rw------" ) );
+        manager.update( dataElement );
+
+        assertTrue( aclService.canUpdate( user2, dataElement ) );
     }
 }
