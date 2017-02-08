@@ -92,10 +92,17 @@
 
   <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataImportHandler" class="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncImportHandler" scope="prototype" />
 
-  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataVersionDelegate" class="org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate" scope="prototype" />
+  <bean id="org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate" class="org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate" scope="prototype" />
+
+  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncDelegate" class="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncDelegate" scope="prototype" />
 
   <bean id="retryPolicy" class="org.springframework.retry.policy.SimpleRetryPolicy">
-    <property name="maxAttempts" ref="maxAttempts" />
+    <constructor-arg ref="maxAttempts"/>
+    <constructor-arg>
+      <map>
+        <entry key="org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException" value="true"></entry>
+      </map>
+    </constructor-arg>
   </bean>
 
   <bean id="backOffPolicy" class="org.springframework.retry.backoff.ExponentialBackOffPolicy">

@@ -1,5 +1,7 @@
+package org.hisp.dhis.dxf2.metadata.sync.exception;
+
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,47 +28,23 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.metadata.version;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
-import org.hisp.dhis.metadata.version.MetadataVersion;
-import org.hisp.dhis.metadata.version.MetadataVersionService;
-
 /**
- * Generates the sequential Metadata Version name.
- *
  * @author aamerm
  */
-public class MetadataVersionNameGenerator
+public class DhisVersionMismatchException extends Exception
 {
-    private static final Log log = LogFactory.getLog( MetadataVersionNameGenerator.class );
-
-    public static String getNextVersionName( MetadataVersion version )
+    public DhisVersionMismatchException( String message )
     {
-        if ( version == null )
-        {
-            return MetadataVersionService.METADATAVERSION_NAME_PREFIX + 1;
-        }
-        else
-        {
-            String[] versionNameSplit = version.getName().split( "_" );
-            String versionNameSuffix = versionNameSplit[1];
-            int n;
-            try
-            {
-                n = Integer.parseInt( versionNameSuffix );
-            }
-            catch ( NumberFormatException nfe )
-            {
-                String message = "Invalid version name found: " + versionNameSuffix;
-                log.error( message, nfe );
+        super( message );
+    }
 
-                throw new MetadataVersionServiceException( message, nfe );
-            }
+    public DhisVersionMismatchException( Throwable cause )
+    {
+        super( cause );
+    }
 
-            return MetadataVersionService.METADATAVERSION_NAME_PREFIX + (n + 1);
-        }
+    public DhisVersionMismatchException( String message, Throwable cause )
+    {
+        super( message, cause );
     }
 }

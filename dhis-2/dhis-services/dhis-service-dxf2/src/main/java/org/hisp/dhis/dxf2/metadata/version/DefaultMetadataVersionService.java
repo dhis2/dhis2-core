@@ -346,7 +346,7 @@ public class DefaultMetadataVersionService
     //--------------------------------------------------------------------------
 
     /**
-     *Generates the Metadata export based on the created date of the current version
+     * Generates the metadata export based on the created date of the current version.
      */
     private ByteArrayOutputStream getMetadataExport( Date minDate )
     {

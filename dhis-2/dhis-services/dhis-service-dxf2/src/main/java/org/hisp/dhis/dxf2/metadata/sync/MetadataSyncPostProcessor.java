@@ -49,7 +49,6 @@ import java.util.Map;
  *
  * @author aamerm
  */
-
 public class MetadataSyncPostProcessor
 {
     private static final Log log = LogFactory.getLog( MetadataSyncPostProcessor.class );
@@ -57,9 +56,9 @@ public class MetadataSyncPostProcessor
     @Autowired
     private EmailService emailService;
 
-    public boolean handleSyncNotificationsAndAbortStatus( MetadataSyncSummary metadataSyncSummary, MetadataRetryContext retryContext, MetadataVersion dataVersion )
+    public boolean handleSyncNotificationsAndAbortStatus( MetadataSyncSummary metadataSyncSummary,
+        MetadataRetryContext retryContext, MetadataVersion dataVersion )
     {
-
         ImportReport importReport = metadataSyncSummary.getImportReport();
 
         if ( importReport == null )
@@ -72,9 +71,8 @@ public class MetadataSyncPostProcessor
         Status syncStatus = importReport.getStatus();
         log.info( "Import completed. Import Status: " + syncStatus );
 
-        if ( Status.OK.equals( syncStatus ) || (Status.WARNING.equals( syncStatus ) && VersionType.BEST_EFFORT.equals( dataVersion.getType() )) )
+        if ( Status.OK.equals( syncStatus ) || ( Status.WARNING.equals( syncStatus ) && VersionType.BEST_EFFORT.equals( dataVersion.getType() ) ) )
         {
-            //send success mail to Admin
             sendSuccessMailToAdmin( metadataSyncSummary );
             return false;
         }
@@ -87,6 +85,13 @@ public class MetadataSyncPostProcessor
         return false;
     }
 
+    public void handleVersionAlreadyExists ( MetadataRetryContext retryContext, MetadataVersion dataVersion )
+    {
+        retryContext.updateRetryContext( MetadataSyncTask.METADATA_SYNC, "Version already exists in system and hence stopping the sync", dataVersion, null );
+        sendFailureMailToAdmin( retryContext );
+        log.info( "Aborting Metadata sync. Version already exists in system and hence stopping the sync. Check mail and logs for more details." );
+    }
+
     private void handleImportFailedContext( MetadataSyncSummary metadataSyncSummary, MetadataRetryContext retryContext, MetadataVersion dataVersion )
     {
         retryContext.updateRetryContext( MetadataSyncTask.METADATA_SYNC, "Import of metadata objects was unsuccessful", dataVersion, metadataSyncSummary );
@@ -97,10 +102,10 @@ public class MetadataSyncPostProcessor
     public void sendSuccessMailToAdmin( MetadataSyncSummary metadataSyncSummary )
     {
         ImportReport importReport = metadataSyncSummary.getImportReport();
-        StringBuilder text = new StringBuilder( "Successful Import Report for the scheduler run for Metadata synchronization \n\n" );
-        text.append( "Imported Version Details \n " );
-        text.append( "Version Name: " + metadataSyncSummary.getMetadataVersion().getName() + "\n" );
-        text.append( "Version Type: " + metadataSyncSummary.getMetadataVersion().getType() + "\n" );
+        StringBuilder text = new StringBuilder( "Successful Import Report for the scheduler run for Metadata synchronization \n\n" )
+            .append( "Imported Version Details \n " )
+            .append( "Version Name: " + metadataSyncSummary.getMetadataVersion().getName() + "\n" )
+            .append( "Version Type: " + metadataSyncSummary.getMetadataVersion().getType() + "\n" );
 
         Map<Class<?>, TypeReport> typeReportMap = importReport.getTypeReportMap();
 
@@ -120,11 +125,11 @@ public class MetadataSyncPostProcessor
                     TypeReport value = typeReportEntry.getValue();
                     Stats stats = value.getStats();
 
-                    text.append( "Metadata Object Type: " );
-                    text.append( key );
-                    text.append( "\n" );
-                    text.append( "Stats: \n" );
-                    text.append( "total: " + stats.getTotal() + "\n" );
+                    text.append( "Metadata Object Type: " )
+                        .append( key )
+                        .append( "\n" )
+                        .append( "Stats: \n" )
+                        .append( "total: " + stats.getTotal() + "\n" );
 
                     if ( stats.getCreated() > 0 )
                     {
@@ -145,7 +150,7 @@ public class MetadataSyncPostProcessor
 
             }
 
-            text.append( "\n \n" );
+            text.append( "\n\n" );
 
         }
 
@@ -166,9 +171,10 @@ public class MetadataSyncPostProcessor
 
             if ( value != null )
             {
-                text.append( "ERROR_CATEGORY " ).append( ": " ).append( name ).append( "\n ERROR_VALUE : " ).append(
-                    value );
-                text.append( "\n\n" );
+                text.append( "ERROR_CATEGORY " )
+                    .append( ": " ).append( name )
+                    .append( "\n ERROR_VALUE : " ).append( value )
+                    .append( "\n\n" );
             }
         }
 
@@ -177,9 +183,10 @@ public class MetadataSyncPostProcessor
         if ( report != null )
         {
             String reportString = (String) report;
-            text.append( MetadataSyncTask.METADATA_SYNC_REPORT );
-            text.append( "\n " );
-            text.append( reportString );
+
+            text.append( MetadataSyncTask.METADATA_SYNC_REPORT )
+                .append( "\n " )
+                .append( reportString );
         }
         else
         {
@@ -188,13 +195,12 @@ public class MetadataSyncPostProcessor
             {
                 text.append( retryContext.getRetryContext().getLastThrowable().getMessage() );
             }
-
         }
 
         if ( text.length() > 0 )
         {
             log.info( "Failure mail will be sent with the following message: " + text );
-            emailService.sendSystemEmail( new Email( "Action Required: MetaData SyncFailed Notification", text.toString() ) );
+            emailService.sendSystemEmail( new Email( "Action Required: MetadataSync Failed Notification", text.toString() ) );
         }
 
     }
