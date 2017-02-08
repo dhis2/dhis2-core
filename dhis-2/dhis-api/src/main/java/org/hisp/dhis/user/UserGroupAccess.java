@@ -56,6 +56,12 @@ public class UserGroupAccess
     {
     }
 
+    public UserGroupAccess( UserGroup userGroup, String access )
+    {
+        this.userGroup = userGroup;
+        this.access = access;
+    }
+
     public int getId()
     {
         return id;

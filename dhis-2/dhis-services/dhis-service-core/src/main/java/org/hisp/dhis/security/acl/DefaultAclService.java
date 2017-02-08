@@ -185,6 +185,16 @@ public class DefaultAclService implements AclService
             return false;
         }
 
+        for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
+        {
+            /* Is the user allowed to read this object through group access? */
+            if ( AccessStringHelper.canWrite( userGroupAccess.getAccess() )
+                && userGroupAccess.getUserGroup().getMembers().contains( user ) )
+            {
+                return true;
+            }
+        }
+
         List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.UPDATE );
         anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE ) );
         anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ) );
