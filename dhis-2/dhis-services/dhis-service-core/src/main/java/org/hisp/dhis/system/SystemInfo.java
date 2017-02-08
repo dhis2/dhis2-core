@@ -144,10 +144,14 @@ public class SystemInfo
         this.osArchitecture = null;
         this.osVersion = null;
         this.externalDirectory = null;
-        this.databaseInfo = null;
         this.readReplicaCount = null;
         this.memoryInfo = null;
         this.cpuCores = null;
+
+        if ( this.databaseInfo != null )
+        {
+            this.databaseInfo.clearSensitiveInfo();
+        }
     }
 
     // -------------------------------------------------------------------------
