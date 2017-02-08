@@ -31,6 +31,7 @@ package org.hisp.dhis.sms.config;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Lists;
 
 public class GenericHttpGatewayConfig
     extends SmsGatewayConfig
@@ -41,7 +42,7 @@ public class GenericHttpGatewayConfig
 
     private String recipientParameter;
     
-    private List<GenericGatewayParameter> parameters;
+    private List<GenericGatewayParameter> parameters = Lists.newArrayList();
 
     public GenericHttpGatewayConfig()
     {
