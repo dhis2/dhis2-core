@@ -430,11 +430,7 @@ public class AclServiceTest
     public void testSharingPrivateRW()
     {
         User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
-        user1.setUid( null );
-        user1.getUserCredentials().setUid( null );
         User user2 = createUser( "user2" );
-        user2.setUid( null );
-        user2.getUserCredentials().setUid( null );
 
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setUser( user1 );
