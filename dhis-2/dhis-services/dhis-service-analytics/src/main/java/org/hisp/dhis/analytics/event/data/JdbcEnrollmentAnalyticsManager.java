@@ -93,6 +93,10 @@ public class JdbcEnrollmentAnalyticsManager
     @Override
     public Grid getAggregatedEventData( EventQueryParams params, Grid grid, int maxLimit )
     {
+        // ---------------------------------------------------------------------
+        // Select
+        // ---------------------------------------------------------------------
+
         String countClause = getAggregateClause( params );
         
         String sql = "select " + countClause + " as value," + StringUtils.join( getSelectColumns( params ), "," ) + " ";
