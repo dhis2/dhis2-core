@@ -28,6 +28,7 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.base.Strings;
 import com.google.common.io.ByteSource;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -188,7 +189,7 @@ public class DataValueController
 
         OptionSet optionSet = dataElement.getOptionSet();
 
-        if ( optionSet != null && !optionSet.getOptionCodesAsSet().contains( value ) )
+        if ( !Strings.isNullOrEmpty( value ) && optionSet != null && !optionSet.getOptionCodesAsSet().contains( value ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Data value is not a valid option of the data element option set: " + dataElement.getUid() ) );
         }
