@@ -11,21 +11,25 @@
             <generator class="native"/>
         </id>
 
-        <many-to-one name="validationRule" class="org.hisp.dhis.validation.ValidationRule" column="validationrule"
-                     foreign-key="fk_validationresult_validationruleid"/>
-
-        <many-to-one name="period" class="org.hisp.dhis.period.Period" column="period"
-                     foreign-key="fk_validationresult_period"/>
-
-        <many-to-one name="attributeOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo"
-                     column="attributeoptioncombo" foreign-key="fk_validationresult_attributeoptioncomboid"/>
-
-        <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
-                     column="organisationunit" foreign-key="fk_validationresult_organisationunitid"/>
-
         <property name="leftsideValue"/>
 
         <property name="rightsideValue"/>
+
+        <properties name="unique-group" unique="true">
+
+            <many-to-one name="validationRule" class="org.hisp.dhis.validation.ValidationRule" column="validationrule"
+                         foreign-key="fk_validationresult_validationruleid"/>
+
+            <many-to-one name="period" class="org.hisp.dhis.period.Period" column="period"
+                         foreign-key="fk_validationresult_period"/>
+
+            <many-to-one name="attributeOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo"
+                         column="attributeoptioncombo" foreign-key="fk_validationresult_attributeoptioncomboid"/>
+
+            <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
+                         column="organisationunit" foreign-key="fk_validationresult_organisationunitid"/>
+
+        </properties>
 
     </class>
 
