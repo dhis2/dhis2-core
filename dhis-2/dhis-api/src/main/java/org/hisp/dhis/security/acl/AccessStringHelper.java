@@ -152,6 +152,6 @@ public class AccessStringHelper
 
     public static boolean isValid( String access )
     {
-        return READ.equals( access ) || WRITE.equals( access ) || READ_WRITE.equals( access );
+        return DEFAULT.equals( access ) || READ.equals( access ) || WRITE.equals( access ) || READ_WRITE.equals( access );
     }
 }
