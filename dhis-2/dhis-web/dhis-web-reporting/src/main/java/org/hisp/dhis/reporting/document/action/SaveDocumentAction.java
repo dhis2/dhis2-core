@@ -163,7 +163,7 @@ public class SaveDocumentAction
 
         if ( document == null )
         {
-            return ERROR;
+            throw new RuntimeException( "Document with id " + id + " was not found" );
         }
 
         if ( file != null )
