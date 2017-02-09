@@ -35,6 +35,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.fileresource.FileResource;
 
 /**
  * @author Lars Helge Overland
@@ -43,22 +44,45 @@ import org.hisp.dhis.common.MergeMode;
 public class Document
     extends BaseIdentifiableObject
 {
+    /**
+     * Can be either a valid URL, or the path (filename) of a file.
+     * If the external property is true, this should be an URL.
+     * If the external property is false, this should be the filename
+     */
     private String url;
 
+    /**
+     * A reference to the file associated with the Document. If document represents
+     * an URL or a file uploaded before this property was added, this will be null.
+     */
+    private FileResource fileResource;
+
+    /**
+     * Determines if this document refers to a file (!external) or URL (external).
+     */
     private boolean external;
 
+    /**
+     * The content type of the file referred to by the document, or null if document
+     * refers to an URL
+     */
     private String contentType;
 
+    /**
+     * Flags whether the file should be displayed in-browser or downloaded.
+     * true should trigger a download of the file when accessing the document data
+     */
     private Boolean attachment = false;
 
     public Document()
     {
     }
 
-    public Document( String name, String url, boolean external, String contentType )
+    public Document( String name, FileResource fileResource, String url, boolean external, String contentType )
     {
         this.name = name;
         this.url = url;
+        this.fileResource = fileResource;
         this.external = external;
         this.contentType = contentType;
     }
@@ -112,6 +136,17 @@ public class Document
         this.attachment = attachment;
     }
 
+    // Should not be exposed in the api
+    public FileResource getFileResource()
+    {
+        return fileResource;
+    }
+
+    public void setFileResource( FileResource fileResource )
+    {
+        this.fileResource = fileResource;
+    }
+
     @Override
     public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
     {
@@ -126,11 +161,13 @@ public class Document
             if ( mergeMode.isReplace() )
             {
                 url = document.getUrl();
+                fileResource = document.getFileResource();
                 contentType = document.getContentType();
             }
             else if ( mergeMode.isMerge() )
             {
                 url = document.getUrl() == null ? url : document.getUrl();
+                fileResource = document.getFileResource() == null ? fileResource : document.getFileResource();
                 contentType = document.getContentType() == null ? contentType : document.getContentType();
             }
         }
