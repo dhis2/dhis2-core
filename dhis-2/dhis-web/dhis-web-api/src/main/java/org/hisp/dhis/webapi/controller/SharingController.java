@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -48,7 +49,6 @@ import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.webdomain.sharing.Sharing;
 import org.hisp.dhis.webapi.webdomain.sharing.SharingUserAccess;
@@ -228,6 +228,11 @@ public class SharingController
 
         Sharing sharing = renderService.fromJson( request.getInputStream(), Sharing.class );
 
+        if ( !AccessStringHelper.isValid( sharing.getObject().getPublicAccess() ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Invalid public access string: " + sharing.getObject().getPublicAccess() ) );
+        }
+
         // ---------------------------------------------------------------------
         // Ignore externalAccess if user is not allowed to make objects external
         // ---------------------------------------------------------------------
@@ -264,6 +269,12 @@ public class SharingController
         for ( SharingUserGroupAccess sharingUserGroupAccess : sharing.getObject().getUserGroupAccesses() )
         {
             UserGroupAccess userGroupAccess = new UserGroupAccess();
+
+            if ( !AccessStringHelper.isValid( sharingUserGroupAccess.getAccess() ) )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "Invalid user group access string: " + sharingUserGroupAccess.getAccess() ) );
+            }
+
             userGroupAccess.setAccess( sharingUserGroupAccess.getAccess() );
 
             UserGroup userGroup = manager.get( UserGroup.class, sharingUserGroupAccess.getId() );
@@ -290,6 +301,12 @@ public class SharingController
         for ( SharingUserAccess sharingUserAccess : sharing.getObject().getUserAccesses() )
         {
             UserAccess userAccess = new UserAccess();
+
+            if ( !AccessStringHelper.isValid( sharingUserAccess.getAccess() ) )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "Invalid user access string: " + sharingUserAccess.getAccess() ) );
+            }
+
             userAccess.setAccess( sharingUserAccess.getAccess() );
 
             User sharingUser = manager.get( User.class, sharingUserAccess.getId() );
