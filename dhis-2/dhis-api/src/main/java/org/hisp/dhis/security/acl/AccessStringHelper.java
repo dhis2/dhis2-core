@@ -149,4 +149,9 @@ public class AccessStringHelper
     {
         return access != null && access.charAt( permission.getPosition() ) == permission.getValue();
     }
+
+    public static boolean isValid( String access )
+    {
+        return READ.equals( access ) || WRITE.equals( access ) || READ_WRITE.equals( access );
+    }
 }
