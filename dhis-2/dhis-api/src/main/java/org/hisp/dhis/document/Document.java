@@ -78,11 +78,10 @@ public class Document
     {
     }
 
-    public Document( String name, FileResource fileResource, String url, boolean external, String contentType )
+    public Document( String name, String url, boolean external, String contentType )
     {
         this.name = name;
         this.url = url;
-        this.fileResource = fileResource;
         this.external = external;
         this.contentType = contentType;
     }
