@@ -3,7 +3,6 @@ package org.hisp.dhis.reporting.document.action;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import com.opensymphony.xwork2.Action;
-import com.sun.mail.util.MimeUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -15,7 +14,6 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.MimeTypeUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -223,5 +221,6 @@ public class SaveDocumentAction
 
         log.info( "Upload complete." );
 
+        return fileResource;
     }
 }
