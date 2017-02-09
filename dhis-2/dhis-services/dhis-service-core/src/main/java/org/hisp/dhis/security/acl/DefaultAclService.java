@@ -436,6 +436,12 @@ public class DefaultAclService implements AclService
             return errorReports;
         }
 
+        if ( !AccessStringHelper.isValid( object.getPublicAccess() ) )
+        {
+            errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3010, object.getPublicAccess() ) );
+            return errorReports;
+        }
+
         boolean canMakePublic = canMakePublic( user, object.getClass() );
         boolean canMakePrivate = canMakePrivate( user, object.getClass() );
         boolean canMakeExternal = canMakeExternal( user, object.getClass() );
