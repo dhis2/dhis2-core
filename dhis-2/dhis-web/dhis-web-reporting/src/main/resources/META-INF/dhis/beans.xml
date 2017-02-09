@@ -19,7 +19,6 @@
 
   <bean id="org.hisp.dhis.reporting.document.action.RemoveDocumentAction" class="org.hisp.dhis.reporting.document.action.RemoveDocumentAction"
     scope="prototype">
-    <property name="locationManager" ref="locationManager" />
     <property name="documentService" ref="org.hisp.dhis.document.DocumentService" />
   </bean>
 

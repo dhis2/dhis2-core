@@ -168,11 +168,17 @@ public class SaveDocumentAction
 
         if ( file != null )
         {
+
+            if ( document.getFileResource() != null )
+            {
+                documentService.deleteFileFromDocument( document );
+            }
+
             document.setUrl( fileName );
             document.setFileResource( uploadFile( file, fileName, contentType ) );
             document.setContentType( contentType );
         }
-        else
+        else if ( external )
         {
             document.setUrl( getValidUrl( url ) );
         }
