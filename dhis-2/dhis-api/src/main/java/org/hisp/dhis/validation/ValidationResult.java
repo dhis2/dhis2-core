@@ -50,6 +50,9 @@ import java.io.Serializable;
 public class ValidationResult
     implements Serializable, Comparable<ValidationResult>
 {
+
+    private int id;
+
     /**
      * Determines if a de-serialized file is compatible with this class.
      */
@@ -63,8 +66,14 @@ public class ValidationResult
 
     private DataElementCategoryOptionCombo attributeOptionCombo;
 
+    /**
+     * The leftsideValue at the time of the violation
+     */
     private Double leftsideValue;
 
+    /**
+     * The rightsideValue at the time of the violation
+     */
     private Double rightsideValue;
 
     // -------------------------------------------------------------------------
@@ -311,6 +320,16 @@ public class ValidationResult
     // -------------------------------------------------------------------------
     // Set and get methods
     // -------------------------------------------------------------------------     
+
+    public int getId()
+    {
+        return id;
+    }
+
+    public void setId( int id )
+    {
+        this.id = id;
+    }
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
