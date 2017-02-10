@@ -96,10 +96,4 @@
     <constructor-arg ref="clientDetailsService" />
   </bean>
 
-  <!--
-  <sec:authentication-manager alias="clientAuthenticationManager">
-    <sec:authentication-provider user-service-ref="clientDetailsUserService" />
-  </sec:authentication-manager>
-  -->
-
 </beans>
