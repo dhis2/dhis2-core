@@ -53,7 +53,6 @@ public class OAuth2Controller
     @GetMapping( "/error" )
     public String error( Model model, @RequestParam Map<String, String> rpParameters )
     {
-        System.err.println( "Errors: " + rpParameters );
         model.addAllAttributes( rpParameters );
         return "error";
     }
