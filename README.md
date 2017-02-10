@@ -9,7 +9,7 @@ Issues can be reported and browsed in [JIRA](https://jira.dhis2.org).
 
 For documentation please visit the [doc page](https://www.dhis2.org/documentation/).
 
-To can download pre-built WAR files from the [continuous integration server](http://ci.dhis2.org/).
+You can download pre-built WAR files from the [continuous integration server](http://ci.dhis2.org/).
 
 You can explore various demos of DHIS 2 in the [play environment](https://play.dhis2.org/).
 
