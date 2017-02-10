@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <title>OAuth2 Error</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../../dhis-web-commons/bootstrap/css/bootstrap.min.css">
+</head>
+
+<body style="padding-top: 70px;">
+
+<nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container-fluid">
+
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">DHIS2 OAuth2</a>
+    </div>
+
+  </div>
+</nav>
+
+<div class="container-fluid">
+  <div class="row col-lg-6 col-lg-offset-3 col-md-6 col-md-offset-3">
+    <div class="row">
+      <h4>Error.</h4>
+    </div>
+  </div>
+</div>
+
+</body>
+
+</html>
