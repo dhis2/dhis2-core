@@ -31,7 +31,7 @@
   </sec:http>
 
   <sec:http pattern="/uaa/oauth/authorize/**" authentication-manager-ref="authenticationManager" disable-url-rewriting="true" use-expressions="false"
-    create-session="never">
+    create-session="ifRequired">
     <sec:intercept-url pattern="/uaa/oauth/authorize/**" access="IS_AUTHENTICATED_FULLY" />
     <sec:http-basic />
     <sec:anonymous />
