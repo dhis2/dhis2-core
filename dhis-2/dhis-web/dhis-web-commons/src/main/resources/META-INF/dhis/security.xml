@@ -27,6 +27,7 @@
     <sec:http-basic entry-point-ref="oauthAuthenticationEntryPoint" />
     <sec:custom-filter ref="clientCredentialsTokenEndpointFilter" before="BASIC_AUTH_FILTER" />
     <sec:access-denied-handler ref="oauthAccessDeniedHandler" />
+    <sec:csrf disabled="true" />
   </sec:http>
 
   <sec:http pattern="/uaa/oauth/authorize/**" authentication-manager-ref="authenticationManager" disable-url-rewriting="true" use-expressions="false">
@@ -38,6 +39,7 @@
       username-parameter="j_username" password-parameter="j_password"
       login-page="/dhis-web-commons/security/login.action"
       login-processing-url="/dhis-web-commons-security/login.action" />
+    <sec:csrf disabled="true" />
   </sec:http>
 
   <bean id="mappedRedirectStrategy" class="org.hisp.dhis.security.MappedRedirectStrategy">

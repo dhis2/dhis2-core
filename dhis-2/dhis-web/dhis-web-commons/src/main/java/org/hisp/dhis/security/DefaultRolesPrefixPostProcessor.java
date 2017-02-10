@@ -56,10 +56,12 @@ public class DefaultRolesPrefixPostProcessor implements BeanPostProcessor, Prior
         {
             ((DefaultMethodSecurityExpressionHandler) bean).setDefaultRolePrefix( null );
         }
+
         if ( bean instanceof DefaultWebSecurityExpressionHandler )
         {
             ((DefaultWebSecurityExpressionHandler) bean).setDefaultRolePrefix( null );
         }
+
         if ( bean instanceof SecurityContextHolderAwareRequestFilter )
         {
             ((SecurityContextHolderAwareRequestFilter) bean).setRolePrefix( "" );
