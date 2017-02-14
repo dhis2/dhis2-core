@@ -34,7 +34,8 @@ package org.hisp.dhis.fileresource;
 public enum FileResourceDomain
 {
     DATA_VALUE( "dataValue" ),
-    PUSH_ANALYSIS( "pushAnalysis" );
+    PUSH_ANALYSIS( "pushAnalysis" ),
+    DOCUMENT( "document" );
 
     /**
      * Container name to use when storing blobs of this FileResourceDomain

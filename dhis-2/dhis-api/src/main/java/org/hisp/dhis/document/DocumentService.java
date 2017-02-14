@@ -71,6 +71,12 @@ public interface DocumentService
     void deleteDocument( Document document );
 
     /**
+     * Used when removing a file reference from a Document.
+     * @param document
+     */
+    void deleteFileFromDocument( Document document );
+
+    /**
      * Retrieves all Documents.
      *
      * @return a Collection of Documents.
