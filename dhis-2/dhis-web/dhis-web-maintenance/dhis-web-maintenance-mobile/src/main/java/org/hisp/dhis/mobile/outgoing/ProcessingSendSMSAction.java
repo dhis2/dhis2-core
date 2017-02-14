@@ -276,17 +276,10 @@ public class ProcessingSendSMSAction
             return ERROR;
         }
         
-        if ( message == null )
-        {
+        if ( message == null ) {
             message = "An inter error occurs, please contact your administration";
             return ERROR;
         }
-
-        OutboundSms sms = new OutboundSms();
-        sms.setMessage( text );
-        sms.setRecipients( recipientsList.stream().map( item -> item.getPhoneNumber() ).collect( Collectors.toSet() ) );
-
-        outboundSmsService.saveOutboundSms( sms );
 
         return SUCCESS;
     }
