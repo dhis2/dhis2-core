@@ -2,7 +2,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:sec="http://www.springframework.org/schema/security" xmlns:oauth="http://www.springframework.org/schema/security/oauth2"
   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
-    http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.2.xsd
+    http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.2.xsd
     http://www.springframework.org/schema/security/oauth2 http://www.springframework.org/schema/security/spring-security-oauth2.xsd">
 
   <!-- OAuth2 -->
@@ -14,10 +14,6 @@
 
   <bean id="oauthAccessDeniedHandler" class="org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler" />
 
-  <bean id="clientCredentialsTokenEndpointFilter" class="org.springframework.security.oauth2.provider.client.ClientCredentialsTokenEndpointFilter">
-    <property name="authenticationManager" ref="authenticationManager" />
-  </bean>
-
   <oauth:resource-server id="resourceServerFilter" token-services-ref="tokenServices" entry-point-ref="oauthAuthenticationEntryPoint" />
 
   <sec:http pattern="/uaa/oauth/token/**" create-session="stateless" authentication-manager-ref="authenticationManager" disable-url-rewriting="true"
@@ -25,9 +21,8 @@
     <sec:intercept-url pattern="/uaa/oauth/token/**" access="IS_AUTHENTICATED_FULLY" method="POST" />
     <sec:anonymous enabled="false" />
     <sec:http-basic entry-point-ref="oauthAuthenticationEntryPoint" />
-    <sec:custom-filter ref="clientCredentialsTokenEndpointFilter" before="BASIC_AUTH_FILTER" />
     <sec:access-denied-handler ref="oauthAccessDeniedHandler" />
-    <!-- <sec:csrf disabled="true" /> -->
+    <sec:csrf disabled="true" />
   </sec:http>
 
   <sec:http pattern="/uaa/oauth/authorize/**" authentication-manager-ref="authenticationManager" disable-url-rewriting="true" use-expressions="false"
@@ -40,7 +35,7 @@
       username-parameter="j_username" password-parameter="j_password"
       login-page="/dhis-web-commons/security/login.action"
       login-processing-url="/dhis-web-commons-security/login.action" />
-    <!-- <sec:csrf disabled="true" /> -->
+    <sec:csrf disabled="true" />
   </sec:http>
 
   <bean id="mappedRedirectStrategy" class="org.hisp.dhis.security.MappedRedirectStrategy">
@@ -112,7 +107,7 @@
       <sec:xss-protection />
     </sec:headers>
 
-    <!-- <sec:csrf disabled="true" /> -->
+    <sec:csrf disabled="true" />
 
     <sec:http-basic />
     <sec:logout logout-url="/dhis-web-commons-security/logout.action" logout-success-url="/" />

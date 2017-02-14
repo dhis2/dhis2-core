@@ -611,6 +611,6 @@
 
   <bean id="org.hisp.dhis.appcache.CacheManifestAction" class="org.hisp.dhis.appcache.CacheManifestAction" />
 
-  <!-- <bean class="org.hisp.dhis.security.DefaultRolesPrefixPostProcessor" /> -->
+  <bean class="org.hisp.dhis.security.DefaultRolesPrefixPostProcessor" />
 
 </beans>
