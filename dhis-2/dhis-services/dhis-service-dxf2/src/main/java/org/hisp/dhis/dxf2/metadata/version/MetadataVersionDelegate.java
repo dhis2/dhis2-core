@@ -50,7 +50,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Handling remote calls for metadata version
+ * Handling remote calls for metadata version.
  *
  * @author anilkumk
  */
@@ -101,6 +101,7 @@ public class MetadataVersionDelegate
     {
         String url;
         List<MetadataVersion> metadataVersions = new ArrayList<>();
+        
         if ( metadataVersion == null )
         {
             url = metadataSystemSettingService.getEntireVersionHistory();
@@ -134,7 +135,7 @@ public class MetadataVersionDelegate
         return metadataVersions;
     }
 
-    public String downloadMetadataVersion( MetadataVersion version )
+    public String downloadMetadataVersionSnapshot(MetadataVersion version )
         throws MetadataVersionServiceException
     {
         String downloadVersionSnapshotURL = metadataSystemSettingService.getDownloadVersionSnapshotURL( version.getName() );
@@ -172,7 +173,7 @@ public class MetadataVersionDelegate
     {
         AvailabilityStatus remoteServerAvailable = synchronizationManager.isRemoteServerAvailable();
 
-        if ( !(remoteServerAvailable.isAvailable()) )
+        if ( !( remoteServerAvailable.isAvailable() ) )
         {
             String message = remoteServerAvailable.getMessage();
             log.error( message );
@@ -191,18 +192,16 @@ public class MetadataVersionDelegate
         }
         catch ( Exception e )
         {
-            String message = "Exception occurred while trying to make the GET call to" + url;
+            String message = "Exception occurred while trying to make the GET call to URL: " + url;
             log.error( message, e );
             throw new MetadataVersionServiceException( message, e );
         }
 
         return dhisHttpResponse;
-
     }
 
     private boolean isValidDhisHttpResponse( DhisHttpResponse dhisHttpResponse )
     {
-
         if ( dhisHttpResponse == null || dhisHttpResponse.getResponse().isEmpty() )
         {
             log.warn( "Dhis http response is null" );

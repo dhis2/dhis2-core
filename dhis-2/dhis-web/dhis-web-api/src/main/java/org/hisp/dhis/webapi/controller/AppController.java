@@ -94,7 +94,6 @@ public class AppController
     @Autowired
     protected ContextService contextService;
 
-
     // -------------------------------------------------------------------------
     // Resources
     // -------------------------------------------------------------------------
@@ -134,7 +133,7 @@ public class AppController
     }
 
     @RequestMapping( method = RequestMethod.POST )
-    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-maintenance-appmanager')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void installApp( @RequestParam( "file" ) MultipartFile file )
         throws IOException, WebMessageException
@@ -153,7 +152,7 @@ public class AppController
     }
 
     @RequestMapping( method = RequestMethod.PUT )
-    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-maintenance-appmanager')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void reloadApps()
     {
@@ -228,7 +227,7 @@ public class AppController
     }
 
     @RequestMapping( value = "/{app}", method = RequestMethod.DELETE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-maintenance-appmanager')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteApp( @PathVariable( "app" ) String app, @RequestParam( required = false ) boolean deleteAppData )
         throws WebMessageException
@@ -246,7 +245,7 @@ public class AppController
 
     @SuppressWarnings( "unchecked" )
     @RequestMapping( value = "/config", method = RequestMethod.POST, consumes = ContextUtils.CONTENT_TYPE_JSON )
-    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-maintenance-appmanager')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void setConfig( HttpServletRequest request )
         throws IOException, WebMessageException

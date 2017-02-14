@@ -60,7 +60,7 @@ public class MetadataVersionNameGenerator
             }
             catch ( NumberFormatException nfe )
             {
-                String message = "Invalid version name found in the db. Please contact system admin";
+                String message = "Invalid version name found: " + versionNameSuffix;
                 log.error( message, nfe );
 
                 throw new MetadataVersionServiceException( message, nfe );

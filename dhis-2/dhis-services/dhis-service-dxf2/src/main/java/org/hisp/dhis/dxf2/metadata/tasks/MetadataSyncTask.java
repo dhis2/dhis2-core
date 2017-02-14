@@ -35,6 +35,7 @@ import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPreProcessor;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
+import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.metadata.version.MetadataVersion;
@@ -99,7 +100,7 @@ public class MetadataSyncTask
                     return null;
                 }
                 , retryContext -> {
-                    log.info( "Retries Exhausted. Sending mail to Admin" );
+                    log.info( "Metadata Sync failed! Sending mail to Admin" );
                     updateMetadataVersionFailureDetails( metadataRetryContext );
                     metadataSyncPostProcessor.sendFailureMailToAdmin( metadataRetryContext );
                     return null;
@@ -111,7 +112,7 @@ public class MetadataSyncTask
         }
     }
 
-    public synchronized void runSyncTask( MetadataRetryContext context ) throws MetadataSyncServiceException
+    public synchronized void runSyncTask( MetadataRetryContext context ) throws MetadataSyncServiceException, DhisVersionMismatchException
     {
         metadataSyncPreProcessor.setUp( context );
 
@@ -127,11 +128,18 @@ public class MetadataSyncTask
         {
             for ( MetadataVersion dataVersion : metadataVersionList )
             {
-                MetadataSyncSummary metadataSyncSummary = handleMetadataSync( context, dataVersion );
+                MetadataSyncParams syncParams = new MetadataSyncParams( new MetadataImportParams(), dataVersion );
+                boolean isSyncRequired = metadataSyncService.isSyncRequired(syncParams);
+                MetadataSyncSummary metadataSyncSummary = null;
 
-                if ( metadataSyncSummary.getImportReport() == null && metadataSyncSummary.getMetadataVersion() != null )
+                if ( isSyncRequired )
                 {
-                    log.error( metadataSyncSummary.getMetadataVersion().getName() + " already exists in system and hence stopping the sync." );
+                    metadataSyncSummary = handleMetadataSync( context, dataVersion );
+                }
+                else
+                {
+                    metadataSyncPostProcessor.handleVersionAlreadyExists( context, dataVersion );
+                    break;
                 }
 
                 boolean abortStatus = metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus( metadataSyncSummary, context, dataVersion );
@@ -146,14 +154,14 @@ public class MetadataSyncTask
             }
         }
 
-        log.info( "Metadata Sync cron Job ended " );
+        log.info( "Metadata sync cron job ended " );
     }
 
     //----------------------------------------------------------------------------------------
     // Private Methods
     //----------------------------------------------------------------------------------------
 
-    private MetadataSyncSummary handleMetadataSync( MetadataRetryContext context, MetadataVersion dataVersion )
+    private MetadataSyncSummary handleMetadataSync( MetadataRetryContext context, MetadataVersion dataVersion ) throws DhisVersionMismatchException
     {
 
         MetadataSyncParams syncParams = new MetadataSyncParams( new MetadataImportParams(), dataVersion );
@@ -169,7 +177,11 @@ public class MetadataSyncTask
             context.updateRetryContext( METADATA_SYNC, e.getMessage(), dataVersion );
             throw e;
         }
-
+        catch ( DhisVersionMismatchException e )
+        {
+            context.updateRetryContext( METADATA_SYNC, e.getMessage(), dataVersion );
+            throw e;
+        }
         return metadataSyncSummary;
 
     }
@@ -184,7 +196,6 @@ public class MetadataSyncTask
             systemSettingManager.saveSystemSetting( SettingKey.METADATA_FAILED_VERSION, metadataVersion.getName() );
             systemSettingManager.saveSystemSetting( SettingKey.METADATA_LAST_FAILED_TIME, new Date() );
         }
-
     }
 
     private void clearFailedVersionSettings()

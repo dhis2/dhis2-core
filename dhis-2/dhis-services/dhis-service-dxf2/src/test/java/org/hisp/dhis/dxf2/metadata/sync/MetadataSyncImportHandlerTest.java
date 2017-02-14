@@ -29,6 +29,7 @@
 package org.hisp.dhis.dxf2.metadata.sync;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.dxf2.common.Status;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
@@ -42,6 +43,7 @@ import org.hisp.dhis.render.RenderService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.ExpectedException;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -58,7 +60,7 @@ import static org.mockito.Mockito.*;
 /**
  * @author anilkumk
  */
-
+@Category( IntegrationTest.class )
 public class MetadataSyncImportHandlerTest
     extends DhisSpringTest
 {

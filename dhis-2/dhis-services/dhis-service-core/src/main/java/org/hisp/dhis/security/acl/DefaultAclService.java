@@ -185,6 +185,16 @@ public class DefaultAclService implements AclService
             return false;
         }
 
+        for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
+        {
+            /* Is the user allowed to read this object through group access? */
+            if ( AccessStringHelper.canWrite( userGroupAccess.getAccess() )
+                && userGroupAccess.getUserGroup().getMembers().contains( user ) )
+            {
+                return true;
+            }
+        }
+
         List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.UPDATE );
         anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE ) );
         anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ) );
@@ -384,13 +394,19 @@ public class DefaultAclService implements AclService
             return errorReports;
         }
 
+        if ( !AccessStringHelper.isValid( object.getPublicAccess() ) )
+        {
+            errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3010, object.getPublicAccess() ) );
+            return errorReports;
+        }
+
         boolean canMakePublic = canCreatePublic( user, object.getClass() );
         boolean canMakePrivate = canCreatePrivate( user, object.getClass() );
-        boolean canExternalize = canExternalize( user, object.getClass() );
+        boolean canMakeExternal = canExternalize( user, object.getClass() );
 
         if ( object.getExternalAccess() )
         {
-            if ( !canExternalize )
+            if ( !canMakeExternal )
             {
                 errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3006, user.getUsername(), object.getClass() ) );
             }

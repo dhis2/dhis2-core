@@ -1,7 +1,7 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.dxf2.metadata.sync.exception;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,28 +28,23 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.interpretation.InterpretationComment;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author aamerm
  */
-public class InterpretationCommentSchemaDescriptor implements SchemaDescriptor
+public class DhisVersionMismatchException extends Exception
 {
-    public static final String SINGULAR = "interpretationComment";
-
-    public static final String PLURAL = "interpretationComments";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
+    public DhisVersionMismatchException( String message )
     {
-        Schema schema = new Schema( InterpretationComment.class, SINGULAR, PLURAL );
-        schema.setMetadata( false );
-        schema.setOrder( 1441 );
+        super( message );
+    }
 
-        return schema;
+    public DhisVersionMismatchException( Throwable cause )
+    {
+        super( cause );
+    }
+
+    public DhisVersionMismatchException( String message, Throwable cause )
+    {
+        super( message, cause );
     }
 }
