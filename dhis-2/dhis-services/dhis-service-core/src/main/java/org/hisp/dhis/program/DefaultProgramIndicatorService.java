@@ -273,6 +273,8 @@ public class DefaultProgramIndicatorService
         }
 
         expression = TextUtils.removeNewlines( expression );
+        
+        expression = getSubstitutedNullOrEmptyAnalyticsSql( expression );
 
         expression = getSubstitutedVariablesForAnalyticsSql( expression );
 
@@ -322,6 +324,27 @@ public class DefaultProgramIndicatorService
             }
         }
 
+        return TextUtils.appendTail( matcher, buffer );
+    }
+    
+    private String getSubstitutedNullOrEmptyAnalyticsSql( String expression )
+    {
+        if ( expression == null )
+        {
+            return null;
+        }
+
+        StringBuffer buffer = new StringBuffer();
+
+        Matcher matcher = ProgramIndicator.NULLOREMPTY_PATTERN.matcher( expression );
+
+        while ( matcher.find() )
+        {
+            String expressionVariable = trim( matcher.group( 1 ) );
+            
+            matcher.appendReplacement( buffer, expressionVariable + " is null " );
+        }
+        
         return TextUtils.appendTail( matcher, buffer );
     }
 
