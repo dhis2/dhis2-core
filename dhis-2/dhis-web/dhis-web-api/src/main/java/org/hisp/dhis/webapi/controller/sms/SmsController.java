@@ -148,7 +148,7 @@ public class SmsController
         }
         else
         {
-            throw new WebMessageException( WebMessageUtils.error( "SMS failed" ) );
+            throw new WebMessageException( WebMessageUtils.error( status.getDescription() ) );
         }
     }
 
@@ -167,7 +167,7 @@ public class SmsController
         }
         else
         {
-            throw new WebMessageException( WebMessageUtils.error( "SMS failed" ) );
+            throw new WebMessageException( WebMessageUtils.error( status.getDescription() ) );
         }
     }
 

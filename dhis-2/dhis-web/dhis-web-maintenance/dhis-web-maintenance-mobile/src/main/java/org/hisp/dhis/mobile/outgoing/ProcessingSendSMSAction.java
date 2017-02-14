@@ -282,12 +282,6 @@ public class ProcessingSendSMSAction
             return ERROR;
         }
 
-        OutboundSms sms = new OutboundSms();
-        sms.setMessage( text );
-        sms.setRecipients( recipientsList.stream().map( item -> item.getPhoneNumber() ).collect( Collectors.toSet() ) );
-
-        outboundSmsService.saveOutboundSms( sms );
-
         return SUCCESS;
     }
 }
