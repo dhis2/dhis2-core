@@ -30,6 +30,7 @@ package org.hisp.dhis.sms.task;
 
 import java.util.List;
 import java.util.HashSet;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
@@ -37,6 +38,9 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.sms.MessageResponseStatus;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.sms.outbound.OutboundSms;
+import org.hisp.dhis.sms.outbound.OutboundSmsService;
+import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +54,9 @@ public class SendSmsTask
 
     @Autowired
     private Notifier notifier;
+
+    @Autowired
+    private OutboundSmsService outboundSmsService;
 
     // -------------------------------------------------------------------------
     // Input & Output
@@ -87,10 +94,24 @@ public class SendSmsTask
 
         status = smsSender.sendMessage( smsSubject, text, null, currentUser, new HashSet<>( recipientsList ), false );
 
+        OutboundSms sms = new OutboundSms();
+        sms.setMessage( text );
+        sms.setRecipients( recipientsList.stream().map( item -> item.getPhoneNumber() ).collect( Collectors.toSet() ) );
+
         if ( status.isOk() )
         {
-            notifier.notify( taskId, "All Messages Sent" );
+            notifier.notify( taskId, "Message sending successful" );
+
+            sms.setStatus( OutboundSmsStatus.SENT );
         }
+        else
+        {
+            notifier.notify( taskId, "Message sending failed" );
+
+            sms.setStatus( OutboundSmsStatus.FAILED );
+        }
+
+        outboundSmsService.saveOutboundSms( sms );
     }
 
     public MessageResponseStatus getStatus()
