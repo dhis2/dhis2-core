@@ -129,6 +129,7 @@ public class TableAlteror
         executeSql( "DROP TABLE datadictionaryindicators" );
         executeSql( "DROP TABLE datadictionarydataelements" );
         executeSql( "DROP TABLE datadictionary" );
+        executeSql( "DROP TABLE caseaggregationcondition" );
         executeSql( "ALTER TABLE categoryoptioncombo drop column userid" );
         executeSql( "ALTER TABLE categoryoptioncombo drop column publicaccess" );
         executeSql( "ALTER TABLE categoryoptioncombo alter column name type text" );
