@@ -29,13 +29,12 @@ package org.hisp.dhis.dxf2.metadata.sync;
  */
 
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
-import org.hisp.dhis.metadata.version.MetadataVersion;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * MetadataSyncService defines the methods avaibale for initiating sync related methods
+ * MetadataSyncService defines the methods available for initiating sync related methods
  *
  * @author vanyas
  */
