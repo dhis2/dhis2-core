@@ -41,11 +41,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class PrePostSecurityAnnotationsTest extends DhisWebSpringTest
 {
     @Test
-    public void doTest() throws Exception
+    public void authorityAllCanAccessApps() throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
 
         mvc.perform( put( "/apps" ).session( session ) )
             .andExpect( status().isNoContent() );
+    }
+
+    @Test
+    public void authorityNoAuthorityCantAccessApps() throws Exception
+    {
+        MockHttpSession session = getSession( "NO_AUTHORITY" );
+
+        mvc.perform( put( "/apps" ).session( session ) )
+            .andExpect( status().isForbidden() );
     }
 }

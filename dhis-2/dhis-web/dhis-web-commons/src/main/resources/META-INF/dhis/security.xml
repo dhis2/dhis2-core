@@ -202,17 +202,17 @@
 
   <bean id="authenticatedVoter" class="org.springframework.security.access.vote.AuthenticatedVoter" />
 
-  <!--
-  <bean id="expressionHandler" class="org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler">
+  <bean id="methodSecurityExpressionHandler" class="org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler">
+    <property name="defaultRolePrefix" value="" />
+  </bean>
+
+  <bean id="webSecurityExpressionHandler" class="org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler">
     <property name="defaultRolePrefix" value="" />
   </bean>
 
   <bean id="webExpressionVoter" class="org.springframework.security.web.access.expression.WebExpressionVoter">
-    <property name="expressionHandler" ref="expressionHandler" />
+    <property name="expressionHandler" ref="webSecurityExpressionHandler" />
   </bean>
-  -->
-
-  <bean id="webExpressionVoter" class="org.springframework.security.web.access.expression.WebExpressionVoter" />
 
   <bean id="externalAccessVoter" class="org.hisp.dhis.security.vote.ExternalAccessVoter" />
 
@@ -223,21 +223,9 @@
         <ref bean="regularAccessDecisionVoting" />
         <ref bean="webAccessDecisionVoting" />
         <ref bean="externalAccessDecisionVoting" />
-        <!-- <ref bean="scopeAccessDecisionVoting" /> We don't use scopes right now-->
       </list>
     </property>
   </bean>
-
-  <!--
-  <bean id="scopeVoter" class="org.springframework.security.oauth2.provider.vote.ScopeVoter" />
-  <bean id="scopeAccessDecisionVoting" class="org.springframework.security.access.vote.UnanimousBased">
-    <constructor-arg name="decisionVoters">
-      <list>
-        <ref bean="scopeVoter" />
-      </list>
-    </constructor-arg>
-  </bean>
-  -->
 
   <bean id="adminAccessDecisionVoting" class="org.springframework.security.access.vote.UnanimousBased">
     <constructor-arg name="decisionVoters">
