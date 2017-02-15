@@ -47,7 +47,6 @@ public class DefaultRolesPrefixPostProcessor implements BeanPostProcessor, Prior
     public Object postProcessAfterInitialization( Object bean, String beanName )
         throws BeansException
     {
-        /*
         if ( bean instanceof Jsr250MethodSecurityMetadataSource )
         {
             ((Jsr250MethodSecurityMetadataSource) bean).setDefaultRolePrefix( null );
@@ -67,7 +66,6 @@ public class DefaultRolesPrefixPostProcessor implements BeanPostProcessor, Prior
         {
             ((SecurityContextHolderAwareRequestFilter) bean).setRolePrefix( "" );
         }
-        */
 
         return bean;
     }
