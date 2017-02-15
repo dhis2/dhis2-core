@@ -36,7 +36,7 @@ package org.hisp.dhis.common;
  * to all versions using the <code>ALL</code> value.
  * <p>
  * TODO The <code>DEFAULT</code> version must be updated for each release.
- * 
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public enum DhisApiVersion
@@ -46,7 +46,8 @@ public enum DhisApiVersion
     V24( 24 ),
     V25( 25 ),
     V26( 26 ),
-    DEFAULT( V26.getVersion() );
+    V27( 27 ),
+    DEFAULT( V27.getVersion() );
 
     final int version;
 
@@ -82,18 +83,18 @@ public enum DhisApiVersion
     /**
      * Indicates whether this version is equal to the given
      * version.
-     * 
+     *
      * @param apiVersion the API version.
      */
     public boolean eq( DhisApiVersion apiVersion )
     {
         return version == apiVersion.getVersion();
     }
-    
+
     /**
-     * Indicates whether this version is less than the given 
+     * Indicates whether this version is less than the given
      * version.
-     * 
+     *
      * @param apiVersion the API version.
      */
     public boolean lt( DhisApiVersion apiVersion )
@@ -102,9 +103,9 @@ public enum DhisApiVersion
     }
 
     /**
-     * Indicates whether this version is less than or equal to 
+     * Indicates whether this version is less than or equal to
      * the given version.
-     * 
+     *
      * @param apiVersion the API version.
      */
     public boolean le( DhisApiVersion apiVersion )
@@ -113,9 +114,9 @@ public enum DhisApiVersion
     }
 
     /**
-     * Indicates whether this version is greater than the given 
+     * Indicates whether this version is greater than the given
      * version.
-     * 
+     *
      * @param apiVersion the API version.
      */
     public boolean gt( DhisApiVersion apiVersion )
@@ -124,9 +125,9 @@ public enum DhisApiVersion
     }
 
     /**
-     * Indicates whether this version is greater than or equal to 
+     * Indicates whether this version is greater than or equal to
      * the given version.
-     * 
+     *
      * @param apiVersion the API version.
      */
     public boolean ge( DhisApiVersion apiVersion )
