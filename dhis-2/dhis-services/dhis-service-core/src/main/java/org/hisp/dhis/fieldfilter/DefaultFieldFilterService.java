@@ -199,6 +199,11 @@ public class DefaultFieldFilterService implements FieldFilterService
 
             FieldMap fieldValue = fieldMap.get( fieldKey );
 
+            if ( returnValue == null && property.isCollection() )
+            {
+                continue;
+            }
+
             if ( property.isCollection() )
             {
                 updateFields( fieldValue, property.getItemKlass() );
