@@ -35,6 +35,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 
 /**
  * @author Jan Henrik Overland
@@ -76,6 +77,7 @@ public class Legend
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = Integer.MIN_VALUE )
     public Double getStartValue()
     {
         return startValue;
@@ -88,6 +90,7 @@ public class Legend
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = Integer.MIN_VALUE )
     public Double getEndValue()
     {
         return endValue;
