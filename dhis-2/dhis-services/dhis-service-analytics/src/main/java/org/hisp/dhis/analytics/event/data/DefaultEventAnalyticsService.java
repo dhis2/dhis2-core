@@ -45,6 +45,7 @@ import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,7 +91,7 @@ public class DefaultEventAnalyticsService
 {
     private static final String NAME_EVENT = "Event";
     private static final String NAME_PROGRAM_STAGE = "Program stage";
-    private static final String NAME_EXECUTION_DATE = "Event date";
+    private static final String NAME_EVENT_DATE = "Event date";
     private static final String NAME_LONGITUDE = "Longitude";
     private static final String NAME_LATITUDE = "Latitude";
     private static final String NAME_ORG_UNIT_NAME = "Organisation unit name";
@@ -257,7 +258,7 @@ public class DefaultEventAnalyticsService
 
         grid.addHeader( new GridHeader( ITEM_EVENT, NAME_EVENT, ValueType.TEXT, String.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_PROGRAM_STAGE, NAME_PROGRAM_STAGE, ValueType.TEXT, String.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_EXECUTION_DATE, NAME_EXECUTION_DATE, ValueType.TEXT, String.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_EVENT_DATE, NAME_EVENT_DATE, ValueType.DATE, Date.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_LONGITUDE, NAME_LONGITUDE, ValueType.NUMBER, Double.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_LATITUDE, NAME_LATITUDE, ValueType.NUMBER, Double.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, ValueType.TEXT, String.class.getName(), false, true ) )
