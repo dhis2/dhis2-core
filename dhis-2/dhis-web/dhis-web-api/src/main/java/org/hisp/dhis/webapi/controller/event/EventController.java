@@ -281,12 +281,12 @@ public class EventController
         @RequestParam( required = false ) boolean totalPages,
         @RequestParam( required = false ) boolean skipPaging,
         @RequestParam( required = false ) String order,
-        @RequestParam( required = false ) String attachment,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
         @RequestParam( required = false ) String event,
         @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
     {
+
         WebOptions options = new WebOptions( parameters );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -324,11 +324,6 @@ public class EventController
 
         model.addAttribute( "model", events );
         model.addAttribute( "viewClass", options.getViewClass( "detailed" ) );
-
-        if ( !StringUtils.isEmpty( attachment ) )
-        {
-            response.addHeader( "Content-Disposition", "attachment; filename=" + attachment );
-        }
 
         RootNode rootNode = NodeUtils.createMetadata();
 
