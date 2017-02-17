@@ -193,6 +193,8 @@ public class SmsMessageSender
         {
             if ( smsGateway.accept( gatewayConfig ) )
             {
+                log.info( "Sending SMS to " + recipients );
+
                 OutboundMessageResponse status = smsGateway.send( subject, text, recipients, gatewayConfig );
 
                 return handleResponse( status );
