@@ -41,6 +41,8 @@ import java.text.SimpleDateFormat;
 
 import org.apache.commons.lang3.StringUtils;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.sms.parse.SMSParserException;
@@ -53,6 +55,8 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
  */
 public class SmsUtils
 {
+    private static final Log log = LogFactory.getLog( SmsUtils.class );
+
     private static int MAX_CHAR = 160;
 
     public static String getCommandString( IncomingSms sms )
@@ -212,8 +216,10 @@ public class SmsUtils
         {
             String phoneNumber = user.getPhoneNumber();
 
-            if ( StringUtils.trimToNull( phoneNumber ) != null )
+            if ( phoneNumber != null && !phoneNumber.isEmpty() )
             {
+                log.info( "Adding " + phoneNumber + " to list of recipients" );
+
                 recipients.add( phoneNumber );
             }
         }
