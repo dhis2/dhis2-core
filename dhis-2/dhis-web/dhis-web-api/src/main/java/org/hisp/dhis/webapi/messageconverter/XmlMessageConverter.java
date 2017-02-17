@@ -117,7 +117,7 @@ public class XmlMessageConverter extends AbstractHttpMessageConverter<RootNode>
             nodeService.serialize( rootNode, "application/xml", outputStream );
             outputStream.close();
         }
-        if ( Compression.ZIP == compression )
+        else if ( Compression.ZIP == compression )
         {
             outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=metadata.xml.zip" );
             outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
