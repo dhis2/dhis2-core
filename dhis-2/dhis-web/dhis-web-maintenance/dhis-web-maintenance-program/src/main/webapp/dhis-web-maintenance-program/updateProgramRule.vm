@@ -287,7 +287,7 @@
 		</td>
 		<tr>
 			<td>$i18n.getString('variable_name') <em title="$i18n.getString( "required" )" class="required">*</em></td>
-			<td><input type="text" id="variableName" name="variableName" style="width:247px;" onkeypress="return variableNameKeyPress(event)" />
+			<td><input type="text" id="variableName" name="variableName" style="width:247px;" onkeypress="variableNameKeyPress(event)" />
 			<span style="color:red;display:none;" id="variableNameError" ></span></td>
 		</td>
 		
