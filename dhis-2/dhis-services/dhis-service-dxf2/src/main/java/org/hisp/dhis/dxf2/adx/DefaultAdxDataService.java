@@ -329,8 +329,8 @@ public class DefaultAdxDataService
         dxfWriter.writeStartElement( "dataValueSet" );
         dxfWriter.writeDefaultNamespace( "http://dhis2.org/schema/dxf/2.0" );
 
-        IdentifiableProperty dataElementIdScheme = importOptions.getIdSchemes().getDataElementIdScheme()
-            .getIdentifiableProperty();
+        IdentifiableProperty dataElementIdScheme = importOptions.getIdSchemes().getDataElementIdScheme().getIdentifiableProperty();
+        IdentifiableProperty dataSetIdScheme = importOptions.getIdSchemes().getDataSetIdScheme().getIdentifiableProperty();
 
         Map<String, String> groupAttributes = adxReader.readAttributes();
 
@@ -356,7 +356,7 @@ public class DefaultAdxDataService
         {
             log.debug( "No attribute option combo present, check data set for attribute category combo" );
 
-            DataSet dataSet = identifiableObjectManager.getObject( DataSet.class, dataElementIdScheme,
+            DataSet dataSet = identifiableObjectManager.getObject( DataSet.class, dataSetIdScheme,
                 groupAttributes.get( AdxDataService.DATASET ) );
 
             if ( dataSet == null )
@@ -414,8 +414,7 @@ public class DefaultAdxDataService
             throw new AdxException( AdxDataService.VALUE + " attribute is required on 'dataValue'" );
         }
 
-        IdentifiableProperty dataElementIdScheme = importOptions.getIdSchemes().getDataElementIdScheme()
-            .getIdentifiableProperty();
+        IdentifiableProperty dataElementIdScheme = importOptions.getIdSchemes().getDataElementIdScheme().getIdentifiableProperty();
 
         DataElement dataElement = identifiableObjectManager.getObject( DataElement.class, dataElementIdScheme,
             dvAttributes.get( AdxDataService.DATAELEMENT ) );
