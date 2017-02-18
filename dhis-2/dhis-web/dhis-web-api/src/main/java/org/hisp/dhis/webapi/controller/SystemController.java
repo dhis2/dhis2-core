@@ -203,17 +203,7 @@ public class SystemController
 
             TaskId taskId = new TaskId( taskCategory, currentUserService.getCurrentUser() );
 
-            if ( taskCategory.equals( TaskCategory.DATAINTEGRITY ) ) //TODO
-            {
-                renderService.toJson( response.getOutputStream(), notifier.getTaskSummary( taskId ) );
-                return;
-            }
-            else
-            {
-                ImportSummary importSummary = (ImportSummary) notifier.getTaskSummary( taskId );
-                renderService.toJson( response.getOutputStream(), importSummary );
-                return;
-            }
+            renderService.toJson( response.getOutputStream(), notifier.getTaskSummary( taskId ) );
         }
 
         renderService.toJson( response.getOutputStream(), new ImportSummary() );
