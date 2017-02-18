@@ -202,8 +202,20 @@ public class SystemController
             TaskCategory taskCategory = TaskCategory.valueOf( category.toUpperCase() );
 
             TaskId taskId = new TaskId( taskCategory, currentUserService.getCurrentUser() );
+            
+            Object summary = notifier.getTaskSummary( taskId );
 
-            renderService.toJson( response.getOutputStream(), notifier.getTaskSummary( taskId ) );
+            if ( summary != null && summary.getClass().isAssignableFrom( ImportSummary.class ) ) //TODO improve this
+            {
+                ImportSummary importSummary = (ImportSummary) summary;
+                renderService.toJson( response.getOutputStream(), importSummary );
+                return;
+            }
+            else
+            {
+                renderService.toJson( response.getOutputStream(), summary );
+                return;
+            }
         }
 
         renderService.toJson( response.getOutputStream(), new ImportSummary() );
