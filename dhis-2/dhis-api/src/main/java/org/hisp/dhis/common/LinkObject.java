@@ -29,7 +29,7 @@ package org.hisp.dhis.common;
  */
 
 /**
- * Tag interface for marking an object to not be treated as a id object (even
+ * Marker interface for marking an object to not be treated as a id object (even
  * if the class itself implements id object), this object will not be treated as
  * normal metadata (no refs etc) but instead need to be contained in the entity
  * that owns it.
