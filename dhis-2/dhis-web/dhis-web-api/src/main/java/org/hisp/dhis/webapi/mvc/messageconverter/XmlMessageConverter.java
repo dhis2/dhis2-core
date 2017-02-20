@@ -111,16 +111,24 @@ public class XmlMessageConverter extends AbstractHttpMessageConverter<RootNode>
     {
         if ( Compression.GZIP == compression )
         {
-            outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=metadata.xml.gz" );
-            outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
+            if ( !outputMessage.getHeaders().containsKey( ContextUtils.HEADER_CONTENT_DISPOSITION ) )
+            {
+                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=metadata.xml.gz" );
+                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
+            }
+
             GZIPOutputStream outputStream = new GZIPOutputStream( outputMessage.getBody() );
             nodeService.serialize( rootNode, "application/xml", outputStream );
             outputStream.close();
         }
         else if ( Compression.ZIP == compression )
         {
-            outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=metadata.xml.zip" );
-            outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
+            if ( !outputMessage.getHeaders().containsKey( ContextUtils.HEADER_CONTENT_DISPOSITION ) )
+            {
+                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=metadata.xml.zip" );
+                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
+            }
+
             ZipOutputStream outputStream = new ZipOutputStream( outputMessage.getBody() );
             outputStream.putNextEntry( new ZipEntry( "metadata.xml" ) );
             nodeService.serialize( rootNode, "application/xml", outputStream );
