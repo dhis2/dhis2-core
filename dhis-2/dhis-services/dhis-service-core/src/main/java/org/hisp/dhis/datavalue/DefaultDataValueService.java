@@ -253,6 +253,14 @@ public class DefaultDataValueService
     // -------------------------------------------------------------------------
 
     @Override
+    public List<DataValue> getDataValues( DataExportParams params )
+    {
+        //TODO DataExportParams validation, move validate method from dxf2 service to core
+        
+        return dataValueStore.getDataValues( params );
+    }
+    
+    @Override
     public List<DataValue> getAllDataValues()
     {
         return dataValueStore.getAllDataValues();

@@ -31,6 +31,7 @@ package org.hisp.dhis.datavalue.hibernate;
 import org.apache.commons.lang3.StringUtils;
 
 import org.hibernate.Criteria;
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Projections;
@@ -44,6 +45,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
@@ -65,6 +67,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 
@@ -195,6 +198,114 @@ public class HibernateDataValueStore
 
     @Override
     @SuppressWarnings( "unchecked" )
+    public List<DataValue> getDataValues( DataExportParams params )
+    {
+        Set<DataElement> dataElements = params.getAllDataElements();
+        Set<OrganisationUnit> organisationUnits = params.getAllOrganisationUnits();
+
+        // ---------------------------------------------------------------------
+        // HQL parameters
+        // ---------------------------------------------------------------------
+
+        String hql = 
+            "select dv from DataValue dv " +
+            "inner join dv.dataElement de " +
+            "inner join dv.period pe " +
+            "inner join dv.source ou " +
+            "inner join dv.categoryOptionCombo co " +
+            "inner join dv.attributeOptionCombo ao " +
+            "where de.id in (:dataElements) ";
+
+        if ( params.hasPeriods() )
+        {
+            hql += "and pe.id in (:periods) ";
+        }
+        else if ( params.hasStartEndDate() )
+        {
+            hql += "and (pe.startDate >= :startDate and pe.endDate < :endDate) ";
+        }
+        
+        if ( params.isIncludeChildrenForOrganisationUnits() )
+        {
+            hql += "and (";
+            
+            for ( OrganisationUnit unit : params.getOrganisationUnits() )
+            {
+                hql += "ou.path like '" + unit.getPath() + "%' or ";
+            }
+            
+            hql = TextUtils.removeLastOr( hql );
+            
+            hql += ") ";
+        }
+        else if ( !organisationUnits.isEmpty() )
+        {
+            hql += "and ou.id in (:orgUnits) ";
+        }
+        
+        if ( params.hasAttributeOptionCombos() )
+        {
+            hql += "and ao.id in (:attributeOptionCombos) ";
+        }
+        
+        if ( params.hasLastUpdated() )
+        {
+            hql += "and dv.lastUpdated >= :lastUpdated ";
+        }
+
+        if ( !params.isIncludeDeleted() )
+        {
+            hql += "and dv.deleted is false ";
+        }
+
+        // ---------------------------------------------------------------------
+        // Query parameters
+        // ---------------------------------------------------------------------
+
+        Query query = sessionFactory.getCurrentSession()
+            .createQuery( hql )
+            .setParameterList( "dataElements", getIdentifiers( dataElements ) );
+
+        if ( params.hasPeriods() )
+        {
+            Set<Period> periods = params.getPeriods().stream()
+                .map( p -> periodStore.reloadPeriod( p ) )
+                .collect( Collectors.toSet() );
+            
+            query.setParameterList( "periods", getIdentifiers( periods ) );
+        }
+        else if ( params.hasStartEndDate() )
+        {
+            query.setDate( "startDate", params.getStartDate() ).setDate( "endDate", params.getEndDate() );
+        }
+
+        if ( !params.isIncludeChildrenForOrganisationUnits() && !organisationUnits.isEmpty() )
+        {
+            query.setParameterList( "orgUnits", getIdentifiers( organisationUnits ) );
+        }
+        
+        if ( params.hasAttributeOptionCombos() )
+        {
+            query.setParameterList( "attributeOptionCombos", getIdentifiers( params.getAttributeOptionCombos() ) );
+        }
+        
+        if ( params.hasLastUpdated() )
+        {
+            query.setDate( "lastUpdated", params.getLastUpdated() );
+        }
+        
+        if ( params.hasLimit() )
+        {
+            query.setMaxResults( params.getLimit() );
+        }
+        
+        // TODO last updated duration support
+
+        return query.list();
+    }
+    
+    @Override
+    @SuppressWarnings( "unchecked" )
     public List<DataValue> getAllDataValues()
     {
         return sessionFactory.getCurrentSession()
@@ -238,7 +349,7 @@ public class HibernateDataValueStore
         {
             criteria.add( Restrictions.in( "source", organisationUnits ) );
         }
-            
+        
         return criteria.list();
     }
 

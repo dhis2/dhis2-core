@@ -114,6 +114,14 @@ public interface DataValueStore
     // -------------------------------------------------------------------------
 
     /**
+     * Returns data values for the given data export parameters.
+     * 
+     * @param params the data export parameters.
+     * @return a list of data values.
+     */
+    List<DataValue> getDataValues( DataExportParams params );
+    
+    /**
      * Returns all DataValues.
      * 
      * @return a list of all DataValues.

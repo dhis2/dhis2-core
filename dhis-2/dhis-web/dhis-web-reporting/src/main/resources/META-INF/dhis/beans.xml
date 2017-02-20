@@ -7,10 +7,7 @@
   <!-- Document -->
 
   <bean id="org.hisp.dhis.reporting.document.action.SaveDocumentAction" class="org.hisp.dhis.reporting.document.action.SaveDocumentAction"
-    scope="prototype">
-    <property name="locationManager" ref="locationManager" />
-    <property name="documentService" ref="org.hisp.dhis.document.DocumentService" />
-  </bean>
+    scope="prototype" />
 
   <bean id="org.hisp.dhis.reporting.document.action.GetDocumentAction" class="org.hisp.dhis.reporting.document.action.GetDocumentAction"
     scope="prototype">

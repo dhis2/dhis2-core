@@ -77,7 +77,6 @@ public class HibernateUserStore
         {
             hql += "left join u.organisationUnits ou ";
 
-
             if ( params.getIncludeOrgUnitChildren() )
             {
                 hql += hlp.whereAnd() + " ou.path like :organisationUnitUid ";
@@ -86,7 +85,6 @@ public class HibernateUserStore
             {
                 hql += hlp.whereAnd() + " ou = :organisationUnit ";
             }
-
         }
 
         if ( params.getQuery() != null )
