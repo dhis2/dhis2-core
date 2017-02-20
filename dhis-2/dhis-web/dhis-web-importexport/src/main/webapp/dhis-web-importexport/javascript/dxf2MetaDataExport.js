@@ -82,7 +82,7 @@ function exportMetaData() {
     $( '#mapViews' ).removeAttr( 'checked' );
   }
 
-  var url = "../api/25/metadata";
+  var url = "../api/27/metadata";
   var format = $( "#format" ).val();
   var compression = $( "#compression" ).val();
   var sharing = $( "#sharing" ).val() === "true";
