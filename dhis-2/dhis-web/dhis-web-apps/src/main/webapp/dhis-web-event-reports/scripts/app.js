@@ -3203,7 +3203,7 @@ console.log("favorite.id", favorite.id);
 							this.currentValue = this.getValue();
 
 							var value = this.getValue(),
-								url = value ? encodeURI(ns.core.init.contextPath + '/api/eventReports.json?fields=id,displayName|rename(name),access&filter=displayName:ilike:' + value) : null;
+								url = value ? encodeURI(ns.core.init.contextPath + '/api/eventReports.json?fields=id,displayName~rename(name),access&filter=displayName:ilike:' + value) : null;
 								store = ns.app.stores.eventReport;
 
 							store.page = 1;
@@ -3219,7 +3219,7 @@ console.log("favorite.id", favorite.id);
 			text: NS.i18n.prev,
 			handler: function() {
 				var value = searchTextfield.getValue(),
-					url = value ? encodeURI(ns.core.init.contextPath + '/api/eventReports?fields=id,displayName|rename(name),access' + (value ? '&filter=displayName:ilike:' + value : '')) : null,
+					url = value ? encodeURI(ns.core.init.contextPath + '/api/eventReports?fields=id,displayName~rename(name),access' + (value ? '&filter=displayName:ilike:' + value : '')) : null,
 					store = ns.app.stores.eventReport;
 
 				store.page = store.page <= 1 ? 1 : store.page - 1;
@@ -3231,7 +3231,7 @@ console.log("favorite.id", favorite.id);
 			text: NS.i18n.next,
 			handler: function() {
 				var value = searchTextfield.getValue(),
-					url = value ? encodeURI(ns.core.init.contextPath + '/api/eventReports.json?fields=id,displayName|rename(name),access' + (value ? '&filter=displayName:ilike:' + value : '')) : null,
+					url = value ? encodeURI(ns.core.init.contextPath + '/api/eventReports.json?fields=id,displayName~rename(name),access' + (value ? '&filter=displayName:ilike:' + value : '')) : null,
 					store = ns.app.stores.eventReport;
 
 				store.page = store.page + 1;
@@ -4474,9 +4474,9 @@ console.log("favorite.id", favorite.id);
                     url: encodeURI([
                         ns.core.init.contextPath + '/api/programs.json',
                         '?filter=id:eq:' + programId,
-                        '&fields=programStages[id,displayName|rename(name)]',
+                        '&fields=programStages[id,displayName~rename(name)]',
                         ',programIndicators[id,' + namePropertyUrl + ']',
-                        ',programTrackedEntityAttributes[trackedEntityAttribute[id,' + namePropertyUrl +',valueType,confidential,optionSet[id,displayName|rename(name)],legendSet[id,displayName|rename(name)]]]',
+                        ',programTrackedEntityAttributes[trackedEntityAttribute[id,' + namePropertyUrl +',valueType,confidential,optionSet[id,displayName~rename(name)],legendSet[id,displayName~rename(name)]]]',
                         ',categoryCombo[id,' + namePropertyUrl + ',categories[id,' + namePropertyUrl + ',categoryOptions[id,' + namePropertyUrl + ']]]',
                         '&paging=false'
                     ].join('')),
@@ -4608,7 +4608,7 @@ console.log("favorite.id", favorite.id);
             }
             else {
                 Ext.Ajax.request({
-                    url: encodeURI(ns.core.init.contextPath + '/api/programStages.json?filter=id:eq:' + stageId + '&fields=programStageDataElements[dataElement[id,' + namePropertyUrl + ',valueType,optionSet[id,displayName|rename(name)],legendSet|rename(storageLegendSet)[id,displayName|rename(name)]]]'),
+                    url: encodeURI(ns.core.init.contextPath + '/api/programStages.json?filter=id:eq:' + stageId + '&fields=programStageDataElements[dataElement[id,' + namePropertyUrl + ',valueType,optionSet[id,displayName~rename(name)],legendSet~rename(storageLegendSet)[id,displayName~rename(name)]]]'),
                     success: function(r) {
                         var objects = Ext.decode(r.responseText).programStages,
                             types = ns.core.conf.valueType.tAggregateTypes,
@@ -5924,7 +5924,7 @@ console.log("favorite.id", favorite.id);
 					format: 'json',
 					noCache: false,
 					extraParams: {
-						fields: 'children[id,' + ns.core.init.namePropertyUrl + ',children::isNotEmpty|rename(hasChildren)&paging=false'
+						fields: 'children[id,' + ns.core.init.namePropertyUrl + ',children::isNotEmpty~rename(hasChildren)&paging=false'
 					},
 					url: ns.core.init.contextPath + '/api/organisationUnits',
 					reader: {
@@ -7684,7 +7684,7 @@ console.log("favorite.id", favorite.id);
 			isLoaded: false,
 			pageSize: 10,
 			page: 1,
-			defaultUrl: ns.core.init.contextPath + '/api/eventReports.json?fields=id,displayName|rename(name),access',
+			defaultUrl: ns.core.init.contextPath + '/api/eventReports.json?fields=id,displayName~rename(name),access',
 			loadStore: function(url) {
 				this.proxy.url = encodeURI(url || this.defaultUrl);
 
@@ -8569,7 +8569,7 @@ console.log("favorite.id", favorite.id);
                                         contextPath = init.contextPath;
                                         keyUiLocale = init.userAccount.settings.keyUiLocale;
                                         keyAnalysisDisplayProperty = init.userAccount.settings.keyAnalysisDisplayProperty;
-                                        namePropertyUrl = keyAnalysisDisplayProperty + '|rename(name)';
+                                        namePropertyUrl = keyAnalysisDisplayProperty + '~rename(name)';
                                         dateFormat = init.systemInfo.dateFormat;
 
                                         init.namePropertyUrl = namePropertyUrl;
@@ -8651,7 +8651,7 @@ console.log("favorite.id", favorite.id);
 
                                         // organisation unit levels
                                         requests.push({
-                                            url: encodeURI(contextPath + '/api/organisationUnitLevels.json?fields=id,displayName|rename(name),level&paging=false'),
+                                            url: encodeURI(contextPath + '/api/organisationUnitLevels.json?fields=id,displayName~rename(name),level&paging=false'),
                                             success: function(r) {
                                                 init.organisationUnitLevels = Ext.decode(r.responseText).organisationUnitLevels || [];
 
@@ -8696,7 +8696,7 @@ console.log("favorite.id", favorite.id);
 
                                         // legend sets
                                         requests.push({
-                                            url: encodeURI(contextPath + '/api/legendSets.json?fields=id,displayName|rename(name),legends[id,displayName|rename(name),startValue,endValue,color]&paging=false'),
+                                            url: encodeURI(contextPath + '/api/legendSets.json?fields=id,displayName~rename(name),legends[id,displayName~rename(name),startValue,endValue,color]&paging=false'),
                                             success: function(r) {
                                                 init.legendSets = Ext.decode(r.responseText).legendSets || [];
                                                 fn();
