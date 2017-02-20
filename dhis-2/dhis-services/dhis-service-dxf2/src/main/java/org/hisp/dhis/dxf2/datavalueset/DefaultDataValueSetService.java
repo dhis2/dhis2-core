@@ -254,7 +254,7 @@ public class DefaultDataValueSetService
             throw new IllegalArgumentException( "Params cannot be null" );
         }
 
-        if ( params.getDataSets().isEmpty() && params.getDataElementGroups().isEmpty() )
+        if ( params.getDataElements().isEmpty() && params.getDataSets().isEmpty() && params.getDataElementGroups().isEmpty() )
         {
             violation = "At least one valid data set or data element group must be specified";
         }

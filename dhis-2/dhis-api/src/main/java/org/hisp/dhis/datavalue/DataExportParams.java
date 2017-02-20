@@ -50,6 +50,8 @@ import java.util.Set;
  */
 public class DataExportParams
 {
+    private Set<DataElement> dataElements = new HashSet<>();
+    
     private Set<DataSet> dataSets = new HashSet<>();
     
     private Set<DataElementGroup> dataElementGroups = new HashSet<>();
@@ -94,10 +96,24 @@ public class DataExportParams
     {
         final Set<DataElement> elements = Sets.newHashSet();
         
+        elements.addAll( dataElements );
         dataSets.forEach( ds -> elements.addAll( ds.getDataElements() ) );
         dataElementGroups.forEach( dg -> elements.addAll( dg.getMembers() ) );
         
         return ImmutableSet.copyOf( elements );
+    }
+    
+    public Set<OrganisationUnit> getAllOrganisationUnits()
+    {
+        final Set<OrganisationUnit> orgUnits = Sets.newHashSet();
+        orgUnits.addAll( organisationUnits );
+        
+        for ( OrganisationUnitGroup group : organisationUnitGroups )
+        {
+            orgUnits.addAll( group.getMembers() );
+        }
+        
+        return ImmutableSet.copyOf( orgUnits );
     }
     
     public DataSet getFirstDataSet()
@@ -123,6 +139,11 @@ public class DataExportParams
     public boolean hasOrganisationUnits()
     {
         return organisationUnits != null && !organisationUnits.isEmpty();
+    }
+    
+    public boolean isIncludeChildrenForOrganisationUnits()
+    {
+        return includeChildren && hasOrganisationUnits();
     }
 
     public OrganisationUnit getFirstOrganisationUnit()
@@ -168,6 +189,7 @@ public class DataExportParams
     public String toString()
     {
         return MoreObjects.toStringHelper( this ).
+            add( "data elements", dataElements ).
             add( "data sets", dataSets ).
             add( "data element groups", dataElementGroups ).
             add( "periods", periods ).
@@ -182,6 +204,17 @@ public class DataExportParams
     // -------------------------------------------------------------------------
     // Get and set methods
     // -------------------------------------------------------------------------
+
+    public Set<DataElement> getDataElements()
+    {
+        return dataElements;
+    }
+
+    public DataExportParams setDataElements( Set<DataElement> dataElements )
+    {
+        this.dataElements = dataElements;
+        return this;
+    }
 
     public Set<DataSet> getDataSets()
     {
