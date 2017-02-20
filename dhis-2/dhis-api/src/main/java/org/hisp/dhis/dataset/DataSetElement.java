@@ -34,6 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.LinkObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
@@ -44,7 +45,7 @@ import java.util.Objects;
  * @author Lars Helge Overland
  */
 public class DataSetElement
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements LinkObject
 {
     /**
      * Data set, never null.
