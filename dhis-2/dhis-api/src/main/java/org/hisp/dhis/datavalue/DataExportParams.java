@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.datavalueset;
+package org.hisp.dhis.datavalue;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
