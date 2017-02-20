@@ -209,6 +209,7 @@ public class IdSchemes
     public static String getValue( String uid, String code, IdScheme idScheme )
     {
         boolean isId = idScheme.is( IdentifiableProperty.ID ) || idScheme.is( IdentifiableProperty.UID );
+
         return isId ? uid : code;
     }
 
