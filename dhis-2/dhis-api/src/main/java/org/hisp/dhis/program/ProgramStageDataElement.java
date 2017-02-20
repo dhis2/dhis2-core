@@ -44,7 +44,7 @@ import org.hisp.dhis.dataelement.DataElement;
  */
 @JacksonXmlRootElement( localName = "programStageDataElement", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramStageDataElement
-    extends BaseIdentifiableObject implements LinkObject
+    extends BaseIdentifiableObject
 {
     private ProgramStage programStage;
 
