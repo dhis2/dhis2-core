@@ -129,19 +129,6 @@ public interface DataValueStore
     List<DataValue> getAllDataValues();
     
     /**
-     * Returns data values for the given arguments collections. Argument
-     * collections might be empty, if so the argument is not applied to the
-     * query. At least one argument collection must be non-empty.
-     * 
-     * @param dataElements the data elements.
-     * @param periods the periods.
-     * @param organisationUnits the organisation units.
-     * @return a list of data values.
-     */
-    List<DataValue> getDataValues( Collection<DataElement> dataElements, 
-        Collection<Period> periods, Collection<OrganisationUnit> organisationUnits );
-    
-    /**
      * Returns all DataValues for a given Source, Period, collection of
      * DataElements and DataElementCategoryOptionCombo.
      * 

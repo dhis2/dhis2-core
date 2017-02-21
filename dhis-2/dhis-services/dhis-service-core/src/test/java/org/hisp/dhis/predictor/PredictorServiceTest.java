@@ -43,6 +43,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.Expression;
@@ -271,7 +272,10 @@ public class PredictorServiceTest
 
     private Double getDataValue( DataElement dataElement, OrganisationUnit source, Period period )
     {
-        Collection<DataValue> results = dataValueService.getDataValues( Sets.newHashSet( dataElement ), Sets.newHashSet( period ), Sets.newHashSet( source ) );
+        Collection<DataValue> results = dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElement ) )
+            .setPeriods( Sets.newHashSet( period ) )
+            .setOrganisationUnits( Sets.newHashSet( source ) ) );
 
         for ( DataValue v : results )
         {

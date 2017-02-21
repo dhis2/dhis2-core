@@ -132,6 +132,17 @@ public interface DataValueService
 
     /**
      * Returns data values for the given data export parameters.
+     * <p>
+     * Example usage:
+     * <p>
+     * <pre>
+     * {@code
+     * List<DataValue> dataValues = dataValueService.getDataValues( new DataExportParams()
+     *     .setDataElements( dataElements )
+     *     .setPeriods( Sets.newHashSet( period ) )
+     *     .setOrganisationUnits( orgUnits ) );
+     * }
+     * </pre>
      * 
      * @param params the data export parameters.
      * @return a list of data values.
@@ -154,19 +165,6 @@ public interface DataValueService
      */
     List<DataValue> getAllDataValues();
 
-    /**
-     * Returns data values for the given arguments collections. Argument
-     * collections might be empty, if so the argument is not applied to the
-     * query. At least one argument collection must be non-empty.
-     * 
-     * @param dataElements the data elements.
-     * @param periods the periods.
-     * @param organisationUnits the organisation units.
-     * @return a list of data values.
-     */
-    List<DataValue> getDataValues( Collection<DataElement> dataElements, 
-        Collection<Period> periods, Collection<OrganisationUnit> organisationUnits );
-    
     /**
      * Returns all DataValues for a given Source, Period, collection of
      * DataElements and DataElementCategoryOptionCombo.

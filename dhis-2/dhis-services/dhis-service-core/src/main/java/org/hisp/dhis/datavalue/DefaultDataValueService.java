@@ -322,13 +322,6 @@ public class DefaultDataValueService
     }
     
     @Override
-    public List<DataValue> getDataValues( Collection<DataElement> dataElements, 
-        Collection<Period> periods, Collection<OrganisationUnit> organisationUnits )
-    {
-        return dataValueStore.getDataValues( dataElements, periods, organisationUnits );
-    }
-    
-    @Override
     public List<DataValue> getDataValues( OrganisationUnit source, Period period,
         Collection<DataElement> dataElements, DataElementCategoryOptionCombo attributeOptionCombo )
     {
