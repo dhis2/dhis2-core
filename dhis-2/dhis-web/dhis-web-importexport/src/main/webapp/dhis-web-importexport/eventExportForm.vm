@@ -13,7 +13,7 @@
       var idscheme = $( '#idscheme').val();
       var file = "events" + format + compression;
 
-      var url = '../api/' + file + "?&program=" + program;
+      var url = '../api/' + file + "?attachment=" + file + "&program=" + program;
 
       if( programStage && programStage.length > 0 ) {
         url += "&programStage=" + programStage;
