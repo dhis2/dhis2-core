@@ -41,8 +41,8 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.LinkObject;
 import org.hisp.dhis.common.MergeMode;
-import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
@@ -889,8 +889,7 @@ public class DefaultPreheatService implements PreheatService
 
     private boolean skipConnect( Class<?> klass )
     {
-        return klass != null && (DataElementOperand.class.isAssignableFrom( klass ) || UserCredentials.class.isAssignableFrom( klass ) ||
-            ReportingRate.class.isAssignableFrom( klass ) || DataSetElement.class.isAssignableFrom( klass ) ||
-            DataInputPeriod.class.isAssignableFrom( klass ) || ProgramTrackedEntityAttribute.class.isAssignableFrom( klass ));
+        return klass != null && (DataElementOperand.class.isAssignableFrom( klass ) || UserCredentials.class.isAssignableFrom( klass )
+            || LinkObject.class.isAssignableFrom( klass ));
     }
 }
