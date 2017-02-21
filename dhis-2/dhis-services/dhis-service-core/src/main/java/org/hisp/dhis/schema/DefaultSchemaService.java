@@ -153,6 +153,9 @@ public class DefaultSchemaService
         add( new OptionGroupSetSchemaDescriptor() ).
         add( new ProgramTrackedEntityAttributeGroupSchemaDescriptor() ).
         add( new DataInputPeriodSchemaDescriptor() ).
+        add( new ReportingRateSchemaDescriptor() ).
+        add( new UserAccessSchemaDescriptor() ).
+        add( new UserGroupAccessSchemaDescriptor() ).
         build();
 
     private Map<Class<?>, Schema> classSchemaMap = new HashMap<>();
