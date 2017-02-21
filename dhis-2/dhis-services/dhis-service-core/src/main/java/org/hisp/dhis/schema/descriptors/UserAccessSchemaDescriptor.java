@@ -28,25 +28,25 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataset.DataInputPeriod;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.user.UserAccess;
 
 /**
- * @author Stian Sandvold
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DataInputPeriodSchemaDescriptor implements SchemaDescriptor
+public class UserAccessSchemaDescriptor implements SchemaDescriptor
 {
-    public static final String SINGULAR = "dataInputPeriod";
+    public static final String SINGULAR = "userAccess";
 
-    public static final String PLURAL = "dataInputPeriods";
+    public static final String PLURAL = "userAccesses";
 
     public static final String API_ENDPOINT = "/" + PLURAL;
 
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( DataInputPeriod.class, SINGULAR, PLURAL );
+        Schema schema = new Schema( UserAccess.class, SINGULAR, PLURAL );
         schema.setMetadata( false );
 
         return schema;
