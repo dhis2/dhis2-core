@@ -135,6 +135,7 @@ public interface DataValueService
      * 
      * @param params the data export parameters.
      * @return a list of data values.
+     * @throws IllegalArgumentException if parameters are invalid.
      */
     List<DataValue> getDataValues( DataExportParams params );
     
