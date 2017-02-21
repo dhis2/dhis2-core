@@ -44,6 +44,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -54,6 +55,8 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -167,7 +170,8 @@ public class DataValueBatchHandlerTest
         
         batchHandler.flush();
         
-        List<DataValue> values = dataValueService.getAllDataValues();
+        List<DataValue> values = dataValueService.getDataValues( 
+            new DataExportParams().setDataElements( Sets.newHashSet( dataElementA ) ) );
         
         assertNotNull( values );
         assertEquals( 4, values.size() );
@@ -189,8 +193,9 @@ public class DataValueBatchHandlerTest
         batchHandler.addObject( dataValueF );
         
         batchHandler.flush();
-        
-        List<DataValue> values = dataValueService.getAllDataValues();
+
+        List<DataValue> values = dataValueService.getDataValues( 
+            new DataExportParams().setDataElements( Sets.newHashSet( dataElementA ) ) );
         
         assertNotNull( values );
         assertEquals( 4, values.size() );

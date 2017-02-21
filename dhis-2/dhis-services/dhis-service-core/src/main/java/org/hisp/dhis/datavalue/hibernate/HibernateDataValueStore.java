@@ -59,8 +59,6 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
-import com.google.api.client.util.Sets;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -312,45 +310,6 @@ public class HibernateDataValueStore
             .createCriteria( DataValue.class )
             .add( Restrictions.eq( "deleted", false ) )
             .list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<DataValue> getDataValues( Collection<DataElement> dataElements, 
-        Collection<Period> periods, Collection<OrganisationUnit> organisationUnits )
-    {        
-        Set<Period> storedPeriods = Sets.newHashSet();
-        
-        for ( Period period : periods )
-        {
-            storedPeriods.add( periodStore.reloadPeriod( period ) );
-        }
-
-        if ( dataElements.isEmpty() && storedPeriods.isEmpty() && organisationUnits.isEmpty() )
-        {
-            return new ArrayList<>();
-        }
-        
-        Criteria criteria = sessionFactory.getCurrentSession()
-            .createCriteria( DataValue.class )
-            .add( Restrictions.eq( "deleted", false ) );
-        
-        if ( !dataElements.isEmpty() )
-        {
-            criteria.add( Restrictions.in( "dataElement", dataElements ) );
-        }
-        
-        if ( !storedPeriods.isEmpty() )
-        {
-            criteria.add( Restrictions.in( "period", storedPeriods ) );
-        }
-        
-        if ( !organisationUnits.isEmpty() )
-        {
-            criteria.add( Restrictions.in( "source", organisationUnits ) );
-        }
-        
-        return criteria.list();
     }
 
     @Override

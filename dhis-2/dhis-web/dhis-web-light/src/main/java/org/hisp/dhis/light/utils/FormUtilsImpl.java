@@ -43,6 +43,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
@@ -202,8 +203,11 @@ public class FormUtilsImpl
     public Map<String, String> getDataValueMap( OrganisationUnit organisationUnit, DataSet dataSet, Period period )
     {
         Map<String, String> dataValueMap = new HashMap<>();
-        List<DataValue> values = new ArrayList<>( dataValueService.getDataValues( dataSet.getDataElements(), 
-            Sets.newHashSet( period ), Sets.newHashSet( organisationUnit ) ) );
+        
+        List<DataValue> values = dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( dataSet.getDataElements() )
+            .setPeriods( Sets.newHashSet( period ) )
+            .setOrganisationUnits( Sets.newHashSet( organisationUnit ) ) );
 
         for ( DataValue dataValue : values )
         {
