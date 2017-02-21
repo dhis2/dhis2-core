@@ -190,6 +190,10 @@ public class DefaultDataEntryFormService
     @Override
     public String prepareDataEntryFormForEdit( DataEntryForm dataEntryForm, DataSet dataSet, I18n i18n )
     {
+        // ------------------------------------------------------------------------
+        // Only called for creation of CustomDataForm
+        // ------------------------------------------------------------------------
+
         //TODO HTML encode names
 
         if ( dataEntryForm == null || !dataEntryForm.hasForm() || dataSet == null )
@@ -397,6 +401,10 @@ public class DefaultDataEntryFormService
                 else if ( ValueType.TIME == valueType ) 
                 {
                     appendCode += " type=\"text\" name=\"entrytime\" class=\"entrytime\" tabindex=\"" + i++ + "\" id=\""+ dataElementId + "-" + optionComboId + "\">";
+                }
+                else if ( ValueType.URL == valueType )
+                {
+                    appendCode += " type=\"url\" name=\"entryfield\" class=\"entryfield\" tabindex=\"" + i++ + "\"" + TAG_CLOSE;
                 }
                 else
                 {

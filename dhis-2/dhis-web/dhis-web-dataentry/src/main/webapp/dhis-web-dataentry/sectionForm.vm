@@ -128,6 +128,8 @@
                                     <td><input name="entrytrueonly" class="entrytrueonly" id="${dataEntryId}" type="checkbox" tabindex="${tabIndex}"#if( $greyedField || !$hasAccess ) disabled="disabled"#end><img class="commentlink" id="${commentId}"></td>
                                 #elseif( "LONG_TEXT" == $dataElement.valueType )
                                     <td><textarea name="entryfield" class="entryfield entryarea" id="${dataEntryId}" tabindex="${tabIndex}" #if( $greyedField || !$hasAccess ) disabled="disabled"#end></textarea></td>
+                                #elseif( "URL" == $dataElement.valueType )
+                                    <td><input type="url" name="entryfield" class="entryfieldclear" id="${dataEntryId}" tabindex="${tabIndex}" #if( $greyedField || !$hasAccess ) disabled="disabled"#end></input></td>
                                 #elseif( "FILE_RESOURCE" == $dataElement.valueType )
                                     <td>
                                         <div class="entryfileresource" id="${dataEntryId}" tabindex="${tabIndex}">
