@@ -139,6 +139,14 @@ public interface DataValueService
     List<DataValue> getDataValues( DataExportParams params );
     
     /**
+     * Validates the given data export parameters.
+     * 
+     * @param params the data export parameters.
+     * @throws IllegalArgumentException if parameters are invalid.
+     */
+    void validate( DataExportParams params );
+    
+    /**
      * Returns all DataValues.
      * 
      * @return a collection of all DataValues.
