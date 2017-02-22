@@ -28,10 +28,7 @@ package org.hisp.dhis.program.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionStore;
 
@@ -42,17 +39,4 @@ public class HibernateProgramStageSectionStore
     extends HibernateIdentifiableObjectStore<ProgramStageSection>
     implements ProgramStageSectionStore
 {
-    // -------------------------------------------------------------------------
-    // Implemented methods
-    // -------------------------------------------------------------------------
-
-    @Override
-    public ProgramStageSection getByNameAndProgramStage( String name, ProgramStage programStage )
-    {
-        Criteria criteria = getCriteria( Restrictions.eq( "name", name ) );
-        criteria.createAlias( "programStageDataElements", "programStageDataElement" );
-        criteria.add( Restrictions.eq( "programStageDataElement.programStage", programStage ) );
-
-        return (ProgramStageSection) criteria.uniqueResult();
-    }
 }

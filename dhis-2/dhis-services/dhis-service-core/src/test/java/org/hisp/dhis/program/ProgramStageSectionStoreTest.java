@@ -30,7 +30,6 @@ package org.hisp.dhis.program;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,6 +41,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.api.client.util.Lists;
 
 /**
  * @author Chau Thu Tran
@@ -77,8 +78,8 @@ public class ProgramStageSectionStoreTest
 
     private ProgramStageSection sectionB;
     
-    private List<ProgramStageDataElement> psDataElements;
-
+    private List<DataElement> dataElements;
+    
     @Override
     public void setUpTest()
     {
@@ -103,10 +104,10 @@ public class ProgramStageSectionStoreTest
         programStageDataElementService.addProgramStageDataElement( stageDeA );
         programStageDataElementService.addProgramStageDataElement( stageDeB );
 
-        psDataElements = new ArrayList<>();
-        psDataElements.add( stageDeA );
-        psDataElements.add( stageDeB );
-
+        dataElements = Lists.newArrayList();
+        dataElements.add( dataElementA );
+        dataElements.add( dataElementB );
+        
         stageB = new ProgramStage( "B", program );
         programStageService.saveProgramStage( stageB );
 
@@ -117,7 +118,7 @@ public class ProgramStageSectionStoreTest
         programService.updateProgram( program );
 
         sectionA = createProgramStageSection( 'A', 1 );
-        sectionA.setProgramStageDataElements( psDataElements );
+        sectionA.setDataElements( dataElements );
 
         sectionB = createProgramStageSection( 'B', 2 );
 
@@ -131,10 +132,10 @@ public class ProgramStageSectionStoreTest
     public void testAddGet()
     {
         ProgramStageSection sectionA = createProgramStageSection( 'A', 1 );
-        sectionA.setProgramStageDataElements( psDataElements );
+        sectionA.setDataElements( dataElements );
         
         int idA = programStageSectionStore.save( sectionA );
         
-        assertEquals( sectionA, programStageSectionStore.get( idA ) );    }
-
+        assertEquals( sectionA, programStageSectionStore.get( idA ) );
+    }
 }
