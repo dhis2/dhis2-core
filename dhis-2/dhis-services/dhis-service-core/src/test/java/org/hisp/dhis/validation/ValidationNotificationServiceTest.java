@@ -38,8 +38,8 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.ValidationNotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.DefaultPeriodService;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.user.User;
@@ -52,7 +52,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -92,8 +91,8 @@ public class ValidationNotificationServiceTest
     @InjectMocks
     private DefaultValidationNotificationService service;
 
-    @Autowired
-    private PeriodService periodService;
+    @InjectMocks
+    private DefaultPeriodService periodService;
 
     private List<MockMessage> sentMessages;
 

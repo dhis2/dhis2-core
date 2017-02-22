@@ -27,53 +27,53 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.jdbc.batchhandler.ValidationResultBatchHandler;
-import org.hisp.quick.BatchHandler;
-import org.hisp.quick.BatchHandlerFactory;
+import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collection;
-import java.util.List;
 
 /**
  * @author Stian Sandvold
  */
-public class DefaultValidationResultService
-    implements ValidationResultService
+public class ValidationResultDeletionHandler
+    extends DeletionHandler
 {
-    @Autowired
-    private ValidationResultStore validationResultStore;
 
     @Autowired
-    private BatchHandlerFactory batchHandlerFactory;
+    private
+    ValidationResultService validationResultService;
 
     @Override
-    @Transactional
-    public void saveValidationResults( Collection<ValidationResult> validationResults )
+    public String getClassName()
     {
-        BatchHandler<ValidationResult> validationResultBatchHandler = batchHandlerFactory
-            .createBatchHandler( ValidationResultBatchHandler.class ).init();
+        return ValidationResult.class.getSimpleName();
+    }
 
-        validationResults.forEach( validationResult ->
+    @Override
+    public void deleteValidationRule( ValidationRule validationRule )
+    {
+        System.out.println(" HERE !");
+        validationResultService.getAllValidationResults().forEach( validationResult ->
         {
-            if ( !validationResultBatchHandler.objectExists( validationResult ) )
+            if ( validationResult.getValidationRule().equals( validationRule ) )
             {
-                validationResultBatchHandler.addObject( validationResult );
+                validationResultService.deleteValidationResult( validationResult );
             }
         } );
-
-        validationResultBatchHandler.flush();
-    }
-
-    public List<ValidationResult> getAllValidationResults()
-    {
-        return validationResultStore.getAll();
     }
 
     @Override
-    public void deleteValidationResult( ValidationResult validationResult )
+    public String allowDeleteValidationRule( ValidationRule validationRule )
     {
-        validationResultStore.delete( validationResult );
+
+        System.out.println(" HERE 2 !");
+        for ( ValidationResult validationResult : validationResultService.getAllValidationResults() )
+        {
+            if ( validationResult.getValidationRule().equals( validationRule ) )
+            {
+                return ERROR;
+            }
+        }
+
+        return null;
     }
+
 }

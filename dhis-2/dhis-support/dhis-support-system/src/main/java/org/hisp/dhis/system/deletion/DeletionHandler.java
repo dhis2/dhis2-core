@@ -114,6 +114,7 @@ import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.validation.ValidationCriteria;
+import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
@@ -374,6 +375,11 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteValidationRule( ValidationRule validationRule )
+    {
+        return null;
+    }
+
+    public String allowDeleteValidationResult( ValidationResult validationResult )
     {
         return null;
     }

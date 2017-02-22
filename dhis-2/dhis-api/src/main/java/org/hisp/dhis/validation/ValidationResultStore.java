@@ -27,53 +27,12 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.jdbc.batchhandler.ValidationResultBatchHandler;
-import org.hisp.quick.BatchHandler;
-import org.hisp.quick.BatchHandlerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collection;
-import java.util.List;
+import org.hisp.dhis.common.GenericStore;
 
 /**
  * @author Stian Sandvold
  */
-public class DefaultValidationResultService
-    implements ValidationResultService
+public interface ValidationResultStore
+    extends GenericStore<ValidationResult>
 {
-    @Autowired
-    private ValidationResultStore validationResultStore;
-
-    @Autowired
-    private BatchHandlerFactory batchHandlerFactory;
-
-    @Override
-    @Transactional
-    public void saveValidationResults( Collection<ValidationResult> validationResults )
-    {
-        BatchHandler<ValidationResult> validationResultBatchHandler = batchHandlerFactory
-            .createBatchHandler( ValidationResultBatchHandler.class ).init();
-
-        validationResults.forEach( validationResult ->
-        {
-            if ( !validationResultBatchHandler.objectExists( validationResult ) )
-            {
-                validationResultBatchHandler.addObject( validationResult );
-            }
-        } );
-
-        validationResultBatchHandler.flush();
-    }
-
-    public List<ValidationResult> getAllValidationResults()
-    {
-        return validationResultStore.getAll();
-    }
-
-    @Override
-    public void deleteValidationResult( ValidationResult validationResult )
-    {
-        validationResultStore.delete( validationResult );
-    }
 }

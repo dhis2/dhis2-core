@@ -28,6 +28,7 @@ package org.hisp.dhis.validation;
  */
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Stian Sandvold
@@ -39,4 +40,16 @@ public interface ValidationResultService
      * @param validationResults
      */
     void saveValidationResults( Collection<ValidationResult> validationResults );
+
+    /**
+     * Returns a list of all existing ValidationResults
+     * @return
+     */
+    List<ValidationResult> getAllValidationResults();
+
+    /**
+     * Deletes the validationResult
+     * @param validationResult
+     */
+    void deleteValidationResult( ValidationResult validationResult );
 }
