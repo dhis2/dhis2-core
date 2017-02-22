@@ -889,7 +889,6 @@ public class DefaultPreheatService implements PreheatService
 
     private boolean skipConnect( Class<?> klass )
     {
-        return klass != null && (DataElementOperand.class.isAssignableFrom( klass ) || UserCredentials.class.isAssignableFrom( klass )
-            || LinkObject.class.isAssignableFrom( klass ));
+        return klass != null && (UserCredentials.class.isAssignableFrom( klass ) || LinkObject.class.isAssignableFrom( klass ));
     }
 }
