@@ -33,6 +33,7 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -55,7 +56,14 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.*;
@@ -123,7 +131,9 @@ public class JdbcEventStore
                 continue;
             }
 
-            if ( !event.getEvent().equals( rowSet.getString( "psi_uid" ) ) )
+            String eventIdOrCode = params.getIdSchemes().equals( IdScheme.UID ) ? rowSet.getString( "psi_uid" ) : rowSet.getString( "psi_code" );
+
+            if (  event.getEvent() != null &&  !event.getEvent().equals( eventIdOrCode ) )
             {
                 event = new Event();
 
@@ -349,7 +359,7 @@ public class JdbcEventStore
             {
                 eventRow = new EventRow();
 
-                eventRow.setEvent( rowSet.getString( "psi_uid" ) );
+                eventRow.setEvent( IdSchemes.getValue( rowSet.getString( "psi_uid" ), rowSet.getString( "psi_code" ), idSchemes.getProgramStageInstanceIdScheme() ) );
                 eventRow.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
                 eventRow.setTrackedEntityInstanceOrgUnit( rowSet.getString( "tei_ou" ) );
                 eventRow.setTrackedEntityInstanceOrgUnitName( rowSet.getString( "tei_ou_name" ) );
