@@ -114,14 +114,4 @@ public class ValidationController
 
         return summary;
     }
-
-    @RequestMapping( value = "/run/scheduled", method = RequestMethod.GET )
-    public @ResponseBody String scheduledValidation(
-        HttpServletResponse response
-    )
-    {
-        validationService.scheduledRun();
-
-        return "OK";
-    }
 }

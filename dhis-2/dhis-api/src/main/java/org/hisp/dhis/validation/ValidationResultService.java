@@ -27,32 +27,16 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * @author Stian Sandvold
  */
 public interface ValidationResultService
 {
-
     /**
      * Saves a set of ValidationResults in a bulk action
      * @param validationResults
      */
     void saveValidationResults( Collection<ValidationResult> validationResults );
-
-    /**
-     * Checks if a validation rule exists for the combination of validation rule, period and organisation unit.
-     * @param validationRule
-     * @param period
-     * @param organisationUnit
-     * @return All matching ValidationResults, or an empty set if none exists.
-     */
-    Map<String, ValidationResult> validationResultExists( ValidationRule validationRule, Period period, OrganisationUnit organisationUnit );
-
-
 }
