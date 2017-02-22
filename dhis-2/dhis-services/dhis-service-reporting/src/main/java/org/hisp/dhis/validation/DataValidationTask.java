@@ -28,15 +28,13 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
@@ -47,25 +45,16 @@ import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.*;
 
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
-import static org.hisp.dhis.system.util.MathUtils.expressionIsTrue;
-import static org.hisp.dhis.system.util.MathUtils.roundSignificant;
-import static org.hisp.dhis.system.util.MathUtils.zeroIfNull;
+import static org.hisp.dhis.system.util.MathUtils.*;
 import static org.hisp.dhis.validation.ValidationService.MAX_INTERACTIVE_ALERTS;
 import static org.hisp.dhis.validation.ValidationService.MAX_SCHEDULED_ALERTS;
 
@@ -94,6 +83,12 @@ public class DataValidationTask
     
     @Autowired
     private DataElementCategoryService categoryService;
+
+    @Autowired
+    private PeriodService periodService;
+
+    @Autowired
+    private ValidationResultService validationResultService;
 
     private OrganisationUnitExtended sourceX;
 
@@ -128,7 +123,8 @@ public class DataValidationTask
     private void runInternal()
     {
         int maxAlerts = ValidationRunType.INTERACTIVE == context.getRunType() ? MAX_INTERACTIVE_ALERTS : MAX_SCHEDULED_ALERTS;
-        
+        Set<ValidationResult> validationResults = new HashSet<>(  );
+
         if ( context.getValidationResults().size() < maxAlerts )
         {
             for ( PeriodTypeExtended periodTypeX : context.getPeriodTypeExtendedMap().values() )
@@ -204,11 +200,12 @@ public class DataValidationTask
 
                                     if ( violation )
                                     {
-                                        context.getValidationResults().add( new ValidationResult( 
+                                        validationResults.add( new ValidationResult(
                                             rule, period, sourceX.getSource(),
                                             categoryService.getDataElementCategoryOptionCombo( optionCombo ),
                                             roundSignificant( zeroIfNull( leftSide ) ),
-                                            roundSignificant( zeroIfNull( rightSide ) ) ) );
+                                            roundSignificant( zeroIfNull( rightSide ) ),
+                                            periodService.getDayInPeriod( period, new Date() )) );
                                     }
 
                                     log.debug( "Evaluated " + rule.getName() + ", combo id " + optionCombo
@@ -224,6 +221,12 @@ public class DataValidationTask
                     }
                 }
             }
+        }
+
+        if ( validationResults.size() > 0 )
+        {
+            context.getValidationResults().addAll( validationResults );
+            validationResultService.saveValidationResults( validationResults );
         }
     }
 

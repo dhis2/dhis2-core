@@ -925,6 +925,8 @@
     <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
   </bean>
 
+  <bean id="org.hisp.dhis.validation.ValidationResultService" class="org.hisp.dhis.validation.DefaultValidationResultService" />
+
   <bean id="validationNotificationMessageRenderer" class="org.hisp.dhis.notification.ValidationNotificationMessageRenderer" />
 
   <bean id="org.hisp.dhis.validation.notification.ValidationNotificationService"
