@@ -41,6 +41,7 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.LinkObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.expression.ExpressionService;
@@ -64,7 +65,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_P
  */
 @JacksonXmlRootElement( localName = "dataElementOperand", namespace = DxfNamespaces.DXF_2_0 )
 public class DataElementOperand
-    extends BaseDimensionalItemObject
+    extends BaseDimensionalItemObject implements LinkObject
 {
     public static final String SEPARATOR = COMPOSITE_DIM_OBJECT_PLAIN_SEP;
     public static final String NAME_TOTAL = "(Total)";

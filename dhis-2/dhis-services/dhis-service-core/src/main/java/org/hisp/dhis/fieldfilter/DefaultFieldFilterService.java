@@ -35,7 +35,6 @@ import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.LinkObject;
-import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeTransformer;
@@ -489,7 +488,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private boolean isProperIdObject( Class<?> klass )
     {
-        return !(DataElementOperand.class.isAssignableFrom( klass ) || UserCredentials.class.isAssignableFrom( klass )
-            || ProgramStageDataElement.class.isAssignableFrom( klass ) || LinkObject.class.isAssignableFrom( klass ));
+        return !(UserCredentials.class.isAssignableFrom( klass ) || ProgramStageDataElement.class.isAssignableFrom( klass )
+            || LinkObject.class.isAssignableFrom( klass ));
     }
 }
