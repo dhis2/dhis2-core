@@ -38,6 +38,7 @@ import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.NodeUtils;
+import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
@@ -134,7 +135,7 @@ public class MeController
 
         if ( fields.isEmpty() )
         {
-            fields.add( ":all" );
+            fields.addAll( Preset.ALL.getFields() );
         }
 
         CollectionNode collectionNode = fieldFilterService.filter( User.class, Collections.singletonList( currentUser ), fields );
@@ -143,13 +144,32 @@ public class MeController
 
         RootNode rootNode = NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) );
 
-        rootNode.addChild( new ComplexNode( "settings" ) ).addChildren(
-            NodeUtils.createSimples( userSettingService.getUserSettingsWithFallbackByUserAsMap( currentUser, USER_SETTING_NAMES, true ) ) );
+        if ( fieldsContains( "settings", fields ) )
+        {
+            rootNode.addChild( new ComplexNode( "settings" ) ).addChildren(
+                NodeUtils.createSimples( userSettingService.getUserSettingsWithFallbackByUserAsMap( currentUser, USER_SETTING_NAMES, true ) ) );
+        }
 
-        rootNode.addChild( new CollectionNode( "authorities" ) ).addChildren(
-            NodeUtils.createSimples( currentUser.getUserCredentials().getAllAuthorities() ) );
+        if ( fieldsContains( "authorities", fields ) )
+        {
+            rootNode.addChild( new CollectionNode( "authorities" ) ).addChildren(
+                NodeUtils.createSimples( currentUser.getUserCredentials().getAllAuthorities() ) );
+        }
 
         nodeService.serialize( rootNode, "application/json", response.getOutputStream() );
+    }
+
+    private boolean fieldsContains( String key, List<String> fields )
+    {
+        for ( String field : fields )
+        {
+            if ( field.contains( key ) || field.equals( "*" ) || field.startsWith( ":" ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @RequestMapping( value = "", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
@@ -176,7 +196,7 @@ public class MeController
 
         if ( fields.isEmpty() )
         {
-            fields.add( ":all" );
+            fields.addAll( Preset.ALL.getFields() );
         }
 
         CollectionNode collectionNode = fieldFilterService.filter( User.class, Collections.singletonList( currentUser ), fields );
