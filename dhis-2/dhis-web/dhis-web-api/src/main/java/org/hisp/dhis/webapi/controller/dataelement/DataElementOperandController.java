@@ -105,7 +105,7 @@ public class DataElementOperandController
 
         if ( fields.isEmpty() )
         {
-            fields.addAll( Preset.defaultPreset().getFields() );
+            fields.addAll( Preset.ALL.getFields() );
         }
 
         WebOptions options = new WebOptions( rpParameters );
