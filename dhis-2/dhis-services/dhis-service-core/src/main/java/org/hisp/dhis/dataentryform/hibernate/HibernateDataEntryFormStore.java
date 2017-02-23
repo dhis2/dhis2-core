@@ -77,15 +77,4 @@ public class HibernateDataEntryFormStore
 
         return criteria.list();
     }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<DataEntryForm> listDistinctDataEntryFormByDataSetIds( List<Integer> dataSetIds )
-    {
-        Criteria criteria = getSession().createCriteria( DataSet.class ).add(
-            Restrictions.in( "dataEntryForm.id", dataSetIds ) ).setProjection(
-            Projections.distinct( Projections.property( "dataEntryForm" ) ) );
-
-        return criteria.list();
-    }
 }
