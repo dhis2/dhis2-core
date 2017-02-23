@@ -425,28 +425,6 @@ public class ExpressionServiceTest
     }
 
     @Test
-    public void testGetOperandsInExpression()
-    {
-        Set<DataElementOperand> operands = expressionService.getOperandsInExpression( expressionA );
-
-        assertNotNull( operands );
-        assertEquals( 2, operands.size() );
-
-        DataElementOperand operandA = new DataElementOperand( deA, deA.getUid(), coc.getUid() );
-        DataElementOperand operandB = new DataElementOperand( deB, deB.getUid(), coc.getUid() );
-
-        assertTrue( operands.contains( operandA ) );
-        assertTrue( operands.contains( operandB ) );
-        
-        operands = expressionService.getOperandsInExpression( expressionG );
-
-        assertNotNull( operands );
-        assertEquals( 1, operands.size() );
-
-        assertTrue( operands.contains( operandA ) );
-    }
-
-    @Test
     public void testGetOptionCombosInExpression()
     {
         Set<DataElementCategoryOptionCombo> optionCombos = expressionService.getOptionCombosInExpression( expressionG );

@@ -30,11 +30,9 @@ package org.hisp.dhis.dataelement;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -46,9 +44,6 @@ import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.expression.ExpressionService;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.regex.Matcher;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
@@ -74,8 +69,6 @@ public class DataElementOperand
     private static final String TYPE_TOTAL = "total";
 
     private static final String SPACE = " ";
-    private static final String COLUMN_PREFIX = "de";
-    private static final String COLUMN_SEPARATOR = "_";
 
     // -------------------------------------------------------------------------
     // Persisted properties
@@ -97,15 +90,9 @@ public class DataElementOperand
 
     private String operandName;
 
-    private List<Integer> aggregationLevels = new ArrayList<>();
-
     private ValueType valueType;
 
-    private int frequencyOrder;
-
     private String operandType;
-
-    private boolean hasAggregationLevels;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -132,34 +119,6 @@ public class DataElementOperand
         this.dataElementId = dataElementId;
         this.optionComboId = optionComboId;
         this.operandId = dataElementId + SEPARATOR + optionComboId;
-    }
-
-    public DataElementOperand( DataElement dataElement, String dataElementId, String optionComboId )
-    {
-        this.dataElement = dataElement;
-        this.dataElementId = dataElementId;
-        this.optionComboId = optionComboId;
-        this.operandId = dataElementId + SEPARATOR + optionComboId;
-    }
-
-    public DataElementOperand( String dataElementId, String optionComboId, String operandName )
-    {
-        this.dataElementId = dataElementId;
-        this.optionComboId = optionComboId;
-        this.operandId = dataElementId + SEPARATOR + optionComboId;
-        this.operandName = operandName;
-    }
-
-    public DataElementOperand( String dataElementId, String optionComboId, String operandName,
-        AggregationType aggregationType, List<Integer> aggregationLevels, int frequencyOrder )
-    {
-        this.dataElementId = dataElementId;
-        this.optionComboId = optionComboId;
-        this.operandId = dataElementId + SEPARATOR + optionComboId;
-        this.operandName = operandName;
-        this.aggregationType = aggregationType;
-        this.aggregationLevels = aggregationLevels;
-        this.frequencyOrder = frequencyOrder;
     }
 
     // -------------------------------------------------------------------------
@@ -248,97 +207,6 @@ public class DataElementOperand
     }
 
     /**
-     * Tests whether the operand has any aggregation levels.
-     */
-    public boolean hasAggregationLevels()
-    {
-        return aggregationLevels.size() > 0;
-    }
-
-    /**
-     * Tests whether the hierarchy level of the OrganisationUnit associated with
-     * the relevant DataValue is equal to or higher than the relevant
-     * aggregation level. Returns true if no aggregation levels exist.
-     *
-     * @param organisationUnitLevel the hierarchy level of the aggregation
-     *                              OrganisationUnit.
-     * @param dataValueLevel        the hierarchy level of the OrganisationUnit
-     *                              associated with the relevant DataValue.
-     */
-    public boolean aggregationLevelIsValid( int organisationUnitLevel, int dataValueLevel )
-    {
-        if ( aggregationLevels.size() == 0 )
-        {
-            return true;
-        }
-
-        final Integer aggregationLevel = getRelevantAggregationLevel( organisationUnitLevel );
-
-        return aggregationLevel == null || dataValueLevel <= aggregationLevel;
-    }
-
-    /**
-     * Returns the relevant aggregation level for the DataElement. The relevant
-     * aggregation level will be the next in ascending order after the
-     * organisation unit level. If no aggregation levels lower than the
-     * organisation unit level exist, null is returned.
-     *
-     * @param organisationUnitLevel the hierarchy level of the relevant
-     *                              OrganisationUnit.
-     */
-    public Integer getRelevantAggregationLevel( int organisationUnitLevel )
-    {
-        List<Integer> levels = new ArrayList<>( aggregationLevels );
-
-        Collections.sort( levels );
-
-        for ( final Integer aggregationLevel : levels )
-        {
-            if ( aggregationLevel >= organisationUnitLevel )
-            {
-                return aggregationLevel;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Returns the operand expression which is on the format #{de-uid.coc-uid} .
-     *
-     * @return the operand expression.
-     */
-    public String getOperandExpression()
-    {
-        String expression = null;
-
-        if ( dataElementId != null )
-        {
-            String coc = optionComboId != null ? SEPARATOR + optionComboId : "";
-
-            expression = "#{" + dataElementId + coc + "}";
-        }
-        else if ( dataElement != null )
-        {
-            String coc = categoryOptionCombo != null ? SEPARATOR + categoryOptionCombo.getUid() : "";
-
-            expression = "#{" + dataElement.getUid() + coc + "}";
-        }
-
-        return expression;
-    }
-
-    /**
-     * Returns a database-friendly name.
-     *
-     * @return the name.
-     */
-    public String getColumnName()
-    {
-        return COLUMN_PREFIX + dataElementId + COLUMN_SEPARATOR + optionComboId;
-    }
-
-    /**
      * Returns a pretty-print name based on the given data element and category
      * option combo.
      *
@@ -396,8 +264,6 @@ public class DataElementOperand
         this.legendSets = dataElement.getLegendSets();
         this.aggregationType = dataElement.getAggregationType();
         this.valueType = dataElement.getValueType();
-        this.frequencyOrder = dataElement.getFrequencyOrder();
-        this.aggregationLevels = new ArrayList<>( dataElement.getAggregationLevels() );
 
         this.uid = dataElementId + SEPARATOR + optionComboId;
         this.name = getPrettyName( dataElement, categoryOptionCombo );
@@ -416,8 +282,6 @@ public class DataElementOperand
         this.legendSets = dataElement.getLegendSets();
         this.aggregationType = dataElement.getAggregationType();
         this.valueType = dataElement.getValueType();
-        this.frequencyOrder = dataElement.getFrequencyOrder();
-        this.aggregationLevels = new ArrayList<>( dataElement.getAggregationLevels() );
 
         this.uid = dataElementId;
         this.name = getPrettyName( dataElement, null );
@@ -523,19 +387,6 @@ public class DataElementOperand
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "aggregationLevels", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "aggregationLevel", namespace = DxfNamespaces.DXF_2_0 )
-    public List<Integer> getAggregationLevels()
-    {
-        return aggregationLevels;
-    }
-
-    public void setAggregationLevels( List<Integer> aggregationLevels )
-    {
-        this.aggregationLevels = aggregationLevels;
-    }
-
-    @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ValueType getValueType()
     {
@@ -549,18 +400,6 @@ public class DataElementOperand
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getFrequencyOrder()
-    {
-        return frequencyOrder;
-    }
-
-    public void setFrequencyOrder( int frequencyOrder )
-    {
-        this.frequencyOrder = frequencyOrder;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getOperandType()
     {
         return operandType;
@@ -569,18 +408,6 @@ public class DataElementOperand
     public void setOperandType( String operandType )
     {
         this.operandType = operandType;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isHasAggregationLevels()
-    {
-        return hasAggregationLevels;
-    }
-
-    public void setHasAggregationLevels( boolean hasAggregationLevels )
-    {
-        this.hasAggregationLevels = hasAggregationLevels;
     }
 
     // -------------------------------------------------------------------------
