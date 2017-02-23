@@ -65,9 +65,6 @@ public class DataElementOperand
     public static final String SEPARATOR = COMPOSITE_DIM_OBJECT_PLAIN_SEP;
     public static final String NAME_TOTAL = "(Total)";
 
-    private static final String TYPE_VALUE = "value";
-    private static final String TYPE_TOTAL = "total";
-
     private static final String SPACE = " ";
 
     // -------------------------------------------------------------------------
@@ -91,8 +88,6 @@ public class DataElementOperand
     private String operandName;
 
     private ValueType valueType;
-
-    private String operandType;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -240,16 +235,6 @@ public class DataElementOperand
     }
 
     /**
-     * Indicators whether this operand represents a total value or not.
-     *
-     * @return true or false.
-     */
-    public boolean isTotal()
-    {
-        return operandType != null && operandType.equals( TYPE_TOTAL );
-    }
-
-    /**
      * Updates all transient properties.
      *
      * @param dataElement
@@ -301,10 +286,9 @@ public class DataElementOperand
         matcher.find();
         String dataElement = StringUtils.trimToNull( matcher.group( 1 ) );
         String categoryOptionCombo = StringUtils.trimToNull( matcher.group( 2 ) );
-        String operandType = categoryOptionCombo != null ? TYPE_VALUE : TYPE_TOTAL;
 
         final DataElementOperand operand = new DataElementOperand( dataElement, categoryOptionCombo );
-        operand.setOperandType( operandType );
+        
         return operand;
     }
 
@@ -398,18 +382,6 @@ public class DataElementOperand
         this.valueType = valueType;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getOperandType()
-    {
-        return operandType;
-    }
-
-    public void setOperandType( String operandType )
-    {
-        this.operandType = operandType;
-    }
-
     // -------------------------------------------------------------------------
     // hashCode, equals, toString, compareTo
     // -------------------------------------------------------------------------
@@ -427,7 +399,6 @@ public class DataElementOperand
             "\"optionComboId\":\"" + optionComboId + "\", " +
             "\"operandId\":\"" + operandId + "\", " +
             "\"operandName\":\"" + operandName + "\", " +
-            "\"operandType\":\"" + operandType + "\" " +
             '}';
     }
 
