@@ -1,8 +1,39 @@
 package org.hisp.dhis.validation;
 
-import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
-import static org.hisp.dhis.common.DimensionItemType.PROGRAM_DATA_ELEMENT;
-import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.constant.ConstantService;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.validation.notification.ValidationNotificationService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.common.DimensionItemType.*;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -31,46 +62,6 @@ import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.constant.ConstantService;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.validation.notification.ValidationNotificationService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jim Grace
@@ -133,7 +124,7 @@ public class DefaultValidationService
         
         Collection<ValidationRule> rules = group != null ? group.getMembers() : validationRuleService.getAllValidationRules();
         
-        Collection<ValidationResult> results = runValidation( sources, periods, rules, attributeOptionCombo, null, ValidationRunType.SCHEDULED );
+        Collection<ValidationResult> results = runValidation( sources, periods, rules, attributeOptionCombo, null, ValidationRunType.INTERACTIVE );
         
         formatPeriods( results, format );
 
@@ -154,7 +145,7 @@ public class DefaultValidationService
 
         Collection<ValidationRule> rules = validationRuleService.getValidationRulesForDataElements( dataSet.getDataElements() );
         
-        return runValidation( Sets.newHashSet( source ), Sets.newHashSet( period ), rules, attributeOptionCombo, null, ValidationRunType.SCHEDULED );
+        return runValidation( Sets.newHashSet( source ), Sets.newHashSet( period ), rules, attributeOptionCombo, null, ValidationRunType.INTERACTIVE );
     }
 
     @Override

@@ -50,6 +50,9 @@ import java.io.Serializable;
 public class ValidationResult
     implements Serializable, Comparable<ValidationResult>
 {
+
+    private int id;
+
     /**
      * Determines if a de-serialized file is compatible with this class.
      */
@@ -63,9 +66,24 @@ public class ValidationResult
 
     private DataElementCategoryOptionCombo attributeOptionCombo;
 
+    /**
+     * The leftsideValue at the time of the violation
+     */
     private Double leftsideValue;
 
+    /**
+     * The rightsideValue at the time of the violation
+     */
     private Double rightsideValue;
+
+    /**
+     * This property is a reference to which data was used to generate the result.
+     * For rules comparing fixed periods, this dayInPeriod only indicates when in a period the validation was done
+     * For rules comparing sliding windows, this will indicate where the end-position of the sliding window was
+     * during the validation (IE: the window will span over the days:
+     * (period.startDate + dayInPeriod - period.daysInPeriod) to (period.startDate + dayInPeriod)
+     */
+    private int dayInPeriod;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -77,7 +95,7 @@ public class ValidationResult
 
     public ValidationResult( ValidationRule validationRule, Period period, 
         OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo, 
-        Double leftsideValue, Double rightsideValue )
+        Double leftsideValue, Double rightsideValue, int dayInPeriod )
     {
         this.validationRule = validationRule;
         this.period = period;
@@ -85,6 +103,7 @@ public class ValidationResult
         this.attributeOptionCombo = attributeOptionCombo;
         this.leftsideValue = leftsideValue;
         this.rightsideValue = rightsideValue;
+        this.dayInPeriod = dayInPeriod;
     }
 
     // -------------------------------------------------------------------------
@@ -312,6 +331,16 @@ public class ValidationResult
     // Set and get methods
     // -------------------------------------------------------------------------     
 
+    public int getId()
+    {
+        return id;
+    }
+
+    public void setId( int id )
+    {
+        this.id = id;
+    }
+
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -386,5 +415,15 @@ public class ValidationResult
     public void setRightsideValue( Double rightsideValue )
     {
         this.rightsideValue = rightsideValue;
+    }
+
+    public int getDayInPeriod()
+    {
+        return dayInPeriod;
+    }
+
+    public void setDayInPeriod( int dayInPeriod )
+    {
+        this.dayInPeriod = dayInPeriod;
     }
 }
