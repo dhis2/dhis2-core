@@ -117,6 +117,9 @@ public class ValidationServiceTest
     private Period periodA;
     private Period periodB;
 
+    private int dayInPeriodA;
+    private int dayInPeriodB;
+
     private OrganisationUnit sourceA;
     private OrganisationUnit sourceB;
     private OrganisationUnit sourceC;
@@ -210,6 +213,9 @@ public class ValidationServiceTest
 
         periodA = createPeriod( periodTypeMonthly, getDate( 2000, 3, 1 ), getDate( 2000, 3, 31 ) );
         periodB = createPeriod( periodTypeMonthly, getDate( 2000, 4, 1 ), getDate( 2000, 4, 30 ) );
+
+        dayInPeriodA = periodService.getDayInPeriod( periodA, new Date() );
+        dayInPeriodB = periodService.getDayInPeriod( periodB, new Date() );
 
         dataSetWeekly = createDataSet( 'W', periodTypeWeekly );
         dataSetMonthly = createDataSet( 'M', periodTypeMonthly );
@@ -379,15 +385,15 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( validationRuleA, periodA, sourceA, defaultCombo, 3.0, -1.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
-        reference.add( new ValidationResult( validationRuleA, periodB, sourceA, defaultCombo, 3.0, -1.0, periodService.getDayInPeriod( periodB, new Date() ) ) );
-        reference.add( new ValidationResult( validationRuleA, periodA, sourceB, defaultCombo, 3.0, -1.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
-        reference.add( new ValidationResult( validationRuleA, periodB, sourceB, defaultCombo, 3.0, -1.0, periodService.getDayInPeriod( periodB, new Date() ) ) );
+        reference.add( new ValidationResult( validationRuleA, periodA, sourceA, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( validationRuleA, periodB, sourceA, defaultCombo, 3.0, -1.0, dayInPeriodB ) );
+        reference.add( new ValidationResult( validationRuleA, periodA, sourceB, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( validationRuleA, periodB, sourceB, defaultCombo, 3.0, -1.0, dayInPeriodB ) );
 
-        reference.add( new ValidationResult( validationRuleB, periodA, sourceA, defaultCombo, -1.0, 4.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
-        reference.add( new ValidationResult( validationRuleB, periodB, sourceA, defaultCombo, -1.0, 4.0, periodService.getDayInPeriod( periodB, new Date() ) ) );
-        reference.add( new ValidationResult( validationRuleB, periodA, sourceB, defaultCombo, -1.0, 4.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
-        reference.add( new ValidationResult( validationRuleB, periodB, sourceB, defaultCombo, -1.0, 4.0, periodService.getDayInPeriod( periodB, new Date() ) ) );
+        reference.add( new ValidationResult( validationRuleB, periodA, sourceA, defaultCombo, -1.0, 4.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( validationRuleB, periodB, sourceA, defaultCombo, -1.0, 4.0, dayInPeriodB ) );
+        reference.add( new ValidationResult( validationRuleB, periodA, sourceB, defaultCombo, -1.0, 4.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( validationRuleB, periodB, sourceB, defaultCombo, -1.0, 4.0, dayInPeriodB ) );
 
         for ( ValidationResult result : results )
         {
@@ -437,10 +443,10 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( validationRuleA, periodA, sourceA, defaultCombo, 3.0, -1.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
-        reference.add( new ValidationResult( validationRuleA, periodB, sourceA, defaultCombo, 3.0, -1.0, periodService.getDayInPeriod( periodB, new Date() ) ) );
-        reference.add( new ValidationResult( validationRuleA, periodA, sourceB, defaultCombo, 3.0, -1.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
-        reference.add( new ValidationResult( validationRuleA, periodB, sourceB, defaultCombo, 3.0, -1.0, periodService.getDayInPeriod( periodB, new Date() ) ) );
+        reference.add( new ValidationResult( validationRuleA, periodA, sourceA, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( validationRuleA, periodB, sourceA, defaultCombo, 3.0, -1.0, dayInPeriodB ) );
+        reference.add( new ValidationResult( validationRuleA, periodA, sourceB, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( validationRuleA, periodB, sourceB, defaultCombo, 3.0, -1.0, dayInPeriodB ) );
 
         for ( ValidationResult result : results )
         {
@@ -469,8 +475,8 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( validationRuleA, periodA, sourceA, defaultCombo, 3.0, -1.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
-        reference.add( new ValidationResult( validationRuleB, periodA, sourceA, defaultCombo, -1.0, 4.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
+        reference.add( new ValidationResult( validationRuleA, periodA, sourceA, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( validationRuleB, periodA, sourceA, defaultCombo, -1.0, 4.0, dayInPeriodA ) );
 
         for ( ValidationResult result : results )
         {
@@ -503,7 +509,7 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> results = validationService.validate( dataSetMonthly, periodA, sourceA, null );
 
-        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 0.0, 1.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
+        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 0.0, 1.0, dayInPeriodA ) );
 
         assertEquals( 1, results.size() );
         assertEquals( orderedList( reference ), orderedList( results ) );
@@ -520,7 +526,7 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> results = validationService.validate( dataSetMonthly, periodA, sourceA, null );
 
-        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 1.0, 0.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
+        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 1.0, 0.0, dayInPeriodA ) );
 
         assertEquals( 1, results.size() );
         assertEquals( orderedList( reference ), orderedList( results ) );
@@ -558,7 +564,7 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( validationRuleE, periodA, sourceA, defaultCombo, 0.0, 1.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
+        reference.add( new ValidationResult( validationRuleE, periodA, sourceA, defaultCombo, 0.0, 1.0, dayInPeriodA ) );
 
         assertEquals( 1, results.size() );
         assertEquals( orderedList( reference ), orderedList( results ) );
@@ -575,7 +581,7 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( validationRuleE, periodA, sourceA, defaultCombo, 1.0, 0.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
+        reference.add( new ValidationResult( validationRuleE, periodA, sourceA, defaultCombo, 1.0, 0.0, dayInPeriodA ) );
 
         assertEquals( 1, results.size() );
         assertEquals( orderedList( reference ), orderedList( results ) );
@@ -606,7 +612,7 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 99.0, 0.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
+        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 99.0, 0.0, dayInPeriodA ) );
 
         assertEquals( 1, results.size() );
         assertEquals( orderedList( reference ), orderedList( results ) );
@@ -626,7 +632,7 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 99.0, 0.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
+        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 99.0, 0.0, dayInPeriodA ) );
 
         assertEquals( 1, results.size() );
         assertEquals( orderedList( reference ), orderedList( results ) );
@@ -646,7 +652,7 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 99.0, 0.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
+        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 99.0, 0.0, dayInPeriodA ) );
 
         assertEquals( 1, results.size() );
         assertEquals( orderedList( reference ), orderedList( results ) );
@@ -667,8 +673,8 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( validationRuleF, periodA, sourceA, defaultCombo, 1.0, 2.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
-        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 99.0, 0.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
+        reference.add( new ValidationResult( validationRuleF, periodA, sourceA, defaultCombo, 1.0, 2.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 99.0, 0.0, dayInPeriodA ) );
 
         assertEquals( 2, results.size() );
         assertEquals( orderedList( reference ), orderedList( results ) );
@@ -720,7 +726,7 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( validationRuleF, periodA, sourceA, defaultCombo, 1.0, 2.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
+        reference.add( new ValidationResult( validationRuleF, periodA, sourceA, defaultCombo, 1.0, 2.0, dayInPeriodA ) );
 
         assertEquals( 1, results.size() );
         assertEquals( orderedList( reference ), orderedList( results ) );
@@ -774,8 +780,8 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( validationRuleD, periodA, sourceA, optionComboAC, 7.0, 6.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
-        reference.add( new ValidationResult( validationRuleX, periodA, sourceA, optionComboAC, 7.0, 6.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
+        reference.add( new ValidationResult( validationRuleD, periodA, sourceA, optionComboAC, 7.0, 6.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( validationRuleX, periodA, sourceA, optionComboAC, 7.0, 6.0, dayInPeriodA ) );
 
         for ( ValidationResult result : results )
         {
@@ -793,10 +799,10 @@ public class ValidationServiceTest
 
         reference = new HashSet<>();
 
-        reference.add( new ValidationResult( validationRuleD, periodA, sourceA, optionComboAC, 7.0, 6.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
-        reference.add( new ValidationResult( validationRuleX, periodA, sourceA, optionComboAC, 7.0, 6.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
-        reference.add( new ValidationResult( validationRuleD, periodA, sourceA, optionComboBC, 3.0, 2.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
-        reference.add( new ValidationResult( validationRuleX, periodA, sourceA, optionComboBC, 3.0, 2.0, periodService.getDayInPeriod( periodA, new Date() ) ) );
+        reference.add( new ValidationResult( validationRuleD, periodA, sourceA, optionComboAC, 7.0, 6.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( validationRuleX, periodA, sourceA, optionComboAC, 7.0, 6.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( validationRuleD, periodA, sourceA, optionComboBC, 3.0, 2.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( validationRuleX, periodA, sourceA, optionComboBC, 3.0, 2.0, dayInPeriodA ) );
 
         for ( ValidationResult result : results )
         {

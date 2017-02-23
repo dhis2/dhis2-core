@@ -165,29 +165,29 @@ public class ValidationNotificationServiceTest
 
     private ValidationResult createValidationResult( OrganisationUnit ou, ValidationRule rule )
     {
-        Period p = createPeriod( "2017Q1" );
+        Period period = createPeriod( "2017Q1" );
         return new ValidationResult(
             rule,
-            p,
+            period,
             ou,
             catOptCombo,
             RandomUtils.nextDouble( 10, 1000 ),
             RandomUtils.nextDouble( 10, 1000 ),
-            periodService.getDayInPeriod( p, new Date() )
+            periodService.getDayInPeriod( period, new Date() )
         );
     }
 
     private ValidationResult createValidationResultA()
     {
-        Period p = createPeriod( "2017Q1" );
+        Period period = createPeriod( "2017Q1" );
         return new ValidationResult(
             valRuleA,
-            p,
+            period,
             orgUnitA,
             catOptCombo,
             RandomUtils.nextDouble( 10, 1000 ),
             RandomUtils.nextDouble( 10, 1000 ),
-            periodService.getDayInPeriod( p, new Date() )
+            periodService.getDayInPeriod( period, new Date() )
         );
     }
 

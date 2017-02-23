@@ -27,6 +27,9 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -50,7 +53,6 @@ public class ValidationResultDeletionHandler
     @Override
     public void deleteValidationRule( ValidationRule validationRule )
     {
-        System.out.println(" HERE !");
         validationResultService.getAllValidationResults().forEach( validationResult ->
         {
             if ( validationResult.getValidationRule().equals( validationRule ) )
@@ -61,10 +63,44 @@ public class ValidationResultDeletionHandler
     }
 
     @Override
+    public void deletePeriod( Period period )
+    {
+        validationResultService.getAllValidationResults().forEach( validationResult ->
+        {
+            if ( validationResult.getPeriod().equals( period ) )
+            {
+                validationResultService.deleteValidationResult( validationResult );
+            }
+        } );
+    }
+
+    @Override
+    public void deleteOrganisationUnit( OrganisationUnit organisationUnit )
+    {
+        validationResultService.getAllValidationResults().forEach( validationResult ->
+        {
+            if ( validationResult.getOrganisationUnit().equals( organisationUnit ) )
+            {
+                validationResultService.deleteValidationResult( validationResult );
+            }
+        } );
+    }
+
+    @Override
+    public void deleteDataElementCategoryOptionCombo( DataElementCategoryOptionCombo dataElementCategoryOptionCombo )
+    {
+        validationResultService.getAllValidationResults().forEach( validationResult ->
+        {
+            if ( validationResult.getAttributeOptionCombo().equals( dataElementCategoryOptionCombo ) )
+            {
+                validationResultService.deleteValidationResult( validationResult );
+            }
+        } );
+    }
+
+    @Override
     public String allowDeleteValidationRule( ValidationRule validationRule )
     {
-
-        System.out.println(" HERE 2 !");
         for ( ValidationResult validationResult : validationResultService.getAllValidationResults() )
         {
             if ( validationResult.getValidationRule().equals( validationRule ) )

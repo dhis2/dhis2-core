@@ -298,18 +298,7 @@ public class DefaultPeriodService
     {
         int days = (int) TimeUnit.DAYS.convert( date.getTime() - period.getStartDate().getTime(), TimeUnit.MILLISECONDS );
 
-        if ( days < 0 )
-        {
-            return 0;
-        }
-        else if ( days >= period.getDaysInPeriod() )
-        {
-            return period.getDaysInPeriod();
-        }
-        else
-        {
-            return days;
-        }
+        return Math.min( Math.max( 0, days ), period.getDaysInPeriod() );
     }
 
     // -------------------------------------------------------------------------
