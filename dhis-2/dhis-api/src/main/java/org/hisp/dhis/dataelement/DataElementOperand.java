@@ -41,7 +41,6 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.LinkObject;
 import org.hisp.dhis.common.MergeMode;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.expression.ExpressionService;
 
 import java.util.regex.Matcher;
@@ -86,8 +85,6 @@ public class DataElementOperand
     private String operandId;
 
     private String operandName;
-
-    private ValueType valueType;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -248,7 +245,6 @@ public class DataElementOperand
         this.operandName = getPrettyName( dataElement, categoryOptionCombo );
         this.legendSets = dataElement.getLegendSets();
         this.aggregationType = dataElement.getAggregationType();
-        this.valueType = dataElement.getValueType();
 
         this.uid = dataElementId + SEPARATOR + optionComboId;
         this.name = getPrettyName( dataElement, categoryOptionCombo );
@@ -266,7 +262,6 @@ public class DataElementOperand
         this.operandName = getPrettyName( dataElement, null );
         this.legendSets = dataElement.getLegendSets();
         this.aggregationType = dataElement.getAggregationType();
-        this.valueType = dataElement.getValueType();
 
         this.uid = dataElementId;
         this.name = getPrettyName( dataElement, null );
@@ -368,18 +363,6 @@ public class DataElementOperand
     public void setOperandName( String operandName )
     {
         this.operandName = operandName;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ValueType getValueType()
-    {
-        return valueType;
-    }
-
-    public void setValueType( ValueType valueType )
-    {
-        this.valueType = valueType;
     }
 
     // -------------------------------------------------------------------------
