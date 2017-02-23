@@ -391,17 +391,14 @@ public class ActivityReportingServiceImpl
         }
 
         programStageInstance.getProgramStage();
-        Collection<org.hisp.dhis.dataelement.DataElement> dataElements = new ArrayList<>();
+        List<org.hisp.dhis.dataelement.DataElement> dataElements = new ArrayList<>();
 
         ProgramStageSection programStageSection = programStageSectionService
             .getProgramStageSection( programStageSectionId );
 
         if ( programStageSectionId != 0 )
         {
-            for ( ProgramStageDataElement de : programStageSection.getProgramStageDataElements() )
-            {
-                dataElements.add( de.getDataElement() );
-            }
+            dataElements.addAll( programStageSection.getDataElements() );
         }
         else
         {
@@ -998,10 +995,9 @@ public class ActivityReportingServiceImpl
                         // from
                         // data element list of program stage
                         List<Integer> dataElementIds = new ArrayList<>();
-                        for ( ProgramStageDataElement eachPogramStageDataElement : eachSection
-                            .getProgramStageDataElements() )
+                        for ( DataElement dataElement : eachSection.getDataElements() )
                         {
-                            dataElementIds.add( eachPogramStageDataElement.getDataElement().getId() );
+                            dataElementIds.add( dataElement.getId() );
                         }
                         mobileSection.setDataElementIds( dataElementIds );
                         mobileSections.add( mobileSection );

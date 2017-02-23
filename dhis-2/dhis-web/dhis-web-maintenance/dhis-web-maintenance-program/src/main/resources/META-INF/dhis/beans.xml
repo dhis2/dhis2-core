@@ -152,8 +152,6 @@
     scope="prototype">
     <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
     <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="programStageDataElementService"
-      ref="org.hisp.dhis.program.ProgramStageDataElementService" />
   </bean>
 
   <bean
@@ -161,11 +159,7 @@
     class="org.hisp.dhis.trackedentity.action.programstage.UpdateProgramStageSectionAction"
     scope="prototype">
     <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="programStageSectionService"
-      ref="org.hisp.dhis.program.ProgramStageSectionService" />
-    <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
-    <property name="programStageDataElementService"
-      ref="org.hisp.dhis.program.ProgramStageDataElementService" />
+    <property name="programStageSectionService" ref="org.hisp.dhis.program.ProgramStageSectionService" />
   </bean>
 
   <bean
