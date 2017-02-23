@@ -29,7 +29,7 @@ jQuery( document ).ready( function()
 <table>
 	<thead>
       <tr>
-        <th colspan="2">$i18n.getString( "program_indicator_details" )sadasd</th>
+        <th colspan="2">$i18n.getString( "program_indicator_details" )</th>
       </tr>
     </thead>
 	<tbody>
