@@ -31,7 +31,6 @@ package org.hisp.dhis.program;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -43,6 +42,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.api.client.util.Lists;
 
 /**
  * @author Chau Thu Tran
@@ -102,10 +103,10 @@ public class ProgramStageSectionServiceTest
         programStageDataElementService.addProgramStageDataElement( stageDeA );
         programStageDataElementService.addProgramStageDataElement( stageDeB );
 
-        List<ProgramStageDataElement> psDataElements = new ArrayList<>();
-        psDataElements.add( stageDeA );
-        psDataElements.add( stageDeB );
-
+        List<DataElement> dataElements = Lists.newArrayList();
+        dataElements.add( dataElementA );
+        dataElements.add( dataElementB );
+        
         stageB = createProgramStage( 'B', program );
         programStageService.saveProgramStage( stageB );
 
@@ -116,7 +117,7 @@ public class ProgramStageSectionServiceTest
         programService.updateProgram( program );
 
         sectionA = createProgramStageSection( 'A', 1 );
-        sectionA.setProgramStageDataElements( psDataElements );
+        sectionA.setDataElements( dataElements );
 
         sectionB = createProgramStageSection( 'B', 2 );
 

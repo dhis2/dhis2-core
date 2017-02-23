@@ -29,8 +29,6 @@ package org.hisp.dhis.trackedentity.action.programstage;
  */
 
 import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.program.ProgramStageService;
 
@@ -110,21 +108,6 @@ public class ValidateProgramStageSectionAction
     public String execute()
         throws Exception
     {
-        ProgramStage progamStage = programStageService.getProgramStage( programStageId );
-        
-        ProgramStageSection match = programStageSectionService.getProgramStageSectionByName( name, progamStage );
-
-        if ( match != null && (id == null || match.getId() != id.intValue()) )
-        {
-            message = i18n.getString( "name_exists" );
-
-            return ERROR;
-        }
-
-        // ---------------------------------------------------------------------
-        // Validation success
-        // ---------------------------------------------------------------------
-
         message = i18n.getString( "everything_is_ok" );
 
         return SUCCESS;

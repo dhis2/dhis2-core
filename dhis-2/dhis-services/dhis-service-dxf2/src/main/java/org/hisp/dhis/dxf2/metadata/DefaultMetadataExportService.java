@@ -599,7 +599,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         if ( programStageSection == null ) return metadata;
         metadata.putValue( ProgramStageSection.class, programStageSection );
 
-        programStageSection.getProgramStageDataElements().forEach( programStageDataElement -> handleProgramStageDataElement( metadata, programStageDataElement ) );
+        //programStageSection.getProgramStageDataElements().forEach( programStageDataElement -> handleProgramStageDataElement( metadata, programStageDataElement ) ); //TODO can this be left out?
         programStageSection.getProgramIndicators().forEach( programIndicator -> handleProgramIndicator( metadata, programIndicator ) );
 
         return metadata;

@@ -32,9 +32,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,9 +74,9 @@ public class ShowAddProgramStageSectionAction
         return programStage;
     }
 
-    private List<ProgramStageDataElement> availableDataElements;
+    private List<DataElement> availableDataElements;
 
-    public List<ProgramStageDataElement> getAvailableDataElements()
+    public List<DataElement> getAvailableDataElements()
     {
         return availableDataElements;
     }
@@ -100,12 +100,12 @@ public class ShowAddProgramStageSectionAction
 
         if ( programStage != null && programStage.getProgram() != null )
         {
-            availableDataElements = new ArrayList<>( programStage.getProgramStageDataElements() );            
+            availableDataElements = new ArrayList<>( programStage.getAllDataElements() );            
             availableProgramIndicators = new ArrayList<>( programStage.getProgram().getProgramIndicators() );
         
             for ( ProgramStageSection section : programStage.getProgramStageSections() )
             {
-                availableDataElements.removeAll( section.getProgramStageDataElements() );
+                availableDataElements.removeAll( section.getDataElements() );
             }
             
             Collections.sort( availableDataElements );
