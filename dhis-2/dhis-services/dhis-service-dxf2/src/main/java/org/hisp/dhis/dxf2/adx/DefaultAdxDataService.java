@@ -304,6 +304,7 @@ public class DefaultAdxDataService
                 importSummary.setDescription( "Data set import failed for group number: " + count );
                 importSummary.getConflicts().add( ex.getImportConflict() );
                 importSummaries.addImportSummary( importSummary );
+                importSummaries.setStatus( ImportStatus.ERROR );
                 notifier.notify( id, NotificationLevel.ERROR, "ADX data import procss failed", true );
                 log.warn( "Import failed: " + DebugUtils.getStackTrace( ex ) );
             }
@@ -313,6 +314,7 @@ public class DefaultAdxDataService
                 importSummary.setStatus( ImportStatus.ERROR );
                 importSummary.setDescription( "Data set import failed for group number: " + count );
                 importSummaries.addImportSummary( importSummary );
+                importSummaries.setStatus( ImportStatus.ERROR );
                 notifier.notify( id, NotificationLevel.ERROR, "ADX data import procss failed", true );
                 log.warn( "Import failed: " + DebugUtils.getStackTrace( ex ) );
             }
