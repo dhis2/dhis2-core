@@ -78,6 +78,8 @@ public class ProgramStage
     private Integer standardInterval;
 
     private String executionDateLabel;
+    
+    private String dueDateLabel;
 
     private Set<ProgramNotificationTemplate> notificationTemplates = new HashSet<>();
 
@@ -331,6 +333,19 @@ public class ProgramStage
     {
         this.executionDateLabel = executionDateLabel;
     }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = 2 )
+    public String getDueDateLabel()
+    {
+        return dueDateLabel;
+    }
+
+    public void setDueDateLabel( String dueDateLabel )
+    {
+        this.dueDateLabel = dueDateLabel;
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -488,6 +503,7 @@ public class ProgramStage
                 dataEntryForm = programStage.getDataEntryForm();
                 standardInterval = programStage.getStandardInterval();
                 executionDateLabel = programStage.getExecutionDateLabel();
+                dueDateLabel = programStage.getDueDateLabel();
                 validCompleteOnly = programStage.getValidCompleteOnly();
                 displayGenerateEventBox = programStage.getDisplayGenerateEventBox();
                 captureCoordinates = programStage.getCaptureCoordinates();
@@ -510,6 +526,8 @@ public class ProgramStage
                     .getStandardInterval();
                 executionDateLabel = programStage.getExecutionDateLabel() == null ? executionDateLabel
                     : programStage.getExecutionDateLabel();
+                dueDateLabel = programStage.getDueDateLabel() == null ? dueDateLabel
+                    : programStage.getDueDateLabel();
                 validCompleteOnly = programStage.getValidCompleteOnly() == null ? validCompleteOnly : programStage
                     .getValidCompleteOnly();
                 displayGenerateEventBox = programStage.getDisplayGenerateEventBox() == null ? displayGenerateEventBox
