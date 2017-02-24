@@ -83,6 +83,11 @@ public class ImportSummaries extends AbstractWebMessageResponse
 
         return this;
     }
+    
+    public String toCountString()
+    {
+        return String.format( "Imported %d, updated %d, deleted %d, ignored %d", imported, updated, deleted, ignored );
+    }
 
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "importSummaryList", namespace = DxfNamespaces.DXF_2_0 )
