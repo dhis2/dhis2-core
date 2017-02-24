@@ -172,6 +172,13 @@ public class UpdateProgramStageAction
     {
         this.excecutionDateLabel = excecutionDateLabel;
     }
+    
+    private String dueDateLabel;
+
+    public void setDueDateLabel( String dueDateLabel )
+    {
+        this.dueDateLabel = dueDateLabel;
+    }
 
     private Boolean autoGenerateEvent;
 
@@ -333,6 +340,11 @@ public class UpdateProgramStageAction
         programStage.setReportDateToUse( reportDateToUse );
         programStage.setPreGenerateUID( preGenerateUID );
         programStage.setHideDueDate( hideDueDate );
+        
+        if( !hideDueDate )
+        {
+            programStage.setDueDateLabel( StringUtils.trimToNull( dueDateLabel ) );
+        }
 
         periodTypeName = StringUtils.trimToNull( periodTypeName );
 
