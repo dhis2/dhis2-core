@@ -73,9 +73,15 @@ public class InMemoryNotifier
     }
     
     @Override
+    public Notifier notify( TaskId id, NotificationLevel level, String message )
+    {
+        return notify( id, level, message, false );
+    }
+    
+    @Override
     public Notifier notify( TaskId id, NotificationLevel level, String message, boolean completed )
     {
-        if ( id != null )
+        if ( id != null && !( level != null && level.isOff() ) )
         {
             Notification notification = new Notification( level, id.getCategory(), new Date(), message, completed );
         
@@ -128,7 +134,13 @@ public class InMemoryNotifier
     @Override
     public Notifier addTaskSummary( TaskId id, Object taskSummary )
     {
-        if ( id != null )
+        return addTaskSummary( id, NotificationLevel.INFO, taskSummary );
+    }
+    
+    @Override
+    public Notifier addTaskSummary( TaskId id, NotificationLevel level, Object taskSummary )
+    {
+        if ( id != null && !( level != null && level.isOff() ) )
         {
             taskSummaries.get( id ).put( id.getCategory(), taskSummary );
         }

@@ -39,6 +39,8 @@ public interface Notifier
 {
     Notifier notify( TaskId id, String message );
     
+    Notifier notify( TaskId id, NotificationLevel level, String message );
+    
     Notifier notify( TaskId id, NotificationLevel level, String message, boolean completed );
     
     List<Notification> getNotifications( TaskId id, String lastUid );
@@ -46,6 +48,8 @@ public interface Notifier
     Notifier clear( TaskId id );
     
     Notifier addTaskSummary( TaskId id, Object taskSummary );
+    
+    Notifier addTaskSummary( TaskId id, NotificationLevel level, Object taskSummary );
     
     Object getTaskSummary( TaskId id );
 }

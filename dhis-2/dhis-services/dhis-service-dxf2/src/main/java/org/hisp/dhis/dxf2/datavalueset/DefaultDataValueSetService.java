@@ -87,11 +87,13 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.callable.CategoryOptionComboAclCallable;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.system.callable.PeriodCallable;
+import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,6 +112,7 @@ import java.util.Set;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
+import static org.hisp.dhis.system.notification.NotificationLevel.WARN;
 import static org.hisp.dhis.system.util.DateUtils.parseDate;
 
 /**
@@ -597,8 +600,11 @@ public class DefaultDataValueSetService
      */
     private ImportSummary saveDataValueSet( ImportOptions importOptions, TaskId id, DataValueSet dataValueSet )
     {
+        importOptions = ObjectUtils.firstNonNull( importOptions, ImportOptions.getDefaultImportOptions() );
+
         Clock clock = new Clock( log ).startClock().logTime( "Starting data value import, options: " + importOptions );
-        notifier.clear( id ).notify( id, "Process started" );
+        NotificationLevel notificationLevel = importOptions.getNotificationLevel( INFO );
+        notifier.clear( id ).notify( id, notificationLevel, "Process started" );
 
         ImportSummary summary = new ImportSummary();
         boolean isIso8601 = calendarService.getSystemCalendar().isIso8601();
@@ -611,8 +617,6 @@ public class DefaultDataValueSetService
         // ---------------------------------------------------------------------
         // Get import options
         // ---------------------------------------------------------------------
-
-        importOptions = importOptions != null ? importOptions : ImportOptions.getDefaultImportOptions();
 
         log.info( "Import options: " + importOptions );
 
@@ -739,14 +743,14 @@ public class DefaultDataValueSetService
         if ( ImportStatus.ERROR.equals( summary.getStatus() ) )
         {
             summary.setDescription( "Import process was aborted" );
-            notifier.notify( id, INFO, "Import process aborted", true ).addTaskSummary( id, summary );
+            notifier.notify( id, WARN, "Import process aborted", true ).addTaskSummary( id, summary );
             dataValueSet.close();
             return summary;
         }
 
         if ( dataSet != null && completeDate != null )
         {
-            notifier.notify( id, "Completing data set" );
+            notifier.notify( id, notificationLevel, "Completing data set" );
             handleComplete( dataSet, completeDate, outerPeriod, outerOrgUnit, fallbackCategoryOptionCombo, summary ); //TODO
         }
         else
@@ -772,7 +776,7 @@ public class DefaultDataValueSetService
         Date now = new Date();
 
         clock.logTime( "Validated outer meta-data" );
-        notifier.notify( id, "Importing data values" );
+        notifier.notify( id, notificationLevel, "Importing data values" );
 
         while ( dataValueSet.hasNextDataValue() )
         {
@@ -1149,8 +1153,8 @@ public class DefaultDataValueSetService
         summary.setStatus( ImportStatus.SUCCESS );
         summary.setDescription( "Import process completed successfully" );
 
-        notifier.notify( id, INFO, "Import done", true ).addTaskSummary( id, summary );
         clock.logTime( "Data value import done, total: " + totalCount + ", import: " + importCount + ", update: " + updateCount + ", delete: " + deleteCount );
+        notifier.notify( id, notificationLevel, "Import done", true ).addTaskSummary( id, notificationLevel, summary );
 
         dataValueSet.close();
 

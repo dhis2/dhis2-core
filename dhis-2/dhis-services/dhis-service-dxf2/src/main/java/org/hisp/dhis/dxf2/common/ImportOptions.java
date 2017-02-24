@@ -32,6 +32,7 @@ import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.system.notification.NotificationLevel;
 
 /**
  * The idScheme is a general setting which will apply to all objects. The idSchemes
@@ -76,6 +77,8 @@ public class ImportOptions
 
     private boolean requireAttributeOptionCombo;
 
+    private NotificationLevel notificationLevel;
+    
     //--------------------------------------------------------------------------
     // Constructors
     //--------------------------------------------------------------------------
@@ -88,6 +91,31 @@ public class ImportOptions
     // Logic
     //--------------------------------------------------------------------------
 
+    public ImportOptions instance()
+    {
+        ImportOptions options = new ImportOptions();
+        
+        options.idSchemes = this.idSchemes;
+        options.dryRun = this.dryRun;
+        options.preheatCache = this.preheatCache;
+        options.async = this.async;
+        options.importStrategy = this.importStrategy;
+        options.mergeMode = this.mergeMode;
+        options.skipExistingCheck = this.skipExistingCheck;
+        options.sharing = this.sharing;
+        options.skipNotifications = this.skipNotifications;
+        options.datasetAllowsPeriods = this.datasetAllowsPeriods;
+        options.strictPeriods = this.strictPeriods;
+        options.strictCategoryOptionCombos = this.strictCategoryOptionCombos;
+        options.strictAttributeOptionCombos = this.strictAttributeOptionCombos;
+        options.strictOrganisationUnits = this.strictOrganisationUnits;
+        options.requireCategoryOptionCombo = this.requireCategoryOptionCombo;
+        options.requireAttributeOptionCombo = this.requireAttributeOptionCombo;
+        options.notificationLevel = this.notificationLevel;
+        
+        return options;
+    }
+    
     public static ImportOptions getDefaultImportOptions()
     {
         return DEFAULT_OPTIONS;
@@ -107,6 +135,18 @@ public class ImportOptions
     public boolean isPreheatCacheDefaultFalse()
     {
         return preheatCache == null ? false : preheatCache;
+    }
+    
+    /**
+     * Returns the notification level, or if not specified, returns the given
+     * default notification level.
+     * 
+     * @param defaultLevel the default notification level.
+     * @return the nofication level.
+     */
+    public NotificationLevel getNotificationLevel( NotificationLevel defaultLevel )
+    {
+        return notificationLevel != null ? notificationLevel : defaultLevel;
     }
 
     //--------------------------------------------------------------------------
@@ -196,6 +236,11 @@ public class ImportOptions
     public boolean isRequireAttributeOptionCombo()
     {
         return requireAttributeOptionCombo;
+    }
+
+    public NotificationLevel getNotificationLevel()
+    {
+        return notificationLevel;
     }
 
     //--------------------------------------------------------------------------
@@ -352,7 +397,14 @@ public class ImportOptions
         return this;
     }
 
-    @Override public String toString()
+    public ImportOptions setNotificationLevel( NotificationLevel notificationLevel )
+    {
+        this.notificationLevel = notificationLevel;
+        return this;
+    }
+
+    @Override
+    public String toString()
     {
         return MoreObjects.toStringHelper( this )
             .add( "idSchemes", idSchemes )
