@@ -44,6 +44,8 @@ import java.util.List;
 @JacksonXmlRootElement( localName = "importSummaries", namespace = DxfNamespaces.DXF_2_0 )
 public class ImportSummaries extends AbstractWebMessageResponse
 {
+    private ImportStatus status = ImportStatus.SUCCESS;
+    
     private int imported;
 
     private int updated;
@@ -82,6 +84,18 @@ public class ImportSummaries extends AbstractWebMessageResponse
     public String toCountString()
     {
         return String.format( "Imported %d, updated %d, deleted %d, ignored %d", imported, updated, deleted, ignored );
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ImportStatus getStatus()
+    {
+        return status;
+    }
+    
+    public void setStatus( ImportStatus status )
+    {
+        this.status = status;
     }
 
     @JsonProperty
