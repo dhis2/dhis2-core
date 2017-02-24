@@ -72,8 +72,6 @@
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
     <property name="dataValueService" ref="org.hisp.dhis.datavalue.DataValueService" />
     <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
-    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
   </bean>
 
   <bean id="org.hisp.dhis.validationrule.action.ExportValidationResultAction"

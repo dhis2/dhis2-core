@@ -231,9 +231,7 @@ public class DefaultPredictorService
             for ( Period period : basePeriods )
             {
                 Map<Integer, ListMap<String, Double>> aggregateSampleMap =
-                    getAggregateSampleMaps
-                        ( aggregates, samplerefs, source,
-                            periodMaps.get( period ), skipTest, skipdata, constantMap );
+                    getAggregateSampleMaps( aggregates, samplerefs, source, periodMaps.get( period ), skipTest, skipdata, constantMap );
 
                 for ( Integer aoc : aggregateSampleMap.keySet() )
                 {

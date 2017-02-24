@@ -440,11 +440,11 @@ public class DefaultExpressionService
             while ( matcher.find() )
             {
                 DataElementOperand operand = DataElementOperand.getOperand( matcher.group() );
-
                 operand.setDataElement( dataElementService.getDataElement( operand.getDataElementId() ) );
 
                 if ( operand.getOptionComboId() != null )
                 {
+                    operand.setCategoryOptionCombo( categoryService.getDataElementCategoryOptionCombo( operand.getOptionComboId() ) );                    
                     operandsInExpression.add( operand );
                 }
             }
