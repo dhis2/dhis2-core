@@ -33,7 +33,14 @@ package org.hisp.dhis.system.notification;
  */
 public enum NotificationLevel
 {
+    OFF,
+    DEBUG,
     INFO,
     WARN,
-    ERROR
+    ERROR;
+    
+    public boolean isOff()
+    {
+        return this == OFF;
+    }
 }
