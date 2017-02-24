@@ -188,9 +188,6 @@
     id="org.hisp.dhis.trackedentity.action.programstage.ValidateProgramStageSectionAction"
     class="org.hisp.dhis.trackedentity.action.programstage.ValidateProgramStageSectionAction"
     scope="prototype">
-    <property name="programStageSectionService"
-      ref="org.hisp.dhis.program.ProgramStageSectionService" />
-    <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
   </bean>
 
   <bean

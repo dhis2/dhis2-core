@@ -1,5 +1,4 @@
-package org.hisp.dhis.system.objectmapper;
-
+package org.hisp.dhis.validation;
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -28,47 +27,53 @@ package org.hisp.dhis.system.objectmapper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.dataelement.DataElementCategoryOptionCombo.DEFAULT_TOSTRING;
+import org.hisp.dhis.jdbc.batchhandler.ValidationResultBatchHandler;
+import org.hisp.quick.BatchHandler;
+import org.hisp.quick.BatchHandlerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import org.hisp.quick.mapper.RowMapper;
-import org.hisp.dhis.dataelement.DataElementOperand;
+import java.util.Collection;
+import java.util.List;
 
 /**
- * @author Lars Helge Overland
+ * @author Stian Sandvold
  */
-public class DataElementOperandMapper
-    implements RowMapper<DataElementOperand>, org.springframework.jdbc.core.RowMapper<DataElementOperand>
+public class DefaultValidationResultService
+    implements ValidationResultService
 {
-    private static final String SEPARATOR = " ";
-    
-    @Override
-    public DataElementOperand mapRow( ResultSet resultSet )
-        throws SQLException
-    {
-        String operandName = resultSet.getString( 2 );
+    @Autowired
+    private ValidationResultStore validationResultStore;
 
-        final String cocName = resultSet.getString( 4 );        
-        
-        if ( cocName != null && !cocName.equals( DEFAULT_TOSTRING ) )
+    @Autowired
+    private BatchHandlerFactory batchHandlerFactory;
+
+    @Override
+    @Transactional
+    public void saveValidationResults( Collection<ValidationResult> validationResults )
+    {
+        BatchHandler<ValidationResult> validationResultBatchHandler = batchHandlerFactory
+            .createBatchHandler( ValidationResultBatchHandler.class ).init();
+
+        validationResults.forEach( validationResult ->
         {
-            operandName += SEPARATOR + cocName;
-        }
-                
-        final DataElementOperand operand = new DataElementOperand(
-            resultSet.getString( 1 ),
-            resultSet.getString( 3 ),
-            operandName );
-        
-        return operand;
+            if ( !validationResultBatchHandler.objectExists( validationResult ) )
+            {
+                validationResultBatchHandler.addObject( validationResult );
+            }
+        } );
+
+        validationResultBatchHandler.flush();
+    }
+
+    public List<ValidationResult> getAllValidationResults()
+    {
+        return validationResultStore.getAll();
     }
 
     @Override
-    public DataElementOperand mapRow( ResultSet resultSet, int rowNum )
-        throws SQLException
+    public void deleteValidationResult( ValidationResult validationResult )
     {
-        return mapRow( resultSet );
+        validationResultStore.delete( validationResult );
     }
 }

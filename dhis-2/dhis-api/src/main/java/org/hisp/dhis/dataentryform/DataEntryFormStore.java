@@ -50,6 +50,4 @@ public interface DataEntryFormStore
     DataEntryForm getDataEntryFormByName( String name );
 
     List<DataEntryForm> listDistinctDataEntryFormByProgramStageIds( List<Integer> programStageIds );
-
-    List<DataEntryForm> listDistinctDataEntryFormByDataSetIds( List<Integer> dataSetIds );
 }
