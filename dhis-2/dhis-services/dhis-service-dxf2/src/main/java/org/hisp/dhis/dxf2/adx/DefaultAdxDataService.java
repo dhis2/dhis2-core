@@ -89,6 +89,8 @@ import java.util.concurrent.TimeoutException;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.period.PeriodService;
 
+import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
+
 /**
  * @author bobj
  */
@@ -273,6 +275,8 @@ public class DefaultAdxDataService
         {
             try ( PipedOutputStream pipeOut = new PipedOutputStream() )
             {
+                notifier.notify( id, "Importing ADX data group: " + count );
+                
                 Future<ImportSummary> futureImportSummary = executor.submit( new AdxPipedImporter( dataValueSetService, adxImportOptions, id, pipeOut, sessionFactory ) );
                 XMLOutputFactory factory = XMLOutputFactory.newInstance();
                 XMLStreamWriter dxfWriter = factory.createXMLStreamWriter( pipeOut );
@@ -300,6 +304,7 @@ public class DefaultAdxDataService
                 importSummary.setDescription( "Data set import failed for group number: " + count );
                 importSummary.getConflicts().add( ex.getImportConflict() );
                 importSummaries.addImportSummary( importSummary );
+                notifier.notify( id, NotificationLevel.ERROR, "ADX data import procss failed", true );
                 log.warn( "Import failed: " + DebugUtils.getStackTrace( ex ) );
             }
             catch ( IOException | XMLStreamException | InterruptedException | ExecutionException | TimeoutException ex )
@@ -308,6 +313,7 @@ public class DefaultAdxDataService
                 importSummary.setStatus( ImportStatus.ERROR );
                 importSummary.setDescription( "Data set import failed for group number: " + count );
                 importSummaries.addImportSummary( importSummary );
+                notifier.notify( id, NotificationLevel.ERROR, "ADX data import procss failed", true );
                 log.warn( "Import failed: " + DebugUtils.getStackTrace( ex ) );
             }
 
@@ -315,6 +321,9 @@ public class DefaultAdxDataService
         }
 
         executor.shutdown();
+        
+        notifier.notify( id, INFO, "ADX data import done", true ).addTaskSummary( id, importSummaries );
+        log.info( "ADX data import done: " + importSummaries.toCountString() );
 
         return importSummaries;
     }
