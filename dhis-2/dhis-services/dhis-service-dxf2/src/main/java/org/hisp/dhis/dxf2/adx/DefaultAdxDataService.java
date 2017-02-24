@@ -61,7 +61,9 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -252,7 +254,10 @@ public class DefaultAdxDataService
     private ImportSummaries saveDataValueSetInternal( InputStream in, ImportOptions importOptions, TaskId id )
     {
         notifier.clear( id ).notify( id, "ADX parsing process started" );
-
+        
+        ImportOptions adxImportOptions = ObjectUtils.firstNonNull( importOptions, ImportOptions.getDefaultImportOptions() )
+            .instance().setNotificationLevel( NotificationLevel.OFF );
+        
         XMLReader adxReader = XMLFactory.getXMLReader( in );
 
         ImportSummaries importSummaries = new ImportSummaries();
@@ -268,13 +273,12 @@ public class DefaultAdxDataService
         {
             try ( PipedOutputStream pipeOut = new PipedOutputStream() )
             {
-                Future<ImportSummary> futureImportSummary;
-                futureImportSummary = executor.submit( new AdxPipedImporter( dataValueSetService, importOptions, id, pipeOut, sessionFactory ) );
+                Future<ImportSummary> futureImportSummary = executor.submit( new AdxPipedImporter( dataValueSetService, adxImportOptions, id, pipeOut, sessionFactory ) );
                 XMLOutputFactory factory = XMLOutputFactory.newInstance();
                 XMLStreamWriter dxfWriter = factory.createXMLStreamWriter( pipeOut );
 
                 // note this returns conflicts which are detected at ADX level
-                List<ImportConflict> adxConflicts = parseAdxGroupToDxf( adxReader, dxfWriter, importOptions );
+                List<ImportConflict> adxConflicts = parseAdxGroupToDxf( adxReader, dxfWriter, adxImportOptions );
 
                 pipeOut.flush();
 
