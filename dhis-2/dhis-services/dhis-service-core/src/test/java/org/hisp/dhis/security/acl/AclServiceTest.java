@@ -333,35 +333,9 @@ public class AclServiceTest
     }
 
     @Test
-    public void testVerifyReportTableCanExternalize()
-    {
-        User user = createAdminUser( "F_REPORTTABLE_PUBLIC_ADD", "F_REPORTTABLE_EXTERNAL" );
-
-        ReportTable reportTable = new ReportTable();
-        reportTable.setAutoFields();
-        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
-        reportTable.setExternalAccess( true );
-
-        assertFalse( aclService.verifySharing( reportTable, user ).isEmpty() );
-    }
-
-    @Test
     public void testVerifyReportTableCantExternalize()
     {
         User user = createAdminUser( "F_REPORTTABLE_PUBLIC_ADD" );
-
-        ReportTable reportTable = new ReportTable();
-        reportTable.setAutoFields();
-        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
-        reportTable.setExternalAccess( true );
-
-        assertFalse( aclService.verifySharing( reportTable, user ).isEmpty() );
-    }
-
-    @Test
-    public void testVerifyReportTableCanExternalizeNoExplicitAdd()
-    {
-        User user = createAdminUser( "F_REPORTTABLE_EXTERNAL" );
 
         ReportTable reportTable = new ReportTable();
         reportTable.setAutoFields();
