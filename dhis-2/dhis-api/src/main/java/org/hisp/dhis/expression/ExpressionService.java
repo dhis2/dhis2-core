@@ -198,28 +198,6 @@ public interface ExpressionService
         ListMap<String, Double> aggregateMap );
 
     /**
-     * Generates the calculated value for the given expression base on the values
-     * supplied in the value map, constant map and days.
-     *
-     * @param expression       the expression which holds the formula for the calculation.
-     * @param valueMap         the mapping between data element operands and values to
-     *                         use in the calculation.
-     * @param constantMap      the mapping between the constant uid and value to use
-     *                         in the calculation.
-     * @param orgUnitCountMap  the mapping between organisation unit group uid and
-     *                         count of organisation units to use in the calculation.
-     * @param days             the number of days to use in the calculation.
-     * @param incompleteValues of data element operands that have values but they are incomplete
-     *                         (for example due to aggregation from organisationUnit children where
-     *                         not all children had a value.)
-     * @param aggregateMap     map of subexpression strings to List(s) of aggregated samples for the expression
-     * @return the calculated object result
-     */
-    Object getExpressionObjectValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
-        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
-        Set<DataElementOperand> incompleteValues, ListMap<String, Double> aggregateMap );
-
-    /**
      * Returns all data elements included in the given expression string. Returns
      * an empty set if the given expression is null.
      *

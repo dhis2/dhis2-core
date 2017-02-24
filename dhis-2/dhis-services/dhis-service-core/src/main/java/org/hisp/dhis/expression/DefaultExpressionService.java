@@ -360,19 +360,6 @@ public class DefaultExpressionService
     }
 
     @Override
-    public Object getExpressionObjectValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
-        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
-        Set<DataElementOperand> incompleteValues, ListMap<String, Double> aggregateMap )
-    {
-        String expressionString = generateExpression( expression.getExplodedExpressionFallback(), valueMap, constantMap,
-            orgUnitCountMap, days, expression.getMissingValueStrategy(), aggregateMap );
-
-        Object result = expressionString != null ? calculateGenericExpression( expressionString ) : null;
-
-        return result;
-    }
-
-    @Override
     public Set<DataElement> getDataElementsInExpression( String expression )
     {
         return getIdObjectsInExpression( OPERAND_PATTERN, expression,
