@@ -162,7 +162,7 @@ public class GetValidationResultDetailsAction
             
             String value = dataValue != null ? dataValue.getValue() : NULL_REPLACEMENT;
             
-            leftSideMap.put( operand.getPrettyName(), value );
+            leftSideMap.put( operand.getName(), value );
         }
 
         for ( DataElementOperand operand : expressionService.getOperandsInExpression( validationRule.getRightSide().getExpression() ) )
@@ -171,7 +171,7 @@ public class GetValidationResultDetailsAction
 
             String value = dataValue != null ? dataValue.getValue() : NULL_REPLACEMENT;
             
-            rightSideMap.put( operand.getPrettyName(), value );
+            rightSideMap.put( operand.getName(), value );
         }
 
         return SUCCESS;

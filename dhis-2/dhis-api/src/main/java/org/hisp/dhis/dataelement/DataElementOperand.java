@@ -222,16 +222,6 @@ public class DataElementOperand
     }
 
     /**
-     * Returns a pretty name, requires the operand to be in persistent mode.
-     *
-     * @return the name.
-     */
-    public String getPrettyName()
-    {
-        return getPrettyName( dataElement, categoryOptionCombo );
-    }
-
-    /**
      * Updates all transient properties.
      *
      * @param dataElement
