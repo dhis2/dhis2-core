@@ -33,7 +33,6 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -126,16 +125,17 @@ public class JdbcEventStore
 
         while ( rowSet.next() )
         {
+
             if ( rowSet.getString( "psi_uid" ) == null )
             {
                 continue;
             }
 
-            String eventIdOrCode = params.getIdSchemes().equals( IdScheme.UID ) ? rowSet.getString( "psi_uid" ) : rowSet.getString( "psi_code" );
-
-            if (  event.getEvent() != null &&  !event.getEvent().equals( eventIdOrCode ) )
+            if ( event.getUid() == null || !event.getUid().equals( rowSet.getString( "psi_uid" ) ) )
             {
                 event = new Event();
+
+                event.setUid( rowSet.getString( "psi_uid" ) );
 
                 event.setEvent( IdSchemes.getValue( rowSet.getString( "psi_uid" ), rowSet.getString( "psi_code" ) ,
                     idSchemes.getProgramStageInstanceIdScheme() ) );
@@ -355,9 +355,11 @@ public class JdbcEventStore
                 continue;
             }
 
-            if ( !eventRow.getEvent().equals( rowSet.getString( "psi_uid" ) ) )
+            if (  eventRow.getUid() == null ||!eventRow.getUid().equals( rowSet.getString( "psi_uid" ) ) )
             {
                 eventRow = new EventRow();
+
+                eventRow.setUid( rowSet.getString( "psi_uid" ) );
 
                 eventRow.setEvent( IdSchemes.getValue( rowSet.getString( "psi_uid" ), rowSet.getString( "psi_code" ), idSchemes.getProgramStageInstanceIdScheme() ) );
                 eventRow.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
