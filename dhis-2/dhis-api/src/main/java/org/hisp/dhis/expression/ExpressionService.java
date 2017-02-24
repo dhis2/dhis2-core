@@ -190,15 +190,12 @@ public interface ExpressionService
      * @param orgUnitCountMap the mapping between organisation unit group uid and
      *                        count of organisation units to use in the calculation.
      * @param days            the number of days to use in the calculation.
-     * @param set             of data element operands that have values but they are incomplete
-     *                        (for example due to aggregation from organisationUnit children where
-     *                        not all children had a value.)
      * @param a               map of subexpression strings to List(s) of aggregated samples for the expression
      * @return the calculated value as a double.
      */
     Double getExpressionValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
-        Set<DataElementOperand> incompleteValues, ListMap<String, Double> aggregateMap );
+        ListMap<String, Double> aggregateMap );
 
     /**
      * Generates the calculated value for the given expression base on the values
