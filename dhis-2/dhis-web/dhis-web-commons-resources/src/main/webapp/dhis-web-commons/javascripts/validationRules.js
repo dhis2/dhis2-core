@@ -416,15 +416,6 @@ var validationRules = {
             "rangelength" : [ 2, 50 ]
         }
     },
-    "trackedEntityAttributeGroup" : {
-        "name" : {
-            "required" : true,
-            "rangelength" : [ 2, 230 ]
-        },
-        "attributeList" : {
-            "required" : true
-        }
-    },
     "relationshipType" : {
         "aIsToB" : {
             "required" : true,

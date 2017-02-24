@@ -268,7 +268,6 @@ public class TableAlteror
         executeSql( "ALTER TABLE organisationunit ALTER COLUMN comment TYPE text" );
         executeSql( "ALTER TABLE program ALTER COLUMN description TYPE text" );
         executeSql( "ALTER TABLE trackedentityattribute ALTER COLUMN description TYPE text" );
-        executeSql( "ALTER TABLE trackedentityattributegroup ALTER COLUMN description TYPE text" );
         executeSql( "ALTER TABLE programrule ALTER COLUMN condition TYPE text" );
         executeSql( "ALTER TABLE programruleaction ALTER COLUMN content TYPE text" );
         executeSql( "ALTER TABLE programruleaction ALTER COLUMN data TYPE text" );
@@ -948,7 +947,11 @@ public class TableAlteror
         executeSql( "alter table validationrule drop column sequentialsamplecount" );
         executeSql( "alter table validationrule drop column annualsamplecount" );
         executeSql( "alter table validationrule drop column sequentialskipcount" );
-        
+
+        // remove TrackedEntityAttributeGroup
+        executeSql( "alter table trackedentityattribute drop column trackedentityattributegroupid" );
+        executeSql( "ALTER TABLE trackedentityattribute DROP CONSTRAINT fk_trackedentityattribute_attributegroupid" );
+
         updateEnums();
 
         upgradeDataValueSoftDelete();
@@ -1631,7 +1634,6 @@ public class TableAlteror
         addTranslationTable( listTables, "ReportTable", "reporttabletranslations", "reporttable", "reporttableid" );
         addTranslationTable( listTables, "TrackedEntity", "trackedentitytranslations", "trackedentity", "trackedentityid" );
         addTranslationTable( listTables, "TrackedEntityAttribute", "trackedentityattributetranslations", "trackedentityattribute", "trackedentityattributeid" );
-        addTranslationTable( listTables, "TrackedEntityAttributeGroup", "trackedentityattributegrouptranslations", "trackedentityattributegroup", "trackedentityattributegroupid" );
         addTranslationTable( listTables, "TrackedEntityInstance", "trackedentityinstancetranslations", "trackedentityinstance", "trackedentityinstanceid" );
         addTranslationTable( listTables, "User", "userinfotranslations", "userinfo", "userinfoid" );
         addTranslationTable( listTables, "UserAuthorityGroup", "userroletranslations", "userrole", "userroleid" );

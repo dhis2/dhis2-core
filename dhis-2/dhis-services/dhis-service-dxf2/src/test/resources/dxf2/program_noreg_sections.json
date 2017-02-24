@@ -550,10 +550,7 @@
       "valueType": "TEXT",
       "aggregationType": "NONE",
       "publicAccess": "rw------",
-      "orgunitScope": false,
-      "trackedEntityAttributeGroup": {
-        "id": "VUd5jP8cbjQ"
-      }
+      "orgunitScope": false
     }
   ],
   "categoryOptionCombos": [

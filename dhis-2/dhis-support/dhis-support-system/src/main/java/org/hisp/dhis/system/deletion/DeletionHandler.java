@@ -103,7 +103,6 @@ import org.hisp.dhis.security.oauth2.OAuth2Client;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -600,15 +599,6 @@ public abstract class DeletionHandler
     }
 
     public void deleteTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue )
-    {
-    }
-
-    public String allowDeleteTrackedEntityAttributeGroup( TrackedEntityAttributeGroup attributeGroup )
-    {
-        return null;
-    }
-
-    public void deleteTrackedEntityAttributeGroup( TrackedEntityAttributeGroup attributeGroup )
     {
     }
 
