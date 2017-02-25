@@ -68,7 +68,7 @@ public class JacksonUtilsTest
 
     @Test
     public void testDeserialization() throws Exception {
-        String str = "{\"httpStatus\":\"OK\",\"httpStatusCode\":200,\"status\":\"OK\",\"message\":\"Import was successful.\",\"response\":{\"responseType\":\"ImportSummaries\",\"imported\":0,\"updated\":2,\"deleted\":0,\"ignored\":0," +
+        String str = "{\"httpStatus\":\"OK\",\"httpStatusCode\":200,\"status\":\"SUCCESS\",\"message\":\"Import was successful.\",\"response\":{\"responseType\":\"ImportSummaries\",\"imported\":0,\"updated\":2,\"deleted\":0,\"ignored\":0," +
             "\"importSummaries\":[{\"responseType\":\"ImportSummary\",\"status\":\"SUCCESS\",\"importCount\":{\"imported\":0,\"updated\":2,\"ignored\":0,\"deleted\":0},\"reference\":\"sgsVBNSGPih\",\"href\":\"http://msfocamdsynchq.twhosted" +
             ".com/api/events/sgsVBNSGPih\"}]}}";
 
