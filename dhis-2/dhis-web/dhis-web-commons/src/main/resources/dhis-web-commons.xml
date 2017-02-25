@@ -452,13 +452,6 @@
       <param name="onExceptionReturn">plainTextError</param>
     </action>
 
-    <action name="getOperands" class="org.hisp.dhis.commons.action.GetOperandsAction">
-      <result name="success" type="velocity-xml">
-        /dhis-web-commons/ajax/xmlOperands.vm
-      </result>
-      <param name="onExceptionReturn">plainTextError</param>
-    </action>
-
     <action name="getOrganisationUnit" class="org.hisp.dhis.commons.action.GetOrganisationUnitAction">
       <result name="success" type="velocity-xml">
         /dhis-web-commons/ajax/xmlOrganisationUnit.vm
@@ -738,20 +731,6 @@
     <action name="getIndicatorsMinified" class="org.hisp.dhis.commons.action.GetIndicatorsAction">
       <result name="success" type="velocity-json">
         /dhis-web-commons/ajax/jsonminIndicators.vm
-      </result>
-      <param name="onExceptionReturn">plainTextError</param>
-    </action>
-
-    <action name="getDataElementOperands" class="org.hisp.dhis.commons.action.GetDataElementOperandsAction">
-      <result name="success" type="velocity-json">
-        /dhis-web-commons/ajax/jsonDataElementOperands.vm
-      </result>
-      <param name="onExceptionReturn">plainTextError</param>
-    </action>
-
-    <action name="getOperands" class="org.hisp.dhis.commons.action.GetOperandsAction">
-      <result name="success" type="velocity-json">
-        /dhis-web-commons/ajax/jsonOperands.vm
       </result>
       <param name="onExceptionReturn">plainTextError</param>
     </action>

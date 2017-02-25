@@ -99,7 +99,7 @@
 	<tbody>
 		#foreach( $result in $validationResults )
 		<tr id="tr${result.id}">
-		  <td>$encoder.htmlEncode( $!result.orgUnit.name )</td>
+		  <td>$encoder.htmlEncode( $!result.organisationUnit.name )</td>
 		  <td>$!format.formatPeriod( $result.period )</td>
           #if( $showAttributeCombos )
               <td>#if($result.attributeOptionCombo.isDefault()=='false') $encoder.htmlEncode( $!result.attributeOptionCombo.name ) #end</td>
