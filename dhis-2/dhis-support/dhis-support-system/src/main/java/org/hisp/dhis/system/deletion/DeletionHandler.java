@@ -34,6 +34,7 @@ import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.color.Color;
 import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.constant.Constant;
+import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
@@ -829,6 +830,15 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteSqlView( SqlView sqlView )
+    {
+        return null;
+    }
+
+    public void deleteDashboard( Dashboard dashboard )
+    {
+    }
+
+    public String allowDeleteDashboard( Dashboard dashboard )
     {
         return null;
     }
