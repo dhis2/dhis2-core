@@ -11,49 +11,45 @@ function organisationUnitSelected( ids )
 
 function validateRunValidation()
 {
-	startDate = $( '#startDate' ).val();
-	endDate = $( '#endDate' ).val();
-	validationRuleGroupId = $( '#validationRuleGroupId' ).val();
-    sendNotifications =  $( '#sendNotifications' ).is( ':checked' );
+  startDate = $( '#startDate' ).val();
+  endDate = $( '#endDate' ).val();
+  validationRuleGroupId = $( '#validationRuleGroupId' ).val();
+  sendNotifications = $( '#sendNotifications' ).is( ':checked' );
 
-	$.getJSON( 'validateRunValidation.action', 
-	{ 
-		startDate:startDate, 
-		endDate:endDate
-	}, 
-	function( json )
-	{
-		if ( json.response == 'success' )
-	    {
-		    $( '#validateButton' ).attr( 'disabled', true )
+  $.getJSON( 'validateRunValidation.action',
+    {
+      startDate: startDate,
+      endDate: endDate
+    },
+    function(json) {
+      if ( json.response == 'success' ) {
+        $( '#validateButton' ).attr( 'disabled', true );
 
-	        setHeaderWaitMessage( i18n_analysing_please_wait );
+        setHeaderWaitMessage( i18n_analysing_please_wait );
 
-	        $.get( 'runValidationAction.action', 
-	        { 
-	        	organisationUnitId: organisationUnitId, 
-	        	startDate:startDate, endDate:endDate, 
-	        	validationRuleGroupId: validationRuleGroupId,
-                sendNotifications: sendNotifications
-	        }, 
-	        function( data )
-	        {
-	            hideHeaderMessage();
-	            $( 'div#analysisInput' ).hide();
-	            $( 'div#analysisResult' ).show();
-	            $( 'div#analysisResult' ).html( data );
-	            setTableStyles();
+        $.get( 'runValidationAction.action',
+          {
+            organisationUnitId: organisationUnitId,
+            startDate: startDate, endDate: endDate,
+            validationRuleGroupId: validationRuleGroupId,
+            sendNotifications: sendNotifications
+          },
+          function(data) {
+            hideHeaderMessage();
+            $( 'div#analysisInput' ).hide();
+            $( 'div#analysisResult' ).show();
+            $( 'div#analysisResult' ).html( data );
+            setTableStyles();
 
-                $( '#validateButton' ).removeAttr( 'disabled' );
-	        } );
-	    }
-	    else if ( json.response == 'input' )
-	    {
-	    	setHeaderDelayMessage( json.message );
-	    }
-	} );
+            $( '#validateButton' ).removeAttr( 'disabled' );
+          } );
+      }
+      else if ( json.response == 'input' ) {
+        setHeaderDelayMessage( json.message );
+      }
+    } );
 
-    return false;
+  return false;
 }
 
 function displayAnalysisInput()
