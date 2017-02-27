@@ -109,7 +109,7 @@ public class MonthlyPeriodType
         DateTimeUnit dateTimeUnit = calendar.fromIso( DateTimeUnit.fromJdkDate( period.getStartDate() ) );
         dateTimeUnit = calendar.minusMonths( dateTimeUnit, 1 );
 
-        return createPeriod( calendar.toIso( dateTimeUnit ), calendar );
+        return createPeriod( dateTimeUnit, calendar );
     }
 
     /**
