@@ -283,7 +283,8 @@ public class DefaultAttributeService
                 {
                     if ( !manager.isAttributeValueUnique( object.getClass(), object, attributeValue.getAttribute(), av.getValue() ) )
                     {
-                        errorReports.add( new ErrorReport( Attribute.class, ErrorCode.E4009, attributeValue.getAttribute().getUid(), av.getValue() ) );
+                        errorReports.add( new ErrorReport( Attribute.class, ErrorCode.E4009, attributeValue.getAttribute().getUid(), av.getValue() )
+                            .setMainId( attributeValue.getAttribute().getUid() ).setErrorProperty( "value" ) );
                     }
                 }
 
@@ -298,7 +299,8 @@ public class DefaultAttributeService
 
             if ( attributeValue.getAttribute() != null && !attributeValue.getAttribute().getSupportedClasses().contains( object.getClass() ) )
             {
-                errorReports.add( new ErrorReport( Attribute.class, ErrorCode.E4010, attributeValue.getAttribute().getUid(), object.getClass().getSimpleName() ) );
+                errorReports.add( new ErrorReport( Attribute.class, ErrorCode.E4010, attributeValue.getAttribute().getUid(),
+                    object.getClass().getSimpleName() ).setMainId( uid ).setErrorProperty( "id" ) );
             }
             else
             {
@@ -306,7 +308,7 @@ public class DefaultAttributeService
             }
         }
 
-        mandatoryAttributes.forEach( att -> errorReports.add( new ErrorReport( Attribute.class, ErrorCode.E4011, att.getUid() ) ) );
+        mandatoryAttributes.forEach( att -> errorReports.add( new ErrorReport( Attribute.class, ErrorCode.E4011, att.getUid() ).setMainId( att.getUid() ) ) );
 
         return errorReports;
     }
