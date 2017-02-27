@@ -26,7 +26,7 @@
 
     <property name="repeatable" column="repeatable" not-null="true" />
 
-    <set name="programStageDataElements" order-by="sort_order" cascade="all">
+    <set name="programStageDataElements" order-by="sort_order" cascade="all-delete-orphan">
       <key column="programstageid" />
       <one-to-many class="org.hisp.dhis.program.ProgramStageDataElement" />
     </set>
@@ -42,7 +42,7 @@
     </set>
 
     <property name="executionDateLabel" column="executiondatelabel" />
-    
+
     <property name="dueDateLabel" column="duedatelabel" />
 
     <set name="notificationTemplates" cascade="all">

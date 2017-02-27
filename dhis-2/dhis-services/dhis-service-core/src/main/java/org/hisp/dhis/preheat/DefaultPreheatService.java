@@ -55,6 +55,8 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
@@ -704,6 +706,16 @@ public class DefaultPreheatService implements PreheatService
             programs.forEach( p -> programTrackedEntityAttributes.addAll( p.getProgramAttributes() ) );
 
             targets.put( ProgramTrackedEntityAttribute.class, programTrackedEntityAttributes );
+        }
+
+        if ( targets.containsKey( ProgramStage.class ) )
+        {
+            List<ProgramStage> programStages = (List<ProgramStage>) targets.get( ProgramStage.class );
+            List<ProgramStageDataElement> programStageDataElements = new ArrayList<>();
+
+            programStages.forEach( ps -> programStageDataElements.addAll( ps.getProgramStageDataElements() ) );
+
+            targets.put( ProgramStageDataElement.class, programStageDataElements );
         }
     }
 
