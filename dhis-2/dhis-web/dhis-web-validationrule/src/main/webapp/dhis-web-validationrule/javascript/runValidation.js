@@ -9,10 +9,25 @@ function organisationUnitSelected( ids )
     organisationUnitId = ids[0];
 }
 
+function toIso(date) {
+  var iso8601 = $.calendars.instance( 'gregorian' );
+  var localDate = dhis2.period.calendar.parseDate( dhis2.period.format, date );
+  var isoDate = iso8601.fromJD( localDate.toJD() );
+
+  return iso8601.formatDate( "yyyy-mm-dd", isoDate );
+};
+
 function validateRunValidation()
 {
-  startDate = $( '#startDate' ).val();
-  endDate = $( '#endDate' ).val();
+  console.log('1: ', $( '#startDate' ).val());
+  console.log('1: ', $( '#endDate' ).val());
+
+  startDate = toIso( $( '#startDate' ).val() );
+  endDate = toIso( $( '#endDate' ).val() );
+
+  console.log('2: ', startDate);
+  console.log('2: ', endDate);
+
   validationRuleGroupId = $( '#validationRuleGroupId' ).val();
   sendNotifications = $( '#sendNotifications' ).is( ':checked' );
 
