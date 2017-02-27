@@ -225,8 +225,6 @@ public class Metadata
 
     private List<ProgramStage> programStages = new ArrayList<>();
 
-    private List<ProgramStageDataElement> programStageDataElements = new ArrayList<>();
-
     private List<ProgramIndicator> programIndicators = new ArrayList<>();
 
     private List<ProgramValidation> programValidations = new ArrayList<>();
@@ -930,19 +928,6 @@ public class Metadata
     public void setProgramStages( List<ProgramStage> programStages )
     {
         this.programStages = programStages;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "programStageDataElements", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "programStageDataElement", namespace = DxfNamespaces.DXF_2_0 )
-    public List<ProgramStageDataElement> getProgramStageDataElements()
-    {
-        return programStageDataElements;
-    }
-
-    public void setProgramStageDataElements( List<ProgramStageDataElement> programStageDataElements )
-    {
-        this.programStageDataElements = programStageDataElements;
     }
 
     @JsonProperty

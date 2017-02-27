@@ -35,11 +35,9 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.LinkObject;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
-import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataset.DataInputPeriod;
-import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -52,7 +50,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatErrorReport;
 import org.hisp.dhis.preheat.PreheatIdentifier;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
@@ -988,9 +985,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
     private boolean skipCheck( Class<?> klass )
     {
-        return klass != null && (UserCredentials.class.isAssignableFrom( klass ) || DataElementOperand.class.isAssignableFrom( klass ) ||
-            Period.class.isAssignableFrom( klass ) || PeriodType.class.isAssignableFrom( klass ) ||
-            ProgramTrackedEntityAttribute.class.isAssignableFrom( klass ) ||
-            DataSetElement.class.isAssignableFrom( klass ) || DataInputPeriod.class.isAssignableFrom( klass ));
+        return klass != null && (UserCredentials.class.isAssignableFrom( klass ) || LinkObject.class.isAssignableFrom( klass ) ||
+            Period.class.isAssignableFrom( klass ) || PeriodType.class.isAssignableFrom( klass ));
     }
 }
