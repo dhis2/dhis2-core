@@ -43,15 +43,15 @@ import com.opensymphony.xwork2.Action;
  * @author Margrethe Store
  * @version $Id: ValidateRunValidationAction.java 3868 2007-11-08 15:11:12Z larshelg $
  */
-public class ValidateRunValidationAction 
+public class ValidateRunValidationAction
     implements Action
 {
     private static final Log LOG = LogFactory.getLog( ValidateRunValidationAction.class );
-    
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------     
-    
+
     private I18n i18n;
 
     public void setI18n( I18n i18n )
@@ -65,7 +65,7 @@ public class ValidateRunValidationAction
     {
         this.format = format;
     }
-    
+
     private SelectionTreeManager selectionTreeManager;
 
     public void setSelectionTreeManager( SelectionTreeManager selectionTreeManager )
@@ -76,7 +76,7 @@ public class ValidateRunValidationAction
     // -------------------------------------------------------------------------
     // Input
     // -------------------------------------------------------------------------    
-    
+
     private String startDate;
 
     public void setStartDate( String startDate )
@@ -90,9 +90,9 @@ public class ValidateRunValidationAction
     {
         this.endDate = endDate;
     }
-    
+
     private boolean aggregate;
-    
+
     public void setAggregate( boolean aggregate )
     {
         this.aggregate = aggregate;
@@ -101,30 +101,30 @@ public class ValidateRunValidationAction
     // -------------------------------------------------------------------------
     // Output
     // -------------------------------------------------------------------------
-    
+
     private String message;
 
     public String getMessage()
     {
         return message;
-    }  
-    
+    }
+
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
-    
+
     @Override
     public String execute()
         throws Exception
     {
         try
-        {           
-            OrganisationUnit selectedOrganisationUnit = selectionTreeManager.getReloadedSelectedOrganisationUnit() ;
-            
+        {
+            OrganisationUnit selectedOrganisationUnit = selectionTreeManager.getReloadedSelectedOrganisationUnit();
+
             if ( selectedOrganisationUnit == null )
             {
                 message = i18n.getString( "specify_organisationunit" );
-                
+
                 return INPUT;
             }
 
@@ -186,7 +186,7 @@ public class ValidateRunValidationAction
                 return INPUT;
             }
         }
-       
+
         message = i18n.getString( "everything_is_ok" );
 
         return SUCCESS;
