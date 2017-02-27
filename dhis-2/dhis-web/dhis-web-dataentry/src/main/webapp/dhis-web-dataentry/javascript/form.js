@@ -2322,26 +2322,38 @@ dhis2.de.validateCompulsoryCombinations = function()
     }
 	
 	return true;
-}
+};
 
-dhis2.de.validateOrgUnitOpening = function( organisationUnit, period )
+dhis2.de.validateOrgUnitOpening = function(organisationUnit, period)
 {
-	if ( organisationUnit.odate && moment( organisationUnit.odate ).isAfter( period.startDate ) )
-	{
-		$( '#contentDiv input').attr( 'readonly', 'readonly' );
-        $( '#contentDiv textarea').attr( 'readonly', 'readonly' );
-        return true;
-	}
-	
-	if ( organisationUnit.cdate && moment( organisationUnit.cdate ).isBefore( period.endDate ) )
-	{
-		$( '#contentDiv input').attr( 'readonly', 'readonly' );
-        $( '#contentDiv textarea').attr( 'readonly', 'readonly' );
-        return true;
-	}	
-	
-	return false
-}
+  var iso8601 = $.calendars.instance( 'gregorian' );
+  var odate, cdate;
+
+  if ( organisationUnit.odate ) {
+    odate = dhis2.period.calendar.fromJD( iso8601.parseDate( "yyyy-mm-dd", organisationUnit.odate ).toJD() );
+  }
+
+  if ( organisationUnit.cdate ) {
+    cdate = dhis2.period.calendar.fromJD( iso8601.parseDate( "yyyy-mm-dd", organisationUnit.cdate ).toJD() );
+  }
+
+  var startDate = dhis2.period.calendar.parseDate( "yyyy-mm-dd", period.startDate );
+  var endDate = dhis2.period.calendar.parseDate( "yyyy-mm-dd", period.endDate );
+
+  if ( odate && odate.compareTo( startDate ) == -1 ) {
+    $( '#contentDiv input' ).attr( 'readonly', 'readonly' );
+    $( '#contentDiv textarea' ).attr( 'readonly', 'readonly' );
+    return true;
+  }
+
+  if ( cdate && cdate.compareTo( endDate ) == 1 ) {
+    $( '#contentDiv input' ).attr( 'readonly', 'readonly' );
+    $( '#contentDiv textarea' ).attr( 'readonly', 'readonly' );
+    return true;
+  }
+
+  return false;
+};
 
 // -----------------------------------------------------------------------------
 // History

@@ -274,8 +274,10 @@ dhis2.period.PeriodGenerator.prototype.generateReversedPeriods = function( gener
 
 /**
  * @param {String} generator Generator to use (String)
- * @param {Array} the periods to filter.
+ * @param {Array} periods the periods to filter.
  * @param {int} n number of open periods in the future.
+ * @param {boolean} checkStartDate
+ * @param {boolean} checkEndDate
  * @returns {Array} Generated periods as array
  */
 dhis2.period.PeriodGenerator.prototype.filterOpenPeriods = function( generator, periods, n, checkStartDate, checkEndDate ) {

@@ -93,7 +93,7 @@ public class BiMonthlyPeriodType
         DateTimeUnit dateTimeUnit = calendar.fromIso( DateTimeUnit.fromJdkDate( period.getStartDate() ) );
         dateTimeUnit = calendar.plusMonths( dateTimeUnit, 2 );
 
-        return createPeriod( calendar.toIso( dateTimeUnit ), calendar );
+        return createPeriod( dateTimeUnit, calendar );
     }
 
     @Override
@@ -102,7 +102,7 @@ public class BiMonthlyPeriodType
         DateTimeUnit dateTimeUnit = calendar.fromIso( DateTimeUnit.fromJdkDate( period.getStartDate() ) );
         dateTimeUnit = calendar.minusMonths( dateTimeUnit, 2 );
 
-        return createPeriod( calendar.toIso( dateTimeUnit ), calendar );
+        return createPeriod( dateTimeUnit, calendar );
     }
 
     /**
