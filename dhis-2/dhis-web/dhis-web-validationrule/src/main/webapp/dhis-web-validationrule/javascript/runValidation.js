@@ -19,14 +19,8 @@ function toIso(date) {
 
 function validateRunValidation()
 {
-  console.log('1: ', $( '#startDate' ).val());
-  console.log('1: ', $( '#endDate' ).val());
-
   startDate = toIso( $( '#startDate' ).val() );
   endDate = toIso( $( '#endDate' ).val() );
-
-  console.log('2: ', startDate);
-  console.log('2: ', endDate);
 
   validationRuleGroupId = $( '#validationRuleGroupId' ).val();
   sendNotifications = $( '#sendNotifications' ).is( ':checked' );
