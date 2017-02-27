@@ -13,7 +13,7 @@
 			}
 		});
 
-		datePickerInRange( 'fromDate' , 'toDate' );	
+		dhis2.period.picker.createRangedInstance( '#fromDate', '#toDate' );
 	});
 
 	var i18n_analysing_please_wait = '$encoder.jsEscape( $i18n.getString( "analysing_please_wait" ) , "'")';
