@@ -46,11 +46,11 @@ public class UserGroupAccess
 {
     private int id;
 
+    private String access;
+
     private UserGroup userGroup;
 
     private transient String uid;
-
-    private transient String access;
 
     public UserGroupAccess()
     {
@@ -132,7 +132,7 @@ public class UserGroupAccess
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-            .add( "id", id )
+            .add( "uid", uid )
             .add( "access", access )
             .toString();
     }
