@@ -41,8 +41,8 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.LinkObject;
 import org.hisp.dhis.common.MergeMode;
-import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
@@ -55,6 +55,8 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
@@ -70,6 +72,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -257,6 +260,7 @@ public class DefaultPreheatService implements PreheatService
         }
 
         handleAttributes( params.getObjects(), preheat );
+        handleSecurity( params.getObjects(), params.getPreheatIdentifier(), preheat );
 
         periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
         periodStore.getAllPeriodTypes().forEach( periodType -> preheat.getPeriodTypeMap().put( periodType.getName(), periodType ) );
@@ -264,6 +268,65 @@ public class DefaultPreheatService implements PreheatService
         log.info( "(" + preheat.getUsername() + ") Import:Preheat[" + params.getPreheatMode() + "] took " + timer.toString() );
 
         return preheat;
+    }
+
+    private void handleSecurity( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects, PreheatIdentifier identifier, Preheat preheat )
+    {
+        objects.forEach( ( klass, list ) -> list.forEach( object ->
+        {
+
+
+            object.getUserAccesses().forEach( ua ->
+            {
+                User user = null;
+
+                if ( ua.getUser() != null )
+                {
+                    if ( PreheatIdentifier.UID == identifier )
+                    {
+                        user = preheat.get( identifier, User.class, ua.getUser().getUid() );
+                    }
+                    else if ( PreheatIdentifier.CODE == identifier )
+                    {
+                        user = preheat.get( identifier, User.class, ua.getUser().getCode() );
+                    }
+                }
+                else
+                {
+                    user = preheat.get( PreheatIdentifier.UID, User.class, ua.getUserUid() );
+                }
+
+                if ( user != null )
+                {
+                    ua.setUser( user );
+                }
+            } );
+            object.getUserGroupAccesses().forEach( uga ->
+            {
+                UserGroup userGroup = null;
+
+                if ( uga.getUserGroup() != null )
+                {
+                    if ( PreheatIdentifier.UID == identifier )
+                    {
+                        userGroup = preheat.get( identifier, UserGroup.class, uga.getUserGroup().getUid() );
+                    }
+                    else if ( PreheatIdentifier.CODE == identifier )
+                    {
+                        userGroup = preheat.get( identifier, UserGroup.class, uga.getUserGroup().getCode() );
+                    }
+                }
+                else
+                {
+                    userGroup = preheat.get( PreheatIdentifier.UID, UserGroup.class, uga.getUserGroupUid() );
+                }
+
+                if ( userGroup != null )
+                {
+                    uga.setUserGroup( userGroup );
+                }
+            } );
+        } ) );
     }
 
     private void handleAttributes( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects, Preheat preheat )
@@ -705,6 +768,16 @@ public class DefaultPreheatService implements PreheatService
 
             targets.put( ProgramTrackedEntityAttribute.class, programTrackedEntityAttributes );
         }
+
+        if ( targets.containsKey( ProgramStage.class ) )
+        {
+            List<ProgramStage> programStages = (List<ProgramStage>) targets.get( ProgramStage.class );
+            List<ProgramStageDataElement> programStageDataElements = new ArrayList<>();
+
+            programStages.forEach( ps -> programStageDataElements.addAll( ps.getProgramStageDataElements() ) );
+
+            targets.put( ProgramStageDataElement.class, programStageDataElements );
+        }
     }
 
     @Override
@@ -889,8 +962,6 @@ public class DefaultPreheatService implements PreheatService
 
     private boolean skipConnect( Class<?> klass )
     {
-        return klass != null && (DataElementOperand.class.isAssignableFrom( klass ) || UserCredentials.class.isAssignableFrom( klass ) ||
-            ReportingRate.class.isAssignableFrom( klass ) || DataSetElement.class.isAssignableFrom( klass ) ||
-            DataInputPeriod.class.isAssignableFrom( klass ) || ProgramTrackedEntityAttribute.class.isAssignableFrom( klass ));
+        return klass != null && (UserCredentials.class.isAssignableFrom( klass ) || LinkObject.class.isAssignableFrom( klass ));
     }
 }

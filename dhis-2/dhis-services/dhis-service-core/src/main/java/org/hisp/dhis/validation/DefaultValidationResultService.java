@@ -1,5 +1,4 @@
-package org.hisp.dhis.dataelement.comparator;
-
+package org.hisp.dhis.validation;
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -28,19 +27,53 @@ package org.hisp.dhis.dataelement.comparator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Comparator;
+import org.hisp.dhis.jdbc.batchhandler.ValidationResultBatchHandler;
+import org.hisp.quick.BatchHandler;
+import org.hisp.quick.BatchHandlerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-import org.hisp.dhis.dataelement.DataElementOperand;
+import java.util.Collection;
+import java.util.List;
 
 /**
- * @author Lars Helge Overland
+ * @author Stian Sandvold
  */
-public class DataElementOperandNameComparator
-    implements Comparator<DataElementOperand>
+public class DefaultValidationResultService
+    implements ValidationResultService
 {
+    @Autowired
+    private ValidationResultStore validationResultStore;
+
+    @Autowired
+    private BatchHandlerFactory batchHandlerFactory;
+
     @Override
-    public int compare( DataElementOperand o0, DataElementOperand o1 )
+    @Transactional
+    public void saveValidationResults( Collection<ValidationResult> validationResults )
     {
-        return o0.getOperandName().compareToIgnoreCase( o1.getOperandName() );
+        BatchHandler<ValidationResult> validationResultBatchHandler = batchHandlerFactory
+            .createBatchHandler( ValidationResultBatchHandler.class ).init();
+
+        validationResults.forEach( validationResult ->
+        {
+            if ( !validationResultBatchHandler.objectExists( validationResult ) )
+            {
+                validationResultBatchHandler.addObject( validationResult );
+            }
+        } );
+
+        validationResultBatchHandler.flush();
+    }
+
+    public List<ValidationResult> getAllValidationResults()
+    {
+        return validationResultStore.getAll();
+    }
+
+    @Override
+    public void deleteValidationResult( ValidationResult validationResult )
+    {
+        validationResultStore.delete( validationResult );
     }
 }

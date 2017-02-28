@@ -108,16 +108,24 @@ public class JsonMessageConverter extends AbstractHttpMessageConverter<RootNode>
     {
         if ( Compression.GZIP == compression )
         {
-            outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=metadata.json.gz" );
-            outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
+            if ( !outputMessage.getHeaders().getFirst( ContextUtils.HEADER_CONTENT_DISPOSITION  ).contains( "attachment" ) )
+            {
+                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=metadata.json.gz" );
+                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
+            }
+
             GZIPOutputStream outputStream = new GZIPOutputStream( outputMessage.getBody() );
             nodeService.serialize( rootNode, "application/json", outputStream );
             outputStream.close();
         }
         else if ( Compression.ZIP == compression )
         {
-            outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=metadata.json.zip" );
-            outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
+            if ( !outputMessage.getHeaders().getFirst( ContextUtils.HEADER_CONTENT_DISPOSITION  ).contains( "attachment" ) )
+            {
+                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=metadata.json.zip" );
+                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
+            }
+
             ZipOutputStream outputStream = new ZipOutputStream( outputMessage.getBody() );
             outputStream.putNextEntry( new ZipEntry( "metadata.json" ) );
             nodeService.serialize( rootNode, "application/json", outputStream );

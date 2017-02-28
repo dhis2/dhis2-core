@@ -75,10 +75,4 @@ public class DefaultProgramStageSectionService
     {
         return programStageSectionStore.get( id );
     }
-
-    @Override
-    public ProgramStageSection getProgramStageSectionByName( String name, ProgramStage programStage )
-    {
-        return programStageSectionStore.getByNameAndProgramStage( name, programStage );
-    }
 }

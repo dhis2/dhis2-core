@@ -297,10 +297,11 @@ public class TableAlteror
         executeSql( "update program p set dataentryformid = (select dataentryformid from trackedentityform tf where tf.programid=p.programid limit 1)" );
         executeSql( "drop table trackedentityform" );
 
+        executeSql( "update userroleauthorities set authority='F_ADD_TRACKED_ENTITY_FORM' where authority='F_TRACKED_ENTITY_FORM_ADD'" );
+
         updateProgramStageList();
         updateProgramAttributeList();
-
-        executeSql( "update userroleauthorities set authority='F_ADD_TRACKED_ENTITY_FORM' where authority='F_TRACKED_ENTITY_FORM_ADD'" );
+        updateProgramStageSectionDataElements();
 
         // TODO fix
         // executeSql( "DROP TABLE programstage_programindicators" );
@@ -310,6 +311,21 @@ public class TableAlteror
     // Supporting methods
     // -------------------------------------------------------------------------
 
+    private void updateProgramStageSectionDataElements()
+    {
+        String sql =
+            "insert into programstagesection_dataelements (programstagesectionid, sort_order, dataelementid) " +
+            "select programstagesectionid, section_sort_order, dataelementid " +
+            "from programstagedataelement " +
+            "where programstagesectionid is not null " +
+            "and section_sort_order is not null;" +
+            
+            "alter table programstagedataelement drop column programstagesectionid;" +
+            "alter table programstagedataelement drop column section_sort_order;";
+        
+        executeSql( sql );
+    }
+    
     private void updateProgramInstanceStatus()
     {
         // Set active status for events

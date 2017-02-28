@@ -262,13 +262,13 @@ public class DefaultExpressionService
     public Double getExpressionValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days )
     {
-        return getExpressionValue( expression, valueMap, constantMap, orgUnitCountMap, days, null, null );
+        return getExpressionValue( expression, valueMap, constantMap, orgUnitCountMap, days, null );
     }
 
     @Override
     public Double getExpressionValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
-        Set<DataElementOperand> incompleteValues, ListMap<String, Double> aggregateMap )
+        ListMap<String, Double> aggregateMap )
     {
         //TODO this needs to be rewritten
         
@@ -284,7 +284,7 @@ public class DefaultExpressionService
 
         String expressionString = generateExpression( expression.getExplodedExpressionFallback(), 
             valueMap, constantMap, orgUnitCountMap, days, expression.getMissingValueStrategy(), 
-            incompleteValues, aggregateMap );
+            aggregateMap );
 
         return expressionString != null ? calculateExpression( expressionString ) : null;
     }
@@ -360,19 +360,6 @@ public class DefaultExpressionService
     }
 
     @Override
-    public Object getExpressionObjectValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
-        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
-        Set<DataElementOperand> incompleteValues, ListMap<String, Double> aggregateMap )
-    {
-        String expressionString = generateExpression( expression.getExplodedExpressionFallback(), valueMap, constantMap,
-            orgUnitCountMap, days, expression.getMissingValueStrategy(), incompleteValues, aggregateMap );
-
-        Object result = expressionString != null ? calculateGenericExpression( expressionString ) : null;
-
-        return result;
-    }
-
-    @Override
     public Set<DataElement> getDataElementsInExpression( String expression )
     {
         return getIdObjectsInExpression( OPERAND_PATTERN, expression,
@@ -440,11 +427,11 @@ public class DefaultExpressionService
             while ( matcher.find() )
             {
                 DataElementOperand operand = DataElementOperand.getOperand( matcher.group() );
-
                 operand.setDataElement( dataElementService.getDataElement( operand.getDataElementId() ) );
 
                 if ( operand.getOptionComboId() != null )
                 {
+                    operand.setCategoryOptionCombo( categoryService.getDataElementCategoryOptionCombo( operand.getOptionComboId() ) );                    
                     operandsInExpression.add( operand );
                 }
             }
@@ -952,13 +939,12 @@ public class DefaultExpressionService
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
         MissingValueStrategy missingValueStrategy )
     {
-        return generateExpression( expression, valueMap, constantMap, orgUnitCountMap, days, missingValueStrategy, null,
-            null );
+        return generateExpression( expression, valueMap, constantMap, orgUnitCountMap, days, missingValueStrategy, null );
     }
 
     private String generateExpression( String expression, Map<? extends DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
-        MissingValueStrategy missingValueStrategy, Set<DataElementOperand> incompleteValues,
+        MissingValueStrategy missingValueStrategy, 
         Map<String, List<Double>> aggregateMap )
     {
         if ( expression == null || expression.isEmpty() )
@@ -969,9 +955,6 @@ public class DefaultExpressionService
         Map<String, Double> dimensionItemValueMap = valueMap.entrySet().stream().
             filter( e -> e.getValue() != null ).
             collect( Collectors.toMap( e -> e.getKey().getDimensionItem(), e -> e.getValue() ) );
-
-        Set<String> incompleteItems = incompleteValues != null ?
-            incompleteValues.stream().map( i -> i.getDimensionItem() ).collect( Collectors.toSet() ) : Sets.newHashSet();
 
         missingValueStrategy = ObjectUtils.firstNonNull( missingValueStrategy, NEVER_SKIP );
 
@@ -1048,7 +1031,7 @@ public class DefaultExpressionService
 
             final Double value = dimensionItemValueMap.get( dimItem );
 
-            boolean missingValue = value == null || incompleteItems.contains( dimItem );
+            boolean missingValue = value == null;
 
             if ( missingValue && SKIP_IF_ANY_VALUE_MISSING.equals( missingValueStrategy ) )
             {

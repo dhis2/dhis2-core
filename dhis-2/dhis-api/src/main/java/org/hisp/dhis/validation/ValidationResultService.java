@@ -1,5 +1,4 @@
-package org.hisp.dhis.system.objectmapper;
-
+package org.hisp.dhis.validation;
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -28,47 +27,29 @@ package org.hisp.dhis.system.objectmapper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.dataelement.DataElementCategoryOptionCombo.DEFAULT_TOSTRING;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import org.hisp.quick.mapper.RowMapper;
-import org.hisp.dhis.dataelement.DataElementOperand;
+import java.util.Collection;
+import java.util.List;
 
 /**
- * @author Lars Helge Overland
+ * @author Stian Sandvold
  */
-public class DataElementOperandMapper
-    implements RowMapper<DataElementOperand>, org.springframework.jdbc.core.RowMapper<DataElementOperand>
+public interface ValidationResultService
 {
-    private static final String SEPARATOR = " ";
-    
-    @Override
-    public DataElementOperand mapRow( ResultSet resultSet )
-        throws SQLException
-    {
-        String operandName = resultSet.getString( 2 );
+    /**
+     * Saves a set of ValidationResults in a bulk action
+     * @param validationResults
+     */
+    void saveValidationResults( Collection<ValidationResult> validationResults );
 
-        final String cocName = resultSet.getString( 4 );        
-        
-        if ( cocName != null && !cocName.equals( DEFAULT_TOSTRING ) )
-        {
-            operandName += SEPARATOR + cocName;
-        }
-                
-        final DataElementOperand operand = new DataElementOperand(
-            resultSet.getString( 1 ),
-            resultSet.getString( 3 ),
-            operandName );
-        
-        return operand;
-    }
+    /**
+     * Returns a list of all existing ValidationResults
+     * @return
+     */
+    List<ValidationResult> getAllValidationResults();
 
-    @Override
-    public DataElementOperand mapRow( ResultSet resultSet, int rowNum )
-        throws SQLException
-    {
-        return mapRow( resultSet );
-    }
+    /**
+     * Deletes the validationResult
+     * @param validationResult
+     */
+    void deleteValidationResult( ValidationResult validationResult );
 }

@@ -287,6 +287,7 @@ public class EventController
         @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
     {
+
         WebOptions options = new WebOptions( parameters );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -325,16 +326,18 @@ public class EventController
         model.addAttribute( "model", events );
         model.addAttribute( "viewClass", options.getViewClass( "detailed" ) );
 
-        if ( !StringUtils.isEmpty( attachment ) )
-        {
-            response.addHeader( "Content-Disposition", "attachment; filename=" + attachment );
-        }
-
         RootNode rootNode = NodeUtils.createMetadata();
 
         if ( events.getPager() != null )
         {
             rootNode.addChild( NodeUtils.createPager( events.getPager() ) );
+        }
+
+
+        if ( !StringUtils.isEmpty( attachment ) )
+        {
+            response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + attachment );
+            response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
         }
 
         rootNode.addChild( fieldFilterService.filter( Event.class, events.getEvents(), fields ) );

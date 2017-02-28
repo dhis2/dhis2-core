@@ -38,6 +38,8 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.ValidationNotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.DefaultPeriodService;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.user.User;
@@ -51,20 +53,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyBoolean;
-import static org.mockito.Mockito.anySetOf;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for the business logic implemented in ValidationNotificationService.
@@ -95,6 +90,9 @@ public class ValidationNotificationServiceTest
 
     @InjectMocks
     private DefaultValidationNotificationService service;
+
+    @InjectMocks
+    private DefaultPeriodService periodService;
 
     private List<MockMessage> sentMessages;
 
@@ -167,25 +165,29 @@ public class ValidationNotificationServiceTest
 
     private ValidationResult createValidationResult( OrganisationUnit ou, ValidationRule rule )
     {
+        Period period = createPeriod( "2017Q1" );
         return new ValidationResult(
             rule,
-            createPeriod( "2017Q1" ),
+            period,
             ou,
             catOptCombo,
             RandomUtils.nextDouble( 10, 1000 ),
-            RandomUtils.nextDouble( 10, 1000 )
+            RandomUtils.nextDouble( 10, 1000 ),
+            periodService.getDayInPeriod( period, new Date() )
         );
     }
 
     private ValidationResult createValidationResultA()
     {
+        Period period = createPeriod( "2017Q1" );
         return new ValidationResult(
             valRuleA,
-            createPeriod( "2017Q1" ),
+            period,
             orgUnitA,
             catOptCombo,
             RandomUtils.nextDouble( 10, 1000 ),
-            RandomUtils.nextDouble( 10, 1000 )
+            RandomUtils.nextDouble( 10, 1000 ),
+            periodService.getDayInPeriod( period, new Date() )
         );
     }
 

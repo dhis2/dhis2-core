@@ -20,24 +20,12 @@
     <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
   </bean>
 
-  <bean id="org.hisp.dhis.validationrule.action.ValidateValidationRuleAction"
-    class="org.hisp.dhis.validationrule.action.ValidateValidationRuleAction"
-    scope="prototype">
-    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
-  </bean>
-
   <bean id="org.hisp.dhis.validationrule.action.SetupTreeAction" class="org.hisp.dhis.validationrule.action.SetupTreeAction"
     scope="prototype">
     <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="selectionManager" ref="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
     <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.validationrule.action.GetPeriodTypesAction" class="org.hisp.dhis.validationrule.action.GetPeriodTypesAction"
-    scope="prototype">
-    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
-    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
   </bean>
 
   <!-- ValidationRuleGroup CRUD operations -->
@@ -58,22 +46,6 @@
     class="org.hisp.dhis.validationrule.action.validationrulegroup.ValidateValidationRuleGroupAction"
     scope="prototype">
     <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
-  </bean>
-
-  <!-- ValidationRule Expression -->
-
-  <bean id="org.hisp.dhis.validationrule.action.GetTextualExpressionAction"
-    class="org.hisp.dhis.validationrule.action.GetTextualExpressionAction"
-    scope="prototype">
-    <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.validationrule.action.GetFilteredDataElementsAction"
-    class="org.hisp.dhis.validationrule.action.GetFilteredDataElementsAction"
-    scope="prototype">
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
-    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
-    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
   </bean>
 
   <!-- ValidationRule service operations -->
@@ -100,8 +72,6 @@
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
     <property name="dataValueService" ref="org.hisp.dhis.datavalue.DataValueService" />
     <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
-    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
   </bean>
 
   <bean id="org.hisp.dhis.validationrule.action.ExportValidationResultAction"

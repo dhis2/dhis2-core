@@ -34,6 +34,7 @@ import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.color.Color;
 import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.constant.Constant;
+import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
@@ -114,6 +115,7 @@ import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.validation.ValidationCriteria;
+import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
@@ -374,6 +376,11 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteValidationRule( ValidationRule validationRule )
+    {
+        return null;
+    }
+
+    public String allowDeleteValidationResult( ValidationResult validationResult )
     {
         return null;
     }
@@ -841,6 +848,15 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteSqlView( SqlView sqlView )
+    {
+        return null;
+    }
+
+    public void deleteDashboard( Dashboard dashboard )
+    {
+    }
+
+    public String allowDeleteDashboard( Dashboard dashboard )
     {
         return null;
     }

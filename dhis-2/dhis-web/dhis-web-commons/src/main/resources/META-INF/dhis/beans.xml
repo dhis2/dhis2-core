@@ -432,19 +432,6 @@
     <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
   </bean>
 
-  <bean id="org.hisp.dhis.commons.action.GetDataElementOperandsAction" class="org.hisp.dhis.commons.action.GetDataElementOperandsAction"
-    scope="prototype">
-    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
-    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.commons.action.GetOperandsAction" class="org.hisp.dhis.commons.action.GetOperandsAction"
-    scope="prototype">
-    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
-    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
-  </bean>
-
   <bean id="org.hisp.dhis.commons.action.GetOrganisationUnitAction" class="org.hisp.dhis.commons.action.GetOrganisationUnitAction"
     scope="prototype">
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
@@ -611,6 +598,6 @@
 
   <bean id="org.hisp.dhis.appcache.CacheManifestAction" class="org.hisp.dhis.appcache.CacheManifestAction" />
 
-  <!-- <bean class="org.hisp.dhis.security.DefaultRolesPrefixPostProcessor" /> -->
+  <bean class="org.hisp.dhis.security.DefaultRolesPrefixPostProcessor" />
 
 </beans>

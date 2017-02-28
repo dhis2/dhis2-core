@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.event;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,18 +28,16 @@ package org.hisp.dhis.webapi.controller.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.schema.descriptors.ProgramStageDataElementSchemaDescriptor;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-
 /**
+ * Marker interface for marking an object to not be treated as a id object (even
+ * if the class itself implements id object), this object will not be treated as
+ * normal metadata (no refs etc) but instead need to be contained in the entity
+ * that owns it.
+ * <p>
+ * Link objects should also always be implemented as cascade="delete-all-orphan".
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Controller
-@RequestMapping( value = ProgramStageDataElementSchemaDescriptor.API_ENDPOINT )
-public class ProgramStageDataElementController
-    extends AbstractCrudController<ProgramStageDataElement>
+public interface LinkObject
 {
 }

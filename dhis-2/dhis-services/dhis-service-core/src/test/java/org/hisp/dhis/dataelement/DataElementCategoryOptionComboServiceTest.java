@@ -34,7 +34,6 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +46,6 @@ import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 public class DataElementCategoryOptionComboServiceTest
     extends DhisSpringTest
@@ -57,9 +55,6 @@ public class DataElementCategoryOptionComboServiceTest
 
     @Autowired
     private AttributeService attributeService;
-
-    @Autowired
-    private IdentifiableObjectManager manager;
 
     private DataElementCategory categoryA;
     private DataElementCategory categoryB;

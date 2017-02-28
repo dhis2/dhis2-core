@@ -32,6 +32,10 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -49,6 +53,11 @@ public class ProgramStageObjectBundleHook extends AbstractObjectBundleHook
             PeriodType periodType = bundle.getPreheat().getPeriodTypeMap().get( programStage.getPeriodType().getName() );
             programStage.setPeriodType( periodType );
         }
+
+        for ( ProgramStageDataElement programStageDataElement : programStage.getProgramStageDataElements() )
+        {
+            preheatService.connectReferences( programStageDataElement, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+        }
     }
 
     @Override
@@ -56,11 +65,41 @@ public class ProgramStageObjectBundleHook extends AbstractObjectBundleHook
     {
         if ( !ProgramStage.class.isInstance( object ) ) return;
         ProgramStage programStage = (ProgramStage) object;
+        ProgramStage persistedProgramStage = (ProgramStage) persistedObject;
 
         if ( programStage.getPeriodType() != null )
         {
             PeriodType periodType = bundle.getPreheat().getPeriodTypeMap().get( programStage.getPeriodType().getName() );
             programStage.setPeriodType( periodType );
         }
+
+        programStage.getProgramStageDataElements().clear();
+        persistedProgramStage.getProgramStageDataElements().clear();
+
+        sessionFactory.getCurrentSession().flush();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
+    {
+        if ( !ProgramStage.class.isInstance( persistedObject ) ) return;
+        ProgramStage programStage = (ProgramStage) persistedObject;
+
+        Map<String, Object> references = bundle.getObjectReferences( ProgramStage.class ).get( programStage.getUid() );
+        if ( references == null ) return;
+
+        Set<ProgramStageDataElement> programStageDataElements = (Set<ProgramStageDataElement>) references.get( "programStageDataElements" );
+
+        if ( programStageDataElements != null && !programStageDataElements.isEmpty() )
+        {
+            for ( ProgramStageDataElement programStageDataElement : programStage.getProgramStageDataElements() )
+            {
+                preheatService.connectReferences( programStageDataElement, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+                programStage.getProgramStageDataElements().add( programStageDataElement );
+            }
+        }
+
+        sessionFactory.getCurrentSession().update( programStage );
     }
 }

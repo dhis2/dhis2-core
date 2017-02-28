@@ -35,6 +35,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.datacompletion.CompleteDataSetRegistrationRequest;
@@ -70,7 +71,6 @@ import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -159,7 +159,7 @@ public class CompleteDataSetRegistrationController
     // GET
     // -------------------------------------------------------------------------
 
-    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26 } )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27 } )
     @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_XML )
     public void getCompleteRegistrationsXml(
         @RequestParam Set<String> dataSet,
@@ -186,7 +186,7 @@ public class CompleteDataSetRegistrationController
         registrationExchangeService.writeCompleteDataSetRegistrationsXml( params, response.getOutputStream() );
     }
 
-    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26 } )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27 } )
     @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_JSON )
     public void getCompleteRegistrationsJson(
         @RequestParam Set<String> dataSet,
@@ -252,7 +252,7 @@ public class CompleteDataSetRegistrationController
     // POST
     // -------------------------------------------------------------------------
 
-    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26 } )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27 } )
     @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_XML )
     public void postCompleteRegistrationsXml(
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response
@@ -272,7 +272,7 @@ public class CompleteDataSetRegistrationController
         }
     }
 
-    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26 } )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27 } )
     @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_JSON )
     public void postCompleteRegistrationsJson(
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response

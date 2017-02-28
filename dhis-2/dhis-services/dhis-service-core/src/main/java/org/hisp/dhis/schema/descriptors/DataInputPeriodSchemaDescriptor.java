@@ -47,9 +47,7 @@ public class DataInputPeriodSchemaDescriptor implements SchemaDescriptor
     public Schema getSchema()
     {
         Schema schema = new Schema( DataInputPeriod.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setMetadata( false );
-        schema.setOrder( 1230 );
 
         return schema;
     }

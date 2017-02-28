@@ -46,6 +46,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.DailyPeriodType;
@@ -430,10 +431,13 @@ public class FacilityReportingServiceImpl
 
                     if ( period != null )
                     {
-                        Collection<org.hisp.dhis.dataelement.DataElement> dataElements = apiDataSet.getDataElements();
-                        Collection<org.hisp.dhis.datavalue.DataValue> dataValues = dataValueService.getDataValues(
-                            dataElements, Sets.newHashSet( period ), Sets.newHashSet( unit ) );
-
+                        Set<org.hisp.dhis.dataelement.DataElement> dataElements = apiDataSet.getDataElements();
+                        
+                        Collection<org.hisp.dhis.datavalue.DataValue> dataValues = dataValueService.getDataValues( new DataExportParams()
+                            .setDataElements( dataElements )
+                            .setPeriods( Sets.newHashSet( period ) )
+                            .setOrganisationUnits( Sets.newHashSet( unit ) ) );
+                        
                         if ( dataValues != null && !dataValues.isEmpty() )
                         {
                             DataSetValue dataSetValue = new DataSetValue();

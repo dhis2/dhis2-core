@@ -65,23 +65,23 @@ public abstract class SixMonthlyAbstractPeriodType
     public Period createPeriod( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar )
     {
         DateTimeUnit start = new DateTimeUnit( dateTimeUnit );
-        
+
         int baseMonth = getBaseMonth();
-        
-        int year = start.getMonth() < baseMonth ? ( start.getYear() - 1 ) : start.getYear();
-        int month = start.getMonth() >= baseMonth && start.getMonth() < ( baseMonth + 6 ) ? baseMonth : ( baseMonth + 6 );
-        
+
+        int year = start.getMonth() < baseMonth ? (start.getYear() - 1) : start.getYear();
+        int month = start.getMonth() >= baseMonth && start.getMonth() < (baseMonth + 6) ? baseMonth : (baseMonth + 6);
+
         start.setYear( year );
         start.setMonth( month );
         start.setDay( 1 );
-        
+
         DateTimeUnit end = new DateTimeUnit( start );
         end = calendar.plusMonths( end, 5 );
         end.setDay( calendar.daysInMonth( end.getYear(), end.getMonth() ) );
 
         return toIsoPeriod( start, end, calendar );
     }
-    
+
     @Override
     public int getFrequencyOrder()
     {
@@ -107,7 +107,7 @@ public abstract class SixMonthlyAbstractPeriodType
         DateTimeUnit dateTimeUnit = calendar.fromIso( DateTimeUnit.fromJdkDate( period.getStartDate() ) );
         dateTimeUnit = calendar.minusMonths( dateTimeUnit, 6 );
 
-        return createPeriod( calendar.toIso( dateTimeUnit ), calendar );
+        return createPeriod( dateTimeUnit, calendar );
     }
 
     /**
@@ -118,7 +118,7 @@ public abstract class SixMonthlyAbstractPeriodType
     public List<Period> generatePeriods( DateTimeUnit dateTimeUnit )
     {
         Calendar cal = getCalendar();
-        
+
         Period period = createPeriod( dateTimeUnit, cal );
         dateTimeUnit = createLocalDateUnitInstance( period.getStartDate(), cal );
 
@@ -165,7 +165,7 @@ public abstract class SixMonthlyAbstractPeriodType
     public Date getRewindedDate( Date date, Integer rewindedPeriods )
     {
         Calendar cal = getCalendar();
-        
+
         date = date != null ? date : new Date();
         rewindedPeriods = rewindedPeriods != null ? rewindedPeriods : 1;
 

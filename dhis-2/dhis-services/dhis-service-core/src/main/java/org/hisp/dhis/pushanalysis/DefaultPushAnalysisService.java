@@ -529,6 +529,8 @@ public class DefaultPushAnalysisService
 
         switch ( notificationLevel )
         {
+            case DEBUG:
+                log.debug( message );
             case INFO:
                 log.info( message );
                 break;
@@ -537,6 +539,8 @@ public class DefaultPushAnalysisService
                 break;
             case ERROR:
                 log.error( message, exception );
+                break;
+            default:
                 break;
         }
     }

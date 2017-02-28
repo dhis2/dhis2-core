@@ -17,7 +17,6 @@ $( document ).ready( function()
 
         sessionStorage.removeItem( 'ouSelected' );
         sessionStorage.removeItem( 'USER_PROFILE' );
-        sessionStorage.removeItem( 'USER_ROLES' );
 		sessionStorage.removeItem( 'eventCaptureGridColumns');
 		sessionStorage.removeItem( 'trackerCaptureGridColumns');
     } );

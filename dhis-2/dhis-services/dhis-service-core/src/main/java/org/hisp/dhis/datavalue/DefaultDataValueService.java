@@ -32,6 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
@@ -44,6 +45,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -253,16 +255,70 @@ public class DefaultDataValueService
     // -------------------------------------------------------------------------
 
     @Override
+    public List<DataValue> getDataValues( DataExportParams params )
+    {
+        validate( params );
+        
+        return dataValueStore.getDataValues( params );
+    }
+
+    @Override
+    public void validate( DataExportParams params )
+    {
+        String violation = null;
+
+        if ( params == null )
+        {
+            throw new IllegalArgumentException( "Params cannot be null" );
+        }
+
+        if ( params.getDataElements().isEmpty() && params.getDataSets().isEmpty() && params.getDataElementGroups().isEmpty() )
+        {
+            violation = "At least one valid data set or data element group must be specified";
+        }
+
+        if ( params.hasPeriods() && params.hasStartEndDate() )
+        {
+            violation = "Both periods and start/end date cannot be specified";
+        }
+
+        if ( params.hasStartEndDate() && params.getStartDate().after( params.getEndDate() ) )
+        {
+            violation = "Start date must be before end date";
+        }
+
+        if ( params.hasLastUpdatedDuration() && DateUtils.getDuration( params.getLastUpdatedDuration() ) == null )
+        {
+            violation = "Duration is not valid: " + params.getLastUpdatedDuration();
+        }
+
+        if ( params.isIncludeChildren() && params.hasOrganisationUnitGroups() )
+        {
+            violation = "Children cannot be included for organisation unit groups";
+        }
+
+        if ( params.isIncludeChildren() && !params.hasOrganisationUnits() )
+        {
+            violation = "At least one valid organisation unit must be specified when children is included";
+        }
+
+        if ( params.hasLimit() && params.getLimit() < 0 )
+        {
+            violation = "Limit cannot be less than zero: " + params.getLimit();
+        }
+
+        if ( violation != null )
+        {
+            log.warn( "Validation failed: " + violation );
+
+            throw new IllegalQueryException( violation );
+        }
+    }
+
+    @Override
     public List<DataValue> getAllDataValues()
     {
         return dataValueStore.getAllDataValues();
-    }
-    
-    @Override
-    public List<DataValue> getDataValues( Collection<DataElement> dataElements, 
-        Collection<Period> periods, Collection<OrganisationUnit> organisationUnits )
-    {
-        return dataValueStore.getDataValues( dataElements, periods, organisationUnits );
     }
     
     @Override

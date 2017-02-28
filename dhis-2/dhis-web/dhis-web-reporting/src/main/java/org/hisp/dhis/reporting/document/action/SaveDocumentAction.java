@@ -1,24 +1,5 @@
 package org.hisp.dhis.reporting.document.action;
 
-import com.google.common.hash.Hashing;
-import com.google.common.io.ByteSource;
-import com.opensymphony.xwork2.Action;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.document.Document;
-import org.hisp.dhis.document.DocumentService;
-import org.hisp.dhis.external.location.LocationManager;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceDomain;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -47,6 +28,24 @@ import java.util.List;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.hash.Hashing;
+import com.google.common.io.ByteSource;
+import com.opensymphony.xwork2.Action;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.document.Document;
+import org.hisp.dhis.document.DocumentService;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
 /**
  * @author Lars Helge Overland
  */
@@ -63,19 +62,8 @@ public class SaveDocumentAction
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private LocationManager locationManager;
-
-    public void setLocationManager( LocationManager locationManager )
-    {
-        this.locationManager = locationManager;
-    }
-
+    @Autowired
     private DocumentService documentService;
-
-    public void setDocumentService( DocumentService documentService )
-    {
-        this.documentService = documentService;
-    }
 
     @Autowired
     private AttributeService attributeService;
@@ -158,7 +146,6 @@ public class SaveDocumentAction
     public String execute()
         throws Exception
     {
-        // If id != null, we are editing an existing Document
         Document document = (id == null ? new Document() : documentService.getDocument( id ));
 
         if ( document == null )
