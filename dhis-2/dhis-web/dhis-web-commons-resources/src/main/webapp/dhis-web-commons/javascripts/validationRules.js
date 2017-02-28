@@ -547,21 +547,6 @@ var validationRules = {
             "required" : true
         }
     },
-    "programValidation" : {
-        "name" : {
-            "required" : true,
-            "rangelength" : [2,230]
-        },
-        "operator" : {
-            "required" : true
-        },
-        "description" : {
-            "required" : true
-        },
-        "expression" : {
-            "required" : true
-        }
-    },
     "validationCriteria" : {
         "name" : {
             "required" : true,
