@@ -2340,13 +2340,13 @@ dhis2.de.validateOrgUnitOpening = function(organisationUnit, period)
   var startDate = dhis2.period.calendar.parseDate( "yyyy-mm-dd", period.startDate );
   var endDate = dhis2.period.calendar.parseDate( "yyyy-mm-dd", period.endDate );
 
-  if ( odate && odate.compareTo( startDate ) == -1 ) {
+  if ( odate && startDate.compareTo( odate ) == -1 ) {
     $( '#contentDiv input' ).attr( 'readonly', 'readonly' );
     $( '#contentDiv textarea' ).attr( 'readonly', 'readonly' );
     return true;
   }
 
-  if ( cdate && cdate.compareTo( endDate ) == 1 ) {
+  if ( cdate && endDate.compareTo( cdate ) == 1 ) {
     $( '#contentDiv input' ).attr( 'readonly', 'readonly' );
     $( '#contentDiv textarea' ).attr( 'readonly', 'readonly' );
     return true;
