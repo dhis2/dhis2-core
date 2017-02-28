@@ -275,12 +275,10 @@ public class DefaultProgramIndicatorService
 
         expression = TextUtils.removeNewlines( expression );
         
-        expression = getSubstitutedNullOrEmptyAnalyticsSql( expression );
-
         expression = getSubstitutedVariablesForAnalyticsSql( expression, analyticsType );
 
         expression = getSubstitutedFunctionsAnalyticsSql( expression, false, analyticsType );
-
+        
         expression = getSubstitutedElementsAnalyticsSql( expression, ignoreMissingValues, analyticsType );
 
         return expression;
@@ -328,27 +326,6 @@ public class DefaultProgramIndicatorService
 
         return TextUtils.appendTail( matcher, buffer );
     }
-    
-    private String getSubstitutedNullOrEmptyAnalyticsSql( String expression )
-    {
-        if ( expression == null )
-        {
-            return null;
-        }
-
-        StringBuffer buffer = new StringBuffer();
-
-        Matcher matcher = ProgramIndicator.NULLOREMPTY_PATTERN.matcher( expression );
-
-        while ( matcher.find() )
-        {
-            String expressionVariable = trim( matcher.group( 1 ) );
-            
-            matcher.appendReplacement( buffer, expressionVariable + " is null " );
-        }
-        
-        return TextUtils.appendTail( matcher, buffer );
-    }
 
     private String getSubstitutedVariablesForAnalyticsSql( String expression, AnalyticsType analyticsType )
     {
@@ -385,28 +362,45 @@ public class DefaultProgramIndicatorService
 
         StringBuffer buffer = new StringBuffer();
 
-        Matcher matcher = ProgramIndicator.EXPRESSION_PATTERN.matcher( expression );
+        Matcher matcher = ProgramIndicator.EXPRESSION_EQUALSZEROOREMPTY_PATTERN.matcher( expression );
 
         while ( matcher.find() )
         {
             String key = matcher.group( 1 );
             String el1 = matcher.group( 2 );
             String el2 = matcher.group( 3 );
+            boolean equalsZero = matcher.group( 4 ) != null && matcher.group( 4 ).matches( ProgramIndicator.EQUALSZERO );
+            boolean equalsEmpty = matcher.group( 4 ) != null && matcher.group( 4 ).matches( ProgramIndicator.EQUALSEMPTY );
 
-            if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
+            if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) || ProgramIndicator.KEY_ATTRIBUTE.equals( key ) )
             {                
-                String columnName = AnalyticsType.ENROLLMENT == analyticsType ? 
-                    statementBuilder.columnQuote( el1 + ProgramIndicator.DB_SEPARATOR_ID + el2 ) : statementBuilder.columnQuote( el2 );
+                String columnName;
                 
-                String de = ignoreMissingValues ? getIgnoreNullSql( columnName ) : columnName;
+                if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
+                {
+                    columnName = AnalyticsType.ENROLLMENT == analyticsType ? 
+                        statementBuilder.columnQuote( el1 + ProgramIndicator.DB_SEPARATOR_ID + el2 ) : statementBuilder.columnQuote( el2 );
+                }
+                else
+                {
+                    //For KEY_ATTRIBUTE:
+                    columnName = statementBuilder.columnQuote( el1 );
+                }
+                    
+                if ( equalsZero )
+                {
+                    columnName = getNumericIgnoreNullSql( columnName ) + " == 0 ";
+                }
+                else if ( equalsEmpty )
+                {
+                    columnName = getTextIgnoreNullSql( columnName ) + " == '' ";
+                }
+                else if ( ignoreMissingValues )
+                {
+                    columnName = getNumericIgnoreNullSql( columnName );
+                }
 
-                matcher.appendReplacement( buffer, de );
-            }
-            else if ( ProgramIndicator.KEY_ATTRIBUTE.equals( key ) )
-            {
-                String at = ignoreMissingValues ? getIgnoreNullSql( statementBuilder.columnQuote( el1 ) ) : statementBuilder.columnQuote( el1 );
-
-                matcher.appendReplacement( buffer, at );
+                matcher.appendReplacement( buffer, columnName );
             }
             else if ( ProgramIndicator.KEY_CONSTANT.equals( key ) )
             {
@@ -479,7 +473,7 @@ public class DefaultProgramIndicatorService
 
         return ProgramIndicator.VALID;
     }
-
+    
     /**
      * Generates an expression where all items are substituted with a sample value
      * in order to maintain a valid expression syntax.
@@ -641,9 +635,14 @@ public class DefaultProgramIndicatorService
         return null;
     }
 
-    private String getIgnoreNullSql( String column )
+    private String getNumericIgnoreNullSql( String column )
     {
         return "coalesce(" + column + ",0)";
+    }
+    
+    private String getTextIgnoreNullSql( String column )
+    {
+        return "coalesce(" + column + ",'')";
     }
 
     // -------------------------------------------------------------------------
