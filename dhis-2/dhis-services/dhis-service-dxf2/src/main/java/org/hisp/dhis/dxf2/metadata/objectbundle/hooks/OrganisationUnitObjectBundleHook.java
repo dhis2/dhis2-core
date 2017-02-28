@@ -44,7 +44,7 @@ import java.util.Map;
 public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
 {
     @Override
-    public void preImport( ObjectBundle objectBundle )
+    public void preCommit( ObjectBundle objectBundle )
     {
         sortOrganisationUnits( objectBundle );
     }
@@ -59,7 +59,7 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
     }
 
     @Override
-    public void postImport( ObjectBundle bundle )
+    public void postCommit( ObjectBundle bundle )
     {
         if ( !bundle.getObjectMap().containsKey( OrganisationUnit.class ) ) return;
 
