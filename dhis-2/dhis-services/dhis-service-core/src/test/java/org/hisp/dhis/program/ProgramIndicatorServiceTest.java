@@ -541,6 +541,37 @@ public class ProgramIndicatorServiceTest
     }
     
     @Test
+    public void testIsEmptyFilter()
+    {
+        String expected = "coalesce(\"EZq9VbPWgML\",'') == '' ";
+        String filter = "#{OXXcwl6aPCQ.EZq9VbPWgML} == ''";
+        
+        assertEquals( expected, programIndicatorService.getAnalyticsSQl( filter, AnalyticsType.EVENT ) );
+    }
+    
+    @Test
+    public void testIsZeroFilter()
+    {
+        String expected = "coalesce(\"OXXcwl6aPCQ_EZq9VbPWgML\",0) == 0 ";
+        String filter = "#{OXXcwl6aPCQ.EZq9VbPWgML} == 0";
+        
+        assertEquals( expected, programIndicatorService.getAnalyticsSQl( filter, AnalyticsType.ENROLLMENT ) );        
+    }
+    
+    @Test
+    public void testIsZeroOrEmptyFilter()
+    {
+        String expected = "coalesce(\"OXXcwl6aPCQ_GCyeKSqlpdk\",0) == 1 or " + 
+            "(coalesce(\"OXXcwl6aPCQ_GCyeKSqlpdk\",'') == '' and " +
+            "coalesce(\"kts5J79K9gA\",0) == 0 )";
+        
+        String filter = "#{OXXcwl6aPCQ.GCyeKSqlpdk} == 1 or " + 
+        "(#{OXXcwl6aPCQ.GCyeKSqlpdk}  == ''   and A{kts5J79K9gA}== 0)";
+        String actual = programIndicatorService.getAnalyticsSQl( filter, AnalyticsType.ENROLLMENT, true );
+        assertEquals( expected, actual );        
+    }
+    
+    @Test
     public void testExpressionIsValid()
     {
         programIndicatorService.addProgramIndicator( indicatorB );
