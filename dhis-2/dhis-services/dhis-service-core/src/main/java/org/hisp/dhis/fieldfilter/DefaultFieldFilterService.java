@@ -329,9 +329,11 @@ public class DefaultFieldFilterService implements FieldFilterService
         {
             if ( "*".equals( fieldKey ) )
             {
-                schema.getPropertyMap().keySet().stream()
-                    .filter( mapKey -> !fieldMap.containsKey( mapKey ) )
-                    .forEach( mapKey -> fieldMap.put( mapKey, new FieldMap() ) );
+                List<Property> properties = schema.getProperties();
+
+                properties.stream()
+                    .filter( property -> !fieldMap.containsKey( property.key() ) && property.isReadable() )
+                    .forEach( property -> fieldMap.put( property.key(), new FieldMap() ) );
 
                 cleanupFields.add( fieldKey );
             }
@@ -340,7 +342,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                 List<Property> properties = schema.getProperties();
 
                 properties.stream()
-                    .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted() )
+                    .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted() && property.isReadable() )
                     .forEach( property -> fieldMap.put( property.key(), new FieldMap() ) );
 
                 cleanupFields.add( fieldKey );
@@ -350,7 +352,8 @@ public class DefaultFieldFilterService implements FieldFilterService
                 List<Property> properties = schema.getProperties();
 
                 properties.stream()
-                    .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted() && property.isOwner() )
+                    .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted() && property.isOwner()
+                        && property.isReadable() )
                     .forEach( property -> fieldMap.put( property.key(), new FieldMap() ) );
 
                 cleanupFields.add( fieldKey );
@@ -427,7 +430,10 @@ public class DefaultFieldFilterService implements FieldFilterService
 
         for ( String mapKey : schema.getPropertyMap().keySet() )
         {
-            fieldMap.put( mapKey, new FieldMap() );
+            if ( schema.getProperty( mapKey ).isReadable() )
+            {
+                fieldMap.put( mapKey, new FieldMap() );
+            }
         }
 
         return fieldMap;
