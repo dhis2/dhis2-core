@@ -327,33 +327,28 @@ public class DefaultFieldFilterService implements FieldFilterService
 
         for ( String fieldKey : Sets.newHashSet( fieldMap.keySet() ) )
         {
+            List<Property> properties = schema.getReadableProperties();
+
             if ( "*".equals( fieldKey ) )
             {
-                List<Property> properties = schema.getProperties();
-
                 properties.stream()
-                    .filter( property -> !fieldMap.containsKey( property.key() ) && property.isReadable() )
+                    .filter( property -> !fieldMap.containsKey( property.key() ) )
                     .forEach( property -> fieldMap.put( property.key(), new FieldMap() ) );
 
                 cleanupFields.add( fieldKey );
             }
             else if ( ":persisted".equals( fieldKey ) )
             {
-                List<Property> properties = schema.getProperties();
-
                 properties.stream()
-                    .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted() && property.isReadable() )
+                    .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted() )
                     .forEach( property -> fieldMap.put( property.key(), new FieldMap() ) );
 
                 cleanupFields.add( fieldKey );
             }
             else if ( ":owner".equals( fieldKey ) )
             {
-                List<Property> properties = schema.getProperties();
-
                 properties.stream()
-                    .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted() && property.isOwner()
-                        && property.isReadable() )
+                    .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted() && property.isOwner() )
                     .forEach( property -> fieldMap.put( property.key(), new FieldMap() ) );
 
                 cleanupFields.add( fieldKey );
