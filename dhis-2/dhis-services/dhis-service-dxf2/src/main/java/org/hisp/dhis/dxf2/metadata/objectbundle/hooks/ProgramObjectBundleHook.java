@@ -33,8 +33,8 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -77,7 +77,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
         Map<String, Object> references = bundle.getObjectReferences( Program.class ).get( program.getUid() );
         if ( references == null ) return;
 
-        Set<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = (Set<ProgramTrackedEntityAttribute>) references.get( "programTrackedEntityAttributes" );
+        List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = (List<ProgramTrackedEntityAttribute>) references.get( "programTrackedEntityAttributes" );
 
         if ( programTrackedEntityAttributes != null && !programTrackedEntityAttributes.isEmpty() )
         {
