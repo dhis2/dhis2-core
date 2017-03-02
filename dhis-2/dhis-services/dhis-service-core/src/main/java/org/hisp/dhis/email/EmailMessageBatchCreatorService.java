@@ -41,7 +41,7 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 * @author Zubair <rajazubair.asghar@gmail.com>
 */
 
-public class EmailMessageBatchCreator
+public class EmailMessageBatchCreatorService
     implements MessageBatchCreatorService
 {
     @Override
