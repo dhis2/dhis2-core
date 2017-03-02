@@ -71,11 +71,26 @@ public abstract class AbstractRelativePeriodsAction
     {
         this.thisSixMonth = thisSixMonth;
     }
+
+    protected boolean weeksThisYear;
+
+    public void setWeeksThisYear( boolean weeksThisYear )
+    {
+        this.weeksThisYear = weeksThisYear;
+    }
+        
     protected boolean monthsThisYear;
 
     public void setMonthsThisYear( boolean monthsThisYear )
     {
         this.monthsThisYear = monthsThisYear;
+    }
+
+    protected boolean biMonthsThisYear;
+
+    public void setBiMonthsThisYear( boolean biMonthsThisYear )
+    {
+        this.biMonthsThisYear = biMonthsThisYear;
     }
 
     protected boolean quartersThisYear;
@@ -215,7 +230,7 @@ public abstract class AbstractRelativePeriodsAction
     {
         RelativePeriods relatives = new RelativePeriods( false, false, false, false, false, reportingMonth, false,
             reportingBimonth, false, reportingQuarter, false, thisSixMonth, false,
-            monthsThisYear, quartersThisYear, thisYear,
+            weeksThisYear, monthsThisYear, biMonthsThisYear, quartersThisYear, thisYear, 
             monthsLastYear, quartersLastYear, lastYear,
             last5Years, last12Months, last6Months, last3Months, last6BiMonths, last4Quarters, last2SixMonths,
             thisFinancialYear, lastFinancialYear, last5FinancialYears,
