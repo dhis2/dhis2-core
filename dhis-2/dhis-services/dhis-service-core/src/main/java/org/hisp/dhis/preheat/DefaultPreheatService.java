@@ -763,6 +763,18 @@ public class DefaultPreheatService implements PreheatService
                     objects.forEach( o -> list.addAll( ReflectionUtils.invokeMethod( o, property.getGetterMethod() ) ) );
                     targets.put( property.getItemKlass(), list );
                 }
+                else
+                {
+                    List<Object> list = new ArrayList<>();
+
+                    if ( targets.containsKey( property.getKlass() ) )
+                    {
+                        list.addAll( targets.get( property.getKlass() ) );
+                    }
+
+                    objects.forEach( o -> list.add( ReflectionUtils.invokeMethod( o, property.getGetterMethod() ) ) );
+                    targets.put( property.getKlass(), list );
+                }
             }
         }
     }
