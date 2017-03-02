@@ -428,6 +428,14 @@ public class DefaultFieldFilterService implements FieldFilterService
             fieldMap.put( property.getName(), new FieldMap() );
         }
 
+        for ( String mapKey : schema.getPropertyMap().keySet() )
+        {
+            if ( schema.getProperty( mapKey ).isReadable() )
+            {
+                fieldMap.put( mapKey, new FieldMap() );
+            }
+        }
+
         return fieldMap;
     }
 

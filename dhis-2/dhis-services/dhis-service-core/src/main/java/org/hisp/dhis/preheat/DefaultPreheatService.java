@@ -48,16 +48,9 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataelement.DataElementCategoryDimension;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataset.DataInputPeriod;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodStore;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
@@ -301,6 +294,7 @@ public class DefaultPreheatService implements PreheatService
                     ua.setUser( user );
                 }
             } );
+
             object.getUserGroupAccesses().forEach( uga ->
             {
                 UserGroup userGroup = null;
@@ -742,41 +736,34 @@ public class DefaultPreheatService implements PreheatService
             targets.put( UserCredentials.class, userCredentials );
         }
 
-        if ( targets.containsKey( DataSet.class ) )
+        for ( Map.Entry<Class<?>, List<?>> entry : new HashMap<>( targets ).entrySet() )
         {
-            List<DataSet> dataSets = (List<DataSet>) targets.get( DataSet.class );
+            Class<?> klass = entry.getKey();
+            List<?> objects = entry.getValue();
 
-            List<DataSetElement> dataSetElements = new ArrayList<>();
-            List<DataInputPeriod> dataInputPeriods = new ArrayList<>();
+            Schema schema = schemaService.getDynamicSchema( klass );
+            List<Property> properties = schema.getLinkObjectProperties();
 
-            dataSets.forEach( ds ->
+            if ( properties.isEmpty() )
             {
-                dataSetElements.addAll( ds.getDataSetElements() );
-                dataInputPeriods.addAll( ds.getDataInputPeriods() );
-            } );
+                return;
+            }
 
-            targets.put( DataSetElement.class, dataSetElements );
-            targets.put( DataInputPeriod.class, dataInputPeriods );
-        }
+            for ( Property property : properties )
+            {
+                if ( property.isCollection() )
+                {
+                    List<Object> list = new ArrayList<>();
 
-        if ( targets.containsKey( Program.class ) )
-        {
-            List<Program> programs = (List<Program>) targets.get( Program.class );
-            List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = new ArrayList<>();
+                    if ( targets.containsKey( property.getItemKlass() ) )
+                    {
+                        list.addAll( targets.get( property.getItemKlass() ) );
+                    }
 
-            programs.forEach( p -> programTrackedEntityAttributes.addAll( p.getProgramAttributes() ) );
-
-            targets.put( ProgramTrackedEntityAttribute.class, programTrackedEntityAttributes );
-        }
-
-        if ( targets.containsKey( ProgramStage.class ) )
-        {
-            List<ProgramStage> programStages = (List<ProgramStage>) targets.get( ProgramStage.class );
-            List<ProgramStageDataElement> programStageDataElements = new ArrayList<>();
-
-            programStages.forEach( ps -> programStageDataElements.addAll( ps.getProgramStageDataElements() ) );
-
-            targets.put( ProgramStageDataElement.class, programStageDataElements );
+                    objects.forEach( o -> list.addAll( ReflectionUtils.invokeMethod( o, property.getGetterMethod() ) ) );
+                    targets.put( property.getItemKlass(), list );
+                }
+            }
         }
     }
 

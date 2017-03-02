@@ -518,6 +518,11 @@ public class Property implements Ordered, Klass
         return linkObject;
     }
 
+    public void setLinkObject( boolean linkObject )
+    {
+        this.linkObject = linkObject;
+    }
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isReadable()
