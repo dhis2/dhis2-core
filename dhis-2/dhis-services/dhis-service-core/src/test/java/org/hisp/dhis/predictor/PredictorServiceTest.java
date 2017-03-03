@@ -728,4 +728,20 @@ public class PredictorServiceTest
         assertNull( getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) );
 
     }
+
+    @Test
+    @Category( IntegrationTest.class )
+    public void testPredictConstant()
+    {
+        setupTestData();
+
+        Predictor p = createPredictor( dataElementX, defaultCombo, "PredictConstant",
+            new Expression( "1234", "descriptionA" ),
+            null, periodTypeMonthly, orgUnitLevel1, 0, 0, 0 );
+
+        predictorService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 8 ) );
+
+        assertEquals( new Double( 1234.0 ), getDataValue( dataElementX, sourceA, makeMonth( 2001, 7 ) ) );
+        assertEquals( new Double( 1234.0 ), getDataValue( dataElementX, sourceA, makeMonth( 2001, 8 ) ) );
+    }
 }
