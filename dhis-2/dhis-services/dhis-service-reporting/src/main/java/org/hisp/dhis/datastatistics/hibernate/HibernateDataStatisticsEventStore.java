@@ -84,8 +84,8 @@ public class HibernateDataStatisticsEventStore
     @Override
     public List<FavoriteStatistics> getFavoritesData( DataStatisticsEventType eventType, int pageSize, SortOrder sortOrder, String username )
     {
-        Assert.notNull( eventType );
-        Assert.notNull( sortOrder );
+        Assert.notNull( eventType, "Data statistics event type cannot be null" );
+        Assert.notNull( sortOrder, "Sort order cannot be null" );
 
         String sql =
             "select c.uid, views, c.name, c.created from ( " +

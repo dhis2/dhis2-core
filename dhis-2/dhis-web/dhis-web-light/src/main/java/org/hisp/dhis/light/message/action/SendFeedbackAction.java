@@ -76,8 +76,8 @@ public class SendFeedbackAction
     @Override
     public String execute() throws Exception
     {
-        Assert.hasText( subject );
-        Assert.hasText( text );
+        Assert.hasText( subject, "Subject must be defined" );
+        Assert.hasText( text, "Text must be defined" );
 
         String metaData = MessageService.META_USER_AGENT +
             ServletActionContext.getRequest().getHeader( ContextUtils.HEADER_USER_AGENT );

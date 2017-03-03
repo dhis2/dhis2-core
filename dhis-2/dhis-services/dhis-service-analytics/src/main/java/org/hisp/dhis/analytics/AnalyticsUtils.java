@@ -308,12 +308,12 @@ public class AnalyticsUtils
         int aoInx = grid.getIndexOfHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID );
         int vlInx = grid.getWidth() - 1;
         
-        Assert.isTrue( dxInx >= 0 );
-        Assert.isTrue( peInx >= 0 );
-        Assert.isTrue( ouInx >= 0 );
-        Assert.isTrue( coInx >= 0 );
-        Assert.isTrue( aoInx >= 0 );
-        Assert.isTrue( vlInx >= 0 );
+        Assert.isTrue( dxInx >= 0, "Data dimension index must be greater than or equal to zero" );
+        Assert.isTrue( peInx >= 0, "Period dimension index must be greater than or equal to zero" );
+        Assert.isTrue( ouInx >= 0, "Org unit dimension index must be greater than or equal to zero" );
+        Assert.isTrue( coInx >= 0, "Category option combo dimension index must be greater than or equal to zero" );
+        Assert.isTrue( aoInx >= 0, "Attribute option combo dimension index must be greater than or equal to zero" );
+        Assert.isTrue( vlInx >= 0, "Value index must be greater than or equal to zero" );
                 
         String created = DateUtils.getMediumDateString();
         
@@ -376,18 +376,18 @@ public class AnalyticsUtils
         int dxInx = grid.getIndexOfHeader( DATA_X_DIM_ID );
         int vlInx = grid.getWidth() - 1;
         
-        Assert.isTrue( dxInx >= 0 );
-        Assert.isTrue( vlInx >= 0 );
+        Assert.isTrue( dxInx >= 0, "Data dimension index must be greater than or equal to zero" );
+        Assert.isTrue( vlInx >= 0, "Value index must be greater than or equal to zero" );
         
         for ( List<Object> row : grid.getRows() )
         {
             String dx = String.valueOf( row.get( dxInx ) );
             
-            Assert.notNull( dx );
+            Assert.notNull( dx, "Data dimension item cannot be null" );
             
             DimensionalItemObject item = dimItemObjectMap.get( dx );
 
-            Assert.notNull( item );
+            Assert.notNull( item, "Dimensional item cannot be null" );
             
             Object value = AnalyticsUtils.getIntegerOrValue( row.get( vlInx ), item );
             

@@ -109,7 +109,7 @@ public class DefaultFieldFilterService implements FieldFilterService
     @Override
     public ComplexNode filter( Object object, List<String> fieldList )
     {
-        Assert.notNull( object );
+        Assert.notNull( object, "Object cannot be null" );
 
         CollectionNode collectionNode = filter( object.getClass(), Lists.newArrayList( object ), fieldList );
 
