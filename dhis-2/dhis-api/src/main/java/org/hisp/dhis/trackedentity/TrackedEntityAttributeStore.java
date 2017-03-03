@@ -28,9 +28,9 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.common.GenericNameableObjectStore;
+
+import java.util.List;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -40,19 +40,6 @@ public interface TrackedEntityAttributeStore
 {
     String ID = TrackedEntityAttributeStore.class.getName();
 
-    /**
-     * Get attributes without groups
-     * 
-     * @return List of attributes
-     */
-    List<TrackedEntityAttribute> getOptionalAttributesWithoutGroup();
-
-    /**
-     * Get {@link TrackedEntityAttribute} without any group
-     * 
-     * @return TrackedEntityAttribute without group.
-     */
-    List<TrackedEntityAttribute> getWithoutGroup();
 
     /**
      * Get attributes which are displayed in visit schedule

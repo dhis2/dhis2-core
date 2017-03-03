@@ -131,7 +131,6 @@ public class DefaultSchemaService
         add( new ReportTableSchemaDescriptor() ).
         add( new SectionSchemaDescriptor() ).
         add( new SqlViewSchemaDescriptor() ).
-        add( new TrackedEntityAttributeGroupSchemaDescriptor() ).
         add( new TrackedEntityAttributeSchemaDescriptor() ).
         add( new TrackedEntityInstanceSchemaDescriptor() ).
         add( new TrackedEntitySchemaDescriptor() ).

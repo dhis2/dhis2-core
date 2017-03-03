@@ -93,7 +93,6 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
@@ -240,8 +239,6 @@ public class Metadata
     private List<TrackedEntity> trackedEntities = new ArrayList<>();
 
     private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
-
-    private List<TrackedEntityAttributeGroup> trackedEntityAttributeGroups = new ArrayList<>();
 
     private List<Color> colors = new ArrayList<>();
 
@@ -1083,19 +1080,6 @@ public class Metadata
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "trackedEntityAttributeGroups", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "trackedEntityAttributeGroup", namespace = DxfNamespaces.DXF_2_0 )
-    public List<TrackedEntityAttributeGroup> getTrackedEntityAttributeGroups()
-    {
-        return trackedEntityAttributeGroups;
-    }
-
-    public void setTrackedEntityAttributeGroups( List<TrackedEntityAttributeGroup> trackedEntityAttributeGroups )
-    {
-        this.trackedEntityAttributeGroups = trackedEntityAttributeGroups;
-    }
-
-    @JsonProperty
     @JacksonXmlElementWrapper( localName = "dimensions", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "dimension", namespace = DxfNamespaces.DXF_2_0 )
     public List<DimensionalObject> getDimensions()
@@ -1188,7 +1172,6 @@ public class Metadata
             ", relationshipTypes=" + relationshipTypes +
             ", trackedEntities=" + trackedEntities +
             ", trackedEntityAttributes=" + trackedEntityAttributes +
-            ", trackedEntityAttributeGroups=" + trackedEntityAttributeGroups +
             ", colors=" + colors +
             ", colorSets=" + colorSets +
             '}';

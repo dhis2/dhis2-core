@@ -693,13 +693,6 @@
   <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeReservedValueService"
     class="org.hisp.dhis.trackedentityattributevalue.DefaultTrackedEntityAttributeReservedValueService" />
 
-  <bean id="org.hisp.dhis.trackedentity.TrackedEntityAttributeGroupStore"
-    class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
-    <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="cacheable" value="true" />
-  </bean>
-
   <bean id="org.hisp.dhis.program.ProgramStageDataElementStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramStageDataElementStore">
     <property name="clazz" value="org.hisp.dhis.program.ProgramStageDataElement" />
@@ -1439,11 +1432,6 @@
     class="org.hisp.dhis.trackedentitydatavalue.DefaultTrackedEntityDataValueService">
   </bean>
 
-  <bean id="org.hisp.dhis.trackedentity.TrackedEntityAttributeGroupService"
-    class="org.hisp.dhis.trackedentity.DefaultTrackedEntityAttributeGroupService">
-    <property name="attributeGroupStore" ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeGroupStore" />
-  </bean>
-
   <bean id="org.hisp.dhis.program.ProgramStageDataElementService"
     class="org.hisp.dhis.program.DefaultProgramStageDataElementService">
     <property name="programStageDataElementStore" ref="org.hisp.dhis.program.ProgramStageDataElementStore" />
@@ -1604,7 +1592,6 @@
         <value>trackedentity</value>
         <value>trackedentityinstance</value>
         <value>trackedentityattribute</value>
-        <value>trackedentityattributegroup</value>
         <value>program</value>
         <value>programindicator</value>
         <value>programstage</value>
