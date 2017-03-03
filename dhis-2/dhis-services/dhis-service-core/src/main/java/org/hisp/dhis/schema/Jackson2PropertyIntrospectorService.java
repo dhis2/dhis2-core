@@ -38,6 +38,7 @@ import com.google.common.primitives.Primitives;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.LinkObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.system.util.AnnotationUtils;
@@ -192,15 +193,9 @@ public class Jackson2PropertyIntrospectorService
                         property.setSimple( true );
                     }
 
-                    if ( IdentifiableObject.class.isAssignableFrom( klass ) )
-                    {
-                        property.setIdentifiableObject( true );
-
-                        if ( NameableObject.class.isAssignableFrom( klass ) )
-                        {
-                            property.setNameableObject( true );
-                        }
-                    }
+                    property.setIdentifiableObject( IdentifiableObject.class.isAssignableFrom( klass ) );
+                    property.setNameableObject( NameableObject.class.isAssignableFrom( klass ) );
+                    property.setLinkObject( LinkObject.class.isAssignableFrom( klass ) );
                 }
             }
             else
