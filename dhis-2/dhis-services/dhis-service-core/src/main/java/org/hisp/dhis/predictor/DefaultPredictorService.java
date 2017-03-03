@@ -219,6 +219,19 @@ public class DefaultPredictorService
             samplerefs.addAll( expressionService.getDataInputsInExpression( aggregate ) );
         }
 
+        // If the expression is a constant (no aggregates), compute it now
+        // for efficiency.
+
+        Double constantValue = null;
+        DataElementCategoryOptionCombo constantAoc = null;
+
+        if ( aggregates.isEmpty() )
+        {
+            constantValue = evalExpression( generator, valueMap, constantMap, null, 0, null );
+
+            constantAoc = categoryService.getDefaultDataElementCategoryOptionCombo();
+        }
+
         // This iterates over sources and periods. All the Maps with
         // Integer keys are mappings from attribute option combo ids
         // to other mappings (for instance, data element to values, or
@@ -230,23 +243,34 @@ public class DefaultPredictorService
 
             for ( Period period : basePeriods )
             {
-                Map<Integer, ListMap<String, Double>> aggregateSampleMap =
-                    getAggregateSampleMaps( aggregates, samplerefs, source, periodMaps.get( period ), skipTest, skipdata, constantMap );
-
-                for ( Integer aoc : aggregateSampleMap.keySet() )
+                if ( constantValue != null )
                 {
-                    ListMap<String, Double> aggregateValueMap = aggregateSampleMap.get( aoc );
+                    DataValue dv = new DataValue( output, period, source, outputCombo, constantAoc );
 
-                    Double value = evalExpression( generator, valueMap, constantMap, null, 0, aggregateValueMap );
+                    dv.setValue( constantValue.toString() );
 
-                    if ( value != null && !value.isNaN() && !value.isInfinite() )
+                    results.add( dv );
+                }
+                else
+                {
+                    Map<Integer, ListMap<String, Double>> aggregateSampleMap =
+                        getAggregateSampleMaps( aggregates, samplerefs, source, periodMaps.get( period ), skipTest, skipdata, constantMap );
+
+                    for ( Integer aoc : aggregateSampleMap.keySet() )
                     {
-                        DataValue dv = new DataValue( output, period, source, outputCombo,
-                            categoryService.getDataElementCategoryOptionCombo( aoc ) );
+                        ListMap<String, Double> aggregateValueMap = aggregateSampleMap.get( aoc );
 
-                        dv.setValue( value.toString() );
+                        Double value = evalExpression( generator, valueMap, constantMap, null, 0, aggregateValueMap );
 
-                        results.add( dv );
+                        if ( value != null && !value.isNaN() && !value.isInfinite() )
+                        {
+                            DataValue dv = new DataValue( output, period, source, outputCombo,
+                                categoryService.getDataElementCategoryOptionCombo( aoc ) );
+
+                            dv.setValue( value.toString() );
+
+                            results.add( dv );
+                        }
                     }
                 }
             }
