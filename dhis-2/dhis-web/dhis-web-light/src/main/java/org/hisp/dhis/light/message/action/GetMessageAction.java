@@ -36,7 +36,6 @@ import org.hisp.dhis.message.Message;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.util.Assert;
 
 import com.opensymphony.xwork2.Action;
 
@@ -102,8 +101,6 @@ public class GetMessageAction
     public String execute()
         throws Exception
     {
-        Assert.hasText( conversationId );
-
         MessageConversation conversation = messageService.getMessageConversation( conversationId );
         
         subject = conversation.getSubject();

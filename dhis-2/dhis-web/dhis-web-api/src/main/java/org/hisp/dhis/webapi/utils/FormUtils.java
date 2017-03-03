@@ -212,7 +212,7 @@ public class FormUtils
 
     public static Form fromProgram( Program program )
     {
-        Assert.notNull( program );
+        Assert.notNull( program, "Program cannot be null" );
 
         Form form = new Form();
         form.setLabel( program.getDisplayName() );

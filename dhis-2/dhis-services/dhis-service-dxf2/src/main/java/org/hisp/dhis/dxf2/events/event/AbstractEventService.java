@@ -302,7 +302,7 @@ public abstract class AbstractEventService
             programStage = program.getProgramStageByStage( 1 );
         }
 
-        Assert.notNull( programStage );
+        Assert.notNull( programStage, "Program stage cannot be null" );
 
         if ( !canAccess( program, user ) )
         {
@@ -1231,10 +1231,9 @@ public abstract class AbstractEventService
         ProgramStageInstance programStageInstance, OrganisationUnit organisationUnit, Event event, User user,
         ImportOptions importOptions )
     {
-
-        Assert.notNull( program );
-        Assert.notNull( programInstance );
-        Assert.notNull( programStage );
+        Assert.notNull( program, "Program cannot be null" );
+        Assert.notNull( programInstance, "Program instance cannot be null" );
+        Assert.notNull( programStage, "Program stage cannot be null" );
 
         ImportSummary importSummary = new ImportSummary();
         importSummary.setStatus( ImportStatus.SUCCESS );

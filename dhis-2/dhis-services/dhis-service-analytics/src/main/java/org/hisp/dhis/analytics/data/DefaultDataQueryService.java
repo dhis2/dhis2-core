@@ -148,7 +148,7 @@ public class DefaultDataQueryService
     @Override
     public DataQueryParams getFromAnalyticalObject( AnalyticalObject object )
     {
-        Assert.notNull( object );
+        Assert.notNull( object, "Analytical object cannot be null" );
 
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
         

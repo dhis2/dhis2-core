@@ -419,7 +419,7 @@ public class JdbcEventAnalyticsManager
         
         if ( params.hasValueDimension() ) // TODO && isNumeric
         {
-            Assert.isTrue( params.getAggregationTypeFallback().isAggregateable() );
+            Assert.isTrue( params.getAggregationTypeFallback().isAggregateable(), "Event query aggregation type must be aggregatable" );
             
             String function = params.getAggregationTypeFallback().getValue();
             
