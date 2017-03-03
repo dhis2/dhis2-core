@@ -1455,7 +1455,8 @@ public abstract class AbstractEventService
         }
         else
         {
-            sessionFactory.getCurrentSession().update( programStageInstance );
+            sessionFactory.getCurrentSession().save( programStageInstance );
+            sessionFactory.getCurrentSession().flush();
             sessionFactory.getCurrentSession().refresh( programStageInstance );
         }
 
