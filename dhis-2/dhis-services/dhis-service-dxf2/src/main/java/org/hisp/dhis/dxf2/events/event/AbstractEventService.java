@@ -359,8 +359,7 @@ public abstract class AbstractEventService
             {
                 if ( event.getEvent() != null )
                 {
-                    programStageInstance = programStageInstanceService.getProgramStageInstance( event.getEvent() );
-
+                    programStageInstance = manager.getObject( ProgramStageInstance.class, importOptions.getIdSchemes().getProgramStageInstanceIdScheme(), event.getEvent());
                     if ( programStageInstance == null )
                     {
                         if ( !CodeGenerator.isValidCode( event.getEvent() ) )
@@ -400,11 +399,11 @@ public abstract class AbstractEventService
 
             if ( event.getEvent() != null )
             {
-                programStageInstance = programStageInstanceService.getProgramStageInstance( event.getEvent() );
+                programStageInstance = manager.getObject( ProgramStageInstance.class, importOptions.getIdSchemes().getProgramStageInstanceIdScheme(), event.getEvent());
 
                 if ( programStageInstance == null )
                 {
-                    if ( !CodeGenerator.isValidCode( event.getEvent() ) )
+                    if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.UID ) && !CodeGenerator.isValidCode( event.getEvent() ) )
                     {
                         return new ImportSummary( ImportStatus.ERROR,
                             "Event.event did not point to a valid event: " + event.getEvent() ).incrementIgnored();
@@ -1232,6 +1231,7 @@ public abstract class AbstractEventService
         ProgramStageInstance programStageInstance, OrganisationUnit organisationUnit, Event event, User user,
         ImportOptions importOptions )
     {
+
         Assert.notNull( program );
         Assert.notNull( programInstance );
         Assert.notNull( programStage );
@@ -1409,8 +1409,16 @@ public abstract class AbstractEventService
         ImportOptions importOptions )
     {
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setUid( CodeGenerator.isValidCode( programStageInstanceUid ) ? programStageInstanceUid
-            : CodeGenerator.generateCode() );
+        if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.UID ))
+        {
+            programStageInstance.setUid( CodeGenerator.isValidCode( programStageInstanceUid ) ? programStageInstanceUid
+                : CodeGenerator.generateCode() );
+        }
+        else if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.CODE ))
+        {
+            programStageInstance.setUid( CodeGenerator.generateCode() );
+            programStageInstance.setCode( programStageInstanceUid );
+        }
 
         updateProgramStageInstance( programStage, programInstance, organisationUnit, dueDate, executionDate, status,
             coordinate, completedBy, programStageInstance, coc, importOptions );
@@ -1429,7 +1437,6 @@ public abstract class AbstractEventService
         programStageInstance.setExecutionDate( executionDate );
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setAttributeOptionCombo( coc );
-
         if ( programStage.getCaptureCoordinates() )
         {
             if ( coordinate != null && coordinate.isValid() )
