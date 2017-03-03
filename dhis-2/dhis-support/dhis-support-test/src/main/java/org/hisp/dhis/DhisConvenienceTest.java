@@ -1287,6 +1287,7 @@ public abstract class DhisConvenienceTest
         program.setAutoFields();
 
         program.setName( "Program" + uniqueCharacter );
+        program.setCode( "ProgramCode" + uniqueCharacter );
         program.setShortName( "ProgramShort" + uniqueCharacter );
         program.setDescription( "Description" + uniqueCharacter );
         program.setEnrollmentDateLabel( "DateOfEnrollmentDescription" );
@@ -1527,6 +1528,7 @@ public abstract class DhisConvenienceTest
         attribute.setAutoFields();
 
         attribute.setName( "Attribute" + uniqueChar );
+        attribute.setCode( "AttributeCode" + uniqueChar );
         attribute.setDescription( "Attribute" + uniqueChar );
         attribute.setValueType( ValueType.TEXT );
         attribute.setAggregationType( AggregationType.NONE );
@@ -1540,7 +1542,6 @@ public abstract class DhisConvenienceTest
         attribute.setAutoFields();
 
         attribute.setName( "Attribute" + uniqueChar );
-        attribute.setDescription( "Attribute" + uniqueChar );
 
         return attribute;
     }
@@ -1555,6 +1556,7 @@ public abstract class DhisConvenienceTest
         attribute.setAutoFields();
 
         attribute.setName( "Attribute" + uniqueChar );
+        attribute.setCode( "AttributeCode" + uniqueChar );
         attribute.setDescription( "Attribute" + uniqueChar );
         attribute.setValueType( valueType );
         attribute.setAggregationType( AggregationType.NONE );
@@ -1568,6 +1570,7 @@ public abstract class DhisConvenienceTest
         attributeGroup.setAutoFields();
 
         attributeGroup.setName( "ProgramTrackedEntityAttributeGroup" + uniqueChar );
+        attributeGroup.setCode( "ProgramTrackedEntityAttributeGroupCode" + uniqueChar );
         attributeGroup.setDescription( "ProgramTrackedEntityAttributeGroup" + uniqueChar );
         attributes.forEach( attributeGroup::addAttribute );
         attributeGroup.setUniqunessType( UniqunessType.NONE );

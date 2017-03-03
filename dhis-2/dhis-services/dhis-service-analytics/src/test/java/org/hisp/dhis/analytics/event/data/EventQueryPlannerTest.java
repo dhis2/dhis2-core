@@ -55,7 +55,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElement;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -84,8 +84,8 @@ public class EventQueryPlannerTest
     private TrackedEntityAttribute atA;
     private TrackedEntityAttribute atB;
     
-    private ProgramTrackedEntityAttribute patA;
-    private ProgramTrackedEntityAttribute patB;
+    private ProgramTrackedEntityAttributeDimensionItem patA;
+    private ProgramTrackedEntityAttributeDimensionItem patB;
     
     private OrganisationUnit ouA;
     private OrganisationUnit ouB;
@@ -137,12 +137,9 @@ public class EventQueryPlannerTest
         idObjectManager.save( atA );
         idObjectManager.save( atB );
         
-        patA = new ProgramTrackedEntityAttribute( prA, atA );
-        patB = new ProgramTrackedEntityAttribute( prA, atB );
-        
-        idObjectManager.save( patA );
-        idObjectManager.save( patB );
-        
+        patA = new ProgramTrackedEntityAttributeDimensionItem( prA, atA );
+        patB = new ProgramTrackedEntityAttributeDimensionItem( prA, atB );
+                
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B', ouA );
         ouC = createOrganisationUnit( 'C', ouA );
