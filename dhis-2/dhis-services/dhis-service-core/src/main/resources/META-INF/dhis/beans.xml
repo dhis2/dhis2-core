@@ -1424,7 +1424,7 @@
   <bean id="org.hisp.dhis.sms.SmsMessageBatchCreatorService" class="org.hisp.dhis.sms.SmsMessageBatchCreatorService">
   </bean>
 
-  <bean id="org.hisp.dhis.email.EmailMessageBatchCreator" class="org.hisp.dhis.email.EmailMessageBatchCreator">
+  <bean id="org.hisp.dhis.email.EmailMessageBatchCreator" class="org.hisp.dhis.email.EmailMessageBatchCreatorService">
   </bean>
 
   <bean id="org.hisp.dhis.program.ProgramValidationService" class="org.hisp.dhis.program.DefaultProgramValidationService">
