@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.email;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,35 +28,38 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.program.message.ProgramMessage;
+import org.hisp.dhis.program.message.MessageBatchCreatorService;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class TrackedEntityAttributeGroupSchemaDescriptor implements SchemaDescriptor
+* @author Zubair <rajazubair.asghar@gmail.com>
+*/
+
+public class EmailMessageBatchCreatorService
+    implements MessageBatchCreatorService
 {
-    public static final String SINGULAR = "trackedEntityAttributeGroup";
-
-    public static final String PLURAL = "trackedEntityAttributeGroups";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
     @Override
-    public Schema getSchema()
+    public OutboundMessageBatch getMessageBatch( List<ProgramMessage> programMessages )
     {
-        Schema schema = new Schema( TrackedEntityAttributeGroup.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1500 );
+        List<OutboundMessage> messages = new ArrayList<>();
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE,
-            Lists.newArrayList( "F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD", "F_TRACKED_ENTITY_ATTRIBUTE_PRIVATE_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_TRACKED_ENTITY_ATTRIBUTE_DELETE" ) ) );
+        for ( ProgramMessage programMessage : programMessages )
+        {
+            if ( programMessage.getDeliveryChannels().contains( DeliveryChannel.EMAIL ) )
+            {
+                OutboundMessage email = new OutboundMessage( programMessage.getSubject(), programMessage.getText(),
+                    programMessage.getRecipients().getEmailAddresses() );
 
-        return schema;
+                messages.add( email );
+            }
+        }
+        
+        return new OutboundMessageBatch( messages, DeliveryChannel.EMAIL );
     }
 }

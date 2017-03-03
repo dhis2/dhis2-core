@@ -327,18 +327,18 @@ public class DefaultFieldFilterService implements FieldFilterService
 
         for ( String fieldKey : Sets.newHashSet( fieldMap.keySet() ) )
         {
+            List<Property> properties = schema.getReadableProperties();
+
             if ( "*".equals( fieldKey ) )
             {
-                schema.getPropertyMap().keySet().stream()
-                    .filter( mapKey -> !fieldMap.containsKey( mapKey ) )
-                    .forEach( mapKey -> fieldMap.put( mapKey, new FieldMap() ) );
+                properties.stream()
+                    .filter( property -> !fieldMap.containsKey( property.key() ) )
+                    .forEach( property -> fieldMap.put( property.key(), new FieldMap() ) );
 
                 cleanupFields.add( fieldKey );
             }
             else if ( ":persisted".equals( fieldKey ) )
             {
-                List<Property> properties = schema.getProperties();
-
                 properties.stream()
                     .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted() )
                     .forEach( property -> fieldMap.put( property.key(), new FieldMap() ) );
@@ -347,8 +347,6 @@ public class DefaultFieldFilterService implements FieldFilterService
             }
             else if ( ":owner".equals( fieldKey ) )
             {
-                List<Property> properties = schema.getProperties();
-
                 properties.stream()
                     .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted() && property.isOwner() )
                     .forEach( property -> fieldMap.put( property.key(), new FieldMap() ) );
@@ -425,9 +423,17 @@ public class DefaultFieldFilterService implements FieldFilterService
     {
         FieldMap fieldMap = new FieldMap();
 
+        for ( Property property : schema.getReadableProperties() )
+        {
+            fieldMap.put( property.getName(), new FieldMap() );
+        }
+
         for ( String mapKey : schema.getPropertyMap().keySet() )
         {
-            fieldMap.put( mapKey, new FieldMap() );
+            if ( schema.getProperty( mapKey ).isReadable() )
+            {
+                fieldMap.put( mapKey, new FieldMap() );
+            }
         }
 
         return fieldMap;

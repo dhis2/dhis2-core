@@ -45,6 +45,7 @@ import org.hisp.dhis.security.AuthorityType;
 import org.springframework.core.Ordered;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -168,6 +169,11 @@ public class Schema implements Ordered, Klass
     private Map<String, Property> propertyMap = Maps.newHashMap();
 
     /**
+     * Map of all readable properties, cached on first request.
+     */
+    private Map<String, Property> readableProperties;
+
+    /**
      * Map of all persisted properties, cached on first request.
      */
     private Map<String, Property> persistedProperties;
@@ -176,6 +182,11 @@ public class Schema implements Ordered, Klass
      * Map of all persisted properties, cached on first request.
      */
     private Map<String, Property> nonPersistedProperties;
+
+    /**
+     * Map of all link object properties, cached on first request.
+     */
+    private Map<String, Property> linkObjectProperties;
 
     /**
      * Used for sorting of schema list when doing metadata import/export.
@@ -202,13 +213,6 @@ public class Schema implements Ordered, Klass
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLinkObject()
-    {
-        return linkObject;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isIdentifiableObject()
     {
         return identifiableObject;
@@ -219,6 +223,20 @@ public class Schema implements Ordered, Klass
     public boolean isNameableObject()
     {
         return nameableObject;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isLinkObject()
+    {
+        return linkObject;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getShareable()
+    {
+        return shareable;
     }
 
     @JsonProperty
@@ -470,6 +488,20 @@ public class Schema implements Ordered, Klass
         return references;
     }
 
+    public List<Property> getReadableProperties()
+    {
+        if ( readableProperties == null )
+        {
+            readableProperties = new HashMap<>();
+
+            getPropertyMap().entrySet().stream()
+                .filter( entry -> entry.getValue().isReadable() )
+                .forEach( entry -> readableProperties.put( entry.getKey(), entry.getValue() ) );
+        }
+
+        return new ArrayList<>( readableProperties.values() );
+    }
+
     public Map<String, Property> getPersistedProperties()
     {
         if ( persistedProperties == null )
@@ -496,6 +528,20 @@ public class Schema implements Ordered, Klass
         }
 
         return nonPersistedProperties;
+    }
+
+    public List<Property> getLinkObjectProperties()
+    {
+        if ( linkObjectProperties == null )
+        {
+            linkObjectProperties = new HashMap<>();
+
+            getPropertyMap().entrySet().stream()
+                .filter( entry -> entry.getValue().isLinkObject() )
+                .forEach( entry -> linkObjectProperties.put( entry.getKey(), entry.getValue() ) );
+        }
+
+        return new ArrayList<>( linkObjectProperties.values() );
     }
 
     public void addProperty( Property property )

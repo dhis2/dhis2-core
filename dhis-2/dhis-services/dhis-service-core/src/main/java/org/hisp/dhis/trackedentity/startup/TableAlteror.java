@@ -125,16 +125,10 @@ public class TableAlteror
 
         executeSql( "UPDATE program SET programstage_dataelements=false WHERE displayInReports is null" );
 
-        executeSql( "ALTER TABLE programvalidation DROP COLUMN leftside" );
-        executeSql( "ALTER TABLE programvalidation DROP COLUMN rightside" );
-        executeSql( "ALTER TABLE programvalidation DROP COLUMN dateType" );
-
         executeSql( "UPDATE programstage SET validCompleteOnly=false WHERE validCompleteOnly is null" );
         executeSql( "UPDATE program SET ignoreOverdueEvents=false WHERE ignoreOverdueEvents is null" );
 
         executeSql( "UPDATE programstage SET displayGenerateEventBox=true WHERE displayGenerateEventBox is null" );
-
-        executeSql( "ALTER TABLE programvalidation RENAME description TO name" );
 
         executeSql( "UPDATE program SET blockEntryForm=false WHERE blockEntryForm is null" );
         executeSql( "ALTER TABLE dataset DROP CONSTRAINT program_name_key" );
