@@ -114,7 +114,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public void postImport( ObjectBundle bundle )
+    public void postCommit( ObjectBundle bundle )
     {
         if ( !bundle.getObjectMap().containsKey( User.class ) ) return;
 

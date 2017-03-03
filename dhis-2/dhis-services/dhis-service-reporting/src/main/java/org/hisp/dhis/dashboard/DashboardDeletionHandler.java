@@ -1,4 +1,4 @@
-package org.hisp.dhis.system.objectmapper;
+package org.hisp.dhis.dashboard;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,47 +28,32 @@ package org.hisp.dhis.system.objectmapper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.dataelement.DataElementCategoryOptionCombo.DEFAULT_TOSTRING;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import org.hisp.quick.mapper.RowMapper;
-import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DataElementOperandMapper
-    implements RowMapper<DataElementOperand>, org.springframework.jdbc.core.RowMapper<DataElementOperand>
+public class DashboardDeletionHandler extends DeletionHandler
 {
-    private static final String SEPARATOR = " ";
-    
-    @Override
-    public DataElementOperand mapRow( ResultSet resultSet )
-        throws SQLException
-    {
-        String operandName = resultSet.getString( 2 );
+    @Autowired
+    private DashboardService dashboardService;
 
-        final String cocName = resultSet.getString( 4 );        
-        
-        if ( cocName != null && !cocName.equals( DEFAULT_TOSTRING ) )
-        {
-            operandName += SEPARATOR + cocName;
-        }
-                
-        final DataElementOperand operand = new DataElementOperand(
-            resultSet.getString( 1 ),
-            resultSet.getString( 3 ),
-            operandName );
-        
-        return operand;
+    @Override
+    protected String getClassName()
+    {
+        return Dashboard.class.getSimpleName();
     }
 
     @Override
-    public DataElementOperand mapRow( ResultSet resultSet, int rowNum )
-        throws SQLException
+    public void deleteDashboardItem( DashboardItem dashboardItem )
     {
-        return mapRow( resultSet );
+        Dashboard dashboard = dashboardService.getDashboardFromDashboardItem( dashboardItem );
+
+        if ( dashboard != null )
+        {
+            dashboard.getItems().remove( dashboardItem );
+            dashboardService.updateDashboard( dashboard );
+        }
     }
 }

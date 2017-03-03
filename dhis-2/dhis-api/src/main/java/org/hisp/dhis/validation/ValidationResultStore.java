@@ -1,5 +1,4 @@
-package org.hisp.dhis.webapi.controller.event;
-
+package org.hisp.dhis.validation;
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -28,18 +27,12 @@ package org.hisp.dhis.webapi.controller.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramValidation;
-import org.hisp.dhis.schema.descriptors.ProgramValidationSchemaDescriptor;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.hisp.dhis.common.GenericStore;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Stian Sandvold
  */
-@Controller
-@RequestMapping( value = ProgramValidationSchemaDescriptor.API_ENDPOINT )
-public class ProgramValidationController
-    extends AbstractCrudController<ProgramValidation>
+public interface ValidationResultStore
+    extends GenericStore<ValidationResult>
 {
 }

@@ -108,7 +108,7 @@ public class JsonMessageConverter extends AbstractHttpMessageConverter<RootNode>
     {
         if ( Compression.GZIP == compression )
         {
-            if ( !outputMessage.getHeaders().containsKey( ContextUtils.HEADER_CONTENT_DISPOSITION ) )
+            if ( !outputMessage.getHeaders().getFirst( ContextUtils.HEADER_CONTENT_DISPOSITION  ).contains( "attachment" ) )
             {
                 outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=metadata.json.gz" );
                 outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
@@ -120,7 +120,7 @@ public class JsonMessageConverter extends AbstractHttpMessageConverter<RootNode>
         }
         else if ( Compression.ZIP == compression )
         {
-            if ( !outputMessage.getHeaders().containsKey( ContextUtils.HEADER_CONTENT_DISPOSITION ) )
+            if ( !outputMessage.getHeaders().getFirst( ContextUtils.HEADER_CONTENT_DISPOSITION  ).contains( "attachment" ) )
             {
                 outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=metadata.json.zip" );
                 outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );

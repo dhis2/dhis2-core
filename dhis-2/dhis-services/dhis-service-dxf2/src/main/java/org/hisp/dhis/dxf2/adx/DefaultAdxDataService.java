@@ -52,7 +52,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.datavalueset.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -61,7 +61,9 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -86,6 +88,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.period.PeriodService;
+
+import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 
 /**
  * @author bobj
@@ -252,7 +256,10 @@ public class DefaultAdxDataService
     private ImportSummaries saveDataValueSetInternal( InputStream in, ImportOptions importOptions, TaskId id )
     {
         notifier.clear( id ).notify( id, "ADX parsing process started" );
-
+        
+        ImportOptions adxImportOptions = ObjectUtils.firstNonNull( importOptions, ImportOptions.getDefaultImportOptions() )
+            .instance().setNotificationLevel( NotificationLevel.OFF );
+        
         XMLReader adxReader = XMLFactory.getXMLReader( in );
 
         ImportSummaries importSummaries = new ImportSummaries();
@@ -268,13 +275,14 @@ public class DefaultAdxDataService
         {
             try ( PipedOutputStream pipeOut = new PipedOutputStream() )
             {
-                Future<ImportSummary> futureImportSummary;
-                futureImportSummary = executor.submit( new AdxPipedImporter( dataValueSetService, importOptions, id, pipeOut, sessionFactory ) );
+                notifier.notify( id, "Importing ADX data group: " + count );
+                
+                Future<ImportSummary> futureImportSummary = executor.submit( new AdxPipedImporter( dataValueSetService, adxImportOptions, id, pipeOut, sessionFactory ) );
                 XMLOutputFactory factory = XMLOutputFactory.newInstance();
                 XMLStreamWriter dxfWriter = factory.createXMLStreamWriter( pipeOut );
 
                 // note this returns conflicts which are detected at ADX level
-                List<ImportConflict> adxConflicts = parseAdxGroupToDxf( adxReader, dxfWriter, importOptions );
+                List<ImportConflict> adxConflicts = parseAdxGroupToDxf( adxReader, dxfWriter, adxImportOptions );
 
                 pipeOut.flush();
 
@@ -296,6 +304,8 @@ public class DefaultAdxDataService
                 importSummary.setDescription( "Data set import failed for group number: " + count );
                 importSummary.getConflicts().add( ex.getImportConflict() );
                 importSummaries.addImportSummary( importSummary );
+                importSummaries.setStatus( ImportStatus.ERROR );
+                notifier.notify( id, NotificationLevel.ERROR, "ADX data import procss failed", true );
                 log.warn( "Import failed: " + DebugUtils.getStackTrace( ex ) );
             }
             catch ( IOException | XMLStreamException | InterruptedException | ExecutionException | TimeoutException ex )
@@ -304,6 +314,8 @@ public class DefaultAdxDataService
                 importSummary.setStatus( ImportStatus.ERROR );
                 importSummary.setDescription( "Data set import failed for group number: " + count );
                 importSummaries.addImportSummary( importSummary );
+                importSummaries.setStatus( ImportStatus.ERROR );
+                notifier.notify( id, NotificationLevel.ERROR, "ADX data import procss failed", true );
                 log.warn( "Import failed: " + DebugUtils.getStackTrace( ex ) );
             }
 
@@ -311,6 +323,9 @@ public class DefaultAdxDataService
         }
 
         executor.shutdown();
+        
+        notifier.notify( id, INFO, "ADX data import done", true ).addTaskSummary( id, importSummaries );
+        log.info( "ADX data import done: " + importSummaries.toCountString() );
 
         return importSummaries;
     }

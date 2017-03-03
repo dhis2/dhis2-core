@@ -94,6 +94,10 @@ dhis2.period.DatePicker.prototype.createInstance = function( el, fromIso, option
     $el.val(this.calendar.formatDate(this.format, cDateIsoDate));
   }
 
+  if ( !$el.val() ) {
+    $el.val( dhis2.period.calendar.formatDate( this.format, dhis2.period.calendar.today() ) );
+  }
+
   var isoFieldId = $el.attr('id');
   $el.attr('id', isoFieldId + '-dp');
 
@@ -150,6 +154,14 @@ dhis2.period.DatePicker.prototype.createRangedInstance = function( fromEl, toEl,
 
     $fromEl.val(this.calendar.formatDate(this.format, cDateFrom));
     $toEl.val(this.calendar.formatDate(this.format, cDateTo));
+  }
+
+  if ( !$fromEl.val() ) {
+    $fromEl.val( dhis2.period.calendar.formatDate( this.format, dhis2.period.calendar.today() ) );
+  }
+
+  if ( !$toEl.val() ) {
+    $toEl.val( dhis2.period.calendar.formatDate( this.format, dhis2.period.calendar.today() ) );
   }
 
   mergedOptions.onSelect = function( dates ) {
@@ -274,8 +286,10 @@ dhis2.period.PeriodGenerator.prototype.generateReversedPeriods = function( gener
 
 /**
  * @param {String} generator Generator to use (String)
- * @param {Array} the periods to filter.
+ * @param {Array} periods the periods to filter.
  * @param {int} n number of open periods in the future.
+ * @param {boolean} checkStartDate
+ * @param {boolean} checkEndDate
  * @returns {Array} Generated periods as array
  */
 dhis2.period.PeriodGenerator.prototype.filterOpenPeriods = function( generator, periods, n, checkStartDate, checkEndDate ) {

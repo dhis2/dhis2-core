@@ -172,6 +172,13 @@ public class UpdateProgramStageAction
     {
         this.excecutionDateLabel = excecutionDateLabel;
     }
+    
+    private String dueDateLabel;
+
+    public void setDueDateLabel( String dueDateLabel )
+    {
+        this.dueDateLabel = dueDateLabel;
+    }
 
     private Boolean autoGenerateEvent;
 
@@ -333,6 +340,11 @@ public class UpdateProgramStageAction
         programStage.setReportDateToUse( reportDateToUse );
         programStage.setPreGenerateUID( preGenerateUID );
         programStage.setHideDueDate( hideDueDate );
+        
+        if( !hideDueDate )
+        {
+            programStage.setDueDateLabel( StringUtils.trimToNull( dueDateLabel ) );
+        }
 
         periodTypeName = StringUtils.trimToNull( periodTypeName );
 
@@ -363,8 +375,7 @@ public class UpdateProgramStageAction
             attributeService.updateAttributeValues( programStage, jsonAttributeValues );
         }
 
-        Set<ProgramStageDataElement> programStageDataElements = new HashSet<>(
-            programStage.getProgramStageDataElements() );
+        Set<ProgramStageDataElement> programStageDataElements = new HashSet<>( programStage.getProgramStageDataElements() );
         
         for ( int i = 0; i < this.selectedDataElementsValidator.size(); i++ )
         {            
@@ -373,8 +384,7 @@ public class UpdateProgramStageAction
             Boolean displayInReport = displayInReports.get( i ) == null ? false : displayInReports.get( i );
             Boolean allowDate = allowFutureDates.get( i ) == null ? false : allowFutureDates.get( i );
 
-            ProgramStageDataElement programStageDataElement = programStageDataElementService.get( programStage,
-                dataElement );
+            ProgramStageDataElement programStageDataElement = programStageDataElementService.get( programStage, dataElement );
 
             if ( programStageDataElement == null )
             {
@@ -399,7 +409,11 @@ public class UpdateProgramStageAction
         
         for ( ProgramStageSection section : programStage.getProgramStageSections() )
         {
-            section.getProgramStageDataElements().removeAll( programStageDataElements );            
+            for ( ProgramStageDataElement element : programStageDataElements )
+            {
+                section.getDataElements().remove( element.getDataElement() );
+            }
+            
             programStageSectionService.updateProgramStageSection( section );
         }        
         

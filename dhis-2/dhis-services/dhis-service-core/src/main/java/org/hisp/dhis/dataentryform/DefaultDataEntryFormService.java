@@ -37,7 +37,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.i18n.I18n;
@@ -190,6 +189,10 @@ public class DefaultDataEntryFormService
     @Override
     public String prepareDataEntryFormForEdit( DataEntryForm dataEntryForm, DataSet dataSet, I18n i18n )
     {
+        // ------------------------------------------------------------------------
+        // Only called for creation of CustomDataForm
+        // ------------------------------------------------------------------------
+
         //TODO HTML encode names
 
         if ( dataEntryForm == null || !dataEntryForm.hasForm() || dataSet == null )
@@ -398,6 +401,10 @@ public class DefaultDataEntryFormService
                 {
                     appendCode += " type=\"text\" name=\"entrytime\" class=\"entrytime\" tabindex=\"" + i++ + "\" id=\""+ dataElementId + "-" + optionComboId + "\">";
                 }
+                else if ( ValueType.URL == valueType )
+                {
+                    appendCode += " type=\"url\" name=\"entryfield\" class=\"entryfield\" tabindex=\"" + i++ + "\"" + TAG_CLOSE;
+                }
                 else
                 {
                     appendCode += " type=\"text\" name=\"entryfield\" class=\"entryfield\" tabindex=\"" + i++ + "\"" + TAG_CLOSE;
@@ -469,38 +476,6 @@ public class DefaultDataEntryFormService
     }
 
     @Override
-    public Set<DataElementOperand> getOperandsInDataEntryForm( DataSet dataSet )
-    {
-        if ( dataSet == null || !dataSet.hasDataEntryForm() )
-        {
-            return null;
-        }
-
-        Set<DataElementOperand> operands = new HashSet<>();
-
-        Matcher inputMatcher = INPUT_PATTERN.matcher( dataSet.getDataEntryForm().getHtmlCode() );
-
-        while ( inputMatcher.find() )
-        {
-            String inputHtml = inputMatcher.group();
-
-            Matcher identifierMatcher = IDENTIFIER_PATTERN.matcher( inputHtml );
-
-            if ( identifierMatcher.find() && identifierMatcher.groupCount() > 0 )
-            {
-                String dataElementId = identifierMatcher.group( 1 );
-                String categoryOptionComboId = identifierMatcher.group( 2 );
-
-                DataElementOperand operand = new DataElementOperand( dataElementId, categoryOptionComboId );
-
-                operands.add( operand );
-            }
-        }
-
-        return operands;
-    }
-
-    @Override
     public List<DataEntryForm> listDistinctDataEntryFormByProgramStageIds( List<Integer> programStageIds )
     {
         if ( programStageIds == null || programStageIds.isEmpty() )
@@ -509,16 +484,5 @@ public class DefaultDataEntryFormService
         }
 
         return dataEntryFormStore.listDistinctDataEntryFormByProgramStageIds( programStageIds );
-    }
-
-    @Override
-    public List<DataEntryForm> listDistinctDataEntryFormByDataSetIds( List<Integer> dataSetIds )
-    {
-        if ( dataSetIds == null || dataSetIds.size() == 0 )
-        {
-            return null;
-        }
-
-        return dataEntryFormStore.listDistinctDataEntryFormByDataSetIds( dataSetIds );
     }
 }

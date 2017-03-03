@@ -62,5 +62,7 @@ public class ProgramStageObjectBundleHook extends AbstractObjectBundleHook
             PeriodType periodType = bundle.getPreheat().getPeriodTypeMap().get( programStage.getPeriodType().getName() );
             programStage.setPeriodType( periodType );
         }
+
+        sessionFactory.getCurrentSession().flush();
     }
 }

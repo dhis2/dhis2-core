@@ -199,9 +199,9 @@ public class JdbcEventStore
                         event.setCoordinate( coordinate );
                     }
                 }
-                
+
                 boolean deleted = rowSet.getBoolean( "psi_deleted" );
-                
+
                 if ( deleted )
                 {
                     event.setDeleted( deleted );
@@ -306,7 +306,7 @@ public class JdbcEventStore
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
         log.debug( "Event query SQL: " + sql );
-        
+
         List<Map<String, String>> list = new ArrayList<>();
 
         while ( rowSet.next() )

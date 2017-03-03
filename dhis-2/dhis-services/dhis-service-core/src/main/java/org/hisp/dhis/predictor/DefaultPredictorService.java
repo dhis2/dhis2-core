@@ -231,16 +231,13 @@ public class DefaultPredictorService
             for ( Period period : basePeriods )
             {
                 Map<Integer, ListMap<String, Double>> aggregateSampleMap =
-                    getAggregateSampleMaps
-                        ( aggregates, samplerefs, source,
-                            periodMaps.get( period ), skipTest, skipdata, constantMap );
+                    getAggregateSampleMaps( aggregates, samplerefs, source, periodMaps.get( period ), skipTest, skipdata, constantMap );
 
                 for ( Integer aoc : aggregateSampleMap.keySet() )
                 {
                     ListMap<String, Double> aggregateValueMap = aggregateSampleMap.get( aoc );
 
-                    Double value = evalExpression( generator, valueMap, constantMap,
-                        null,0, null, aggregateValueMap );
+                    Double value = evalExpression( generator, valueMap, constantMap, null, 0, aggregateValueMap );
 
                     if ( value != null && !value.isNaN() && !value.isInfinite() )
                     {
@@ -260,10 +257,9 @@ public class DefaultPredictorService
 
     private Double evalExpression( Expression expression, Map<? extends BaseDimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
-        Set<DataElementOperand> incompleteValues, ListMap<String, Double> aggregateMap )
+        ListMap<String, Double> aggregateMap )
     {
-        return expressionService.getExpressionValue
-            ( expression, valueMap, constantMap, orgUnitCountMap, days, incompleteValues, aggregateMap );
+        return expressionService.getExpressionValue( expression, valueMap, constantMap, orgUnitCountMap, days, aggregateMap );
     }
 
     private Double evalExpression( Expression expression, Map<? extends BaseDimensionalItemObject, Double> valueMap,

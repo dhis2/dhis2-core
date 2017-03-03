@@ -173,6 +173,13 @@ public class AddProgramStageAction
     {
         this.excecutionDateLabel = excecutionDateLabel;
     }
+    
+    private String dueDateLabel;
+
+    public void setDueDateLabel( String dueDateLabel )
+    {
+        this.dueDateLabel = dueDateLabel;
+    }
 
     private Boolean autoGenerateEvent;
 
@@ -328,6 +335,11 @@ public class AddProgramStageAction
         programStage.setMinDaysFromStart( minDaysFromStart );
         programStage.setDisplayGenerateEventBox( displayGenerateEventBox );
         programStage.setValidCompleteOnly( validCompleteOnly );
+        
+        if( !hideDueDate )
+        {
+            programStage.setDueDateLabel( StringUtils.trimToNull( dueDateLabel ) );
+        }
 
         periodTypeName = StringUtils.trimToNull( periodTypeName );
 

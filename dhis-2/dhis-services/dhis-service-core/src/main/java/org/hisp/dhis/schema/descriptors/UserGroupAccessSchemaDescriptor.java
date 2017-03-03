@@ -1,4 +1,4 @@
-package org.hisp.dhis.email;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,38 +28,27 @@ package org.hisp.dhis.email;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.program.message.MessageBatchCreatorService;
-import org.hisp.dhis.outboundmessage.OutboundMessage;
-import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.user.UserGroupAccess;
 
 /**
-* @author Zubair <rajazubair.asghar@gmail.com>
-*/
-
-public class EmailMessageBatchCreator
-    implements MessageBatchCreatorService
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
+public class UserGroupAccessSchemaDescriptor implements SchemaDescriptor
 {
+    public static final String SINGULAR = "userGroupAccess";
+
+    public static final String PLURAL = "userGroupAccesses";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
     @Override
-    public OutboundMessageBatch getMessageBatch( List<ProgramMessage> programMessages )
+    public Schema getSchema()
     {
-        List<OutboundMessage> messages = new ArrayList<>();
+        Schema schema = new Schema( UserGroupAccess.class, SINGULAR, PLURAL );
+        schema.setMetadata( false );
 
-        for ( ProgramMessage programMessage : programMessages )
-        {
-            if ( programMessage.getDeliveryChannels().contains( DeliveryChannel.EMAIL ) )
-            {
-                OutboundMessage email = new OutboundMessage( programMessage.getSubject(), programMessage.getText(),
-                    programMessage.getRecipients().getEmailAddresses() );
-
-                messages.add( email );
-            }
-        }
-        
-        return new OutboundMessageBatch( messages, DeliveryChannel.EMAIL );
+        return schema;
     }
 }

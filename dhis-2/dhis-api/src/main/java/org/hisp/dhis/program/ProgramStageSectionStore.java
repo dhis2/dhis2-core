@@ -37,14 +37,4 @@ import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 public interface ProgramStageSectionStore
     extends GenericIdentifiableObjectStore<ProgramStageSection>
 {
-    /**
-     * Retrieve a program stage section by name and a program stage
-     *
-     * @param name         Name of program stage
-     * @param programStage Specify a {@link Program} for retrieving a program
-     *                     stage. The system allows the name of program stages are duplicated
-     *                     on different programs
-     * @return ProgramStage
-     */
-    ProgramStageSection getByNameAndProgramStage( String name, ProgramStage programStage );
 }

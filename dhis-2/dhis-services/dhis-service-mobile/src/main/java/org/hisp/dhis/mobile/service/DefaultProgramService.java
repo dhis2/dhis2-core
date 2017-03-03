@@ -264,10 +264,9 @@ public class DefaultProgramService
                     // data element list of program stage
                     List<Integer> dataElementIds = new ArrayList<>();
 
-                    for ( ProgramStageDataElement eachPogramStageDataElement : eachSection
-                        .getProgramStageDataElements() )
+                    for ( org.hisp.dhis.dataelement.DataElement element : eachSection.getDataElements() )
                     {
-                        dataElementIds.add( eachPogramStageDataElement.getDataElement().getId() );
+                        dataElementIds.add( element.getId() );
                     }
 
                     mobileSection.setDataElementIds( dataElementIds );

@@ -29,42 +29,87 @@ package org.hisp.dhis.webapi.controller.dataelement;
  */
 
 import com.google.common.collect.Lists;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dxf2.common.OrderParams;
+import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.node.NodeUtils;
+import org.hisp.dhis.node.Preset;
+import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.descriptors.DataElementOperandSchemaDescriptor;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
 @RequestMapping( value = DataElementOperandSchemaDescriptor.API_ENDPOINT )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class DataElementOperandController
-    extends AbstractCrudController<DataElementOperand>
 {
-    @Autowired
-    private DataElementCategoryService dataElementCategoryService;
+    private final IdentifiableObjectManager manager;
+    private final QueryService queryService;
+    private final FieldFilterService fieldFilterService;
+    private final ContextService contextService;
+    private final SchemaService schemaService;
+    private final DataElementCategoryService dataElementCategoryService;
 
-    @Override
+    public DataElementOperandController( IdentifiableObjectManager manager, QueryService queryService,
+        FieldFilterService fieldFilterService, ContextService contextService, SchemaService schemaService,
+        DataElementCategoryService dataElementCategoryService )
+    {
+        this.manager = manager;
+        this.queryService = queryService;
+        this.fieldFilterService = fieldFilterService;
+        this.contextService = contextService;
+        this.schemaService = schemaService;
+        this.dataElementCategoryService = dataElementCategoryService;
+    }
+
+    @GetMapping
     @SuppressWarnings( "unchecked" )
-    protected List<DataElementOperand> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+    public @ResponseBody RootNode getObjectList( @RequestParam Map<String, String> rpParameters, OrderParams orderParams )
         throws QueryParserException
     {
+        Schema schema = schemaService.getDynamicSchema( DataElementOperand.class );
+
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+        List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
+        List<Order> orders = orderParams.getOrders( schema );
+
+        if ( fields.isEmpty() )
+        {
+            fields.addAll( Preset.ALL.getFields() );
+        }
+
+        WebOptions options = new WebOptions( rpParameters );
+        WebMetadata metadata = new WebMetadata();
         List<DataElementOperand> dataElementOperands;
 
         if ( options.isTrue( "persisted" ) )
@@ -77,7 +122,7 @@ public class DataElementOperandController
 
             String deg = CollectionUtils.popStartsWith( filters, "dataElement.dataElementGroups.id:eq:" );
             deg = deg != null ? deg.substring( "dataElement.dataElementGroups.id:eq:".length() ) : null;
-            
+
             String ds = options.get( "dataSet" );
 
             if ( deg != null )
@@ -97,12 +142,28 @@ public class DataElementOperandController
             }
         }
 
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( DataElementOperand.class, filters, orders, options.getRootJunction() );
         query.setDefaultOrder();
         query.setObjects( dataElementOperands );
 
         dataElementOperands = (List<DataElementOperand>) queryService.query( query );
+        Pager pager = metadata.getPager();
 
-        return dataElementOperands;
+        if ( options.hasPaging() && pager == null )
+        {
+            pager = new Pager( options.getPage(), dataElementOperands.size(), options.getPageSize() );
+            dataElementOperands = PagerUtils.pageCollection( dataElementOperands, pager );
+        }
+
+        RootNode rootNode = NodeUtils.createMetadata();
+
+        if ( pager != null )
+        {
+            rootNode.addChild( NodeUtils.createPager( pager ) );
+        }
+
+        rootNode.addChild( fieldFilterService.filter( DataElementOperand.class, dataElementOperands, fields ) );
+
+        return rootNode;
     }
 }

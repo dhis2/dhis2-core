@@ -1,5 +1,4 @@
-package org.hisp.dhis.dataelement.comparator;
-
+package org.hisp.dhis.validation;
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -28,19 +27,29 @@ package org.hisp.dhis.dataelement.comparator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Comparator;
-
-import org.hisp.dhis.dataelement.DataElementOperand;
+import java.util.Collection;
+import java.util.List;
 
 /**
- * @author Lars Helge Overland
+ * @author Stian Sandvold
  */
-public class DataElementOperandNameComparator
-    implements Comparator<DataElementOperand>
+public interface ValidationResultService
 {
-    @Override
-    public int compare( DataElementOperand o0, DataElementOperand o1 )
-    {
-        return o0.getOperandName().compareToIgnoreCase( o1.getOperandName() );
-    }
+    /**
+     * Saves a set of ValidationResults in a bulk action
+     * @param validationResults
+     */
+    void saveValidationResults( Collection<ValidationResult> validationResults );
+
+    /**
+     * Returns a list of all existing ValidationResults
+     * @return
+     */
+    List<ValidationResult> getAllValidationResults();
+
+    /**
+     * Deletes the validationResult
+     * @param validationResult
+     */
+    void deleteValidationResult( ValidationResult validationResult );
 }

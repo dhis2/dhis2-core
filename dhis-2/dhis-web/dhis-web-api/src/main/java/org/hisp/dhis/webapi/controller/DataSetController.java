@@ -42,6 +42,7 @@ import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.TranslateParams;
@@ -327,7 +328,10 @@ public class DataSetController
             }
             else
             {
-                dataValues = dataValueService.getDataValues( dataSets.get( 0 ).getDataElements(), Sets.newHashSet( pe ), Sets.newHashSet( ou ) );
+                dataValues = dataValueService.getDataValues( new DataExportParams()
+                    .setDataElements( dataSets.get( 0 ).getDataElements() )
+                    .setPeriods( Sets.newHashSet( pe ) )
+                    .setOrganisationUnits( Sets.newHashSet( ou ) ) );
             }
 
             FormUtils.fillWithDataValues( form, dataValues );

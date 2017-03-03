@@ -126,13 +126,11 @@ public class DefaultSchemaService
         add( new ProgramStageSectionSchemaDescriptor() ).
         add( new ProgramTrackedEntityAttributeSchemaDescriptor() ).
         add( new ProgramNotificationTemplateSchemaDescriptor() ).
-        add( new ProgramValidationSchemaDescriptor() ).
         add( new RelationshipTypeSchemaDescriptor() ).
         add( new ReportSchemaDescriptor() ).
         add( new ReportTableSchemaDescriptor() ).
         add( new SectionSchemaDescriptor() ).
         add( new SqlViewSchemaDescriptor() ).
-        add( new TrackedEntityAttributeGroupSchemaDescriptor() ).
         add( new TrackedEntityAttributeSchemaDescriptor() ).
         add( new TrackedEntityInstanceSchemaDescriptor() ).
         add( new TrackedEntitySchemaDescriptor() ).
@@ -153,6 +151,9 @@ public class DefaultSchemaService
         add( new OptionGroupSetSchemaDescriptor() ).
         add( new ProgramTrackedEntityAttributeGroupSchemaDescriptor() ).
         add( new DataInputPeriodSchemaDescriptor() ).
+        add( new ReportingRateSchemaDescriptor() ).
+        add( new UserAccessSchemaDescriptor() ).
+        add( new UserGroupAccessSchemaDescriptor() ).
         build();
 
     private Map<Class<?>, Schema> classSchemaMap = new HashMap<>();

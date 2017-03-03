@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.event;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,18 +28,27 @@ package org.hisp.dhis.webapi.controller.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeGroupSchemaDescriptor;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.hisp.dhis.common.ReportingRate;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Controller
-@RequestMapping(value = TrackedEntityAttributeGroupSchemaDescriptor.API_ENDPOINT)
-public class TrackedEntityAttributeGroupController
-    extends AbstractCrudController<TrackedEntityAttributeGroup>
+public class ReportingRateSchemaDescriptor implements SchemaDescriptor
 {
+    public static final String SINGULAR = "reportingRate";
+
+    public static final String PLURAL = "reportingRates";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
+    {
+        Schema schema = new Schema( ReportingRate.class, SINGULAR, PLURAL );
+        schema.setMetadata( false );
+
+        return schema;
+    }
 }

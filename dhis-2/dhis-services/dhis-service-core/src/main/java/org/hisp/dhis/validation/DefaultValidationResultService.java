@@ -1,5 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
-
+package org.hisp.dhis.validation;
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -28,35 +27,53 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup;
+import org.hisp.dhis.jdbc.batchhandler.ValidationResultBatchHandler;
+import org.hisp.quick.BatchHandler;
+import org.hisp.quick.BatchHandlerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Stian Sandvold
  */
-public class TrackedEntityAttributeGroupSchemaDescriptor implements SchemaDescriptor
+public class DefaultValidationResultService
+    implements ValidationResultService
 {
-    public static final String SINGULAR = "trackedEntityAttributeGroup";
+    @Autowired
+    private ValidationResultStore validationResultStore;
 
-    public static final String PLURAL = "trackedEntityAttributeGroups";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    @Autowired
+    private BatchHandlerFactory batchHandlerFactory;
 
     @Override
-    public Schema getSchema()
+    @Transactional
+    public void saveValidationResults( Collection<ValidationResult> validationResults )
     {
-        Schema schema = new Schema( TrackedEntityAttributeGroup.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1500 );
+        BatchHandler<ValidationResult> validationResultBatchHandler = batchHandlerFactory
+            .createBatchHandler( ValidationResultBatchHandler.class ).init();
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE,
-            Lists.newArrayList( "F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD", "F_TRACKED_ENTITY_ATTRIBUTE_PRIVATE_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_TRACKED_ENTITY_ATTRIBUTE_DELETE" ) ) );
+        validationResults.forEach( validationResult ->
+        {
+            if ( !validationResultBatchHandler.objectExists( validationResult ) )
+            {
+                validationResultBatchHandler.addObject( validationResult );
+            }
+        } );
 
-        return schema;
+        validationResultBatchHandler.flush();
+    }
+
+    public List<ValidationResult> getAllValidationResults()
+    {
+        return validationResultStore.getAll();
+    }
+
+    @Override
+    public void deleteValidationResult( ValidationResult validationResult )
+    {
+        validationResultStore.delete( validationResult );
     }
 }
