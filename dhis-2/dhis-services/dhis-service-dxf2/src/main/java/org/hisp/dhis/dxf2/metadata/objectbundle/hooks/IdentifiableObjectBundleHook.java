@@ -34,14 +34,8 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupAccess;
 import org.springframework.core.annotation.Order;
 import org.springframework.util.StringUtils;
-
-import java.util.Iterator;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -56,8 +50,6 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
 
         Schema schema = schemaService.getDynamicSchema( identifiableObject.getClass() );
         handleAttributeValues( identifiableObject, bundle, schema );
-        handleUserGroupAccesses( identifiableObject, bundle, schema );
-        handleUserAccesses( identifiableObject, bundle, schema );
     }
 
     @Override
@@ -67,8 +59,6 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
 
         Schema schema = schemaService.getDynamicSchema( object.getClass() );
         handleAttributeValues( object, bundle, schema );
-        handleUserGroupAccesses( object, bundle, schema );
-        handleUserAccesses( object, bundle, schema );
     }
 
     private void handleAttributeValues( IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
@@ -82,62 +72,6 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
 
             Attribute attribute = bundle.getPreheat().get( bundle.getPreheatIdentifier(), attributeValue.getAttribute() );
             attributeValue.setAttribute( attribute );
-        }
-    }
-
-    private void handleUserGroupAccesses( IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
-    {
-        if ( !schema.havePersistedProperty( "userGroupAccesses" ) ) return;
-
-        if ( bundle.isSkipSharing() )
-        {
-            identifiableObject.getUserGroupAccesses().clear();
-            return;
-        }
-
-        Iterator<UserGroupAccess> userGroupAccessIterator = identifiableObject.getUserGroupAccesses().iterator();
-
-        while ( userGroupAccessIterator.hasNext() )
-        {
-            UserGroupAccess userGroupAccess = userGroupAccessIterator.next();
-            UserGroup userGroup = bundle.getPreheat().get( bundle.getPreheatIdentifier(), userGroupAccess.getUserGroup() );
-
-            if ( userGroup != null )
-            {
-                userGroupAccess.setUserGroup( userGroup );
-            }
-            else
-            {
-                userGroupAccessIterator.remove();
-            }
-        }
-    }
-
-    private void handleUserAccesses( IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
-    {
-        if ( !schema.havePersistedProperty( "userAccesses" ) ) return;
-
-        if ( bundle.isSkipSharing() )
-        {
-            identifiableObject.getUserAccesses().clear();
-            return;
-        }
-
-        Iterator<UserAccess> userAccessIterator = identifiableObject.getUserAccesses().iterator();
-
-        while ( userAccessIterator.hasNext() )
-        {
-            UserAccess userAccess = userAccessIterator.next();
-            User user = bundle.getPreheat().get( bundle.getPreheatIdentifier(), userAccess.getUser() );
-
-            if ( user != null )
-            {
-                userAccess.setUser( user );
-            }
-            else
-            {
-                userAccessIterator.remove();
-            }
         }
     }
 }

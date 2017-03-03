@@ -6,11 +6,11 @@
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.IdentifiableObjectBundleHook" />
 
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.LinkObjectObjectBundleHook" />
+
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.AnalyticalObjectObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.OrganisationUnitObjectBundleHook" />
-
-  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ProgramObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ProgramStageObjectBundleHook" />
 
@@ -23,8 +23,6 @@
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataSetObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataInputPeriodObjectBundleHook" />
-
-  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.SectionObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ValidationRuleObjectBundleHook" />
 
