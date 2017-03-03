@@ -33,7 +33,6 @@ package org.hisp.dhis.webapi.documentation.controller.event;
 
 import org.hisp.dhis.program.ProgramDataElement;
 import org.hisp.dhis.webapi.documentation.controller.AbstractWebApiTest;
-import org.junit.Test;
 
 /**
  * @author Viet Nguyen <viet@dhis.org>
@@ -42,17 +41,23 @@ public class ProgramDataElementDocumentation
     extends AbstractWebApiTest<ProgramDataElement>
 {
     @Override
-    @Test
     public void testCreate()
     {
-        // TODO
     }
 
     @Override
-    @Test
     public void testUpdate()
     {
-        // TODO
+    }
+
+    @Override
+    public void testGetByIdOk()
+    {
+    }
+
+    @Override
+    public void testDeleteByIdOk()
+    {
     }
 }
 

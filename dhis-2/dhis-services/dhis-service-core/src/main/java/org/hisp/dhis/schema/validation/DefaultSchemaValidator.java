@@ -95,7 +95,8 @@ public class DefaultSchemaValidator implements SchemaValidator
             {
                 if ( property.isRequired() && !Preheat.isDefaultClass( property.getKlass() ) )
                 {
-                    errorReports.add( new ErrorReport( klass, ErrorCode.E4000, property.getName() ).setErrorKlass( property.getKlass() ) );
+                    errorReports.add( new ErrorReport( klass, ErrorCode.E4000, property.getName() )
+                        .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
                 }
 
                 continue;
@@ -137,35 +138,35 @@ public class DefaultSchemaValidator implements SchemaValidator
         if ( value.length() > property.getLength() )
         {
             errorReports.add( new ErrorReport( klass, ErrorCode.E4001, property.getName(), property.getLength(), value.length() )
-                .setErrorKlass( property.getKlass() ) );
+                .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
             return errorReports;
         }
 
         if ( value.length() < property.getMin() || value.length() > property.getMax() )
         {
             errorReports.add( new ErrorReport( klass, ErrorCode.E4002, property.getName(), property.getMin(), property.getMax(), value.length() )
-                .setErrorKlass( property.getKlass() ) );
+                .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
         }
 
         if ( PropertyType.EMAIL == property.getPropertyType() && !GenericValidator.isEmail( value ) )
         {
             errorReports.add( new ErrorReport( klass, ErrorCode.E4003, property.getName(), value )
-                .setErrorKlass( property.getKlass() ) );
+                .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
         }
         else if ( PropertyType.URL == property.getPropertyType() && !isUrl( value ) )
         {
             errorReports.add( new ErrorReport( klass, ErrorCode.E4004, property.getName(), value )
-                .setErrorKlass( property.getKlass() ) );
+                .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
         }
         else if ( !BCRYPT_PATTERN.matcher( value ).matches() && PropertyType.PASSWORD == property.getPropertyType() && !ValidationUtils.passwordIsValid( value ) )
         {
             errorReports.add( new ErrorReport( klass, ErrorCode.E4005, property.getName(), value )
-                .setErrorKlass( property.getKlass() ) );
+                .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
         }
         else if ( PropertyType.COLOR == property.getPropertyType() && !ValidationUtils.isValidHexColor( value ) )
         {
             errorReports.add( new ErrorReport( klass, ErrorCode.E4006, property.getName(), value )
-                .setErrorKlass( property.getKlass() ) );
+                .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
         }
 
         /* TODO add proper validation for both Points and Polygons, ValidationUtils only supports points at this time
@@ -198,7 +199,7 @@ public class DefaultSchemaValidator implements SchemaValidator
         if ( value.size() < property.getMin() || value.size() > property.getMax() )
         {
             errorReports.add( new ErrorReport( klass, ErrorCode.E4007, property.getName(), property.getMin(), property.getMax(), value.size() )
-                .setErrorKlass( property.getKlass() ) );
+                .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
         }
 
         return errorReports;
@@ -218,7 +219,7 @@ public class DefaultSchemaValidator implements SchemaValidator
         if ( !GenericValidator.isInRange( value, property.getMin(), property.getMax() ) )
         {
             errorReports.add( new ErrorReport( klass, ErrorCode.E4008, property.getName(), property.getMin(), property.getMax(), value )
-                .setErrorKlass( property.getKlass() ) );
+                .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
         }
 
         return errorReports;
@@ -238,7 +239,7 @@ public class DefaultSchemaValidator implements SchemaValidator
         if ( !GenericValidator.isInRange( value, property.getMin(), property.getMax() ) )
         {
             errorReports.add( new ErrorReport( klass, ErrorCode.E4008, property.getName(), property.getMin(), property.getMax(), value )
-                .setErrorKlass( property.getKlass() ) );
+                .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
         }
 
         return errorReports;
@@ -258,7 +259,7 @@ public class DefaultSchemaValidator implements SchemaValidator
         if ( !GenericValidator.isInRange( value, property.getMin(), property.getMax() ) )
         {
             errorReports.add( new ErrorReport( klass, ErrorCode.E4008, property.getName(), property.getMin(), property.getMax(), value )
-                .setErrorKlass( property.getKlass() ) );
+                .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
         }
 
         return errorReports;

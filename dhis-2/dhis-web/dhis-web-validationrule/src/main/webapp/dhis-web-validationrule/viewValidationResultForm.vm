@@ -110,7 +110,7 @@
 		  <td style="text-align:center">$encoder.htmlEncode( $i18n.getString( $!result.validationRule.operator.mathematicalOperator ) )</td>
 		  <td>$encoder.htmlEncode( $!result.rightsideValue )</td>
 		  <td style="text-align:center">
-		    <a href="#" onclick="viewValidationResultDetails( $result.validationRule.id, $result.orgUnit.id, $result.period.id )" title="$i18n.getString( 'show_details' )">
+		    <a href="#" onclick="viewValidationResultDetails( $result.validationRule.id, $result.organisationUnit.id, $result.period.id )" title="$i18n.getString( 'show_details' )">
 		      <img src="../images/information.png" alt="$i18n.getString( 'show_details' )">
 			</a>
 		  </td>

@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.event;
+package org.hisp.dhis.dashboard;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,18 +28,32 @@ package org.hisp.dhis.webapi.controller.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.schema.descriptors.ProgramStageDataElementSchemaDescriptor;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Controller
-@RequestMapping( value = ProgramStageDataElementSchemaDescriptor.API_ENDPOINT )
-public class ProgramStageDataElementController
-    extends AbstractCrudController<ProgramStageDataElement>
+public class DashboardDeletionHandler extends DeletionHandler
 {
+    @Autowired
+    private DashboardService dashboardService;
+
+    @Override
+    protected String getClassName()
+    {
+        return Dashboard.class.getSimpleName();
+    }
+
+    @Override
+    public void deleteDashboardItem( DashboardItem dashboardItem )
+    {
+        Dashboard dashboard = dashboardService.getDashboardFromDashboardItem( dashboardItem );
+
+        if ( dashboard != null )
+        {
+            dashboard.getItems().remove( dashboardItem );
+            dashboardService.updateDashboard( dashboard );
+        }
+    }
 }

@@ -1,22 +1,4 @@
 {
-  "programStageDataElements": [
-    {
-      "programStage": {
-        "id": "vnLGLc5Yfht"
-      },
-      "id": "uZkc320l9l4",
-      "lastUpdated": "2016-03-31T05:16:32.701+0000",
-      "dataElement": {
-        "id": "ZvMSusTCqz4"
-      },
-      "allowFutureDate": false,
-      "compulsory": false,
-      "displayInReports": true,
-      "sortOrder": 0,
-      "created": "2016-03-31T05:16:32.701+0000",
-      "allowProvidedElsewhere": false
-    }
-  ],
   "organisationUnits": [
     {
       "id": "akbbc91qpUc",
@@ -124,7 +106,20 @@
       },
       "programStageDataElements": [
         {
-          "id": "uZkc320l9l4"
+          "programStage": {
+            "id": "vnLGLc5Yfht"
+          },
+          "id": "uZkc320l9l4",
+          "lastUpdated": "2016-03-31T05:16:32.701+0000",
+          "dataElement": {
+            "id": "ZvMSusTCqz4"
+          },
+          "allowFutureDate": false,
+          "compulsory": false,
+          "displayInReports": true,
+          "sortOrder": 0,
+          "created": "2016-03-31T05:16:32.701+0000",
+          "allowProvidedElsewhere": false
         }
       ],
       "validCompleteOnly": false,

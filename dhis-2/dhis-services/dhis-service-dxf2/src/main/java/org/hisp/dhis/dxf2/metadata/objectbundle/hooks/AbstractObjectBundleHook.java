@@ -73,12 +73,12 @@ public class AbstractObjectBundleHook implements ObjectBundleHook
     }
 
     @Override
-    public void preImport( ObjectBundle bundle )
+    public void preCommit( ObjectBundle bundle )
     {
     }
 
     @Override
-    public void postImport( ObjectBundle bundle )
+    public void postCommit( ObjectBundle bundle )
     {
     }
 

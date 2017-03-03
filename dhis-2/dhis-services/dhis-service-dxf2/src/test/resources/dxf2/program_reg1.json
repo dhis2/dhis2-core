@@ -24,10 +24,36 @@
       "repeatable": false,
       "programStageDataElements": [
         {
-          "id": "K3nySg2U6Ht"
+          "compulsory": true,
+          "lastUpdated": "2016-03-11T07:00:48.250+0000",
+          "allowFutureDate": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 0,
+          "id": "K3nySg2U6Ht",
+          "created": "2016-03-11T07:00:48.249+0000",
+          "dataElement": {
+            "id": "XzGnBlUcB87"
+          },
+          "displayInReports": true,
+          "programStage": {
+            "id": "CPP34zTxaSf"
+          }
         },
         {
-          "id": "LKlMVtBr3sF"
+          "compulsory": true,
+          "allowProvidedElsewhere": false,
+          "allowFutureDate": false,
+          "lastUpdated": "2016-03-11T07:00:48.255+0000",
+          "id": "LKlMVtBr3sF",
+          "sortOrder": 1,
+          "created": "2016-03-11T07:00:48.255+0000",
+          "dataElement": {
+            "id": "qS4lxayqVRv"
+          },
+          "displayInReports": true,
+          "programStage": {
+            "id": "CPP34zTxaSf"
+          }
         }
       ],
       "notificationTemplates": [ ],
@@ -50,10 +76,36 @@
       "repeatable": false,
       "programStageDataElements": [
         {
-          "id": "Eebs10ayIG7"
+          "displayInReports": false,
+          "programStage": {
+            "id": "xx7OzjHZDc8"
+          },
+          "compulsory": true,
+          "allowProvidedElsewhere": false,
+          "allowFutureDate": false,
+          "lastUpdated": "2016-03-11T07:01:02.890+0000",
+          "id": "DMEbpdzukIY",
+          "sortOrder": 1,
+          "created": "2016-03-11T07:01:02.890+0000",
+          "dataElement": {
+            "id": "qS4lxayqVRv"
+          }
         },
         {
-          "id": "DMEbpdzukIY"
+          "programStage": {
+            "id": "xx7OzjHZDc8"
+          },
+          "displayInReports": true,
+          "dataElement": {
+            "id": "XzGnBlUcB87"
+          },
+          "created": "2016-03-11T07:01:02.886+0000",
+          "sortOrder": 0,
+          "id": "Eebs10ayIG7",
+          "lastUpdated": "2016-03-11T07:01:02.887+0000",
+          "allowFutureDate": false,
+          "allowProvidedElsewhere": false,
+          "compulsory": true
         }
       ],
       "name": "ProgramStageB",
@@ -338,72 +390,6 @@
       "confidential": false,
       "lastUpdated": "2016-03-11T06:59:51.889+0000",
       "publicAccess": "rw------"
-    }
-  ],
-  "programStageDataElements": [
-    {
-      "displayInReports": false,
-      "programStage": {
-        "id": "xx7OzjHZDc8"
-      },
-      "compulsory": true,
-      "allowProvidedElsewhere": false,
-      "allowFutureDate": false,
-      "lastUpdated": "2016-03-11T07:01:02.890+0000",
-      "id": "DMEbpdzukIY",
-      "sortOrder": 1,
-      "created": "2016-03-11T07:01:02.890+0000",
-      "dataElement": {
-        "id": "qS4lxayqVRv"
-      }
-    },
-    {
-      "programStage": {
-        "id": "xx7OzjHZDc8"
-      },
-      "displayInReports": true,
-      "dataElement": {
-        "id": "XzGnBlUcB87"
-      },
-      "created": "2016-03-11T07:01:02.886+0000",
-      "sortOrder": 0,
-      "id": "Eebs10ayIG7",
-      "lastUpdated": "2016-03-11T07:01:02.887+0000",
-      "allowFutureDate": false,
-      "allowProvidedElsewhere": false,
-      "compulsory": true
-    },
-    {
-      "compulsory": true,
-      "allowProvidedElsewhere": false,
-      "allowFutureDate": false,
-      "lastUpdated": "2016-03-11T07:00:48.255+0000",
-      "id": "LKlMVtBr3sF",
-      "sortOrder": 1,
-      "created": "2016-03-11T07:00:48.255+0000",
-      "dataElement": {
-        "id": "qS4lxayqVRv"
-      },
-      "displayInReports": true,
-      "programStage": {
-        "id": "CPP34zTxaSf"
-      }
-    },
-    {
-      "compulsory": true,
-      "lastUpdated": "2016-03-11T07:00:48.250+0000",
-      "allowFutureDate": false,
-      "allowProvidedElsewhere": false,
-      "sortOrder": 0,
-      "id": "K3nySg2U6Ht",
-      "created": "2016-03-11T07:00:48.249+0000",
-      "dataElement": {
-        "id": "XzGnBlUcB87"
-      },
-      "displayInReports": true,
-      "programStage": {
-        "id": "CPP34zTxaSf"
-      }
     }
   ],
   "trackedEntityAttributeGroups": [

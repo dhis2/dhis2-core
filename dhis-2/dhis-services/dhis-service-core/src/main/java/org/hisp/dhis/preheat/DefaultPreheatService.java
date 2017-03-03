@@ -48,14 +48,9 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataelement.DataElementCategoryDimension;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataset.DataInputPeriod;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodStore;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
@@ -70,6 +65,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -257,6 +253,7 @@ public class DefaultPreheatService implements PreheatService
         }
 
         handleAttributes( params.getObjects(), preheat );
+        handleSecurity( params.getObjects(), params.getPreheatIdentifier(), preheat );
 
         periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
         periodStore.getAllPeriodTypes().forEach( periodType -> preheat.getPeriodTypeMap().put( periodType.getName(), periodType ) );
@@ -264,6 +261,66 @@ public class DefaultPreheatService implements PreheatService
         log.info( "(" + preheat.getUsername() + ") Import:Preheat[" + params.getPreheatMode() + "] took " + timer.toString() );
 
         return preheat;
+    }
+
+    private void handleSecurity( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects, PreheatIdentifier identifier, Preheat preheat )
+    {
+        objects.forEach( ( klass, list ) -> list.forEach( object ->
+        {
+
+
+            object.getUserAccesses().forEach( ua ->
+            {
+                User user = null;
+
+                if ( ua.getUser() != null )
+                {
+                    if ( PreheatIdentifier.UID == identifier )
+                    {
+                        user = preheat.get( identifier, User.class, ua.getUser().getUid() );
+                    }
+                    else if ( PreheatIdentifier.CODE == identifier )
+                    {
+                        user = preheat.get( identifier, User.class, ua.getUser().getCode() );
+                    }
+                }
+                else
+                {
+                    user = preheat.get( PreheatIdentifier.UID, User.class, ua.getUserUid() );
+                }
+
+                if ( user != null )
+                {
+                    ua.setUser( user );
+                }
+            } );
+
+            object.getUserGroupAccesses().forEach( uga ->
+            {
+                UserGroup userGroup = null;
+
+                if ( uga.getUserGroup() != null )
+                {
+                    if ( PreheatIdentifier.UID == identifier )
+                    {
+                        userGroup = preheat.get( identifier, UserGroup.class, uga.getUserGroup().getUid() );
+                    }
+                    else if ( PreheatIdentifier.CODE == identifier )
+                    {
+                        userGroup = preheat.get( identifier, UserGroup.class, uga.getUserGroup().getCode() );
+                    }
+                }
+                else
+                {
+                    userGroup = preheat.get( PreheatIdentifier.UID, UserGroup.class, uga.getUserGroupUid() );
+                }
+
+                if ( userGroup != null )
+                {
+                    uga.setUserGroup( userGroup );
+                }
+            } );
+        } ) );
     }
 
     private void handleAttributes( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects, Preheat preheat )
@@ -679,31 +736,46 @@ public class DefaultPreheatService implements PreheatService
             targets.put( UserCredentials.class, userCredentials );
         }
 
-        if ( targets.containsKey( DataSet.class ) )
+        for ( Map.Entry<Class<?>, List<?>> entry : new HashMap<>( targets ).entrySet() )
         {
-            List<DataSet> dataSets = (List<DataSet>) targets.get( DataSet.class );
+            Class<?> klass = entry.getKey();
+            List<?> objects = entry.getValue();
 
-            List<DataSetElement> dataSetElements = new ArrayList<>();
-            List<DataInputPeriod> dataInputPeriods = new ArrayList<>();
+            Schema schema = schemaService.getDynamicSchema( klass );
+            List<Property> properties = schema.getLinkObjectProperties();
 
-            dataSets.forEach( ds ->
+            if ( properties.isEmpty() )
             {
-                dataSetElements.addAll( ds.getDataSetElements() );
-                dataInputPeriods.addAll( ds.getDataInputPeriods() );
-            } );
+                return;
+            }
 
-            targets.put( DataSetElement.class, dataSetElements );
-            targets.put( DataInputPeriod.class, dataInputPeriods );
-        }
+            for ( Property property : properties )
+            {
+                if ( property.isCollection() )
+                {
+                    List<Object> list = new ArrayList<>();
 
-        if ( targets.containsKey( Program.class ) )
-        {
-            List<Program> programs = (List<Program>) targets.get( Program.class );
-            List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = new ArrayList<>();
+                    if ( targets.containsKey( property.getItemKlass() ) )
+                    {
+                        list.addAll( targets.get( property.getItemKlass() ) );
+                    }
 
-            programs.forEach( p -> programTrackedEntityAttributes.addAll( p.getProgramAttributes() ) );
+                    objects.forEach( o -> list.addAll( ReflectionUtils.invokeMethod( o, property.getGetterMethod() ) ) );
+                    targets.put( property.getItemKlass(), list );
+                }
+                else
+                {
+                    List<Object> list = new ArrayList<>();
 
-            targets.put( ProgramTrackedEntityAttribute.class, programTrackedEntityAttributes );
+                    if ( targets.containsKey( property.getKlass() ) )
+                    {
+                        list.addAll( targets.get( property.getKlass() ) );
+                    }
+
+                    objects.forEach( o -> list.add( ReflectionUtils.invokeMethod( o, property.getGetterMethod() ) ) );
+                    targets.put( property.getKlass(), list );
+                }
+            }
         }
     }
 

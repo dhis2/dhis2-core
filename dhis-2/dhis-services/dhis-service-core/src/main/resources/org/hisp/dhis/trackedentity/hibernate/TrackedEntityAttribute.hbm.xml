@@ -37,9 +37,6 @@
       </type>
     </property>
 
-    <many-to-one name="attributeGroup" class="org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup"
-      column="trackedentityattributegroupid" foreign-key="fk_trackedentityattribute_attributegroupid" />
-
     <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet"
       column="optionsetid" foreign-key="fk_trackedentityattribute_optionsetid" />
 

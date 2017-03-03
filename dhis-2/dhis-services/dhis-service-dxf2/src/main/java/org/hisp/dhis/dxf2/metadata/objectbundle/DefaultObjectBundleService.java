@@ -132,7 +132,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
         List<Class<? extends IdentifiableObject>> klasses = getSortedClasses( bundle );
         Session session = sessionFactory.getCurrentSession();
 
-        objectBundleHooks.forEach( hook -> hook.preImport( bundle ) );
+        objectBundleHooks.forEach( hook -> hook.preCommit( bundle ) );
 
         for ( Class<? extends IdentifiableObject> klass : klasses )
         {
@@ -165,7 +165,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         if ( !bundle.getImportMode().isDelete() )
         {
-            objectBundleHooks.forEach( hook -> hook.postImport( bundle ) );
+            objectBundleHooks.forEach( hook -> hook.postCommit( bundle ) );
         }
 
         dbmsManager.clearSession();

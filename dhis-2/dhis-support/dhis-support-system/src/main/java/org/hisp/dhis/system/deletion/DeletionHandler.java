@@ -34,6 +34,7 @@ import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.color.Color;
 import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.constant.Constant;
+import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
@@ -88,7 +89,6 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
-import org.hisp.dhis.program.ProgramValidation;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -103,7 +103,6 @@ import org.hisp.dhis.security.oauth2.OAuth2Client;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -609,15 +608,6 @@ public abstract class DeletionHandler
     {
     }
 
-    public String allowDeleteTrackedEntityAttributeGroup( TrackedEntityAttributeGroup attributeGroup )
-    {
-        return null;
-    }
-
-    public void deleteTrackedEntityAttributeGroup( TrackedEntityAttributeGroup attributeGroup )
-    {
-    }
-
     public String allowDeleteRelationship( Relationship relationship )
     {
         return null;
@@ -734,15 +724,6 @@ public abstract class DeletionHandler
     {
     }
 
-    public String allowDeleteProgramValidation( ProgramValidation programValidation )
-    {
-        return null;
-    }
-
-    public void deleteProgramValidation( ProgramValidation programValidation )
-    {
-    }
-
     public void deleteProgramIndicator( ProgramIndicator programIndicator )
     {
     }
@@ -847,6 +828,15 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteSqlView( SqlView sqlView )
+    {
+        return null;
+    }
+
+    public void deleteDashboard( Dashboard dashboard )
+    {
+    }
+
+    public String allowDeleteDashboard( Dashboard dashboard )
     {
         return null;
     }
