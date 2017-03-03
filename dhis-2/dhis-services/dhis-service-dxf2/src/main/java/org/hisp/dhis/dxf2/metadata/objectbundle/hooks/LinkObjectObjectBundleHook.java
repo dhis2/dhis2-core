@@ -96,7 +96,7 @@ public class LinkObjectObjectBundleHook
         {
             if ( property.isCollection() )
             {
-                Collection<Object> objects = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+                Collection<?> objects = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
                 objects.forEach( o -> preheatService.connectReferences( o, bundle.getPreheat(), bundle.getPreheatIdentifier() ) );
             }
             else
