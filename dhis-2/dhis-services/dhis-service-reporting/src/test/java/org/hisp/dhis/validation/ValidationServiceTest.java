@@ -49,6 +49,7 @@ import java.util.*;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertFalse;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
+import static org.hisp.dhis.expression.ExpressionService.DAYS_SYMBOL;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.Operator.*;
 
@@ -107,6 +108,8 @@ public class ValidationServiceTest
     private Expression expressionJ;
     private Expression expressionK;
     private Expression expressionL;
+    private Expression expressionP;
+    private Expression expressionQ;
 
     private DataSet dataSetWeekly;
 
@@ -116,9 +119,11 @@ public class ValidationServiceTest
 
     private Period periodA;
     private Period periodB;
+    private Period periodY;
 
     private int dayInPeriodA;
     private int dayInPeriodB;
+    private int dayInPeriodY;
 
     private OrganisationUnit sourceA;
     private OrganisationUnit sourceB;
@@ -139,6 +144,8 @@ public class ValidationServiceTest
     private ValidationRule validationRuleE;
     private ValidationRule validationRuleF;
     private ValidationRule validationRuleG;
+    private ValidationRule validationRuleP;
+    private ValidationRule validationRuleQ;
     private ValidationRule validationRuleX;
 
     private ValidationRuleGroup group;
@@ -197,6 +204,8 @@ public class ValidationServiceTest
         expressionJ = new Expression( "#{" + dataElementB.getUid() + suffix + "}", "expressionJ" );
         expressionK = new Expression( "#{" + dataElementC.getUid() + "}", "expressionK", NEVER_SKIP );
         expressionL = new Expression( "#{" + dataElementD.getUid() + "}", "expressionL", NEVER_SKIP );
+        expressionP = new Expression( DAYS_SYMBOL, "expressionP", NEVER_SKIP );
+        expressionQ = new Expression( "#{" + dataElementE.getUid() + "}", "expressionQ", NEVER_SKIP );
 
         expressionService.addExpression( expressionA );
         expressionService.addExpression( expressionB );
@@ -210,12 +219,16 @@ public class ValidationServiceTest
         expressionService.addExpression( expressionJ );
         expressionService.addExpression( expressionK );
         expressionService.addExpression( expressionL );
+        expressionService.addExpression( expressionP );
+        expressionService.addExpression( expressionQ );
 
         periodA = createPeriod( periodTypeMonthly, getDate( 2000, 3, 1 ), getDate( 2000, 3, 31 ) );
         periodB = createPeriod( periodTypeMonthly, getDate( 2000, 4, 1 ), getDate( 2000, 4, 30 ) );
+        periodY = createPeriod( periodTypeYearly, getDate( 2000, 1, 1 ), getDate( 2000, 12, 31 ) );
 
         dayInPeriodA = periodService.getDayInPeriod( periodA, new Date() );
         dayInPeriodB = periodService.getDayInPeriod( periodB, new Date() );
+        dayInPeriodY = periodService.getDayInPeriod( periodY, new Date() );
 
         dataSetWeekly = createDataSet( 'W', periodTypeWeekly );
         dataSetMonthly = createDataSet( 'M', periodTypeMonthly );
@@ -294,6 +307,8 @@ public class ValidationServiceTest
         validationRuleE = createValidationRule( "E", compulsory_pair, expressionI, expressionJ, periodTypeMonthly ); // deA [Compulsory pair] deB
         validationRuleF = createValidationRule( "F", exclusive_pair, expressionI, expressionJ, periodTypeMonthly ); // deA [Exclusive pair] deB
         validationRuleG = createValidationRule( "G", equal_to, expressionK, expressionL, periodTypeMonthly ); // deC = deD
+        validationRuleP = createValidationRule( "P", equal_to, expressionI, expressionP, periodTypeMonthly ); // deA = [days]
+        validationRuleQ = createValidationRule( "Q", equal_to, expressionQ, expressionP, periodTypeYearly ); // deE = [days]
         validationRuleX = createValidationRule( "X", equal_to, expressionA, expressionC, periodTypeMonthly ); // deA + deB = deB * 2
         group = createValidationRuleGroup( 'A' );
 
@@ -485,6 +500,34 @@ public class ValidationServiceTest
         }
 
         assertEquals( 2, results.size() );
+        assertEquals( orderedList( reference ), orderedList( results ) );
+    }
+
+    @Test
+    public void testValidateDays()
+    {
+        useDataValue( dataElementA, periodA, sourceA, "1111" );
+        useDataValue( dataElementE, periodY, sourceB, "2222" );
+
+        validationRuleService.saveValidationRule( validationRuleP );
+        validationRuleService.saveValidationRule( validationRuleQ );
+
+        Collection<ValidationResult> results = validationService.validate( dataSetMonthly, periodA, sourceA, null );
+
+        Collection<ValidationResult> reference = new HashSet<>();
+
+        reference.add( new ValidationResult( validationRuleP, periodA, sourceA, defaultCombo, 1111.0, 31.0, dayInPeriodA ) );
+
+        assertEquals( 1, results.size() );
+        assertEquals( orderedList( reference ), orderedList( results ) );
+
+        results = validationService.validate( dataSetYearly, periodY, sourceB, null );
+
+        reference = new HashSet<>();
+
+        reference.add( new ValidationResult( validationRuleQ, periodY, sourceB, defaultCombo, 2222.0, 366.0, dayInPeriodY ) );
+
+        assertEquals( 1, results.size() );
         assertEquals( orderedList( reference ), orderedList( results ) );
     }
 
