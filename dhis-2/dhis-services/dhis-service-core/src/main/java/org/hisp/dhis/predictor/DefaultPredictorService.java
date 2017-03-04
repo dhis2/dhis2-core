@@ -219,19 +219,6 @@ public class DefaultPredictorService
             samplerefs.addAll( expressionService.getDataInputsInExpression( aggregate ) );
         }
 
-        // If the expression is a constant (no aggregates), compute it now
-        // for efficiency.
-
-        Double constantValue = null;
-        DataElementCategoryOptionCombo constantAoc = null;
-
-        if ( aggregates.isEmpty() )
-        {
-            constantValue = evalExpression( generator, valueMap, constantMap, null, 0, null );
-
-            constantAoc = categoryService.getDefaultDataElementCategoryOptionCombo();
-        }
-
         // This iterates over sources and periods. All the Maps with
         // Integer keys are mappings from attribute option combo ids
         // to other mappings (for instance, data element to values, or
@@ -243,13 +230,19 @@ public class DefaultPredictorService
 
             for ( Period period : basePeriods )
             {
-                if ( constantValue != null )
+                if ( aggregates.isEmpty() )
                 {
-                    DataValue dv = new DataValue( output, period, source, outputCombo, constantAoc );
+                    Double value = evalExpression( generator, valueMap, constantMap, null, period.getDaysInPeriod(), null );
 
-                    dv.setValue( constantValue.toString() );
+                    log.error("aggregates.isEmpty(), value = " + value );
+                    if ( value != null )
+                    {
+                        DataValue dv = new DataValue( output, period, source, outputCombo, categoryService.getDefaultDataElementCategoryOptionCombo() );
 
-                    results.add( dv );
+                        dv.setValue( value.toString() );
+
+                        results.add( dv );
+                    }
                 }
                 else
                 {
@@ -260,7 +253,7 @@ public class DefaultPredictorService
                     {
                         ListMap<String, Double> aggregateValueMap = aggregateSampleMap.get( aoc );
 
-                        Double value = evalExpression( generator, valueMap, constantMap, null, 0, aggregateValueMap );
+                        Double value = evalExpression( generator, valueMap, constantMap, null, period.getDaysInPeriod(), aggregateValueMap );
 
                         if ( value != null && !value.isNaN() && !value.isInfinite() )
                         {
@@ -283,12 +276,14 @@ public class DefaultPredictorService
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
         ListMap<String, Double> aggregateMap )
     {
+        log.error("evalExpression(1) days=" + days );
         return expressionService.getExpressionValue( expression, valueMap, constantMap, orgUnitCountMap, days, aggregateMap );
     }
 
     private Double evalExpression( Expression expression, Map<? extends BaseDimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days )
     {
+        log.error("evalExpression(2) days=" + days );
         return expressionService.getExpressionValue
             ( expression, valueMap, constantMap, orgUnitCountMap, days );
     }
@@ -325,7 +320,7 @@ public class DefaultPredictorService
                     {
                         for ( Integer aoc : inPeriod.keySet() )
                         {
-                            Double value = evalExpression( exp, inPeriod.get( aoc ), constantMap, null, 0 );
+                            Double value = evalExpression( exp, inPeriod.get( aoc ), constantMap, null, period.getDaysInPeriod() );
 
                             ListMap<String, Double> sampleMap = result.get( aoc );
 
@@ -359,7 +354,7 @@ public class DefaultPredictorService
                 for ( Integer aoc : periodData.keySet() )
                 {
                     Map<BaseDimensionalItemObject, Double> bindings = periodData.get( aoc );
-                    Double testValue = evalExpression( skipTest, bindings, constantMap, null, 0 );
+                    Double testValue = evalExpression( skipTest, bindings, constantMap, null, period.getDaysInPeriod() );
 
                     log.debug( "skipTest " + skipTest.getExpression() + " yielded " + testValue );
 
@@ -641,7 +636,7 @@ public class DefaultPredictorService
 
         Collection<DataValue> values = getPredictions( predictor, start, end );
 
-        log.info("Saving " + values.size() + " predicted values for " + predictor.getName() + " from " + start.toString() + " to " + end.toString() );
+        log.error("Saving " + values.size() + " predicted values for " + predictor.getName() + " from " + start.toString() + " to " + end.toString() );
 
         for ( DataValue value : values )
         {
@@ -660,7 +655,7 @@ public class DefaultPredictorService
 
         Collection<DataValue> values = getPredictions( predictor, sources, basePeriods );
 
-        log.info("Saving " + values.size() + " values for " + predictor.getName() + " from orgUnits and periods " );
+        log.error("Saving " + values.size() + " values for " + predictor.getName() + " from orgUnits and periods " );
 
         for ( DataValue value : values )
         {

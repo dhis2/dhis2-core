@@ -64,6 +64,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.hisp.dhis.expression.ExpressionService.DAYS_SYMBOL;
 import static org.junit.Assert.*;
 
 /**
@@ -739,9 +740,25 @@ public class PredictorServiceTest
             new Expression( "1234", "descriptionA" ),
             null, periodTypeMonthly, orgUnitLevel1, 0, 0, 0 );
 
-        predictorService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 8 ) );
+        predictorService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 9 ) );
 
         assertEquals( new Double( 1234.0 ), getDataValue( dataElementX, sourceA, makeMonth( 2001, 7 ) ) );
         assertEquals( new Double( 1234.0 ), getDataValue( dataElementX, sourceA, makeMonth( 2001, 8 ) ) );
+    }
+
+    @Test
+    @Category( IntegrationTest.class )
+    public void testPredictDays()
+    {
+        setupTestData();
+
+        Predictor p = createPredictor( dataElementX, defaultCombo, "PredictDays",
+            new Expression( DAYS_SYMBOL, "descriptionA" ),
+            null, periodTypeMonthly, orgUnitLevel1, 0, 0, 0 );
+
+        predictorService.predict( p, monthStart( 2001, 8 ), monthStart( 2001, 10 ) );
+
+        assertEquals( new Double( 31.0 ), getDataValue( dataElementX, sourceA, makeMonth( 2001, 8 ) ) );
+        assertEquals( new Double( 30.0 ), getDataValue( dataElementX, sourceA, makeMonth( 2001, 9 ) ) );
     }
 }
