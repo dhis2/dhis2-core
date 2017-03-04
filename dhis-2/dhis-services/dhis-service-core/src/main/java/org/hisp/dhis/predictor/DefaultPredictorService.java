@@ -234,7 +234,6 @@ public class DefaultPredictorService
                 {
                     Double value = evalExpression( generator, valueMap, constantMap, null, period.getDaysInPeriod(), null );
 
-                    log.error("aggregates.isEmpty(), value = " + value );
                     if ( value != null )
                     {
                         DataValue dv = new DataValue( output, period, source, outputCombo, categoryService.getDefaultDataElementCategoryOptionCombo() );
@@ -276,14 +275,12 @@ public class DefaultPredictorService
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
         ListMap<String, Double> aggregateMap )
     {
-        log.error("evalExpression(1) days=" + days );
         return expressionService.getExpressionValue( expression, valueMap, constantMap, orgUnitCountMap, days, aggregateMap );
     }
 
     private Double evalExpression( Expression expression, Map<? extends BaseDimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days )
     {
-        log.error("evalExpression(2) days=" + days );
         return expressionService.getExpressionValue
             ( expression, valueMap, constantMap, orgUnitCountMap, days );
     }
@@ -636,7 +633,7 @@ public class DefaultPredictorService
 
         Collection<DataValue> values = getPredictions( predictor, start, end );
 
-        log.error("Saving " + values.size() + " predicted values for " + predictor.getName() + " from " + start.toString() + " to " + end.toString() );
+        log.info("Saving " + values.size() + " predicted values for " + predictor.getName() + " from " + start.toString() + " to " + end.toString() );
 
         for ( DataValue value : values )
         {
@@ -655,7 +652,7 @@ public class DefaultPredictorService
 
         Collection<DataValue> values = getPredictions( predictor, sources, basePeriods );
 
-        log.error("Saving " + values.size() + " values for " + predictor.getName() + " from orgUnits and periods " );
+        log.info("Saving " + values.size() + " values for " + predictor.getName() + " from orgUnits and periods " );
 
         for ( DataValue value : values )
         {
