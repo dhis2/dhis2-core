@@ -157,10 +157,10 @@ public class DataValidationTask
                             if ( evaluateValidationCheck( dataValueMap, lastUpdatedMap, rule ) || !eventMap.isEmpty() )
                             {
                                 Map<String, Double> leftSideValues =
-                                    getExpressionValueMap( rule.getLeftSide(), dataValueMap );
+                                    getExpressionValueMap( rule.getLeftSide(), dataValueMap, period );
 
                                 Map<String, Double> rightSideValues =
-                                    getExpressionValueMap( rule.getRightSide(), dataValueMap );
+                                    getExpressionValueMap( rule.getRightSide(), dataValueMap, period );
 
                                 Set<String> attributeOptionCombos = Sets.newHashSet( leftSideValues.keySet() );
                                 attributeOptionCombos.addAll( rightSideValues.keySet() );
@@ -341,17 +341,18 @@ public class DataValidationTask
      *
      * @param expression          expression to evaluate.
      * @param valueMap            Map of value maps, by attribute option combo.
+     * @param period              Period for evaluating the expression.
      * @return map of values.
      */
     private Map<String, Double> getExpressionValueMap( Expression expression,
-        MapMap<String, DimensionalItemObject, Double> valueMap )
+        MapMap<String, DimensionalItemObject, Double> valueMap, Period period )
     {
         Map<String, Double> expressionValueMap = new HashMap<>();
 
         for ( Map.Entry<String, Map<DimensionalItemObject, Double>> entry : valueMap.entrySet() )
         {
             Double value = expressionService.getExpressionValue( expression, entry.getValue(),
-                context.getConstantMap(), null, null );
+                context.getConstantMap(), null, period.getDaysInPeriod() );
 
             if ( MathUtils.isValidDouble( value ) )
             {
