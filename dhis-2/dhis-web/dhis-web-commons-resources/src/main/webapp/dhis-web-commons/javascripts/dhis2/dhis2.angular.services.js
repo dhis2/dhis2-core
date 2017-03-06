@@ -2358,7 +2358,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 
                     //Broadcast rules finished if there was any actual changes to the event.
                     if(updatedEffectsExits){
-                        $rootScope.$broadcast("ruleeffectsupdated", { event: ruleEffectKey, eventsCreated:eventsCreated });
+                        $rootScope.$broadcast("ruleeffectsupdated", { event: ruleEffectKey, callerId:flag.callerId, eventsCreated:eventsCreated });
                     }
                 }
 
