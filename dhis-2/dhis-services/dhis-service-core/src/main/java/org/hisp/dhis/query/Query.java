@@ -59,6 +59,8 @@ public class Query extends Criteria
 
     private boolean plannedQuery;
 
+    private Visibility visibility = Visibility.NORMAL;
+
     private List<? extends IdentifiableObject> objects;
 
     public static Query from( Schema schema )
@@ -208,6 +210,17 @@ public class Query extends Criteria
     public Query setPlannedQuery( boolean plannedQuery )
     {
         this.plannedQuery = plannedQuery;
+        return this;
+    }
+
+    public Visibility getVisibility()
+    {
+        return visibility;
+    }
+
+    public Query setVisibility( Visibility visibility )
+    {
+        this.visibility = visibility;
         return this;
     }
 
