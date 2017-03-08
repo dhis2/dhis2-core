@@ -1,38 +1,38 @@
 <?xml version="1.0"?>
 <!DOCTYPE hibernate-mapping PUBLIC
-        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
-        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
-        >
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  >
 
 <hibernate-mapping>
-    <class name="org.hisp.dhis.validation.ValidationResult" table="validationresult">
+  <class name="org.hisp.dhis.validation.ValidationResult" table="validationresult">
 
-        <id name="id" column="validationresultid">
-            <generator class="native"/>
-        </id>
+    <id name="id" column="validationresultid">
+      <generator class="native" />
+    </id>
 
-        <property name="leftsideValue"/>
+    <property name="leftsideValue" />
 
-        <property name="rightsideValue"/>
+    <property name="rightsideValue" />
 
-        <properties name="unique-group" unique="true">
+    <properties name="unique-group" unique="true">
 
-            <many-to-one name="validationRule" class="org.hisp.dhis.validation.ValidationRule" column="validationruleid"
-                         foreign-key="fk_validationresult_validationruleid"/>
+      <many-to-one name="validationRule" class="org.hisp.dhis.validation.ValidationRule" column="validationruleid"
+        foreign-key="fk_validationresult_validationruleid" />
 
-            <many-to-one name="period" class="org.hisp.dhis.period.Period" column="periodid"
-                         foreign-key="fk_validationresult_period"/>
+      <many-to-one name="period" class="org.hisp.dhis.period.Period" column="periodid"
+        foreign-key="fk_validationresult_period" />
 
-            <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
-                         column="organisationunitid" foreign-key="fk_validationresult_organisationunitid"/>
+      <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
+        column="organisationunitid" foreign-key="fk_validationresult_organisationunitid" />
 
-            <many-to-one name="attributeOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo"
-                         column="attributeoptioncomboid" foreign-key="fk_validationresult_attributeoptioncomboid"/>
+      <many-to-one name="attributeOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo"
+        column="attributeoptioncomboid" foreign-key="fk_validationresult_attributeoptioncomboid" />
 
-            <property name="dayInPeriod" column="dayInPeriod" />
+      <property name="dayInPeriod" column="dayInPeriod" />
 
-        </properties>
+    </properties>
 
-    </class>
+  </class>
 
 </hibernate-mapping>

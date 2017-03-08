@@ -17,10 +17,10 @@
         <param name="type">12</param>
       </type>
     </property>
-    
+
     <property name="timestamp" column="timestamp" type="timestamp" />
     <property name="username" column="username" />
     <property name="favoriteUid" column="favoriteuid" />
-    
+
   </class>
 </hibernate-mapping>

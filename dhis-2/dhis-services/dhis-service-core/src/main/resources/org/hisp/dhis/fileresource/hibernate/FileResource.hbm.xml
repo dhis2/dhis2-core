@@ -7,7 +7,6 @@
 
 <hibernate-mapping>
   <class name="org.hisp.dhis.fileresource.FileResource" table="fileresource">
-
     <cache usage="read-write" />
 
     <id name="id" column="fileresourceid">
@@ -27,7 +26,7 @@
     <property name="storageKey" column="storagekey" not-null="true" unique="true" length="1024" />
 
     <property name="assigned" column="isassigned" not-null="true" />
-    
+
     <property name="storageStatus" length="40" column="storagestatus">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.fileresource.FileResourceStorageStatus</param>

@@ -62,6 +62,8 @@ public interface IdentifiableObject
 
     Date getLastUpdated();
 
+    Boolean isDeleted();
+
     Set<AttributeValue> getAttributeValues();
 
     Set<ObjectTranslation> getTranslations();

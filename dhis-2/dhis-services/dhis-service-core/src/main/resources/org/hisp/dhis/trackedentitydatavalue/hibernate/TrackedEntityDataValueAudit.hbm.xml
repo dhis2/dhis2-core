@@ -11,11 +11,11 @@
     </id>
 
     <many-to-one name="programStageInstance" class="org.hisp.dhis.program.ProgramStageInstance"
-        column="programstageinstanceid" foreign-key="fk_entityinstancedatavalueaudit_programstageinstanceid" />
-    
+      column="programstageinstanceid" foreign-key="fk_entityinstancedatavalueaudit_programstageinstanceid" />
+
     <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
-        foreign-key="fk_entityinstancedatavalueaudit_dataelementid" />
-    
+      foreign-key="fk_entityinstancedatavalueaudit_dataelementid" />
+
     <property name="value" length="50000" />
 
     <property name="created" type="timestamp" />

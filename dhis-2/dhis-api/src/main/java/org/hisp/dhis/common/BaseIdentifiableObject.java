@@ -98,6 +98,11 @@ public class BaseIdentifiableObject
     protected Date lastUpdated;
 
     /**
+     * Is this object deleted (soft deleted).
+     */
+    protected Boolean deleted = false;
+
+    /**
      * Set of the dynamic attributes values that belong to this data element.
      */
     protected Set<AttributeValue> attributeValues = new HashSet<>();
@@ -304,6 +309,17 @@ public class BaseIdentifiableObject
     public void setLastUpdated( Date lastUpdated )
     {
         this.lastUpdated = lastUpdated;
+    }
+
+    @Override
+    public Boolean isDeleted()
+    {
+        return deleted;
+    }
+
+    public void setDeleted( Boolean deleted )
+    {
+        this.deleted = deleted;
     }
 
     @Override
