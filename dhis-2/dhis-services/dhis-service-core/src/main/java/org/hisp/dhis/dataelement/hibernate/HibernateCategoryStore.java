@@ -47,14 +47,14 @@ public class HibernateCategoryStore
     @SuppressWarnings("unchecked")
     public List<DataElementCategory> getCategoriesByDimensionType( DataDimensionType dataDimensionType )
     {
-        return getSharingDetachedCriteria( Restrictions.eq( "dataDimensionType", dataDimensionType ) ).list();
+        return getBaseDetachedCriteria( Restrictions.eq( "dataDimensionType", dataDimensionType ) ).list();
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<DataElementCategory> getCategories( DataDimensionType dataDimensionType, boolean dataDimension )
     {
-        return getSharingDetachedCriteria(
+        return getBaseDetachedCriteria(
             Restrictions.eq( "dataDimensionType", dataDimensionType ),
             Restrictions.eq( "dataDimension", dataDimension ) ).list();
     }

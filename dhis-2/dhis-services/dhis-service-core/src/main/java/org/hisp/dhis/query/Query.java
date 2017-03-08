@@ -30,6 +30,7 @@ package org.hisp.dhis.query;
 
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.Visibility;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.User;
 import org.springframework.util.StringUtils;

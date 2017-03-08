@@ -44,17 +44,17 @@ public interface InternalHibernateGenericStore<T>
 {
     Criteria getCriteria();
 
-    Criteria getSharingCriteria();
+    Criteria getBaseCriteria();
 
-    Criteria getSharingCriteria( String access );
+    Criteria getBaseCriteria( String access );
 
-    Criteria getSharingCriteria( User user );
+    Criteria getBaseCriteria( User user );
 
     Criteria getExecutableCriteria( DetachedCriteria detachedCriteria );
 
-    DetachedCriteria getSharingDetachedCriteria();
+    DetachedCriteria getBaseDetachedCriteria();
 
-    DetachedCriteria getSharingDetachedCriteria( String access );
+    DetachedCriteria getBaseDetachedCriteria( String access );
 
-    DetachedCriteria getSharingDetachedCriteria( User user );
+    DetachedCriteria getBaseDetachedCriteria( User user );
 }

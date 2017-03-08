@@ -1,4 +1,4 @@
-package org.hisp.dhis.query;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo

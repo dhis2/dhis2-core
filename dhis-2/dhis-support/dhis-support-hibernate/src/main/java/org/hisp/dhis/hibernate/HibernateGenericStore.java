@@ -47,6 +47,7 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.Visibility;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
@@ -76,6 +77,7 @@ public class HibernateGenericStore<T>
     private static final Log log = LogFactory.getLog( HibernateGenericStore.class );
 
     protected SessionFactory sessionFactory;
+    private boolean softDeleteEnabled;
 
     @Required
     public void setSessionFactory( SessionFactory sessionFactory )
@@ -201,39 +203,39 @@ public class HibernateGenericStore<T>
     }
 
     @Override
-    public final Criteria getSharingCriteria()
+    public final Criteria getBaseCriteria()
     {
-        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), "r%" ) );
+        return getExecutableCriteria( getBaseDetachedCriteria( currentUserService.getCurrentUserInfo(), "r%", Visibility.NORMAL ) );
     }
 
     @Override
-    public final Criteria getSharingCriteria( String access )
+    public final Criteria getBaseCriteria( String access )
     {
-        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access ) );
+        return getExecutableCriteria( getBaseDetachedCriteria( currentUserService.getCurrentUserInfo(), access, Visibility.NORMAL ) );
     }
 
     @Override
-    public final Criteria getSharingCriteria( User user )
+    public final Criteria getBaseCriteria( User user )
     {
-        return getExecutableCriteria( getSharingDetachedCriteria( UserInfo.fromUser( user ), "r%" ) );
+        return getExecutableCriteria( getBaseDetachedCriteria( UserInfo.fromUser( user ), "r%", Visibility.NORMAL ) );
     }
 
     @Override
-    public final DetachedCriteria getSharingDetachedCriteria()
+    public final DetachedCriteria getBaseDetachedCriteria()
     {
-        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), "r%" );
+        return getBaseDetachedCriteria( currentUserService.getCurrentUserInfo(), "r%", Visibility.NORMAL );
     }
 
     @Override
-    public final DetachedCriteria getSharingDetachedCriteria( String access )
+    public final DetachedCriteria getBaseDetachedCriteria( String access )
     {
-        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access );
+        return getBaseDetachedCriteria( currentUserService.getCurrentUserInfo(), access, Visibility.NORMAL );
     }
 
     @Override
-    public final DetachedCriteria getSharingDetachedCriteria( User user )
+    public final DetachedCriteria getBaseDetachedCriteria( User user )
     {
-        return getSharingDetachedCriteria( UserInfo.fromUser( user ), "r%" );
+        return getBaseDetachedCriteria( UserInfo.fromUser( user ), "r%", Visibility.NORMAL );
     }
 
     @Override
@@ -242,12 +244,50 @@ public class HibernateGenericStore<T>
         return detachedCriteria.getExecutableCriteria( getSession() ).setCacheable( cacheable );
     }
 
-    private DetachedCriteria getSharingDetachedCriteria( UserInfo user, String access )
+    /**
+     * Starting point for most criterias, include criterions for handling both sharing and deleted objects.
+     *
+     * @param user       User to build criteria for (used for sharing)
+     * @param access     Access string parameter
+     * @param visibility Visibility to use
+     * @return
+     */
+    private DetachedCriteria getBaseDetachedCriteria( UserInfo user, String access, Visibility visibility )
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
 
         preProcessDetachedCriteria( criteria );
 
+        addDeletedCriterion( criteria, visibility );
+        addSharingCriterion( criteria, user, access );
+
+        return criteria;
+    }
+
+    private DetachedCriteria addDeletedCriterion( DetachedCriteria criteria, Visibility visibility )
+    {
+        if ( Visibility.ALL == visibility || !isSoftDeleteEnabled() )
+        {
+            return criteria;
+        }
+
+        switch ( visibility )
+        {
+            case NORMAL:
+                criteria.add( Restrictions.disjunction(
+                    Restrictions.eq( "deleted", false ), Restrictions.eq( "deleted", null ) )
+                );
+                break;
+            case DELETED:
+                criteria.add( Restrictions.eq( "deleted", true ) );
+                break;
+        }
+
+        return criteria;
+    }
+
+    private DetachedCriteria addSharingCriterion( DetachedCriteria criteria, UserInfo user, String access )
+    {
         if ( !sharingEnabled( user ) || user == null )
         {
             return criteria;
@@ -288,6 +328,7 @@ public class HibernateGenericStore<T>
         disjunction.add( Subqueries.exists( userDetachedCriteria ) );
 
         criteria.add( disjunction );
+
         return criteria;
     }
 
@@ -332,9 +373,9 @@ public class HibernateGenericStore<T>
      * @param expressions the Criterions for the Criteria.
      * @return a Criteria instance.
      */
-    protected final Criteria getSharingDetachedCriteria( Criterion... expressions )
+    protected final Criteria getBaseDetachedCriteria( Criterion... expressions )
     {
-        Criteria criteria = getSharingCriteria();
+        Criteria criteria = getBaseCriteria();
 
         for ( Criterion expression : expressions )
         {
@@ -366,7 +407,7 @@ public class HibernateGenericStore<T>
     @SuppressWarnings( "unchecked" )
     protected final T getSharingObject( Criterion... expressions )
     {
-        return (T) getSharingDetachedCriteria( expressions ).uniqueResult();
+        return (T) getBaseDetachedCriteria( expressions ).uniqueResult();
     }
 
     /**
@@ -528,14 +569,21 @@ public class HibernateGenericStore<T>
 
         if ( object != null )
         {
-            getSession().delete( object );
+            if ( isSoftDeleteEnabled() )
+            {
+                ((BaseIdentifiableObject) object).setDeleted( true );
+            }
+            else
+            {
+                getSession().delete( object );
+            }
         }
     }
 
     @Override
     public final T get( int id )
     {
-        T object = (T) getSession().get( getClazz(), id );
+        T object = getSession().get( getClazz(), id );
 
         if ( !isReadAllowed( object ) )
         {
@@ -579,14 +627,14 @@ public class HibernateGenericStore<T>
     @SuppressWarnings( "unchecked" )
     public final List<T> getAll()
     {
-        return getSharingCriteria().list();
+        return getBaseCriteria().list();
     }
 
     @Override
     @SuppressWarnings( "unchecked" )
     public final List<T> getAll( int first, int max )
     {
-        return getSharingCriteria()
+        return getBaseCriteria()
             .setFirstResult( first )
             .setMaxResults( max )
             .list();
@@ -612,7 +660,7 @@ public class HibernateGenericStore<T>
     @Override
     public int getCount()
     {
-        return ((Number) getSharingCriteria()
+        return ((Number) getBaseCriteria()
             .setProjection( Projections.countDistinct( "id" ) )
             .uniqueResult()).intValue();
     }
@@ -792,5 +840,11 @@ public class HibernateGenericStore<T>
         }
 
         return true;
+    }
+
+    public boolean isSoftDeleteEnabled()
+    {
+        Schema schema = schemaService.getDynamicSchema( getClazz() );
+        return schema.isIdentifiableObject() && schema.havePersistedProperty( "deleted" );
     }
 }
