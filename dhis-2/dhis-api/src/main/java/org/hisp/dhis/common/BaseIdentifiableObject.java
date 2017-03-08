@@ -312,9 +312,9 @@ public class BaseIdentifiableObject
     }
 
     @Override
-    public Boolean isDeleted()
+    public boolean isDeleted()
     {
-        return deleted;
+        return deleted == null ? false : deleted;
     }
 
     public void setDeleted( Boolean deleted )

@@ -62,7 +62,7 @@ public interface IdentifiableObject
 
     Date getLastUpdated();
 
-    Boolean isDeleted();
+    boolean isDeleted();
 
     Set<AttributeValue> getAttributeValues();
 
