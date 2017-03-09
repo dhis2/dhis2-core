@@ -512,7 +512,7 @@ public class ValidationServiceTest
         validationRuleService.saveValidationRule( validationRuleP );
         validationRuleService.saveValidationRule( validationRuleQ );
 
-        Collection<ValidationResult> results = validationService.validate( dataSetMonthly, periodA, sourceA, null );
+        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
 
         Collection<ValidationResult> reference = new HashSet<>();
 
@@ -521,7 +521,7 @@ public class ValidationServiceTest
         assertEquals( 1, results.size() );
         assertEquals( orderedList( reference ), orderedList( results ) );
 
-        results = validationService.validate( dataSetYearly, periodY, sourceB, null );
+        results = validationService.startInteractiveValidationAnalysis( dataSetYearly, periodY, sourceB, null );
 
         reference = new HashSet<>();
 

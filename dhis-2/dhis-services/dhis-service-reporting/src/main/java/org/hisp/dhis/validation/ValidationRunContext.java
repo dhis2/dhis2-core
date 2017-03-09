@@ -166,8 +166,8 @@ public class ValidationRunContext
         public ValidationRunContext build()
         {
             Validate
-                .notEmpty( this.context.periodTypeExtendedMap, "Missing required property 'periodTypeExtendedMap'" );
-            Validate.notEmpty( this.context.constantMap, "Missing required property 'constantMap'" );
+                .notNull( this.context.periodTypeExtendedMap, "Missing required property 'periodTypeExtendedMap'" );
+            Validate.notNull( this.context.constantMap, "Missing required property 'constantMap'" );
             Validate.notNull( this.context.dimensionItems, "Missing required property 'dimensionItems'" );
             Validate.notEmpty( this.context.sourceXs, "Missing required property 'sourceXs'" );
 

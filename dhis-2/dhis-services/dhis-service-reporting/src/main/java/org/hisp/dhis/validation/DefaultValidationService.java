@@ -104,8 +104,9 @@ public class DefaultValidationService
     @Autowired
     private ApplicationContext applicationContext;
 
-    @Autowired
     private CurrentUserService currentUserService;
+
+
 
     // -------------------------------------------------------------------------
     // ValidationRule business logic
@@ -283,7 +284,7 @@ public class DefaultValidationService
             .map( validationRule -> validationRuleService
                 .getDimensionalItemObjects( validationRule, EVENT_DIM_ITEM_TYPES ) )
             .reduce( Sets::union )
-            .get();
+            .orElseGet( Sets::newHashSet );
     }
 
     /**
@@ -478,4 +479,8 @@ public class DefaultValidationService
         return allowedPeriodTypes;
     }
 
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
+    }
 }
