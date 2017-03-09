@@ -28,16 +28,16 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Jim Grace
@@ -59,7 +59,7 @@ public interface ValidationService
      * @param format         the i18n format.
      * @return a Collection of ValidationResults for each validation violation.
      */
-    Collection<ValidationResult> validate( Date startDate, Date endDate, Collection<OrganisationUnit> sources,
+    Collection<ValidationResult> startInteractiveValidationAnalysis( Date startDate, Date endDate, Collection<OrganisationUnit> sources,
         DataElementCategoryOptionCombo attributeCombo, ValidationRuleGroup group, boolean sendNotifications, I18nFormat format );
 
     /**
@@ -71,13 +71,13 @@ public interface ValidationService
      * @param attributeCombo attribute category option combo (null for all).
      * @return a Collection of ValidationResults for each validation violation.
      */
-    Collection<ValidationResult> validate( DataSet dataSet, Period period, OrganisationUnit source, DataElementCategoryOptionCombo attributeCombo );
+    Collection<ValidationResult> startInteractiveValidationAnalysis( DataSet dataSet, Period period, OrganisationUnit source, DataElementCategoryOptionCombo attributeCombo );
 
     /**
      * Evaluates all the validation rules that could generate notifications,
      * and sends results (if any) to users who should be notified.
      */
-    void scheduledRun();
+    void startScheduledValidationAnalysis();
 
     /**
      * Validate that missing data values have a corresponding comment, assuming

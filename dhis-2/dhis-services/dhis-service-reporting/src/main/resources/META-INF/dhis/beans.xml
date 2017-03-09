@@ -154,6 +154,8 @@
 
   <bean id="org.hisp.dhis.validation.ValidationService" class="org.hisp.dhis.validation.DefaultValidationService" />
 
+  <bean id="org.hisp.dhis.validation.ValidationRunContext" class="org.hisp.dhis.validation.ValidationRunContext" scope="prototype" />
+
   <bean id="validationTask" class="org.hisp.dhis.validation.DataValidationTask" scope="prototype" />
 
   <bean id="monitoringLastDayTask" class="org.hisp.dhis.validation.scheduling.MonitoringTask" scope="prototype" />

@@ -241,7 +241,7 @@ public class ValidationAction
                 dataValues.put( organisationUnit.getUid(), values );
             }
 
-            List<ValidationResult> results = new ArrayList<>( validationService.validate( dataSet, period, organisationUnit, attributeOptionCombo ) );
+            List<ValidationResult> results = new ArrayList<>( validationService.startInteractiveValidationAnalysis( dataSet, period, organisationUnit, attributeOptionCombo ) );
 
             if ( !results.isEmpty() )
             {

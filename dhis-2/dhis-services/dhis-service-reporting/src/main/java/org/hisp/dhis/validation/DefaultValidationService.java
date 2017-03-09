@@ -20,6 +20,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -65,6 +66,7 @@ import static org.hisp.dhis.common.DimensionItemType.*;
 
 /**
  * @author Jim Grace
+ * @author Stian Sandvold
  */
 @Transactional
 public class DefaultValidationService
@@ -74,13 +76,13 @@ public class DefaultValidationService
 
     private static final ImmutableSet<DimensionItemType> EVENT_DIM_ITEM_TYPES = ImmutableSet.of(
         PROGRAM_DATA_ELEMENT, PROGRAM_ATTRIBUTE, PROGRAM_INDICATOR );
-    
+
     @Autowired
     private PeriodService periodService;
 
     @Autowired
     private DataValueService dataValueService;
-    
+
     @Autowired
     private DataElementCategoryService categoryService;
 
@@ -98,61 +100,60 @@ public class DefaultValidationService
 
     @Autowired
     private ValidationRuleService validationRuleService;
-    
+
     @Autowired
     private ApplicationContext applicationContext;
 
     @Autowired
     private CurrentUserService currentUserService;
 
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
-
     // -------------------------------------------------------------------------
     // ValidationRule business logic
     // -------------------------------------------------------------------------
 
     @Override
-    public Collection<ValidationResult> validate( Date startDate, Date endDate, Collection<OrganisationUnit> sources,
-        DataElementCategoryOptionCombo attributeOptionCombo, ValidationRuleGroup group, boolean sendNotifications, I18nFormat format )
+    public Collection<ValidationResult> startInteractiveValidationAnalysis( Date startDate, Date endDate,
+        Collection<OrganisationUnit> sources,
+        DataElementCategoryOptionCombo attributeOptionCombo, ValidationRuleGroup group, boolean sendNotifications,
+        I18nFormat format )
     {
-        log.debug( "Validate start:" + startDate + " end: " + endDate + " sources: " + sources.size() + " group: " + group );
+        Collection<Period> periods = periodService.getPeriodsBetweenDates( startDate, endDate );
 
-        List<Period> periods = periodService.getPeriodsBetweenDates( startDate, endDate );
-        
-        Collection<ValidationRule> rules = group != null ? group.getMembers() : validationRuleService.getAllValidationRules();
-        
-        Collection<ValidationResult> results = runValidation( sources, periods, rules, attributeOptionCombo, null, ValidationRunType.INTERACTIVE );
-        
-        formatPeriods( results, format );
+        Collection<ValidationRule> rules =
+            group != null ? group.getMembers() : validationRuleService.getAllValidationRules();
 
-        if ( sendNotifications )
-        {
-            notificationService.sendNotifications( new HashSet<>( results ) );
-        }
+        ValidationRunContext context = getValidationContext( sources, periods, rules )
+            .withAttributeCombo( attributeOptionCombo )
+            .withMaxResults( MAX_INTERACTIVE_ALERTS )
+            .withSendNotifications( sendNotifications )
+            .build();
 
-        return results;
+        return startValidationAnalysis( context );
     }
 
     @Override
-    public Collection<ValidationResult> validate( DataSet dataSet, Period period, OrganisationUnit source,
+    public Collection<ValidationResult> startInteractiveValidationAnalysis( DataSet dataSet, Period period,
+        OrganisationUnit source,
         DataElementCategoryOptionCombo attributeOptionCombo )
     {
-        log.debug( "Validate data set: " + dataSet.getName() + " period: " + period.getPeriodType().getName() + " "
-            + period.getStartDate() + " " + period.getEndDate() + " source: " + source.getName() );
+        Collection<ValidationRule> rules = validationRuleService
+            .getValidationRulesForDataElements( dataSet.getDataElements() );
 
-        Collection<ValidationRule> rules = validationRuleService.getValidationRulesForDataElements( dataSet.getDataElements() );
-        
-        return runValidation( Sets.newHashSet( source ), Sets.newHashSet( period ), rules, attributeOptionCombo, null, ValidationRunType.INTERACTIVE );
+        Collection<OrganisationUnit> sources = Sets.newHashSet( source );
+
+        Collection<Period> periods = Sets.newHashSet( period );
+
+        ValidationRunContext context = getValidationContext( sources, periods, rules )
+            .withAttributeCombo( attributeOptionCombo )
+            .withMaxResults( MAX_INTERACTIVE_ALERTS )
+            .build();
+
+        return startValidationAnalysis( context );
     }
 
     @Override
-    public void scheduledRun()
+    public void startScheduledValidationAnalysis()
     {
-        log.info( "Starting scheduled monitoring task" );
-
         List<OrganisationUnit> sources = organisationUnitService.getAllOrganisationUnits();
 
         // Find all rules which might generate notifications
@@ -160,26 +161,37 @@ public class DefaultValidationService
 
         Set<Period> periods = extractNotificationPeriods( rules );
 
-        Date lastScheduledRun = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_MONITORING_RUN );
+        log.info( "Scheduled validation analysis started, sources: " + sources.size() + ", periods: " + periods.size() +
+            ", rules:" +
+            rules.size() );
 
-        log.info( "Scheduled monitoring run sources: " + sources.size() + ", periods: " + periods.size() + ", rules:" + rules.size()
-            + ", last run: " + (lastScheduledRun == null ? "[none]" : lastScheduledRun) );
+        // TODO: We are not actively using LAST_MONITORING_RUN anymore, remove when sure we don't need it.
+        systemSettingManager.saveSystemSetting( SettingKey.LAST_MONITORING_RUN, new Date() );
 
-        Collection<ValidationResult> results = runValidation( sources, periods, rules, null, lastScheduledRun, ValidationRunType.SCHEDULED );
+        ValidationRunContext context = getValidationContext( sources, periods, rules )
+            .withMaxResults( MAX_SCHEDULED_ALERTS )
+            .withSendNotifications( true )
+            .build();
 
-        Date thisRun = new Date();
-        
-        log.info( "Validation run result count: " + results.size() );
+        startValidationAnalysis( context );
+    }
 
-        notificationService.sendNotifications( new HashSet<>( results ) );
+    private Collection<ValidationResult> startValidationAnalysis( ValidationRunContext context )
+    {
 
-        log.info( "Sent notifications, monitoring task done" );
+        Collection<ValidationResult> results = Validator.validate( context, applicationContext );
 
-        systemSettingManager.saveSystemSetting( SettingKey.LAST_MONITORING_RUN, thisRun );
+        if ( context.isSendNotifications() )
+        {
+            notificationService.sendNotifications( Sets.newHashSet( results ) );
+        }
+
+        return results;
     }
 
     @Override
-    public List<DataElementOperand> validateRequiredComments( DataSet dataSet, Period period, OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo )
+    public List<DataElementOperand> validateRequiredComments( DataSet dataSet, Period period,
+        OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo )
     {
         List<DataElementOperand> violations = new ArrayList<>();
 
@@ -189,7 +201,8 @@ public class DefaultValidationService
             {
                 for ( DataElementCategoryOptionCombo co : de.getCategoryOptionCombos() )
                 {
-                    DataValue dv = dataValueService.getDataValue( de, period, organisationUnit, co, attributeOptionCombo );
+                    DataValue dv = dataValueService
+                        .getDataValue( de, period, organisationUnit, co, attributeOptionCombo );
 
                     boolean missingValue = dv == null || StringUtils.trimToNull( dv.getValue() ) == null;
                     boolean missingComment = dv == null || StringUtils.trimToNull( dv.getComment() ) == null;
@@ -209,27 +222,6 @@ public class DefaultValidationService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private Collection<ValidationResult> runValidation( Collection<OrganisationUnit> sources, Collection<Period> periods, 
-        Collection<ValidationRule> rules, DataElementCategoryOptionCombo attributeOptionCombo, 
-        Date lastScheduledRun, ValidationRunType runType )
-    {
-        Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream()
-            .collect( Collectors.toMap( Function.identity(), vr -> validationRuleService.getDataElements( vr ) ) );
-        
-        Set<DimensionalItemObject> dimensionItems = new HashSet<>();
-        rules.forEach( vr -> dimensionItems.addAll( validationRuleService.getDimensionalItemObjects( vr, EVENT_DIM_ITEM_TYPES ) ) );
-        
-        User user = currentUserService.getCurrentUser();
-        
-        ValidationRunContext ctx = ValidationRunContext.getNewContext(
-            sources, periods, rules, attributeOptionCombo, 
-            lastScheduledRun, runType, constantService.getConstantMap(), ruleDataElementsMap, dimensionItems,
-            user == null ? null : categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
-            user == null ? null : categoryService.getCoDimensionConstraints( user.getUserCredentials() ) );
-            
-        return Validator.validate( ctx, applicationContext );
-    }
-    
     private Set<ValidationRule> getValidationRulesWithNotificationTemplates()
     {
         return Sets.newHashSet( validationRuleService.getValidationRulesWithNotificationTemplates() );
@@ -238,13 +230,13 @@ public class DefaultValidationService
     /**
      * Get the current and most recent periods to use when performing validation
      * for generating notifications (previously 'alerts').
-     *
+     * <p>
      * The periods are filtered against existing (persisted) periods.
-     *
+     * <p>
      * TODO Consider:
-     *      This method assumes that the last successful validation run was one day ago.
-     *      If this is not the case (more than one day ago) adding additional (daily)
-     *      periods to 'fill the gap' could be considered.
+     * This method assumes that the last successful validation run was one day ago.
+     * If this is not the case (more than one day ago) adding additional (daily)
+     * periods to 'fill the gap' could be considered.
      */
     private Set<Period> extractNotificationPeriods( Set<ValidationRule> rules )
     {
@@ -279,4 +271,211 @@ public class DefaultValidationService
             }
         }
     }
+
+    /**
+     * Gets the event dimension item for the validationsrules
+     * @param validationRules
+     * @return
+     */
+    private Set<DimensionalItemObject> getDimensionItems( Collection<ValidationRule> validationRules )
+    {
+        return validationRules.stream()
+            .map( validationRule -> validationRuleService
+                .getDimensionalItemObjects( validationRule, EVENT_DIM_ITEM_TYPES ) )
+            .reduce( Sets::union )
+            .get();
+    }
+
+    /**
+     * Returns a new Builder with basic configuration based on the input parameters.
+     * @param sources org units to include in analysis
+     * @param periods periods to include in analysis
+     * @param validationRules rules to include in analysis
+     * @return Builder with basic configuration based on input
+     */
+    private ValidationRunContext.Builder getValidationContext( Collection<OrganisationUnit> sources,
+        Collection<Period> periods, Collection<ValidationRule> validationRules )
+    {
+        User currentUser = currentUserService.getCurrentUser();
+
+        Map<PeriodType, PeriodTypeExtended> periodTypeExtendedMap = new HashMap<>();
+
+        addPeriodsToContext( periodTypeExtendedMap, periods );
+        addRulesToContext( periodTypeExtendedMap, validationRules );
+        removeAnyUnneededPeriodTypes( periodTypeExtendedMap );
+        Set<OrganisationUnitExtended> sourceXs = addSourcesToContext( periodTypeExtendedMap, sources, true );
+
+        ValidationRunContext.Builder builder = ValidationRunContext.newBuilder()
+            .withPeriodTypeExtendedMap( periodTypeExtendedMap )
+            .withSourceXs( sourceXs )
+            .withDimensionItems( getDimensionItems( validationRules ) )
+            .withConstantMap( constantService.getConstantMap() );
+
+        if ( currentUser != null )
+        {
+            builder
+                .withCoDimensionConstraints(
+                    categoryService.getCoDimensionConstraints( currentUser.getUserCredentials() ) )
+                .withCogDimensionConstraints(
+                    categoryService.getCogDimensionConstraints( currentUser.getUserCredentials() ) );
+        }
+
+        return builder;
+    }
+
+    /**
+     * Adds Periods to the context, grouped by period type.
+     *
+     * @param periods Periods to group and add
+     */
+    private void addPeriodsToContext( Map<PeriodType, PeriodTypeExtended> periodTypeExtendedMap,
+        Collection<Period> periods )
+    {
+        for ( Period period : periods )
+        {
+            PeriodTypeExtended periodTypeX = getOrCreatePeriodTypeExtended( periodTypeExtendedMap,
+                period.getPeriodType() );
+            periodTypeX.getPeriods().add( period );
+        }
+    }
+
+    /**
+     * Adds validation rules to the context.
+     *
+     * @param rules validation rules to add.
+     */
+    private void addRulesToContext( Map<PeriodType, PeriodTypeExtended> periodTypeExtendedMap,
+        Collection<ValidationRule> rules )
+    {
+        Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream()
+            .collect( Collectors.toMap( Function.identity(), vr -> validationRuleService.getDataElements( vr ) ) );
+
+        for ( ValidationRule rule : rules )
+        {
+            Set<DataElement> dataElements = ruleDataElementsMap.get( rule );
+
+            // Find the period type extended for this rule
+            PeriodTypeExtended periodTypeX = getOrCreatePeriodTypeExtended( periodTypeExtendedMap,
+                rule.getPeriodType() );
+            periodTypeX.getRules().add( rule );
+
+            // Add data elements of rule to the period extended
+            periodTypeX.getDataElements().addAll( dataElements );
+
+            // Add the allowed period types for data elements of rule
+            periodTypeX.getAllowedPeriodTypes().addAll(
+                getAllowedPeriodTypesForDataElements( dataElements, rule.getPeriodType() ) );
+        }
+    }
+
+    /**
+     * Removes any period types that don't have rules assigned to them.
+     */
+    private void removeAnyUnneededPeriodTypes( Map<PeriodType, PeriodTypeExtended> periodTypeExtendedMap )
+    {
+        Set<PeriodTypeExtended> periodTypeXs = new HashSet<>( periodTypeExtendedMap.values() );
+
+        for ( PeriodTypeExtended periodTypeX : periodTypeXs )
+        {
+            if ( periodTypeX.getRules().isEmpty() )
+            {
+                periodTypeExtendedMap.remove( periodTypeX.getPeriodType() );
+            }
+        }
+    }
+
+    /**
+     * Adds a collection of organisation units to the validation run context.
+     *
+     * @param sources             organisation units to add
+     * @param ruleCheckThisSource true if these organisation units should be
+     *                            evaluated with validation rules, false if not. (This is false when
+     *                            adding descendants of organisation units for the purpose of getting
+     *                            aggregated expression values from descendants, but these organisation
+     *                            units are not in the main list to be evaluated.)
+     */
+    private Set<OrganisationUnitExtended> addSourcesToContext(
+        Map<PeriodType, PeriodTypeExtended> periodTypeExtendedMap,
+        Collection<OrganisationUnit> sources, boolean ruleCheckThisSource )
+    {
+        Set<OrganisationUnitExtended> sourceXs = new HashSet<>();
+
+        for ( OrganisationUnit source : sources )
+        {
+            OrganisationUnitExtended sourceX = new OrganisationUnitExtended( source, ruleCheckThisSource );
+            sourceXs.add( sourceX );
+
+            Map<PeriodType, Set<DataElement>> sourceElementsMap = source.getDataElementsInDataSetsByPeriodType();
+
+            for ( PeriodTypeExtended periodTypeX : periodTypeExtendedMap.values() )
+            {
+                periodTypeX.getSourceDataElements().put( source, new HashSet<>() );
+
+                for ( PeriodType allowedType : periodTypeX.getAllowedPeriodTypes() )
+                {
+                    Set<DataElement> sourceDataElements = sourceElementsMap.get( allowedType );
+
+                    if ( sourceDataElements != null )
+                    {
+                        periodTypeX.getSourceDataElements().get( source ).addAll( sourceDataElements );
+                    }
+                }
+            }
+        }
+
+        return sourceXs;
+    }
+
+    /**
+     * Gets the PeriodTypeExtended from the context object. If not found,
+     * creates a new PeriodTypeExtended object, puts it into the context object,
+     * and returns it.
+     *
+     * @param periodType period type to search for
+     * @return period type extended from the context object
+     */
+    private PeriodTypeExtended getOrCreatePeriodTypeExtended( Map<PeriodType, PeriodTypeExtended> periodTypeExtendedMap,
+        PeriodType periodType )
+    {
+        PeriodTypeExtended periodTypeX = periodTypeExtendedMap.get( periodType );
+
+        if ( periodTypeX == null )
+        {
+            periodTypeX = new PeriodTypeExtended( periodType );
+            periodTypeExtendedMap.put( periodType, periodTypeX );
+        }
+
+        return periodTypeX;
+    }
+
+    /**
+     * Finds all period types that may contain given data elements, whose period
+     * type interval is at least as long as the given period type.
+     *
+     * @param dataElements data elements to look for
+     * @param periodType   the minimum-length period type
+     * @return all period types that are allowed for these data elements
+     */
+    private static Set<PeriodType> getAllowedPeriodTypesForDataElements( Collection<DataElement> dataElements,
+        PeriodType periodType )
+    {
+        Set<PeriodType> allowedPeriodTypes = new HashSet<>();
+
+        if ( dataElements != null )
+        {
+            for ( DataElement dataElement : dataElements )
+            {
+                for ( DataSet dataSet : dataElement.getDataSets() )
+                {
+                    if ( dataSet.getPeriodType().getFrequencyOrder() >= periodType.getFrequencyOrder() )
+                    {
+                        allowedPeriodTypes.add( dataSet.getPeriodType() );
+                    }
+                }
+            }
+        }
+
+        return allowedPeriodTypes;
+    }
+
 }
