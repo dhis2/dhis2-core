@@ -31,6 +31,7 @@ package org.hisp.dhis.hibernate;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.common.Visibility;
 import org.hisp.dhis.user.User;
 
 /**
@@ -46,15 +47,7 @@ public interface InternalHibernateGenericStore<T>
 
     Criteria getBaseCriteria();
 
-    Criteria getBaseCriteria( String access );
-
-    Criteria getBaseCriteria( User user );
-
     Criteria getExecutableCriteria( DetachedCriteria detachedCriteria );
 
-    DetachedCriteria getBaseDetachedCriteria();
-
-    DetachedCriteria getBaseDetachedCriteria( String access );
-
-    DetachedCriteria getBaseDetachedCriteria( User user );
+    DetachedCriteria getBaseDetachedCriteria( User user, Visibility visibility );
 }

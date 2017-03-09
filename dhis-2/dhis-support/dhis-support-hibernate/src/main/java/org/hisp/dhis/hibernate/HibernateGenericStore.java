@@ -196,7 +196,6 @@ public class HibernateGenericStore<T>
     public final Criteria getCriteria()
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz() );
-
         preProcessDetachedCriteria( criteria );
 
         return getExecutableCriteria( criteria );
@@ -209,33 +208,9 @@ public class HibernateGenericStore<T>
     }
 
     @Override
-    public final Criteria getBaseCriteria( String access )
+    public final DetachedCriteria getBaseDetachedCriteria( User user, Visibility visibility )
     {
-        return getExecutableCriteria( getBaseDetachedCriteria( currentUserService.getCurrentUserInfo(), access, Visibility.NORMAL ) );
-    }
-
-    @Override
-    public final Criteria getBaseCriteria( User user )
-    {
-        return getExecutableCriteria( getBaseDetachedCriteria( UserInfo.fromUser( user ), "r%", Visibility.NORMAL ) );
-    }
-
-    @Override
-    public final DetachedCriteria getBaseDetachedCriteria()
-    {
-        return getBaseDetachedCriteria( currentUserService.getCurrentUserInfo(), "r%", Visibility.NORMAL );
-    }
-
-    @Override
-    public final DetachedCriteria getBaseDetachedCriteria( String access )
-    {
-        return getBaseDetachedCriteria( currentUserService.getCurrentUserInfo(), access, Visibility.NORMAL );
-    }
-
-    @Override
-    public final DetachedCriteria getBaseDetachedCriteria( User user )
-    {
-        return getBaseDetachedCriteria( UserInfo.fromUser( user ), "r%", Visibility.NORMAL );
+        return getBaseDetachedCriteria( UserInfo.fromUser( user ), "r%", visibility );
     }
 
     @Override
@@ -255,7 +230,6 @@ public class HibernateGenericStore<T>
     private DetachedCriteria getBaseDetachedCriteria( UserInfo user, String access, Visibility visibility )
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
-
         preProcessDetachedCriteria( criteria );
 
         addDeletedCriterion( criteria, visibility );
