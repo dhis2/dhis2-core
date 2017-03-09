@@ -179,6 +179,11 @@ public class TrackedEntityInstanceQueryParams
      * Indicates whether paging should be skipped.
      */
     private boolean skipPaging;
+    
+    /**
+     * TEI order params
+     */
+    private List<String> orders;
 
     // -------------------------------------------------------------------------
     // Transient properties
@@ -852,4 +857,14 @@ public class TrackedEntityInstanceQueryParams
         this.user = user;
         return this;
     }
+
+    public List<String> getOrders()
+    {
+        return orders;
+    }
+
+    public void setOrders( List<String> orders )
+    {
+        this.orders = orders;
+    }    
 }

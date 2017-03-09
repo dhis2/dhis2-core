@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.event;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -79,6 +80,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -149,7 +151,8 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
-        @RequestParam( required = false ) boolean skipPaging ) throws Exception
+        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) String order) throws Exception
     {
         programEnrollmentStartDate = ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
         programEnrollmentEndDate = ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
@@ -168,13 +171,13 @@ public class TrackedEntityInstanceController
 
         TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate, trackedEntity,
-            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging );
+            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, getOrderParams( order ));
 
         if ( trackedEntityInstance == null )
         {
             trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( params );
         }
-        else
+        else 
         {
             Set<String> trackedEntityInstanceIds = TextUtils.splitToArray( trackedEntityInstance, TextUtils.SEMICOLON );
 
@@ -218,6 +221,7 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
         @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) String order,
         Model model,
         HttpServletResponse response ) throws Exception
     {
@@ -226,7 +230,7 @@ public class TrackedEntityInstanceController
         Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
         TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate, trackedEntity,
-            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging );
+            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, getOrderParams( order ) );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
         return instanceService.getTrackedEntityInstancesGrid( params );
@@ -257,6 +261,7 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
         @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) String order,
         HttpServletResponse response ) throws Exception
     {
         programEnrollmentStartDate = ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
@@ -264,7 +269,7 @@ public class TrackedEntityInstanceController
         Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
         TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate, trackedEntity,
-            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging );
+            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, getOrderParams( order ) );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.NO_CACHE );
         Grid grid = instanceService.getTrackedEntityInstancesGrid( params );
@@ -296,6 +301,7 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
         @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) String order,
         HttpServletResponse response ) throws Exception
     {
         programEnrollmentStartDate = ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
@@ -303,7 +309,7 @@ public class TrackedEntityInstanceController
         Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
         TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate, trackedEntity,
-            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging );
+            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, getOrderParams( order ) );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.NO_CACHE );
         Grid grid = instanceService.getTrackedEntityInstancesGrid( params );
@@ -335,6 +341,7 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
         @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) String order,
         HttpServletResponse response ) throws Exception
     {
         programEnrollmentStartDate = ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
@@ -342,7 +349,7 @@ public class TrackedEntityInstanceController
         Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
         TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate, trackedEntity,
-            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging );
+            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, getOrderParams( order ) );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE );
         Grid grid = instanceService.getTrackedEntityInstancesGrid( params );
@@ -519,5 +526,16 @@ public class TrackedEntityInstanceController
     private String getResourcePath( HttpServletRequest request, ImportSummary importSummary )
     {
         return ContextUtils.getContextPath( request ) + "/api/" + "trackedEntityInstances" + "/" + importSummary.getReference();
+    }
+    
+    private List<String> getOrderParams( String order )
+    {
+        if ( order != null && !StringUtils.isEmpty( order ) )
+        {
+
+            return Arrays.asList( order.split( "," ) );
+        }
+
+        return null;
     }
 }
