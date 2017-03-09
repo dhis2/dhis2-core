@@ -46,7 +46,7 @@ public class HibernateProgramStageDataElementStore
     @Override
     public ProgramStageDataElement get( ProgramStage programStage, DataElement dataElement )
     {
-        Criteria criteria = getCriteria( 
+        Criteria criteria = getCriteria(
             Restrictions.eq( "programStage", programStage ),
             Restrictions.eq( "dataElement", dataElement ) );
 

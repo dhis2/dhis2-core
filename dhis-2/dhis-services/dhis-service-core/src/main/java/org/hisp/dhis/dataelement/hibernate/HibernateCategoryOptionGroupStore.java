@@ -48,7 +48,7 @@ public class HibernateCategoryOptionGroupStore
     @SuppressWarnings("unchecked")
     public List<CategoryOptionGroup> getCategoryOptionGroups( CategoryOptionGroupSet groupSet )
     {
-        return getBaseDetachedCriteria( Restrictions.eq( "groupSet", groupSet ) ).list();
+        return getDetachedCriteria( Restrictions.eq( "groupSet", groupSet ) ).list();
     }
 
     @Override

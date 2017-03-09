@@ -189,6 +189,11 @@ public class Schema implements Ordered, Klass
     private Map<String, Property> linkObjectProperties;
 
     /**
+     * Map of all unique properties (and persisted), cached on first request.
+     */
+    private Map<String, Property> uniqueProperties;
+
+    /**
      * Used for sorting of schema list when doing metadata import/export.
      */
     private int order = Ordered.LOWEST_PRECEDENCE;
@@ -542,6 +547,20 @@ public class Schema implements Ordered, Klass
         }
 
         return new ArrayList<>( linkObjectProperties.values() );
+    }
+
+    public List<Property> getUniqueProperties()
+    {
+        if ( uniqueProperties == null )
+        {
+            uniqueProperties = new HashMap<>();
+
+            getPropertyMap().entrySet().stream()
+                .filter( entry -> entry.getValue().isUnique() && entry.getValue().isPersisted() )
+                .forEach( entry -> uniqueProperties.put( entry.getKey(), entry.getValue() ) );
+        }
+
+        return new ArrayList<>( uniqueProperties.values() );
     }
 
     public void addProperty( Property property )

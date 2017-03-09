@@ -62,7 +62,7 @@ public class HibernateProgramRuleStore
     @SuppressWarnings( "unchecked" )
     public List<ProgramRule> get( Program program, String key )
     {
-        return getBaseCriteria()
+        return getCriteria()
             .add( Restrictions.eq( "program", program ) )
             .add( Restrictions.like( "name", "%" + key + "%" ).ignoreCase())
             .addOrder( Order.asc( "name" ) )

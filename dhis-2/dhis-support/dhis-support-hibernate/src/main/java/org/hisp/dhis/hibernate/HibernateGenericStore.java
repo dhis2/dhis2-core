@@ -185,32 +185,29 @@ public class HibernateGenericStore<T>
         return query;
     }
 
-    /**
-     * Creates a Criteria for the implementation Class type.
-     * <p>
-     * Please note that sharing is not considered.
-     *
-     * @return a Criteria instance.
-     */
     @Override
     public final Criteria getCriteria()
     {
-        DetachedCriteria criteria = DetachedCriteria.forClass( getClazz() );
-        preProcessDetachedCriteria( criteria );
-
-        return getExecutableCriteria( criteria );
+        return getExecutableCriteria( getDetachedCriteria( currentUserService.getCurrentUserInfo(), "r%", Visibility.NORMAL ) );
     }
 
     @Override
-    public final Criteria getBaseCriteria()
+    public final Criteria getCriteria( Criterion... criterions )
     {
-        return getExecutableCriteria( getBaseDetachedCriteria( currentUserService.getCurrentUserInfo(), "r%", Visibility.NORMAL ) );
+        Criteria criteria = getExecutableCriteria( getDetachedCriteria( currentUserService.getCurrentUserInfo(), "r%", Visibility.NORMAL ) );
+
+        for ( Criterion criterion : criterions )
+        {
+            criteria.add( criterion );
+        }
+
+        return criteria;
     }
 
     @Override
-    public final DetachedCriteria getBaseDetachedCriteria( User user, Visibility visibility )
+    public final DetachedCriteria getDetachedCriteria( User user, Visibility visibility )
     {
-        return getBaseDetachedCriteria( UserInfo.fromUser( user ), "r%", visibility );
+        return getDetachedCriteria( UserInfo.fromUser( user ), "r%", visibility );
     }
 
     @Override
@@ -227,7 +224,7 @@ public class HibernateGenericStore<T>
      * @param visibility Visibility to use
      * @return
      */
-    private DetachedCriteria getBaseDetachedCriteria( UserInfo user, String access, Visibility visibility )
+    private DetachedCriteria getDetachedCriteria( UserInfo user, String access, Visibility visibility )
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
         preProcessDetachedCriteria( criteria );
@@ -249,8 +246,8 @@ public class HibernateGenericStore<T>
         {
             case NORMAL:
                 criteria.add( Restrictions.disjunction(
-                    Restrictions.eq( "deleted", false ), Restrictions.eq( "deleted", null ) )
-                );
+                    Restrictions.eq( "deleted", false ), Restrictions.isNull( "deleted" )
+                ) );
                 break;
             case DELETED:
                 criteria.add( Restrictions.eq( "deleted", true ) );
@@ -320,36 +317,15 @@ public class HibernateGenericStore<T>
     }
 
     /**
-     * Creates a Criteria for the implementation Class type restricted by the
-     * given Criterions.
-     *
-     * @param expressions the Criterions for the Criteria.
-     * @return a Criteria instance.
-     */
-    protected final Criteria getCriteria( Criterion... expressions )
-    {
-        Criteria criteria = getCriteria();
-
-        for ( Criterion expression : expressions )
-        {
-            criteria.add( expression );
-        }
-
-        criteria.setCacheable( cacheable );
-
-        return criteria;
-    }
-
-    /**
      * Creates a sharing Criteria for the implementation Class type restricted by the
      * given Criterions.
      *
      * @param expressions the Criterions for the Criteria.
      * @return a Criteria instance.
      */
-    protected final Criteria getBaseDetachedCriteria( Criterion... expressions )
+    protected final Criteria getDetachedCriteria( Criterion... expressions )
     {
-        Criteria criteria = getBaseCriteria();
+        Criteria criteria = getCriteria();
 
         for ( Criterion expression : expressions )
         {
@@ -381,7 +357,7 @@ public class HibernateGenericStore<T>
     @SuppressWarnings( "unchecked" )
     protected final T getSharingObject( Criterion... expressions )
     {
-        return (T) getBaseDetachedCriteria( expressions ).uniqueResult();
+        return (T) getDetachedCriteria( expressions ).uniqueResult();
     }
 
     /**
@@ -559,6 +535,19 @@ public class HibernateGenericStore<T>
     {
         T object = getSession().get( getClazz(), id );
 
+        if ( object == null )
+        {
+            return null;
+        }
+
+        if ( isSoftDeleteEnabled() )
+        {
+            if ( ((BaseIdentifiableObject) object).isDeleted() )
+            {
+                return null;
+            }
+        }
+
         if ( !isReadAllowed( object ) )
         {
             AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED );
@@ -575,7 +564,6 @@ public class HibernateGenericStore<T>
     {
         return object;
     }
-
 
     @Override
     public final T getNoAcl( int id )
@@ -601,14 +589,14 @@ public class HibernateGenericStore<T>
     @SuppressWarnings( "unchecked" )
     public final List<T> getAll()
     {
-        return getBaseCriteria().list();
+        return getCriteria().list();
     }
 
     @Override
     @SuppressWarnings( "unchecked" )
     public final List<T> getAll( int first, int max )
     {
-        return getBaseCriteria()
+        return getCriteria()
             .setFirstResult( first )
             .setMaxResults( max )
             .list();
@@ -634,7 +622,7 @@ public class HibernateGenericStore<T>
     @Override
     public int getCount()
     {
-        return ((Number) getBaseCriteria()
+        return ((Number) getCriteria()
             .setProjection( Projections.countDistinct( "id" ) )
             .uniqueResult()).intValue();
     }

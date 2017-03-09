@@ -28,13 +28,13 @@ package org.hisp.dhis.dataapproval.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelStore;
+
+import java.util.List;
 
 /**
  * @author Jim Grace
@@ -48,14 +48,14 @@ public class HibernateDataApprovalLevelStore
     // -------------------------------------------------------------------------
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public List<DataApprovalLevel> getAllDataApprovalLevels()
     {
         return getCriteria().addOrder( Order.asc( "level" ) ).list();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public List<DataApprovalLevel> getDataApprovalLevelsByOrgUnitLevel( int orgUnitLevel )
     {
         return getCriteria( Restrictions.eq( "orgUnitLevel", orgUnitLevel ) ).addOrder( Order.asc( "level" ) ).list();

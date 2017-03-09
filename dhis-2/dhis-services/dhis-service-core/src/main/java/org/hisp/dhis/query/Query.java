@@ -74,6 +74,11 @@ public class Query extends Criteria
         return new Query( schema, rootJunction );
     }
 
+    public static Query from( Schema schema, Junction.Type rootJunction, Visibility visibility )
+    {
+        return new Query( schema, rootJunction ).setVisibility( visibility );
+    }
+
     public static Query from( Query query )
     {
         Query clone = Query.from( query.getSchema(), query.getRootJunction().getType() );
@@ -84,6 +89,7 @@ public class Query extends Criteria
         clone.setMaxResults( query.getMaxResults() );
         clone.add( query.getCriterions() );
         clone.setObjects( query.getObjects() );
+        clone.setVisibility( query.getVisibility() );
 
         return clone;
     }

@@ -123,7 +123,7 @@ public class HibernateMessageConversationStore
     @SuppressWarnings( "unchecked" )
     public List<MessageConversation> getMessageConversations( Collection<String> uids )
     {
-        return getBaseCriteria()
+        return getCriteria()
             .add( Restrictions.in( "uid", uids ) )
             .list();
     }

@@ -312,6 +312,9 @@ public class BaseIdentifiableObject
     }
 
     @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( access = Property.Access.NONE )
     public boolean isDeleted()
     {
         return deleted == null ? false : deleted;

@@ -96,7 +96,7 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
             query = queryPlan.getPersistedQuery();
         }
 
-        DetachedCriteria detachedCriteria = buildCriteria( store.getBaseDetachedCriteria( query.getUser(), query.getVisibility() ), query );
+        DetachedCriteria detachedCriteria = buildCriteria( store.getDetachedCriteria( query.getUser(), query.getVisibility() ), query );
         Criteria criteria = store.getCriteria();
 
         if ( criteria == null )
@@ -138,7 +138,7 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
             query = queryPlan.getPersistedQuery();
         }
 
-        DetachedCriteria detachedCriteria = buildCriteria( store.getBaseDetachedCriteria( query.getUser(), query.getVisibility() ), query );
+        DetachedCriteria detachedCriteria = buildCriteria( store.getDetachedCriteria( query.getUser(), query.getVisibility() ), query );
         Criteria criteria = store.getCriteria();
 
         if ( criteria == null )

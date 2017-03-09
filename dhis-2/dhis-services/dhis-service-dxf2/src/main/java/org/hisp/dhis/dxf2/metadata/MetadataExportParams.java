@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.metadata;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.Visibility;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.user.User;
 
@@ -79,6 +80,8 @@ public class MetadataExportParams
      * Default order to apply to all exports.
      */
     private List<String> defaultOrder = new ArrayList<>();
+
+    private Visibility defaultVisibility = Visibility.NORMAL;
 
     public MetadataExportParams()
     {
@@ -174,5 +177,15 @@ public class MetadataExportParams
     public void setDefaultOrder( List<String> defaultOrder )
     {
         this.defaultOrder = defaultOrder;
+    }
+
+    public Visibility getDefaultVisibility()
+    {
+        return defaultVisibility;
+    }
+
+    public void setDefaultVisibility( Visibility defaultVisibility )
+    {
+        this.defaultVisibility = defaultVisibility;
     }
 }

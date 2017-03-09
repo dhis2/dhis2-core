@@ -34,6 +34,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SetMap;
+import org.hisp.dhis.common.Visibility;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataelement.DataElement;
@@ -156,6 +157,8 @@ public class DefaultMetadataExportService implements MetadataExportService
             }
 
             query.setDefaultOrder();
+            query.setVisibility( params.getDefaultVisibility() );
+
             List<? extends IdentifiableObject> objects = queryService.query( query );
 
             if ( !objects.isEmpty() )
@@ -222,6 +225,14 @@ public class DefaultMetadataExportService implements MetadataExportService
         {
             params.setDefaultOrder( parameters.get( "order" ) );
             parameters.remove( "order" );
+        }
+
+        if ( parameters.containsKey( "visibility" ) )
+        {
+            String visibilityString = parameters.get( "visibility" ).get( 0 );
+            Visibility visibility = Visibility.valueOf( visibilityString );
+            params.setDefaultVisibility( visibility );
+            parameters.remove( "visibility" );
         }
 
         for ( String parameterKey : parameters.keySet() )
