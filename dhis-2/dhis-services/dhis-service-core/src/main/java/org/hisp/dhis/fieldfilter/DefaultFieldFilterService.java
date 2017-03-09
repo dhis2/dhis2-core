@@ -55,6 +55,7 @@ import org.springframework.util.StringUtils;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -78,7 +79,7 @@ public class DefaultFieldFilterService implements FieldFilterService
     private SchemaService schemaService;
 
     @Autowired( required = false )
-    private Set<NodeTransformer> nodeTransformers = Sets.newHashSet();
+    private Set<NodeTransformer> nodeTransformers = new HashSet<>();
 
     private ImmutableMap<String, Preset> presets = ImmutableMap.of();
 
