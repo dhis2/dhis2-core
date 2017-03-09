@@ -1039,7 +1039,7 @@
     <spring.version>4.2.5.RELEASE</spring.version>
     <spring.security.version>3.2.9.RELEASE</spring.security.version>
     <spring.security.oauth2.version>2.0.5.RELEASE</spring.security.oauth2.version>
-    <struts.version>2.3.24.1</struts.version>
+    <struts.version>2.3.32</struts.version>
     <hibernate.version>4.2.20.Final</hibernate.version>
     <hibernate-validator.version>4.3.2.Final</hibernate-validator.version>
     <jclouds.version>1.9.1</jclouds.version>
