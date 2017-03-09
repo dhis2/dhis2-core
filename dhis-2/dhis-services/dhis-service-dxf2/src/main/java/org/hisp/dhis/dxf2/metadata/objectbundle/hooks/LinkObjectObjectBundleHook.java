@@ -26,68 +26,84 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.system.util.ReflectionUtils;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ProgramObjectBundleHook extends AbstractObjectBundleHook
+public class LinkObjectObjectBundleHook
+    extends AbstractObjectBundleHook
 {
     @Override
     public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
     {
-        if ( !Program.class.isInstance( object ) ) return;
-        Program program = (Program) object;
+        Schema schema = schemaService.getDynamicSchema( object.getClass() );
 
-        for ( ProgramTrackedEntityAttribute programTrackedEntityAttribute : program.getProgramAttributes() )
+        if ( schema == null || schema.getLinkObjectProperties().isEmpty() )
         {
-            preheatService.connectReferences( programTrackedEntityAttribute, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+            return;
         }
+
+        connectLinkObjects( object, bundle, schema.getLinkObjectProperties() );
     }
 
     @Override
     public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
     {
-        if ( !Program.class.isInstance( object ) ) return;
-        Program program = (Program) object;
-        Program persistedProgram = (Program) persistedObject;
+        Schema schema = schemaService.getDynamicSchema( object.getClass() );
 
-        program.getProgramAttributes().clear();
-        persistedProgram.getProgramAttributes().clear();
+        if ( schema == null || schema.getLinkObjectProperties().isEmpty() )
+        {
+            return;
+        }
+
+        List<Property> properties = schema.getLinkObjectProperties();
+
+        clearLinkObjects( persistedObject, properties );
+        connectLinkObjects( object, bundle, properties );
+    }
+
+    private <T extends IdentifiableObject> void clearLinkObjects( T object, List<Property> properties )
+    {
+        for ( Property property : properties )
+        {
+            if ( property.isCollection() )
+            {
+                ((Collection<?>) ReflectionUtils.invokeMethod( object, property.getGetterMethod() )).clear();
+            }
+            else
+            {
+                ReflectionUtils.invokeMethod( object, property.getSetterMethod(), (Object) null );
+            }
+        }
 
         sessionFactory.getCurrentSession().flush();
     }
 
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
+    private <T extends IdentifiableObject> void connectLinkObjects( T object, ObjectBundle bundle, List<Property> properties )
     {
-        if ( !Program.class.isInstance( persistedObject ) ) return;
-        if ( !bundle.getObjectReferences().containsKey( Program.class ) ) return;
-        Program program = (Program) persistedObject;
-
-        Map<String, Object> references = bundle.getObjectReferences( Program.class ).get( program.getUid() );
-        if ( references == null ) return;
-
-        List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = (List<ProgramTrackedEntityAttribute>) references.get( "programTrackedEntityAttributes" );
-
-        if ( programTrackedEntityAttributes != null && !programTrackedEntityAttributes.isEmpty() )
+        for ( Property property : properties )
         {
-            for ( ProgramTrackedEntityAttribute programTrackedEntityAttribute : program.getProgramAttributes() )
+            if ( property.isCollection() )
             {
-                preheatService.connectReferences( programTrackedEntityAttribute, bundle.getPreheat(), bundle.getPreheatIdentifier() );
-                program.getProgramAttributes().add( programTrackedEntityAttribute );
+                Collection<?> objects = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+                objects.forEach( o -> preheatService.connectReferences( o, bundle.getPreheat(), bundle.getPreheatIdentifier() ) );
+            }
+            else
+            {
+                Object o = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+                preheatService.connectReferences( o, bundle.getPreheat(), bundle.getPreheatIdentifier() );
             }
         }
-
-        sessionFactory.getCurrentSession().update( program );
     }
 }

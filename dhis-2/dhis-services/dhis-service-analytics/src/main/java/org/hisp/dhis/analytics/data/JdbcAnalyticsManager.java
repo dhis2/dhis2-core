@@ -174,10 +174,12 @@ public class JdbcAnalyticsManager
             for ( String key : keys )
             {
                 String[] keyArray = key.split( DIMENSION_SEP );
+                
+                String periodKey = keyArray[periodIndex];
 
-                Assert.notNull( keyArray[periodIndex] );
+                Assert.notNull( periodKey, "Period key cannot be null" );
 
-                List<DimensionalItemObject> periods = dataPeriodAggregationPeriodMap.get( PeriodType.getPeriodFromIsoString( keyArray[periodIndex] ) );
+                List<DimensionalItemObject> periods = dataPeriodAggregationPeriodMap.get( PeriodType.getPeriodFromIsoString( periodKey ) );
 
                 Assert.notNull( periods, dataPeriodAggregationPeriodMap.toString() );
 

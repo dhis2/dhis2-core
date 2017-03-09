@@ -936,7 +936,7 @@ public class DataQueryParams
         {
             List<DimensionalItemObject> periods = getPeriods();
 
-            Assert.isTrue( !periods.isEmpty()  );
+            Assert.isTrue( !periods.isEmpty(), "At least one period must exist" );
             
             Period period = (Period) periods.get( 0 );
             

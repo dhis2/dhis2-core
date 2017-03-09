@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.importexport.action.datavalue;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,35 +28,43 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup;
+import java.util.List;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class TrackedEntityAttributeGroupSchemaDescriptor implements SchemaDescriptor
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.opensymphony.xwork2.Action;
+
+public class ShowDataValueExportFormAction
+    implements Action
 {
-    public static final String SINGULAR = "trackedEntityAttributeGroup";
+    @Autowired
+    private AttributeService attributeService;
+    
+    private List<Attribute> dataElementAttributes;
 
-    public static final String PLURAL = "trackedEntityAttributeGroups";
+    public List<Attribute> getDataElementAttributes()
+    {
+        return dataElementAttributes;
+    }
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    private List<Attribute> orgUnitAttributes;
+    
+    public List<Attribute> getOrgUnitAttributes()
+    {
+        return orgUnitAttributes;
+    }
 
     @Override
-    public Schema getSchema()
+    public String execute()
+        throws Exception
     {
-        Schema schema = new Schema( TrackedEntityAttributeGroup.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1500 );
-
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE,
-            Lists.newArrayList( "F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD", "F_TRACKED_ENTITY_ATTRIBUTE_PRIVATE_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_TRACKED_ENTITY_ATTRIBUTE_DELETE" ) ) );
-
-        return schema;
+        dataElementAttributes = attributeService.getUniqueAttributes( DataElement.class );
+        orgUnitAttributes = attributeService.getUniqueAttributes( OrganisationUnit.class );
+        
+        return SUCCESS;
     }
 }

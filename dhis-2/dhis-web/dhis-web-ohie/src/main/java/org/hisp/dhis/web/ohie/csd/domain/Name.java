@@ -28,8 +28,6 @@ package org.hisp.dhis.web.ohie.csd.domain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.util.Assert;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -68,7 +66,6 @@ public class Name
 
     public Name( CommonName commonName )
     {
-        Assert.notNull( commonName );
         getCommonNames().add( commonName );
     }
 

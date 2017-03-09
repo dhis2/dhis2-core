@@ -255,8 +255,8 @@ public class DefaultEventDataQueryService
     @Override
     public EventQueryParams getFromAnalyticalObject( EventAnalyticalObject object )
     {
-        Assert.notNull( object );
-        Assert.notNull( object.getProgram(), "Event analytical object must specify program" );
+        Assert.notNull( object, "Event analytical object cannot be null" );
+        Assert.notNull( object.getProgram(), "Event analytical object must specify a program" );
         
         EventQueryParams.Builder params = new EventQueryParams.Builder();
         

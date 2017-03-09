@@ -88,9 +88,9 @@ public class DefaultMonitoringService
     @Override
     public void pushMonitoringInfo()
     {
-        String url = (String) systemSettingManager.getSystemSetting( SettingKey.MONITORING_SERVICE_URL );
-        String username = (String) systemSettingManager.getSystemSetting( SettingKey.MONITORING_SERVICE_USERNAME );
-        String password = (String) systemSettingManager.getSystemSetting( SettingKey.MONITORING_SERVICE_PASSWORD );
+        String url = (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_MONITORING_URL );
+        String username = (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_MONITORING_USERNAME );
+        String password = (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_MONITORING_PASSWORD );
         
         if ( StringUtils.isBlank( url ) )
         {

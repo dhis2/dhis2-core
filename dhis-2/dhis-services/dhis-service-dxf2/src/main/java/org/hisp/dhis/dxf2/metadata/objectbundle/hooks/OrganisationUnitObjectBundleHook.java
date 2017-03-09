@@ -34,7 +34,6 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitParentCountComparator;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -54,8 +53,8 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
         List<IdentifiableObject> nonPersistedObjects = bundle.getObjects( OrganisationUnit.class, false );
         List<IdentifiableObject> persistedObjects = bundle.getObjects( OrganisationUnit.class, true );
 
-        Collections.sort( nonPersistedObjects, new OrganisationUnitParentCountComparator() );
-        Collections.sort( persistedObjects, new OrganisationUnitParentCountComparator() );
+        nonPersistedObjects.sort( new OrganisationUnitParentCountComparator() );
+        persistedObjects.sort( new OrganisationUnitParentCountComparator() );
     }
 
     @Override

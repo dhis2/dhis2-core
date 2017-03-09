@@ -222,7 +222,7 @@ public class ValidationResult
         {
             return false;
         }
-        else if ( Math.round( 100.0 * leftsideValue ) != Math.round( 100.0 * other.leftsideValue ) )
+        else if ( Math.round( 100.0 * rightsideValue ) != Math.round( 100.0 * other.rightsideValue ) )
         {
             return false;
         }

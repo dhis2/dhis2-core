@@ -100,6 +100,9 @@
 			<option value="UID">$i18n.getString( "uid" )</option>
 			<option value="CODE">$i18n.getString( "code" )</option>
 			<option value="NAME">$i18n.getString( "name" )</option>
+			#foreach( $attr in $dataElementAttributes )
+			    <option value="ATTRIBUTE:${attr.uid}">$encoder.htmlEncode( $attr.displayName )</option>
+			#end
 	    </select></td>
 	</tr>
 	<tr class="moreOptions" style="display:none">
@@ -108,6 +111,9 @@
 			<option value="UID">$i18n.getString( "uid" )</option>
 			<option value="CODE">$i18n.getString( "code" )</option>
 			<option value="NAME">$i18n.getString( "name" )</option>
+            #foreach( $attr in $orgUnitAttributes )
+                <option value="ATTRIBUTE:${attr.uid}">$encoder.htmlEncode( $attr.displayName )</option>
+            #end
 	    </select></td>
 	</tr>
 	<tr class="moreOptions" style="display:none">

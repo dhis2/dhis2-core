@@ -55,6 +55,7 @@ import org.springframework.util.StringUtils;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -78,7 +79,7 @@ public class DefaultFieldFilterService implements FieldFilterService
     private SchemaService schemaService;
 
     @Autowired( required = false )
-    private Set<NodeTransformer> nodeTransformers = Sets.newHashSet();
+    private Set<NodeTransformer> nodeTransformers = new HashSet<>();
 
     private ImmutableMap<String, Preset> presets = ImmutableMap.of();
 
@@ -109,7 +110,7 @@ public class DefaultFieldFilterService implements FieldFilterService
     @Override
     public ComplexNode filter( Object object, List<String> fieldList )
     {
-        Assert.notNull( object );
+        Assert.notNull( object, "Object cannot be null" );
 
         CollectionNode collectionNode = filter( object.getClass(), Lists.newArrayList( object ), fieldList );
 
@@ -327,33 +328,28 @@ public class DefaultFieldFilterService implements FieldFilterService
 
         for ( String fieldKey : Sets.newHashSet( fieldMap.keySet() ) )
         {
+            List<Property> properties = schema.getReadableProperties();
+
             if ( "*".equals( fieldKey ) )
             {
-                List<Property> properties = schema.getProperties();
-
                 properties.stream()
-                    .filter( property -> !fieldMap.containsKey( property.key() ) && property.isReadable() )
+                    .filter( property -> !fieldMap.containsKey( property.key() ) )
                     .forEach( property -> fieldMap.put( property.key(), new FieldMap() ) );
 
                 cleanupFields.add( fieldKey );
             }
             else if ( ":persisted".equals( fieldKey ) )
             {
-                List<Property> properties = schema.getProperties();
-
                 properties.stream()
-                    .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted() && property.isReadable() )
+                    .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted() )
                     .forEach( property -> fieldMap.put( property.key(), new FieldMap() ) );
 
                 cleanupFields.add( fieldKey );
             }
             else if ( ":owner".equals( fieldKey ) )
             {
-                List<Property> properties = schema.getProperties();
-
                 properties.stream()
-                    .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted() && property.isOwner()
-                        && property.isReadable() )
+                    .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted() && property.isOwner() )
                     .forEach( property -> fieldMap.put( property.key(), new FieldMap() ) );
 
                 cleanupFields.add( fieldKey );
@@ -427,6 +423,11 @@ public class DefaultFieldFilterService implements FieldFilterService
     private FieldMap getFullFieldMap( Schema schema )
     {
         FieldMap fieldMap = new FieldMap();
+
+        for ( Property property : schema.getReadableProperties() )
+        {
+            fieldMap.put( property.getName(), new FieldMap() );
+        }
 
         for ( String mapKey : schema.getPropertyMap().keySet() )
         {
