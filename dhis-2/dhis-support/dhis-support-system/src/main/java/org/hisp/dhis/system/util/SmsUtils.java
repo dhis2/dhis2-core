@@ -117,7 +117,16 @@ public class SmsUtils
         }
 
         Date date = null;
-        String dateString = message.trim().split( " " )[0];
+
+        String[] messageSplit = message.trim().split( " " );
+
+        if ( messageSplit.length <= 2 )
+        {
+            return null;
+        }
+
+        String dateString = messageSplit[1];
+
         SimpleDateFormat format = new SimpleDateFormat( "ddMM" );
 
         try
@@ -128,7 +137,7 @@ public class SmsUtils
             int year = Calendar.getInstance().get( Calendar.YEAR );
             int month = Calendar.getInstance().get( Calendar.MONTH );
 
-            if ( cal.get( Calendar.MONTH ) < month )
+            if ( cal.get( Calendar.MONTH ) <= month )
             {
                 cal.set( Calendar.YEAR, year );
             }
