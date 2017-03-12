@@ -42,10 +42,7 @@ import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.*;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
@@ -116,6 +113,9 @@ public class AccountController
 
     @Autowired
     private WebMessageService webMessageService;
+
+    @Autowired
+    private PasswordValidationService passwordValidationService;
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -461,10 +461,12 @@ public class AccountController
             return;
         }
 
-        if ( password == null || !ValidationUtils.passwordIsValid( password ) )
+        PasswordValidationResult result1 = passwordValidationService.validate( username, password, false );
+
+        if ( !result1.isValid() )
         {
             result.put( "status", "PASSWORD_INVALID" );
-            result.put( "message", "Password is not specified or invalid" );
+            result.put( "message", result1.getErrorMessage() );
 
             ContextUtils.badRequestResponse( response, objectMapper.writeValueAsString( result ) );
             return;

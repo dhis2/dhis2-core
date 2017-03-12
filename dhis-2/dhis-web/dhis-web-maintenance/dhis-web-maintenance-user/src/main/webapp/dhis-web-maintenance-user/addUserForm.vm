@@ -30,8 +30,9 @@
     checkValueIsExist("openId", "validateUser.action");
     checkValueIsExist("ldapId", "validateUser.action");
     checkValueIsExist("inviteUsername", "validateUser.action");
+      checkValueIsExist("rawPassword", "validateUser.action",{ newUser: true });
 
-    ouwtSelected = selection.getSelected();
+      ouwtSelected = selection.getSelected();
     selection.setOfflineLevel( 1 );
     selection.setMultipleSelectionAllowed( true );
     selection.setUnselectAllowed( true );
