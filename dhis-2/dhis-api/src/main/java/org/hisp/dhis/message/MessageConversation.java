@@ -73,6 +73,8 @@ public class MessageConversation
 
     private int messageCount;
 
+    private MessageType messageType;
+
     private MessageConversationPriority priority;
 
     private MessageConversationStatus status;
@@ -565,5 +567,17 @@ public class MessageConversation
     public void setAssignee( User assignee )
     {
         this.assignee = assignee;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public MessageType getMessageType()
+    {
+        return messageType;
+    }
+
+    public void setMessageType( MessageType messageType )
+    {
+        this.messageType = messageType;
     }
 }
