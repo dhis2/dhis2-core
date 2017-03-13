@@ -2337,8 +2337,8 @@ dhis2.de.validateOrgUnitOpening = function(organisationUnit, period)
     cdate = dhis2.period.calendar.fromJD( iso8601.parseDate( "yyyy-mm-dd", organisationUnit.cdate ).toJD() );
   }
 
-  var startDate = dhis2.period.calendar.parseDate( "yyyy-mm-dd", period.startDate );
-  var endDate = dhis2.period.calendar.parseDate( "yyyy-mm-dd", period.endDate );
+  var startDate = dhis2.period.calendar.parseDate( dhis2.period.format, period.startDate );
+  var endDate = dhis2.period.calendar.parseDate( dhis2.period.format, period.endDate );
 
   if ( odate && startDate.compareTo( odate ) == -1 ) {
     $( '#contentDiv input' ).attr( 'readonly', 'readonly' );
