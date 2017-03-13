@@ -55,16 +55,10 @@ public class DefaultMergeService implements MergeService
             return;
         }
 
-
         Schema schema = schemaService.getDynamicSchema( source.getClass() );
 
         for ( Property property : schema.getProperties() )
         {
-            if ( schema.isIdentifiableObject() && mergeParams.isSkipSharing() && isSharingProperty( property ) )
-            {
-                continue;
-            }
-
             // passwords should only be merged manually
             if ( property.is( PropertyType.PASSWORD ) )
             {
