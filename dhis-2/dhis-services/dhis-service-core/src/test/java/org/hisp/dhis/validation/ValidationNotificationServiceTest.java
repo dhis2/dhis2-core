@@ -35,6 +35,7 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.ValidationNotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -113,7 +114,7 @@ public class ValidationNotificationServiceTest
                 anyString(),
                 anySetOf( User.class ),
                 any( User.class ),
-                anyBoolean(),
+                any( MessageType.class ),
                 anyBoolean()
             )
         ).then(

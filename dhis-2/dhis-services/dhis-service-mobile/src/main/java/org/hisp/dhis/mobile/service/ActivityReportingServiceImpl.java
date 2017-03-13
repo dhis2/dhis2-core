@@ -60,10 +60,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.interpretation.InterpretationService;
-import org.hisp.dhis.message.Message;
-import org.hisp.dhis.message.MessageConversation;
-import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.message.*;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -1879,7 +1876,7 @@ public class ActivityReportingServiceImpl
                 List<MessageConversation> conversationList = new ArrayList<>();
 
                 MessageConversation conversation = new MessageConversation( lostEvent.getName(),
-                    currentUserService.getCurrentUser() );
+                    currentUserService.getCurrentUser(), MessageType.SYSTEM );
 
                 conversation
                     .addMessage( new Message( lostEvent.getComment(), null, currentUserService.getCurrentUser() ) );
@@ -2069,7 +2066,7 @@ public class ActivityReportingServiceImpl
         String text = message.getText();
         String metaData = MessageService.META_USER_AGENT;
 
-        messageService.sendFeedback( subject, text, metaData );
+        messageService.sendTicketMessage( subject, text, metaData );
 
         return FEEDBACK_SENT;
     }
@@ -2235,7 +2232,7 @@ public class ActivityReportingServiceImpl
 
         }
 
-        messageService.sendMessage( subject, text, metaData, users );
+        messageService.sendPrivateMessage( subject, text, metaData, users );
 
         return MESSAGE_SENT;
     }

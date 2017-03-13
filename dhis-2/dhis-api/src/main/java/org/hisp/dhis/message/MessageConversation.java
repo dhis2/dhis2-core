@@ -107,11 +107,12 @@ public class MessageConversation
         this.status = MessageConversationStatus.NONE;
     }
 
-    public MessageConversation( String subject, User lastSender )
+    public MessageConversation( String subject, User lastSender, MessageType messageType )
     {
         this.subject = subject;
         this.lastSender = lastSender;
         this.lastMessage = new Date();
+        this.messageType = messageType;
         this.priority = MessageConversationPriority.NONE;
         this.status = MessageConversationStatus.NONE;
     }

@@ -91,8 +91,8 @@ public class MessageServiceTest
     @Test
     public void testSaveMessageConversationA()
     {
-        MessageConversation conversationA = new MessageConversation( "SubjectA", sender );
-        MessageConversation conversationB = new MessageConversation( "SubjectB", sender );
+        MessageConversation conversationA = new MessageConversation( "SubjectA", sender, MessageType.PRIVATE );
+        MessageConversation conversationB = new MessageConversation( "SubjectB", sender, MessageType.PRIVATE );
 
         int idA = messageService.saveMessageConversation( conversationA );
         int idB = messageService.saveMessageConversation( conversationB );
@@ -110,7 +110,7 @@ public class MessageServiceTest
     @Test
     public void testSaveMessageB()
     {
-        MessageConversation conversation = new MessageConversation( "Subject", sender );
+        MessageConversation conversation = new MessageConversation( "Subject", sender, MessageType.PRIVATE );
         
         UserMessage userMessageA = new UserMessage( userA );
         UserMessage userMessageB = new UserMessage( userB );
@@ -141,7 +141,7 @@ public class MessageServiceTest
     @Test
     public void testDeleteMessage()
     {
-        MessageConversation conversation = new MessageConversation( "Subject", sender);
+        MessageConversation conversation = new MessageConversation( "Subject", sender, MessageType.PRIVATE );
         
         UserMessage userMessageA = new UserMessage( userA );
         UserMessage userMessageB = new UserMessage( userB );
@@ -169,7 +169,7 @@ public class MessageServiceTest
     @Test
     public void testSendMessage()
     {
-        int id = messageService.sendMessage( "Subject", "Text", "Meta", users );
+        int id = messageService.sendPrivateMessage( "Subject", "Text", "Meta", users );
         
         MessageConversation conversation = messageService.getMessageConversation( id );
         
@@ -183,7 +183,7 @@ public class MessageServiceTest
     @Test
     public void testSendFeedback()
     {
-        int id = messageService.sendFeedback( "Subject", "Text", "Meta" );
+        int id = messageService.sendTicketMessage( "Subject", "Text", "Meta" );
         
         MessageConversation conversation = messageService.getMessageConversation( id );
         
@@ -196,7 +196,7 @@ public class MessageServiceTest
     @Test
     public void testSendReply()
     {
-        MessageConversation message = new MessageConversation( "Subject", sender );
+        MessageConversation message = new MessageConversation( "Subject", sender, MessageType.PRIVATE );
         message.addMessage( new Message( "TextA", "MetaA", sender) );
         int id = messageService.saveMessageConversation( message );
         
@@ -212,9 +212,9 @@ public class MessageServiceTest
     @Test
     public void testGetMessageConversations()
     {
-        MessageConversation conversationA = new MessageConversation( "SubjectA", sender );
-        MessageConversation conversationB = new MessageConversation( "SubjectB", sender );
-        MessageConversation conversationC = new MessageConversation( "SubjectC", userA );
+        MessageConversation conversationA = new MessageConversation( "SubjectA", sender, MessageType.PRIVATE );
+        MessageConversation conversationB = new MessageConversation( "SubjectB", sender, MessageType.PRIVATE );
+        MessageConversation conversationC = new MessageConversation( "SubjectC", userA, MessageType.PRIVATE );
 
         messageService.saveMessageConversation( conversationA );
         messageService.saveMessageConversation( conversationB );
