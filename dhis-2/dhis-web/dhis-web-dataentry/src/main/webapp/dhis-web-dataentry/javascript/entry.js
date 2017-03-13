@@ -391,6 +391,7 @@ function ValueSaver( de, pe, co, value, fieldId, resultColor )
     	}
     	else // Offline, keep local value
     	{
+            $( document ).trigger( dhis2.de.event.dataValueSaved, [ dhis2.de.currentDataSetId, dataValue ] );
     		markValue( fieldId, resultColor );
     		setHeaderDelayMessage( i18n_offline_notification );
     	}
