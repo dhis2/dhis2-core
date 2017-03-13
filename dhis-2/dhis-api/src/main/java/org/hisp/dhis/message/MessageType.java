@@ -32,7 +32,7 @@ package org.hisp.dhis.message;
  */
 public enum MessageType
 {
-    DIRECT,
+    PRIVATE,
     SYSTEM,
     VALIDATION_RESULT,
     TICKET
