@@ -362,7 +362,7 @@ public class ImportOptions
 
     public ImportOptions setEventIdScheme( String idScheme )
     {
-        idSchemes.setProgramStageIdInstanceScheme( idScheme );
+        idSchemes.setProgramStageInstanceIdScheme( idScheme );
         return this;
     }
 

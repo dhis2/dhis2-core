@@ -33,6 +33,7 @@ import com.google.common.collect.Sets;
 import com.google.common.io.ByteSource;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -85,7 +86,6 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -106,6 +106,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Date;
@@ -584,6 +586,7 @@ public class EventController
     {
         importOptions.setImportStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
+        importOptions.setIdSchemes( getIdschemes( importOptions.getIdSchemes(),  contextService.getParameterValuesMap() ));
 
         if ( !importOptions.isAsync() )
         {
@@ -629,6 +632,7 @@ public class EventController
     {
         importOptions.setImportStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
+        importOptions.setIdSchemes( getIdschemes( importOptions.getIdSchemes(),  contextService.getParameterValuesMap() ));
 
         if ( !importOptions.isAsync() )
         {
@@ -883,6 +887,40 @@ public class EventController
         }
 
         return metaData;
+    }
+
+    private IdSchemes getIdschemes( IdSchemes idSchemes, Map<String, List<String>> params )
+    {
+        Field[] fields = idSchemes.getClass().getDeclaredFields();
+
+        for( Field field : fields )
+        {
+            String method = "set" +  org.apache.commons.lang.StringUtils.capitalize( field.getName() );
+            try
+            {
+                idSchemes.getClass().getMethod( method, String.class ).invoke( idSchemes, getParamValue( params, field.getName() ) );
+            }
+            catch ( IllegalAccessException e )
+            {
+                continue;
+            }
+            catch ( InvocationTargetException e )
+            {
+                continue;
+            }
+            catch ( NoSuchMethodException e )
+            {
+                continue;
+            }
+        }
+
+        return idSchemes;
+    }
+
+    private String getParamValue(  Map<String, List<String>> params, String key )
+    {
+        return String.valueOf( params.get( key ) != null ? params.get( key ).get( 0 ) : null );
+
     }
 
 }

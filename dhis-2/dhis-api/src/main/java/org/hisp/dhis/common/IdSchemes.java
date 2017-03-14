@@ -182,7 +182,7 @@ public class IdSchemes
         return getScheme( programStageInstanceIdScheme );
     }
 
-    public IdSchemes setProgramStageIdInstanceScheme( String idScheme )
+    public IdSchemes setProgramStageInstanceIdScheme( String idScheme )
     {
         this.programStageInstanceIdScheme = IdScheme.from( idScheme );
         return this;
