@@ -895,7 +895,7 @@ public class EventController
 
         for( Field field : fields )
         {
-            String method = "set" +  org.apache.commons.lang.StringUtils.capitalize( field.getName() );
+            String method = "set" +  StringUtils.capitalize( field.getName() );
             try
             {
                 idSchemes.getClass().getMethod( method, String.class ).invoke( idSchemes, getParamValue( params, field.getName() ) );
