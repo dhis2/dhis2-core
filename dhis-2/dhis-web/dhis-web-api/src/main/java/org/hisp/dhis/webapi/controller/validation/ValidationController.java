@@ -109,7 +109,7 @@ public class ValidationController
 
         ValidationSummary summary = new ValidationSummary();
 
-        summary.setValidationRuleViolations( new ArrayList<>( validationService.validate( dataSet, period, orgUnit, attributeOptionCombo ) ) );
+        summary.setValidationRuleViolations( new ArrayList<>( validationService.startInteractiveValidationAnalysis( dataSet, period, orgUnit, attributeOptionCombo ) ) );
         summary.setCommentRequiredViolations( validationService.validateRequiredComments( dataSet, period, orgUnit, attributeOptionCombo ) );
 
         return summary;
