@@ -56,11 +56,11 @@ public class LikeOperator extends Operator
     {
         if ( caseSensitive )
         {
-            return Restrictions.like( property.getFieldName(), String.valueOf( args.get( 0 ) ), matchMode );
+            return Restrictions.like( property.getFieldName(), String.valueOf( args.get( 0 ) ).replace( "%", "\\%" ), matchMode );
         }
         else
         {
-            return Restrictions.ilike( property.getFieldName(), String.valueOf( args.get( 0 ) ), matchMode );
+            return Restrictions.ilike( property.getFieldName(), String.valueOf( args.get( 0 ) ).replace( "%", "\\%" ), matchMode );
         }
     }
 
