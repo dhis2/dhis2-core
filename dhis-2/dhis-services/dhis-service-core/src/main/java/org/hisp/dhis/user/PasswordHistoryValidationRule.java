@@ -27,18 +27,18 @@ public class PasswordHistoryValidationRule implements PasswordValidationRule
 
         List<String> previousPasswords = userCredentials.getPreviousPasswords();
 
-        for( String encodedPassword : previousPasswords )
+        for ( String encodedPassword : previousPasswords )
         {
             match = passwordEncoder.matches( password, encodedPassword );
 
-            if( match )
+            if ( match )
             {
                 return new PasswordValidationResult( String.format(
                         "Password must not be one of the previous %d passwords", HISTORY_LIMIT ), "password_history_validation", false );
             }
         }
 
-        if( previousPasswords.size() == HISTORY_LIMIT )
+        if ( previousPasswords.size() == HISTORY_LIMIT )
         {
             userCredentials.getPreviousPasswords().remove( 0 );
 

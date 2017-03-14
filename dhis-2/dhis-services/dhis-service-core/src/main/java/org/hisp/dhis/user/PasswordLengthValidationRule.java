@@ -22,7 +22,7 @@ public class PasswordLengthValidationRule implements PasswordValidationRule
         if ( password == null || password.trim().length() < minCharLimit || password.trim().length() > maxCharLimit )
         {
             return new PasswordValidationResult( String.format(
-                    "Password must have atleast %d, and atmost %d characters", minCharLimit, maxCharLimit ), "password_length_validation", false );
+                    "Password must have at least %d, and at most %d characters", minCharLimit, maxCharLimit ), "password_length_validation", false );
         }
 
         return new PasswordValidationResult( true );

@@ -362,7 +362,7 @@ public class MeController
         RootNode rootNode = NodeUtils.createRootNode( "response" );
         rootNode.addChild( new SimpleNode( "isValidPassword", result.isValid() ) );
 
-        if( !result.isValid() )
+        if ( !result.isValid() )
         {
             rootNode.addChild( new SimpleNode( "errorMessage", result.getErrorMessage() ) );
         }

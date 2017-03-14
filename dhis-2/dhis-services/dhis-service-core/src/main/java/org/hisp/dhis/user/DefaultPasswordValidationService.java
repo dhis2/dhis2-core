@@ -28,7 +28,7 @@ public class DefaultPasswordValidationService
     {
         PasswordValidationResult result;
 
-        for( PasswordValidationRule rule : rules )
+        for ( PasswordValidationRule rule : rules )
         {
             if ( !isRuleApplicable( username, newUser ) )
             {

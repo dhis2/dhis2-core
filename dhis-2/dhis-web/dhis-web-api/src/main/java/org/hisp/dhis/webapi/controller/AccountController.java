@@ -461,12 +461,12 @@ public class AccountController
             return;
         }
 
-        PasswordValidationResult result1 = passwordValidationService.validate( username, password, false );
+        PasswordValidationResult passwordValidationResult = passwordValidationService.validate( username, password, false );
 
-        if ( !result1.isValid() )
+        if ( !passwordValidationResult.isValid() )
         {
             result.put( "status", "PASSWORD_INVALID" );
-            result.put( "message", result1.getErrorMessage() );
+            result.put( "message", passwordValidationResult.getErrorMessage() );
 
             ContextUtils.badRequestResponse( response, objectMapper.writeValueAsString( result ) );
             return;

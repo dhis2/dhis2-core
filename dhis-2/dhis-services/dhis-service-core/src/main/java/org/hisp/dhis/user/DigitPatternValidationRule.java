@@ -12,9 +12,9 @@ public class DigitPatternValidationRule implements PasswordValidationRule
     @Override
     public PasswordValidationResult validate( String username, String password )
     {
-        if( !DIGIT_PATTERN.matcher( password ).matches() )
+        if ( !DIGIT_PATTERN.matcher( password ).matches() )
         {
-            return new PasswordValidationResult( "Password must have atleast one digit", "password_digit_validation", false );
+            return new PasswordValidationResult( "Password must have at least one digit", "password_digit_validation", false );
         }
 
         return new PasswordValidationResult( true );

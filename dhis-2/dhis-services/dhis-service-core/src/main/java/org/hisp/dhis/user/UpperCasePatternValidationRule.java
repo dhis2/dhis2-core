@@ -12,9 +12,9 @@ public class UpperCasePatternValidationRule implements PasswordValidationRule
     @Override
     public PasswordValidationResult validate( String username, String password )
     {
-        if( !UPPERCASE_PATTERN.matcher( password ).matches() )
+        if ( !UPPERCASE_PATTERN.matcher( password ).matches() )
         {
-            return new PasswordValidationResult( "Password must have atleast one upper case", "password_uppercase_validation",false );
+            return new PasswordValidationResult( "Password must have at least one upper case", "password_uppercase_validation",false );
         }
 
         return new PasswordValidationResult( true );
