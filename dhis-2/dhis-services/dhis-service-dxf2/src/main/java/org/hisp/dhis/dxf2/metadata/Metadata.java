@@ -1146,7 +1146,6 @@ public class Metadata
             ", reportTables=" + reportTables +
             ", maps=" + maps +
             ", mapViews=" + mapViews +
-            ", legends=" + legends +
             ", legendSets=" + legendSets +
             ", externalMapLayers=" + externalMapLayers +
             ", sections=" + sections +
