@@ -161,7 +161,7 @@ public class DataValueSMSListener
 
         for ( SMSCode code : smsCommand.getCodes() )
         {
-            if ( parsedMessage.containsKey( code.getCode().toUpperCase() ) )
+            if ( parsedMessage.containsKey( code.getCode() ) )
             {
                 valueStored = storeDataValue( senderPhoneNumber, orgUnit, parsedMessage, code, smsCommand, date,
                     smsCommand.getDataset() );
@@ -219,7 +219,7 @@ public class DataValueSMSListener
 
             if ( !StringUtils.isEmpty( key ) && !StringUtils.isEmpty( value ) )
             {
-                output.put( key.toUpperCase(), value );
+                output.put( key, value );
             }
         }
 
@@ -252,8 +252,6 @@ public class DataValueSMSListener
     private boolean storeDataValue( String sender, OrganisationUnit orgunit, Map<String, String> parsedMessage,
         SMSCode code, SMSCommand command, Date date, DataSet dataSet )
     {
-        String upperCaseCode = code.getCode().toUpperCase();
-
         String storedBy = SmsUtils.getUser( sender, command, userService.getUsersByPhoneNumber( sender ) )
             .getUsername();
 
@@ -269,7 +267,7 @@ public class DataValueSMSListener
 
         DataValue dv = dataValueService.getDataValue( code.getDataElement(), period, orgunit, optionCombo );
 
-        String value = parsedMessage.get( upperCaseCode );
+        String value = parsedMessage.get( code.getCode() );
 
         Set<SMSSpecialCharacter> specialCharacters = command.getSpecialCharacters();
 
