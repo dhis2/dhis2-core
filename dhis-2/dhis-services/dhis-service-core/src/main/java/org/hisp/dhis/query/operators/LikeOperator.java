@@ -63,11 +63,11 @@ public class LikeOperator extends Operator
     {
         if ( caseSensitive )
         {
-            return Restrictions.like( queryPath.getPath(), String.valueOf( args.get( 0 ) ), matchMode );
+            return Restrictions.like( queryPath.getPath(), String.valueOf( args.get( 0 ) ).replace( "%", "\\%" ), matchMode );
         }
         else
         {
-            return Restrictions.ilike( queryPath.getPath(), String.valueOf( args.get( 0 ) ), matchMode );
+            return Restrictions.ilike( queryPath.getPath(), String.valueOf( args.get( 0 ) ).replace( "%", "\\%" ), matchMode );
         }
     }
 
