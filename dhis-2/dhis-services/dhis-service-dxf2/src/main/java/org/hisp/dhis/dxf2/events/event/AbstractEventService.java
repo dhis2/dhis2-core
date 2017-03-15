@@ -1404,19 +1404,19 @@ public abstract class AbstractEventService
 
     private ProgramStageInstance createProgramStageInstance( ProgramStage programStage, ProgramInstance programInstance,
         OrganisationUnit organisationUnit, Date dueDate, Date executionDate, int status, Coordinate coordinate,
-        String completedBy, String programStageInstanceUid, DataElementCategoryOptionCombo coc,
+        String completedBy, String programStageInstanceIdentifier, DataElementCategoryOptionCombo coc,
         ImportOptions importOptions )
     {
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
         if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.UID ))
         {
-            programStageInstance.setUid( CodeGenerator.isValidCode( programStageInstanceUid ) ? programStageInstanceUid
+            programStageInstance.setUid( CodeGenerator.isValidCode( programStageInstanceIdentifier ) ? programStageInstanceIdentifier
                 : CodeGenerator.generateCode() );
         }
         else if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.CODE ))
         {
             programStageInstance.setUid( CodeGenerator.generateCode() );
-            programStageInstance.setCode( programStageInstanceUid );
+            programStageInstance.setCode( programStageInstanceIdentifier );
         }
 
         updateProgramStageInstance( programStage, programInstance, organisationUnit, dueDate, executionDate, status,
