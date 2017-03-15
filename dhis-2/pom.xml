@@ -275,7 +275,7 @@
                   <mkdir dir="${project.build.outputDirectory}" />
                   <exec executable="git" outputproperty="revision" failifexecutionfails="false">
                     <arg value="rev-parse" />
-                    <arg value="--short" />
+                    <arg value="--short=7" />
                     <arg value="HEAD" />
                   </exec>
                   <echo file="${project.build.outputDirectory}/build.properties"
