@@ -33,7 +33,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.LinkObject;
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
 /**
@@ -41,7 +41,7 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
  */
 @JacksonXmlRootElement( localName = "legend", namespace = DxfNamespaces.DXF_2_0 )
 public class Legend
-    extends BaseIdentifiableObject implements LinkObject
+    extends BaseIdentifiableObject implements EmbeddedObject
 {
     private Double startValue;
 

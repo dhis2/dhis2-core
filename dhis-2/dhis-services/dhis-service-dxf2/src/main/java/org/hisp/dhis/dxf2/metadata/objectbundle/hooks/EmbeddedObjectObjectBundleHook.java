@@ -42,7 +42,7 @@ import java.util.List;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class LinkObjectObjectBundleHook
+public class EmbeddedObjectObjectBundleHook
     extends AbstractObjectBundleHook
 {
     @Override
@@ -50,12 +50,12 @@ public class LinkObjectObjectBundleHook
     {
         Schema schema = schemaService.getDynamicSchema( object.getClass() );
 
-        if ( schema == null || schema.getLinkObjectProperties().isEmpty() )
+        if ( schema == null || schema.getEmbeddedObjectProperties().isEmpty() )
         {
             return;
         }
 
-        handleLinkObjects( object, bundle, schema.getLinkObjectProperties() );
+        handleEmbeddedObjects( object, bundle, schema.getEmbeddedObjectProperties() );
     }
 
     @Override
@@ -63,18 +63,18 @@ public class LinkObjectObjectBundleHook
     {
         Schema schema = schemaService.getDynamicSchema( object.getClass() );
 
-        if ( schema == null || schema.getLinkObjectProperties().isEmpty() )
+        if ( schema == null || schema.getEmbeddedObjectProperties().isEmpty() )
         {
             return;
         }
 
-        List<Property> properties = schema.getLinkObjectProperties();
+        List<Property> properties = schema.getEmbeddedObjectProperties();
 
-        clearLinkObjects( persistedObject, properties );
-        handleLinkObjects( object, bundle, properties );
+        clearEmbeddedObjects( persistedObject, properties );
+        handleEmbeddedObjects( object, bundle, properties );
     }
 
-    private <T extends IdentifiableObject> void clearLinkObjects( T object, List<Property> properties )
+    private <T extends IdentifiableObject> void clearEmbeddedObjects( T object, List<Property> properties )
     {
         for ( Property property : properties )
         {
@@ -91,7 +91,7 @@ public class LinkObjectObjectBundleHook
         sessionFactory.getCurrentSession().flush();
     }
 
-    private <T extends IdentifiableObject> void handleLinkObjects( T object, ObjectBundle bundle, List<Property> properties )
+    private <T extends IdentifiableObject> void handleEmbeddedObjects( T object, ObjectBundle bundle, List<Property> properties )
     {
         for ( Property property : properties )
         {
