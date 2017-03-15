@@ -33,9 +33,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.LinkObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
 /**
@@ -122,8 +120,6 @@ public class Legend
         this.image = image;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public LegendSet getLegendSet()
     {
         return legendSet;
@@ -132,33 +128,5 @@ public class Legend
     public void setLegendSet( LegendSet legendSet )
     {
         this.legendSet = legendSet;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            Legend legend = (Legend) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                startValue = legend.getStartValue();
-                endValue = legend.getEndValue();
-                color = legend.getColor();
-                image = legend.getImage();
-                legendSet = legend.getLegendSet();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                startValue = legend.getStartValue() == null ? startValue : legend.getStartValue();
-                endValue = legend.getEndValue() == null ? endValue : legend.getEndValue();
-                color = legend.getColor() == null ? color : legend.getColor();
-                image = legend.getImage() == null ? image : legend.getImage();
-                legendSet = legend.getLegendSet() == null ? legendSet : legend.getLegendSet();
-            }
-        }
     }
 }

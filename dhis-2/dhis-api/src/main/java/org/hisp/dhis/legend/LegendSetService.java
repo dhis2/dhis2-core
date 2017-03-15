@@ -33,37 +33,17 @@ import java.util.List;
 /**
  * @author Lars Helge Overland
  */
-public interface LegendService
+public interface LegendSetService
 {
-    // -------------------------------------------------------------------------
-    // Legend
-    // -------------------------------------------------------------------------
-
-    int addLegend( Legend legend );
-    
-    void updateLegend( Legend legend );
-    
-    Legend getLegend( int id );
-    
-    Legend getLegend( String uid );
-    
-    void deleteLegend( Legend legend );
-    
-    List<Legend> getAllLegends();
-    
-    // -------------------------------------------------------------------------
-    // LegendSet
-    // -------------------------------------------------------------------------
-
     int addLegendSet( LegendSet legend );
-    
+
     void updateLegendSet( LegendSet legend );
-    
+
     LegendSet getLegendSet( int id );
-    
+
     LegendSet getLegendSet( String uid );
-    
+
     void deleteLegendSet( LegendSet legendSet );
-    
+
     List<LegendSet> getAllLegendSets();
 }

@@ -40,7 +40,7 @@ import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.comparator.AttributeSortOrderComparator;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
-import org.hisp.dhis.legend.LegendService;
+import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -77,7 +77,7 @@ public class GetProgramIndicatorAction
     private ProgramService programService;
     
     @Autowired
-    private LegendService legendService;
+    private LegendSetService legendSetService;
 
     @Autowired
     private AttributeService attributeService;
@@ -196,7 +196,7 @@ public class GetProgramIndicatorAction
         
         expressionAttributes = new ArrayList<>( program.getTrackedEntityAttributes() );
         constants = constantService.getAllConstants();
-        legendSets = legendService.getAllLegendSets();
+        legendSets = legendSetService.getAllLegendSets();
 
         expressionAttributes = expressionAttributes.stream().filter( ArithmeticValueTypeTrackedEntityAttributeFilter.INSTANCE ).collect( Collectors.toList() );
 

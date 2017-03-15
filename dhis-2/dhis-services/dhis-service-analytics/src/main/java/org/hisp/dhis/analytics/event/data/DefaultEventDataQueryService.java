@@ -66,7 +66,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.legend.LegendService;
+import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -111,7 +111,7 @@ public class DefaultEventDataQueryService
     private ProgramIndicatorService programIndicatorService;
 
     @Autowired
-    private LegendService legendService;
+    private LegendSetService legendSetService;
 
     @Autowired
     private DataQueryService dataQueryService;
@@ -397,7 +397,7 @@ public class DefaultEventDataQueryService
 
         String item = split[0];
 
-        LegendSet legendSet = split.length > 1 && split[1] != null ? legendService.getLegendSet( split[1] ) : null;
+        LegendSet legendSet = split.length > 1 && split[1] != null ? legendSetService.getLegendSet( split[1] ) : null;
 
         DataElement de = dataElementService.getDataElement( item );
 

@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  *
  */
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.schema.Property;
@@ -54,7 +55,7 @@ public class LinkObjectObjectBundleHook
             return;
         }
 
-        connectLinkObjects( object, bundle, schema.getLinkObjectProperties() );
+        handleLinkObjects( object, bundle, schema.getLinkObjectProperties() );
     }
 
     @Override
@@ -70,7 +71,7 @@ public class LinkObjectObjectBundleHook
         List<Property> properties = schema.getLinkObjectProperties();
 
         clearLinkObjects( persistedObject, properties );
-        connectLinkObjects( object, bundle, properties );
+        handleLinkObjects( object, bundle, properties );
     }
 
     private <T extends IdentifiableObject> void clearLinkObjects( T object, List<Property> properties )
@@ -90,18 +91,32 @@ public class LinkObjectObjectBundleHook
         sessionFactory.getCurrentSession().flush();
     }
 
-    private <T extends IdentifiableObject> void connectLinkObjects( T object, ObjectBundle bundle, List<Property> properties )
+    private <T extends IdentifiableObject> void handleLinkObjects( T object, ObjectBundle bundle, List<Property> properties )
     {
         for ( Property property : properties )
         {
             if ( property.isCollection() )
             {
                 Collection<?> objects = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
-                objects.forEach( o -> preheatService.connectReferences( o, bundle.getPreheat(), bundle.getPreheatIdentifier() ) );
+                objects.forEach( o ->
+                {
+                    if ( property.isIdentifiableObject() )
+                    {
+                        ((BaseIdentifiableObject) o).setAutoFields();
+                    }
+
+                    preheatService.connectReferences( o, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+                } );
             }
             else
             {
                 Object o = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+
+                if ( property.isIdentifiableObject() )
+                {
+                    ((BaseIdentifiableObject) o).setAutoFields();
+                }
+
                 preheatService.connectReferences( o, bundle.getPreheat(), bundle.getPreheatIdentifier() );
             }
         }
