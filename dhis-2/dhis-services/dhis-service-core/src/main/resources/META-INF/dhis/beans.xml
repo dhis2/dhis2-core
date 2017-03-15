@@ -417,6 +417,16 @@
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
+  <bean id="org.hisp.dhis.user.PasswordValidationService" class="org.hisp.dhis.user.DefaultPasswordValidationService" />
+
+  <bean id="org.hisp.dhis.user.PasswordHistoryValidationRule" class="org.hisp.dhis.user.PasswordHistoryValidationRule" />
+
+  <bean id="org.hisp.dhis.user.PasswordLengthValidationRule" class="org.hisp.dhis.user.PasswordLengthValidationRule" />
+
+  <bean id="org.hisp.dhis.user.DigitPatternValidationRule" class="org.hisp.dhis.user.DigitPatternValidationRule" />
+
+  <bean id="org.hisp.dhis.user.UpperCasePatternValidationRule" class="org.hisp.dhis.user.UpperCasePatternValidationRule" />
+
   <bean id="org.hisp.dhis.validation.ValidationCriteriaStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
     <property name="clazz" value="org.hisp.dhis.validation.ValidationCriteria" />
     <property name="sessionFactory" ref="sessionFactory" />
