@@ -1,8 +1,8 @@
 <div class="modal-header">
     <h2>{{'audit_history'| translate}}</h2>
 </div>
-<div class="modal-body page"> 
-    <div ng-if="model.itemList.length > 0">
+<div class="modal-body page" ng-class="{'waiting-box':model.showStatus === 'waiting'}">
+    <div ng-if="model.showStatus === 'data_available'">
         <span class="row">
             <input class="form-control col-md-7" ng-model="model.searchText" placeholder="{{model.searchPlaceholder}}" type="search" />
         </span>
@@ -54,10 +54,14 @@
             </table>
         </div>
     </div>
-    <div ng-if="model.itemList.length === 0">
+    <div ng-if="model.showStatus === 'data_unavailable'">
         <div class="alert alert-warning">{{'audit_history_unavailable'| translate}}</div>
     </div>
+    <div ng-if="model.showStatus === 'waiting'">
+        <i class="fa fa-spinner fa-spin audit-spinner"></i>
+        <div class="loading-audit-data">{{'loading-audit-data' | translate}}</div>
+    </div>
 </div>
-<div class="modal-footer">
+<div class="modal-footer" ng-if="model.showStatus !== 'waiting'">
     <button type="button" class="btn btn-default" data-ng-click="close()">{{'close'| translate}}</button>
 </div>

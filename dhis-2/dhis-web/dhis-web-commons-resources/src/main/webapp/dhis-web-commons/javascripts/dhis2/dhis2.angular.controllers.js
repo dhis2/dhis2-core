@@ -434,7 +434,7 @@ var d2Controllers = angular.module('d2Controllers', [])
     $scope.close = function () {
         $modalInstance.close();
     };
-    
+    $scope.model.showStatus="waiting";
     AuditHistoryDataService.getAuditHistoryData(eventId, dataType).then(function (data) {
 
         $scope.model.itemList = [];
@@ -477,6 +477,13 @@ var d2Controllers = angular.module('d2Controllers', [])
                 }
             }
         }
+        if ($scope.model.itemList.length === 0) {
+            $scope.model.showStatus="data_unavailable";
+        } else {
+            $scope.model.showStatus="data_available";
+        }
+    },function(){
+        $scope.model.showStatus="data_unavailable";
     });
 })
 
