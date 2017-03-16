@@ -232,10 +232,12 @@
 				<td><input type="text" id="excecutionDateLabel" name="excecutionDateLabel" value='$!programStage.executionDateLabel' class="{validate:{required:true}}" /></td>
 			</tr>
 			
+			#if($programStage.program.programType.value=="with_registration")
 			<tr>
 				<td><label for="dueDateLabel">$i18n.getString( "due_date_description" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
 				<td><input type="text" id="dueDateLabel" name="dueDateLabel" value='$!programStage.dueDateLabel' class="{validate:{required:true}}" /></td>
 			</tr>
+			#end
 			
 		</tbody>
 		<tr><td>&nbsp;</td><td>&nbsp;</td></tr>
