@@ -55,7 +55,14 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.*;
@@ -118,16 +125,20 @@ public class JdbcEventStore
 
         while ( rowSet.next() )
         {
+
             if ( rowSet.getString( "psi_uid" ) == null )
             {
                 continue;
             }
-            
-            if ( !event.getEvent().equals( rowSet.getString( "psi_uid" ) ) )
+
+            if ( event.getUid() == null || !event.getUid().equals( rowSet.getString( "psi_uid" ) ) )
             {
                 event = new Event();
 
-                event.setEvent( rowSet.getString( "psi_uid" ) );
+                event.setUid( rowSet.getString( "psi_uid" ) );
+
+                event.setEvent( IdSchemes.getValue( rowSet.getString( "psi_uid" ), rowSet.getString( "psi_code" ) ,
+                    idSchemes.getProgramStageInstanceIdScheme() ) );
                 event.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
                 event.setStatus( EventStatus.valueOf( rowSet.getString( "psi_status" ) ) );
 
@@ -344,11 +355,13 @@ public class JdbcEventStore
                 continue;
             }
 
-            if ( !eventRow.getEvent().equals( rowSet.getString( "psi_uid" ) ) )
+            if (  eventRow.getUid() == null ||!eventRow.getUid().equals( rowSet.getString( "psi_uid" ) ) )
             {
                 eventRow = new EventRow();
 
-                eventRow.setEvent( rowSet.getString( "psi_uid" ) );
+                eventRow.setUid( rowSet.getString( "psi_uid" ) );
+
+                eventRow.setEvent( IdSchemes.getValue( rowSet.getString( "psi_uid" ), rowSet.getString( "psi_code" ), idSchemes.getProgramStageInstanceIdScheme() ) );
                 eventRow.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
                 eventRow.setTrackedEntityInstanceOrgUnit( rowSet.getString( "tei_ou" ) );
                 eventRow.setTrackedEntityInstanceOrgUnitName( rowSet.getString( "tei_ou_name" ) );
@@ -489,7 +502,7 @@ public class JdbcEventStore
 
         SqlHelper hlp = new SqlHelper();
 
-        String sql = "select psi.programstageinstanceid as psi_id, psi.uid as psi_uid, psi.status as psi_status, psi.executiondate as psi_executiondate, "
+        String sql = "select psi.programstageinstanceid as psi_id, psi.uid as psi_uid, psi.code as psi_code, psi.status as psi_status, psi.executiondate as psi_executiondate, "
             + "psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, psi.longitude as psi_longitude, " 
             + "psi.latitude as psi_latitude, psi.created as psi_created, psi.lastupdated as psi_lastupdated, psi.completeddate as psi_completeddate, psi.deleted as psi_deleted, "
             + "coc.code AS coc_categoryoptioncombocode, coc.uid AS coc_categoryoptioncombouid, cocco.categoryoptionid AS cocco_categoryoptionid, "
