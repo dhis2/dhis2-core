@@ -35,10 +35,9 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.LinkObject;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
-import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataset.DataInputPeriod;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -412,7 +411,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                 ObjectReport objectReport = new ObjectReport( klass, idx, object.getUid() );
                 objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
                 objectReport.addErrorReport( new ErrorReport( klass, ErrorCode.E5000, bundle.getPreheatIdentifier(),
-                    bundle.getPreheatIdentifier().getIdentifiersWithName( identifiableObject ) ) );
+                    bundle.getPreheatIdentifier().getIdentifiersWithName( identifiableObject ) ).setMainId( identifiableObject.getUid() ) );
 
                 typeReport.addObjectReport( objectReport );
                 typeReport.getStats().incIgnored();
@@ -450,7 +449,9 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                 ObjectReport objectReport = new ObjectReport( klass, idx, object != null ? object.getUid() : null );
                 objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
                 objectReport.addErrorReport( new ErrorReport( klass, ErrorCode.E5001, bundle.getPreheatIdentifier(),
-                    bundle.getPreheatIdentifier().getIdentifiersWithName( identifiableObject ) ) );
+                    bundle.getPreheatIdentifier().getIdentifiersWithName( identifiableObject ) )
+                    .setErrorProperty( "id" )
+                    .setMainId( identifiableObject.getUid() ) );
 
                 typeReport.addObjectReport( objectReport );
                 typeReport.getStats().incIgnored();
@@ -488,7 +489,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                 ObjectReport objectReport = new ObjectReport( klass, idx, object != null ? object.getUid() : null );
                 objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
                 objectReport.addErrorReport( new ErrorReport( klass, ErrorCode.E5001, bundle.getPreheatIdentifier(),
-                    bundle.getPreheatIdentifier().getIdentifiersWithName( identifiableObject ) ) );
+                    bundle.getPreheatIdentifier().getIdentifiersWithName( identifiableObject ) ).setMainId( object != null ? object.getUid() : null ) );
 
                 typeReport.addObjectReport( objectReport );
                 typeReport.getStats().incIgnored();
@@ -686,7 +687,8 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
             if ( idMap.containsKey( object.getClass() ) && idMap.get( object.getClass() ).equals( object.getUid() ) )
             {
-                ErrorReport errorReport = new ErrorReport( object.getClass(), ErrorCode.E5004, object.getUid(), object.getClass() );
+                ErrorReport errorReport = new ErrorReport( object.getClass(), ErrorCode.E5004, object.getUid(), object.getClass() )
+                    .setMainId( object.getUid() ).setErrorProperty( "id" );
 
                 ObjectReport objectReport = new ObjectReport( object.getClass(), idx );
                 objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
@@ -713,7 +715,8 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
             if ( idMap.containsKey( object.getClass() ) && idMap.get( object.getClass() ).equals( object.getUid() ) )
             {
-                ErrorReport errorReport = new ErrorReport( object.getClass(), ErrorCode.E5004, object.getUid(), object.getClass() );
+                ErrorReport errorReport = new ErrorReport( object.getClass(), ErrorCode.E5004, object.getUid(), object.getClass() )
+                    .setMainId( object.getUid() ).setErrorProperty( "id" );
 
                 ObjectReport objectReport = new ObjectReport( object.getClass(), idx );
                 objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
@@ -816,7 +819,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                     if ( !object.getUid().equals( persistedUid ) )
                     {
                         errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E5003, property.getName(), value,
-                            identifier.getIdentifiersWithName( object ), persistedUid ) );
+                            identifier.getIdentifiersWithName( object ), persistedUid ).setMainId( persistedUid ).setErrorProperty( property.getName() ) );
                     }
                 }
                 else
@@ -882,7 +885,8 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
         }
 
         attributeValues.forEach( attributeValue -> mandatoryAttributes.remove( attributeValue.getAttribute().getUid() ) );
-        mandatoryAttributes.forEach( att -> errorReports.add( new ErrorReport( Attribute.class, ErrorCode.E4011, att ) ) );
+        mandatoryAttributes.forEach( att -> errorReports.add( new ErrorReport( Attribute.class, ErrorCode.E4011, att )
+            .setMainId( att ).setErrorProperty( "value" ) ) );
 
         return errorReports;
     }
@@ -962,7 +966,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                 if ( values.containsKey( attributeValue.getValue() ) && !values.get( attributeValue.getValue() ).equals( object.getUid() ) )
                 {
                     errorReports.add( new ErrorReport( Attribute.class, ErrorCode.E4009, IdentifiableObjectUtils.getDisplayName( attribute ),
-                        attributeValue.getValue() ) );
+                        attributeValue.getValue() ).setMainId( attribute.getUid() ).setErrorProperty( "value" ) );
                 }
                 else
                 {
@@ -981,9 +985,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
     private boolean skipCheck( Class<?> klass )
     {
-        return klass != null && (
-            UserCredentials.class.isAssignableFrom( klass ) || DataElementOperand.class.isAssignableFrom( klass )
-                || Period.class.isAssignableFrom( klass ) || PeriodType.class.isAssignableFrom( klass ) ||
-                DataInputPeriod.class.isAssignableFrom( klass ));
+        return klass != null && (UserCredentials.class.isAssignableFrom( klass ) || LinkObject.class.isAssignableFrom( klass ) ||
+            Period.class.isAssignableFrom( klass ) || PeriodType.class.isAssignableFrom( klass ));
     }
 }

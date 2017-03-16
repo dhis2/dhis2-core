@@ -35,6 +35,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -208,16 +209,16 @@ public class ContextUtils
      * Creates a ZipOutputStream based on the HttpServletResponse and puts a
      * new ZipEntry with the given filename to it.
      * 
-     * @param response the HttpServletResponse.
-     * @param fileName the filename of the file inside the zip archive.
+     * @param out the output stream.
+     * @param fileName the filename of the file inside the ZIP archive.
      * @return a ZipOutputStream
      * @throws IOException
      */
-    public static ZipOutputStream getZipOut( HttpServletResponse response, String fileName )
+    public static ZipOutputStream getZipOut( OutputStream out, String fileName )
         throws IOException
     {
-        ZipOutputStream out = new ZipOutputStream( response.getOutputStream() );
-        out.putNextEntry( new ZipEntry( fileName ) );        
-        return out;
+        ZipOutputStream zipOut = new ZipOutputStream( out );
+        zipOut.putNextEntry( new ZipEntry( fileName ) );        
+        return zipOut;
     }
 }

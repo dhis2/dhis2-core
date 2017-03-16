@@ -28,11 +28,7 @@ package org.hisp.dhis.validationrule.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
+import com.opensymphony.xwork2.Action;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -44,9 +40,13 @@ import org.hisp.dhis.util.SessionUtils;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.ValidationRuleService;
+import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.comparator.ValidationResultComparator;
 
-import com.opensymphony.xwork2.Action;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Margrethe Store
@@ -69,6 +69,13 @@ public class RunValidationAction
     public void setValidationRuleService( ValidationRuleService validationRuleService )
     {
         this.validationRuleService = validationRuleService;
+    }
+
+    private ValidationService validationService;
+    
+    public void setValidationService( ValidationService validationService )
+    {
+        this.validationService = validationService;
     }
 
     private I18nFormat format;
@@ -193,10 +200,10 @@ public class RunValidationAction
 
         log.info( "Validating data for " + ( group == null ? "all rules" : "group: " + group.getName() ) );
 
-        validationResults = new ArrayList<>( validationRuleService.validate( format.parseDate( startDate ), format.parseDate( endDate ),
+        validationResults = new ArrayList<>( validationService.startInteractiveValidationAnalysis( format.parseDate( startDate ), format.parseDate( endDate ),
                 organisationUnits, attributeOptionCombo, group, sendNotifications, format ) );
 
-        maxExceeded = validationResults.size() > ValidationRuleService.MAX_INTERACTIVE_ALERTS;
+        maxExceeded = validationResults.size() > ValidationService.MAX_INTERACTIVE_ALERTS;
 
         Collections.sort( validationResults, new ValidationResultComparator() );
 

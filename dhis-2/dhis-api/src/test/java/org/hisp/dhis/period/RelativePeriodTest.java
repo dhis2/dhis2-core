@@ -51,6 +51,82 @@ public class RelativePeriodTest
     {
         return new DateTimeUnit( year, month, day, true ).toJdkDate();
     }
+
+    @Test
+    public void testGetThisToday()
+    {
+        RelativePeriods periods = new RelativePeriods().setThisDay( true );
+
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 1 ), I18N_FORMAT, false );
+
+        assertEquals( 1, relatives.size() );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 1 ) ), relatives.get( 0 ) );
+    }
+
+    @Test
+    public void testGetYesterday()
+    {
+        RelativePeriods periods = new RelativePeriods().setYesterday( true );
+
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 2 ), I18N_FORMAT, false );
+
+        assertEquals( 1, relatives.size() );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 1 ) ), relatives.get( 0 ) );
+    }
+
+    @Test
+    public void testGetLast3Days()
+    {
+        RelativePeriods periods = new RelativePeriods().setLast3Days( true );
+
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 4 ), I18N_FORMAT, false );
+
+        assertEquals( 3, relatives.size() );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 1 ) ), relatives.get( 0 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 2 ), getDate( 2001, 7, 2 ) ), relatives.get( 1 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 3 ), getDate( 2001, 7, 3 ) ), relatives.get( 2 ) );
+    }
+
+    @Test
+    public void testGetLast7Days()
+    {
+        RelativePeriods periods = new RelativePeriods().setLast7Days( true );
+
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 8 ), I18N_FORMAT, false );
+
+        assertEquals( 7, relatives.size() );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 1 ) ), relatives.get( 0 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 2 ), getDate( 2001, 7, 2 ) ), relatives.get( 1 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 3 ), getDate( 2001, 7, 3 ) ), relatives.get( 2 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 4 ), getDate( 2001, 7, 4 ) ), relatives.get( 3 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 5 ), getDate( 2001, 7, 5 ) ), relatives.get( 4 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 6 ), getDate( 2001, 7, 6 ) ), relatives.get( 5 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 7 ), getDate( 2001, 7, 7 ) ), relatives.get( 6 ) );
+    }
+
+    @Test
+    public void testGetLast14Days()
+    {
+        RelativePeriods periods = new RelativePeriods().setLast14Days( true );
+
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 15 ), I18N_FORMAT, false );
+
+        assertEquals( 14, relatives.size() );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 1 ) ), relatives.get( 0 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 2 ), getDate( 2001, 7, 2 ) ), relatives.get( 1 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 3 ), getDate( 2001, 7, 3 ) ), relatives.get( 2 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 4 ), getDate( 2001, 7, 4 ) ), relatives.get( 3 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 5 ), getDate( 2001, 7, 5 ) ), relatives.get( 4 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 6 ), getDate( 2001, 7, 6 ) ), relatives.get( 5 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 7 ), getDate( 2001, 7, 7 ) ), relatives.get( 6 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 8 ), getDate( 2001, 7, 8 ) ), relatives.get( 7 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 9 ), getDate( 2001, 7, 9 ) ), relatives.get( 8 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 10 ), getDate( 2001, 7, 10 ) ), relatives.get( 9 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 11 ), getDate( 2001, 7, 11 ) ), relatives.get( 10 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 12 ), getDate( 2001, 7, 12 ) ), relatives.get( 11 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 13 ), getDate( 2001, 7, 13 ) ), relatives.get( 12 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 14 ), getDate( 2001, 7, 14 ) ), relatives.get( 13 ) );
+    }
     
     @Test
     public void testGetThisMonth()
@@ -271,6 +347,20 @@ public class RelativePeriodTest
     }
 
     @Test
+    public void testGetBiMonthsThisYear()
+    {
+        List<Period> relatives = new RelativePeriods().setBiMonthsThisYear( true ).getRelativePeriods( getDate( 2001, 4, 1 ), I18N_FORMAT, false );
+
+        assertEquals( 6, relatives.size() );
+        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 1, 1 ), getDate( 2001, 2, 28 ) ), relatives.get( 0 ) );
+        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 3, 1 ), getDate( 2001, 4, 30 ) ), relatives.get( 1 ) );
+        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 5, 1 ), getDate( 2001, 6, 30 ) ), relatives.get( 2 ) );
+        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 8, 31 ) ), relatives.get( 3 ) );
+        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 9, 1 ), getDate( 2001, 10, 31 ) ), relatives.get( 4 ) );
+        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 11, 1 ), getDate( 2001, 12, 31 ) ), relatives.get( 5 ) );
+    }
+
+    @Test
     public void testGetLastWeek()
     {
         List<Period> relatives = new RelativePeriods().setLastWeek( true ).getRelativePeriods( getDate( 2012, 1, 20 ), I18N_FORMAT, false );
@@ -339,6 +429,7 @@ public class RelativePeriodTest
     public void testGetRelativePeriodsFromPeriodTypes()
     {
         Set<String> periodTypes = new HashSet<>();
+        periodTypes.add( DailyPeriodType.NAME );
         periodTypes.add( MonthlyPeriodType.NAME );
         periodTypes.add( BiMonthlyPeriodType.NAME );
         periodTypes.add( QuarterlyPeriodType.NAME );
@@ -348,6 +439,6 @@ public class RelativePeriodTest
 
         List<Period> periods = new RelativePeriods().getLast12Months( periodTypes );
 
-        assertEquals( 26, periods.size() );
+        assertEquals( 391, periods.size() );
     }
 }

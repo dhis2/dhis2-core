@@ -1,16 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd">
 
   <bean id="org.hisp.dhis.reporting.action.NoAction" class="org.hisp.dhis.reporting.action.NoAction" />
 
   <!-- Document -->
 
   <bean id="org.hisp.dhis.reporting.document.action.SaveDocumentAction" class="org.hisp.dhis.reporting.document.action.SaveDocumentAction"
-    scope="prototype">
-    <property name="locationManager" ref="locationManager" />
-    <property name="documentService" ref="org.hisp.dhis.document.DocumentService" />
-  </bean>
+    scope="prototype" />
 
   <bean id="org.hisp.dhis.reporting.document.action.GetDocumentAction" class="org.hisp.dhis.reporting.document.action.GetDocumentAction"
     scope="prototype">
@@ -19,7 +16,6 @@
 
   <bean id="org.hisp.dhis.reporting.document.action.RemoveDocumentAction" class="org.hisp.dhis.reporting.document.action.RemoveDocumentAction"
     scope="prototype">
-    <property name="locationManager" ref="locationManager" />
     <property name="documentService" ref="org.hisp.dhis.document.DocumentService" />
   </bean>
 
@@ -154,13 +150,4 @@
     <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
   </bean>
   
-  <!-- Analytics tables -->
-
-  <bean id="org.hisp.dhis.reporting.datamart.action.StartExportAction" class="org.hisp.dhis.reporting.datamart.action.StartExportAction"
-	scope="prototype">
-	<property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService"/>
-	<property name="scheduler" ref="scheduler"/>
-	<property name="analyticsTableTask" ref="analyticsAllTask" />
-  </bean>
-
 </beans>

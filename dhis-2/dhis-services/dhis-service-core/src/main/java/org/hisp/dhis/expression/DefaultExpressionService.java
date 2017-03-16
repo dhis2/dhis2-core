@@ -30,11 +30,15 @@ package org.hisp.dhis.expression;
 
 import com.google.common.collect.Sets;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.GenericStore;
@@ -44,6 +48,7 @@ import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.RegexUtils;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
@@ -68,6 +73,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -76,6 +82,7 @@ import java.util.stream.Collectors;
 import static org.hisp.dhis.expression.Expression.*;
 import static org.hisp.dhis.expression.MissingValueStrategy.*;
 import static org.hisp.dhis.system.util.MathUtils.*;
+import static org.hisp.dhis.dataelement.DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
 /**
  * The expression is a string describing a formula containing data element ids
@@ -90,6 +97,12 @@ public class DefaultExpressionService
 {
     private static final Log log = LogFactory.getLog( DefaultExpressionService.class );
 
+    private Cache<String, String> CACHE_CATEGORY_OPTION_COMBO_NAME_UID = Caffeine.newBuilder()
+        .expireAfterAccess( 1, TimeUnit.DAYS )
+        .initialCapacity( 1 )
+        .maximumSize( SystemUtils.isTestRun() ? 0 : 100 )
+        .build();
+    
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -249,14 +262,16 @@ public class DefaultExpressionService
     public Double getExpressionValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days )
     {
-        return getExpressionValue( expression, valueMap, constantMap, orgUnitCountMap, days, null, null );
+        return getExpressionValue( expression, valueMap, constantMap, orgUnitCountMap, days, null );
     }
 
     @Override
     public Double getExpressionValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
-        Set<DataElementOperand> incompleteValues, ListMap<String, Double> aggregateMap )
+        ListMap<String, Double> aggregateMap )
     {
+        //TODO this needs to be rewritten
+        
         if ( aggregateMap == null )
         {
             Matcher simpleMatch = OPERAND_PATTERN.matcher( expression.getExpression() );
@@ -269,7 +284,7 @@ public class DefaultExpressionService
 
         String expressionString = generateExpression( expression.getExplodedExpressionFallback(), 
             valueMap, constantMap, orgUnitCountMap, days, expression.getMissingValueStrategy(), 
-            incompleteValues, aggregateMap );
+            aggregateMap );
 
         return expressionString != null ? calculateExpression( expressionString ) : null;
     }
@@ -278,17 +293,15 @@ public class DefaultExpressionService
         Map<? extends DimensionalItemObject, Double> valueMap )
     {
         String elementId = expressionMatch.group( 1 );
-        String comboId = expressionMatch.group( 2 );
+        String comboId = StringUtils.trimToNull( expressionMatch.group( 2 ) );
         DataElement dataElement = dataElementService.getDataElement( elementId );
         
-        if ( comboId != null && comboId.length() == 0 )
-        {
-            comboId = null;
-        }
+        //TODO this needs to be rewritten
         
-        final DataElementCategoryOptionCombo defaultCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        String defaultOptionComboUid = CACHE_CATEGORY_OPTION_COMBO_NAME_UID.get( DEFAULT_CATEGORY_COMBO_NAME, 
+            name -> categoryService.getDefaultDataElementCategoryOptionCombo().getUid() );
         
-        if ( comboId == null || comboId.equals( defaultCombo.getUid() ) )
+        if ( comboId == null || comboId.equals( defaultOptionComboUid ) )
         {
             Double value = valueMap.get( dataElement );
             
@@ -301,11 +314,11 @@ public class DefaultExpressionService
         if ( comboId == null )
         {
             Double sum = null;
-            final Set<DataElementCategoryOptionCombo> combos = dataElement.getCategoryOptionCombos();
+            final Set<DataElementCategoryOptionCombo> optionCombos = dataElement.getCategoryOptionCombos();
 
-            for ( DataElementCategoryOptionCombo combo : combos )
+            for ( DataElementCategoryOptionCombo optionCombo : optionCombos )
             {
-                DataElementOperand deo = new DataElementOperand( elementId, combo.getUid() );
+                DataElementOperand deo = new DataElementOperand( elementId, optionCombo.getUid() );
                 Double value = valueMap.get( deo );
 
                 if ( value != null )
@@ -314,6 +327,7 @@ public class DefaultExpressionService
                     {
                         sum = 0.0;
                     }
+                    
                     sum = sum + value;
                 }
             }
@@ -343,19 +357,6 @@ public class DefaultExpressionService
             }
         }
         return null;
-    }
-
-    @Override
-    public Object getExpressionObjectValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
-        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
-        Set<DataElementOperand> incompleteValues, ListMap<String, Double> aggregateMap )
-    {
-        String expressionString = generateExpression( expression.getExplodedExpressionFallback(), valueMap, constantMap,
-            orgUnitCountMap, days, expression.getMissingValueStrategy(), incompleteValues, aggregateMap );
-
-        Object result = expressionString != null ? calculateGenericExpression( expressionString ) : null;
-
-        return result;
     }
 
     @Override
@@ -426,11 +427,11 @@ public class DefaultExpressionService
             while ( matcher.find() )
             {
                 DataElementOperand operand = DataElementOperand.getOperand( matcher.group() );
-
                 operand.setDataElement( dataElementService.getDataElement( operand.getDataElementId() ) );
 
                 if ( operand.getOptionComboId() != null )
                 {
+                    operand.setCategoryOptionCombo( categoryService.getDataElementCategoryOptionCombo( operand.getOptionComboId() ) );                    
                     operandsInExpression.add( operand );
                 }
             }
@@ -518,6 +519,14 @@ public class DefaultExpressionService
     }
 
     @Override
+    public Set<DimensionalItemObject> getDimensionalItemObjectsInExpression( String expression, Set<DimensionItemType> dimensionItemTypes )
+    {
+        Set<DimensionalItemObject> objects = getDimensionalItemObjectsInExpression( expression );
+        
+        return objects.stream().filter( o -> dimensionItemTypes.contains( o.getDimensionItemType() ) ).collect( Collectors.toSet() );
+    }
+
+    @Override
     public Set<DimensionalItemObject> getDimensionalItemObjectsInIndicators( Collection<Indicator> indicators )
     {
         Set<DimensionalItemObject> items = Sets.newHashSet();
@@ -530,7 +539,7 @@ public class DefaultExpressionService
 
         return items;
     }
-
+    
     @Override
     public Set<OrganisationUnitGroup> getOrganisationUnitGroupsInIndicators( Collection<Indicator> indicators )
     {
@@ -743,10 +752,17 @@ public class DefaultExpressionService
 
             for ( ValidationRule rule : validationRules )
             {
-                dataElementTotals.addAll(
-                    RegexUtils.getMatches( DATA_ELEMENT_TOTAL_PATTERN, rule.getLeftSide().getExpression(), 1 ) );
-                dataElementTotals.addAll(
-                    RegexUtils.getMatches( DATA_ELEMENT_TOTAL_PATTERN, rule.getRightSide().getExpression(), 1 ) );
+                if ( rule.getLeftSide().getExpression() != null )
+                {
+                    dataElementTotals.addAll(
+                        RegexUtils.getMatches( DATA_ELEMENT_TOTAL_PATTERN, rule.getLeftSide().getExpression(), 1 ) );
+                }
+
+                if ( rule.getRightSide().getExpression() != null )
+                {
+                    dataElementTotals.addAll(
+                        RegexUtils.getMatches( DATA_ELEMENT_TOTAL_PATTERN, rule.getRightSide().getExpression(), 1 ) );
+                }
             }
 
             if ( !dataElementTotals.isEmpty() )
@@ -930,13 +946,12 @@ public class DefaultExpressionService
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
         MissingValueStrategy missingValueStrategy )
     {
-        return generateExpression( expression, valueMap, constantMap, orgUnitCountMap, days, missingValueStrategy, null,
-            null );
+        return generateExpression( expression, valueMap, constantMap, orgUnitCountMap, days, missingValueStrategy, null );
     }
 
     private String generateExpression( String expression, Map<? extends DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
-        MissingValueStrategy missingValueStrategy, Set<DataElementOperand> incompleteValues,
+        MissingValueStrategy missingValueStrategy, 
         Map<String, List<Double>> aggregateMap )
     {
         if ( expression == null || expression.isEmpty() )
@@ -947,9 +962,6 @@ public class DefaultExpressionService
         Map<String, Double> dimensionItemValueMap = valueMap.entrySet().stream().
             filter( e -> e.getValue() != null ).
             collect( Collectors.toMap( e -> e.getKey().getDimensionItem(), e -> e.getValue() ) );
-
-        Set<String> incompleteItems = incompleteValues != null ?
-            incompleteValues.stream().map( i -> i.getDimensionItem() ).collect( Collectors.toSet() ) : Sets.newHashSet();
 
         missingValueStrategy = ObjectUtils.firstNonNull( missingValueStrategy, NEVER_SKIP );
 
@@ -975,7 +987,7 @@ public class DefaultExpressionService
                 scan = start + 1;
                 tail = start;
             }
-            else if ( ( aggregateMap == null ) || (expression.charAt( start ) == '<' ) )
+            else if ( aggregateMap == null || expression.charAt( start ) == '<' )
             {
                 sb.append( expression.substring( scan, end ) );
                 scan = end + 1;
@@ -1026,7 +1038,7 @@ public class DefaultExpressionService
 
             final Double value = dimensionItemValueMap.get( dimItem );
 
-            boolean missingValue = value == null || incompleteItems.contains( dimItem );
+            boolean missingValue = value == null;
 
             if ( missingValue && SKIP_IF_ANY_VALUE_MISSING.equals( missingValueStrategy ) )
             {

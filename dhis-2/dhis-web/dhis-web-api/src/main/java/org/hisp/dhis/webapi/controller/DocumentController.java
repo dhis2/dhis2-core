@@ -35,6 +35,7 @@ import org.hisp.dhis.document.DocumentService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.schema.descriptors.DocumentSchemaDescriptor;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -63,6 +64,9 @@ public class DocumentController
     private LocationManager locationManager;
 
     @Autowired
+    private FileResourceService fileResourceService;
+
+    @Autowired
     private ContextUtils contextUtils;
 
     @RequestMapping( value = "/{uid}/data", method = RequestMethod.GET )
@@ -82,13 +86,20 @@ public class DocumentController
         else
         {
             contextUtils.configureResponse( response, document.getContentType(), CacheStrategy.CACHE_TWO_WEEKS, document.getUrl(),
-                document.getAttachment() );
+                document.getAttachment() == null ? false : document.getAttachment() );
 
             InputStream in = null;
 
             try
             {
-                in = locationManager.getInputStream( document.getUrl(), DocumentService.DIR );
+                if ( document.getFileResource() != null )
+                {
+                    in = fileResourceService.getFileResourceContent( document.getFileResource() ).openStream();
+                }
+                else
+                {
+                    in = locationManager.getInputStream( document.getUrl(), DocumentService.DIR );
+                }
 
                 IOUtils.copy( in, response.getOutputStream() );
             }

@@ -254,7 +254,7 @@ public class OrganisationUnitController
         @RequestParam( value = "level", required = false ) List<Integer> rpLevels,
         @RequestParam( value = "parent", required = false ) List<String> rpParents,
         @RequestParam( value = "properties", required = false, defaultValue = "true" ) boolean rpProperties,
-        HttpServletResponse response ) throws IOException
+        User currentUser, HttpServletResponse response ) throws IOException
     {
         rpLevels = rpLevels != null ? rpLevels : new ArrayList<>();
         rpParents = rpParents != null ? rpParents : new ArrayList<>();
@@ -284,7 +284,7 @@ public class OrganisationUnitController
 
         for ( OrganisationUnit organisationUnit : organisationUnits )
         {
-            writeFeature( generator, organisationUnit, rpProperties );
+            writeFeature( generator, organisationUnit, rpProperties, currentUser );
         }
 
         generator.writeEndArray();
@@ -293,7 +293,8 @@ public class OrganisationUnitController
         generator.close();
     }
 
-    public void writeFeature( JsonGenerator generator, OrganisationUnit organisationUnit, boolean includeProperties ) throws IOException
+    public void writeFeature( JsonGenerator generator, OrganisationUnit organisationUnit,
+        boolean includeProperties, User user ) throws IOException
     {
         if ( organisationUnit.getFeatureType() == null || organisationUnit.getCoordinates() == null )
         {
@@ -326,7 +327,7 @@ public class OrganisationUnitController
 
         if ( includeProperties )
         {
-            Set<OrganisationUnit> roots = currentUserService.getCurrentUser().getDataViewOrganisationUnitsWithFallback();
+            Set<OrganisationUnit> roots = user.getDataViewOrganisationUnitsWithFallback();
 
             generator.writeStringField( "code", organisationUnit.getCode() );
             generator.writeStringField( "name", organisationUnit.getName() );

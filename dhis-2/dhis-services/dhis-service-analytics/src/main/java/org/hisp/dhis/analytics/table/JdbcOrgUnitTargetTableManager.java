@@ -51,6 +51,12 @@ public class JdbcOrgUnitTargetTableManager
     extends AbstractJdbcTableManager
 {
     @Override
+    public AnalyticsTableType getAnalyticsTableType()
+    {
+        return AnalyticsTableType.ORG_UNIT_TARGET;
+    }
+    
+    @Override
     @Transactional
     public List<AnalyticsTable> getTables( Date earliest )
     {
@@ -72,12 +78,6 @@ public class JdbcOrgUnitTargetTableManager
     }    
     
     @Override
-    public String getTableName()
-    {
-        return ORGUNIT_TARGET_TABLE_NAME;
-    }
-
-    @Override
     public void createTable( AnalyticsTable table )
     {
         final String tableName = table.getTempTableName();
@@ -97,10 +97,8 @@ public class JdbcOrgUnitTargetTableManager
             sqlCreate += col.getName() + " " + col.getDataType() + ",";
         }
         
-        sqlCreate += "value double precision) ";
+        sqlCreate += "value double precision)";
         
-        sqlCreate += statementBuilder.getTableOptions( false );
-
         log.info( "Creating table: " + tableName + ", columns: " + columns.size() );
         
         log.debug( "Create SQL: " + sqlCreate );
@@ -152,14 +150,14 @@ public class JdbcOrgUnitTargetTableManager
         for ( OrganisationUnitLevel level : levels )
         {
             String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
-            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column ) );
+            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column, level.getCreated() ) );
         }
 
         AnalyticsTableColumn ds = new AnalyticsTableColumn( quote( "oug" ), "character(11) not null", "oug.uid" );
         
         columns.add( ds );
         
-        return columns;
+        return filterDimensionColumns( columns );
     }
 
     @Override

@@ -30,8 +30,7 @@ package org.hisp.dhis.render;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
-import com.fasterxml.jackson.databind.deser.std.StringDeserializer;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
@@ -39,17 +38,12 @@ import java.io.IOException;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class EmptyStringToNullStdDeserializer extends StdScalarDeserializer<String>
+public class EmptyStringToNullStdDeserializer extends JsonDeserializer<String>
 {
-    public EmptyStringToNullStdDeserializer()
-    {
-        super( String.class );
-    }
-
     @Override
-    public String deserialize( JsonParser p, DeserializationContext ctxt ) throws IOException
+    public String deserialize( JsonParser parser, DeserializationContext context ) throws IOException
     {
-        String result = StringDeserializer.instance.deserialize( p, ctxt );
+        String result = parser.getValueAsString();
 
         if ( StringUtils.isEmpty( result ) )
         {

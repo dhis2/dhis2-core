@@ -37,6 +37,7 @@ import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
@@ -298,7 +299,7 @@ public class SpringDataValueSetStore
 
             sql += ") ";
         }
-
+        
         if ( !params.isIncludeDeleted() )
         {
             sql += "and dv.deleted is false ";
@@ -311,6 +312,11 @@ public class SpringDataValueSetStore
         else if ( params.hasPeriods() )
         {
             sql += "and dv.periodid in (" + getCommaDelimitedString( getIdentifiers( params.getPeriods() ) ) + ") ";
+        }
+
+        if ( params.hasAttributeOptionCombos() )
+        {
+            sql += "and dv.attributeoptioncomboid in (" + getCommaDelimitedString( getIdentifiers( params.getAttributeOptionCombos() ) ) + ") ";
         }
 
         if ( params.hasLastUpdated() )

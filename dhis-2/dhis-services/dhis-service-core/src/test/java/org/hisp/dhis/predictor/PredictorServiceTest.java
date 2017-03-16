@@ -43,6 +43,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.Expression;
@@ -63,6 +64,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.hisp.dhis.expression.ExpressionService.DAYS_SYMBOL;
 import static org.junit.Assert.*;
 
 /**
@@ -271,7 +273,10 @@ public class PredictorServiceTest
 
     private Double getDataValue( DataElement dataElement, OrganisationUnit source, Period period )
     {
-        Collection<DataValue> results = dataValueService.getDataValues( Sets.newHashSet( dataElement ), Sets.newHashSet( period ), Sets.newHashSet( source ) );
+        Collection<DataValue> results = dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElement ) )
+            .setPeriods( Sets.newHashSet( period ) )
+            .setOrganisationUnits( Sets.newHashSet( source ) ) );
 
         for ( DataValue v : results )
         {
@@ -283,9 +288,9 @@ public class PredictorServiceTest
 
     private Double getDataValue( DataElement dataElement, DataElementCategoryOptionCombo combo, OrganisationUnit source, Period period )
     {
-        Collection<DataValue> results = dataValueService.getDataValues( source, period, Sets.newHashSet( dataElement ), combo );
+        DataValue v =  dataValueService.getDataValue( dataElement, period, source, combo, defaultCombo );
 
-        for ( DataValue v : results )
+        if ( v != null )
         {
             return Double.valueOf( v.getValue() );
         }
@@ -693,6 +698,13 @@ public class PredictorServiceTest
         assertEquals( new Double( 5.5 ), getDataValue( dataElementX, sourceA, makeMonth( 2001, 9 ) ) );
         assertEquals( new Double( 5.0 ), getDataValue( dataElementX, sourceA, makeMonth( 2001, 8 ) ) );
         assertNull( getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 8 ) ) );
+
+        // Make sure we can do it again.
+        predictorService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ) );
+
+        assertEquals( new Double( 5.5 ), getDataValue( dataElementX, sourceA, makeMonth( 2001, 9 ) ) );
+        assertEquals( new Double( 5.0 ), getDataValue( dataElementX, sourceA, makeMonth( 2001, 8 ) ) );
+        assertNull( getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 8 ) ) );
     }
 
     @Test
@@ -717,6 +729,36 @@ public class PredictorServiceTest
         assertNull( getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) );
 
     }
+
+    @Test
+    @Category( IntegrationTest.class )
+    public void testPredictConstant()
+    {
+        setupTestData();
+
+        Predictor p = createPredictor( dataElementX, defaultCombo, "PredictConstant",
+            new Expression( "1234", "descriptionA" ),
+            null, periodTypeMonthly, orgUnitLevel1, 0, 0, 0 );
+
+        predictorService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 9 ) );
+
+        assertEquals( new Double( 1234.0 ), getDataValue( dataElementX, sourceA, makeMonth( 2001, 7 ) ) );
+        assertEquals( new Double( 1234.0 ), getDataValue( dataElementX, sourceA, makeMonth( 2001, 8 ) ) );
+    }
+
+    @Test
+    @Category( IntegrationTest.class )
+    public void testPredictDays()
+    {
+        setupTestData();
+
+        Predictor p = createPredictor( dataElementX, defaultCombo, "PredictDays",
+            new Expression( DAYS_SYMBOL, "descriptionA" ),
+            null, periodTypeMonthly, orgUnitLevel1, 0, 0, 0 );
+
+        predictorService.predict( p, monthStart( 2001, 8 ), monthStart( 2001, 10 ) );
+
+        assertEquals( new Double( 31.0 ), getDataValue( dataElementX, sourceA, makeMonth( 2001, 8 ) ) );
+        assertEquals( new Double( 30.0 ), getDataValue( dataElementX, sourceA, makeMonth( 2001, 9 ) ) );
+    }
 }
-
-

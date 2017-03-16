@@ -41,12 +41,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class DefaultMetadataSystemSettingService
     implements MetadataSystemSettingService
 {
-
     @Autowired
     private SystemSettingManager systemSettingManager;
 
-    private String API_URL = "/api/metadata/version";
-    private String BASELINE_URL = API_URL + "/history?baseline=";
+    private final String API_URL = "/api/metadata/version";
+    private final String BASELINE_URL = API_URL + "/history?baseline=";
 
     public String getRemoteInstanceUserName()
     {
@@ -78,7 +77,7 @@ public class DefaultMetadataSystemSettingService
         return systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + API_URL + "/history";
     }
 
-    public void setSystemMetadataVersion(String versionName)
+    public void setSystemMetadataVersion( String versionName )
     {
         systemSettingManager.saveSystemSetting( SettingKey.SYSTEM_METADATA_VERSION, versionName );
     }
@@ -88,4 +87,9 @@ public class DefaultMetadataSystemSettingService
         return (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_METADATA_VERSION );
     }
 
+    public Boolean getStopMetadataSyncSetting()
+    {
+        Boolean stopSyncSetting = (Boolean) systemSettingManager.getSystemSetting( SettingKey.STOP_METADATA_SYNC );
+        return stopSyncSetting == null ? false : stopSyncSetting;
+    }
 }

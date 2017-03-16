@@ -36,7 +36,7 @@ function showProgramIndicatorDetails( context ) {
     setInnerHTML('idField', json.programIndicator.uid);
     setInnerHTML('programIndicatorAnalayticsTypeField', json.programIndicator.programIndicatorAnalayticsType);
     
-    programIndicatorAnalyticsTypeChanged();
+    analyticsTypeChanged();
         
     showDetails();
   });
@@ -76,7 +76,7 @@ function getTrackedEntityDataElements( type ) {
 	var programStageId = getFieldValue(psSelectId);
 
 	if(programStageId) {
-		jQuery.getJSON('../api/programStages/' + programStageId + '.json?fields=programStageDataElements[dataElement[id,displayName|rename(name),valueType]',
+		jQuery.getJSON('../api/programStages/' + programStageId + '.json?fields=programStageDataElements[dataElement[id,displayName,valueType]',
 		{
 			programId: getFieldValue('programId'),
 			programStageUid: programStageId
@@ -86,7 +86,7 @@ function getTrackedEntityDataElements( type ) {
 			$.each( json.programStageDataElements, function(inx, val) {
 				var de = val.dataElement;
 				if ( !('expression' == type && de.valueType && dhis2.pi.aggregatableValueTypes.indexOf(de.valueType) == -1)) {
-					dataElements.append("<option value='" + de.id + "'>" + de.name + "</option>");
+					dataElements.append("<option value='" + de.id + "'>" + de.displayName + "</option>");
 				}
 			} );
 		});
@@ -162,8 +162,8 @@ function getExpressionDescription( type ) {
 	}
 }
 
-function programIndicatorAnalyticsTypeChanged() {
-    var analyticsType = getFieldValue('programIndicatorAnalyticsType');
+function analyticsTypeChanged() {
+    var analyticsType = getFieldValue('analyticsType');
     if ('ENROLLMENT' === analyticsType) {
         $("#event_count_variable").wrap('<span/>');
     }

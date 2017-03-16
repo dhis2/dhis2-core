@@ -34,8 +34,9 @@ import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Objects;
-import org.hisp.dhis.dxf2.metadata.ImportSummary;
+import org.hisp.dhis.dxf2.common.ImportSummary;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.node.NodeUtils;
@@ -56,7 +57,6 @@ import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -202,16 +202,18 @@ public class SystemController
             TaskCategory taskCategory = TaskCategory.valueOf( category.toUpperCase() );
 
             TaskId taskId = new TaskId( taskCategory, currentUserService.getCurrentUser() );
+            
+            Object summary = notifier.getTaskSummary( taskId );
 
-            if ( taskCategory.equals( TaskCategory.DATAINTEGRITY ) ) //TODO
+            if ( summary != null && summary.getClass().isAssignableFrom( ImportSummary.class ) ) //TODO improve this
             {
-                renderService.toJson( response.getOutputStream(), notifier.getTaskSummary( taskId ) );
+                ImportSummary importSummary = (ImportSummary) summary;
+                renderService.toJson( response.getOutputStream(), importSummary );
                 return;
             }
             else
             {
-                ImportSummary importSummary = (ImportSummary) notifier.getTaskSummary( taskId );
-                renderService.toJson( response.getOutputStream(), importSummary );
+                renderService.toJson( response.getOutputStream(), summary );
                 return;
             }
         }
@@ -235,12 +237,6 @@ public class SystemController
         return info;
     }
 
-    @RequestMapping( value = "/info/minimal", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
-    public @ResponseBody SystemInfo getMinialSystemInfo( Model model, HttpServletRequest request )
-    {
-        return systemService.getMinimalSystemInfo();
-    }
-
     @RequestMapping( value = "/objectCounts", method = RequestMethod.GET )
     public @ResponseBody RootNode getObjectCounts()
     {
@@ -256,7 +252,7 @@ public class SystemController
     }
 
     @RequestMapping( value = "/ping", method = RequestMethod.GET, produces = "text/plain" )
-    @ApiVersion( exclude = { DhisApiVersion.V24, DhisApiVersion.V25, DhisApiVersion.V26 } )
+    @ApiVersion( exclude = { DhisApiVersion.V24, DhisApiVersion.V25, DhisApiVersion.V26, DhisApiVersion.V27 } )
     public @ResponseBody String pingLegacy()
     {
         return "pong";

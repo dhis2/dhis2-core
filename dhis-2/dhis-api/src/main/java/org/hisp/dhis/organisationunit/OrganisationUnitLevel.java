@@ -69,46 +69,6 @@ public class OrganisationUnitLevel
         this.offlineLevels = offlineLevels;
     }
 
-    // -------------------------------------------------------------------------
-    // hashCode and equals
-    // -------------------------------------------------------------------------
-
-    @Override
-    public int hashCode()
-    {
-        final int prime = 31;
-
-        int result = 1;
-
-        result = prime * result + level;
-        result = prime * result + ((name == null) ? 0 : name.hashCode());
-
-        return result;
-    }
-
-    @Override
-    public boolean equals( Object object )
-    {
-        if ( this == object )
-        {
-            return true;
-        }
-
-        if ( object == null )
-        {
-            return false;
-        }
-
-        if ( !getClass().isAssignableFrom( object.getClass() ) )
-        {
-            return false;
-        }
-
-        final OrganisationUnitLevel other = (OrganisationUnitLevel) object;
-
-        return level == other.level && name.equals( other.name );
-    }
-
     @Override
     public String toString()
     {

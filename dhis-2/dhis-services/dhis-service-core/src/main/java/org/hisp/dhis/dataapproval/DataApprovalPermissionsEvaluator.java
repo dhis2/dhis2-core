@@ -109,7 +109,7 @@ class DataApprovalPermissionsEvaluator
         ev.user = currentUserService.getCurrentUser();
 
         ev.acceptanceRequiredForApproval = (Boolean) systemSettingManager.getSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
-        boolean hideUnapprovedData = (Boolean) systemSettingManager.getSystemSetting( SettingKey.HIDE_UNAPPROVED_DATA_IN_ANALYTICS );
+        boolean hideUnapprovedData = systemSettingManager.hideUnapprovedDataInAnalytics();
 
         ev.authorizedToApprove = ev.user.getUserCredentials().isAuthorized( DataApproval.AUTH_APPROVE );
         ev.authorizedToApproveAtLowerLevels = ev.user.getUserCredentials().isAuthorized( DataApproval.AUTH_APPROVE_LOWER_LEVELS );

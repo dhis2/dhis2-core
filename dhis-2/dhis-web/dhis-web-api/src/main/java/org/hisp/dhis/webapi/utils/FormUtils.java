@@ -176,7 +176,7 @@ public class FormUtils
 
                             Option o = new Option();
                             o.setId( option.getUid() );
-                            o.setLabel( option.getName() );
+                            o.setLabel( option.getDisplayName() );
                             o.setStartDate( option.getStartDate() );
                             o.setEndDate( option.getEndDate() );
 
@@ -212,7 +212,7 @@ public class FormUtils
 
     public static Form fromProgram( Program program )
     {
-        Assert.notNull( program );
+        Assert.notNull( program, "Program cannot be null" );
 
         Form form = new Form();
         form.setLabel( program.getDisplayName() );
@@ -254,11 +254,11 @@ public class FormUtils
         {
             for ( ProgramStageSection section : programStage.getProgramStageSections() )
             {
-                List<Field> fields = inputFromProgramStageDataElements( section.getProgramStageDataElements() );
+                List<Field> fields = inputFromDataElements( section.getDataElements() );
 
                 Group group = new Group();
                 group.setLabel( section.getDisplayName() );
-                group.setDataElementCount( section.getProgramStageDataElements().size() );
+                group.setDataElementCount( section.getDataElements().size() );
                 group.setFields( fields );
                 form.getGroups().add( group );
             }
@@ -308,11 +308,11 @@ public class FormUtils
 
                     if ( categoryOptionCombo.isDefault() )
                     {
-                        field.setLabel( dataElement.getFormNameFallback() );
+                        field.setLabel( dataElement.getDisplayFormName() );
                     }
                     else
                     {
-                        field.setLabel( dataElement.getFormNameFallback() + " " + categoryOptionCombo.getDisplayName() );
+                        field.setLabel( dataElement.getDisplayFormName() + " " + categoryOptionCombo.getDisplayName() );
                     }
 
                     field.setDataElement( dataElement.getUid() );

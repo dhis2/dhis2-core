@@ -54,14 +54,14 @@ public interface ObjectBundleHook
      *
      * @param bundle Current commit phase bundle
      */
-    void preImport( ObjectBundle bundle );
+    void preCommit( ObjectBundle bundle );
 
     /**
      * Run after commit phase has finished.
      *
      * @param bundle Current commit phase bundle
      */
-    void postImport( ObjectBundle bundle );
+    void postCommit( ObjectBundle bundle );
 
     /**
      * Run before a type import has started. I.e. run before importing orgUnits, dataElements, etc.

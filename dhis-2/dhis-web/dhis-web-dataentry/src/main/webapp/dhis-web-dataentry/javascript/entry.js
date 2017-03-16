@@ -176,7 +176,7 @@ function saveVal( dataElementId, optionComboId, fieldId, feedbackId )
     if ( value )
     {
         if ( type == 'TEXT' || type == 'NUMBER' || type == 'INTEGER' || type == 'INTEGER_POSITIVE' || type == 'INTEGER_NEGATIVE'
-          || type == 'INTEGER_ZERO_OR_POSITIVE' || type == 'UNIT_INTERVAL' || type == 'PERCENTAGE' || type == 'COORDINATE')
+          || type == 'INTEGER_ZERO_OR_POSITIVE' || type == 'UNIT_INTERVAL' || type == 'PERCENTAGE' || type == 'COORDINATE' || type == 'URL' )
         {
             if ( value.length > dhis2.de.cst.valueMaxLength )
             {
@@ -213,6 +213,10 @@ function saveVal( dataElementId, optionComboId, fieldId, feedbackId )
             if ( type == 'PERCENTAGE' && !dhis2.validation.isPercentage( value ) )
             {
             	return dhis2.de.alertField( fieldId, i18n_value_must_percentage + '\n\n' + dataElementName );
+            }
+            if ( type == 'URL' && !dhis2.validation.isValidUrl( value ) )
+            {
+                return dhis2.de.alertField( fieldId, i18n_value_must_valid_url + '\n\n' + dataElementName );
             }
             if ( !existing && dhis2.validation.isValidZeroNumber( value ) )
             {
@@ -393,6 +397,7 @@ function ValueSaver( de, pe, co, value, fieldId, resultColor )
     	}
     	else // Offline, keep local value
     	{
+            $( document ).trigger( dhis2.de.event.dataValueSaved, [ dhis2.de.currentDataSetId, dataValue ] );
     		markValue( fieldId, resultColor );
     		setHeaderDelayMessage( i18n_offline_notification );
     	}

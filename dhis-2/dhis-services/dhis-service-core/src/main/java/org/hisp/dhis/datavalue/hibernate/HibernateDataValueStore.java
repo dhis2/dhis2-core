@@ -30,13 +30,13 @@ package org.hisp.dhis.datavalue.hibernate;
 
 import org.apache.commons.lang3.StringUtils;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -45,6 +45,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
@@ -58,14 +59,13 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
-import com.google.api.client.util.Sets;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 
@@ -75,8 +75,6 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 public class HibernateDataValueStore
     implements DataValueStore
 {
-    private static final Log log = LogFactory.getLog( HibernateDataValueStore.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -198,51 +196,120 @@ public class HibernateDataValueStore
 
     @Override
     @SuppressWarnings( "unchecked" )
+    public List<DataValue> getDataValues( DataExportParams params )
+    {
+        Set<DataElement> dataElements = params.getAllDataElements();
+        Set<OrganisationUnit> organisationUnits = params.getAllOrganisationUnits();
+
+        // ---------------------------------------------------------------------
+        // HQL parameters
+        // ---------------------------------------------------------------------
+
+        String hql = 
+            "select dv from DataValue dv " +
+            "inner join dv.dataElement de " +
+            "inner join dv.period pe " +
+            "inner join dv.source ou " +
+            "inner join dv.categoryOptionCombo co " +
+            "inner join dv.attributeOptionCombo ao " +
+            "where de.id in (:dataElements) ";
+
+        if ( params.hasPeriods() )
+        {
+            hql += "and pe.id in (:periods) ";
+        }
+        else if ( params.hasStartEndDate() )
+        {
+            hql += "and (pe.startDate >= :startDate and pe.endDate < :endDate) ";
+        }
+        
+        if ( params.isIncludeChildrenForOrganisationUnits() )
+        {
+            hql += "and (";
+            
+            for ( OrganisationUnit unit : params.getOrganisationUnits() )
+            {
+                hql += "ou.path like '" + unit.getPath() + "%' or ";
+            }
+            
+            hql = TextUtils.removeLastOr( hql );
+            
+            hql += ") ";
+        }
+        else if ( !organisationUnits.isEmpty() )
+        {
+            hql += "and ou.id in (:orgUnits) ";
+        }
+        
+        if ( params.hasAttributeOptionCombos() )
+        {
+            hql += "and ao.id in (:attributeOptionCombos) ";
+        }
+        
+        if ( params.hasLastUpdated() )
+        {
+            hql += "and dv.lastUpdated >= :lastUpdated ";
+        }
+
+        if ( !params.isIncludeDeleted() )
+        {
+            hql += "and dv.deleted is false ";
+        }
+
+        // ---------------------------------------------------------------------
+        // Query parameters
+        // ---------------------------------------------------------------------
+
+        Query query = sessionFactory.getCurrentSession()
+            .createQuery( hql )
+            .setParameterList( "dataElements", getIdentifiers( dataElements ) );
+
+        if ( params.hasPeriods() )
+        {
+            Set<Period> periods = params.getPeriods().stream()
+                .map( p -> periodStore.reloadPeriod( p ) )
+                .collect( Collectors.toSet() );
+            
+            query.setParameterList( "periods", getIdentifiers( periods ) );
+        }
+        else if ( params.hasStartEndDate() )
+        {
+            query.setDate( "startDate", params.getStartDate() ).setDate( "endDate", params.getEndDate() );
+        }
+
+        if ( !params.isIncludeChildrenForOrganisationUnits() && !organisationUnits.isEmpty() )
+        {
+            query.setParameterList( "orgUnits", getIdentifiers( organisationUnits ) );
+        }
+        
+        if ( params.hasAttributeOptionCombos() )
+        {
+            query.setParameterList( "attributeOptionCombos", getIdentifiers( params.getAttributeOptionCombos() ) );
+        }
+        
+        if ( params.hasLastUpdated() )
+        {
+            query.setDate( "lastUpdated", params.getLastUpdated() );
+        }
+        
+        if ( params.hasLimit() )
+        {
+            query.setMaxResults( params.getLimit() );
+        }
+        
+        // TODO last updated duration support
+
+        return query.list();
+    }
+    
+    @Override
+    @SuppressWarnings( "unchecked" )
     public List<DataValue> getAllDataValues()
     {
         return sessionFactory.getCurrentSession()
             .createCriteria( DataValue.class )
             .add( Restrictions.eq( "deleted", false ) )
             .list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<DataValue> getDataValues( Collection<DataElement> dataElements, 
-        Collection<Period> periods, Collection<OrganisationUnit> organisationUnits )
-    {        
-        Set<Period> storedPeriods = Sets.newHashSet();
-        
-        for ( Period period : periods )
-        {
-            storedPeriods.add( periodStore.reloadPeriod( period ) );
-        }
-
-        if ( dataElements.isEmpty() && storedPeriods.isEmpty() && organisationUnits.isEmpty() )
-        {
-            return new ArrayList<>();
-        }
-        
-        Criteria criteria = sessionFactory.getCurrentSession()
-            .createCriteria( DataValue.class )
-            .add( Restrictions.eq( "deleted", false ) );
-        
-        if ( !dataElements.isEmpty() )
-        {
-            criteria.add( Restrictions.in( "dataElement", dataElements ) );
-        }
-        
-        if ( !storedPeriods.isEmpty() )
-        {
-            criteria.add( Restrictions.in( "period", storedPeriods ) );
-        }
-        
-        if ( !organisationUnits.isEmpty() )
-        {
-            criteria.add( Restrictions.in( "source", organisationUnits ) );
-        }
-            
-        return criteria.list();
     }
 
     @Override
@@ -328,8 +395,6 @@ public class HibernateDataValueStore
 
         if ( periodIdList.size() == 0 )
         {
-            log.debug("sumRecursiveDeflatedDataValues: no periods found.");
-
             return result;
         }
 
@@ -358,39 +423,51 @@ public class HibernateDataValueStore
 
             if ( value != null )
             {
-                DeflatedDataValue dv = new DeflatedDataValue( dataElementId, periodId, sourceId,
-                    categoryOptionComboId, attributeOptionComboId, value );
+                DeflatedDataValue dv = new DeflatedDataValue( dataElementId, periodId, 
+                    sourceId, categoryOptionComboId, attributeOptionComboId, value );
 
                 result.add( dv );
             }
         }
 
-        log.debug("sumRecursiveDeflatedDataValues: " + result.size() + " results from \"" + sql + "\"");
-
         return result;
     }
 
     @Override
-    public int getDataValueCountLastUpdatedAfter( Date date )
+    public int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate )
     {
+        if ( startDate == null && endDate == null )
+        {
+            throw new IllegalArgumentException( "Start date or end date must be specified" );
+        }
+        
         Criteria criteria = sessionFactory.getCurrentSession()
             .createCriteria( DataValue.class )
-            .add( Restrictions.ge( "lastUpdated", date ) )
             .add( Restrictions.eq( "deleted", false ) )
             .setProjection( Projections.rowCount() );
 
+        if ( startDate != null )
+        {
+            criteria.add( Restrictions.ge( "lastUpdated", startDate ) );
+        }
+        
+        if ( endDate != null )
+        {
+            criteria.add( Restrictions.le( "lastUpdated", endDate ) );
+        }
+        
         Number rs = (Number) criteria.uniqueResult();
 
         return rs != null ? rs.intValue() : 0;
     }
 
     @Override
-    public MapMap<Integer, DataElementOperand, Double> getDataValueMapByAttributeCombo( Collection<DataElement> dataElements, Date date,
+    public MapMap<String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo( Collection<DataElement> dataElements, Date date,
         OrganisationUnit source, Collection<PeriodType> periodTypes, DataElementCategoryOptionCombo attributeCombo,
         Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints,
-        MapMap<Integer, DataElementOperand, Date> lastUpdatedMap )
+        MapMap<String, DataElementOperand, Date> lastUpdatedMap )
     {
-        MapMap<Integer, DataElementOperand, Double> map = new MapMap<>();
+        MapMap<String, DimensionalItemObject, Double> map = new MapMap<>();
 
         if ( dataElements.isEmpty() || periodTypes.isEmpty()
             || ( cogDimensionConstraints != null && cogDimensionConstraints.isEmpty() )
@@ -414,11 +491,12 @@ public class HibernateDataValueStore
         String whereCombo = attributeCombo == null ? StringUtils.EMPTY :
             "and dv.attributeoptioncomboid = " + attributeCombo.getId() + " ";
 
-        String sql = "select de.uid, coc.uid, dv.attributeoptioncomboid, dv.value, dv.lastupdated, p.startdate, p.enddate " +
+        String sql = "select de.uid, coc.uid, aoc.uid, dv.value, dv.lastupdated, p.startdate, p.enddate " +
             "from datavalue dv " +
-            "join dataelement de on dv.dataelementid = de.dataelementid " +
-            "join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
-            "join period p on p.periodid = dv.periodid " + joinCo + joinCog +
+            "inner join dataelement de on dv.dataelementid = de.dataelementid " +
+            "inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
+            "inner join categoryoptioncombo aoc on dv.attributeoptioncomboid = aoc.categoryoptioncomboid " +
+            "inner join period p on p.periodid = dv.periodid " + joinCo + joinCog +
             "where dv.dataelementid in (" + TextUtils.getCommaDelimitedString( getIdentifiers( dataElements ) ) + ") " +
             "and dv.sourceid = " + source.getId() + " " +
             "and p.startdate <= '" + DateUtils.getMediumDateString( date ) + "' " +
@@ -429,13 +507,13 @@ public class HibernateDataValueStore
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
-        MapMap<Integer, DataElementOperand, Long> checkForDuplicates = new MapMap<>();
+        MapMap<String, DataElementOperand, Long> checkForDuplicates = new MapMap<>();
 
         while ( rowSet.next() )
         {
             String dataElement = rowSet.getString( 1 );
             String categoryOptionCombo = rowSet.getString( 2 );
-            Integer attributeOptionComboId = rowSet.getInt( 3 );
+            String attributeOptionCombo = rowSet.getString( 3 );
             Double value = MathUtils.parseDouble( rowSet.getString( 4 ) );
             Date lastUpdated = rowSet.getDate( 5 );
             Date periodStartDate = rowSet.getDate( 6 );
@@ -446,21 +524,21 @@ public class HibernateDataValueStore
             {
                 DataElementOperand dataElementOperand = new DataElementOperand( dataElement, categoryOptionCombo );
 
-                Long existingPeriodInterval = checkForDuplicates.getValue( attributeOptionComboId, dataElementOperand );
+                Long existingPeriodInterval = checkForDuplicates.getValue( attributeOptionCombo, dataElementOperand );
 
                 if ( existingPeriodInterval != null && existingPeriodInterval < periodInterval )
                 {                    
                     continue; // Do not overwrite the previous value if for a shorter interval
                 }
                 
-                map.putEntry( attributeOptionComboId, dataElementOperand, value );
+                map.putEntry( attributeOptionCombo, dataElementOperand, value );
 
                 if ( lastUpdatedMap != null )
                 {
-                    lastUpdatedMap.putEntry( attributeOptionComboId, dataElementOperand, lastUpdated );
+                    lastUpdatedMap.putEntry( attributeOptionCombo, dataElementOperand, lastUpdated );
                 }
 
-                checkForDuplicates.putEntry( attributeOptionComboId, dataElementOperand, periodInterval );
+                checkForDuplicates.putEntry( attributeOptionCombo, dataElementOperand, periodInterval );
             }
         }
 

@@ -126,6 +126,14 @@ dhis2.validation.isPercentage = function(value) {
 };
 
 /**
+ * Checks for valid url patterns
+ */
+dhis2.validation.isValidUrl = function(value) {
+  var regex = /(ftp|https?):\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/;
+  return regex.test(value);
+};
+
+/**
  * Returns true if the provided string argument is to be considered a unit
  * interval, which implies that the value is numeric and inclusive between 0
  * and 1.
@@ -161,6 +169,7 @@ dhis2.validation.isValidValueType = function(value, valueType) {
     case 'USERNAME':
     case 'DATE':
     case 'DATETIME':
+    case 'URL':
     {
       break;
     }

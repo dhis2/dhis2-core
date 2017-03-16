@@ -57,8 +57,6 @@ public class TrackedEntityAttribute
 
     private Boolean inherit = false;
 
-    private TrackedEntityAttributeGroup attributeGroup;
-
     private OptionSet optionSet;
 
     private TrackedEntity trackedEntity;
@@ -234,19 +232,6 @@ public class TrackedEntityAttribute
     public void setValueType( ValueType valueType )
     {
         this.valueType = valueType;
-    }
-
-    @JsonProperty( "trackedEntityAttributeGroup" )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( localName = "trackedEntityAttributeGroup", namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntityAttributeGroup getAttributeGroup()
-    {
-        return attributeGroup;
-    }
-
-    public void setAttributeGroup( TrackedEntityAttributeGroup attributeGroup )
-    {
-        this.attributeGroup = attributeGroup;
     }
 
     @JsonProperty
@@ -433,7 +418,6 @@ public class TrackedEntityAttribute
                 description = trackedEntityAttribute.getDescription();
                 valueType = trackedEntityAttribute.getValueType();
                 inherit = trackedEntityAttribute.getInherit();
-                attributeGroup = trackedEntityAttribute.getAttributeGroup();
                 expression = trackedEntityAttribute.getExpression();
                 displayOnVisitSchedule = trackedEntityAttribute.getDisplayOnVisitSchedule();
                 sortOrderInVisitSchedule = trackedEntityAttribute.getSortOrderInVisitSchedule();
@@ -452,7 +436,6 @@ public class TrackedEntityAttribute
                 description = trackedEntityAttribute.getDescription() == null ? description : trackedEntityAttribute.getDescription();
                 valueType = trackedEntityAttribute.getValueType() == null ? valueType : trackedEntityAttribute.getValueType();
                 inherit = trackedEntityAttribute.getInherit() == null ? inherit : trackedEntityAttribute.getInherit();
-                attributeGroup = trackedEntityAttribute.getAttributeGroup() == null ? attributeGroup : trackedEntityAttribute.getAttributeGroup();
                 expression = trackedEntityAttribute.getExpression() == null ? expression : trackedEntityAttribute.getExpression();
                 displayOnVisitSchedule = trackedEntityAttribute.getDisplayOnVisitSchedule() == null ? displayOnVisitSchedule : trackedEntityAttribute.getDisplayOnVisitSchedule();
                 sortOrderInVisitSchedule = trackedEntityAttribute.getSortOrderInVisitSchedule() == null ? sortOrderInVisitSchedule : trackedEntityAttribute.getSortOrderInVisitSchedule();

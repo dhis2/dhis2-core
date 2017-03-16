@@ -43,7 +43,7 @@
                         <label for="ticket-tool-select-priority">$i18n.getString( "priority" )</label>
                     </div>
                     <div class="ticket-tools-input">
-                        <select name="priority" id="message-priority" class="message-select" onchange="updatePriority('${conversation.uid}')">
+                        <select name="priority" id="message-priority" class="message-select" onchange="updatePriority(this, '${conversation.uid}')">
                             <option value="NONE" #if(${conversation.priority} == "NONE") selected #end>$i18n.getString( "none" )</option>
                             <option value="LOW" #if(${conversation.priority} == "LOW") selected #end>$i18n.getString( "low" )</option>
                             <option value="MEDIUM" #if(${conversation.priority} == "MEDIUM") selected #end>$i18n.getString( "medium" )</option>
@@ -56,7 +56,7 @@
                         <label for="ticket-tool-select-priority">$i18n.getString( "status" )</label>
                     </div>
                     <div class="ticket-tools-input">
-                        <select name="status" id="message-status" class="message-select" onchange="updateStatus('${conversation.uid}')">
+                        <select name="status" id="message-status" class="message-select" onchange="updateStatus(this, '${conversation.uid}')">
                             <option value="OPEN" #if(${conversation.status} == "OPEN") selected #end>$i18n.getString( "open" )</option>
                             <option value="PENDING" #if(${conversation.status} == "PENDING") selected #end>$i18n.getString( "pending" )</option>
                             <option value="INVALID" #if(${conversation.status} == "INVALID") selected #end>$i18n.getString( "invalid" )</option>
@@ -69,7 +69,7 @@
                         <label for="ticket-tool-select-priority">$i18n.getString( "assigned_to" )</label>
                     </div>
                     <div class="ticket-tools-input">
-                        <select name="assignee" id="message-assignee" class="message-select" onchange="updateAssignee('${conversation.uid}')">
+                        <select name="assignee" id="message-assignee" class="message-select" onchange="updateAssignee(this, '${conversation.uid}')">
                             <option value="none" #if(!$conversation.getAssignee()) selected #end>$i18n.getString( "none" )</option>
                             #foreach($user in $feedbackRecipientGroupUsers)
                                 <option value="${user.getUid()}" #if($conversation.getAssignee().getUid() == $user.getUid()) selected #end>${user.getName()}</option>
@@ -103,22 +103,22 @@
         </div>
 
         #foreach( $message in $messages )
-        <div class="messageSymbol"><img src="../images/mail_small.png" onclick="toggleMetaData( '${message.id}' )"></div>
-        <div class="messageDiv #if( $message.internal ) internalMessage #end">
-            #if( $message.sender )
-                <a class="bold userLink"
-                   href="profile.action?id=${message.sender.uid}">$encoder.htmlEncode( $message.sender.name )</a>
-            #else
-                <span class="bold">$i18n.getString( "system_notification" )</span>
-            #end
-            <span class="grey">&nbsp;&nbsp;$!format.formatDate( $message.lastUpdated )</span>
-            #if( $message.internal )
-                <span style="float: right; padding-right: 5px; color: #777">$i18n.getString( 'internalMessage' )</span>
-            #end
+            <div class="messageSymbol"><img src="../images/mail_small.png" onclick="toggleMetaData( '${message.id}' )"></div>
+            <div class="messageDiv #if( $message.internal ) internalMessage #end">
+                #if( $message.sender )
+                    <a class="bold userLink"
+                       href="profile.action?id=${message.sender.uid}">$encoder.htmlEncode( $message.sender.name )</a>
+                #else
+                    <span class="bold">$i18n.getString( "system_notification" )</span>
+                #end
+                <span class="grey">&nbsp;&nbsp;$!format.formatDate( $message.lastUpdated )</span>
+                #if( $message.internal )
+                    <span style="float: right; padding-right: 5px; color: #777">$i18n.getString( 'internalMessage' )</span>
+                #end
 
-            <div class="messageText">$!dhisTextUtils.htmlify( $encoder.htmlEncode( $message.text ) )</div>
-            <div id="metaData${message.id}" class="messageMetaData">$!encoder.htmlEncode( $message.metaData )</div>
-        </div>
+                <div class="messageText">$!dhisTextUtils.htmlify( $encoder.htmlEncode( $message.text ) )</div>
+                <div id="metaData${message.id}" class="messageMetaData">$!encoder.htmlEncode( $message.metaData )</div>
+            </div>
         #end
 
         <div class="replyDiv">
@@ -154,7 +154,7 @@
                     <label for="ticket-tool-select-priority">$i18n.getString( "priority" )</label>
                 </div>
                 <div class="ticket-tools-input">
-                    <select name="priority" id="message-priority" class="message-select" onchange="updatePriority('${conversation.uid}')">
+                    <select name="priority" id="message-priority" class="message-select" onchange="updatePriority(this, '${conversation.uid}')">
                         <option value="NONE" #if(${conversation.priority} == "NONE") selected #end>$i18n.getString( "none" )</option>
                         <option value="LOW" #if(${conversation.priority} == "LOW") selected #end>$i18n.getString( "low" )</option>
                         <option value="MEDIUM" #if(${conversation.priority} == "MEDIUM") selected #end>$i18n.getString( "medium" )</option>
@@ -167,7 +167,7 @@
                     <label for="ticket-tool-select-priority">$i18n.getString( "status" )</label>
                 </div>
                 <div class="ticket-tools-input">
-                    <select name="status" id="message-status" class="message-select" onchange="updateStatus('${conversation.uid}')">
+                    <select name="status" id="message-status" class="message-select" onchange="updateStatus(this, '${conversation.uid}')">
                         <option value="OPEN" #if(${conversation.status} == "OPEN") selected #end>$i18n.getString( "open" )</option>
                         <option value="PENDING" #if(${conversation.status} == "PENDING") selected #end>$i18n.getString( "pending" )</option>
                         <option value="INVALID" #if(${conversation.status} == "INVALID") selected #end>$i18n.getString( "invalid" )</option>
@@ -180,7 +180,7 @@
                     <label for="ticket-tool-select-priority">$i18n.getString( "assigned_to" )</label>
                 </div>
                 <div class="ticket-tools-input">
-                    <select name="assignee" id="message-assignee" class="message-select" onchange="updateAssignee('${conversation.uid}')">
+                    <select name="assignee" id="message-assignee" class="message-select" onchange="updateAssignee(this, '${conversation.uid}')">
                         <option value="none" #if(!$conversation.getAssignee()) selected #end>$i18n.getString( "none" )</option>
                         #foreach($user in $feedbackRecipientGroupUsers)
                             <option value="${user.getUid()}" #if($conversation.getAssignee().getUid() == $user.getUid()) selected #end>${user.getName()}</option>

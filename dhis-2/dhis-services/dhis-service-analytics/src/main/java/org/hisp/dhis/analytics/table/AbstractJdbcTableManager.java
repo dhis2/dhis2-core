@@ -50,6 +50,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
+import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,7 +116,11 @@ public abstract class AbstractJdbcTableManager
      * Returns a list of analytics table columns. Column names are quoted.
      */
     protected abstract List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTable table );
-    
+
+    // -------------------------------------------------------------------------
+    // Implementation
+    // -------------------------------------------------------------------------
+
     /**
      * Override in order to perform work before tables are being generated.
      */
@@ -124,10 +129,6 @@ public abstract class AbstractJdbcTableManager
     {
     }
     
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
-
     @Override
     @Transactional
     public List<AnalyticsTable> getTables( Date earliest )
@@ -145,22 +146,18 @@ public abstract class AbstractJdbcTableManager
 
         Collections.sort( dataYears );
         
-        String baseName = getTableName();
+        String baseName = getAnalyticsTableType().getTableName();
         
         for ( Integer year : dataYears )
         {
             Period period = PartitionUtils.getPeriod( calendar, year );
             
-            tables.add( new AnalyticsTable( baseName, getDimensionColumns( null ), period ) );
+            AnalyticsTable table = new AnalyticsTable( baseName, getDimensionColumns( null ), period );
+            
+            tables.add( table );
         }
 
         return tables;
-    }
-    
-    @Override
-    public String getTempTableName()
-    {
-        return getTableName() + TABLE_TEMP_SUFFIX;
     }
     
     @Override
@@ -249,11 +246,19 @@ public abstract class AbstractJdbcTableManager
     {
         tables.forEach( table -> analyzeTable( table.getTempTableName() ) );
     }
-
+    
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
   
+    /**
+     * Returns the analytics table name.
+     */
+    protected String getTableName()
+    {
+        return getAnalyticsTableType().getTableName();
+    }
+    
     /**
      * Quotes the given column name.
      */
@@ -275,7 +280,7 @@ public abstract class AbstractJdbcTableManager
      */
     private String shortenTableName( String table )
     {
-        table = table.replaceAll( ANALYTICS_TABLE_NAME, "ax" );
+        table = table.replaceAll( getAnalyticsTableType().getTableName(), "ax" );
         table = table.replaceAll( TABLE_TEMP_SUFFIX, StringUtils.EMPTY );
         
         return table;
@@ -333,9 +338,7 @@ public abstract class AbstractJdbcTableManager
         {
             throw new IllegalStateException( "Analytics table dimensions are empty" );
         }
-        
-        columns = new ArrayList<>( columns );
-        
+                
         List<String> columnNames = columns.stream().map( d -> d.getName() ).collect( Collectors.toList() );
                 
         Set<String> duplicates = ListUtils.getDuplicates( columnNames );
@@ -345,18 +348,39 @@ public abstract class AbstractJdbcTableManager
             throw new IllegalStateException( "Analytics table dimensions contain duplicates: " + duplicates );
         }
     }
+    
+    /**
+     * Filters out analytics table columns which were created
+     * after the time of the last successful resource table update.
+     * 
+     * @param columns the analytics table columns.
+     * @return
+     */
+    protected List<AnalyticsTableColumn> filterDimensionColumns( List<AnalyticsTableColumn> columns )
+    {
+        Date lastResourceTableUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE );
+        
+        if ( lastResourceTableUpdate == null )
+        {
+            return columns;
+        }
+        
+        return columns.stream()
+            .filter( c -> c.getCreated() == null || c.getCreated().before( lastResourceTableUpdate ) )
+            .collect( Collectors.toList() );
+    }
 
     /**
      * Executes the given table population SQL statement, log and times the operation.
      */
     protected void populateAndLog( String sql, String tableName )
     {
-        log.debug( "Populate table: " + tableName + " SQL: " + sql );
+        log.debug( String.format( "Populate table: %s with SQL: ", tableName, sql ) );
 
         Timer timer = new SystemTimer().start();
         
         jdbcTemplate.execute( sql );
         
-        log.info( "Populated table in " + timer.stop().toString() + ": " + tableName );
+        log.info( String.format( "Populated table in %s: %s", timer.stop().toString(), tableName ) );
     }
 }

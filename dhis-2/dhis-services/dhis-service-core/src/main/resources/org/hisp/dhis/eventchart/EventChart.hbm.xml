@@ -115,6 +115,12 @@
     <property name="completedOnly" column="completedonly" />
 
     <property name="title" />
+    
+    <property name="subtitle" />
+
+    <property name="hideTitle" />
+
+    <property name="hideSubtitle" />
 
     <set name="interpretations" inverse="true">
       <key column="eventchartid" />
@@ -180,10 +186,6 @@
 
     <property name="hideLegend" />
 
-    <property name="hideTitle" />
-
-    <property name="hideSubtitle" />
-
     <property name="regressionType" length="40">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.common.RegressionType</param>
@@ -222,7 +224,7 @@
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="eventcharttranslations" cascade="delete-orphan">
+    <set name="translations" table="eventcharttranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="eventchartid" foreign-key="fk_objecttranslation_eventchartid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

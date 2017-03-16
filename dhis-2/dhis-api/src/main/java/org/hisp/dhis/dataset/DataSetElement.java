@@ -31,19 +31,23 @@ package org.hisp.dhis.dataset;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.google.common.base.Objects;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.LinkObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 
+import java.util.Objects;
+
 /**
  * @author Lars Helge Overland
  */
+@JacksonXmlRootElement( localName = "dataSetElement", namespace = DxfNamespaces.DXF_2_0 )
 public class DataSetElement
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements LinkObject
 {
     /**
      * Data set, never null.
@@ -110,7 +114,7 @@ public class DataSetElement
     @Override
     public int hashCode()
     {
-        return Objects.hashCode( super.hashCode(), dataSet, dataElement );
+        return Objects.hash( super.hashCode(), dataSet, dataElement );
     }
 
     @Override
@@ -135,9 +139,9 @@ public class DataSetElement
 
         return objectEquals( other );
     }
-    
+
     public boolean objectEquals( DataSetElement other )
-    {        
+    {
         return dataSet.equals( other.getDataSet() ) && dataElement.equals( other.getDataElement() );
     }
 

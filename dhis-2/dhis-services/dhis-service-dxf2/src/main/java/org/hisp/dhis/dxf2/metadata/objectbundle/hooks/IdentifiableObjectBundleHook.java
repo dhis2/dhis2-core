@@ -28,17 +28,12 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Session;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupAccess;
 import org.springframework.core.annotation.Order;
 import org.springframework.util.StringUtils;
 
@@ -54,11 +49,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
         ((BaseIdentifiableObject) identifiableObject).setAutoFields();
 
         Schema schema = schemaService.getDynamicSchema( identifiableObject.getClass() );
-        Session session = sessionFactory.getCurrentSession();
-        handleAttributeValues( session, identifiableObject, bundle, schema );
-        handleUserGroupAccesses( session, identifiableObject, bundle, schema );
-        handleUserAccesses( session, identifiableObject, bundle, schema );
-        handleObjectTranslations( session, identifiableObject, bundle, schema );
+        handleAttributeValues( identifiableObject, bundle, schema );
     }
 
     @Override
@@ -67,14 +58,10 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
         ((BaseIdentifiableObject) object).setAutoFields();
 
         Schema schema = schemaService.getDynamicSchema( object.getClass() );
-        Session session = sessionFactory.getCurrentSession();
-        handleAttributeValues( session, object, bundle, schema );
-        handleUserGroupAccesses( session, object, bundle, schema );
-        handleUserAccesses( session, object, bundle, schema );
-        handleObjectTranslations( session, object, bundle, schema );
+        handleAttributeValues( object, bundle, schema );
     }
 
-    private void handleAttributeValues( Session session, IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
+    private void handleAttributeValues( IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
     {
         if ( !schema.havePersistedProperty( "attributeValues" ) ) return;
 
@@ -85,49 +72,6 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
 
             Attribute attribute = bundle.getPreheat().get( bundle.getPreheatIdentifier(), attributeValue.getAttribute() );
             attributeValue.setAttribute( attribute );
-            session.save( attributeValue );
         }
-    }
-
-    private void handleUserGroupAccesses( Session session, IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
-    {
-        if ( !schema.havePersistedProperty( "userGroupAccesses" ) ) return;
-
-        if ( bundle.isSkipSharing() )
-        {
-            identifiableObject.getUserGroupAccesses().clear();
-            return;
-        }
-
-        for ( UserGroupAccess userGroupAccess : identifiableObject.getUserGroupAccesses() )
-        {
-            UserGroup userGroup = bundle.getPreheat().get( bundle.getPreheatIdentifier(), userGroupAccess.getUserGroup() );
-            userGroupAccess.setUserGroup( userGroup );
-            session.save( userGroupAccess );
-        }
-    }
-
-    private void handleUserAccesses( Session session, IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
-    {
-        if ( !schema.havePersistedProperty( "userAccesses" ) ) return;
-
-        if ( bundle.isSkipSharing() )
-        {
-            identifiableObject.getUserAccesses().clear();
-            return;
-        }
-
-        for ( UserAccess userAccess : identifiableObject.getUserAccesses() )
-        {
-            User user = bundle.getPreheat().get( bundle.getPreheatIdentifier(), userAccess.getUser() );
-            userAccess.setUser( user );
-            session.save( userAccess );
-        }
-    }
-
-    private void handleObjectTranslations( Session session, IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
-    {
-        if ( !schema.havePersistedProperty( "translations" ) ) return;
-        identifiableObject.getTranslations().forEach( session::save );
     }
 }

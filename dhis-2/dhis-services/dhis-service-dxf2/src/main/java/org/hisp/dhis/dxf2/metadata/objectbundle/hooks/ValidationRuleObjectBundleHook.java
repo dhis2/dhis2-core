@@ -51,8 +51,7 @@ public class ValidationRuleObjectBundleHook
 
         if ( validationRule.getPeriodType() != null )
         {
-            PeriodType periodType = bundle.getPreheat().getPeriodTypeMap()
-                .get( validationRule.getPeriodType().getName() );
+            PeriodType periodType = bundle.getPreheat().getPeriodTypeMap().get( validationRule.getPeriodType().getName() );
             validationRule.setPeriodType( periodType );
         }
     }
@@ -69,8 +68,7 @@ public class ValidationRuleObjectBundleHook
 
         if ( validationRule.getPeriodType() != null )
         {
-            PeriodType periodType = bundle.getPreheat().getPeriodTypeMap()
-                .get( validationRule.getPeriodType().getName() );
+            PeriodType periodType = bundle.getPreheat().getPeriodTypeMap().get( validationRule.getPeriodType().getName() );
             validationRule.setPeriodType( periodType );
         }
     }

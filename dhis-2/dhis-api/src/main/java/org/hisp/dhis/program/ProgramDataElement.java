@@ -38,6 +38,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.LinkObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.LegendSet;
@@ -51,7 +52,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_P
  */
 @JacksonXmlRootElement( localName = "programDataElement", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramDataElement
-    extends BaseDimensionalItemObject
+    extends BaseDimensionalItemObject implements LinkObject
 {
     private Program program;
 
@@ -123,7 +124,7 @@ public class ProgramDataElement
     {
         return program.getPropertyValue( idScheme ) + COMPOSITE_DIM_OBJECT_PLAIN_SEP + dataElement.getPropertyValue( idScheme );
     }
-    
+
     @Override
     public DimensionItemType getDimensionItemType()
     {

@@ -37,6 +37,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.LinkObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
@@ -49,7 +50,7 @@ import java.util.Date;
  */
 @JacksonXmlRootElement( localName = "dataInputPeriods", namespace = DxfNamespaces.DXF_2_0 )
 public class DataInputPeriod
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements LinkObject
 {
     /**
      * Period data must belong to
@@ -68,7 +69,7 @@ public class DataInputPeriod
 
     public DataInputPeriod()
     {
-        super.setAutoFields();
+        setAutoFields();
     }
 
     /**
@@ -93,8 +94,8 @@ public class DataInputPeriod
      */
     public boolean isDateWithinOpenCloseDates( Date date )
     {
-        return ( openingDate == null || date.after( openingDate ) )
-            && ( closingDate == null || date.before( closingDate ) );
+        return (openingDate == null || date.after( openingDate ))
+            && (closingDate == null || date.before( closingDate ));
     }
 
     /**

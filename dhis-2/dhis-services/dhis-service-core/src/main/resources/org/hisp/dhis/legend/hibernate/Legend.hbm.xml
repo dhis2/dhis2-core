@@ -9,7 +9,7 @@
   <class name="org.hisp.dhis.legend.Legend" table="maplegend">
 
     <cache usage="read-write" />
-    
+
     <id name="id" column="maplegendid">
       <generator class="native" />
     </id>
@@ -24,11 +24,11 @@
     <property name="color" column="color" />
 
     <property name="image" column="image" />
-    
+
     <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="maplegendsetid" foreign-key="fk_maplegend_maplegendsetid" />
 
     <!-- Object Translation -->
-    <set name="translations" table="maplegendtranslations" cascade="delete-orphan">
+    <set name="translations" table="maplegendtranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="maplegendid" foreign-key="fk_objecttranslation_maplegendid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

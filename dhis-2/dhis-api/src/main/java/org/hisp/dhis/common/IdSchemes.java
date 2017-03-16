@@ -63,6 +63,8 @@ public class IdSchemes
 
     private IdScheme attributeOptionComboIdScheme;
 
+    private IdScheme programStageInstanceIdScheme;
+
     public IdSchemes()
     {
     }
@@ -175,6 +177,17 @@ public class IdSchemes
         return this;
     }
 
+    public IdScheme getProgramStageInstanceIdScheme()
+    {
+        return getScheme( programStageInstanceIdScheme );
+    }
+
+    public IdSchemes setProgramStageInstanceIdScheme( String idScheme )
+    {
+        this.programStageInstanceIdScheme = IdScheme.from( idScheme );
+        return this;
+    }
+
     public IdScheme getTrackedEntityIdScheme()
     {
         return getScheme( trackedEntityIdScheme );
@@ -209,6 +222,7 @@ public class IdSchemes
     public static String getValue( String uid, String code, IdScheme idScheme )
     {
         boolean isId = idScheme.is( IdentifiableProperty.ID ) || idScheme.is( IdentifiableProperty.UID );
+
         return isId ? uid : code;
     }
 
@@ -229,7 +243,7 @@ public class IdSchemes
         {
             return identifiableObject.getCode();
         }
-        else if ( idScheme.is( IdentifiableProperty.CODE ) )
+        else if ( idScheme.is( IdentifiableProperty.NAME ) )
         {
             return identifiableObject.getName();
         }
@@ -252,6 +266,7 @@ public class IdSchemes
             .add( "trackedEntityAttributeIdScheme", trackedEntityAttributeIdScheme )
             .add( "dataSetIdScheme", dataSetIdScheme )
             .add( "attributeOptionComboIdScheme", attributeOptionComboIdScheme )
+            .add( "programStageInstanceIdScheme", programStageInstanceIdScheme )
             .toString();
     }
 }

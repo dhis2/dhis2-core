@@ -55,6 +55,12 @@ public class JdbcCompletenessTargetTableManager
     extends AbstractJdbcTableManager
 {
     @Override
+    public AnalyticsTableType getAnalyticsTableType()
+    {
+        return AnalyticsTableType.COMPLETENESS_TARGET;
+    }
+    
+    @Override
     @Transactional
     public List<AnalyticsTable> getTables( Date earliest )
     {
@@ -76,12 +82,6 @@ public class JdbcCompletenessTargetTableManager
     }    
     
     @Override
-    public String getTableName()
-    {
-        return COMPLETENESS_TARGET_TABLE_NAME;
-    }
-
-    @Override
     public void createTable( AnalyticsTable table )
     {
         final String tableName = table.getTempTableName();
@@ -101,10 +101,8 @@ public class JdbcCompletenessTargetTableManager
             sqlCreate += col.getName() + " " + col.getDataType() + ",";
         }
         
-        sqlCreate += "value double precision) ";
+        sqlCreate += "value double precision)";
         
-        sqlCreate += statementBuilder.getTableOptions( false );
-
         log.info( "Creating table: " + tableName + ", columns: " + columns.size() );
         
         log.debug( "Create SQL: " + sqlCreate );
@@ -167,23 +165,23 @@ public class JdbcCompletenessTargetTableManager
         
         for ( OrganisationUnitGroupSet groupSet : orgUnitGroupSets )
         {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "ougs." + quote( groupSet.getUid() ) ) );
+            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "ougs." + quote( groupSet.getUid() ), groupSet.getCreated() ) );
         }
         
         for ( OrganisationUnitLevel level : levels )
         {
             String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
-            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column ) );
+            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column, level.getCreated() ) );
         }
 
         for ( CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets )
         {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "acs." + quote( groupSet.getUid() ) ) );
+            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "acs." + quote( groupSet.getUid() ), groupSet.getCreated() ) );
         }
 
         for ( DataElementCategory category : attributeCategories )
         {
-            columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "acs." + quote( category.getUid() ) ) );
+            columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "acs." + quote( category.getUid() ), category.getCreated() ) );
         }
 
         AnalyticsTableColumn ouOpening = new AnalyticsTableColumn( quote( "ouopeningdate"), "date", "ou.openingdate" );
@@ -195,7 +193,7 @@ public class JdbcCompletenessTargetTableManager
         
         columns.addAll( Lists.newArrayList( ouOpening, ouClosed, coStart, coEnd, ds, ao ) );
         
-        return columns;
+        return filterDimensionColumns( columns );
     }
 
     @Override

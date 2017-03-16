@@ -29,8 +29,8 @@ package org.hisp.dhis.render;
  */
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import org.hisp.dhis.system.util.DateUtils;
 
 import java.io.IOException;
@@ -39,16 +39,11 @@ import java.util.Date;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class WriteDateStdSerializer extends StdSerializer<Date>
+public class WriteDateStdSerializer extends JsonSerializer<Date>
 {
-    public WriteDateStdSerializer()
-    {
-        super( Date.class );
-    }
-
     @Override
-    public void serialize( Date date, JsonGenerator gen, SerializerProvider provider ) throws IOException
+    public void serialize( Date date, JsonGenerator generator, SerializerProvider provider ) throws IOException
     {
-        gen.writeString( DateUtils.getIso8601NoTz( date ) );
+        generator.writeString( DateUtils.getIso8601NoTz( date ) );
     }
 }

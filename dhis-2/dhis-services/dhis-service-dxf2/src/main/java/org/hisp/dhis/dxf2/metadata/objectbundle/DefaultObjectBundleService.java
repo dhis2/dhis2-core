@@ -112,6 +112,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
         preheatParams.setObjects( params.getObjects() );
 
         ObjectBundle bundle = new ObjectBundle( params, preheatService.preheat( preheatParams ), params.getObjects() );
+        bundle.setObjectBundleStatus( ObjectBundleStatus.CREATED );
         bundle.setObjectReferences( preheatService.collectObjectReferences( params.getObjects() ) );
 
         return bundle;
@@ -131,7 +132,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
         List<Class<? extends IdentifiableObject>> klasses = getSortedClasses( bundle );
         Session session = sessionFactory.getCurrentSession();
 
-        objectBundleHooks.forEach( hook -> hook.preImport( bundle ) );
+        objectBundleHooks.forEach( hook -> hook.preCommit( bundle ) );
 
         for ( Class<? extends IdentifiableObject> klass : klasses )
         {
@@ -164,7 +165,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         if ( !bundle.getImportMode().isDelete() )
         {
-            objectBundleHooks.forEach( hook -> hook.postImport( bundle ) );
+            objectBundleHooks.forEach( hook -> hook.postCommit( bundle ) );
         }
 
         dbmsManager.clearSession();

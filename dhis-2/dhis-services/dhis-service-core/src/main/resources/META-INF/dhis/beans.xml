@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:aop="http://www.springframework.org/schema/aop"
-  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
 
-    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.2.xsd">
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd">
 
   <bean id="org.hisp.dhis.preheat.PreheatService" class="org.hisp.dhis.preheat.DefaultPreheatService" scope="prototype">
     <aop:scoped-proxy proxy-target-class="false" />
@@ -82,6 +82,12 @@
   <bean id="org.hisp.dhis.schema.validation.SchemaValidator" class="org.hisp.dhis.schema.validation.DefaultSchemaValidator" />
 
   <!-- Store definitions -->
+
+  <bean id="org.hisp.dhis.dataset.DataInputPeriodStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.dataset.DataInputPeriod" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
 
   <bean id="org.hisp.dhis.report.ReportStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
     <property name="clazz" value="org.hisp.dhis.report.Report" />
@@ -263,6 +269,12 @@
     <property name="cacheable" value="true" />
   </bean>
 
+  <bean id="org.hisp.dhis.validation.ValidationResultStore" class="org.hisp.dhis.validation.hibernate.HibernateValidationResultStore">
+    <property name="clazz" value="org.hisp.dhis.validation.ValidationResult" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
   <bean id="org.hisp.dhis.validation.notification.ValidationNotificationTemplateStore"
     class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
     <property name="clazz" value="org.hisp.dhis.validation.notification.ValidationNotificationTemplate" />
@@ -417,6 +429,16 @@
     <property name="clazz" value="org.hisp.dhis.user.UserAccess" />
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
+
+  <bean id="org.hisp.dhis.user.PasswordValidationService" class="org.hisp.dhis.user.DefaultPasswordValidationService" />
+
+  <bean id="org.hisp.dhis.user.PasswordHistoryValidationRule" class="org.hisp.dhis.user.PasswordHistoryValidationRule" />
+
+  <bean id="org.hisp.dhis.user.PasswordLengthValidationRule" class="org.hisp.dhis.user.PasswordLengthValidationRule" />
+
+  <bean id="org.hisp.dhis.user.DigitPatternValidationRule" class="org.hisp.dhis.user.DigitPatternValidationRule" />
+
+  <bean id="org.hisp.dhis.user.UpperCasePatternValidationRule" class="org.hisp.dhis.user.UpperCasePatternValidationRule" />
 
   <bean id="org.hisp.dhis.validation.ValidationCriteriaStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
     <property name="clazz" value="org.hisp.dhis.validation.ValidationCriteria" />
@@ -621,13 +643,6 @@
     <property name="cacheable" value="true" />
   </bean>
 
-
-  <bean id="org.hisp.dhis.program.ProgramValidationStore"
-    class="org.hisp.dhis.program.hibernate.HibernateProgramValidationStore">
-    <property name="clazz" value="org.hisp.dhis.program.ProgramValidation" />
-    <property name="sessionFactory" ref="sessionFactory" />
-  </bean>
-
   <bean id="org.hisp.dhis.program.ProgramDataElementStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramDataElementStore">
     <property name="clazz" value="org.hisp.dhis.program.ProgramDataElement" />
@@ -700,13 +715,6 @@
 
   <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeReservedValueService"
     class="org.hisp.dhis.trackedentityattributevalue.DefaultTrackedEntityAttributeReservedValueService" />
-
-  <bean id="org.hisp.dhis.trackedentity.TrackedEntityAttributeGroupStore"
-    class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
-    <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="cacheable" value="true" />
-  </bean>
 
   <bean id="org.hisp.dhis.program.ProgramStageDataElementStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramStageDataElementStore">
@@ -929,18 +937,10 @@
   <bean id="org.hisp.dhis.validation.ValidationRuleService" class="org.hisp.dhis.validation.DefaultValidationRuleService">
     <property name="validationRuleStore" ref="org.hisp.dhis.validation.ValidationRuleStore" />
     <property name="validationRuleGroupStore" ref="org.hisp.dhis.validation.ValidationRuleGroupStore" />
-    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
-    <property name="constantService" ref="org.hisp.dhis.constant.ConstantService" />
-    <property name="dataValueService" ref="org.hisp.dhis.datavalue.DataValueService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
-    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
-    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
-    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
     <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
-    <property name="notificationService" ref="org.hisp.dhis.validation.notification.ValidationNotificationService" />
   </bean>
 
-  <bean id="validationTask" class="org.hisp.dhis.validation.DataValidationTask" scope="prototype" />
+  <bean id="org.hisp.dhis.validation.ValidationResultService" class="org.hisp.dhis.validation.DefaultValidationResultService" />
 
   <bean id="validationNotificationMessageRenderer" class="org.hisp.dhis.notification.ValidationNotificationMessageRenderer" />
 
@@ -1139,6 +1139,7 @@
         <value>colombia</value>
         <value>congo_brazzaville</value>
         <value>congo_kinshasa</value>
+        <value>cordaid</value>
         <value>demoland</value>
         <value>denmark</value>
         <value>ecowas</value>
@@ -1331,7 +1332,6 @@
     <property name="programStageInstanceService" ref="org.hisp.dhis.program.ProgramStageInstanceService" />
     <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
     <property name="dataValueService" ref="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService" />
-    <property name="programStageDataElementService" ref="org.hisp.dhis.program.ProgramStageDataElementService" />
   </bean>
 
   <bean id="org.hisp.dhis.program.ProgramExpressionService" class="org.hisp.dhis.program.DefaultProgramExpressionService">
@@ -1433,13 +1433,7 @@
   <bean id="org.hisp.dhis.sms.SmsMessageBatchCreatorService" class="org.hisp.dhis.sms.SmsMessageBatchCreatorService">
   </bean>
 
-  <bean id="org.hisp.dhis.email.EmailMessageBatchCreator" class="org.hisp.dhis.email.EmailMessageBatchCreator">
-  </bean>
-
-  <bean id="org.hisp.dhis.program.ProgramValidationService" class="org.hisp.dhis.program.DefaultProgramValidationService">
-    <property name="validationStore" ref="org.hisp.dhis.program.ProgramValidationStore" />
-    <property name="expressionService" ref="org.hisp.dhis.program.ProgramExpressionService" />
-    <property name="dataValueService" ref="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService" />
+  <bean id="org.hisp.dhis.email.EmailMessageBatchCreator" class="org.hisp.dhis.email.EmailMessageBatchCreatorService">
   </bean>
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceService"
@@ -1459,11 +1453,6 @@
 
   <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService"
     class="org.hisp.dhis.trackedentitydatavalue.DefaultTrackedEntityDataValueService">
-  </bean>
-
-  <bean id="org.hisp.dhis.trackedentity.TrackedEntityAttributeGroupService"
-    class="org.hisp.dhis.trackedentity.DefaultTrackedEntityAttributeGroupService">
-    <property name="attributeGroupStore" ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeGroupStore" />
   </bean>
 
   <bean id="org.hisp.dhis.program.ProgramStageDataElementService"
@@ -1559,10 +1548,6 @@
     <property name="specificResourceBundleName" value="i18n_module" />
   </bean>
 
-  <!-- Scheduled task for data monitoring -->
-
-  <bean id="monitoringLastDayTask" class="org.hisp.dhis.validation.scheduling.MonitoringTask" scope="prototype" />
-
   <!-- Scheduled task for scheduled program notifications -->
 
   <bean id="scheduledProgramNotificationsTask"
@@ -1630,7 +1615,6 @@
         <value>trackedentity</value>
         <value>trackedentityinstance</value>
         <value>trackedentityattribute</value>
-        <value>trackedentityattributegroup</value>
         <value>program</value>
         <value>programindicator</value>
         <value>programstage</value>
@@ -1640,7 +1624,6 @@
         <value>programstageinstance</value>
         <value>programstagesection</value>
         <value>program_attributes</value>
-        <value>programvalidation</value>
         <value>programrule</value>
         <value>programruleaction</value>
         <value>programrulevariable</value>
@@ -1773,10 +1756,16 @@
     <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
   </bean>
 
+  <bean id="org.hisp.dhis.validation.ValidationResultDeletionHandler" class="org.hisp.dhis.validation.ValidationResultDeletionHandler" />
+
   <bean id="org.hisp.dhis.validation.ValidationRuleGroupDeletionHandler"
     class="org.hisp.dhis.validation.ValidationRuleGroupDeletionHandler" />
 
   <bean id="org.hisp.dhis.datavalue.DataValueDeletionHandler" class="org.hisp.dhis.datavalue.DataValueDeletionHandler">
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.DataInputPeriodDeletionHandler" class="org.hisp.dhis.dataset.DataInputPeriodDeletionHandler">
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
@@ -1894,12 +1883,6 @@
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
-  <bean id="org.hisp.dhis.program.ProgramValidationDeletionHandler"
-    class="org.hisp.dhis.program.ProgramValidationDeletionHandler">
-    <property name="programValidationService"
-      ref="org.hisp.dhis.program.ProgramValidationService" />
-  </bean>
-
   <bean id="org.hisp.dhis.program.ProgramDataEntryFormDeletionHandler"
     class="org.hisp.dhis.program.ProgramDataEntryFormDeletionHandler">
     <property name="dataEntryFormService" ref="org.hisp.dhis.dataentryform.DataEntryFormService" />
@@ -1970,7 +1953,6 @@
       <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramStageService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramStageInstanceService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramStageDataElementService.delete*(..) )" method="intercept" />
-      <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramValidationService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramIndicatorService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.validation.ValidationCriteriaService.delete*(..) )" method="intercept" />

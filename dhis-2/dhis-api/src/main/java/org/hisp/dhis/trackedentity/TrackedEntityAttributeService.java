@@ -117,20 +117,6 @@ public interface TrackedEntityAttributeService
     List<TrackedEntityAttribute> getAllTrackedEntityAttributes();
 
     /**
-     * Get attributes without groups
-     *
-     * @return List of attributes
-     */
-    List<TrackedEntityAttribute> getOptionalAttributesWithoutGroup();
-
-    /**
-     * Get attributes without groups
-     *
-     * @return List of attributes without group
-     */
-    List<TrackedEntityAttribute> getTrackedEntityAttributesWithoutGroup();
-
-    /**
      * Get attributes which are displayed in visit schedule
      *
      * @param displayOnVisitSchedule True/False value

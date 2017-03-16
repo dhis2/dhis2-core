@@ -180,6 +180,29 @@ public class DefaultRenderService
     }
 
     @Override
+    public JsonNode getSystemObject( InputStream inputStream, RenderFormat format ) throws IOException
+    {
+        ObjectMapper mapper;
+
+        if ( RenderFormat.JSON == format )
+        {
+            mapper = jsonMapper;
+        }
+        else if ( RenderFormat.XML == format )
+        {
+            throw new IllegalArgumentException( "XML format is not supported." );
+        }
+        else
+        {
+            return null;
+        }
+
+        JsonNode rootNode = mapper.readTree( inputStream );
+
+        return rootNode.get( "system" );
+    }
+
+    @Override
     @SuppressWarnings( "unchecked" )
     public Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> fromMetadata( InputStream inputStream, RenderFormat format ) throws IOException
     {
@@ -193,7 +216,6 @@ public class DefaultRenderService
         }
         else if ( RenderFormat.XML == format )
         {
-            // mapper = xmlMapper;
             throw new IllegalArgumentException( "XML format is not supported." );
         }
         else
@@ -213,6 +235,12 @@ public class DefaultRenderService
             if ( schema == null || !schema.isIdentifiableObject() )
             {
                 log.info( "Skipping unknown property '" + fieldName + "'." );
+                continue;
+            }
+
+            if ( !schema.isMetadata() )
+            {
+                log.debug( "Skipping non-metadata property `" + fieldName + "`." );
                 continue;
             }
 

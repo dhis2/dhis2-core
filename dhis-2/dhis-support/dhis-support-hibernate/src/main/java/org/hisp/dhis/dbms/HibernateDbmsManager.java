@@ -28,14 +28,14 @@ package org.hisp.dhis.dbms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
+
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -189,7 +189,9 @@ public class HibernateDbmsManager
         emptyTable( "validationrulegroupmembers" );
         emptyTable( "validationrulegroup" );
         emptyTable( "validationrulegroupusergroupaccesses" );
-        
+
+        emptyTable( "validationresult" );
+
         emptyTable( "validationrule" );
         emptyTable( "validationruleusergroupaccesses" );
 

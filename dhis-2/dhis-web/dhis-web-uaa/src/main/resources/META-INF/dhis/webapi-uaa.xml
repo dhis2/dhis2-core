@@ -2,10 +2,10 @@
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns="http://www.springframework.org/schema/beans"
   xmlns:sec="http://www.springframework.org/schema/security" xmlns:context="http://www.springframework.org/schema/context" xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:oauth="http://www.springframework.org/schema/security/oauth2"
-  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
-    http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.2.xsd
-    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
-    http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.2.xsd
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+    http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.2.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+    http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
     http://www.springframework.org/schema/security/oauth2 http://www.springframework.org/schema/security/spring-security-oauth2.xsd">
 
   <sec:global-method-security pre-post-annotations="enabled" />
@@ -28,7 +28,7 @@
 
   <!-- OAuth2 -->
   <oauth:authorization-server client-details-service-ref="clientDetailsService" token-services-ref="tokenServices"
-    user-approval-page="forward:/uaa/oauth/confirm_access">
+    user-approval-page="forward:/uaa/oauth/confirm_access" error-page="forward:/uaa/oauth/error">
     <oauth:authorization-code authorization-code-services-ref="authorizationCodeServices" />
     <oauth:refresh-token />
     <oauth:password authentication-manager-ref="authenticationManager" />

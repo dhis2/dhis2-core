@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd">
 
   <!-- Actions -->
 
@@ -56,7 +56,7 @@
   </bean>
 
   <bean id="org.hisp.dhis.de.action.ValidationAction" class="org.hisp.dhis.de.action.ValidationAction" scope="prototype">
-    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
+    <property name="validationService" ref="org.hisp.dhis.validation.ValidationService" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
     <property name="minMaxOutlierAnalysisService" ref="org.hisp.dhis.dataanalysis.MinMaxOutlierAnalysisService" />
     <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />

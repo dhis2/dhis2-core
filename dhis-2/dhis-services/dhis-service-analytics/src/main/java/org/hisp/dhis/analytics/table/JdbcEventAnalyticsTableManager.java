@@ -62,10 +62,16 @@ public class JdbcEventAnalyticsTableManager
     private static final ImmutableSet<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
     
     @Override
+    public AnalyticsTableType getAnalyticsTableType()
+    {
+        return AnalyticsTableType.EVENT;
+    }
+    
+    @Override
     @Transactional
     public List<AnalyticsTable> getTables( Date earliest )
     {
-        log.info( "Get tables using earliest: " + earliest + ", spatial support: " + databaseInfo.isSpatialSupport() );
+        log.info( String.format( "Get tables using earliest: %s, spatial support: %b", earliest, databaseInfo.isSpatialSupport() ) );
 
         return getTables( getDataYears( earliest ) );
     }
@@ -104,12 +110,6 @@ public class JdbcEventAnalyticsTableManager
     }
 
     @Override
-    public String getTableName()
-    {
-        return EVENT_ANALYTICS_TABLE_NAME;
-    }
-
-    @Override
     protected void populateTable( AnalyticsTable table )
     {
         final String start = DateUtils.getMediumDateString( table.getPeriod().getStartDate() );
@@ -141,6 +141,7 @@ public class JdbcEventAnalyticsTableManager
             "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
             "inner join programstage ps on psi.programstageid=ps.programstageid " +
             "inner join program pr on pi.programid=pr.programid " +
+            "inner join categoryoptioncombo ao on psi.attributeoptioncomboid=ao.categoryoptioncomboid " +
             "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid " +
             "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid " +
             "left join _orgunitstructure ous on psi.organisationunitid=ous.organisationunitid " +
@@ -174,7 +175,10 @@ public class JdbcEventAnalyticsTableManager
             
             for ( DataElementCategory category : categories )
             {
-                columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "acs." + quote( category.getUid() ) ) );
+                if ( category.isDataDimension() )
+                {
+                    columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "acs." + quote( category.getUid() ), category.getCreated() ) );
+                }
             }
         }
 
@@ -190,17 +194,17 @@ public class JdbcEventAnalyticsTableManager
         for ( OrganisationUnitLevel level : levels )
         {
             String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
-            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column ) );
+            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column, level.getCreated() ) );
         }
         
         for ( OrganisationUnitGroupSet groupSet : orgUnitGroupSets )
         {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "ougs." + quote( groupSet.getUid() ) ) );
+            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "ougs." + quote( groupSet.getUid() ), groupSet.getCreated() ) );
         }
 
         for ( CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets )
         {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "acs." + quote( groupSet.getUid() ) ) );
+            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "acs." + quote( groupSet.getUid() ), groupSet.getCreated() ) );
         }
 
         for ( PeriodType periodType : PeriodType.getAvailablePeriodTypes() )
@@ -225,7 +229,6 @@ public class JdbcEventAnalyticsTableManager
 
         for ( DataElement dataElement : table.getProgram().getDataElementsWithLegendSet() )
         {
-
             for ( LegendSet legendSet : dataElement.getLegendSets() )
             {
                 String column = quote(
@@ -279,6 +282,7 @@ public class JdbcEventAnalyticsTableManager
         AnalyticsTableColumn psi = new AnalyticsTableColumn( quote( "psi" ), "character(11) not null", "psi.uid" );
         AnalyticsTableColumn pi = new AnalyticsTableColumn( quote( "pi" ), "character(11) not null", "pi.uid" );
         AnalyticsTableColumn ps = new AnalyticsTableColumn( quote( "ps" ), "character(11) not null", "ps.uid" );
+        AnalyticsTableColumn ao = new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" );
         AnalyticsTableColumn erd = new AnalyticsTableColumn( quote( "enrollmentdate" ), "timestamp", "pi.enrollmentdate" );
         AnalyticsTableColumn id = new AnalyticsTableColumn( quote( "incidentdate" ), "timestamp", "pi.incidentdate" );
         AnalyticsTableColumn ed = new AnalyticsTableColumn( quote( "executiondate" ), "timestamp", "psi.executiondate" );
@@ -292,7 +296,7 @@ public class JdbcEventAnalyticsTableManager
         AnalyticsTableColumn oun = new AnalyticsTableColumn( quote( "ouname" ), "character varying(230) not null", "ou.name" );
         AnalyticsTableColumn ouc = new AnalyticsTableColumn( quote( "oucode" ), "character varying(50)", "ou.code" );
 
-        columns.addAll( Lists.newArrayList( psi, pi, ps, erd, id, ed, dd, cd, pes, es, longitude, latitude, ou, oun, ouc ) );
+        columns.addAll( Lists.newArrayList( psi, pi, ps, ao, erd, id, ed, dd, cd, pes, es, longitude, latitude, ou, oun, ouc ) );
 
         if ( databaseInfo.isSpatialSupport() )
         {
@@ -305,7 +309,7 @@ public class JdbcEventAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( quote( "tei" ), "character(11)", "tei.uid" ) );
         }
                 
-        return columns;
+        return filterDimensionColumns( columns );
     }
 
     @Override

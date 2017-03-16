@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.metadata;
 
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
@@ -43,7 +44,7 @@ import java.util.List;
  */
 public class DefaultMergeService implements MergeService
 {
-    private static final List<String> sharingProps = Arrays.asList(
+    private static final List<String> SHARING_PROPS = Arrays.asList(
         "publicAccess", "externalAccess", "userGroupAccesses", "userAccesses" );
 
     private final SchemaService schemaService;
@@ -60,11 +61,18 @@ public class DefaultMergeService implements MergeService
         T source = mergeParams.getSource();
         T target = mergeParams.getTarget();
 
+
         Schema schema = schemaService.getDynamicSchema( source.getClass() );
 
         for ( Property property : schema.getProperties() )
         {
             if ( schema.isIdentifiableObject() && mergeParams.isSkipSharing() && isSharingProperty( property ) )
+            {
+                continue;
+            }
+
+            // passwords should only be merged manually
+            if ( property.is( PropertyType.PASSWORD ) )
             {
                 continue;
             }
@@ -126,6 +134,6 @@ public class DefaultMergeService implements MergeService
 
     private boolean isSharingProperty( Property property )
     {
-        return sharingProps.contains( property.getName() ) || sharingProps.contains( property.getCollectionName() );
+        return SHARING_PROPS.contains( property.getName() ) || SHARING_PROPS.contains( property.getCollectionName() );
     }
 }

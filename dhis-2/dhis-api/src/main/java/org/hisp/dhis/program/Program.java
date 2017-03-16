@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -40,6 +41,8 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.VersionedObject;
+import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
+import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
@@ -113,8 +116,6 @@ public class Program
     private Boolean relationshipFromA = false;
 
     private Program relatedProgram;
-
-    private Boolean dataEntryMethod = false;
 
     private TrackedEntity trackedEntity;
 
@@ -280,7 +281,7 @@ public class Program
     {
         return getTrackedEntityAttributes().stream().filter( a -> !a.isConfidentialBool() && a.hasLegendSet() && a.isNumericType() ).collect( Collectors.toList() );
     }
-    
+
     /**
      * Indicates whether this program contains the given data element.
      */
@@ -296,10 +297,10 @@ public class Program
                 }
             }
         }
-        
+
         return false;
     }
-    
+
     /**
      * Indicates whether this program contains the given tracked entity
      * attribute.
@@ -313,7 +314,7 @@ public class Program
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -642,18 +643,6 @@ public class Program
         this.relationshipFromA = relationshipFromA;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getDataEntryMethod()
-    {
-        return dataEntryMethod;
-    }
-
-    public void setDataEntryMethod( Boolean dataEntryMethod )
-    {
-        this.dataEntryMethod = dataEntryMethod;
-    }
-
     @JsonProperty( "programTrackedEntityAttributes" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "programTrackedEntityAttributes", namespace = DxfNamespaces.DXF_2_0 )
@@ -788,6 +777,8 @@ public class Program
     }
 
     @JsonProperty
+    @JsonSerialize( using = JacksonPeriodTypeSerializer.class )
+    @JsonDeserialize( using = JacksonPeriodTypeDeserializer.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public PeriodType getExpiryPeriodType()
     {
@@ -838,7 +829,6 @@ public class Program
                 relationshipType = program.getRelationshipType();
                 relationshipFromA = program.getRelationshipFromA();
                 relatedProgram = program.getRelatedProgram();
-                dataEntryMethod = program.getDataEntryMethod();
                 trackedEntity = program.getTrackedEntity();
                 useFirstStageDuringRegistration = program.getUseFirstStageDuringRegistration();
                 categoryCombo = program.getCategoryCombo();
@@ -859,7 +849,6 @@ public class Program
                 relationshipType = program.getRelationshipType() == null ? relationshipType : program.getRelationshipType();
                 relationshipFromA = program.getRelationshipFromA() == null ? relationshipFromA : program.getRelationshipFromA();
                 relatedProgram = program.getRelatedProgram() == null ? relatedProgram : program.getRelatedProgram();
-                dataEntryMethod = program.getDataEntryMethod() == null ? dataEntryMethod : program.getDataEntryMethod();
                 trackedEntity = program.getTrackedEntity() == null ? trackedEntity : program.getTrackedEntity();
                 useFirstStageDuringRegistration = program.getUseFirstStageDuringRegistration() == null ? useFirstStageDuringRegistration : program.getUseFirstStageDuringRegistration();
                 categoryCombo = program.getCategoryCombo() == null ? categoryCombo : program.getCategoryCombo();

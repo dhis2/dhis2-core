@@ -62,5 +62,5 @@ public interface ConfigurationService
     /**
      * Indicates whether the current user is part of the feedback Recipients group
      */
-    boolean isUserInFeedbackRecipientUserGroup(User user);
+    boolean isUserInFeedbackRecipientUserGroup( User user );
 }

@@ -351,7 +351,7 @@ public class DefaultQueryPlanner
     @Override
     public List<DataQueryParams> groupByPartition( DataQueryParams params, QueryPlannerParams plannerParams )
     {
-        Set<String> validPartitions = partitionManager.getAnalyticsPartitions();
+        Set<String> validPartitions = partitionManager.getDataValueAnalyticsPartitions();
         
         String tableName = plannerParams.getTableName();
         String tableSuffix = plannerParams.getTableSuffix();

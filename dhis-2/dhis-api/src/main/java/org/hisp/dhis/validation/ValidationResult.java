@@ -41,28 +41,49 @@ import org.hisp.dhis.period.Period;
 import java.io.Serializable;
 
 /**
+ * Class representing a validation violation. The validationRule, period and org unit
+ * properties make up a composite unique key.
+ * 
  * @author Margrethe Store
  */
 @JacksonXmlRootElement( localName = "validationResult", namespace = DxfNamespaces.DXF_2_0 )
 public class ValidationResult
     implements Serializable, Comparable<ValidationResult>
 {
+
+    private int id;
+
     /**
      * Determines if a de-serialized file is compatible with this class.
      */
     private static final long serialVersionUID = -4118317796752962296L;
 
-    private OrganisationUnit orgUnit;
+    private ValidationRule validationRule;
 
     private Period period;
 
+    private OrganisationUnit organisationUnit;
+
     private DataElementCategoryOptionCombo attributeOptionCombo;
 
-    private ValidationRule validationRule;
-
+    /**
+     * The leftsideValue at the time of the violation
+     */
     private Double leftsideValue;
 
+    /**
+     * The rightsideValue at the time of the violation
+     */
     private Double rightsideValue;
+
+    /**
+     * This property is a reference to which data was used to generate the result.
+     * For rules comparing fixed periods, this dayInPeriod only indicates when in a period the validation was done
+     * For rules comparing sliding windows, this will indicate where the end-position of the sliding window was
+     * during the validation (IE: the window will span over the days:
+     * (period.startDate + dayInPeriod - period.daysInPeriod) to (period.startDate + dayInPeriod)
+     */
+    private int dayInPeriod;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -72,16 +93,17 @@ public class ValidationResult
     {
     }
 
-    public ValidationResult( Period period, OrganisationUnit orgUnit,
-        DataElementCategoryOptionCombo attributeOptionCombo, ValidationRule validationRule,
-        Double leftsideValue, Double rightsideValue )
+    public ValidationResult( ValidationRule validationRule, Period period, 
+        OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo, 
+        Double leftsideValue, Double rightsideValue, int dayInPeriod )
     {
-        this.orgUnit = orgUnit;
-        this.period = period;
-        this.attributeOptionCombo = attributeOptionCombo;
         this.validationRule = validationRule;
+        this.period = period;
+        this.organisationUnit = organisationUnit;
+        this.attributeOptionCombo = attributeOptionCombo;
         this.leftsideValue = leftsideValue;
         this.rightsideValue = rightsideValue;
+        this.dayInPeriod = dayInPeriod;
     }
 
     // -------------------------------------------------------------------------
@@ -93,9 +115,9 @@ public class ValidationResult
     {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((period == null) ? 0 : period.hashCode());
-        result = prime * result + ((orgUnit == null) ? 0 : orgUnit.hashCode());
         result = prime * result + ((validationRule == null) ? 0 : validationRule.hashCode());
+        result = prime * result + ((period == null) ? 0 : period.hashCode());
+        result = prime * result + ((organisationUnit == null) ? 0 : organisationUnit.hashCode());
 
         return result;
     }
@@ -149,14 +171,14 @@ public class ValidationResult
             return false;
         }
 
-        if ( orgUnit == null )
+        if ( organisationUnit == null )
         {
-            if ( other.orgUnit != null )
+            if ( other.organisationUnit != null )
             {
                 return false;
             }
         }
-        else if ( !orgUnit.equals( other.orgUnit ) )
+        else if ( !organisationUnit.equals( other.organisationUnit ) )
         {
             return false;
         }
@@ -200,7 +222,7 @@ public class ValidationResult
         {
             return false;
         }
-        else if ( Math.round( 100.0 * leftsideValue ) != Math.round( 100.0 * other.leftsideValue ) )
+        else if ( Math.round( 100.0 * rightsideValue ) != Math.round( 100.0 * other.rightsideValue ) )
         {
             return false;
         }
@@ -216,7 +238,7 @@ public class ValidationResult
     @Override
     public int compareTo( ValidationResult other )
     {
-        int result = orgUnit.getName().compareTo( other.orgUnit.getName() );
+        int result = organisationUnit.getName().compareTo( other.organisationUnit.getName() );
 
         if ( result != 0 )
         {
@@ -297,7 +319,7 @@ public class ValidationResult
     @Override
     public String toString()
     {
-        return "[Org unit: " + orgUnit.getUid() +
+        return "[Org unit: " + organisationUnit.getUid() +
             ", period: " + period.getUid() +
             ", validation rule: " + validationRule.getUid() +
             "(" + validationRule.getDisplayName() + ")"+
@@ -309,17 +331,27 @@ public class ValidationResult
     // Set and get methods
     // -------------------------------------------------------------------------     
 
+    public int getId()
+    {
+        return id;
+    }
+
+    public void setId( int id )
+    {
+        this.id = id;
+    }
+
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public OrganisationUnit getOrgUnit()
+    public OrganisationUnit getOrganisationUnit()
     {
-        return orgUnit;
+        return organisationUnit;
     }
 
-    public void setOrgUnit( OrganisationUnit orgUnit )
+    public void setOrganisationUnit( OrganisationUnit organisationUnit )
     {
-        this.orgUnit = orgUnit;
+        this.organisationUnit = organisationUnit;
     }
 
     @JsonProperty
@@ -383,5 +415,15 @@ public class ValidationResult
     public void setRightsideValue( Double rightsideValue )
     {
         this.rightsideValue = rightsideValue;
+    }
+
+    public int getDayInPeriod()
+    {
+        return dayInPeriod;
+    }
+
+    public void setDayInPeriod( int dayInPeriod )
+    {
+        this.dayInPeriod = dayInPeriod;
     }
 }

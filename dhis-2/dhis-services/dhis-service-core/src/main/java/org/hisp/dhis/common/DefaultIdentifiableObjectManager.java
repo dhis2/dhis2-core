@@ -971,6 +971,12 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
+    public void flush()
+    {
+        sessionFactory.getCurrentSession().flush();
+    }
+
+    @Override
     public void evict( Object object )
     {
         sessionFactory.getCurrentSession().evict( object );

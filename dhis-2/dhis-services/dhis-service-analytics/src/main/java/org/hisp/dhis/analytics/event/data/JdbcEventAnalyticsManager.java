@@ -56,6 +56,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -418,6 +419,8 @@ public class JdbcEventAnalyticsManager
         
         if ( params.hasValueDimension() ) // TODO && isNumeric
         {
+            Assert.isTrue( params.getAggregationTypeFallback().isAggregateable(), "Event query aggregation type must be aggregatable" );
+            
             String function = params.getAggregationTypeFallback().getValue();
             
             String expression = statementBuilder.columnQuote( params.getValue().getUid() );
@@ -425,13 +428,13 @@ public class JdbcEventAnalyticsManager
             return function + "(" + expression + ")";
         }
         else if ( params.hasEventProgramIndicatorDimension() )
-        {
+        {            
             String function = params.getProgramIndicator().getAggregationTypeFallback().getValue();
             
             function = TextUtils.emptyIfEqual( function, AggregationType.CUSTOM.getValue() );
             
             String expression = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getExpression(), 
-                params.getProgramIndicator().getProgramIndicatorAnalyticsType() );
+                params.getProgramIndicator().getAnalyticsType() );
             
             return function + "(" + expression + ")";
         }
@@ -465,7 +468,7 @@ public class JdbcEventAnalyticsManager
         }
         else if ( params.hasProgramIndicatorDimension() )
         {
-            Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( params.getProgramIndicator().getExpression(),  params.getProgramIndicator().getProgramIndicatorAnalyticsType() );
+            Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( params.getProgramIndicator().getExpression(),  params.getProgramIndicator().getAnalyticsType() );
             
             return uids.stream().map( uid -> statementBuilder.columnQuote( uid ) ).collect( Collectors.toList() );
         }
@@ -505,7 +508,7 @@ public class JdbcEventAnalyticsManager
                 
                 String asClause = " as " + statementBuilder.columnQuote( in.getUid() );
                 
-                columns.add( "(" + programIndicatorService.getAnalyticsSQl( in.getExpression(), in.getProgramIndicatorAnalyticsType() ) + ")" + asClause );
+                columns.add( "(" + programIndicatorService.getAnalyticsSQl( in.getExpression(), in.getAnalyticsType() ) + ")" + asClause );
             }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
             {
@@ -546,7 +549,7 @@ public class JdbcEventAnalyticsManager
             {
                 ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
                 
-                Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( in.getExpression(), in.getProgramIndicatorAnalyticsType() );
+                Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( in.getExpression(), in.getAnalyticsType() );
                 
                 for ( String uid : uids )
                 {
@@ -715,7 +718,7 @@ public class JdbcEventAnalyticsManager
         if ( params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasFilter() )
         {
             String filter = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getFilter(), 
-                params.getProgramIndicator().getProgramIndicatorAnalyticsType(), false );
+                params.getProgramIndicator().getAnalyticsType(), false );
             
             String sqlFilter = ExpressionUtils.asSql( filter );
             
@@ -724,7 +727,7 @@ public class JdbcEventAnalyticsManager
         
         if ( params.hasProgramIndicatorDimension() )
         {
-            String anyValueFilter = programIndicatorService.getAnyValueExistsClauseAnalyticsSql( params.getProgramIndicator().getExpression(), params.getProgramIndicator().getProgramIndicatorAnalyticsType() );
+            String anyValueFilter = programIndicatorService.getAnyValueExistsClauseAnalyticsSql( params.getProgramIndicator().getExpression(), params.getProgramIndicator().getAnalyticsType() );
             
             if ( anyValueFilter != null )
             {

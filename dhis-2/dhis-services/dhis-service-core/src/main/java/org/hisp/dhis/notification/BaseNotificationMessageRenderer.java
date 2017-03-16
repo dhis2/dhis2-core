@@ -90,8 +90,8 @@ public abstract class BaseNotificationMessageRenderer<T>
 
     protected enum ExpressionType
     {
-        VARIABLE( VARIABLE_PATTERN, VAR_CONTENT_PATTERN ),
-        ATTRIBUTE( ATTRIBUTE_PATTERN, ATTR_CONTENT_PATTERN );
+        VARIABLE ( VARIABLE_PATTERN, VAR_CONTENT_PATTERN ),
+        ATTRIBUTE ( ATTRIBUTE_PATTERN, ATTR_CONTENT_PATTERN );
 
         private final Pattern expressionPattern;
         private final Pattern contentPattern;
@@ -231,18 +231,13 @@ public abstract class BaseNotificationMessageRenderer<T>
         return new NotificationMessage( subject, message );
     }
 
-    private static String replaceExpressions( String input, Map<String, String> expressionToValueMap )
+    private static String replaceExpressions( String input, final Map<String, String> expressionToValueMap )
     {
         if ( StringUtils.isEmpty( input ) )
         {
             return StringUtils.EMPTY;
         }
 
-        return replaceWithValues( input, expressionToValueMap );
-    }
-
-    private static String replaceWithValues( String input, final Map<String, String> expressionToValueMap )
-    {
         return Stream.of( ExpressionType.values() )
             .map( ExpressionType::getExpressionPattern )
             .reduce(
@@ -255,6 +250,7 @@ public abstract class BaseNotificationMessageRenderer<T>
                     {
                         String key = matcher.group( 1 );
                         String value = expressionToValueMap.getOrDefault( key, MISSING_VALUE_REPLACEMENT );
+                        value = StringUtils.defaultIfBlank( value, StringUtils.EMPTY );
 
                         matcher.appendReplacement( sb, value );
                     }

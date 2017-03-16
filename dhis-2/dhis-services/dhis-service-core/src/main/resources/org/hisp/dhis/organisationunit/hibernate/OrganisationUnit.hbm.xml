@@ -29,7 +29,7 @@
       foreign-key="fk_parentid" index="in_parentid" />
 
     <property name="path" column="path" access="property" unique="true" index="in_organisationunit_path" />
-    
+
     <property name="hierarchyLevel" column="hierarchylevel" access="property" index="in_organisationunit_hierarchylevel" />
 
     <property name="description" type="text" />
@@ -93,9 +93,9 @@
     <property name="phoneNumber" length="150" />
 
     <!-- Object Translation -->
-    <set name="translations" table="organisationunittranslations" cascade="delete-orphan">
+    <set name="translations" table="organisationunittranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="organisationunitid" foreign-key="fk_objecttranslation_organisationunitid"  />
+      <key column="organisationunitid" foreign-key="fk_objecttranslation_organisationunitid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
@@ -104,7 +104,7 @@
 
     <!-- Dynamic attribute values -->
 
-    <set name="attributeValues" table="organisationunitattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="organisationunitattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="organisationunitid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />

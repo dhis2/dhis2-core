@@ -1,10 +1,4 @@
 
-<h2>$i18n.getString( "validation_rule" )&nbsp;</h2>
-<ul>
-	#if( $security.canView( "validationRule" ) )<li><a href="validationRule.action">$i18n.getString( "validation_rule" )&nbsp;</a></li>#end
-	#if( $security.canView( "validationRuleGroup" ) )<li><a href="validationRuleGroup.action">$i18n.getString( "validation_rule_group" )&nbsp;</a></li>#end
-</ul>
-
 <h2>$i18n.getString( "data_analysis" )&nbsp;</h2>
 <ul>
 	<li><a href="showRunValidationForm.action">$i18n.getString( "validation_rule_analysis" )&nbsp;</a></li>

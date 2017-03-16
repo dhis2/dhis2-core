@@ -112,8 +112,8 @@ public class ProgramInstance
      */
     public void enrollTrackedEntityInstance( TrackedEntityInstance entityInstance, Program program )
     {
-        Assert.notNull( entityInstance );
-        Assert.notNull( program );
+        Assert.notNull( entityInstance, "Tracked entity instance cannot be null" );
+        Assert.notNull( program, "Program cannot be null" );
 
         setEntityInstance( entityInstance );
         entityInstance.getProgramInstances().add( this );

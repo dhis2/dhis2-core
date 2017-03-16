@@ -28,7 +28,7 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_EXECUTION_DATE;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_EVENT_DATE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_CODE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_NAME;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
@@ -93,7 +93,7 @@ public class DefaultEventDataQueryService
     private static final String COL_NAME_EVENTDATE = "executiondate";
 
     private static final ImmutableSet<String> SORTABLE_ITEMS = ImmutableSet.of( 
-        ITEM_EXECUTION_DATE, ITEM_ORG_UNIT_NAME, ITEM_ORG_UNIT_CODE );
+        ITEM_EVENT_DATE, ITEM_ORG_UNIT_NAME, ITEM_ORG_UNIT_CODE );
 
     @Autowired
     private ProgramService programService;
@@ -255,8 +255,8 @@ public class DefaultEventDataQueryService
     @Override
     public EventQueryParams getFromAnalyticalObject( EventAnalyticalObject object )
     {
-        Assert.notNull( object );
-        Assert.notNull( object.getProgram(), "Event analytical object must specify program" );
+        Assert.notNull( object, "Event analytical object cannot be null" );
+        Assert.notNull( object.getProgram(), "Event analytical object must specify a program" );
         
         EventQueryParams.Builder params = new EventQueryParams.Builder();
         
@@ -386,7 +386,7 @@ public class DefaultEventDataQueryService
             throw new IllegalQueryException( "Descending sort item is invalid: " + item );
         }
 
-        item = ITEM_EXECUTION_DATE.equalsIgnoreCase( item ) ? COL_NAME_EVENTDATE : item;
+        item = ITEM_EVENT_DATE.equalsIgnoreCase( item ) ? COL_NAME_EVENTDATE : item;
 
         return item;
     }

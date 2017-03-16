@@ -128,6 +128,8 @@
                                     <td><input name="entrytrueonly" class="entrytrueonly" id="${dataEntryId}" type="checkbox" tabindex="${tabIndex}"#if( $greyedField || !$hasAccess ) disabled="disabled"#end><img class="commentlink" id="${commentId}"></td>
                                 #elseif( "LONG_TEXT" == $dataElement.valueType )
                                     <td><textarea name="entryfield" class="entryfield entryarea" id="${dataEntryId}" tabindex="${tabIndex}" #if( $greyedField || !$hasAccess ) disabled="disabled"#end></textarea></td>
+                                #elseif( "URL" == $dataElement.valueType )
+                                    <td><input type="url" name="entryfield" class="entryfieldclear" id="${dataEntryId}" tabindex="${tabIndex}" #if( $greyedField || !$hasAccess ) disabled="disabled"#end></input></td>
                                 #elseif( "FILE_RESOURCE" == $dataElement.valueType )
                                     <td>
                                         <div class="entryfileresource" id="${dataEntryId}" tabindex="${tabIndex}">
@@ -161,7 +163,9 @@
                                 #end
                                 #set( $tabIndex = $tabIndex + 1 )                                
                             #end
-                            #if($section.showRowTotals == "true" &&  $optionCombos.size() > 1 )                                    
+                            #set( $needRowColumnTotal = false )
+                            #if($section.showRowTotals == "true" &&  $optionCombos.size() > 1 )
+                                #set( $needRowColumnTotal = true )
                                 <td>
                                     <input class="total-cell" type="text" id="$rowTotalIds" disabled>
                                 </td>
@@ -178,16 +182,18 @@
                             <td #if( $mark == 1 )class="alt"#else class="reg"#end>
                                 ${i18n.getString( "total" )}
                             </td>                            
-                            #set( $columnTotalIds = "col" )
+                            #set( $columnTotalIds = "col" )                            
                             #foreach( $optionCombo in $optionCombos )
                                 #set( $columnTotalIds = "${columnTotalIds}-$optionCombo.uid" )
                                 <td>                                
                                     <input class="total-cell" type="text" id="col-${optionCombo.uid}" disabled>
                                 </td>
-                            #end                            
-                            <td>
-                                <input class="total-cell" type="text" id="$columnTotalIds" disabled>
-                            </td>                            
+                            #end
+                            #if( $needRowColumnTotal == "true")
+                                <td>
+                                    <input class="total-cell" type="text" id="$columnTotalIds" disabled>
+                                </td> 
+                            #end
                         </>
                     #end
                 </tbody>

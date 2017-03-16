@@ -34,7 +34,7 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
 import org.hisp.dhis.dxf2.adx.AdxException;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.datavalueset.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.datavalueset.tasks.ImportDataValueTask;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -109,6 +109,7 @@ public class DataValueSetController
         @RequestParam( required = false ) Set<String> orgUnit,
         @RequestParam( required = false ) boolean children,
         @RequestParam( required = false ) Set<String> orgUnitGroup,
+        @RequestParam( required = false ) Set<String> attributeOptionCombo,
         @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) String lastUpdatedDuration,
@@ -118,7 +119,8 @@ public class DataValueSetController
         response.setContentType( CONTENT_TYPE_XML );
 
         DataExportParams params = dataValueSetService.getFromUrl( dataSet, dataElementGroup,
-            period, startDate, endDate, orgUnit, children, orgUnitGroup, includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
+            period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo, 
+            includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
 
         dataValueSetService.writeDataValueSetXml( params, response.getOutputStream() );
     }
@@ -154,6 +156,7 @@ public class DataValueSetController
         @RequestParam( required = false ) Set<String> orgUnit,
         @RequestParam( required = false ) boolean children,
         @RequestParam( required = false ) Set<String> orgUnitGroup,
+        @RequestParam( required = false ) Set<String> attributeOptionCombo,
         @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) String lastUpdatedDuration,
@@ -163,7 +166,8 @@ public class DataValueSetController
         response.setContentType( CONTENT_TYPE_JSON );
 
         DataExportParams params = dataValueSetService.getFromUrl( dataSet, dataElementGroup,
-            period, startDate, endDate, orgUnit, children, orgUnitGroup, includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
+            period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo,
+            includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
 
         dataValueSetService.writeDataValueSetJson( params, response.getOutputStream() );
     }
@@ -178,6 +182,7 @@ public class DataValueSetController
         @RequestParam( required = false ) Set<String> orgUnit,
         @RequestParam( required = false ) boolean children,
         @RequestParam( required = false ) Set<String> orgUnitGroup,
+        @RequestParam( required = false ) Set<String> attributeOptionCombo,
         @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) String lastUpdatedDuration,
@@ -188,7 +193,8 @@ public class DataValueSetController
         response.setContentType( CONTENT_TYPE_CSV );
 
         DataExportParams params = dataValueSetService.getFromUrl( dataSet, dataElementGroup,
-            period, startDate, endDate, orgUnit, children, orgUnitGroup, includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
+            period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo,
+            includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
 
         dataValueSetService.writeDataValueSetCsv( params, response.getWriter() );
     }

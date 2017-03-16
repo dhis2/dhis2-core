@@ -47,6 +47,9 @@ import java.util.List;
 public class Event
     extends BaseLinkableObject
 {
+
+    private String uid;
+
     private String event;
 
     private EventStatus status = EventStatus.ACTIVE;
@@ -79,12 +82,14 @@ public class Event
 
     private Boolean followup;
 
-    private boolean deleted;
+    private Boolean deleted;
 
     private String created;
 
     private String lastUpdated;
 
+    private String attributeOptionCombo;
+    
     private String attributeCategoryOptions;
 
     private String completedBy;
@@ -93,6 +98,16 @@ public class Event
 
     public Event()
     {
+    }
+
+    public String getUid()
+    {
+        return uid;
+    }
+
+    public void setUid( String uid )
+    {
+        this.uid = uid;
     }
 
     @JsonProperty( required = true )
@@ -311,6 +326,18 @@ public class Event
     public void setLastUpdated( String lastUpdated )
     {
         this.lastUpdated = lastUpdated;
+    }    
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getAttributeOptionCombo()
+    {
+        return attributeOptionCombo;
+    }
+
+    public void setAttributeOptionCombo( String attributeOptionCombo )
+    {
+        this.attributeOptionCombo = attributeOptionCombo;
     }
 
     @JsonProperty
@@ -351,12 +378,12 @@ public class Event
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isDeleted()
+    public Boolean isDeleted()
     {
         return deleted;
     }
 
-    public void setDeleted( boolean deleted )
+    public void setDeleted( Boolean deleted )
     {
         this.deleted = deleted;
     }
@@ -395,6 +422,7 @@ public class Event
             ", storedBy='" + storedBy + '\'' +
             ", coordinate=" + coordinate +
             ", dataValues=" + dataValues +
+            ", attributeOptionCombo=" + attributeOptionCombo +
             ", attributeCategoryOptions=" + attributeCategoryOptions +
             ", completedBy=" + completedBy +
             ", completedDate=" + completedDate +

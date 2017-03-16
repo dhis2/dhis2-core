@@ -34,20 +34,22 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.LinkObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 import org.springframework.core.Ordered;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -60,31 +62,36 @@ public class Schema implements Ordered, Klass
     /**
      * Class that is described in this schema.
      */
-    private Class<?> klass;
+    private final Class<?> klass;
 
     /**
      * Is this class a sub-class of IdentifiableObject
      *
      * @see org.hisp.dhis.common.IdentifiableObject
      */
-    private boolean identifiableObject;
+    private final boolean identifiableObject;
 
     /**
      * Is this class a sub-class of NameableObject
      *
      * @see org.hisp.dhis.common.NameableObject
      */
-    private boolean nameableObject;
+    private final boolean nameableObject;
+
+    /**
+     * Does this class implement {@link org.hisp.dhis.common.LinkObject} ?
+     */
+    private final boolean linkObject;
 
     /**
      * Singular name.
      */
-    private String singular;
+    private final String singular;
 
     /**
      * Plural name.
      */
-    private String plural;
+    private final String plural;
 
     /**
      * Namespace URI to be used for this class.
@@ -162,6 +169,11 @@ public class Schema implements Ordered, Klass
     private Map<String, Property> propertyMap = Maps.newHashMap();
 
     /**
+     * Map of all readable properties, cached on first request.
+     */
+    private Map<String, Property> readableProperties;
+
+    /**
      * Map of all persisted properties, cached on first request.
      */
     private Map<String, Property> persistedProperties;
@@ -172,6 +184,11 @@ public class Schema implements Ordered, Klass
     private Map<String, Property> nonPersistedProperties;
 
     /**
+     * Map of all link object properties, cached on first request.
+     */
+    private Map<String, Property> linkObjectProperties;
+
+    /**
      * Used for sorting of schema list when doing metadata import/export.
      */
     private int order = Ordered.LOWEST_PRECEDENCE;
@@ -179,6 +196,7 @@ public class Schema implements Ordered, Klass
     public Schema( Class<?> klass, String singular, String plural )
     {
         this.klass = klass;
+        this.linkObject = LinkObject.class.isAssignableFrom( klass );
         this.identifiableObject = IdentifiableObject.class.isAssignableFrom( klass );
         this.nameableObject = NameableObject.class.isAssignableFrom( klass );
         this.singular = singular;
@@ -191,11 +209,6 @@ public class Schema implements Ordered, Klass
     public Class<?> getKlass()
     {
         return klass;
-    }
-
-    public void setKlass( Class<?> klass )
-    {
-        this.klass = klass;
     }
 
     @JsonProperty
@@ -214,14 +227,23 @@ public class Schema implements Ordered, Klass
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isLinkObject()
+    {
+        return linkObject;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getShareable()
+    {
+        return shareable;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getSingular()
     {
         return singular;
-    }
-
-    public void setSingular( String singular )
-    {
-        this.singular = singular;
     }
 
     @JsonProperty
@@ -229,11 +251,6 @@ public class Schema implements Ordered, Klass
     public String getPlural()
     {
         return plural;
-    }
-
-    public void setPlural( String plural )
-    {
-        this.plural = plural;
     }
 
     @JsonProperty
@@ -471,6 +488,20 @@ public class Schema implements Ordered, Klass
         return references;
     }
 
+    public List<Property> getReadableProperties()
+    {
+        if ( readableProperties == null )
+        {
+            readableProperties = new HashMap<>();
+
+            getPropertyMap().entrySet().stream()
+                .filter( entry -> entry.getValue().isReadable() )
+                .forEach( entry -> readableProperties.put( entry.getKey(), entry.getValue() ) );
+        }
+
+        return new ArrayList<>( readableProperties.values() );
+    }
+
     public Map<String, Property> getPersistedProperties()
     {
         if ( persistedProperties == null )
@@ -497,6 +528,20 @@ public class Schema implements Ordered, Klass
         }
 
         return nonPersistedProperties;
+    }
+
+    public List<Property> getLinkObjectProperties()
+    {
+        if ( linkObjectProperties == null )
+        {
+            linkObjectProperties = new HashMap<>();
+
+            getPropertyMap().entrySet().stream()
+                .filter( entry -> entry.getValue().isLinkObject() )
+                .forEach( entry -> linkObjectProperties.put( entry.getKey(), entry.getValue() ) );
+        }
+
+        return new ArrayList<>( linkObjectProperties.values() );
     }
 
     public void addProperty( Property property )
@@ -561,7 +606,7 @@ public class Schema implements Ordered, Klass
     @Override
     public int hashCode()
     {
-        return Objects.hashCode( klass, identifiableObject, nameableObject, singular, plural, namespace, name,
+        return Objects.hash( klass, identifiableObject, nameableObject, singular, plural, namespace, name,
             collectionName, shareable, relativeApiEndpoint, metadata, authorities, propertyMap, order );
     }
 
@@ -579,13 +624,13 @@ public class Schema implements Ordered, Klass
 
         final Schema other = (Schema) obj;
 
-        return Objects.equal( this.klass, other.klass ) && Objects.equal( this.identifiableObject, other.identifiableObject )
-            && Objects.equal( this.nameableObject, other.nameableObject ) && Objects.equal( this.singular, other.singular )
-            && Objects.equal( this.plural, other.plural ) && Objects.equal( this.namespace, other.namespace )
-            && Objects.equal( this.name, other.name ) && Objects.equal( this.collectionName, other.collectionName )
-            && Objects.equal( this.shareable, other.shareable ) && Objects.equal( this.relativeApiEndpoint, other.relativeApiEndpoint )
-            && Objects.equal( this.metadata, other.metadata ) && Objects.equal( this.authorities, other.authorities )
-            && Objects.equal( this.propertyMap, other.propertyMap ) && Objects.equal( this.order, other.order );
+        return java.util.Objects.equals( this.klass, other.klass ) && Objects.equals( this.identifiableObject, other.identifiableObject )
+            && Objects.equals( this.nameableObject, other.nameableObject ) && Objects.equals( this.singular, other.singular )
+            && Objects.equals( this.plural, other.plural ) && Objects.equals( this.namespace, other.namespace )
+            && Objects.equals( this.name, other.name ) && Objects.equals( this.collectionName, other.collectionName )
+            && Objects.equals( this.shareable, other.shareable ) && Objects.equals( this.relativeApiEndpoint, other.relativeApiEndpoint )
+            && Objects.equals( this.metadata, other.metadata ) && Objects.equals( this.authorities, other.authorities )
+            && Objects.equals( this.propertyMap, other.propertyMap ) && Objects.equals( this.order, other.order );
     }
 
     @Override

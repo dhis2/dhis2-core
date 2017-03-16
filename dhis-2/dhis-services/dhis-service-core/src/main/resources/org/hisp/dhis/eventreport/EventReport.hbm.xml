@@ -115,6 +115,12 @@
     <property name="completedOnly" column="completedonly" />
 
     <property name="title" />
+    
+    <property name="subtitle" />
+
+    <property name="hideTitle" />
+
+    <property name="hideSubtitle" />
 
     <set name="interpretations" inverse="true">
       <key column="eventreportid" />
@@ -224,7 +230,7 @@
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="eventreporttranslations" cascade="delete-orphan">
+    <set name="translations" table="eventreporttranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="eventreportid" foreign-key="fk_objecttranslation_eventreportid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

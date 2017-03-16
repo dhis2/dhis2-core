@@ -36,7 +36,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.AuthorityType;
-import org.hisp.dhis.security.acl.AccessStringHelper.Permission;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
@@ -206,7 +205,28 @@ public class DefaultAclService implements AclService
             return false;
         }
 
+        for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
+        {
+            /* Is the user allowed to read this object through group access? */
+            if ( AccessStringHelper.canWrite( userGroupAccess.getAccess() )
+                && userGroupAccess.getUserGroup().getMembers().contains( user ) )
+            {
+                return true;
+            }
+        }
+
+        for ( UserAccess userAccess : object.getUserAccesses() )
+        {
+            /* Is the user allowed to read to this object through user access? */
+            if ( AccessStringHelper.canWrite( userAccess.getAccess() )
+                && user.equals( userAccess.getUser() ) )
+            {
+                return true;
+            }
+        }
+
         List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.UPDATE );
+        anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE ) );
         anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ) );
         anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE_PUBLIC ) );
 
@@ -415,6 +435,12 @@ public class DefaultAclService implements AclService
             return errorReports;
         }
 
+        if ( !AccessStringHelper.isValid( object.getPublicAccess() ) )
+        {
+            errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3010, object.getPublicAccess() ) );
+            return errorReports;
+        }
+
         boolean canMakePublic = canMakePublic( user, object.getClass() );
         boolean canMakePrivate = canMakePrivate( user, object.getClass() );
         boolean canMakeExternal = canMakeExternal( user, object.getClass() );
@@ -424,11 +450,6 @@ public class DefaultAclService implements AclService
             if ( !canMakeExternal )
             {
                 errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3006, user.getUsername(), object.getClass() ) );
-            }
-
-            if ( !AccessStringHelper.isEnabled( object.getPublicAccess(), Permission.READ ) )
-            {
-                errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3007, user.getUsername(), object.getClass() ) );
             }
         }
 

@@ -18,9 +18,9 @@
 
     <property name="storedBy" column="storedby" />
 
-    <property name="created" column="created" type="timestamp" />
+    <property name="created" column="created" type="timestamp" not-null="true" />
 
-    <property name="lastUpdated" column="lastupdated" type="timestamp" index="in_datavalue_lastupdated" />
+    <property name="lastUpdated" column="lastupdated" type="timestamp" not-null="true" index="in_datavalue_lastupdated" />
 
     <property name="comment" length="50000" />
 

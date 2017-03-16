@@ -36,7 +36,7 @@ import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.legend.LegendService;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramIndicatorAnalyticsType;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -175,11 +175,11 @@ public class UpdateProgramIndicatorAction
         this.jsonAttributeValues = jsonAttributeValues;
     }
     
-    private ProgramIndicatorAnalyticsType programIndicatorAnalyticsType;
+    private AnalyticsType analyticsType;
     
-    public void setProgramIndicatorAnalyticsType( ProgramIndicatorAnalyticsType programIndicatorAnalyticsType )
+    public void setAnalyticsType( AnalyticsType analyticsType )
     {
-        this.programIndicatorAnalyticsType = programIndicatorAnalyticsType;
+        this.analyticsType = analyticsType;
     }
     
     // -------------------------------------------------------------------------
@@ -206,7 +206,7 @@ public class UpdateProgramIndicatorAction
         indicator.setDisplayInForm( displayInForm );
         indicator.setAggregateExportCategoryOptionCombo( aggregateExportCategoryOptionCombo );
         indicator.setAggregateExportAttributeOptionCombo( aggregateExportAttributeOptionCombo );
-        indicator.setProgramIndicatorAnalyticsType( programIndicatorAnalyticsType );
+        indicator.setAnalyticsType( analyticsType );
 
         if ( jsonAttributeValues != null )
         {

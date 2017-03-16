@@ -1,5 +1,7 @@
 package org.hisp.dhis.analytics;
 
+import org.hisp.dhis.analytics.table.AnalyticsTableType;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -38,6 +40,11 @@ import org.hisp.dhis.scheduling.TaskId;
 public interface AnalyticsTableService
 {
     /**
+     * Returns the type of analytics table which this manager handles.
+     */
+    AnalyticsTableType getAnalyticsTableType();
+    
+    /**
      * Rebuilds the analytics tables.
      * 
      * @param lastYears the number of last years of data to include, null if all.
@@ -54,9 +61,4 @@ public interface AnalyticsTableService
      * Performs an SQL analyze operation on all analytics tables.
      */
     void analyzeAnalyticsTables();
-    
-    /**
-     * Generate required resource tables.
-     */
-    void generateResourceTables();
 }

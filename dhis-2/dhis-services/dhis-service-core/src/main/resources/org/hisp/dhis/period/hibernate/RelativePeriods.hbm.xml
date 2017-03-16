@@ -11,7 +11,12 @@
     <id name="id" column="relativeperiodsid">
       <generator class="native" />
     </id>
-    
+
+    <property name="thisDay" />
+    <property name="yesterday" />
+    <property name="last3Days" />
+    <property name="last7Days" />
+    <property name="last14Days" />
     <property name="thisMonth" />
     <property name="lastMonth" />
     <property name="thisBimonth" />
@@ -20,7 +25,9 @@
     <property name="lastQuarter" />
     <property name="thisSixMonth" />
     <property name="lastSixMonth" />
+    <property name="weeksThisYear" />
     <property name="monthsThisYear" />
+    <property name="biMonthsThisYear" />
     <property name="quartersThisYear" />
     <property name="thisYear" />
     

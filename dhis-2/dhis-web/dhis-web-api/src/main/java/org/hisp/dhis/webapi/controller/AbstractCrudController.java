@@ -46,7 +46,6 @@ import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.OrderParams;
-import org.hisp.dhis.dxf2.common.Status;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -60,6 +59,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
@@ -372,6 +372,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         manager.updateTranslations( persistedObject, object.getTranslations() );
+        manager.update( persistedObject );
 
         response.setStatus( HttpServletResponse.SC_NO_CONTENT );
     }

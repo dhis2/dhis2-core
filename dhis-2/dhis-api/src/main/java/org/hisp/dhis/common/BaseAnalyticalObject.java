@@ -56,6 +56,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.period.comparator.AscendingPeriodComparator;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
@@ -142,6 +143,12 @@ public abstract class BaseAnalyticalObject
     protected boolean completedOnly;
 
     protected String title;
+
+    protected String subtitle;
+
+    protected boolean hideTitle;
+
+    protected boolean hideSubtitle;
 
     protected Set<Interpretation> interpretations = new HashSet<>();
 
@@ -852,14 +859,19 @@ public abstract class BaseAnalyticalObject
                 relatives = object.getRelatives();
                 aggregationType = object.getAggregationType();
                 title = object.getTitle();
+                subtitle = object.getSubtitle();
             }
             else if ( mergeMode.isMerge() )
             {
                 relatives = object.getRelatives() == null ? relatives : object.getRelatives();
                 aggregationType = object.getAggregationType() == null ? aggregationType : object.getAggregationType();
                 title = object.getTitle() == null ? title : object.getTitle();
+                subtitle = object.getSubtitle() == null ? subtitle : object.getSubtitle();
             }
 
+            hideTitle = object.isHideTitle();
+            hideSubtitle = object.isHideSubtitle();
+            
             dataDimensionItems.addAll( object.getDataDimensionItems() );
             periods.addAll( object.getPeriods() );
             organisationUnits.addAll( object.getOrganisationUnits() );
@@ -1107,6 +1119,7 @@ public abstract class BaseAnalyticalObject
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = Integer.MIN_VALUE )
     public int getSortOrder()
     {
         return sortOrder;
@@ -1163,6 +1176,42 @@ public abstract class BaseAnalyticalObject
     public void setTitle( String title )
     {
         this.title = title;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getSubtitle()
+    {
+        return subtitle;
+    }
+
+    public void setSubtitle( String subtitle )
+    {
+        this.subtitle = subtitle;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isHideTitle()
+    {
+        return hideTitle;
+    }
+
+    public void setHideTitle( boolean hideTitle )
+    {
+        this.hideTitle = hideTitle;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isHideSubtitle()
+    {
+        return hideSubtitle;
+    }
+
+    public void setHideSubtitle( boolean hideSubtitle )
+    {
+        this.hideSubtitle = hideSubtitle;
     }
 
     @JsonProperty

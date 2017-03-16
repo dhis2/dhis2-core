@@ -1,6 +1,4 @@
 <!-- Expression -->
-AnalyticsType
-$programIndicatorAnalyticsType
 <table style="margin-top:10px">
 	<tr>
 		<th>$i18n.getString( "expression" )</th>

@@ -34,7 +34,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Sets;
-
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -56,7 +55,7 @@ public class ProgramIndicator
     extends BaseDataDimensionalItemObject
 {
     public static final String DB_SEPARATOR_ID = "_";
-    
+
     public static final String SEPARATOR_ID = "\\.";
     public static final String SEP_OBJECT = ":";
     public static final String KEY_DATAELEMENT = "#";
@@ -82,15 +81,25 @@ public class ProgramIndicator
     public static final String EXPRESSION_REGEXP = "(" + EXPRESSION_PREFIX_REGEXP + ")\\{([\\w\\_]+)" + SEPARATOR_ID + "?(\\w*)\\}";
     public static final String SQL_FUNC_REGEXP = "d2:(.+?)\\((.*?)\\)";
     public static final String ARGS_SPLIT = ",";
-
+    public static final String ATTRIBUTE_REGEX = KEY_ATTRIBUTE + "\\{(\\w{11})\\}";
+    public static final String DATAELEMENT_REGEX = KEY_DATAELEMENT + "\\{(\\w{11})" + SEPARATOR_ID + "(\\w{11})\\}";
+    public static final String VARIABLE_REGEX = KEY_PROGRAM_VARIABLE + "\\{([\\w\\_]+)}";
+    public static final String PROGRAMSTAGE_DATAELEMENT_GROUP_REGEX = KEY_DATAELEMENT + "\\{(\\w{11}" + SEPARATOR_ID + "\\w{11})\\}";
+    public static final String VALUECOUNT_REGEX = "V\\{(" + VAR_VALUE_COUNT + "|" + VAR_ZERO_POS_VALUE_COUNT + ")\\}";
+    public static final String EQUALSEMPTY = " *== *'' *";
+    public static final String EQUALSZERO = " *== *0 *";
+    public static final String EXPRESSION_EQUALSZEROOREMPTY_REGEX = EXPRESSION_REGEXP + "(" + EQUALSEMPTY + "|" + EQUALSZERO + ")?";
+    
+    
     public static final Pattern EXPRESSION_PATTERN = Pattern.compile( EXPRESSION_REGEXP );
+    public static final Pattern EXPRESSION_EQUALSZEROOREMPTY_PATTERN = Pattern.compile( EXPRESSION_EQUALSZEROOREMPTY_REGEX );
     public static final Pattern SQL_FUNC_PATTERN = Pattern.compile( SQL_FUNC_REGEXP );
-    public static final Pattern DATAELEMENT_PATTERN = Pattern.compile( KEY_DATAELEMENT + "\\{(\\w{11})" + SEPARATOR_ID + "(\\w{11})\\}" );
-    public static final Pattern PROGRAMSTAGE_DATAELEMENT_GROUP_PATTERN = Pattern.compile( KEY_DATAELEMENT + "\\{(\\w{11}" + SEPARATOR_ID + "\\w{11})\\}" );
-    public static final Pattern ATTRIBUTE_PATTERN = Pattern.compile( KEY_ATTRIBUTE + "\\{(\\w{11})\\}" );
-    public static final Pattern VARIABLE_PATTERN = Pattern.compile( KEY_PROGRAM_VARIABLE + "\\{([\\w\\_]+)}" );
-    public static final Pattern VALUECOUNT_PATTERN = Pattern.compile( "V\\{(" + VAR_VALUE_COUNT + "|" + VAR_ZERO_POS_VALUE_COUNT + ")\\}" );
-
+    public static final Pattern DATAELEMENT_PATTERN = Pattern.compile( DATAELEMENT_REGEX );
+    public static final Pattern PROGRAMSTAGE_DATAELEMENT_GROUP_PATTERN = Pattern.compile( PROGRAMSTAGE_DATAELEMENT_GROUP_REGEX );
+    public static final Pattern ATTRIBUTE_PATTERN = Pattern.compile( ATTRIBUTE_REGEX );
+    public static final Pattern VARIABLE_PATTERN = Pattern.compile( VARIABLE_REGEX );
+    public static final Pattern VALUECOUNT_PATTERN = Pattern.compile( VALUECOUNT_REGEX );
+    
     public static final String VALID = "valid";
     public static final String EXPRESSION_NOT_VALID = "expression_not_valid";
     public static final String INVALID_IDENTIFIERS_IN_EXPRESSION = "invalid_identifiers_in_expression";
@@ -110,9 +119,9 @@ public class ProgramIndicator
     private Boolean displayInForm;
 
     private Set<ProgramIndicatorGroup> groups = new HashSet<>();
-    
-    private ProgramIndicatorAnalyticsType programIndicatorAnalyticsType;
- 
+
+    private AnalyticsType analyticsType = AnalyticsType.EVENT;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -150,19 +159,19 @@ public class ProgramIndicator
      * @param input the expression.
      * @return a set of UIDs.
      */
-    public static Set<String> getDataElementAndAttributeIdentifiers( String input, ProgramIndicatorAnalyticsType programIndicatorAnalyticsType )
+    public static Set<String> getDataElementAndAttributeIdentifiers( String input, AnalyticsType analyticsType )
     {
-        if ( ProgramIndicatorAnalyticsType.ENROLLMENT.equals( programIndicatorAnalyticsType ) )
+        if ( AnalyticsType.ENROLLMENT.equals( analyticsType ) )
         {
             Set<String> allElementsAndAttributes = RegexUtils.getMatches( ATTRIBUTE_PATTERN, input, 1 );
-            
+
             Set<String> programStagesAndDataElements =
                 RegexUtils.getMatches( PROGRAMSTAGE_DATAELEMENT_GROUP_PATTERN, input, 1 );
             for ( String programStageAndDataElement : programStagesAndDataElements )
             {
                 allElementsAndAttributes.add( programStageAndDataElement.replace( '.', '_' ) );
             }
-            
+
             return allElementsAndAttributes;
         }
         else
@@ -289,17 +298,17 @@ public class ProgramIndicator
     {
         this.groups = groups;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramIndicatorAnalyticsType getProgramIndicatorAnalyticsType()
+    public AnalyticsType getAnalyticsType()
     {
-        return programIndicatorAnalyticsType;
+        return analyticsType;
     }
 
-    public void setProgramIndicatorAnalyticsType( ProgramIndicatorAnalyticsType programIndicatorAnalyticsType )
+    public void setAnalyticsType( AnalyticsType analyticsType )
     {
-        this.programIndicatorAnalyticsType = programIndicatorAnalyticsType;
+        this.analyticsType = analyticsType;
     }
 
     @Override
@@ -318,7 +327,7 @@ public class ProgramIndicator
                 filter = programIndicator.getFilter();
                 decimals = programIndicator.getDecimals();
                 displayInForm = programIndicator.getDisplayInForm();
-                programIndicatorAnalyticsType = programIndicator.getProgramIndicatorAnalyticsType();
+                analyticsType = programIndicator.getAnalyticsType();
             }
             else if ( mergeMode.isMerge() )
             {
@@ -327,8 +336,8 @@ public class ProgramIndicator
                 filter = programIndicator.getFilter() == null ? filter : programIndicator.getFilter();
                 decimals = programIndicator.getDecimals() == null ? decimals : programIndicator.getDecimals();
                 displayInForm = programIndicator.getDisplayInForm() == null ? displayInForm : programIndicator.getDisplayInForm();
-                programIndicatorAnalyticsType = programIndicator.getProgramIndicatorAnalyticsType() == null ?
-                    programIndicatorAnalyticsType : programIndicator.getProgramIndicatorAnalyticsType();
+                analyticsType = programIndicator.getAnalyticsType() == null ?
+                    analyticsType : programIndicator.getAnalyticsType();
             }
         }
     }

@@ -45,6 +45,7 @@ import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +89,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class DefaultEventAnalyticsService
     implements EventAnalyticsService
 {
+    private static final String NAME_EVENT = "Event";
+    private static final String NAME_PROGRAM_STAGE = "Program stage";
+    private static final String NAME_EVENT_DATE = "Event date";
+    private static final String NAME_LONGITUDE = "Longitude";
+    private static final String NAME_LATITUDE = "Latitude";
+    private static final String NAME_ORG_UNIT_NAME = "Organisation unit name";
+    private static final String NAME_ORG_UNIT_CODE = "Organisation unit code";    
+    private static final String NAME_COUNT = "Count";
+    private static final String NAME_CENTER = "Center";
+    private static final String NAME_EXTENT = "Extent";
+    private static final String NAME_POINTS = "Points";
+        
     @Autowired
     private EventAnalyticsManager eventAnalyticsManager;
 
@@ -174,7 +187,7 @@ public class DefaultEventAnalyticsService
             List<EventQueryParams> queries = queryPlanner.planAggregateQuery( params );
     
             timer.getSplitTime( "Planned event query, got partitions: " + params.getPartitions() );
-    
+
             for ( EventQueryParams query : queries )
             {
                 if ( query.hasEnrollmentProgramIndicatorDimension() )
@@ -243,13 +256,13 @@ public class DefaultEventAnalyticsService
         // Headers
         // ---------------------------------------------------------------------
 
-        grid.addHeader( new GridHeader( ITEM_EVENT, "Event", ValueType.TEXT, String.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_PROGRAM_STAGE, "Program stage", ValueType.TEXT, String.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_EXECUTION_DATE, "Event date", ValueType.TEXT, String.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_LONGITUDE, "Longitude", ValueType.NUMBER, Double.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_LATITUDE, "Latitude", ValueType.NUMBER, Double.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_ORG_UNIT_NAME, "Organisation unit name", ValueType.TEXT, String.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_ORG_UNIT_CODE, "Organisation unit code", ValueType.TEXT, String.class.getName(), false, true ) );
+        grid.addHeader( new GridHeader( ITEM_EVENT, NAME_EVENT, ValueType.TEXT, String.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_PROGRAM_STAGE, NAME_PROGRAM_STAGE, ValueType.TEXT, String.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_EVENT_DATE, NAME_EVENT_DATE, ValueType.DATE, Date.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_LONGITUDE, NAME_LONGITUDE, ValueType.NUMBER, Double.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_LATITUDE, NAME_LATITUDE, ValueType.NUMBER, Double.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, ValueType.TEXT, String.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, ValueType.TEXT, String.class.getName(), false, true ) );
 
         for ( DimensionalObject dimension : params.getDimensions() )
         {
@@ -328,10 +341,10 @@ public class DefaultEventAnalyticsService
         // Headers
         // ---------------------------------------------------------------------
 
-        grid.addHeader( new GridHeader( ITEM_COUNT, "Count", ValueType.NUMBER, Long.class.getName(), false, false ) )
-            .addHeader( new GridHeader( ITEM_CENTER, "Center", ValueType.TEXT, String.class.getName(), false, false ) )
-            .addHeader( new GridHeader( ITEM_EXTENT, "Extent", ValueType.TEXT, String.class.getName(), false, false ) )
-            .addHeader( new GridHeader( ITEM_POINTS, "Points", ValueType.TEXT, String.class.getName(), false, false ) );
+        grid.addHeader( new GridHeader( ITEM_COUNT, NAME_COUNT, ValueType.NUMBER, Long.class.getName(), false, false ) )
+            .addHeader( new GridHeader( ITEM_CENTER, NAME_CENTER, ValueType.TEXT, String.class.getName(), false, false ) )
+            .addHeader( new GridHeader( ITEM_EXTENT, NAME_EXTENT, ValueType.TEXT, String.class.getName(), false, false ) )
+            .addHeader( new GridHeader( ITEM_POINTS, NAME_POINTS, ValueType.TEXT, String.class.getName(), false, false ) );
 
         // ---------------------------------------------------------------------
         // Data

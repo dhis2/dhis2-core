@@ -29,7 +29,6 @@ package org.hisp.dhis.setting;
  */
 
 import com.google.common.collect.ImmutableSet;
-
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.LocaleUtils;
 import org.hisp.dhis.common.DigitGroupSeparator;
@@ -75,23 +74,26 @@ public enum SettingKey
     EMAIL_TLS( "keyEmailTls", Boolean.TRUE, Boolean.class ),
     EMAIL_SENDER( "keyEmailSender", "no-reply@dhis2.org", String.class ),
     EMAIL_PASSWORD( "keyEmailPassword", "", String.class, true ),
+    MIN_PASSWORD_LENGTH( "minPasswordLength", 8, Integer.class ),
+    MAX_PASSWORD_LENGTH( "maxPasswordLength", 40, Integer.class ),
     INSTANCE_BASE_URL( "keyInstanceBaseUrl" ),
     SCHEDULED_TASKS( "keySchedTasks", ListMap.class ),
     SMS_CONFIG( "keySmsConfigurations", SmsConfiguration.class ),
     CACHE_STRATEGY( "keyCacheStrategy", "CACHE_6AM_TOMORROW", String.class ),
     CACHEABILITY( "keyCacheability", Cacheability.PUBLIC, Cacheability.class ),
+    CACHE_ANALYTICS_DATA_YEAR_THRESHOLD( "keyCacheAnalyticsDataYearThreshold", 0, Integer.class ),
     PHONE_NUMBER_AREA_CODE( "phoneNumberAreaCode" ),
     MULTI_ORGANISATION_UNIT_FORMS( "multiOrganisationUnitForms", Boolean.FALSE, Boolean.class ),
     CONFIGURATION( "keyConfig", Configuration.class ),
     ACCOUNT_RECOVERY( "keyAccountRecovery", Boolean.FALSE, Boolean.class ),
+    LOCK_MULTIPLE_FAILED_LOGINS( "keyLockMultipleFailedLogins", Boolean.FALSE, Boolean.class ),
     GOOGLE_ANALYTICS_UA( "googleAnalyticsUA" ),
     CREDENTIALS_EXPIRES( "credentialsExpires", 0, Integer.class ),
     SELF_REGISTRATION_NO_RECAPTCHA( "keySelfRegistrationNoRecaptcha", Boolean.FALSE, Boolean.class ),
     OPENID_PROVIDER( "keyOpenIdProvider" ),
     OPENID_PROVIDER_LABEL( "keyOpenIdProviderLabel" ),
     CAN_GRANT_OWN_USER_AUTHORITY_GROUPS( "keyCanGrantOwnUserAuthorityGroups", Boolean.FALSE, Boolean.class ),
-    HIDE_UNAPPROVED_DATA_IN_ANALYTICS( "keyHideUnapprovedDataInAnalytics", Boolean.FALSE, Boolean.class ),
-    IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD( "keyIgnoreAnalyticsApprovalYearThreshold", 0, Integer.class ),
+    IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD( "keyIgnoreAnalyticsApprovalYearThreshold", -1, Integer.class ),
     ANALYTICS_MAX_LIMIT( "keyAnalyticsMaxLimit", 100000, Integer.class ),
     RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT( "keyRespectMetaDataStartEndDatesInAnalyticsTableExport", Boolean.FALSE, Boolean.class ),
     SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT( "keySkipDataTypeValidationInAnalyticsTableExport", Boolean.FALSE, Boolean.class ),
@@ -132,6 +134,9 @@ public enum SettingKey
     REMOTE_INSTANCE_URL( "keyRemoteInstanceUrl", "", String.class ),
     REMOTE_INSTANCE_USERNAME( "keyRemoteInstanceUsername", "", String.class ),
     REMOTE_INSTANCE_PASSWORD( "keyRemoteInstancePassword", "", String.class, true ),
+    SYSTEM_MONITORING_URL( "keySystemMonitoringUrl", "", String.class ),
+    SYSTEM_MONITORING_USERNAME( "keySystemMonitoringUsername", "", String.class ),
+    SYSTEM_MONITORING_PASSWORD( "keySystemMonitoringPassword", "", String.class, true ),
     MAPZEN_SEARCH_API_KEY( "keyMapzenSearchApiKey", "search-Se1CFzK", String.class ),
     GOOGLE_MAPS_API_KEY( "keyGoogleMapsApiKey", "AIzaSyBjlDmwuON9lJbPMDlh_LI3zGpGtpK9erc", String.class ),
     LAST_SUCCESSFUL_METADATA_SYNC( "keyLastMetaDataSyncSuccess", Date.class ),
@@ -142,7 +147,8 @@ public enum SettingKey
     DATA_SYNC_CRON( "dataSyncCron", String.class ),
     LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS( "keyLastSuccessfulScheduledProgramNotifications", Date.class ),
     REMOTE_METADATA_VERSION( "keyRemoteMetadataVersion", String.class ),
-    SYSTEM_METADATA_VERSION( "keySystemMetadataVersion", String.class );
+    SYSTEM_METADATA_VERSION( "keySystemMetadataVersion", String.class ),
+    STOP_METADATA_SYNC( "keyStopMetadataSync", Boolean.FALSE, Boolean.class );
 
     private final String name;
 
@@ -234,6 +240,10 @@ public enum SettingKey
             else if ( DigitGroupSeparator.class.isAssignableFrom( settingClazz ) )
             {
                 return DigitGroupSeparator.valueOf( value );
+            }
+            else if ( Cacheability.class.isAssignableFrom( settingClazz ) )
+            {
+                return Cacheability.valueOf( value );
             }
 
             //TODO handle Dates

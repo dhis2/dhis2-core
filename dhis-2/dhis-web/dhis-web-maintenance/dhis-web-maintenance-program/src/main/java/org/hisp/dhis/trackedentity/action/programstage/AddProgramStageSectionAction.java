@@ -35,8 +35,6 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,13 +66,6 @@ public class AddProgramStageSectionAction
     public void setDataElementService( DataElementService dataElementService )
     {
         this.dataElementService = dataElementService;
-    }
-
-    private ProgramStageDataElementService programStageDataElementService;
-
-    public void setProgramStageDataElementService( ProgramStageDataElementService programStageDataElementService )
-    {
-        this.programStageDataElementService = programStageDataElementService;
     }
 
     @Autowired
@@ -131,24 +122,18 @@ public class AddProgramStageSectionAction
         // Section
         // ---------------------------------------------------------------------
 
-        List<ProgramStageDataElement> psDataElements = new ArrayList<>();
+        List<DataElement> dataElements = new ArrayList<>();
+        
         for ( Integer id : dataElementIds )
         {
-            DataElement dataElement = dataElementService.getDataElement( id );
-            ProgramStageDataElement psDataElement = programStageDataElementService.get( programStage, dataElement );
-            psDataElements.add( psDataElement );
+            dataElements.add( dataElementService.getDataElement( id ) );
         }
-
-        ProgramStageSection programStageSection = new ProgramStageSection( StringUtils.trimToNull( name ), psDataElements,
-            programStage.getProgramStageSections().size() );
+        
+        ProgramStageSection programStageSection = new ProgramStageSection( StringUtils.trimToNull( name ), 
+            dataElements, programStage.getProgramStageSections().size() );
         programStageSection.setAutoFields();
 
-        // ---------------------------------------------------------------------
-        // Update program stage
-        // ---------------------------------------------------------------------
 
-        Set<ProgramStageSection> sections = programStage.getProgramStageSections();
-        sections.add( programStageSection );
 
         // ---------------------------------------------------------------------
         // Program indicators
@@ -163,6 +148,14 @@ public class AddProgramStageSectionAction
         }
 
         programStageSection.setProgramIndicators( programIndicators );
+        programStageSection.setProgramStage( programStage );
+
+        // ---------------------------------------------------------------------
+        // Update program stage
+        // ---------------------------------------------------------------------
+
+        Set<ProgramStageSection> sections = programStage.getProgramStageSections();
+        sections.add( programStageSection );
 
         programStage.setProgramStageSections( sections );
         programStageService.updateProgramStage( programStage );

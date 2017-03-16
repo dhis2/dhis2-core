@@ -9,7 +9,7 @@
   <class name="org.hisp.dhis.program.ProgramIndicator" table="programindicator">
 
     <cache usage="read-write" />
-	
+
     <id name="id" column="programindicatorid">
       <generator class="native" />
     </id>
@@ -39,58 +39,58 @@
         <param name="enumClass">org.hisp.dhis.analytics.AggregationType</param>
         <param name="useNamed">true</param>
         <param name="type">12</param>
-      </type> 
-	</property>
-    
+      </type>
+    </property>
+
     <property name="decimals" />
 
     <list name="legendSets" table="programindicatorlegendsets">
       <cache usage="read-write" />
       <key column="programindicatorid" />
       <list-index column="sort_order" base="0" />
-      <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_programindicator_legendsetid" ></many-to-many>
+      <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_programindicator_legendsetid" />
     </list>
 
     <property name="aggregateExportCategoryOptionCombo" column="aggregateexportcategoryoptioncombo" />
-	
+
     <property name="aggregateExportAttributeOptionCombo" column="aggregateexportattributeoptioncombo" />
-	
+
     <property name="displayInForm" />
 
-    <property name="programIndicatorAnalyticsType" length="10">
+    <property name="analyticsType" column="analyticstype" length="15">
       <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.program.ProgramIndicatorAnalyticsType</param>
+        <param name="enumClass">org.hisp.dhis.program.AnalyticsType</param>
         <param name="useNamed">true</param>
         <param name="type">12</param>
-      </type> 
+      </type>
     </property>
 
     <!-- Object Translation -->
-    <set name="translations" table="programindicatortranslations" cascade="delete-orphan">
+    <set name="translations" table="programindicatortranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="programindicatorid" foreign-key="fk_objecttranslation_programindicatorid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
-    
+
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_programindicator_userid" />
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="programindicatorusergroupaccesses">
+    <set name="userGroupAccesses" table="programindicatorusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="programindicatorid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <set name="userAccesses" table="programindicatoruseraccesses">
+    <set name="userAccesses" table="programindicatoruseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="programindicatorid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="programindicatorattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="programindicatorattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="programindicatorid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />

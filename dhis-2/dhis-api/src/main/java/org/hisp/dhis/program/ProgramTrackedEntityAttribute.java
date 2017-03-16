@@ -32,7 +32,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -40,6 +39,7 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.LinkObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.legend.LegendSet;
@@ -56,7 +56,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_P
  */
 @JacksonXmlRootElement( localName = "programTrackedEntityAttribute", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramTrackedEntityAttribute
-    extends BaseDimensionalItemObject
+    extends BaseDimensionalItemObject implements LinkObject
 {
     private Program program;
 
@@ -69,6 +69,8 @@ public class ProgramTrackedEntityAttribute
     private Boolean mandatory;
 
     private Boolean allowFutureDate;
+    
+    private Boolean renderOptionsAsRadio = false;
 
     private Set<ProgramTrackedEntityAttributeGroup> groups = new HashSet<>();
 
@@ -78,6 +80,7 @@ public class ProgramTrackedEntityAttribute
 
     public ProgramTrackedEntityAttribute()
     {
+        setAutoFields();
     }
 
     public ProgramTrackedEntityAttribute( Program program, TrackedEntityAttribute attribute )
@@ -297,6 +300,18 @@ public class ProgramTrackedEntityAttribute
     {
         this.groups = groups;
     }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getRenderOptionsAsRadio()
+    {
+        return renderOptionsAsRadio;
+    }
+
+    public void setRenderOptionsAsRadio( Boolean renderOptionsAsRadio )
+    {
+        this.renderOptionsAsRadio = renderOptionsAsRadio;
+    }
 
     @Override
     public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
@@ -315,6 +330,7 @@ public class ProgramTrackedEntityAttribute
                 attribute = programTrackedEntityAttribute.getAttribute();
                 mandatory = programTrackedEntityAttribute.isMandatory();
                 allowFutureDate = programTrackedEntityAttribute.getAllowFutureDate();
+                renderOptionsAsRadio = programTrackedEntityAttribute.getRenderOptionsAsRadio();
             }
             else if ( mergeMode.isMerge() )
             {
@@ -323,6 +339,7 @@ public class ProgramTrackedEntityAttribute
                 attribute = programTrackedEntityAttribute.getAttribute() == null ? attribute : programTrackedEntityAttribute.getAttribute();
                 mandatory = programTrackedEntityAttribute.isMandatory() == null ? mandatory : programTrackedEntityAttribute.isMandatory();
                 allowFutureDate = programTrackedEntityAttribute.getAllowFutureDate() == null ? allowFutureDate : programTrackedEntityAttribute.getAllowFutureDate();
+                renderOptionsAsRadio = programTrackedEntityAttribute.getRenderOptionsAsRadio() == null ? renderOptionsAsRadio : programTrackedEntityAttribute.getRenderOptionsAsRadio();
             }
 
             groups.clear();

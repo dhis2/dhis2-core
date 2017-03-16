@@ -30,20 +30,26 @@ package org.hisp.dhis.security.acl;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.chart.Chart;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.mapping.Map;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import java.util.HashSet;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -57,6 +63,9 @@ public class AclServiceTest
 
     @Autowired
     private UserService _userService;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
 
     @Override
     protected void setUpTest() throws Exception
@@ -324,35 +333,9 @@ public class AclServiceTest
     }
 
     @Test
-    public void testVerifyReportTableCanExternalize()
-    {
-        User user = createAdminUser( "F_REPORTTABLE_PUBLIC_ADD", "F_REPORTTABLE_EXTERNAL" );
-
-        ReportTable reportTable = new ReportTable();
-        reportTable.setAutoFields();
-        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
-        reportTable.setExternalAccess( true );
-
-        assertFalse( aclService.verifySharing( reportTable, user ).isEmpty() );
-    }
-
-    @Test
     public void testVerifyReportTableCantExternalize()
     {
         User user = createAdminUser( "F_REPORTTABLE_PUBLIC_ADD" );
-
-        ReportTable reportTable = new ReportTable();
-        reportTable.setAutoFields();
-        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
-        reportTable.setExternalAccess( true );
-
-        assertFalse( aclService.verifySharing( reportTable, user ).isEmpty() );
-    }
-
-    @Test
-    public void testVerifyReportTableCanExternalizeNoExplicitAdd()
-    {
-        User user = createAdminUser( "F_REPORTTABLE_EXTERNAL" );
 
         ReportTable reportTable = new ReportTable();
         reportTable.setAutoFields();
@@ -400,5 +383,70 @@ public class AclServiceTest
         assertFalse( reportTable.getExternalAccess() );
         assertTrue( reportTable.getUserAccesses().isEmpty() );
         assertTrue( reportTable.getUserGroupAccesses().isEmpty() );
+    }
+
+    @Test
+    public void testCreateNoSharingObject()
+    {
+        User user = createAdminUser();
+        assertFalse( aclService.canCreate( user, OrganisationUnit.class ) );
+    }
+
+    @Test
+    public void testUpdateNoSharingObject()
+    {
+        User user = createAdminUser();
+        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
+        assertFalse( aclService.canUpdate( user, organisationUnit ) );
+    }
+
+    @Test
+    public void testDataElementSharingPrivateRW()
+    {
+        User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
+        User user2 = createUser( "user2", "F_DATAELEMENT_PRIVATE_ADD" );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setUser( user1 );
+        manager.save( dataElement );
+
+        assertFalse( aclService.canUpdate( user2, dataElement ) );
+        assertEquals( AccessStringHelper.DEFAULT, dataElement.getPublicAccess() );
+
+        UserGroup userGroup = createUserGroup( 'A', new HashSet<>() );
+        userGroup.getMembers().add( user1 );
+        userGroup.getMembers().add( user2 );
+
+        manager.save( userGroup );
+
+        dataElement.getUserGroupAccesses().add( new UserGroupAccess( userGroup, "rw------" ) );
+        manager.update( dataElement );
+
+        assertTrue( aclService.canUpdate( user2, dataElement ) );
+    }
+
+    @Test
+    public void testCategoryOptionSharingPrivateRW()
+    {
+        User user1 = createUser( "user1", "F_CATEGORY_OPTION_PRIVATE_ADD" );
+        User user2 = createUser( "user2" );
+
+        DataElementCategoryOption categoryOption = createCategoryOption( 'A' );
+        categoryOption.setUser( user1 );
+        manager.save( categoryOption );
+
+        assertFalse( aclService.canUpdate( user2, categoryOption ) );
+        assertEquals( AccessStringHelper.DEFAULT, categoryOption.getPublicAccess() );
+
+        UserGroup userGroup = createUserGroup( 'A', new HashSet<>() );
+        userGroup.getMembers().add( user1 );
+        userGroup.getMembers().add( user2 );
+
+        manager.save( userGroup );
+
+        categoryOption.getUserGroupAccesses().add( new UserGroupAccess( userGroup, "rw------" ) );
+        manager.update( categoryOption );
+
+        assertTrue( aclService.canUpdate( user2, categoryOption ) );
     }
 }

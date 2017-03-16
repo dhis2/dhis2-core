@@ -28,15 +28,12 @@ package org.hisp.dhis.analytics.partition;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.analytics.AnalyticsTableManager.ANALYTICS_TABLE_NAME;
-import static org.hisp.dhis.analytics.AnalyticsTableManager.EVENT_ANALYTICS_TABLE_NAME;
-import static org.hisp.dhis.analytics.AnalyticsTableManager.ENROLLMENT_ANALYTICS_TABLE_NAME;
-
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.analytics.table.AnalyticsTableType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -51,11 +48,13 @@ public class JdbcPartitionManager
     private Set<String> analyticsPartitions = null;
     private Set<String> analyticsEventPartitions = null;
     
+    //TODO separate method for enrollment partitions ?
+    
     @Autowired
     private JdbcTemplate jdbcTemplate;
   
     @Override
-    public Set<String> getAnalyticsPartitions()
+    public Set<String> getDataValueAnalyticsPartitions()
     {
         if ( analyticsPartitions != null )
         {
@@ -64,7 +63,7 @@ public class JdbcPartitionManager
                 
         final String sql =
             "select table_name from information_schema.tables " +
-            "where table_name like '" + ANALYTICS_TABLE_NAME + "%' " +
+            "where table_name like '" + AnalyticsTableType.DATA_VALUE.getTableName() + "%' " +
             "and table_type = 'BASE TABLE'";
         
         log.info( "Information schema analytics SQL: " + sql );
@@ -84,8 +83,8 @@ public class JdbcPartitionManager
         
         final String sql = 
             "select table_name from information_schema.tables " +
-            "where table_name like '" + EVENT_ANALYTICS_TABLE_NAME + "%' " +
-            "or table_name like '" + ENROLLMENT_ANALYTICS_TABLE_NAME + "%' " +
+            "where table_name like '" + AnalyticsTableType.EVENT.getTableName() + "%' " +
+            "or table_name like '" + AnalyticsTableType.ENROLLMENT.getTableName() + "%' " +
             "and table_type = 'BASE TABLE'";
         
         log.info( "Information schema event analytics SQL: " + sql );

@@ -6,6 +6,8 @@
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.IdentifiableObjectBundleHook" />
 
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.LinkObjectObjectBundleHook" />
+
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.AnalyticalObjectObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.OrganisationUnitObjectBundleHook" />
@@ -21,8 +23,6 @@
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataSetObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataInputPeriodObjectBundleHook" />
-
-  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.SectionObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ValidationRuleObjectBundleHook" />
 
@@ -86,6 +86,8 @@
 
   <bean id="dataSynchTask" class="org.hisp.dhis.dxf2.synch.DataSynchronizationTask" scope="prototype" />
 
+  <bean id="org.hisp.dhis.dxf2.monitoring.MonitoringService" class="org.hisp.dhis.dxf2.monitoring.DefaultMonitoringService" />
+
   <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService" class="org.hisp.dhis.dxf2.metadata.sync.DefaultMetadataSyncService" />
 
   <bean id="metadataSyncTask" class="org.hisp.dhis.dxf2.metadata.tasks.MetadataSyncTask" scope="prototype" />
@@ -100,10 +102,17 @@
 
   <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataImportHandler" class="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncImportHandler" scope="prototype" />
 
-  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataVersionDelegate" class="org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate" scope="prototype" />
+  <bean id="org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate" class="org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate" scope="prototype" />
+
+  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncDelegate" class="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncDelegate" scope="prototype" />
 
   <bean id="retryPolicy" class="org.springframework.retry.policy.SimpleRetryPolicy">
-    <property name="maxAttempts" ref="maxAttempts" />
+    <constructor-arg ref="maxAttempts" />
+    <constructor-arg>
+      <map>
+        <entry key="org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException" value="true"></entry>
+      </map>
+    </constructor-arg>
   </bean>
 
   <bean id="backOffPolicy" class="org.springframework.retry.backoff.ExponentialBackOffPolicy">

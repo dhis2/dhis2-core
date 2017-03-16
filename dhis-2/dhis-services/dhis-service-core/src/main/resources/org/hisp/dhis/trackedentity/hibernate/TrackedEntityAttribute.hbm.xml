@@ -29,16 +29,13 @@
       </type>
     </property>
 
-    <property name="aggregationType" length="40">
+    <property name="aggregationType" length="40" not-null="true">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.analytics.AggregationType</param>
         <param name="useNamed">true</param>
         <param name="type">12</param>
       </type>
     </property>
-
-    <many-to-one name="attributeGroup" class="org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup"
-      column="trackedentityattributegroupid" foreign-key="fk_trackedentityattribute_attributegroupid" />
 
     <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet"
       column="optionsetid" foreign-key="fk_trackedentityattribute_optionsetid" />
@@ -91,27 +88,27 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="trackedentityattributeusergroupaccesses">
+    <set name="userGroupAccesses" table="trackedentityattributeusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="trackedentityattributeid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <set name="userAccesses" table="trackedentityattributeuseraccesses">
+    <set name="userAccesses" table="trackedentityattributeuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="trackedentityattributeid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="trackedentityattributeattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="trackedentityattributeattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="trackedentityattributeid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="trackedentityattributetranslations" cascade="delete-orphan">
+    <set name="translations" table="trackedentityattributetranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="trackedentityattributeid" foreign-key="fk_objecttranslation_trackedentityattributeid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

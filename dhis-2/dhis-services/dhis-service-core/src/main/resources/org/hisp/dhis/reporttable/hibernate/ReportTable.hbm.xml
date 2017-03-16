@@ -150,6 +150,12 @@
     <property name="completedOnly" column="completedonly" />
 
     <property name="title" />
+    
+    <property name="subtitle" />
+    
+    <property name="hideTitle" />
+
+    <property name="hideSubtitle" />
 
     <set name="interpretations" inverse="true">
       <key column="reporttableid" />
@@ -197,6 +203,14 @@
       </type>
     </property>
 
+    <property name="legendDisplayStrategy" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.legend.LegendDisplayStrategy</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
     <property name="showHierarchy" />
 
     <property name="showDimensionLabels" />
@@ -210,20 +224,20 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="reporttableusergroupaccesses">
+    <set name="userGroupAccesses" table="reporttableusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="reporttableid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <set name="userAccesses" table="reporttableuseraccesses">
+    <set name="userAccesses" table="reporttableuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="reporttableid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="reporttabletranslations" cascade="delete-orphan">
+    <set name="translations" table="reporttabletranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="reporttableid" foreign-key="fk_objecttranslation_reporttableid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

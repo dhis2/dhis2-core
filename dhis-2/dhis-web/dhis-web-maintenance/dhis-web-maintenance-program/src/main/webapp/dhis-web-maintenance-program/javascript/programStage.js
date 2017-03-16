@@ -117,9 +117,16 @@ function selectDataElements()
 			html += "<td align='center'><input type='checkbox' name='displayInReport'></td>";
 			if( jQuery(item).attr('valuetype') =='DATE'){
 				html += "<td align='center'><input type='checkbox' name='allowFutureDate'></td>";
-			}
+			}            
 			else{
 				html += "<td align='center'><input type='hidden' name='allowFutureDate'></td>";
+			}
+            
+            if( jQuery(item).attr('valuetype') =='optionset'){
+				html += "<td align='center'><input type='checkbox' name='renderOptionsAsRadio'></td>";
+			}            
+			else{
+				html += "<td align='center'><input type='hidden' name='renderOptionsAsRadio'></td>";
 			}
 			
 			html += "</tr>";
@@ -144,6 +151,13 @@ function selectAllDataElements()
 		}
 		else{
 			html += "<td align='center'><input type='hidden' name='allowFutureDate'></td>";
+		}
+		
+		if( jQuery(item).attr('valuetype') =='optionset'){
+			html += "<td align='center'><input type='checkbox' name='renderOptionsAsRadio'></td>";
+		}            
+		else{
+			html += "<td align='center'><input type='hidden' name='renderOptionsAsRadio'></td>";
 		}
 		
 		html += "</tr>";
@@ -310,3 +324,12 @@ function autoGenerateEventOnChange(openAfterEnrollment)
 	}
 }
 
+function hideDueDateOnChange()
+{
+	if(byId('hideDueDate').checked){
+		disable('dueDateLabel');
+	}
+	else{
+		enable('dueDateLabel');
+	}	
+}

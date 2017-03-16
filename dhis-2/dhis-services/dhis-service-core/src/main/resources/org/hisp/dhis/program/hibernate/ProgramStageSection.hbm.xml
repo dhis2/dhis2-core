@@ -9,7 +9,7 @@
   <class name="org.hisp.dhis.program.ProgramStageSection" table="programstagesection">
 
     <cache usage="read-write" />
-    
+
     <id name="id" column="programstagesectionid">
       <generator class="native" />
     </id>
@@ -18,25 +18,26 @@
     <property name="name" column="name" not-null="true" unique="false" length="230" />
 
     <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
-   	   column="programstageid" foreign-key="fk_program_programstageid" />
+      column="programstageid" foreign-key="fk_program_programstageid" />
 
-    <list name="programStageDataElements">
-      <key column="programstagesectionid" />
-      <list-index column="section_sort_order" base="1" />
-      <one-to-many class="org.hisp.dhis.program.ProgramStageDataElement" />
+    <list name="dataElements" table="programstagesection_dataelements">
+      <key column="programstagesectionid" foreign-key="fk_programstagesection_dataelements_programstagesectionid" />
+      <list-index column="sort_order" base="1" />
+      <many-to-many class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
+        foreign-key="fk_programstagesection_dataelements_dataelementid" />
     </list>
-    
+
     <list name="programIndicators" table="programstagesection_programindicators">
       <key column="programstagesectionid" foreign-key="fk_programstagesection_programindicators_sectionid" />
       <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.program.ProgramIndicator" column="programindicatorid"
-      	foreign-key="fk_programstagesection_programindicators_indicatorid"/>
+        foreign-key="fk_programstagesection_programindicators_indicatorid" />
     </list>
 
     <property name="sortOrder" column="sortorder" not-null="true" />
 
     <!-- Object Translation -->
-    <set name="translations" table="programstagesectiontranslations" cascade="delete-orphan">
+    <set name="translations" table="programstagesectiontranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="programstagesectionid" foreign-key="fk_objecttranslation_programstagesectionid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

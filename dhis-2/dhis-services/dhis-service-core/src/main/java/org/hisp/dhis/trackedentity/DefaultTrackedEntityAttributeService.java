@@ -141,18 +141,6 @@ public class DefaultTrackedEntityAttributeService
     }
 
     @Override
-    public List<TrackedEntityAttribute> getOptionalAttributesWithoutGroup()
-    {
-        return attributeStore.getOptionalAttributesWithoutGroup();
-    }
-
-    @Override
-    public List<TrackedEntityAttribute> getTrackedEntityAttributesWithoutGroup()
-    {
-        return attributeStore.getWithoutGroup();
-    }
-
-    @Override
     public TrackedEntityAttribute getTrackedEntityAttribute( String uid )
     {
         return attributeStore.getByUid( uid );

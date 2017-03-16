@@ -69,10 +69,6 @@ public abstract class BaseChart
 
     protected boolean hideLegend;
 
-    protected boolean hideTitle;
-
-    protected boolean hideSubtitle;
-
     protected RegressionType regressionType;
 
     protected Double targetLineValue;
@@ -86,6 +82,10 @@ public abstract class BaseChart
     protected boolean showData;
 
     protected boolean hideEmptyRows;
+    
+    protected boolean percentStackedValues;
+    
+    protected boolean cumulativeValues;
 
     protected Double rangeAxisMaxValue;
 
@@ -294,30 +294,6 @@ public abstract class BaseChart
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isHideTitle()
-    {
-        return hideTitle;
-    }
-
-    public void setHideTitle( boolean hideTitle )
-    {
-        this.hideTitle = hideTitle;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isHideSubtitle()
-    {
-        return hideSubtitle;
-    }
-
-    public void setHideSubtitle( Boolean hideSubtitle )
-    {
-        this.hideSubtitle = hideSubtitle;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public RegressionType getRegressionType()
     {
         return regressionType;
@@ -402,6 +378,30 @@ public abstract class BaseChart
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isPercentStackedValues()
+    {
+        return percentStackedValues;
+    }
+
+    public void setPercentStackedValues( boolean percentStackedValues )
+    {
+        this.percentStackedValues = percentStackedValues;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isCumulativeValues()
+    {
+        return cumulativeValues;
+    }
+
+    public void setCumulativeValues( boolean cumulativeValues )
+    {
+        this.cumulativeValues = cumulativeValues;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Double getRangeAxisMaxValue()
     {
         return rangeAxisMaxValue;
@@ -479,6 +479,8 @@ public abstract class BaseChart
             hideSubtitle = chart.isHideSubtitle();
             showData = chart.isShowData();
             hideEmptyRows = chart.isHideEmptyRows();
+            percentStackedValues = chart.isPercentStackedValues();
+            cumulativeValues = chart.isCumulativeValues();
 
             if ( mergeMode.isReplace() )
             {
