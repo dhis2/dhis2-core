@@ -360,6 +360,12 @@ public class ImportOptions
         return this;
     }
 
+    public ImportOptions setEventIdScheme( String idScheme )
+    {
+        idSchemes.setProgramStageInstanceIdScheme( idScheme );
+        return this;
+    }
+
     public ImportOptions setDryRun( boolean dryRun )
     {
         this.dryRun = dryRun;
