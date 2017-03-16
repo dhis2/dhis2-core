@@ -212,7 +212,7 @@ public abstract class AbstractJdbcTableManager
     @Override
     public void analyzeTable( String tableName )
     {
-        executeSilently( "analyze " + tableName );
+        executeSilently( statementBuilder.getAnalyze( tableName ) );
     }
 
     @Override

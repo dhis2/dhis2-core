@@ -57,7 +57,13 @@ public class PostgreSQLStatementBuilder
     {
         return "vacuum " + table + ";";
     }
-    
+
+    @Override
+    public String getAnalyze( String table )
+    {
+        return "analyze " + table;
+    }
+
     @Override
     public String getAutoIncrementValue()
     {

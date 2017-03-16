@@ -5,6 +5,7 @@ import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -88,6 +89,9 @@ public class AnalyticsServiceTest
     @Autowired
     private UserService internalUserService;
 
+    @Autowired
+    private StatementBuilder statementBuilder;
+
     @Override
     public void setUpTest() {
         super.userService = internalUserService;
@@ -142,18 +146,33 @@ public class AnalyticsServiceTest
         ouA.setChildren(childOfA);
 
         HashSet<OrganisationUnit> childOfB = new HashSet<>();
-        childOfB.add(ouC);
         childOfB.add(ouD);
+        childOfB.add(ouE);
 
-        ouA.setChildren(childOfB);
+        ouB.setChildren(childOfB);
+
+        HashSet<OrganisationUnit> childOfC = new HashSet<>();
+        childOfC.add(ouG);
+
+        ouC.setChildren(childOfC);
+
+        HashSet<OrganisationUnit> childOfD = new HashSet<>();
+        childOfD.add(ouF);
+        childOfD.add(ouJ);
+
+        ouD.setChildren(childOfD);
+
+        HashSet<OrganisationUnit> childOfG = new HashSet<>();
+        childOfG.add(ouI);
+        childOfG.add(ouH);
+
+        ouG.setChildren(childOfG);
 
         organisationUnitService.addOrganisationUnit( ouA );
         organisationUnitService.addOrganisationUnit( ouB );
         organisationUnitService.addOrganisationUnit( ouC );
         organisationUnitService.addOrganisationUnit( ouD );
         organisationUnitService.addOrganisationUnit( ouE );
-
-
 
 
     }
@@ -184,11 +203,9 @@ public class AnalyticsServiceTest
             System.out.println(dv);
         }
 
+        System.out.println("test statementBuilder.getAnalyze: '" + statementBuilder.getAnalyze("test") + "'");
+
         analyticsTableGenerator.generateTables(null, null, null, false);
-
-        analyticsTableService.analyzeAnalyticsTables();
-
-        System.out.println(analyticsTableService.getAnalyticsTableType().toString());
 
 
         // Param to test analytics service

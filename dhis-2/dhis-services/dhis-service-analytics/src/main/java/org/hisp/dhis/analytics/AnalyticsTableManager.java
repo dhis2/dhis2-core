@@ -28,14 +28,14 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.analytics.table.AnalyticsTableType;
+
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
-
-import org.hisp.dhis.analytics.table.AnalyticsTableType;
 
 /**
  * Manager for the analytics database tables.
@@ -55,7 +55,6 @@ public interface AnalyticsTableManager
      * Returns a list of generated analytics tables for yearly partitions.
      * 
      * @param earliest the start date for the first year to generate table partitions.
-     * @param latest the end date for the last year to generate table partitions.
      */
     List<AnalyticsTable> getTables( Date earliest );
     
@@ -78,7 +77,7 @@ public interface AnalyticsTableManager
     /**
      * Attempts to drop and then create analytics table.
      * 
-     * @param tableName the table name.
+     * @param table the table name.
      */
     void createTable( AnalyticsTable table );
     

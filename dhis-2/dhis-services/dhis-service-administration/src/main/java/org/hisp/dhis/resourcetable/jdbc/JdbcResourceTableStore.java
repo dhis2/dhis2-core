@@ -28,16 +28,18 @@ package org.hisp.dhis.resourcetable.jdbc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Optional;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableStore;
 import org.hisp.dhis.system.util.Clock;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Lars Helge Overland
@@ -46,6 +48,9 @@ public class JdbcResourceTableStore
     implements ResourceTableStore
 {
     private static final Log log = LogFactory.getLog( JdbcResourceTableStore.class );
+
+    @Autowired
+    private StatementBuilder statementBuilder;
     
     // -------------------------------------------------------------------------
     // Dependencies
@@ -146,7 +151,7 @@ public class JdbcResourceTableStore
         // Analyze
         // ---------------------------------------------------------------------
 
-        jdbcTemplate.execute( resourceTable.getAnalyzeTableStatement() );
+        jdbcTemplate.execute( statementBuilder.getAnalyze(resourceTable.getTableName()) + ";" );
         
         log.info( "Analyzed resource table: " + resourceTable.getTableName() + ", done in: " + clock.time() );
     }

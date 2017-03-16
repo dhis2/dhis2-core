@@ -95,6 +95,15 @@ public interface StatementBuilder
      * @return vacuum and analyze operations for a table.
      */
     String getVacuum( String table );
+
+    /**
+     * Return statement for analyze operations for a table. Returns empty string if analyze is not
+     * supported for the SQL language
+     *
+     * @param table the table to analyze
+     * @return analyze statement
+     */
+    String getAnalyze( String table );
     
     /**
      * Returns a sql statement to include in create table statements with applies
@@ -192,8 +201,8 @@ public interface StatementBuilder
      * Returns a statement which calculates the number of days between the two
      * given dates or columns of type date.
      * 
-     * @param from the from date column.
-     * @param to the to date column.
+     * @param fromColumn the from date column.
+     * @param toColumn the to date column.
      * @return statement which calculates the number of days between the given dates.
      */
     String getDaysBetweenDates( String fromColumn, String toColumn );
