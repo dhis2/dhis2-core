@@ -63,6 +63,8 @@ public class ProgramStageDataElement
     private Boolean displayInReports = false;
 
     private Boolean allowFutureDate = false;
+    
+    private Boolean renderOptionsAsRadio = false;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -183,6 +185,18 @@ public class ProgramStageDataElement
     {
         this.allowFutureDate = allowFutureDate;
     }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getRenderOptionsAsRadio()
+    {
+        return renderOptionsAsRadio;
+    }
+
+    public void setRenderOptionsAsRadio( Boolean renderOptionsAsRadio )
+    {
+        this.renderOptionsAsRadio = renderOptionsAsRadio;
+    }
 
     // -------------------------------------------------------------------------
     // hashCode, equals and toString
@@ -221,6 +235,7 @@ public class ProgramStageDataElement
             ", sortOrder=" + sortOrder +
             ", displayInReports=" + displayInReports +
             ", allowFutureDate=" + allowFutureDate +
+            ", renderOptionsAsRadio=" + renderOptionsAsRadio +
             '}';
     }
 
@@ -243,6 +258,7 @@ public class ProgramStageDataElement
                 allowProvidedElsewhere = programStageDataElement.getAllowProvidedElsewhere();
                 displayInReports = programStageDataElement.getDisplayInReports();
                 sortOrder = programStageDataElement.getSortOrder();
+                renderOptionsAsRadio = programStageDataElement.getRenderOptionsAsRadio();
             }
             else if ( mergeMode.isMerge() )
             {
@@ -252,6 +268,7 @@ public class ProgramStageDataElement
                 allowProvidedElsewhere = programStageDataElement.getAllowProvidedElsewhere() == null ? allowProvidedElsewhere : programStageDataElement.getAllowProvidedElsewhere();
                 displayInReports = programStageDataElement.getDisplayInReports() == null ? displayInReports : programStageDataElement.getDisplayInReports();
                 sortOrder = programStageDataElement.getSortOrder() == null ? sortOrder : programStageDataElement.getSortOrder();
+                renderOptionsAsRadio = programStageDataElement.getRenderOptionsAsRadio() == null ? renderOptionsAsRadio : programStageDataElement.getRenderOptionsAsRadio();
             }
         }
     }

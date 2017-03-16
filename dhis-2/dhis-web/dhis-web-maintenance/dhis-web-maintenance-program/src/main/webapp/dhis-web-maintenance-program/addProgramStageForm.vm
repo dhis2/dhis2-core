@@ -20,6 +20,9 @@
 
         var allowProvidedElsewhere = jQuery("#allowProvidedElsewhere");
         allowProvidedElsewhere.empty();
+        
+        var renderOptionsAsRadios = jQuery( "#renderOptionsAsRadios" );
+		renderOptionsAsRadios.empty();
 
         jQuery("#selectedList").find("tr").each(function( i, item ) {
 
@@ -40,6 +43,10 @@
           var allowFutureDate = jQuery(item).find("input[name='allowFutureDate']:first");
           checked = allowFutureDate.attr('checked') ? true : false;
           allowFutureDates.append("<option value='" + checked + "' selected='true'>" + checked + "</option>");
+          
+          var renderOptionsAsRadio = jQuery( item ).find( "input[name='renderOptionsAsRadio']:first");
+		  var checked = renderOptionsAsRadio.attr('checked') ? true : false;
+		  renderOptionsAsRadios.append( "<option value='" + checked + "' selected='true'>" + checked + "</option>" );
         });
       },
       'rules': getValidationRules("programStage")
@@ -230,7 +237,8 @@
 			<select id="compulsories" name='compulsories' multiple="multiple" class="hidden"></select>     
 			<select id="allowProvidedElsewhere" name='allowProvidedElsewhere' multiple="multiple" class="hidden"></select>     
 			<select id="displayInReports" name='displayInReports' multiple="multiple" class="hidden"></select>     
-			<select id="allowFutureDates" name='allowFutureDates' multiple="multiple" class="hidden"></select>   
+			<select id="allowFutureDates" name='allowFutureDates' multiple="multiple" class="hidden"></select>
+			<select id="renderOptionsAsRadios" name='renderOptionsAsRadios' multiple="multiple" class="hidden"></select>   
 		</th>
       </tr>
     </thead>
@@ -251,7 +259,7 @@
 		
 		<td>
 			<div class="dataElementDiv">
-				<table>
+				<table class="bordered-table">
 					<colgroup>
 						<col/>
 						<col style="width:20px;"/>
@@ -265,6 +273,7 @@
 							<th>$i18n.getString( "allow_provided_elsewhere" )</th>
 							<th>$i18n.getString( "display_in_reports" )</th>
 							<th>$i18n.getString( "date_in_future" )</th>
+							<th>$i18n.getString( "render_options_as_radio" )</th>
 					</thead>
 					<tbody id="selectedList"></tbody>
 				</table>

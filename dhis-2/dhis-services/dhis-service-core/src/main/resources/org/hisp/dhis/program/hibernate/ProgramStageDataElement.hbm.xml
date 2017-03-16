@@ -28,6 +28,8 @@
     <property name="displayInReports" column="displayinreports" />
 
     <property name="allowFutureDate" column="allowfuturedate" />
+    
+    <property name="renderOptionsAsRadio" column="renderoptionsasradio" />
 
   </class>
 

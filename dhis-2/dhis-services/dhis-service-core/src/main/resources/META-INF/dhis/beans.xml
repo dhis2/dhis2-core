@@ -1319,7 +1319,6 @@
     <property name="programStageInstanceService" ref="org.hisp.dhis.program.ProgramStageInstanceService" />
     <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
     <property name="dataValueService" ref="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService" />
-    <property name="programStageDataElementService" ref="org.hisp.dhis.program.ProgramStageDataElementService" />
   </bean>
 
   <bean id="org.hisp.dhis.program.ProgramExpressionService" class="org.hisp.dhis.program.DefaultProgramExpressionService">
