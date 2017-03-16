@@ -52,6 +52,10 @@
       </type>
     </property>
 
+    <property name="title" />
+    
+    <property name="subtitle" />
+    
     <property name="hideTitle" />
 
     <property name="hideSubtitle" />
@@ -153,8 +157,6 @@
     </property>
 
     <property name="completedOnly" column="completedonly" />
-
-    <property name="title" />
 
     <set name="interpretations" inverse="true">
       <key column="chartid" />
