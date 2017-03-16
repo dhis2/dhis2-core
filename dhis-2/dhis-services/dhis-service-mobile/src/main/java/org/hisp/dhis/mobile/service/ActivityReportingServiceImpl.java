@@ -1876,7 +1876,7 @@ public class ActivityReportingServiceImpl
                 List<MessageConversation> conversationList = new ArrayList<>();
 
                 MessageConversation conversation = new MessageConversation( lostEvent.getName(),
-                    currentUserService.getCurrentUser(), MessageType.SYSTEM );
+                    currentUserService.getCurrentUser(), MessageType.PRIVATE );
 
                 conversation
                     .addMessage( new Message( lostEvent.getComment(), null, currentUserService.getCurrentUser() ) );
