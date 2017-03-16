@@ -190,6 +190,11 @@ public class DefaultMessageService
     {
         MessageConversation conversation = new MessageConversation( subject, sender, messageType );
 
+        if ( messageType.equals( MessageType.TICKET ) )
+        {
+            conversation.setStatus( MessageConversationStatus.OPEN );
+        }
+
         // This message will be the initial message in the conversation and must always be created
         conversation.addMessage( new Message( text, metaData, sender ) );
 

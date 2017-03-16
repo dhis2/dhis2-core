@@ -35,7 +35,6 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.ValidationNotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -108,14 +107,10 @@ public class ValidationNotificationServiceTest
 
         // Stub MessageService.sendMessage(..) so that it appends any outgoing messages to our List
         when(
-            messageService.sendMessage(
+            messageService.sendValidationResultMessage(
                 anyString(),
                 anyString(),
-                anyString(),
-                anySetOf( User.class ),
-                any( User.class ),
-                any( MessageType.class ),
-                anyBoolean()
+                anySetOf( User.class )
             )
         ).then(
             invocation -> {
@@ -394,7 +389,7 @@ public class ValidationNotificationServiceTest
     // -------------------------------------------------------------------------
 
     /**
-     * Mocks the input to MessageService.sendMessage(..)
+     * Mocks the input to MessageService.sendValidationResultMessage(..)
      */
     static class MockMessage
     {
@@ -411,11 +406,11 @@ public class ValidationNotificationServiceTest
         {
             this.subject = (String) args[0];
             this.text = (String) args[1];
-            this.metaData = (String) args[2];
-            this.users = (Set<User>) args[3];
-            this.sender = (User) args[4];
-            this.includeFeedbackRecipients = (boolean) args[5];
-            this.forceNotifications = (boolean) args[6];
+            this.metaData = null;
+            this.users = (Set<User>) args[2];
+            this.sender = null;
+            this.includeFeedbackRecipients = false;
+            this.forceNotifications = false;
         }
     }
 }
