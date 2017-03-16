@@ -98,6 +98,11 @@ public class BaseIdentifiableObject
     protected Date lastUpdated;
 
     /**
+     * Is this object deleted (soft deleted).
+     */
+    protected Boolean deleted = false;
+
+    /**
      * Set of the dynamic attributes values that belong to this data element.
      */
     protected Set<AttributeValue> attributeValues = new HashSet<>();
@@ -304,6 +309,20 @@ public class BaseIdentifiableObject
     public void setLastUpdated( Date lastUpdated )
     {
         this.lastUpdated = lastUpdated;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( access = Property.Access.NONE )
+    public boolean isDeleted()
+    {
+        return deleted == null ? false : deleted;
+    }
+
+    public void setDeleted( Boolean deleted )
+    {
+        this.deleted = deleted;
     }
 
     @Override

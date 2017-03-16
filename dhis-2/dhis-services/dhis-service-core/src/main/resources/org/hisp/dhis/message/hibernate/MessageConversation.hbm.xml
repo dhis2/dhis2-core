@@ -15,9 +15,11 @@
 
     <property name="messageCount" column="messagecount" type="integer" />
 
-    <property name="created" type="timestamp"  not-null="true"/>
+    <property name="created" type="timestamp" not-null="true" />
 
-    <property name="lastUpdated" type="timestamp"  not-null="true"/>
+    <property name="lastUpdated" type="timestamp" not-null="true" />
+
+    <property name="deleted" column="deleted" not-null="false"/>
 
     <property name="subject" column="subject" not-null="true" />
 

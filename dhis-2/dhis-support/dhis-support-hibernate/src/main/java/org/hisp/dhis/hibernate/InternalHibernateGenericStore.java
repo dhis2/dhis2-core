@@ -29,8 +29,10 @@ package org.hisp.dhis.hibernate;
  */
 
 import org.hibernate.Criteria;
+import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.common.Visibility;
 import org.hisp.dhis.user.User;
 
 /**
@@ -44,17 +46,9 @@ public interface InternalHibernateGenericStore<T>
 {
     Criteria getCriteria();
 
-    Criteria getSharingCriteria();
-
-    Criteria getSharingCriteria( String access );
-
-    Criteria getSharingCriteria( User user );
+    Criteria getCriteria( Criterion... criterions );
 
     Criteria getExecutableCriteria( DetachedCriteria detachedCriteria );
 
-    DetachedCriteria getSharingDetachedCriteria();
-
-    DetachedCriteria getSharingDetachedCriteria( String access );
-
-    DetachedCriteria getSharingDetachedCriteria( User user );
+    DetachedCriteria getDetachedCriteria( User user, Visibility visibility );
 }

@@ -30,6 +30,7 @@ package org.hisp.dhis.query;
 
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.Visibility;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.User;
 import org.springframework.util.StringUtils;
@@ -59,6 +60,8 @@ public class Query extends Criteria
 
     private boolean plannedQuery;
 
+    private Visibility visibility = Visibility.NORMAL;
+
     private List<? extends IdentifiableObject> objects;
 
     public static Query from( Schema schema )
@@ -71,6 +74,11 @@ public class Query extends Criteria
         return new Query( schema, rootJunction );
     }
 
+    public static Query from( Schema schema, Junction.Type rootJunction, Visibility visibility )
+    {
+        return new Query( schema, rootJunction ).setVisibility( visibility );
+    }
+
     public static Query from( Query query )
     {
         Query clone = Query.from( query.getSchema(), query.getRootJunction().getType() );
@@ -81,6 +89,7 @@ public class Query extends Criteria
         clone.setMaxResults( query.getMaxResults() );
         clone.add( query.getCriterions() );
         clone.setObjects( query.getObjects() );
+        clone.setVisibility( query.getVisibility() );
 
         return clone;
     }
@@ -208,6 +217,17 @@ public class Query extends Criteria
     public Query setPlannedQuery( boolean plannedQuery )
     {
         this.plannedQuery = plannedQuery;
+        return this;
+    }
+
+    public Visibility getVisibility()
+    {
+        return visibility;
+    }
+
+    public Query setVisibility( Visibility visibility )
+    {
+        this.visibility = visibility;
         return this;
     }
 

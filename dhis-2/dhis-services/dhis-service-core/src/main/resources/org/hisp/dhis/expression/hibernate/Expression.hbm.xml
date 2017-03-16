@@ -17,12 +17,12 @@
     <property name="expression" type="text" />
 
     <property name="missingValueStrategy" column="missingvaluestrategy" length="100">
-		<type name="org.hibernate.type.EnumType">
-			<param name="enumClass">org.hisp.dhis.expression.MissingValueStrategy</param>
-      <param name="useNamed">true</param>
-			<param name="type">12</param>
-		</type> 
-	</property>
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.expression.MissingValueStrategy</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
 
   </class>
 </hibernate-mapping>

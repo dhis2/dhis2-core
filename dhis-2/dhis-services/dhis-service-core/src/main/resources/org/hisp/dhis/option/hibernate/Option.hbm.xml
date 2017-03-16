@@ -24,6 +24,8 @@
 
     <property name="lastUpdated" type="timestamp" not-null="true" />
 
+    <property name="deleted" column="deleted" not-null="false"/>
+
     <property name="sortOrder" column="sort_order" />
 
     <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid" />

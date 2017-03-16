@@ -47,7 +47,7 @@ public class HibernateCategoryOptionStore
     @SuppressWarnings("unchecked")
     public List<DataElementCategoryOption> getCategoryOptions( DataElementCategory category )
     {
-        return getSharingCriteria().
+        return getCriteria().
             createAlias( "categories", "category" ).
             add( Restrictions.eq( "category.id", category.getId() ) ).list();
     }

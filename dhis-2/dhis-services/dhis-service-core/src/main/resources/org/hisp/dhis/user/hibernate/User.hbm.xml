@@ -20,6 +20,8 @@
 
     <property name="created" type="timestamp" not-null="true" />
 
+    <property name="deleted" column="deleted" not-null="false"/>
+
     <property name="surname" not-null="true" length="160" />
 
     <property name="firstName" not-null="true" length="160" />

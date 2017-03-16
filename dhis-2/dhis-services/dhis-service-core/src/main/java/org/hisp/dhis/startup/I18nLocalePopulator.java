@@ -28,8 +28,7 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Locale;
-
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.i18n.I18nLocaleService;
@@ -37,35 +36,35 @@ import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.ImmutableSet;
+import java.util.Locale;
 
 /**
  * Populates default I18nLocales if none exists.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class I18nLocalePopulator
     extends TransactionContextStartupRoutine
 {
     private static final Log log = LogFactory.getLog( I18nLocalePopulator.class );
-    
+
     @Autowired
     private I18nLocaleService localeService;
-    
-    private static final ImmutableSet<String> DEFAULT_LOCALES = ImmutableSet.of( 
-        "af","ar","bi","am","de","dz","en","es","fa","fr","gu","hi","id","it",
-        "km","lo","my","ne","nl","no","ps","pt","ru","rw","sw","tg","vi","zh" );
+
+    private static final ImmutableSet<String> DEFAULT_LOCALES = ImmutableSet.of(
+        "af", "ar", "bi", "am", "de", "dz", "en", "es", "fa", "fr", "gu", "hi", "id", "it",
+        "km", "lo", "my", "ne", "nl", "no", "ps", "pt", "ru", "rw", "sw", "tg", "vi", "zh" );
 
     @Override
     public void executeInTransaction()
     {
         int count = localeService.getI18nLocaleCount();
-        
+
         if ( count > 0 )
         {
             return;
         }
-        
+
         for ( String locale : DEFAULT_LOCALES )
         {
             localeService.saveI18nLocale( new I18nLocale( new Locale( locale ) ) );

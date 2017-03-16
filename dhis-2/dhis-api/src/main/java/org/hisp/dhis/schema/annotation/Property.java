@@ -57,16 +57,16 @@ public @interface Property
 
     enum Access
     {
-        READ_ONLY, WRITE_ONLY, READ_WRITE;
+        NONE, READ_ONLY, WRITE_ONLY, READ_WRITE;
 
         public boolean isReadable()
         {
-            return READ_ONLY == this || READ_WRITE == this;
+            return NONE != this && (READ_ONLY == this || READ_WRITE == this);
         }
 
         public boolean isWritable()
         {
-            return WRITE_ONLY == this || READ_WRITE == this;
+            return NONE != this && (WRITE_ONLY == this || READ_WRITE == this);
         }
     }
 }

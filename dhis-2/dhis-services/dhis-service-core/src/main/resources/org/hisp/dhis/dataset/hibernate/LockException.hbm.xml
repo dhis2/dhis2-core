@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE hibernate-mapping PUBLIC
-    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
-    "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
   <class name="org.hisp.dhis.dataset.LockException" table="lockexception">
@@ -11,13 +11,13 @@
     </id>
 
     <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
-        foreign-key="fk_lockexception_organisationunitid" column="organisationunitid" />
+      foreign-key="fk_lockexception_organisationunitid" column="organisationunitid" />
 
     <many-to-one name="period" class="org.hisp.dhis.period.Period"
-        foreign-key="fk_lockexception_periodid" column="periodid" />
+      foreign-key="fk_lockexception_periodid" column="periodid" />
 
     <many-to-one name="dataSet" class="org.hisp.dhis.dataset.DataSet"
-        foreign-key="fk_lockexception_datasetid" column="datasetid" />
+      foreign-key="fk_lockexception_datasetid" column="datasetid" />
 
   </class>
 </hibernate-mapping>

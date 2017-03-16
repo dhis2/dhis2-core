@@ -14,7 +14,7 @@
 
     <property name="locale" column="locale" length="15" not-null="true" />
 
-    <property name="property" length="50" not-null="true" type="org.hisp.dhis.common.TranslationPropertyUserType"/>
+    <property name="property" length="50" not-null="true" type="org.hisp.dhis.common.TranslationPropertyUserType" />
 
     <property name="value" column="value" type="text" not-null="true" />
 

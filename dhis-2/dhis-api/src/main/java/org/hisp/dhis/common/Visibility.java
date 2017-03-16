@@ -1,4 +1,4 @@
-package org.hisp.dhis.programrule.hibernate;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,46 +26,26 @@ package org.hisp.dhis.programrule.hibernate;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
-
-import java.util.List;
-
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleStore;
 
 /**
- * @author markusbekken
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class HibernateProgramRuleStore
-    extends HibernateIdentifiableObjectStore<ProgramRule>
-    implements ProgramRuleStore
+public enum Visibility
 {
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<ProgramRule> get( Program program )
-    {
-        return getCriteria( Restrictions.eq( "program", program ) ).list();
-    }
-    
-    @Override
-    public ProgramRule getByName( String name, Program program )
-    {
-        return (ProgramRule) getCriteria( Restrictions.eq( "name", name ), Restrictions.eq( "program", program ) )
-            .uniqueResult();
-    }
-    
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<ProgramRule> get( Program program, String key )
-    {
-        return getCriteria()
-            .add( Restrictions.eq( "program", program ) )
-            .add( Restrictions.like( "name", "%" + key + "%" ).ignoreCase())
-            .addOrder( Order.asc( "name" ) )
-            .list();
-    }
+    /**
+     * Include objects that are not deleted.
+     */
+    NORMAL,
+
+    /**
+     * Include all objects even those that are deleted.
+     */
+    ALL,
+
+    /**
+     * Include deleted objects only.
+     */
+    DELETED
 }

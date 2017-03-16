@@ -27,7 +27,7 @@
     <many-to-one name="attributeOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo"
       column="attributeoptioncomboid" foreign-key="fk_programstageinstance_attributeoptioncomboid" />
 
-    <property name="deleted" column="deleted" />
+    <property name="deleted" column="deleted" not-null="false"/>
 
     <property name="storedBy" />
 

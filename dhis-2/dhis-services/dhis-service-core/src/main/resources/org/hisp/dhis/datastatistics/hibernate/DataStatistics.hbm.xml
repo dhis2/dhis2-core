@@ -11,8 +11,8 @@
     <id name="id" column="statisticsid">
       <generator class="native" />
     </id>
-    
     &identifiableProperties;
+
     <property name="chartViews" column="chartviews" type="double"/>
     <property name="mapViews" column="mapviews" type="double"/>
     <property name="reportTableViews" column="reporttableviews" type="double"/>
