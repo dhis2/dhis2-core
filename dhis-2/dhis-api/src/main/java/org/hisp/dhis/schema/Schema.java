@@ -162,14 +162,19 @@ public class Schema implements Ordered, Klass
     private Map<String, Property> propertyMap = Maps.newHashMap();
 
     /**
-     * Map of all persisted properties, cached on first request.
+     * Map of all readable properties, cached on first request.
      */
-    private Map<String, Property> persistedProperties;
+    private Map<String, Property> readableProperties = new HashMap<>();
 
     /**
      * Map of all persisted properties, cached on first request.
      */
-    private Map<String, Property> nonPersistedProperties;
+    private Map<String, Property> persistedProperties = new HashMap<>();
+
+    /**
+     * Map of all persisted properties, cached on first request.
+     */
+    private Map<String, Property> nonPersistedProperties = new HashMap<>();
 
     /**
      * Used for sorting of schema list when doing metadata import/export.
@@ -471,12 +476,22 @@ public class Schema implements Ordered, Klass
         return references;
     }
 
+    public Map<String, Property> getReadableProperties()
+    {
+        if ( readableProperties.isEmpty() )
+        {
+            getPropertyMap().entrySet().stream()
+                .filter( entry -> entry.getValue().isReadable() )
+                .forEach( entry -> readableProperties.put( entry.getKey(), entry.getValue() ) );
+        }
+
+        return readableProperties;
+    }
+
     public Map<String, Property> getPersistedProperties()
     {
-        if ( persistedProperties == null )
+        if ( persistedProperties.isEmpty() )
         {
-            persistedProperties = new HashMap<>();
-
             getPropertyMap().entrySet().stream()
                 .filter( entry -> entry.getValue().isPersisted() )
                 .forEach( entry -> persistedProperties.put( entry.getKey(), entry.getValue() ) );
@@ -487,10 +502,8 @@ public class Schema implements Ordered, Klass
 
     public Map<String, Property> getNonPersistedProperties()
     {
-        if ( nonPersistedProperties == null )
+        if ( nonPersistedProperties.isEmpty() )
         {
-            nonPersistedProperties = new HashMap<>();
-
             getPropertyMap().entrySet().stream()
                 .filter( entry -> !entry.getValue().isPersisted() )
                 .forEach( entry -> nonPersistedProperties.put( entry.getKey(), entry.getValue() ) );
