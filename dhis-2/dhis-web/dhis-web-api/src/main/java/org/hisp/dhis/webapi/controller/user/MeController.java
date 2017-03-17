@@ -353,11 +353,9 @@ public class MeController
             throw new WebMessageException( WebMessageUtils.conflict( "Required attribute 'password' missing or null." ) );
         }
 
-        Map<String, String> parameters = new HashMap<>();
-        parameters.put( "username", currentUser.getUsername() );
-        parameters.put( "password", password );
+        CredentialsInfo credentialsInfo = new CredentialsInfo( currentUser.getUsername(), password, currentUser.getEmail(), false );
 
-        PasswordValidationResult result = passwordValidationService.validate( parameters, false );
+        PasswordValidationResult result = passwordValidationService.validate( credentialsInfo );
 
         RootNode rootNode = NodeUtils.createRootNode( "response" );
         rootNode.addChild( new SimpleNode( "isValidPassword", result.isValid() ) );
@@ -408,11 +406,9 @@ public class MeController
     {
         if ( !StringUtils.isEmpty( password ) )
         {
-            Map<String, String> parameters = new HashMap<>();
-            parameters.put( "username", currentUser.getUsername() );
-            parameters.put( "password", password );
+            CredentialsInfo credentialsInfo = new CredentialsInfo( currentUser.getUsername(), password, currentUser.getEmail(), false );
 
-            PasswordValidationResult result = passwordValidationService.validate( parameters, false );
+            PasswordValidationResult result = passwordValidationService.validate( credentialsInfo );
 
             if ( result.isValid() )
             {

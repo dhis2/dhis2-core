@@ -18,17 +18,17 @@ public class PasswordDictionaryValidationRule
     List<String> dictionary = Arrays.asList( "user", "admin", "system", "administrator", "username", "password", "login", "manager");
 
     @Override
-    public boolean isRuleApplicable( Map<String, String> parameters, boolean newUser )
+    public boolean isRuleApplicable( CredentialsInfo credentialsInfo )
     {
         return true;
     }
 
     @Override
-    public PasswordValidationResult validate( Map<String, String> parameters )
+    public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
     {
         for ( String reserved : dictionary )
         {
-            if ( StringUtils.containsIgnoreCase( parameters.get( "password" ), reserved ) )
+            if ( StringUtils.containsIgnoreCase( credentialsInfo.getPassword(), reserved ) )
             {
                 return new PasswordValidationResult( "Password must not have any generic word", "password_dictionary_validation", false );
             }

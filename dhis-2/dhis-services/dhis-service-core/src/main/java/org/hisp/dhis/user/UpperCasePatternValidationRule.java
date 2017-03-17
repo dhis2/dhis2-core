@@ -11,9 +11,9 @@ public class UpperCasePatternValidationRule implements PasswordValidationRule
     private static final Pattern UPPERCASE_PATTERN = Pattern.compile( ".*[A-Z].*" );
 
     @Override
-    public PasswordValidationResult validate( Map<String, String> parameters )
+    public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
     {
-        if ( !UPPERCASE_PATTERN.matcher( parameters.get( "password" ) ).matches() )
+        if ( !UPPERCASE_PATTERN.matcher( credentialsInfo.getPassword() ).matches() )
         {
             return new PasswordValidationResult( "Password must have at least one upper case", "password_uppercase_validation",false );
         }
@@ -22,7 +22,7 @@ public class UpperCasePatternValidationRule implements PasswordValidationRule
     }
 
     @Override
-    public boolean isRuleApplicable( Map<String, String> parameters, boolean newUser )
+    public boolean isRuleApplicable( CredentialsInfo credentialsInfo )
     {
         return true;
     }
