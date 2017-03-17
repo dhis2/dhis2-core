@@ -32,6 +32,16 @@ function filterUsers() {
 // -----------------------------------------------------------------------------
 // View details
 // -----------------------------------------------------------------------------
+function checkPasswordForUsername() {
+
+	checkPassword("username", "rawPassword");
+
+}
+
+function checkPasswordForEmail() {
+	checkPassword("email", "rawPassword");
+
+}
 
 function showUpdateUserForm( context ) {
   location.href = 'showUpdateUserForm.action?id=' + context.id;

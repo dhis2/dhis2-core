@@ -1,5 +1,6 @@
 package org.hisp.dhis.user;
 
+import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
@@ -10,13 +11,19 @@ public class DigitPatternValidationRule implements PasswordValidationRule
     private static final Pattern DIGIT_PATTERN = Pattern.compile( ".*\\d.*" );
 
     @Override
-    public PasswordValidationResult validate( String username, String password )
+    public PasswordValidationResult validate( Map<String, String> parameters )
     {
-        if ( !DIGIT_PATTERN.matcher( password ).matches() )
+        if ( !DIGIT_PATTERN.matcher( parameters.get( "password" ) ).matches() )
         {
             return new PasswordValidationResult( "Password must have at least one digit", "password_digit_validation", false );
         }
 
         return new PasswordValidationResult( true );
+    }
+
+    @Override
+    public boolean isRuleApplicable( Map<String, String> parameters, boolean newUser )
+    {
+        return true;
     }
 }

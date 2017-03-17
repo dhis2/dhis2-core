@@ -32,11 +32,11 @@ import com.opensymphony.xwork2.Action;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.PasswordValidationResult;
-import org.hisp.dhis.user.PasswordValidationService;
-import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.*;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -119,6 +119,13 @@ public class ValidateUserAction
         this.newUser = newUser;
     }
 
+    private String email;
+
+    public void setEmail( String email )
+    {
+        this.email = email;
+    }
+
     // -------------------------------------------------------------------------
     // Output
     // -------------------------------------------------------------------------
@@ -190,16 +197,23 @@ public class ValidateUserAction
         {
             PasswordValidationResult result;
 
+            Map<String, String> parameters = new HashMap<>();
+            parameters.put( "password", rawPassword );
+            parameters.put( "email", email );
+            parameters.put( "username", username );
+
             if ( id != null )
             {
-                String username = userService.getUser( id ).getUsername();
+                User user = userService.getUser( id );
 
-                result = passwordValidationService.validate( username, rawPassword, newUser );
+                if ( user != null )
+                {
+                    parameters.put( "username", user.getUsername() );
+                    parameters.put( "email", user.getEmail() );
+                }
             }
-            else
-            {
-                result = passwordValidationService.validate( StringUtils.EMPTY, rawPassword, newUser );
-            }
+
+            result = passwordValidationService.validate( parameters, newUser );
 
             if ( !result.isValid() )
             {
