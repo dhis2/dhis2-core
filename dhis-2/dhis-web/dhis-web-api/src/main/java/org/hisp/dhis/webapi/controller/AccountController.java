@@ -261,6 +261,11 @@ public class AccountController
         recapChallenge = StringUtils.trimToNull( recapChallenge );
         recapResponse = StringUtils.trimToNull( recapResponse );
 
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put( "username", username );
+        parameters.put( "password", password );
+        parameters.put( "email", email );
+
         // ---------------------------------------------------------------------
         // Validate input, return 400 if invalid
         // ---------------------------------------------------------------------
@@ -287,14 +292,16 @@ public class AccountController
             throw new WebMessageException( WebMessageUtils.badRequest( "Last name is not specified or invalid" ) );
         }
 
-        if ( password == null || !ValidationUtils.passwordIsValid( password ) )
+        if ( password == null )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Password is not specified or invalid" ) );
+            throw new WebMessageException( WebMessageUtils.badRequest( "Password is not specified" ) );
         }
 
-        if ( password.trim().equals( username != null ? username.trim() : null ) )
+        PasswordValidationResult result = passwordValidationService.validate( parameters, true );
+
+        if ( !result.isValid() )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Password cannot be equal to username" ) );
+            throw new WebMessageException( WebMessageUtils.badRequest( result.getErrorMessage() ) );
         }
 
         if ( email == null || !ValidationUtils.emailIsValid( email ) )
@@ -431,6 +438,10 @@ public class AccountController
         String username = (String) request.getSession().getAttribute( "username" );
         UserCredentials credentials = userService.getUserCredentialsByUsername( username );
 
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put( "username", username );
+        parameters.put( "password", password );
+
         Map<String, String> result = new HashMap<>();
         result.put( "status", "OK" );
 
@@ -461,7 +472,7 @@ public class AccountController
             return;
         }
 
-        PasswordValidationResult passwordValidationResult = passwordValidationService.validate( username, password, false );
+        PasswordValidationResult passwordValidationResult = passwordValidationService.validate( parameters, false );
 
         if ( !passwordValidationResult.isValid() )
         {
@@ -502,6 +513,24 @@ public class AccountController
 
         result.put( "response", valid ? "success" : "error" );
         result.put( "message", valid ? "" : "Username is already taken" );
+
+        ContextUtils.okResponse( response, objectMapper.writeValueAsString( result ) );
+    }
+
+    @RequestMapping( value = "/password", method = RequestMethod.GET )
+    public void validatePassword( @RequestParam String password, HttpServletResponse response ) throws IOException
+    {
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put( "password", password );
+
+        PasswordValidationResult passwordValidationResult = passwordValidationService.validate( parameters, true );
+
+        // Custom code required because of our hacked jQuery validation
+
+        Map<String, String> result = new HashMap<>();
+
+        result.put( "response", passwordValidationResult.isValid() ? "success" : "error" );
+        result.put( "message", passwordValidationResult.isValid() ? "" : passwordValidationResult.getErrorMessage() );
 
         ContextUtils.okResponse( response, objectMapper.writeValueAsString( result ) );
     }

@@ -61,11 +61,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -357,7 +353,11 @@ public class MeController
             throw new WebMessageException( WebMessageUtils.conflict( "Required attribute 'password' missing or null." ) );
         }
 
-        PasswordValidationResult result = passwordValidationService.validate( currentUser.getUsername(), password, false );
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put( "username", currentUser.getUsername() );
+        parameters.put( "password", password );
+
+        PasswordValidationResult result = passwordValidationService.validate( parameters, false );
 
         RootNode rootNode = NodeUtils.createRootNode( "response" );
         rootNode.addChild( new SimpleNode( "isValidPassword", result.isValid() ) );
@@ -408,7 +408,11 @@ public class MeController
     {
         if ( !StringUtils.isEmpty( password ) )
         {
-            PasswordValidationResult result = passwordValidationService.validate( currentUser.getUsername(), password, false );
+            Map<String, String> parameters = new HashMap<>();
+            parameters.put( "username", currentUser.getUsername() );
+            parameters.put( "password", password );
+
+            PasswordValidationResult result = passwordValidationService.validate( parameters, false );
 
             if ( result.isValid() )
             {

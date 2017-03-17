@@ -9,6 +9,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import java.util.Map;
+
 import java.util.regex.Pattern;
 
 /**
@@ -20,35 +23,24 @@ public class DefaultPasswordValidationService
     @Autowired
     private List<PasswordValidationRule> rules;
 
-    @Autowired
-    private CurrentUserService currentUserService;
-
     @Override
-    public PasswordValidationResult validate( String username, String password, boolean newUser )
+    public PasswordValidationResult validate( Map<String, String> parameters, boolean newUser )
     {
         PasswordValidationResult result;
 
         for ( PasswordValidationRule rule : rules )
         {
-            if ( !isRuleApplicable( username, newUser ) )
+            if ( rule.isRuleApplicable( parameters, newUser ) )
             {
-                continue;
-            }
+                result = rule.validate( parameters );
 
-            result = rule.validate( username, password );
-
-            if ( !result.isValid() )
-            {
-                return result;
+                if ( !result.isValid() )
+                {
+                    return result;
+                }
             }
         }
 
         return new PasswordValidationResult( true );
-    }
-
-    private boolean isRuleApplicable( String username, boolean newUser)
-    {
-        // check for new user or if super user is changing other user's password
-        return ( newUser || !currentUserService.getCurrentUsername().equals( username ) ) ? false : true;
     }
 }
