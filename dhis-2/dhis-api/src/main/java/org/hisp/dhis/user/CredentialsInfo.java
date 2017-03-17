@@ -7,11 +7,11 @@ import org.apache.commons.lang.StringUtils;
  */
 public class CredentialsInfo
 {
-    private String username = StringUtils.EMPTY;
+    private String username;
 
-    private String password = StringUtils.EMPTY;
+    private String password;
 
-    private String email = StringUtils.EMPTY;
+    private String email;
 
     private boolean newUser;
 
