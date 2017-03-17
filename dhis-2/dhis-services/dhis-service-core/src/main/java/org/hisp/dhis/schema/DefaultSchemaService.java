@@ -193,6 +193,11 @@ public class DefaultSchemaService
             pluralSchemaMap.put( schema.getPlural(), schema );
 
             updateSelf( schema );
+
+            schema.getPersistedProperties();
+            schema.getNonPersistedProperties();
+            schema.getReadableProperties();
+            schema.getLinkObjectProperties();
         }
     }
 
