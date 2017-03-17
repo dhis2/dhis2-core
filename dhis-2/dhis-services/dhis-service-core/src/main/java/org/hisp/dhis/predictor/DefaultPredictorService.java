@@ -230,23 +230,39 @@ public class DefaultPredictorService
 
             for ( Period period : basePeriods )
             {
-                Map<Integer, ListMap<String, Double>> aggregateSampleMap =
-                    getAggregateSampleMaps( aggregates, samplerefs, source, periodMaps.get( period ), skipTest, skipdata, constantMap );
-
-                for ( Integer aoc : aggregateSampleMap.keySet() )
+                if ( aggregates.isEmpty() )
                 {
-                    ListMap<String, Double> aggregateValueMap = aggregateSampleMap.get( aoc );
+                    Double value = evalExpression( generator, valueMap, constantMap, null, period.getDaysInPeriod(), null );
 
-                    Double value = evalExpression( generator, valueMap, constantMap, null, 0, aggregateValueMap );
-
-                    if ( value != null && !value.isNaN() && !value.isInfinite() )
+                    if ( value != null )
                     {
-                        DataValue dv = new DataValue( output, period, source, outputCombo,
-                            categoryService.getDataElementCategoryOptionCombo( aoc ) );
+                        DataValue dv = new DataValue( output, period, source, outputCombo, categoryService.getDefaultDataElementCategoryOptionCombo() );
 
                         dv.setValue( value.toString() );
 
                         results.add( dv );
+                    }
+                }
+                else
+                {
+                    Map<Integer, ListMap<String, Double>> aggregateSampleMap =
+                        getAggregateSampleMaps( aggregates, samplerefs, source, periodMaps.get( period ), skipTest, skipdata, constantMap );
+
+                    for ( Integer aoc : aggregateSampleMap.keySet() )
+                    {
+                        ListMap<String, Double> aggregateValueMap = aggregateSampleMap.get( aoc );
+
+                        Double value = evalExpression( generator, valueMap, constantMap, null, period.getDaysInPeriod(), aggregateValueMap );
+
+                        if ( value != null && !value.isNaN() && !value.isInfinite() )
+                        {
+                            DataValue dv = new DataValue( output, period, source, outputCombo,
+                                categoryService.getDataElementCategoryOptionCombo( aoc ) );
+
+                            dv.setValue( value.toString() );
+
+                            results.add( dv );
+                        }
                     }
                 }
             }
@@ -301,7 +317,7 @@ public class DefaultPredictorService
                     {
                         for ( Integer aoc : inPeriod.keySet() )
                         {
-                            Double value = evalExpression( exp, inPeriod.get( aoc ), constantMap, null, 0 );
+                            Double value = evalExpression( exp, inPeriod.get( aoc ), constantMap, null, period.getDaysInPeriod() );
 
                             ListMap<String, Double> sampleMap = result.get( aoc );
 
@@ -335,7 +351,7 @@ public class DefaultPredictorService
                 for ( Integer aoc : periodData.keySet() )
                 {
                     Map<BaseDimensionalItemObject, Double> bindings = periodData.get( aoc );
-                    Double testValue = evalExpression( skipTest, bindings, constantMap, null, 0 );
+                    Double testValue = evalExpression( skipTest, bindings, constantMap, null, period.getDaysInPeriod() );
 
                     log.debug( "skipTest " + skipTest.getExpression() + " yielded " + testValue );
 

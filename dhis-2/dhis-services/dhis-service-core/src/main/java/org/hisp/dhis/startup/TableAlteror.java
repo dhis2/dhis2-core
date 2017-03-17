@@ -268,7 +268,6 @@ public class TableAlteror
         executeSql( "ALTER TABLE organisationunit ALTER COLUMN comment TYPE text" );
         executeSql( "ALTER TABLE program ALTER COLUMN description TYPE text" );
         executeSql( "ALTER TABLE trackedentityattribute ALTER COLUMN description TYPE text" );
-        executeSql( "ALTER TABLE trackedentityattributegroup ALTER COLUMN description TYPE text" );
         executeSql( "ALTER TABLE programrule ALTER COLUMN condition TYPE text" );
         executeSql( "ALTER TABLE programruleaction ALTER COLUMN content TYPE text" );
         executeSql( "ALTER TABLE programruleaction ALTER COLUMN data TYPE text" );
@@ -325,7 +324,6 @@ public class TableAlteror
         executeSql( "ALTER TABLE chart DROP COLUMN verticallabels" );
         executeSql( "ALTER TABLE chart DROP COLUMN targetline" );
         executeSql( "ALTER TABLE chart DROP COLUMN horizontalplotorientation" );
-        executeSql( "ALTER TABLE chart ADD COLUMN hidesubtitle boolean NOT NULL DEFAULT false" );
 
         executeSql( "ALTER TABLE chart DROP COLUMN monthsLastYear" );
         executeSql( "ALTER TABLE chart DROP COLUMN quartersLastYear" );
@@ -432,6 +430,8 @@ public class TableAlteror
         executeSql( "update chart set hidesubtitle = false where hidesubtitle is null" );
         executeSql( "update chart set userorganisationunit = false where userorganisationunit is null" );
         executeSql( "update chart set hideemptyrows = false where hideemptyrows is null" );
+        executeSql( "update chart set percentstackedvalues = false where percentstackedvalues is null" );
+        executeSql( "update chart set cumulativevalues = false where cumulativevalues is null" );
         executeSql( "update indicator set annualized = false where annualized is null" );
         executeSql( "update indicatortype set indicatornumber = false where indicatornumber is null" );
         executeSql( "update dataset set mobile = false where mobile is null" );
@@ -498,6 +498,8 @@ public class TableAlteror
         executeSql( "update reporttable set showhierarchy = false where showhierarchy is null" );
         executeSql( "update reporttable set legenddisplaystyle = 'FILL' where legenddisplaystyle is null" );
         executeSql( "update reporttable set legenddisplaystrategy = 'FIXED' where legenddisplaystrategy is null" );
+        executeSql( "update reporttable set hidetitle = false where hidetitle is null" );
+        executeSql( "update reporttable set hidesubtitle = false where hidesubtitle is null" );
 
         // reporttable col/row totals = keep existing || copy from totals || true
         executeSql( "update reporttable set totals = true where totals is null" );
@@ -514,6 +516,8 @@ public class TableAlteror
         // reporttable upgrade counttype to outputtype
         executeSql( "update eventreport set outputtype = 'EVENT' where outputtype is null and counttype = 'events'" );
         executeSql( "update eventreport set outputtype = 'TRACKED_ENTITY_INSTANCE' where outputtype is null and counttype = 'tracked_entity_instances'" );
+        executeSql( "update eventreport set hidetitle = false where hidetitle is null" );
+        executeSql( "update eventreport set hidesubtitle = false where hidesubtitle is null" );
         executeSql( "update eventreport set outputtype = 'EVENT' where outputtype is null" );
         executeSql( "alter table eventreport drop column counttype" );
 
@@ -948,7 +952,11 @@ public class TableAlteror
         executeSql( "alter table validationrule drop column sequentialsamplecount" );
         executeSql( "alter table validationrule drop column annualsamplecount" );
         executeSql( "alter table validationrule drop column sequentialskipcount" );
-        
+
+        // remove TrackedEntityAttributeGroup
+        executeSql( "alter table trackedentityattribute drop column trackedentityattributegroupid" );
+        executeSql( "ALTER TABLE trackedentityattribute DROP CONSTRAINT fk_trackedentityattribute_attributegroupid" );
+
         updateEnums();
 
         upgradeDataValueSoftDelete();
@@ -1139,6 +1147,8 @@ public class TableAlteror
         executeSql( "update relativeperiods set thisquarter=reportingquarter" );
 
         executeSql( "update relativeperiods set lastweek = false where lastweek is null" );
+        executeSql( "update relativeperiods set weeksthisyear = false where weeksthisyear is null" );
+        executeSql( "update relativeperiods set bimonthsthisyear = false where bimonthsthisyear is null" );
         executeSql( "update relativeperiods set last4weeks = false where last4weeks is null" );
         executeSql( "update relativeperiods set last12weeks = false where last12weeks is null" );
         executeSql( "update relativeperiods set last6months = false where last6months is null" );
@@ -1622,7 +1632,6 @@ public class TableAlteror
         addTranslationTable( listTables, "ProgramStageInstance", "programstageinstancetranslations", "programstageinstance", "programstageinstanceid" );
         addTranslationTable( listTables, "ProgramStageSection", "programstagesectiontranslations", "programstagesection", "programstagesectionid" );
         addTranslationTable( listTables, "ProgramTrackedEntityAttribute", "programattributestranslations", "programtrackedentityattribute", "programtrackedentityattributeid" );
-        addTranslationTable( listTables, "ProgramValidation", "programvalidationtranslations", "programvalidation", "programvalidationid" );
         addTranslationTable( listTables, "ProgramRule", "programruletranslations", "programrule", "programruleid" );
         addTranslationTable( listTables, "ProgramRuleAction", "programruleactiontranslations", "programruleaction", "programruleactionid" );
         addTranslationTable( listTables, "ProgramRuleVariable", "programrulevariabletranslations", "programrulevariable", "programrulevariableid" );
@@ -1631,7 +1640,6 @@ public class TableAlteror
         addTranslationTable( listTables, "ReportTable", "reporttabletranslations", "reporttable", "reporttableid" );
         addTranslationTable( listTables, "TrackedEntity", "trackedentitytranslations", "trackedentity", "trackedentityid" );
         addTranslationTable( listTables, "TrackedEntityAttribute", "trackedentityattributetranslations", "trackedentityattribute", "trackedentityattributeid" );
-        addTranslationTable( listTables, "TrackedEntityAttributeGroup", "trackedentityattributegrouptranslations", "trackedentityattributegroup", "trackedentityattributegroupid" );
         addTranslationTable( listTables, "TrackedEntityInstance", "trackedentityinstancetranslations", "trackedentityinstance", "trackedentityinstanceid" );
         addTranslationTable( listTables, "User", "userinfotranslations", "userinfo", "userinfoid" );
         addTranslationTable( listTables, "UserAuthorityGroup", "userroletranslations", "userrole", "userroleid" );

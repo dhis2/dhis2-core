@@ -55,8 +55,8 @@ public class DefaultExternalFileResourceService
     @Transactional
     public String saveExternalFileResource( ExternalFileResource externalFileResource )
     {
-        Assert.notNull(externalFileResource);
-        Assert.notNull(externalFileResource.getFileResource());
+        Assert.notNull( externalFileResource, "External file resource cannot be null" );
+        Assert.notNull( externalFileResource.getFileResource(), "External file resource entity cannot be null" );
 
         externalFileResource.setAccessToken( ExternalFileResourceTokenGenerator.generate() );
 

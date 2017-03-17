@@ -2337,8 +2337,8 @@ dhis2.de.validateOrgUnitOpening = function(organisationUnit, period)
     cdate = dhis2.period.calendar.fromJD( iso8601.parseDate( "yyyy-mm-dd", organisationUnit.cdate ).toJD() );
   }
 
-  var startDate = dhis2.period.calendar.parseDate( "yyyy-mm-dd", period.startDate );
-  var endDate = dhis2.period.calendar.parseDate( "yyyy-mm-dd", period.endDate );
+  var startDate = dhis2.period.calendar.parseDate( dhis2.period.format, period.startDate );
+  var endDate = dhis2.period.calendar.parseDate( dhis2.period.format, period.endDate );
 
   if ( odate && startDate.compareTo( odate ) == -1 ) {
     $( '#contentDiv input' ).attr( 'readonly', 'readonly' );
@@ -3076,7 +3076,7 @@ dhis2.de.setOptionNameInField = function( fieldId, value )
 			$.each( obj.optionSet.options, function( inx, option ) {
 				if ( option && option.code == value.val ) {
 			          option.id = option.code;
-			          option.text = option.name;
+			          option.text = option.displayName;
 			          $( fieldId ).select2('data', option);
 			          return false;
 				}
@@ -3125,7 +3125,7 @@ dhis2.de.searchOptionSet = function( uid, query, success )
 
                 success( $.map( options, function ( item ) {
                     return {
-                        label: item.name,
+                        label: item.displayName,
                         id: item.code
                     };
                 } ) );
@@ -3154,7 +3154,7 @@ dhis2.de.getOptions = function( uid, query, success )
         success: function ( data ) {
             success( $.map( data.options, function ( item ) {
                 return {
-                    label: item.name,
+                    label: item.displayName,
                     id: item.code
                 };
             } ) );
@@ -3240,7 +3240,7 @@ dhis2.de.insertOptionSets = function()
 		if ( obj && obj.optionSet && obj.optionSet.options ) {
 
                     $.each( obj.optionSet.options, function( inx, option ) {
-                        option.text = option.name;
+                        option.text = option.displayName;
                         option.id = option.code;
                     } );
                     

@@ -47,20 +47,19 @@ public class PredictorObjectBundleHook
         {
             return;
         }
-        
+
         Predictor predictor = (Predictor) object;
         Expression skipTest = predictor.getSampleSkipTest();
 
-        preheatService.connectReferences( predictor.getGenerator(), bundle.getPreheat(),
-            bundle.getPreheatIdentifier() );
-        
+        preheatService.connectReferences( predictor.getGenerator(), bundle.getPreheat(), bundle.getPreheatIdentifier() );
+
         if ( skipTest != null )
         {
             preheatService.connectReferences( skipTest, bundle.getPreheat(), bundle.getPreheatIdentifier() );
         }
 
         sessionFactory.getCurrentSession().save( predictor.getGenerator() );
-        
+
         if ( skipTest != null )
         {
             sessionFactory.getCurrentSession().save( skipTest );
@@ -80,20 +79,20 @@ public class PredictorObjectBundleHook
         {
             return;
         }
-        
+
         Predictor predictor = (Predictor) object;
         Expression skipTest = predictor.getSampleSkipTest();
 
         preheatService.connectReferences( predictor.getGenerator(), bundle.getPreheat(),
             bundle.getPreheatIdentifier() );
-        
+
         if ( skipTest != null )
         {
             preheatService.connectReferences( skipTest, bundle.getPreheat(), bundle.getPreheatIdentifier() );
         }
 
         sessionFactory.getCurrentSession().save( predictor.getGenerator() );
-        
+
         if ( skipTest != null )
         {
             sessionFactory.getCurrentSession().save( skipTest );

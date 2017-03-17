@@ -51,8 +51,8 @@ public final class SchemaUtils
 
     public static void updatePropertyTypes( Property property )
     {
-        Assert.notNull( property );
-        Assert.notNull( property.getKlass() );
+        Assert.notNull( property, "Property cannot be null" );
+        Assert.notNull( property.getKlass(), "Property class cannot be null" );
 
         property.setPropertyType( getPropertyType( property.getKlass() ) );
 

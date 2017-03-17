@@ -33,6 +33,7 @@ import com.google.common.collect.Sets;
 import com.google.common.io.ByteSource;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -85,7 +86,6 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -584,6 +584,7 @@ public class EventController
     {
         importOptions.setImportStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
+        importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(),  contextService.getParameterValuesMap() ));
 
         if ( !importOptions.isAsync() )
         {
@@ -629,6 +630,7 @@ public class EventController
     {
         importOptions.setImportStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
+        importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(),  contextService.getParameterValuesMap() ));
 
         if ( !importOptions.isAsync() )
         {
@@ -883,6 +885,31 @@ public class EventController
         }
 
         return metaData;
+    }
+
+    private IdSchemes getIdSchemesFromParameters( IdSchemes idSchemes, Map<String, List<String>> params )
+    {
+
+        String idScheme  = getParamValue( params, "idScheme" );
+
+        if( idScheme != null )
+        {
+            idSchemes.setIdScheme( idScheme );
+        }
+
+        String programStageInstanceIdScheme = getParamValue( params, "programStageInstanceIdScheme" );
+
+        if( programStageInstanceIdScheme != null )
+        {
+            idSchemes.setProgramStageInstanceIdScheme( programStageInstanceIdScheme );
+        }
+
+        return idSchemes;
+    }
+
+    private String getParamValue(  Map<String, List<String>> params, String key )
+    {
+        return  params.get( key ) != null ? params.get( key ).get( 0 ) : null;
     }
 
 }

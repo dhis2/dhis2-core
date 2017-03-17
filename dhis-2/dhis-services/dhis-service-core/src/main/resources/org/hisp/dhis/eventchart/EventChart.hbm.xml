@@ -115,6 +115,12 @@
     <property name="completedOnly" column="completedonly" />
 
     <property name="title" />
+    
+    <property name="subtitle" />
+
+    <property name="hideTitle" />
+
+    <property name="hideSubtitle" />
 
     <set name="interpretations" inverse="true">
       <key column="eventchartid" />
@@ -179,10 +185,6 @@
     <property name="rangeAxisLabel" />
 
     <property name="hideLegend" />
-
-    <property name="hideTitle" />
-
-    <property name="hideSubtitle" />
 
     <property name="regressionType" length="40">
       <type name="org.hibernate.type.EnumType">

@@ -47,6 +47,9 @@ import java.util.List;
 public class Event
     extends BaseLinkableObject
 {
+
+    private String uid;
+
     private String event;
 
     private EventStatus status = EventStatus.ACTIVE;
@@ -95,6 +98,16 @@ public class Event
 
     public Event()
     {
+    }
+
+    public String getUid()
+    {
+        return uid;
+    }
+
+    public void setUid( String uid )
+    {
+        this.uid = uid;
     }
 
     @JsonProperty( required = true )

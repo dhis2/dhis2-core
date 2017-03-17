@@ -5,7 +5,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Map;
-
 /**
  * Created by zubair on 08.03.17.
  */

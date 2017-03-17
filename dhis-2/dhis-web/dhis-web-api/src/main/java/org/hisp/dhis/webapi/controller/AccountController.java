@@ -472,7 +472,6 @@ public class AccountController
             return;
         }
 
-
         PasswordValidationResult passwordValidationResult = passwordValidationService.validate( parameters, false );
 
         if ( !passwordValidationResult.isValid() )

@@ -103,7 +103,6 @@ import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
@@ -1561,22 +1560,6 @@ public abstract class DhisConvenienceTest
         attribute.setAggregationType( AggregationType.NONE );
 
         return attribute;
-    }
-
-    /**
-     * @param uniqueChar A unique character to identify the object.
-     * @return TrackedEntityAttributeGroup
-     */
-    public static TrackedEntityAttributeGroup createTrackedEntityAttributeGroup( char uniqueChar, List<TrackedEntityAttribute> attributes )
-    {
-        TrackedEntityAttributeGroup attributeGroup = new TrackedEntityAttributeGroup();
-        attributeGroup.setAutoFields();
-
-        attributeGroup.setName( "TrackedEntityAttributeGroup" + uniqueChar );
-        attributeGroup.setDescription( "TrackedEntityAttributeGroup" + uniqueChar );
-        attributeGroup.setAttributes( attributes );
-
-        return attributeGroup;
     }
 
     public static ProgramTrackedEntityAttributeGroup createProgramTrackedEntityAttributeGroup( char uniqueChar, Set<ProgramTrackedEntityAttribute> attributes )

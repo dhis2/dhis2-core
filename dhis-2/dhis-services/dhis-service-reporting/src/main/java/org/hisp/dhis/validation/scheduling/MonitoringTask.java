@@ -28,11 +28,6 @@ package org.hisp.dhis.validation.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
-
-import java.util.Date;
-
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.setting.SettingKey;
@@ -40,6 +35,11 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.validation.ValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Date;
+
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 
 /**
  * @author Lars Helge Overland
@@ -80,7 +80,7 @@ public class MonitoringTask
         
         try
         {
-            validationService.scheduledRun();
+            validationService.startScheduledValidationAnalysis();
             
             notifier.notify( taskId, INFO, "Monitoring process done", true );
         }

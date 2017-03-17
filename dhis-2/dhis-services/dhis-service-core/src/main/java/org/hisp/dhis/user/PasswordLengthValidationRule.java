@@ -31,7 +31,7 @@ public class PasswordLengthValidationRule implements PasswordValidationRule
 
         return new PasswordValidationResult( true );
     }
-
+    
     @Override
     public boolean isRuleApplicable( Map<String, String> parameters, boolean newUser )
     {
