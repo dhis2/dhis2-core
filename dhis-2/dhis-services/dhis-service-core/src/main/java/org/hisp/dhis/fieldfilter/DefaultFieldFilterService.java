@@ -328,7 +328,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
         for ( String fieldKey : Sets.newHashSet( fieldMap.keySet() ) )
         {
-            List<Property> properties = schema.getReadableProperties();
+            Collection<Property> properties = schema.getReadableProperties().values();
 
             if ( "*".equals( fieldKey ) )
             {
@@ -424,7 +424,7 @@ public class DefaultFieldFilterService implements FieldFilterService
     {
         FieldMap fieldMap = new FieldMap();
 
-        for ( Property property : schema.getReadableProperties() )
+        for ( Property property : schema.getReadableProperties().values() )
         {
             fieldMap.put( property.getName(), new FieldMap() );
         }
