@@ -36,7 +36,6 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.system.util.ReflectionUtils;
 
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -54,7 +53,7 @@ public class LinkObjectObjectBundleHook
             return;
         }
 
-        connectLinkObjects( object, bundle, schema.getLinkObjectProperties() );
+        connectLinkObjects( object, bundle, schema.getLinkObjectProperties().values() );
     }
 
     @Override
@@ -67,13 +66,13 @@ public class LinkObjectObjectBundleHook
             return;
         }
 
-        List<Property> properties = schema.getLinkObjectProperties();
+        Collection<Property> properties = schema.getLinkObjectProperties().values();
 
         clearLinkObjects( persistedObject, properties );
         connectLinkObjects( object, bundle, properties );
     }
 
-    private <T extends IdentifiableObject> void clearLinkObjects( T object, List<Property> properties )
+    private <T extends IdentifiableObject> void clearLinkObjects( T object, Collection<Property> properties )
     {
         for ( Property property : properties )
         {
@@ -90,7 +89,7 @@ public class LinkObjectObjectBundleHook
         sessionFactory.getCurrentSession().flush();
     }
 
-    private <T extends IdentifiableObject> void connectLinkObjects( T object, ObjectBundle bundle, List<Property> properties )
+    private <T extends IdentifiableObject> void connectLinkObjects( T object, ObjectBundle bundle, Collection<Property> properties )
     {
         for ( Property property : properties )
         {

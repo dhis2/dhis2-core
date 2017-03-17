@@ -742,7 +742,7 @@ public class DefaultPreheatService implements PreheatService
             List<?> objects = entry.getValue();
 
             Schema schema = schemaService.getDynamicSchema( klass );
-            List<Property> properties = schema.getLinkObjectProperties();
+            Collection<Property> properties = schema.getLinkObjectProperties().values();
 
             if ( properties.isEmpty() )
             {
