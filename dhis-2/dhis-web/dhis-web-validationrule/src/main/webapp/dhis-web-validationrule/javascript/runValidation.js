@@ -21,8 +21,8 @@ function validateRunValidation()
 {
   startDate = toIso( $( '#startDate' ).val() );
   endDate = toIso( $( '#endDate' ).val() );
-	validationRuleGroupId = $( '#validationRuleGroupId' ).val();
-	sendAlerts =  $( '#sendAlerts' ).is( ':checked' );
+  validationRuleGroupId = $( '#validationRuleGroupId' ).val();
+  sendAlerts = $( '#sendAlerts' ).is( ':checked' );
 
   $.getJSON( 'validateRunValidation.action',
     {
@@ -46,8 +46,8 @@ function validateRunValidation()
             $( 'div#analysisResult' ).show();
             $( 'div#analysisResult' ).html( data );
             setTableStyles();
-            setHeaderWaitMessage( i18n_analysing_please_wait );
-          }
+            $( '#validateButton' ).removeAttr( 'disabled' );
+          } );
       }
       else if ( json.response == 'input' ) {
         setHeaderDelayMessage( json.message );
@@ -75,20 +75,20 @@ function displayValidationDetailsDialog()
 
 function viewValidationResultDetails( validationRuleId, sourceId, periodId )
 {
-	$( '#validationResultDetailsDiv' ).load( 'viewValidationResultDetails.action', 
+	$( '#validationResultDetailsDiv' ).load( 'viewValidationResultDetails.action',
 	{
-		validationRuleId: validationRuleId, 
-		sourceId: sourceId, 
+		validationRuleId: validationRuleId,
+		sourceId: sourceId,
 		periodId: periodId
 	},
-	displayValidationDetailsDialog 
+	displayValidationDetailsDialog
 	);
 }
 
 function exportValidationResult( type )
 {
-    var url = 'exportValidationResult.action?type=' + type + 
+    var url = 'exportValidationResult.action?type=' + type +
     	"&organisationUnitId=" + $( "#organisationUnitId" ).val();
-    	
+
     window.location.href = url;
 }
