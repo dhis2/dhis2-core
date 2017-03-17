@@ -139,6 +139,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
             List<IdentifiableObject> nonPersistedObjects = bundle.getObjects( klass, false );
             List<IdentifiableObject> persistedObjects = bundle.getObjects( klass, true );
 
+            objectBundleHooks.forEach( hook -> hook.preTypeImport( klass, nonPersistedObjects, bundle ) );
+
             if ( bundle.getImportMode().isCreateAndUpdate() )
             {
                 TypeReport typeReport = new TypeReport( klass );
@@ -159,6 +161,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
             {
                 typeReports.put( klass, handleDeletes( session, klass, persistedObjects, bundle ) );
             }
+
+            objectBundleHooks.forEach( hook -> hook.postTypeImport( klass, persistedObjects, bundle ) );
 
             if ( FlushMode.AUTO == bundle.getFlushMode() ) session.flush();
         }
