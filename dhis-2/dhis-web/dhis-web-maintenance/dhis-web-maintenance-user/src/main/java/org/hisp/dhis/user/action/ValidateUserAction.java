@@ -197,10 +197,7 @@ public class ValidateUserAction
         {
             PasswordValidationResult result;
 
-            Map<String, String> parameters = new HashMap<>();
-            parameters.put( "password", rawPassword );
-            parameters.put( "email", email );
-            parameters.put( "username", username );
+            CredentialsInfo credentialsInfo = new CredentialsInfo( username, rawPassword, email, true );
 
             if ( id != null )
             {
@@ -208,12 +205,11 @@ public class ValidateUserAction
 
                 if ( user != null )
                 {
-                    parameters.put( "username", user.getUsername() );
-                    parameters.put( "email", user.getEmail() );
+                    credentialsInfo = new CredentialsInfo( user.getUsername(), rawPassword, user.getEmail(), false );
                 }
             }
 
-            result = passwordValidationService.validate( parameters, newUser );
+            result = passwordValidationService.validate( credentialsInfo );
 
             if ( !result.isValid() )
             {

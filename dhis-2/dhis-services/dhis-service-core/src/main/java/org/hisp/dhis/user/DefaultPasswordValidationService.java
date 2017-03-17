@@ -24,15 +24,15 @@ public class DefaultPasswordValidationService
     private List<PasswordValidationRule> rules;
 
     @Override
-    public PasswordValidationResult validate( Map<String, String> parameters, boolean newUser )
+    public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
     {
         PasswordValidationResult result;
 
         for ( PasswordValidationRule rule : rules )
         {
-            if ( rule.isRuleApplicable( parameters, newUser ) )
+            if ( rule.isRuleApplicable( credentialsInfo ) )
             {
-                result = rule.validate( parameters );
+                result = rule.validate( credentialsInfo );
 
                 if ( !result.isValid() )
                 {

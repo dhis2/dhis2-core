@@ -7,7 +7,7 @@ import java.util.Map;
  */
 public interface PasswordValidationRule
 {
-    PasswordValidationResult validate( Map<String, String> parameters );
+    PasswordValidationResult validate( CredentialsInfo credentialsInfo );
 
-    boolean isRuleApplicable( Map<String, String> parameters, boolean newUser );
+    boolean isRuleApplicable( CredentialsInfo credentialsInfo );
 }

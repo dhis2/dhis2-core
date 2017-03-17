@@ -11,9 +11,9 @@ public class DigitPatternValidationRule implements PasswordValidationRule
     private static final Pattern DIGIT_PATTERN = Pattern.compile( ".*\\d.*" );
 
     @Override
-    public PasswordValidationResult validate( Map<String, String> parameters )
+    public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
     {
-        if ( !DIGIT_PATTERN.matcher( parameters.get( "password" ) ).matches() )
+        if ( !DIGIT_PATTERN.matcher( credentialsInfo.getPassword() ).matches() )
         {
             return new PasswordValidationResult( "Password must have at least one digit", "password_digit_validation", false );
         }
@@ -22,7 +22,7 @@ public class DigitPatternValidationRule implements PasswordValidationRule
     }
 
     @Override
-    public boolean isRuleApplicable( Map<String, String> parameters, boolean newUser )
+    public boolean isRuleApplicable( CredentialsInfo credentialsInfo )
     {
         return true;
     }

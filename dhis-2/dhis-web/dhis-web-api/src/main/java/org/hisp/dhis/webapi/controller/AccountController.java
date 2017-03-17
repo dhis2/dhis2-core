@@ -261,10 +261,7 @@ public class AccountController
         recapChallenge = StringUtils.trimToNull( recapChallenge );
         recapResponse = StringUtils.trimToNull( recapResponse );
 
-        Map<String, String> parameters = new HashMap<>();
-        parameters.put( "username", username );
-        parameters.put( "password", password );
-        parameters.put( "email", email );
+        CredentialsInfo credentialsInfo = new CredentialsInfo( username, password, email, true );
 
         // ---------------------------------------------------------------------
         // Validate input, return 400 if invalid
@@ -297,7 +294,7 @@ public class AccountController
             throw new WebMessageException( WebMessageUtils.badRequest( "Password is not specified" ) );
         }
 
-        PasswordValidationResult result = passwordValidationService.validate( parameters, true );
+        PasswordValidationResult result = passwordValidationService.validate( credentialsInfo );
 
         if ( !result.isValid() )
         {
@@ -438,10 +435,6 @@ public class AccountController
         String username = (String) request.getSession().getAttribute( "username" );
         UserCredentials credentials = userService.getUserCredentialsByUsername( username );
 
-        Map<String, String> parameters = new HashMap<>();
-        parameters.put( "username", username );
-        parameters.put( "password", password );
-
         Map<String, String> result = new HashMap<>();
         result.put( "status", "OK" );
 
@@ -453,6 +446,8 @@ public class AccountController
             ContextUtils.badRequestResponse( response, objectMapper.writeValueAsString( result ) );
             return;
         }
+
+        CredentialsInfo credentialsInfo = new CredentialsInfo( username, password, credentials.getUser().getEmail(), false );
 
         if ( userService.credentialsNonExpired( credentials ) )
         {
@@ -472,7 +467,7 @@ public class AccountController
             return;
         }
 
-        PasswordValidationResult passwordValidationResult = passwordValidationService.validate( parameters, false );
+        PasswordValidationResult passwordValidationResult = passwordValidationService.validate( credentialsInfo );
 
         if ( !passwordValidationResult.isValid() )
         {
@@ -520,10 +515,9 @@ public class AccountController
     @RequestMapping( value = "/password", method = RequestMethod.GET )
     public void validatePassword( @RequestParam String password, HttpServletResponse response ) throws IOException
     {
-        Map<String, String> parameters = new HashMap<>();
-        parameters.put( "password", password );
+        CredentialsInfo credentialsInfo = new CredentialsInfo( password, true );
 
-        PasswordValidationResult passwordValidationResult = passwordValidationService.validate( parameters, true );
+        PasswordValidationResult passwordValidationResult = passwordValidationService.validate( credentialsInfo );
 
         // Custom code required because of our hacked jQuery validation
 

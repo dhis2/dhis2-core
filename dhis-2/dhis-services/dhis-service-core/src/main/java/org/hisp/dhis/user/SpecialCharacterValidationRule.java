@@ -12,9 +12,9 @@ public class SpecialCharacterValidationRule
     private static final Pattern SPECIAL_CHARACTER = Pattern.compile( ".*[^A-Za-z0-9].*" );
 
     @Override
-    public PasswordValidationResult validate( Map<String, String> parameters )
+    public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
     {
-        if ( !SPECIAL_CHARACTER.matcher( parameters.get( "password" ) ).matches() )
+        if ( !SPECIAL_CHARACTER.matcher( credentialsInfo.getPassword() ).matches() )
         {
             return new PasswordValidationResult( "Password must have at least one special character", "password_specialcharacter_validation",false );
         }
@@ -23,7 +23,7 @@ public class SpecialCharacterValidationRule
     }
 
     @Override
-    public boolean isRuleApplicable( Map<String, String> parameters, boolean newUser )
+    public boolean isRuleApplicable( CredentialsInfo credentialsInfo )
     {
         return true;
     }

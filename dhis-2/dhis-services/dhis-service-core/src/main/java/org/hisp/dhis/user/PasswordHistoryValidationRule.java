@@ -22,17 +22,17 @@ public class PasswordHistoryValidationRule implements PasswordValidationRule
     private CurrentUserService currentUserService;
 
     @Override
-    public PasswordValidationResult validate( Map<String, String> parameters )
+    public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
     {
         boolean match;
 
-        UserCredentials userCredentials = userService.getUserCredentialsByUsername( parameters.get( "username" ) );
+        UserCredentials userCredentials = userService.getUserCredentialsByUsername( credentialsInfo.getUsername() );
 
         List<String> previousPasswords = userCredentials.getPreviousPasswords();
 
         for ( String encodedPassword : previousPasswords )
         {
-            match = passwordEncoder.matches( parameters.get( "password" ), encodedPassword );
+            match = passwordEncoder.matches( credentialsInfo.getPassword(), encodedPassword );
 
             if ( match )
             {
@@ -52,8 +52,9 @@ public class PasswordHistoryValidationRule implements PasswordValidationRule
     }
 
     @Override
-    public boolean isRuleApplicable( Map<String, String> parameters, boolean newUser )
+    public boolean isRuleApplicable( CredentialsInfo credentialsInfo )
     {
-        return ( newUser || !currentUserService.getCurrentUsername().equals( parameters.get( "username" ) ) ) ? false : true;
+        return ( credentialsInfo.isNewUser() ||
+                !currentUserService.getCurrentUsername().equals( credentialsInfo.getUsername() ) ) ? false : true;
     }
 }

@@ -15,13 +15,13 @@ public class PasswordLengthValidationRule implements PasswordValidationRule
     private SystemSettingManager systemSettingManager;
 
     @Override
-    public PasswordValidationResult validate( Map<String, String> parameters )
+    public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
     {
         int minCharLimit = (Integer) systemSettingManager.getSystemSetting( SettingKey.MIN_PASSWORD_LENGTH );
 
         int maxCharLimit = (Integer) systemSettingManager.getSystemSetting( SettingKey.MAX_PASSWORD_LENGTH );
 
-        String password = parameters.get( "password" );
+        String password = credentialsInfo.getPassword();
 
         if ( password.trim().length() < minCharLimit || password.trim().length() > maxCharLimit )
         {
@@ -33,7 +33,7 @@ public class PasswordLengthValidationRule implements PasswordValidationRule
     }
     
     @Override
-    public boolean isRuleApplicable( Map<String, String> parameters, boolean newUser )
+    public boolean isRuleApplicable( CredentialsInfo credentialsInfo )
     {
         return true;
     }

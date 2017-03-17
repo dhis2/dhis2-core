@@ -7,5 +7,5 @@ import java.util.Map;
  */
 public interface PasswordValidationService
 {
-    PasswordValidationResult validate( Map<String, String> parameters, boolean newUser );
+    PasswordValidationResult validate( CredentialsInfo credentialsInfo );
 }

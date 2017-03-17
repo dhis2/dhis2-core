@@ -12,17 +12,18 @@ public class UserParameterValidationRule
     implements PasswordValidationRule
 {
     @Override
-    public boolean isRuleApplicable( Map<String, String> parameters, boolean newUser )
+    public boolean isRuleApplicable( CredentialsInfo credentialsInfo )
     {
         return true;
     }
 
     @Override
-    public PasswordValidationResult validate( Map<String, String> parameters )
+    public PasswordValidationResult
+    validate( CredentialsInfo credentialsInfo )
     {
-        String email = parameters.get( "email" );
-        String password = parameters.get( "password" );
-        String username = parameters.get( "username" );
+        String email = credentialsInfo.getEmail();
+        String password = credentialsInfo.getPassword();
+        String username = credentialsInfo.getUsername();
 
         if ( StringUtils.containsIgnoreCase( password, username ) || StringUtils.containsIgnoreCase( password, email ) )
         {
