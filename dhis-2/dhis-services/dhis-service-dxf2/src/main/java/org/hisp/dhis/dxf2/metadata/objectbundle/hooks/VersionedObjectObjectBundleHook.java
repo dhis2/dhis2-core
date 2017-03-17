@@ -42,6 +42,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Handles increase of version for objects such as data set and option set.
+ * 
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class VersionedObjectObjectBundleHook extends AbstractObjectBundleHook
@@ -53,6 +55,27 @@ public class VersionedObjectObjectBundleHook extends AbstractObjectBundleHook
         {
             VersionedObject versionedObject = (VersionedObject) object;
             versionedObject.increaseVersion();
+        }
+    }
+
+    @Override
+    public <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle )
+    {
+        VersionedObject versionedObject = null;
+        
+        if ( Section.class.isInstance( persistedObject ) )
+        {
+            versionedObject = ((Section) persistedObject).getDataSet();
+        }
+        else if ( Option.class.isInstance( persistedObject ) )
+        {
+            versionedObject = ((Option) persistedObject).getOptionSet();
+        }
+        
+        if ( versionedObject != null )
+        {
+            versionedObject.increaseVersion();
+            sessionFactory.getCurrentSession().save( versionedObject );
         }
     }
 
