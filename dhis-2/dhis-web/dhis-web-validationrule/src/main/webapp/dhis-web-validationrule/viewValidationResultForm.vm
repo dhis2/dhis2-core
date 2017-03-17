@@ -1,26 +1,38 @@
 <script type="text/javascript">
-	// add jquery.tablesorter parser for sorting the importance column:
-	// high => 3 medium => 2 low => 1
-	jQuery.tablesorter.addParser({
-	    id: 'importanceSorter',
-	    is: function(s) {
-			// return false so this parser is not auto-detected
-	        return false;
-	    },
-	    format: function(s) {
-	        return s
-	            .replace( '$i18n.getString( "high" )', 3 )
-	            .replace( '$i18n.getString( "medium" )', 2 )
-	            .replace( '$i18n.getString( "low" )', 1 );
-	    },
-	    type: 'numeric'
-	});
-    jQuery(function() {
-        $("#validationRuleList").tablesorter({ 
-        // sort on the first column, order asc 
-        sortList: [[0,0], [1,0], [2,1]] 
-    	});
-    });
+  // add jquery.tablesorter parser for sorting the importance column:
+  // high => 3 medium => 2 low => 1
+  jQuery.tablesorter.addParser( {
+    id: 'importanceSorter',
+    is: function(s) {
+      // return false so this parser is not auto-detected
+      return false;
+    },
+    format: function(s) {
+      return s
+          .replace( '$i18n.getString( "high" )', 3 )
+          .replace( '$i18n.getString( "medium" )', 2 )
+          .replace( '$i18n.getString( "low" )', 1 );
+    },
+    type: 'numeric'
+  } );
+
+  jQuery( function() {
+    $( "#validationRuleList" ).tablesorter( {
+      // sort on the first column, order asc
+      sortList: [[0, 0], [1, 0], [2, 1]]
+    } );
+
+    var iso8601 = $.calendars.instance( 'gregorian' );
+
+    var startDate = $( '#dateStart' ).html();
+    var endDate = $( '#dateEnd' ).html();
+
+    startDate = dhis2.period.calendar.fromJD( iso8601.parseDate( "yyyy-mm-dd", startDate ).toJD() );
+    endDate = dhis2.period.calendar.fromJD( iso8601.parseDate( "yyyy-mm-dd", endDate ).toJD() );
+
+    $( '#dateStart' ).html( dhis2.period.calendar.formatDate( "yyyy-mm-dd", startDate ) );
+    $( '#dateEnd' ).html( dhis2.period.calendar.formatDate( "yyyy-mm-dd", endDate ) );
+  } );
 
 	var i18n_analysing_please_wait = '$encoder.jsEscape( $i18n.getString( "analysing_please_wait" ) , "'")';
 </script>
@@ -38,13 +50,13 @@
 	</colgroup>
 	<tr>
 		<td>$i18n.getString( "start_date" ):</td>
-		<td>$startDate</td>
+		<td id="dateStart">$startDate</td>
 		<td><input type="button" value="$i18n.getString( 'get_report_as_pdf' )" style="width:180px" onclick="exportValidationResult( 'pdf' )"></td>
 		<td><input type="button" value="$i18n.getString( 'get_report_as_xls' )" style="width:180px" onclick="exportValidationResult( 'xls' )"></td>
     </tr>
 	<tr>
 		<td>$i18n.getString( "end_date" ):</td>
-		<td>$endDate</td>
+		<td id="dateEnd">$endDate</td>
 		<td><input type="button" value="$i18n.getString( 'get_report_as_csv' )" style="width:180px" onclick="exportValidationResult( 'csv' )"></td>
 		<td><input name="button" type="button" style="width:180px" onclick="displayAnalysisInput()" value="$i18n.getString( 'done' )"></td>
 	</tr>
