@@ -28,6 +28,16 @@
     </td>
   </tr>
   <tr>
+    <td>$i18n.getString( "compression" )</td>
+    <td>
+      <select id="compression" style="width: 300px;">
+        <option value=".zip">$i18n.getString( "compression_zip" )</option>
+        <option value=".gz">$i18n.getString( "compression_gzip" )</option>
+        <option value="">$i18n.getString( "uncompressed" )</option>
+      </select>
+    </td>
+  </tr>
+  <tr>
     <td></td>
     <td><input type="button" value="$i18n.getString( 'export' )" onclick="mde.exportMetadata()" style="width:120px"></td>
   </tr>
