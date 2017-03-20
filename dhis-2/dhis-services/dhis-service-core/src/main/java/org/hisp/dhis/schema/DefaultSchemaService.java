@@ -198,7 +198,7 @@ public class DefaultSchemaService
             schema.getPersistedProperties();
             schema.getNonPersistedProperties();
             schema.getReadableProperties();
-            schema.getLinkObjectProperties();
+            schema.getEmbeddedObjectProperties();
         }
     }
 
