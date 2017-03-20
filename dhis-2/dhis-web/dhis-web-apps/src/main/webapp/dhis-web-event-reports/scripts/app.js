@@ -3202,8 +3202,8 @@ console.log("favorite.id", favorite.id);
 						if (this.getValue() !== this.currentValue) {
 							this.currentValue = this.getValue();
 
-							var value = this.getValue(),
-								url = value ? encodeURI(ns.core.init.contextPath + '/api/eventReports.json?fields=id,displayName~rename(name),access&filter=displayName:ilike:' + value) : null;
+							var value = this.getValue().trim(),
+								url = value ? encodeURI(ns.core.init.contextPath + '/api/eventReports.json?fields=id,displayName~rename(name),access&filter=displayName:ilike:') + value : null;
 								store = ns.app.stores.eventReport;
 
 							store.page = 1;
