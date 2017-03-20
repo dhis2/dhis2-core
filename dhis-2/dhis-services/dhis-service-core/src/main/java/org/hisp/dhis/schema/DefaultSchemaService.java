@@ -47,9 +47,7 @@ import org.springframework.core.OrderComparator;
 import org.springframework.util.StringUtils;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -293,7 +291,7 @@ public class DefaultSchemaService
     public List<Schema> getSortedSchemas()
     {
         List<Schema> schemas = Lists.newArrayList( classSchemaMap.values() );
-        Collections.sort( schemas, OrderComparator.INSTANCE );
+        schemas.sort( OrderComparator.INSTANCE );
 
         return schemas;
     }
@@ -303,19 +301,8 @@ public class DefaultSchemaService
     {
         List<Schema> schemas = getSchemas();
 
-        Iterator<Schema> iterator = schemas.iterator();
-
-        while ( iterator.hasNext() )
-        {
-            Schema schema = iterator.next();
-
-            if ( !schema.isMetadata() )
-            {
-                iterator.remove();
-            }
-        }
-
-        Collections.sort( schemas, OrderComparator.INSTANCE );
+        schemas.removeIf( schema -> !schema.isMetadata() );
+        schemas.sort( OrderComparator.INSTANCE );
 
         return schemas;
     }
