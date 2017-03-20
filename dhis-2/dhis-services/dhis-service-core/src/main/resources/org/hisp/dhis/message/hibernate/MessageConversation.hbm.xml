@@ -20,6 +20,14 @@
     <property name="lastUpdated" type="timestamp"  not-null="true"/>
 
     <property name="subject" column="subject" not-null="true" />
+    
+    <property name="messageType" column="messageType">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.message.MessageType</param>
+        <param name="userNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
 
     <property name="priority" column="priority">
       <type name="org.hibernate.type.EnumType">

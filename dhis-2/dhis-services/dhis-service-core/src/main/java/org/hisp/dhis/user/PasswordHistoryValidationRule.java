@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
-
+import java.util.Map;
 /**
  * Created by zubair on 08.03.17.
  */
@@ -18,18 +18,21 @@ public class PasswordHistoryValidationRule implements PasswordValidationRule
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
     @Override
-    public PasswordValidationResult validate( String username, String password )
+    public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
     {
         boolean match;
 
-        UserCredentials userCredentials = userService.getUserCredentialsByUsername( username );
+        UserCredentials userCredentials = userService.getUserCredentialsByUsername( credentialsInfo.getUsername() );
 
         List<String> previousPasswords = userCredentials.getPreviousPasswords();
 
         for ( String encodedPassword : previousPasswords )
         {
-            match = passwordEncoder.matches( password, encodedPassword );
+            match = passwordEncoder.matches( credentialsInfo.getPassword(), encodedPassword );
 
             if ( match )
             {
@@ -46,5 +49,12 @@ public class PasswordHistoryValidationRule implements PasswordValidationRule
         }
 
         return new PasswordValidationResult( true );
+    }
+
+    @Override
+    public boolean isRuleApplicable( CredentialsInfo credentialsInfo )
+    {
+        return ( credentialsInfo.isNewUser() ||
+                !currentUserService.getCurrentUsername().equals( credentialsInfo.getUsername() ) ) ? false : true;
     }
 }

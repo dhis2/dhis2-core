@@ -107,14 +107,10 @@ public class ValidationNotificationServiceTest
 
         // Stub MessageService.sendMessage(..) so that it appends any outgoing messages to our List
         when(
-            messageService.sendMessage(
+            messageService.sendValidationResultMessage(
                 anyString(),
                 anyString(),
-                anyString(),
-                anySetOf( User.class ),
-                any( User.class ),
-                anyBoolean(),
-                anyBoolean()
+                anySetOf( User.class )
             )
         ).then(
             invocation -> {
@@ -393,7 +389,7 @@ public class ValidationNotificationServiceTest
     // -------------------------------------------------------------------------
 
     /**
-     * Mocks the input to MessageService.sendMessage(..)
+     * Mocks the input to MessageService.sendValidationResultMessage(..)
      */
     static class MockMessage
     {
@@ -410,11 +406,11 @@ public class ValidationNotificationServiceTest
         {
             this.subject = (String) args[0];
             this.text = (String) args[1];
-            this.metaData = (String) args[2];
-            this.users = (Set<User>) args[3];
-            this.sender = (User) args[4];
-            this.includeFeedbackRecipients = (boolean) args[5];
-            this.forceNotifications = (boolean) args[6];
+            this.metaData = null;
+            this.users = (Set<User>) args[2];
+            this.sender = null;
+            this.includeFeedbackRecipients = false;
+            this.forceNotifications = false;
         }
     }
 }

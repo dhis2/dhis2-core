@@ -1767,7 +1767,7 @@ function insertDataValues( json )
     		
     		if( orgUnitClosed )
     		{    			  	        
-    			return false;
+    			return;
     		}            
         } );
     	
@@ -1782,6 +1782,7 @@ function insertDataValues( json )
     
     // Hide i18n_orgunit_is_closed message
     hideHeaderMessage();
+    dhis2.de.unLockForm();
     
     $.safeEach( json.dataValues, function( i, value )
     {
@@ -2341,14 +2342,14 @@ dhis2.de.validateOrgUnitOpening = function(organisationUnit, period)
   var endDate = dhis2.period.calendar.parseDate( dhis2.period.format, period.endDate );
 
   if ( odate && startDate.compareTo( odate ) == -1 ) {
-    $( '#contentDiv input' ).attr( 'readonly', 'readonly' );
-    $( '#contentDiv textarea' ).attr( 'readonly', 'readonly' );
+    $( '#contentDiv input' ).attr( 'disabled', 'disabled' );
+    $( '#contentDiv textarea' ).attr( 'disabled', 'disabled' );
     return true;
   }
 
   if ( cdate && endDate.compareTo( cdate ) == 1 ) {
-    $( '#contentDiv input' ).attr( 'readonly', 'readonly' );
-    $( '#contentDiv textarea' ).attr( 'readonly', 'readonly' );
+    $( '#contentDiv input' ).attr( 'disabled', 'disabled' );
+    $( '#contentDiv textarea' ).attr( 'disabled', 'disabled' );
     return true;
   }
 
@@ -3350,6 +3351,19 @@ dhis2.de.lockForm = function()
     $( '#completenessDiv' ).hide();
 }
 
+/*
+ * unlock all input fields in data entry form 
+ */
+dhis2.de.unLockForm = function()
+{
+    $( '.entryfield' ).css( 'background-color', dhis2.de.cst.colorWhite ).css( 'border', '1px solid ' + dhis2.de.cst.colorBorder );
+    $( '.entryselect' ).css( 'background-color', dhis2.de.cst.colorWhite ).css( 'border', '1px solid ' + dhis2.de.cst.colorBorder );
+    $( '.indicator' ).css( 'background-color', dhis2.de.cst.colorWhite ).css( 'border', '1px solid ' + dhis2.de.cst.colorBorder );
+    $( '.entrytrueonly' ).css( 'background-color', dhis2.de.cst.colorWhite );
+    
+    $( '#contentDiv input').removeAttr( 'disabled' );
+    $( '#contentDiv textarea').removeAttr( 'disabled' );
+}
 /*
  * populate section row totals
  */

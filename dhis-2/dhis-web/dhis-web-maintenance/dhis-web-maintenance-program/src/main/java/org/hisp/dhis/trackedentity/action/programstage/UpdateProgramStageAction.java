@@ -298,6 +298,13 @@ public class UpdateProgramStageAction
     {
         this.hideDueDate = hideDueDate;
     }
+    
+    private List<Boolean> renderOptionsAsRadios;
+
+    public void setRenderOptionsAsRadios( List<Boolean> renderOptionsAsRadios )
+    {
+        this.renderOptionsAsRadios = renderOptionsAsRadios;
+    }
 
     // -------------------------------------------------------------------------
     // Action implementation
@@ -383,6 +390,7 @@ public class UpdateProgramStageAction
             Boolean allowed = allowProvidedElsewhere.get( i ) == null ? false : allowProvidedElsewhere.get( i );
             Boolean displayInReport = displayInReports.get( i ) == null ? false : displayInReports.get( i );
             Boolean allowDate = allowFutureDates.get( i ) == null ? false : allowFutureDates.get( i );
+            Boolean renderAsRadio = renderOptionsAsRadios.get( i ) == null ? false : renderOptionsAsRadios.get( i );
 
             ProgramStageDataElement programStageDataElement = programStageDataElementService.get( programStage, dataElement );
 
@@ -394,6 +402,7 @@ public class UpdateProgramStageAction
                 programStageDataElement.setDisplayInReports( displayInReport );
                 programStageDataElement.setAllowFutureDate( allowDate );
                 programStageDataElementService.addProgramStageDataElement( programStageDataElement );
+                programStageDataElement.setRenderOptionsAsRadio( renderAsRadio );
             }
             else
             {
@@ -404,6 +413,7 @@ public class UpdateProgramStageAction
                 programStageDataElement.setAllowFutureDate( allowDate );
                 programStageDataElementService.updateProgramStageDataElement( programStageDataElement );
                 programStageDataElements.remove( programStageDataElement );
+                programStageDataElement.setRenderOptionsAsRadio( renderAsRadio );
             }            
         }
         

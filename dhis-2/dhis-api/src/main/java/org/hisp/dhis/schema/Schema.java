@@ -45,7 +45,6 @@ import org.hisp.dhis.security.AuthorityType;
 import org.springframework.core.Ordered;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -171,17 +170,17 @@ public class Schema implements Ordered, Klass
     /**
      * Map of all readable properties, cached on first request.
      */
-    private Map<String, Property> readableProperties;
+    private Map<String, Property> readableProperties = new HashMap<>();
 
     /**
      * Map of all persisted properties, cached on first request.
      */
-    private Map<String, Property> persistedProperties;
+    private Map<String, Property> persistedProperties = new HashMap<>();
 
     /**
      * Map of all persisted properties, cached on first request.
      */
-    private Map<String, Property> nonPersistedProperties;
+    private Map<String, Property> nonPersistedProperties = new HashMap<>();
 
     /**
      * Map of all link object properties, cached on first request.
@@ -488,26 +487,22 @@ public class Schema implements Ordered, Klass
         return references;
     }
 
-    public List<Property> getReadableProperties()
+    public Map<String, Property> getReadableProperties()
     {
-        if ( readableProperties == null )
+        if ( readableProperties.isEmpty() )
         {
-            readableProperties = new HashMap<>();
-
             getPropertyMap().entrySet().stream()
                 .filter( entry -> entry.getValue().isReadable() )
                 .forEach( entry -> readableProperties.put( entry.getKey(), entry.getValue() ) );
         }
 
-        return new ArrayList<>( readableProperties.values() );
+        return readableProperties;
     }
 
     public Map<String, Property> getPersistedProperties()
     {
-        if ( persistedProperties == null )
+        if ( persistedProperties.isEmpty() )
         {
-            persistedProperties = new HashMap<>();
-
             getPropertyMap().entrySet().stream()
                 .filter( entry -> entry.getValue().isPersisted() )
                 .forEach( entry -> persistedProperties.put( entry.getKey(), entry.getValue() ) );
@@ -518,10 +513,8 @@ public class Schema implements Ordered, Klass
 
     public Map<String, Property> getNonPersistedProperties()
     {
-        if ( nonPersistedProperties == null )
+        if ( nonPersistedProperties.isEmpty() )
         {
-            nonPersistedProperties = new HashMap<>();
-
             getPropertyMap().entrySet().stream()
                 .filter( entry -> !entry.getValue().isPersisted() )
                 .forEach( entry -> nonPersistedProperties.put( entry.getKey(), entry.getValue() ) );
@@ -530,7 +523,7 @@ public class Schema implements Ordered, Klass
         return nonPersistedProperties;
     }
 
-    public List<Property> getEmbeddedObjectProperties()
+    public Map<String, Property> getEmbeddedObjectProperties()
     {
         if ( embeddedObjectProperties == null )
         {
@@ -541,7 +534,7 @@ public class Schema implements Ordered, Klass
                 .forEach( entry -> embeddedObjectProperties.put( entry.getKey(), entry.getValue() ) );
         }
 
-        return new ArrayList<>( embeddedObjectProperties.values() );
+        return embeddedObjectProperties;
     }
 
     public void addProperty( Property property )

@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.user.User;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -920,5 +921,59 @@ public class OrganisationUnitServiceTest
         assertFalse( organisationUnitService.isInUserHierarchy( ouC.getUid(), organisationUnits ) );
         assertFalse( organisationUnitService.isInUserHierarchy( ouF.getUid(), organisationUnits ) );
         assertFalse( organisationUnitService.isInUserHierarchy( ouG.getUid(), organisationUnits ) );        
+    }
+
+    @Test
+    public void testGetAncestorUids()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        OrganisationUnit ouB = createOrganisationUnit( 'B', ouA );
+        OrganisationUnit ouC = createOrganisationUnit( 'C', ouB );
+        OrganisationUnit ouD = createOrganisationUnit( 'D', ouC );
+
+        ouA.getChildren().add( ouB );
+        ouA.getChildren().add( ouC );
+        ouB.getChildren().add( ouD );
+
+        organisationUnitService.addOrganisationUnit( ouA );
+        organisationUnitService.addOrganisationUnit( ouB );
+        organisationUnitService.addOrganisationUnit( ouC );
+        organisationUnitService.addOrganisationUnit( ouD );
+        
+        List<String> expected = IdentifiableObjectUtils.getUids( Arrays.asList( ouA, ouB, ouC ) );
+
+        assertEquals( expected, ouD.getAncestorUids( null ) );
+        assertEquals( expected, ouD.getAncestorUids( Sets.newHashSet( ouA.getUid() ) ) );
+        
+        expected = IdentifiableObjectUtils.getUids( Arrays.asList( ouB, ouC ) );
+
+        assertEquals( expected, ouD.getAncestorUids( Sets.newHashSet( ouB.getUid() ) ) );
+    }
+    
+    @Test
+    public void testGetParentGraph()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        OrganisationUnit ouB = createOrganisationUnit( 'B', ouA );
+        OrganisationUnit ouC = createOrganisationUnit( 'C', ouB );
+        OrganisationUnit ouD = createOrganisationUnit( 'D', ouC );
+
+        ouA.getChildren().add( ouB );
+        ouA.getChildren().add( ouC );
+        ouB.getChildren().add( ouD );
+
+        organisationUnitService.addOrganisationUnit( ouA );
+        organisationUnitService.addOrganisationUnit( ouB );
+        organisationUnitService.addOrganisationUnit( ouC );
+        organisationUnitService.addOrganisationUnit( ouD );
+        
+        String expected = ouA.getUid() + "/" + ouB.getUid() + "/" + ouC.getUid();
+        
+        assertEquals( expected, ouD.getParentGraph( null ) );
+        assertEquals( expected, ouD.getParentGraph( Sets.newHashSet( ouA ) ) );
+
+        expected = ouB.getUid() + "/" + ouC.getUid();
+        
+        assertEquals( expected, ouD.getParentGraph( Sets.newHashSet( ouB ) ) );        
     }
 }

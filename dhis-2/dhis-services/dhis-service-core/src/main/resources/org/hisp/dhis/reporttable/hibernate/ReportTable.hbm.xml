@@ -150,6 +150,12 @@
     <property name="completedOnly" column="completedonly" />
 
     <property name="title" />
+    
+    <property name="subtitle" />
+    
+    <property name="hideTitle" />
+
+    <property name="hideSubtitle" />
 
     <set name="interpretations" inverse="true">
       <key column="reporttableid" />

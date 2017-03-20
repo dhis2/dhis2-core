@@ -427,6 +427,12 @@
 
   <bean id="org.hisp.dhis.user.UpperCasePatternValidationRule" class="org.hisp.dhis.user.UpperCasePatternValidationRule" />
 
+  <bean id="org.hisp.dhis.user.SpecialCharacterValidationRule" class="org.hisp.dhis.user.SpecialCharacterValidationRule" />
+
+  <bean id="org.hisp.dhis.user.PasswordDictionaryValidationRule" class="org.hisp.dhis.user.PasswordDictionaryValidationRule" />
+
+  <bean id="org.hisp.dhis.user.UserParameterValidationRule" class="org.hisp.dhis.user.UserParameterValidationRule" />
+
   <bean id="org.hisp.dhis.validation.ValidationCriteriaStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
     <property name="clazz" value="org.hisp.dhis.validation.ValidationCriteria" />
     <property name="sessionFactory" ref="sessionFactory" />
@@ -1311,7 +1317,6 @@
     <property name="programStageInstanceService" ref="org.hisp.dhis.program.ProgramStageInstanceService" />
     <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
     <property name="dataValueService" ref="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService" />
-    <property name="programStageDataElementService" ref="org.hisp.dhis.program.ProgramStageDataElementService" />
   </bean>
 
   <bean id="org.hisp.dhis.program.ProgramExpressionService" class="org.hisp.dhis.program.DefaultProgramExpressionService">

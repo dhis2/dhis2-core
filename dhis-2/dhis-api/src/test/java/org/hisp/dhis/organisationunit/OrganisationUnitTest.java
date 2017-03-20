@@ -122,24 +122,6 @@ public class OrganisationUnitTest
     }
     
     @Test
-    public void testGetParentGraph()
-    {
-        unitD.setParent( unitC );
-        unitC.setParent( unitB );
-        unitB.setParent( unitA );
-        
-        List<OrganisationUnit> roots = new ArrayList<>( Arrays.asList( unitB ) );
-        
-        String expected = "/uidB/uidC";
-        
-        assertEquals( expected, unitD.getParentGraph( roots ) );
-        
-        expected = "/uidA/uidB/uidC";
-
-        assertEquals( expected, unitD.getParentGraph( null ) );        
-    }
-
-    @Test
     public void testGetPath()
     {
         unitD.setParent( unitC );

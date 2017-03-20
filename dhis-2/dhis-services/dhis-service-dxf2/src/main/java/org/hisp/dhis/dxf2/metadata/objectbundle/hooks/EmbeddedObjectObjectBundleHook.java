@@ -37,7 +37,6 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.system.util.ReflectionUtils;
 
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -55,7 +54,7 @@ public class EmbeddedObjectObjectBundleHook
             return;
         }
 
-        handleEmbeddedObjects( object, bundle, schema.getEmbeddedObjectProperties() );
+        handleEmbeddedObjects( object, bundle, schema.getEmbeddedObjectProperties().values() );
     }
 
     @Override
@@ -68,13 +67,13 @@ public class EmbeddedObjectObjectBundleHook
             return;
         }
 
-        List<Property> properties = schema.getEmbeddedObjectProperties();
+        Collection<Property> properties = schema.getEmbeddedObjectProperties().values();
 
         clearEmbeddedObjects( persistedObject, properties );
         handleEmbeddedObjects( object, bundle, properties );
     }
 
-    private <T extends IdentifiableObject> void clearEmbeddedObjects( T object, List<Property> properties )
+    private <T extends IdentifiableObject> void clearEmbeddedObjects( T object, Collection<Property> properties )
     {
         for ( Property property : properties )
         {
@@ -91,7 +90,7 @@ public class EmbeddedObjectObjectBundleHook
         sessionFactory.getCurrentSession().flush();
     }
 
-    private <T extends IdentifiableObject> void handleEmbeddedObjects( T object, ObjectBundle bundle, List<Property> properties )
+    private <T extends IdentifiableObject> void handleEmbeddedObjects( T object, ObjectBundle bundle, Collection<Property> properties )
     {
         for ( Property property : properties )
         {

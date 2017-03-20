@@ -15,9 +15,10 @@ var validationRules = {
     },
     password: {
       required: true,
-      rangelength: [8, 80],
+      rangelength: [8, 40],
       password: true,
-      notequalto: "#username",
+      remote: "../../api/account/password"
+
     },
     retypePassword: {
       required: true,
@@ -70,6 +71,33 @@ $(document).ready(function() {
     }
   });
 });
+
+function checkPasswordForUsername() {
+
+  var userName = $("#username").val();
+  var passWord = $("#password").val();
+  if (passWord) {
+    if (userName) {
+      if ((passWord.indexOf(userName) !== -1) ||  (userName.indexOf(passWord) !== -1)) {
+        alert("Username cannot be part of password");
+        $("#password").val("");      }
+    }
+  }
+
+}
+
+function checkPasswordForEmail() {
+  var email = $("#email").val();
+  var passWord = $("#password").val();
+  if (passWord) {
+    if (email) {
+      if ((passWord.indexOf(email) !== -1) ||  (email.indexOf(passWord) !== -1)) {
+        alert("Email cannot be part of password");
+        $("#password").val("");
+      }
+    }
+  }
+}
 
 function accountSubmitHandler() {
   if( recaptchaEnabled() ) {
