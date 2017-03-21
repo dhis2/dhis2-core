@@ -28,15 +28,14 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 
@@ -46,9 +45,13 @@ import java.util.Objects;
  * @author Lars Helge Overland
  */
 @JacksonXmlRootElement( localName = "dataSetElement", namespace = DxfNamespaces.DXF_2_0 )
-public class DataSetElement
-    extends BaseIdentifiableObject implements EmbeddedObject
+public class DataSetElement implements EmbeddedObject
 {
+    /**
+     * The database internal identifier for this Object.
+     */
+    private int id;
+
     /**
      * Data set, never null.
      */
@@ -70,19 +73,17 @@ public class DataSetElement
 
     public DataSetElement()
     {
-        setAutoFields();
+
     }
 
     public DataSetElement( DataSet dataSet, DataElement dataElement )
     {
-        setAutoFields();
         this.dataSet = dataSet;
         this.dataElement = dataElement;
     }
 
     public DataSetElement( DataSet dataSet, DataElement dataElement, DataElementCategoryCombo categoryCombo )
     {
-        setAutoFields();
         this.dataSet = dataSet;
         this.dataElement = dataElement;
         this.categoryCombo = categoryCombo;
@@ -150,12 +151,6 @@ public class DataSetElement
     {
         return "{" +
             "\"class\":\"" + getClass() + "\", " +
-            "\"id\":\"" + getId() + "\", " +
-            "\"uid\":\"" + getUid() + "\", " +
-            "\"code\":\"" + getCode() + "\", " +
-            "\"name\":\"" + getName() + "\", " +
-            "\"created\":\"" + getCreated() + "\", " +
-            "\"lastUpdated\":\"" + getLastUpdated() + "\", " +
             "\"dataSet\":\"" + dataSet + "\", " +
             "\"dataElement\":\"" + dataElement + "\" " +
             "\"categoryCombo\":\"" + categoryCombo + "\" " +
@@ -165,6 +160,17 @@ public class DataSetElement
     // -------------------------------------------------------------------------
     // Get and set methods
     // -------------------------------------------------------------------------
+
+    @JsonIgnore
+    public int getId()
+    {
+        return id;
+    }
+
+    public void setId( int id )
+    {
+        this.id = id;
+    }
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
@@ -208,29 +214,5 @@ public class DataSetElement
     public void setCategoryCombo( DataElementCategoryCombo categoryCombo )
     {
         this.categoryCombo = categoryCombo;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DataSetElement dataSetElement = (DataSetElement) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                dataSet = dataSetElement.getDataSet();
-                dataElement = dataSetElement.getDataElement();
-                categoryCombo = dataSetElement.getCategoryCombo();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                dataSet = dataSetElement.getDataSet() == null ? dataSet : dataSetElement.getDataSet();
-                dataElement = dataSetElement.getDataElement() == null ? dataElement : dataSetElement.getDataElement();
-                categoryCombo = dataSetElement.getCategoryCombo() == null ? categoryCombo : dataSetElement.getCategoryCombo();
-            }
-        }
     }
 }

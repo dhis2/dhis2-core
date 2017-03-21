@@ -29,8 +29,12 @@ package org.hisp.dhis.dataset;
  */
 
 import org.hisp.dhis.DhisTest;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.hisp.dhis.dataapproval.*;
+import org.hisp.dhis.dataapproval.DataApproval;
+import org.hisp.dhis.dataapproval.DataApprovalLevel;
+import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.dataapproval.DataApprovalService;
+import org.hisp.dhis.dataapproval.DataApprovalStore;
+import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -59,7 +63,7 @@ import static org.junit.Assert.*;
 
 /**
  * TODO Test delete with data set elements
- * 
+ *
  * @author Lars Helge Overland
  */
 public class DataSetServiceTest
@@ -78,20 +82,20 @@ public class DataSetServiceTest
     private OrganisationUnit unitD;
     private OrganisationUnit unitE;
     private OrganisationUnit unitF;
-    
+
     private DataElementCategoryOptionCombo attributeOptionCombo;
 
     private CurrentUserService mockCurrentUserService;
 
     @Autowired
     private DataSetService dataSetService;
-    
+
     @Autowired
     private DataElementService dataElementService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
-    
+
     @Autowired
     private PeriodService periodService;
 
@@ -106,15 +110,13 @@ public class DataSetServiceTest
 
     @Autowired
     private DataApprovalStore approvalStore;
-    
+
     @Autowired
     private DataApprovalService dataApprovalService;
 
     @Autowired
     private DataApprovalLevelService levelService;
-    
-    private GenericIdentifiableObjectStore<DataSetElement> dataSetElementStore;
-    
+
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
@@ -125,8 +127,6 @@ public class DataSetServiceTest
         throws Exception
     {
         userService = _userService;
-        
-        dataSetElementStore = (GenericIdentifiableObjectStore<DataSetElement>) getBean( "org.hisp.dhis.dataset.DataSetElementStore" );
 
         periodType = new MonthlyPeriodType();
 
@@ -135,17 +135,17 @@ public class DataSetServiceTest
 
         dataElementA = createDataElement( 'A' );
         dataElementB = createDataElement( 'B' );
-        
+
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
-        
+
         unitA = createOrganisationUnit( 'A' );
         unitB = createOrganisationUnit( 'B' );
         unitC = createOrganisationUnit( 'C' );
         unitD = createOrganisationUnit( 'D' );
         unitE = createOrganisationUnit( 'E' );
         unitF = createOrganisationUnit( 'F' );
-        
+
         organisationUnitService.addOrganisationUnit( unitA );
         organisationUnitService.addOrganisationUnit( unitB );
         organisationUnitService.addOrganisationUnit( unitC );
@@ -193,7 +193,7 @@ public class DataSetServiceTest
 
     private void approveData( DataSet dataSet, Period period, OrganisationUnit unit )
     {
-        DataApprovalLevel level = new DataApprovalLevel ("Level A", unit.getLevel(), null );
+        DataApprovalLevel level = new DataApprovalLevel( "Level A", unit.getLevel(), null );
         levelService.addDataApprovalLevel( level );
 
         DataApprovalWorkflow workflow = new DataApprovalWorkflow( "Workflow A", period.getPeriodType(), newHashSet( level ) );
@@ -216,7 +216,7 @@ public class DataSetServiceTest
     {
         DataSet dataSetA = createDataSet( 'A', periodType );
         DataSet dataSetB = createDataSet( 'B', periodType );
-        
+
         dataSetA.addDataSetElement( dataElementA );
         dataSetA.addDataSetElement( dataElementB );
 
@@ -240,7 +240,7 @@ public class DataSetServiceTest
 
         dataSet.addDataSetElement( dataElementA );
         dataSet.addDataSetElement( dataElementB );
-        
+
         int id = dataSetService.addDataSet( dataSet );
 
         dataSet = dataSetService.getDataSet( id );
@@ -292,29 +292,35 @@ public class DataSetServiceTest
 
         dataSetService.addDataSet( dataSet );
 
-        List<DataSetElement> dataSetElements = dataSetElementStore.getAll();
-        
+        dataSet = dataSetService.getDataSet( dataSet.getId() );
+        assertNotNull( dataSet );
+        List<DataSetElement> dataSetElements = new ArrayList<>( dataSet.getDataSetElements() );
+
         assertEquals( 2, dataSet.getDataSetElements().size() );
         assertEquals( 2, dataSetElements.size() );
 
         // Remove data element A
-        
+
         dataSet.removeDataSetElement( dataElementA );
-        
+
         dataSetService.updateDataSet( dataSet );
-        
-        dataSetElements = dataSetElementStore.getAll();
+
+        dataSet = dataSetService.getDataSet( dataSet.getId() );
+        assertNotNull( dataSet );
+        dataSetElements = new ArrayList<>( dataSet.getDataSetElements() );
 
         assertEquals( 1, dataSet.getDataSetElements().size() );
         assertEquals( 1, dataSetElements.size() );
 
         // Remove data element B
-        
+
         dataSet.removeDataSetElement( dataElementB );
 
         dataSetService.updateDataSet( dataSet );
-        
-        dataSetElements = dataSetElementStore.getAll();
+
+        dataSet = dataSetService.getDataSet( dataSet.getId() );
+        assertNotNull( dataSet );
+        dataSetElements = new ArrayList<>( dataSet.getDataSetElements() );
 
         assertEquals( 0, dataSet.getDataSetElements().size() );
         assertEquals( 0, dataSetElements.size() );
@@ -330,20 +336,19 @@ public class DataSetServiceTest
 
         int ds = dataSetService.addDataSet( dataSet );
 
-        List<DataSetElement> dataSetElements = dataSetElementStore.getAll();
-        
+        dataSet = dataSetService.getDataSet( dataSet.getId() );
+        assertNotNull( dataSet );
+        List<DataSetElement> dataSetElements = new ArrayList<>( dataSet.getDataSetElements() );
+
         assertEquals( dataSet, dataSetService.getDataSet( ds ) );
         assertEquals( 2, dataSet.getDataSetElements().size() );
         assertEquals( 2, dataSetElements.size() );
-        
+
         dataSetService.deleteDataSet( dataSet );
-        
-        dataSetElements = dataSetElementStore.getAll();
-        
+
         assertNull( dataSetService.getDataSet( ds ) );
-        assertEquals( 0, dataSetElements.size() );
     }
-    
+
     @Test
     public void testGetDataSetByName()
     {

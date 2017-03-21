@@ -958,9 +958,8 @@ public class TableAlteror
         executeSql( "ALTER TABLE trackedentityattribute DROP CONSTRAINT fk_trackedentityattribute_attributegroupid" );
 
         // remove id object parts from embedded objects
-        executeSql( "ALTER TABLE datainputperiod DROP COLUMN uid" );
-        executeSql( "ALTER TABLE datainputperiod DROP COLUMN created" );
-        executeSql( "ALTER TABLE datainputperiod DROP COLUMN lastupdated" );
+        cleanEmbeddedObject( "datainputperiod" );
+        cleanEmbeddedObject( "datasetelement" );
 
         updateEnums();
 
@@ -1004,6 +1003,14 @@ public class TableAlteror
         executeSql( "alter table programindicator drop programindicatoranalyticstype" );
 
         log.info( "Tables updated" );
+    }
+
+    private void cleanEmbeddedObject( String table )
+    {
+        executeSql( "ALTER TABLE " + table + " DROP COLUMN uid" );
+        executeSql( "ALTER TABLE " + table + " DROP COLUMN created" );
+        executeSql( "ALTER TABLE " + table + " DROP COLUMN lastupdated" );
+        executeSql( "ALTER TABLE " + table + " DROP COLUMN code" );
     }
 
     private void removeOutdatedTranslationProperties()
