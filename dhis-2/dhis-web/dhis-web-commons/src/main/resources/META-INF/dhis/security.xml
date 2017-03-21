@@ -403,12 +403,14 @@
         <value>F_LEGEND_DELETE</value>
         <value>F_TRACKED_ENTITY_DATAVALUE_ADD</value>
         <value>F_TRACKED_ENTITY_DATAVALUE_DELETE</value>
+        <value>F_TRACKED_ENTITY_DATAVALUE_READ</value>
         <value>F_TRACKED_ENTITY_INSTANCE_SEARCH</value>
         <value>F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS</value>
         <value>F_TRACKED_ENTITY_INSTANCE_ADD</value>
         <value>F_TRACKED_ENTITY_INSTANCE_DELETE</value>
         <value>F_PROGRAM_ENROLLMENT</value>
         <value>F_PROGRAM_UNENROLLMENT</value>
+        <value>F_PROGRAM_ENROLLMENT_READ</value>
         <value>F_ORGANISATIONUNIT_MOVE</value>
         <value>F_PREDICTOR_RUN</value>
       </set>
