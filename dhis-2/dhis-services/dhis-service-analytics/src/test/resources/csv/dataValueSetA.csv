@@ -1,4 +1,4 @@
-"dataelement","period","orgunit","catoptcombo","attroptcombo","value","storedby","lastupd","comment"
-"A","period","orgUnitA","cocA","aocID","1","A","2015-04-01","comment1"
-"B","period","orgUnitB","cocB","aocID","2","A","2015-04-01","comment2"
-"C","period","orgUnitC","cocC","aocID","3","A","2015-04-01","comment3"
+"dataelement","period","orgunit","catoptcombo""value","storedby","lastupd","comment"
+"A","period","orgUnitA","cocA","1","A","2015-04-01","comment1"
+"B","period","orgUnitB","cocB","2","A","2015-04-01","comment2"
+"C","period","orgUnitC","cocC","3","A","2015-04-01","comment3"
