@@ -6,15 +6,12 @@ import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.dxf2.csv.CsvImportService;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -22,9 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 //mer avanserte tester -> Groupset
 // mvn -Dtest=AnalyticsServiceTest test
@@ -38,18 +33,17 @@ import static org.junit.Assert.assertNull;
 public class AnalyticsServiceTest
     extends DhisTest
 {
-
+    private List<DataElement> dataElements = new ArrayList<>();
     private DataElement deA;
     private DataElement deB;
     private DataElement deC;
     private DataElement deD;
-    private DataElement deE;
 
-    private Period peA;
-    private Period peB;
-    private Period peC;
-
-    List<DataElement> dataElements = new ArrayList<>();
+    private List<Period> periods = new ArrayList<>();
+    private Period peJan;
+    private Period peFeb;
+    private Period peMar;
+    private Period peApril;
 
     private DataElementCategoryCombo categoryComboDef;
     private DataElementCategoryOptionCombo ocDef;
@@ -59,16 +53,6 @@ public class AnalyticsServiceTest
     private OrganisationUnit ouC;
     private OrganisationUnit ouD;
     private OrganisationUnit ouE;
-
-    private OrganisationUnitGroup ouGroupA;
-    private OrganisationUnitGroup ouGroupB;
-    private OrganisationUnitGroup ouGroupC;
-
-    private DataElementGroup deGroupA;
-    private DataElementGroup deGroupB;
-    private DataElementGroup deGroupC;
-
-    private DataElementGroupSet deGroupSetA;
 
     @Autowired
     private DataElementService dataElementService;
@@ -96,11 +80,59 @@ public class AnalyticsServiceTest
     @Autowired
     private AnalyticsService analyticsService;
 
-    @Autowired
-    private UserService internalUserService;
 
-    @Autowired
-    private CsvImportService csvImportService;
+    @Override
+    public void setUpTest() {
+        categoryComboDef = categoryService.getDefaultDataElementCategoryCombo();
+
+        ocDef = categoryService.getDefaultDataElementCategoryOptionCombo();
+        ocDef.setCode( "OC_DEF_CODE" );
+        categoryService.updateDataElementCategoryOptionCombo( ocDef );
+
+        peJan = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2017, 1, 1 ), getDate( 2017, 1, 31 ) );
+        peFeb = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2017, 2, 1 ), getDate( 2017, 2, 28 ) );
+        peMar = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2017, 3, 1 ), getDate( 2017, 3, 31 ) );
+        peApril = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2017, 4, 1 ), getDate( 2017, 4, 30 ) );
+
+        periods.add(peJan);
+        periods.add(peFeb);
+        periods.add(peMar);
+        periods.add(peApril);
+
+        deA = createDataElement( 'A');
+        deB = createDataElement( 'B');
+        deC = createDataElement( 'C');
+        deD = createDataElement( 'D');
+
+        dataElementService.addDataElement( deA );
+        dataElementService.addDataElement( deB );
+        dataElementService.addDataElement( deC );
+        dataElementService.addDataElement( deD );
+
+        dataElements.add(deA);
+        dataElements.add(deB);
+        dataElements.add(deC);
+        dataElements.add(deD);
+
+        ouA = createOrganisationUnit( 'A');
+        ouB = createOrganisationUnit( 'B');
+        ouC = createOrganisationUnit( 'C');
+        ouD = createOrganisationUnit( 'D');
+        ouE = createOrganisationUnit( 'E');
+        configureHierarchy(ouA, ouB, ouC, ouD, ouE);
+
+        organisationUnitService.addOrganisationUnit( ouA );
+        organisationUnitService.addOrganisationUnit( ouB );
+        organisationUnitService.addOrganisationUnit( ouC );
+        organisationUnitService.addOrganisationUnit( ouD );
+        organisationUnitService.addOrganisationUnit( ouE );
+    }
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     /*
      * Configure org unit hierarchy like so:
@@ -122,59 +154,13 @@ public class AnalyticsServiceTest
         E.setParent( B );
     }
 
-    @Override
-    public void setUpTest() {
-        super.userService = internalUserService;
-
-        categoryComboDef = categoryService.getDefaultDataElementCategoryCombo();
-
-        ocDef = categoryService.getDefaultDataElementCategoryOptionCombo();
-        ocDef.setCode( "OC_DEF_CODE" );
-        categoryService.updateDataElementCategoryOptionCombo( ocDef );
-
-        peA = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2017, 1, 1 ), getDate( 2017, 1, 31 ) );
-        peB = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2017, 2, 1 ), getDate( 2017, 2, 28 ) );
-        peC = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2017, 3, 1 ), getDate( 2017, 3, 31 ) );
-
-        deA = createDataElement( 'A', categoryComboDef );
-        deB = createDataElement( 'B', categoryComboDef );
-        deC = createDataElement( 'C', categoryComboDef );
-        deD = createDataElement( 'D', categoryComboDef );
-        deE = createDataElement( 'E', categoryComboDef );
-
-        dataElementService.addDataElement( deA );
-        dataElementService.addDataElement( deB );
-        dataElementService.addDataElement( deC );
-        dataElementService.addDataElement( deD );
-        dataElementService.addDataElement( deE );
-
-
-        ouA = createOrganisationUnit( 'A');
-        ouB = createOrganisationUnit( 'B');
-        ouC = createOrganisationUnit( 'C');
-        ouD = createOrganisationUnit( 'D');
-        ouE = createOrganisationUnit( 'E');
-        configureHierarchy(ouA, ouB, ouC, ouD, ouE);
-
-        organisationUnitService.addOrganisationUnit( ouA );
-        organisationUnitService.addOrganisationUnit( ouB );
-        organisationUnitService.addOrganisationUnit( ouC );
-        organisationUnitService.addOrganisationUnit( ouD );
-        organisationUnitService.addOrganisationUnit( ouE );
-
-        dataElements.add(deA);
-        dataElements.add(deB);
-        dataElements.add(deC);
-        dataElements.add(deD);
-    }
-
     @Test
     public void testSimpleAggregation()
     {
         // Data values for A = 20
         List<DataValue> dataValuesA = new ArrayList<>();
         for(int i=1; i<5; i++) {
-            dataValuesA.add(new DataValue(dataElements.get(i-1), peA, ouA, ocDef, ocDef));
+            dataValuesA.add(new DataValue(dataElements.get(i-1), periods.get(i-1), ouA, ocDef, ocDef));
             dataValuesA.get(i-1).setValue(i*2 + "");
             dataValueService.addDataValue(dataValuesA.get(i-1));
         }
@@ -182,7 +168,7 @@ public class AnalyticsServiceTest
         // Data values for B = 16
         List<DataValue> dataValuesB = new ArrayList<>();
         for(int i=1; i<5; i++) {
-            dataValuesB.add(new DataValue(dataElements.get(i-1), peA, ouB, ocDef, ocDef));
+            dataValuesB.add(new DataValue(dataElements.get(i-1), periods.get(i-1), ouB, ocDef, ocDef));
             dataValuesB.get(i-1).setValue(i*2-1 + "");
             dataValueService.addDataValue(dataValuesB.get(i-1));
         }
@@ -190,7 +176,7 @@ public class AnalyticsServiceTest
         // Data values for C = 50
         List<DataValue> dataValuesC = new ArrayList<>();
         for(int i=1; i<5; i++) {
-            dataValuesC.add(new DataValue(dataElements.get(i-1), peA, ouC, ocDef, ocDef));
+            dataValuesC.add(new DataValue(dataElements.get(i-1), periods.get(i-1), ouC, ocDef, ocDef));
             dataValuesC.get(i-1).setValue(i*5 + "");
             dataValueService.addDataValue(dataValuesC.get(i-1));
         }
@@ -198,7 +184,7 @@ public class AnalyticsServiceTest
         // Data values for E = 4
         List<DataValue> dataValuesE = new ArrayList<>();
         for(int i=1; i<5; i++) {
-            dataValuesE.add(new DataValue(dataElements.get(i-1), peA, ouE, ocDef, ocDef));
+            dataValuesE.add(new DataValue(dataElements.get(i-1), periods.get(i-1), ouE, ocDef, ocDef));
             dataValuesE.get(i-1).setValue( "1" );
             dataValueService.addDataValue(dataValuesE.get(i-1));
         }
@@ -231,5 +217,84 @@ public class AnalyticsServiceTest
 
         assertNotNull(aggregatedDataValueMapping.get( "ouabcdefghE-2017" ));
         assertEquals(4.0, aggregatedDataValueMapping.get( "ouabcdefghE-2017" ));
+
+
+        // Params: Sum for all org units in period 2017-01
+        Period y2017_jan = createPeriod( "2017-01" );
+        params = DataQueryParams.newBuilder()
+                .withOrganisationUnits( organisationUnitService.getAllOrganisationUnits() )
+                .withAggregationType(AggregationType.SUM)
+                .withOutputFormat(OutputFormat.ANALYTICS)
+                .withPeriod( y2017_jan )
+                .build();
+
+        aggregatedDataValueMapping =  analyticsService.getAggregatedDataValueMapping(params);
+
+        assertNotNull(aggregatedDataValueMapping);
+
+        assertNotNull(aggregatedDataValueMapping.get( "ouabcdefghA-201701" ));
+        assertEquals(9.0, aggregatedDataValueMapping.get( "ouabcdefghA-201701" ));
+
+        assertNotNull(aggregatedDataValueMapping.get( "ouabcdefghB-201701" ));
+        assertEquals(2.0, aggregatedDataValueMapping.get( "ouabcdefghB-201701" ));
+
+        assertNotNull(aggregatedDataValueMapping.get( "ouabcdefghC-201701" ));
+        assertEquals(5.0, aggregatedDataValueMapping.get( "ouabcdefghC-201701" ));
+
+        assertNull(aggregatedDataValueMapping.get( "ouabcdefghD-201701" ));
+
+        // Params: Sum for org unit B in period 2017-02
+        Period y2017_feb = createPeriod( "2017-02" );
+        params = DataQueryParams.newBuilder()
+                .withOrganisationUnit( ouB )
+                .withAggregationType(AggregationType.SUM)
+                .withOutputFormat(OutputFormat.ANALYTICS)
+                .withPeriod( y2017_feb )
+                .build();
+
+        aggregatedDataValueMapping =  analyticsService.getAggregatedDataValueMapping(params);
+
+        assertNotNull(aggregatedDataValueMapping);
+
+        assertEquals(1, aggregatedDataValueMapping.size());
+
+        assertNull(aggregatedDataValueMapping.get( "ouabcdefghA-201702" ));
+
+        assertNotNull(aggregatedDataValueMapping.get( "ouabcdefghB-201702" ));
+        assertEquals(4.0, aggregatedDataValueMapping.get( "ouabcdefghB-201702" ));
+
+        // Params: Sum for data elements in period for 2017-03
+        Period y2017_mar = createPeriod( "2017-03" );
+        params = DataQueryParams.newBuilder()
+                .withDataElements( dataElements )
+                .withAggregationType(AggregationType.SUM)
+                .withOutputFormat(OutputFormat.ANALYTICS)
+                .withPeriod( y2017_mar )
+                .build();
+
+        aggregatedDataValueMapping =  analyticsService.getAggregatedDataValueMapping(params);
+
+        assertNotNull(aggregatedDataValueMapping);
+
+        assertNotNull(aggregatedDataValueMapping.get( "deabcdefghC-201703" ));
+        assertEquals(27.0, aggregatedDataValueMapping.get( "deabcdefghC-201703" ));
+
+        // Params: Sum for data element C in period 2017-03, with organisation unit B
+        List<DataElement> dataElementsC = new ArrayList<>();
+        dataElementsC.add( deC );
+        params = DataQueryParams.newBuilder()
+                .withOrganisationUnit( ouB )
+                .withDataElements( dataElementsC )
+                .withAggregationType(AggregationType.SUM)
+                .withOutputFormat(OutputFormat.ANALYTICS)
+                .withPeriod(y2017_mar)
+                .build();
+
+        aggregatedDataValueMapping =  analyticsService.getAggregatedDataValueMapping(params);
+
+        assertNotNull(aggregatedDataValueMapping);
+
+        assertNotNull(aggregatedDataValueMapping.get( "deabcdefghC-ouabcdefghB-201703" ));
+        assertEquals(6.0, aggregatedDataValueMapping.get( "deabcdefghC-ouabcdefghB-201703" ));
     }
 }
