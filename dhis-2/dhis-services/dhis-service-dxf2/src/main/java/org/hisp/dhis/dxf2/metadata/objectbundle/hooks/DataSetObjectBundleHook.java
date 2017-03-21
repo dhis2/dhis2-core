@@ -29,55 +29,15 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  */
 
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dataset.DataInputPeriod;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.period.PeriodType;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class DataSetObjectBundleHook extends AbstractObjectBundleHook
 {
-    @Override
-    public List<ErrorReport> validate( IdentifiableObject object, ObjectBundle bundle )
-    {
-        List<ErrorReport> errorList = new ArrayList<>();
-
-        if ( !DataSet.class.isInstance( object ) ) return errorList;
-        DataSet dataSet = (DataSet) object;
-
-        if ( !dataSet.getDataInputPeriods().isEmpty() )
-        {
-            List<ErrorReport> dataInputPeriods = dataSet.getDataInputPeriods().stream()
-                .map( dataInputPeriod ->
-                {
-                    DataInputPeriod dip = bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataInputPeriod );
-
-                    if ( dip == null )
-                    {
-                        preheatService.connectReferences( dataInputPeriod, bundle.getPreheat(), bundle.getPreheatIdentifier() );
-                        return dataInputPeriod;
-                    }
-
-                    return dip;
-                } )
-                .filter( dataInputPeriod -> !dataInputPeriod.getPeriod().getPeriodType().equals( dataSet.getPeriodType() ) )
-                .map( dataInputPeriod -> new ErrorReport( object.getClass(), ErrorCode.E4012, "dataInputPeriods" ) )
-                .collect( Collectors.toList() );
-
-            errorList.addAll( dataInputPeriods );
-        }
-
-        return errorList;
-    }
-
     @Override
     public void preCreate( IdentifiableObject object, ObjectBundle bundle )
     {
