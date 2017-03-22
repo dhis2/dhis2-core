@@ -47,6 +47,7 @@ import org.hisp.dhis.common.RegressionType;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
@@ -420,6 +421,7 @@ public abstract class BaseChart
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = Integer.MIN_VALUE )
     public Double getRangeAxisMinValue()
     {
         return rangeAxisMinValue;
