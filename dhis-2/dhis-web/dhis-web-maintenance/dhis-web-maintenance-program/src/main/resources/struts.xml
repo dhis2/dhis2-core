@@ -699,7 +699,7 @@
     <action name="addProgramIndicatorGroup"
       class="org.hisp.dhis.trackedentity.action.programindicatorgroup.AddProgramIndicatorGroupAction">
       <result name="success" type="redirect">programIndicatorGroup.action</result>
-      <param name="anyAuthorities">F_PROGRAM_INDICATOR_GROUP_PUBLIC_ADD, F_PROGRAM_INDICATOR_GROUP_PRIVATE_ADD</param>
+      <param name="anyAuthorities">F_PROGRAM_INDICATOR_GROUP_PUBLIC_ADD,F_PROGRAM_INDICATOR_GROUP_PRIVATE_ADD</param>
     </action>
 
     <action name="showAddProgramIndicatorGroupForm" class="org.hisp.dhis.trackedentity.action.programindicatorgroup.ShowAddProgramIndicatorGroupAction">
@@ -707,7 +707,7 @@
       <param name="page">/dhis-web-maintenance-program/addProgramIndicatorGroup.vm</param>
       <param name="javascripts">javascript/programIndicatorGroup.js</param>
       <param name="stylesheets">style/basic.css</param>
-      <param name="anyAuthorities">F_PROGRAM_INDICATOR_GROUP_PUBLIC_ADD, F_PROGRAM_INDICATOR_GROUP_PRIVATE_ADD</param>
+      <param name="anyAuthorities">F_PROGRAM_INDICATOR_GROUP_PUBLIC_ADD,F_PROGRAM_INDICATOR_GROUP_PRIVATE_ADD</param>
     </action>
 
     <action name="showUpdateProgramIndicatorGroupForm"
@@ -716,13 +716,13 @@
       <param name="page">/dhis-web-maintenance-program/updateProgramIndicatorGroupForm.vm</param>
       <param name="javascripts">javascript/programIndicatorGroup.js</param>
       <param name="stylesheets">style/basic.css</param>
-      <param name="anyAuthorities">F_PROGRAM_INDICATOR_GROUP_PUBLIC_ADD, F_PROGRAM_INDICATOR_GROUP_PRIVATE_ADD</param>
+      <param name="anyAuthorities">F_PROGRAM_INDICATOR_GROUP_PUBLIC_ADD,F_PROGRAM_INDICATOR_GROUP_PRIVATE_ADD</param>
     </action>
 
     <action name="updateProgramIndicatorGroup"
       class="org.hisp.dhis.trackedentity.action.programindicatorgroup.UpdateProgramIndicatorGroupAction">
       <result name="success" type="redirect">programIndicatorGroup.action</result>
-      <param name="anyAuthorities">F_PROGRAM_INDICATOR_GROUP_PUBLIC_ADD, F_PROGRAM_INDICATOR_GROUP_PRIVATE_ADD</param>
+      <param name="anyAuthorities">F_PROGRAM_INDICATOR_GROUP_PUBLIC_ADD,F_PROGRAM_INDICATOR_GROUP_PRIVATE_ADD</param>
     </action>
 
     <action name="validateProgramIndicatorGroup"
@@ -739,7 +739,7 @@
       <param name="page">/dhis-web-maintenance-program/sortProgramIndicatorGroupForm.vm</param>
       <param name="javascripts">javascript/programIndicatorGroup.js</param>
       <param name="stylesheets">style/basic.css</param>
-      <param name="anyAuthorities">F_PROGRAM_INDICATOR_GROUP_PUBLIC_ADD, F_PROGRAM_INDICATOR_GROUP_PRIVATE_ADD</param>
+      <param name="anyAuthorities">F_PROGRAM_INDICATOR_GROUP_PUBLIC_ADD,F_PROGRAM_INDICATOR_GROUP_PRIVATE_ADD</param>
     </action>
 
   </package>
