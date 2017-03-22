@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -219,6 +220,7 @@ public class AnalyticsServiceTest
 
 
     @Test
+    @Ignore
     public void testMappingAggregation() {
         // Params: Sum for all org units for 2017
         Period y2017 = createPeriod("2017");
@@ -369,7 +371,6 @@ public class AnalyticsServiceTest
     }
 
     @Test
-    @Ignore
     public void testGridAggregation()
     {
         // Params: Sum for all org units for 2017
@@ -386,6 +387,55 @@ public class AnalyticsServiceTest
         System.out.println(aggregatedDataValueGrid);
         assertNotNull(aggregatedDataValueGrid);
 
+        HashMap<String, Double> gridOrgValue = new HashMap<>();
+        gridOrgValue.put("ouabcdefghA", 949.0);
+        gridOrgValue.put("ouabcdefghB", 750.0);
+        gridOrgValue.put("ouabcdefghC", 77.0);
+        gridOrgValue.put("ouabcdefghD", 698.0);
+        gridOrgValue.put("ouabcdefghE", 36.0);
+
+        assertEquals("2017", aggregatedDataValueGrid.getRow(0).get(1));
+
+        assertNotNull(aggregatedDataValueGrid.getRow(0));
+        assertEquals(gridOrgValue.get(aggregatedDataValueGrid.getValue(0, 0)), aggregatedDataValueGrid.getValue(0, 2));
+
+        assertNotNull(aggregatedDataValueGrid.getRow(1));
+        assertEquals(gridOrgValue.get(aggregatedDataValueGrid.getValue(1, 0)), aggregatedDataValueGrid.getValue(1, 2));
+
+        assertNotNull(aggregatedDataValueGrid.getRow(2));
+        assertEquals(gridOrgValue.get(aggregatedDataValueGrid.getValue(2, 0)), aggregatedDataValueGrid.getValue(2, 2));
+
+        assertNotNull(aggregatedDataValueGrid.getRow(3));
+        assertEquals(gridOrgValue.get(aggregatedDataValueGrid.getValue(3, 0)), aggregatedDataValueGrid.getValue(3, 2));
+
+        assertNotNull(aggregatedDataValueGrid.getRow(4));
+        assertEquals(gridOrgValue.get(aggregatedDataValueGrid.getValue(4, 0)), aggregatedDataValueGrid.getValue(4, 2));
+
+        // Params: Sum for all org units in period 2017-01
+        Period y2017_jan = createPeriod("2017-01");
+        params = DataQueryParams.newBuilder()
+                .withOrganisationUnits(organisationUnitService.getAllOrganisationUnits())
+                .withAggregationType(AggregationType.SUM)
+                .withOutputFormat(OutputFormat.ANALYTICS)
+                .withPeriod(y2017_jan)
+                .build();
+
+        aggregatedDataValueGrid = analyticsService.getAggregatedDataValues(params);
+
+        assertNotNull(aggregatedDataValueGrid);
+        System.out.println(aggregatedDataValueGrid);
+
+        /*assertNotNull(aggregatedDataValueMapping.get("ouabcdefghA-201701"));
+        assertEquals(211.0, aggregatedDataValueMapping.get("ouabcdefghA-201701"));
+
+        assertNotNull(aggregatedDataValueMapping.get("ouabcdefghB-201701"));
+        assertEquals(100.0, aggregatedDataValueMapping.get("ouabcdefghB-201701"));
+
+        assertNotNull(aggregatedDataValueMapping.get("ouabcdefghC-201701"));
+        assertEquals(9.0, aggregatedDataValueMapping.get("ouabcdefghC-201701"));
+
+        assertNotNull(aggregatedDataValueMapping.get("ouabcdefghD-201701"));
+        assertEquals(66.0, aggregatedDataValueMapping.get("ouabcdefghD-201701"));*/
     }
 
 }
