@@ -3,6 +3,7 @@ package org.hisp.dhis.analytics.data;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -10,6 +11,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -92,8 +94,8 @@ public class AnalyticsServiceTest
         E.setParent(B);
     }
 
-
-    public void setUpTestForTheFirstTime() {
+    @Override
+    public void setUpTest() {
         categoryComboDef = categoryService.getDefaultDataElementCategoryCombo();
 
         ocDef = categoryService.getDefaultDataElementCategoryOptionCombo();
@@ -206,6 +208,8 @@ public class AnalyticsServiceTest
         DataValue dataValue_32_m01 = new DataValue(deD, peJan, ouE, null, null);
         dataValue_32_m01.setValue( "32" );
         dataValueService.addDataValue(dataValue_32_m01);
+
+        analyticsTableGenerator.generateTables(null, null, null, false);
     }
 
     @Override
@@ -216,9 +220,6 @@ public class AnalyticsServiceTest
 
     @Test
     public void testMappingAggregation() {
-        setUpTestForTheFirstTime();
-        analyticsTableGenerator.generateTables(null, null, null, false);
-
         // Params: Sum for all org units for 2017
         Period y2017 = createPeriod("2017");
         DataQueryParams params = DataQueryParams.newBuilder()
@@ -229,7 +230,6 @@ public class AnalyticsServiceTest
                 .build();
 
         Map<String, Object> aggregatedDataValueMapping = analyticsService.getAggregatedDataValueMapping(params);
-        System.out.println(aggregatedDataValueMapping);
         assertNotNull(aggregatedDataValueMapping);
 
         assertNotNull(aggregatedDataValueMapping.get("ouabcdefghA-2017"));
@@ -345,38 +345,33 @@ public class AnalyticsServiceTest
 
         assertNotNull(aggregatedDataValueMapping);
 
-        assertNotNull(aggregatedDataValueMapping.get("201703"));
-        assertEquals(669.0, aggregatedDataValueMapping.get("201703"));
+        assertNotNull(aggregatedDataValueMapping.get("201702"));
+        assertEquals(669.0, aggregatedDataValueMapping.get("201702"));
 
         // Params: Count: filter periods 2017-01 2017-03, for org unit A (root)
-        /*List<Period> periodsFilter = new ArrayList<>();
+        List<Period> periodsFilter = new ArrayList<>();
         periodsFilter.add(peJan);
         periodsFilter.add(peMar);
 
         params = DataQueryParams.newBuilder()
                 .withOrganisationUnit(ouA)
                 .withFilterPeriods(periodsFilter)
-                .withAggregationType(AggregationType.COUNT)
+                .withAggregationType(AggregationType.SUM)
                 .withOutputFormat(OutputFormat.ANALYTICS)
                 .build();
 
         aggregatedDataValueMapping = analyticsService.getAggregatedDataValueMapping(params);
 
-        System.out.println(aggregatedDataValueMapping);
         assertNotNull(aggregatedDataValueMapping);
 
         assertNotNull(aggregatedDataValueMapping.get("ouabcdefghA"));
-        assertEquals(, aggregatedDataValueMapping.get("ouabcdefghA"));*/
-
-        // Add some more special data
-
-
+        assertEquals(238.0, aggregatedDataValueMapping.get("ouabcdefghA"));
     }
 
-    /*@Test
+    @Test
+    @Ignore
     public void testGridAggregation()
     {
-
         // Params: Sum for all org units for 2017
         Period y2017 = createPeriod( "2017" );
         DataQueryParams params = DataQueryParams.newBuilder()
@@ -391,6 +386,6 @@ public class AnalyticsServiceTest
         System.out.println(aggregatedDataValueGrid);
         assertNotNull(aggregatedDataValueGrid);
 
-    }*/
+    }
 
 }
