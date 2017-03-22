@@ -55,6 +55,16 @@ public class AnalyticsServiceTest
     private OrganisationUnit ouD;
     private OrganisationUnit ouE;
 
+    // Results
+    private HashMap<String, Double> ou_2017_keyValue = new HashMap<>();
+    private HashMap<String, Double> ou_2017_01_keyValue = new HashMap<>();
+    private HashMap<String, Double> ouB_2017_02_keyValue = new HashMap<>();
+    private HashMap<String, Double> de_avg_2017_03_keyValue = new HashMap<>();
+    private HashMap<String, Double> deC_ouB_2017_03_keyValue = new HashMap<>();
+    private HashMap<String, Double> ouB_ouC_2017_02_keyValue = new HashMap<>();
+    private HashMap<String, Double> ouA_2017_01_03_keyValue = new HashMap<>();
+
+
     @Autowired
     private DataElementService dataElementService;
 
@@ -75,25 +85,6 @@ public class AnalyticsServiceTest
 
     @Autowired
     private AnalyticsService analyticsService;
-
-    /*
-     * Configure org unit hierarchy like so:
-     *
-     *                   A
-     *                 /   \
-     *                B     C
-     *               / \
-     *              D   E
-     */
-    public void configureHierarchy(OrganisationUnit A, OrganisationUnit B, OrganisationUnit C, OrganisationUnit D, OrganisationUnit E) {
-        A.getChildren().addAll(Sets.newHashSet(B, C));
-        B.setParent(A);
-        C.setParent(A);
-
-        B.getChildren().addAll(Sets.newHashSet(D, E));
-        D.setParent(B);
-        E.setParent(B);
-    }
 
     @Override
     public void setUpTest() {
@@ -211,6 +202,28 @@ public class AnalyticsServiceTest
         dataValueService.addDataValue(dataValue_32_m01);
 
         analyticsTableGenerator.generateTables(null, null, null, false);
+
+        // Set results
+        ou_2017_keyValue.put("ouabcdefghA-2017", 949.0);
+        ou_2017_keyValue.put("ouabcdefghB-2017", 750.0);
+        ou_2017_keyValue.put("ouabcdefghC-2017", 77.0);
+        ou_2017_keyValue.put("ouabcdefghD-2017", 698.0);
+        ou_2017_keyValue.put("ouabcdefghE-2017", 36.0);
+
+        ou_2017_01_keyValue.put("ouabcdefghA-201701", 211.0);
+        ou_2017_01_keyValue.put("ouabcdefghB-201701", 100.0);
+        ou_2017_01_keyValue.put("ouabcdefghC-201701", 9.0);
+        ou_2017_01_keyValue.put("ouabcdefghD-201701", 66.0);
+
+        ouB_2017_02_keyValue.put("ouabcdefghB-201702", 636.00);
+
+        de_avg_2017_03_keyValue.put("deabcdefghC-201703", 6.8);
+
+        deC_ouB_2017_03_keyValue.put("deabcdefghC-ouabcdefghB-201703", 6.0);
+
+        ouB_ouC_2017_02_keyValue.put("201702", 669.0);
+
+        ouA_2017_01_03_keyValue.put("ouabcdefghA", 238.0);
     }
 
     @Override
@@ -232,23 +245,8 @@ public class AnalyticsServiceTest
                 .build();
 
         Map<String, Object> aggregatedDataValueMapping = analyticsService.getAggregatedDataValueMapping(params);
-        assertNotNull(aggregatedDataValueMapping);
 
-        assertNotNull(aggregatedDataValueMapping.get("ouabcdefghA-2017"));
-        assertEquals(949.0, aggregatedDataValueMapping.get("ouabcdefghA-2017"));
-
-        assertNotNull(aggregatedDataValueMapping.get("ouabcdefghB-2017"));
-        assertEquals(750.0, aggregatedDataValueMapping.get("ouabcdefghB-2017"));
-
-        assertNotNull(aggregatedDataValueMapping.get("ouabcdefghC-2017"));
-        assertEquals(77.0, aggregatedDataValueMapping.get("ouabcdefghC-2017"));
-
-        assertNotNull(aggregatedDataValueMapping.get("ouabcdefghD-2017"));
-        assertEquals(698.0, aggregatedDataValueMapping.get("ouabcdefghD-2017"));
-
-        assertNotNull(aggregatedDataValueMapping.get("ouabcdefghE-2017"));
-        assertEquals(36.0, aggregatedDataValueMapping.get("ouabcdefghE-2017"));
-
+        assertDataValueMapping(aggregatedDataValueMapping, ou_2017_keyValue);
         assertNull(aggregatedDataValueMapping.get("testNull"));
 
 
@@ -263,19 +261,7 @@ public class AnalyticsServiceTest
 
         aggregatedDataValueMapping = analyticsService.getAggregatedDataValueMapping(params);
 
-        assertNotNull(aggregatedDataValueMapping);
-
-        assertNotNull(aggregatedDataValueMapping.get("ouabcdefghA-201701"));
-        assertEquals(211.0, aggregatedDataValueMapping.get("ouabcdefghA-201701"));
-
-        assertNotNull(aggregatedDataValueMapping.get("ouabcdefghB-201701"));
-        assertEquals(100.0, aggregatedDataValueMapping.get("ouabcdefghB-201701"));
-
-        assertNotNull(aggregatedDataValueMapping.get("ouabcdefghC-201701"));
-        assertEquals(9.0, aggregatedDataValueMapping.get("ouabcdefghC-201701"));
-
-        assertNotNull(aggregatedDataValueMapping.get("ouabcdefghD-201701"));
-        assertEquals(66.0, aggregatedDataValueMapping.get("ouabcdefghD-201701"));
+        assertDataValueMapping(aggregatedDataValueMapping, ou_2017_01_keyValue);
 
         // Params: Sum for org unit B in period 2017-02
         Period y2017_feb = createPeriod("2017-02");
@@ -289,13 +275,10 @@ public class AnalyticsServiceTest
         aggregatedDataValueMapping = analyticsService.getAggregatedDataValueMapping(params);
 
         assertNotNull(aggregatedDataValueMapping);
-
         assertEquals(1, aggregatedDataValueMapping.size());
-
         assertNull(aggregatedDataValueMapping.get("ouabcdefghA-201702"));
 
-        assertNotNull(aggregatedDataValueMapping.get("ouabcdefghB-201702"));
-        assertEquals(636.0, aggregatedDataValueMapping.get("ouabcdefghB-201702"));
+        assertDataValueMapping(aggregatedDataValueMapping, ouB_2017_02_keyValue);
 
         // Params: Average for data elements in period for 2017-03
         Period y2017_mar = createPeriod("2017-03");
@@ -308,10 +291,7 @@ public class AnalyticsServiceTest
 
         aggregatedDataValueMapping = analyticsService.getAggregatedDataValueMapping(params);
 
-        assertNotNull(aggregatedDataValueMapping);
-
-        assertNotNull(aggregatedDataValueMapping.get("deabcdefghC-201703"));
-        assertEquals(6.8, aggregatedDataValueMapping.get("deabcdefghC-201703"));
+        assertDataValueMapping(aggregatedDataValueMapping, de_avg_2017_03_keyValue);
 
         // Params: Sum for data element C in period 2017-03, with organisation unit B
         List<DataElement> dataElementsC = new ArrayList<>();
@@ -326,10 +306,7 @@ public class AnalyticsServiceTest
 
         aggregatedDataValueMapping = analyticsService.getAggregatedDataValueMapping(params);
 
-        assertNotNull(aggregatedDataValueMapping);
-
-        assertNotNull(aggregatedDataValueMapping.get("deabcdefghC-ouabcdefghB-201703"));
-        assertEquals(6.0, aggregatedDataValueMapping.get("deabcdefghC-ouabcdefghB-201703"));
+        assertDataValueMapping(aggregatedDataValueMapping, deC_ouB_2017_03_keyValue);
 
         // Params: Sum in period 2017-02, with filter org unit B and C
         List<OrganisationUnit> organisationUnits = new ArrayList<>();
@@ -345,10 +322,7 @@ public class AnalyticsServiceTest
 
         aggregatedDataValueMapping = analyticsService.getAggregatedDataValueMapping(params);
 
-        assertNotNull(aggregatedDataValueMapping);
-
-        assertNotNull(aggregatedDataValueMapping.get("201702"));
-        assertEquals(669.0, aggregatedDataValueMapping.get("201702"));
+        assertDataValueMapping(aggregatedDataValueMapping, ouB_ouC_2017_02_keyValue);
 
         // Params: Count: filter periods 2017-01 2017-03, for org unit A (root)
         List<Period> periodsFilter = new ArrayList<>();
@@ -364,10 +338,7 @@ public class AnalyticsServiceTest
 
         aggregatedDataValueMapping = analyticsService.getAggregatedDataValueMapping(params);
 
-        assertNotNull(aggregatedDataValueMapping);
-
-        assertNotNull(aggregatedDataValueMapping.get("ouabcdefghA"));
-        assertEquals(238.0, aggregatedDataValueMapping.get("ouabcdefghA"));
+        assertDataValueMapping(aggregatedDataValueMapping, ouA_2017_01_03_keyValue);
     }
 
     @Test
@@ -384,32 +355,8 @@ public class AnalyticsServiceTest
 
         Grid aggregatedDataValueGrid =  analyticsService.getAggregatedDataValues(params);
 
-        System.out.println(aggregatedDataValueGrid);
-        assertNotNull(aggregatedDataValueGrid);
-
-        HashMap<String, Double> gridOrgValue = new HashMap<>();
-        gridOrgValue.put("ouabcdefghA", 949.0);
-        gridOrgValue.put("ouabcdefghB", 750.0);
-        gridOrgValue.put("ouabcdefghC", 77.0);
-        gridOrgValue.put("ouabcdefghD", 698.0);
-        gridOrgValue.put("ouabcdefghE", 36.0);
-
         assertEquals("2017", aggregatedDataValueGrid.getRow(0).get(1));
-
-        assertNotNull(aggregatedDataValueGrid.getRow(0));
-        assertEquals(gridOrgValue.get(aggregatedDataValueGrid.getValue(0, 0)), aggregatedDataValueGrid.getValue(0, 2));
-
-        assertNotNull(aggregatedDataValueGrid.getRow(1));
-        assertEquals(gridOrgValue.get(aggregatedDataValueGrid.getValue(1, 0)), aggregatedDataValueGrid.getValue(1, 2));
-
-        assertNotNull(aggregatedDataValueGrid.getRow(2));
-        assertEquals(gridOrgValue.get(aggregatedDataValueGrid.getValue(2, 0)), aggregatedDataValueGrid.getValue(2, 2));
-
-        assertNotNull(aggregatedDataValueGrid.getRow(3));
-        assertEquals(gridOrgValue.get(aggregatedDataValueGrid.getValue(3, 0)), aggregatedDataValueGrid.getValue(3, 2));
-
-        assertNotNull(aggregatedDataValueGrid.getRow(4));
-        assertEquals(gridOrgValue.get(aggregatedDataValueGrid.getValue(4, 0)), aggregatedDataValueGrid.getValue(4, 2));
+        assertDataValueGrid(aggregatedDataValueGrid, ou_2017_keyValue);
 
         // Params: Sum for all org units in period 2017-01
         Period y2017_jan = createPeriod("2017-01");
@@ -422,20 +369,58 @@ public class AnalyticsServiceTest
 
         aggregatedDataValueGrid = analyticsService.getAggregatedDataValues(params);
 
-        assertNotNull(aggregatedDataValueGrid);
-        System.out.println(aggregatedDataValueGrid);
-
-        /*assertNotNull(aggregatedDataValueMapping.get("ouabcdefghA-201701"));
-        assertEquals(211.0, aggregatedDataValueMapping.get("ouabcdefghA-201701"));
-
-        assertNotNull(aggregatedDataValueMapping.get("ouabcdefghB-201701"));
-        assertEquals(100.0, aggregatedDataValueMapping.get("ouabcdefghB-201701"));
-
-        assertNotNull(aggregatedDataValueMapping.get("ouabcdefghC-201701"));
-        assertEquals(9.0, aggregatedDataValueMapping.get("ouabcdefghC-201701"));
-
-        assertNotNull(aggregatedDataValueMapping.get("ouabcdefghD-201701"));
-        assertEquals(66.0, aggregatedDataValueMapping.get("ouabcdefghD-201701"));*/
+        assertDataValueGrid(aggregatedDataValueGrid, ou_2017_01_keyValue);
     }
 
+    //  -------------------------------------------------------------------------
+    //  Internal Logic
+    //  -------------------------------------------------------------------------
+
+    /*
+     * Configure org unit hierarchy like so:
+     *
+     *                   A
+     *                 /   \
+     *                B     C
+     *               / \
+     *              D   E
+     */
+    public void configureHierarchy(OrganisationUnit A, OrganisationUnit B, OrganisationUnit C, OrganisationUnit D, OrganisationUnit E) {
+        A.getChildren().addAll(Sets.newHashSet(B, C));
+        B.setParent(A);
+        C.setParent(A);
+
+        B.getChildren().addAll(Sets.newHashSet(D, E));
+        D.setParent(B);
+        E.setParent(B);
+    }
+
+    public void assertDataValueMapping(Map<String, Object> aggregatedDataValueMapping, HashMap<String, Double> keyValue)
+    {
+        assertNotNull(aggregatedDataValueMapping);
+        for(Map.Entry<String, Double> entry : keyValue.entrySet()) {
+            String key = entry.getKey();
+            Double value = entry.getValue();
+
+            assertNotNull(aggregatedDataValueMapping.get( key ));
+            assertEquals( "'" + key + "' --",
+                    value, aggregatedDataValueMapping.get( key ));
+        }
+    }
+
+    public void assertDataValueGrid(Grid aggregatedDataValueGrid, HashMap<String, Double> keyValue)
+    {
+        assertNotNull(aggregatedDataValueGrid);
+        String period = aggregatedDataValueGrid.getValue(0, 1).toString();
+        for(int i=0; i<aggregatedDataValueGrid.getRows().size(); i++)
+        {
+            Double value = keyValue.get( aggregatedDataValueGrid.getValue(i, 0) + "-" + period);
+            if(value != null)
+            {
+                assertNotNull(aggregatedDataValueGrid.getRow(i));
+                assertEquals("'" + aggregatedDataValueGrid.getValue(i, 0) + "' --",
+                        value, aggregatedDataValueGrid.getValue(i, 2));
+            }
+        }
+    }
 }
