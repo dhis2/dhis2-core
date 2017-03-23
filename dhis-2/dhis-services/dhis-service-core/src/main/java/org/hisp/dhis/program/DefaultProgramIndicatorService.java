@@ -631,6 +631,14 @@ public class DefaultProgramIndicatorService
         {
             return "completeddate";
         }
+        else if ( ProgramIndicator.VAR_PROGRAM_STAGE_NAME.equals( var ) )
+        {
+            return "(select name from programstage where uid = ps)";
+        }
+        else if ( ProgramIndicator.VAR_PROGRAM_STAGE_ID.equals( var ) )
+        {
+            return "ps";
+        }
 
         return null;
     }
