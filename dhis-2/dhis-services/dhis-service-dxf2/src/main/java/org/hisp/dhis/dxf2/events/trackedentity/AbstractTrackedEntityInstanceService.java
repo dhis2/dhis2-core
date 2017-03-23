@@ -36,6 +36,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
@@ -44,6 +45,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -186,6 +188,14 @@ public abstract class AbstractTrackedEntityInstanceService
                 }
 
                 trackedEntityInstance.getRelationships().add( relationship );
+            }
+        }
+
+        if ( params.isIncludeEnrollments() )
+        {
+            for ( ProgramInstance programInstance : entityInstance.getProgramInstances() )
+            {
+                trackedEntityInstance.getEnrollments().add( enrollmentService.getEnrollment( programInstance ) );
             }
         }
 

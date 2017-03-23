@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  */
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;

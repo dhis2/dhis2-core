@@ -166,14 +166,14 @@ public class TrackedEntityInstance
         this.attributes = attributes;
     }
 
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "enrollments", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "enrollment", namespace = DxfNamespaces.DXF_2_0 )
     public List<Enrollment> getEnrollments()
     {
         return enrollments;
     }
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "enrollments", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "enrollment", namespace = DxfNamespaces.DXF_2_0 )
     public void setEnrollments( List<Enrollment> enrollments )
     {
         this.enrollments = enrollments;
