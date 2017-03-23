@@ -29,11 +29,12 @@ package org.hisp.dhis.dxf2.events.enrollment;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.events.event.Coordinate;
+import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 
@@ -62,23 +63,25 @@ public class Enrollment
     private EnrollmentStatus status;
 
     private String orgUnit;
-    
+
     private String orgUnitName;
 
     private Date enrollmentDate;
 
     private Date incidentDate;
 
+    private List<Event> events = new ArrayList<>();
+
     private List<Attribute> attributes = new ArrayList<>();
 
     private List<Note> notes = new ArrayList<>();
 
     private Boolean followup;
-    
+
     private String completedBy;
 
     private Date completedDate;
-    
+
     private Coordinate coordinate;
 
     public Enrollment()
@@ -180,7 +183,7 @@ public class Enrollment
     {
         this.orgUnit = orgUnit;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public String getOrgUnitName()
@@ -218,6 +221,20 @@ public class Enrollment
     }
 
     @JsonProperty
+    @JacksonXmlElementWrapper( localName = "attributes", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<Event> getEvents()
+    {
+        return events;
+    }
+
+    public void setEvents( List<Event> events )
+    {
+        this.events = events;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "attributes", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<Attribute> getAttributes()
     {
@@ -230,6 +247,7 @@ public class Enrollment
     }
 
     @JsonProperty
+    @JacksonXmlElementWrapper( localName = "attributes", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<Note> getNotes()
     {
@@ -276,7 +294,7 @@ public class Enrollment
     {
         this.completedDate = completedDate;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Coordinate getCoordinate()
@@ -287,62 +305,5 @@ public class Enrollment
     public void setCoordinate( Coordinate coordinate )
     {
         this.coordinate = coordinate;
-    }
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o ) return true;
-        if ( o == null || getClass() != o.getClass() ) return false;
-
-        Enrollment that = (Enrollment) o;
-
-        if ( attributes != null ? !attributes.equals( that.attributes ) : that.attributes != null ) return false;
-        if ( enrollmentDate != null ? !enrollmentDate.equals( that.enrollmentDate ) : that.enrollmentDate != null ) return false;
-        if ( incidentDate != null ? !incidentDate.equals( that.incidentDate ) : that.incidentDate != null ) return false;
-        if ( enrollment != null ? !enrollment.equals( that.enrollment ) : that.enrollment != null ) return false;
-        if ( trackedEntityInstance != null ? !trackedEntityInstance.equals( that.trackedEntityInstance ) : that.trackedEntityInstance != null )
-            return false;
-        if ( program != null ? !program.equals( that.program ) : that.program != null ) return false;
-        if ( status != that.status ) return false;
-        if ( notes != null ? !notes.equals( that.notes ) : that.notes != null ) return false;
-        if ( completedBy != null ? !completedBy.equals( that.completedBy ) : that.completedBy != null ) return false;
-        if ( completedDate != null ? !completedDate.equals( that.completedDate ) : that.completedDate != null ) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        int result = enrollment != null ? enrollment.hashCode() : 0;
-        result = 31 * result + (trackedEntityInstance != null ? trackedEntityInstance.hashCode() : 0);
-        result = 31 * result + (program != null ? program.hashCode() : 0);
-        result = 31 * result + (status != null ? status.hashCode() : 0);
-        result = 31 * result + (enrollmentDate != null ? enrollmentDate.hashCode() : 0);
-        result = 31 * result + (incidentDate != null ? incidentDate.hashCode() : 0);
-        result = 31 * result + (attributes != null ? attributes.hashCode() : 0);
-        result = 31 * result + (notes != null ? notes.hashCode() : 0);
-        result = 31 * result + (completedBy != null ? completedBy.hashCode() : 0);
-        result = 31 * result + (completedDate != null ? completedDate.hashCode() : 0);
-        return result;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "Enrollment{" +
-            "enrollment='" + enrollment + '\'' +
-            ", trackedEntityInstance='" + trackedEntityInstance + '\'' +
-            ", program='" + program + '\'' +
-            ", status=" + status +
-            ", enrollmentDate=" + enrollmentDate +
-            ", incidentDate=" + incidentDate +
-            ", attributes=" + attributes +
-            ", notes=" + notes +
-            ", completedBy=" + completedBy +
-            ", completedDate=" + completedDate +
-            ", coordinate=" + coordinate +
-            '}';
     }
 }
