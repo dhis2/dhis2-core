@@ -34,6 +34,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -64,6 +65,8 @@ public class ProgramStageInstance
     private List<MessageConversation> messageConversations = new ArrayList<>();
 
     private List<TrackedEntityComment> comments = new ArrayList<>();
+
+    private List<TrackedEntityDataValue> dataValues = new ArrayList<>();
 
     private EventStatus status = EventStatus.ACTIVE;
 
@@ -233,6 +236,16 @@ public class ProgramStageInstance
     public void setComments( List<TrackedEntityComment> comments )
     {
         this.comments = comments;
+    }
+
+    public List<TrackedEntityDataValue> getDataValues()
+    {
+        return dataValues;
+    }
+
+    public void setDataValues( List<TrackedEntityDataValue> dataValues )
+    {
+        this.dataValues = dataValues;
     }
 
     public EventStatus getStatus()
