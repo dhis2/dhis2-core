@@ -1807,6 +1807,10 @@
     <property name="programInstanceService" ref="org.hisp.dhis.program.ProgramInstanceService" />
   </bean>
 
+  <bean id="org.hisp.dhis.program.ProgramIndicatorGroupDeletionHandler"
+    class="org.hisp.dhis.program.ProgramIndicatorGroupDeletionHandler">
+  </bean>
+
   <bean id="org.hisp.dhis.relationship.RelationshipDeletionHandler"
     class="org.hisp.dhis.relationship.RelationshipDeletionHandler">
     <property name="relationshipSevice" ref="org.hisp.dhis.relationship.RelationshipService" />
