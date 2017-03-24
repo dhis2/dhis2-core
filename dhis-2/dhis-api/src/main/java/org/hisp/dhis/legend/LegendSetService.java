@@ -1,4 +1,6 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.legend;
+
+import java.util.List;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -29,15 +31,19 @@ package org.hisp.dhis.common;
  */
 
 /**
- * Marker interface for marking an object to not be treated as a id object (even
- * if the class itself implements id object), this object will not be treated as
- * normal metadata (no refs etc) but instead need to be contained in the entity
- * that owns it.
- * <p>
- * Link objects should also always be implemented as cascade="delete-all-orphan".
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Lars Helge Overland
  */
-public interface LinkObject
+public interface LegendSetService
 {
+    int addLegendSet( LegendSet legend );
+
+    void updateLegendSet( LegendSet legend );
+
+    LegendSet getLegendSet( int id );
+
+    LegendSet getLegendSet( String uid );
+
+    void deleteLegendSet( LegendSet legendSet );
+
+    List<LegendSet> getAllLegendSets();
 }
