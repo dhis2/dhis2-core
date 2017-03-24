@@ -1,6 +1,4 @@
-package org.hisp.dhis.legend;
-
-import java.util.List;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -31,39 +29,15 @@ import java.util.List;
  */
 
 /**
- * @author Lars Helge Overland
+ * Marker interface for marking an object to not be treated as a id object (even
+ * if the class itself implements id object), this object will not be treated as
+ * normal metadata (no refs etc) but instead need to be contained in the entity
+ * that owns it.
+ * <p>
+ * Embedded objects should also always be implemented as cascade="delete-all-orphan".
+ *
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface LegendService
+public interface EmbeddedObject
 {
-    // -------------------------------------------------------------------------
-    // Legend
-    // -------------------------------------------------------------------------
-
-    int addLegend( Legend legend );
-    
-    void updateLegend( Legend legend );
-    
-    Legend getLegend( int id );
-    
-    Legend getLegend( String uid );
-    
-    void deleteLegend( Legend legend );
-    
-    List<Legend> getAllLegends();
-    
-    // -------------------------------------------------------------------------
-    // LegendSet
-    // -------------------------------------------------------------------------
-
-    int addLegendSet( LegendSet legend );
-    
-    void updateLegendSet( LegendSet legend );
-    
-    LegendSet getLegendSet( int id );
-    
-    LegendSet getLegendSet( String uid );
-    
-    void deleteLegendSet( LegendSet legendSet );
-    
-    List<LegendSet> getAllLegendSets();
 }

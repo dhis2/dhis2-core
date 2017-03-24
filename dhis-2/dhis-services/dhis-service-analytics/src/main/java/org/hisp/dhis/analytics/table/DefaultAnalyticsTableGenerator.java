@@ -131,6 +131,15 @@ public class DefaultAnalyticsTableGenerator
     }
 
     @Override
+    public void dropTables()
+    {
+        for ( AnalyticsTableService service : analyticsTableServices )
+        {
+            service.dropTables();
+        }
+    }
+
+    @Override
     public void generateResourceTables( TaskId taskId )
     {
         final Clock clock = new Clock().startClock();

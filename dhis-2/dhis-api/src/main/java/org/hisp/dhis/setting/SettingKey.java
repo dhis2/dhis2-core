@@ -74,6 +74,8 @@ public enum SettingKey
     EMAIL_TLS( "keyEmailTls", Boolean.TRUE, Boolean.class ),
     EMAIL_SENDER( "keyEmailSender", "no-reply@dhis2.org", String.class ),
     EMAIL_PASSWORD( "keyEmailPassword", "", String.class, true ),
+    MIN_PASSWORD_LENGTH( "minPasswordLength", 8, Integer.class ),
+    MAX_PASSWORD_LENGTH( "maxPasswordLength", 40, Integer.class ),
     INSTANCE_BASE_URL( "keyInstanceBaseUrl" ),
     SCHEDULED_TASKS( "keySchedTasks", ListMap.class ),
     SMS_CONFIG( "keySmsConfigurations", SmsConfiguration.class ),

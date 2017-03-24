@@ -35,7 +35,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.legend.LegendService;
+import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.mapgeneration.MapGenerationService;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
@@ -85,7 +85,7 @@ public class MapController
     private MappingService mappingService;
 
     @Autowired
-    private LegendService legendService;
+    private LegendSetService legendSetService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -267,7 +267,7 @@ public class MapController
 
         if ( view.getLegendSet() != null )
         {
-            view.setLegendSet( legendService.getLegendSet( view.getLegendSet().getUid() ) );
+            view.setLegendSet( legendSetService.getLegendSet( view.getLegendSet().getUid() ) );
         }
 
         if ( view.getOrganisationUnitGroupSet() != null )

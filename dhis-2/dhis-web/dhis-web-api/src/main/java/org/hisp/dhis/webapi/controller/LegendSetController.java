@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.legend;
+package org.hisp.dhis.webapi.controller;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,16 +26,15 @@ package org.hisp.dhis.webapi.controller.legend;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.legend.Legend;
-import org.hisp.dhis.legend.LegendService;
-import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.schema.descriptors.LegendSetSchemaDescriptor;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.legend.LegendSetService;
+import org.hisp.dhis.schema.descriptors.LegendSetSchemaDescriptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,7 +46,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Iterator;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -58,7 +56,7 @@ public class LegendSetController
     extends AbstractCrudController<LegendSet>
 {
     @Autowired
-    private LegendService legendService;
+    private LegendSetService legendSetService;
 
     @Override
     @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
@@ -68,9 +66,8 @@ public class LegendSetController
     {
         LegendSet legendSet = renderService.fromJson( request.getInputStream(), LegendSet.class );
         legendSet.getTranslations().clear();
-        legendSet.getLegends().forEach( legendService::addLegend );
 
-        legendService.addLegendSet( legendSet );
+        legendSetService.addLegendSet( legendSet );
 
         response.addHeader( "Location", LegendSetSchemaDescriptor.API_ENDPOINT + "/" + legendSet.getUid() );
         webMessageService.send( WebMessageUtils.created( "Legend set created" ), response, request );
@@ -82,7 +79,7 @@ public class LegendSetController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void putJsonObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
-        LegendSet legendSet = legendService.getLegendSet( uid );
+        LegendSet legendSet = legendSetService.getLegendSet( uid );
 
         if ( legendSet == null )
         {
@@ -91,22 +88,13 @@ public class LegendSetController
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
 
-        Iterator<Legend> legends = legendSet.getLegends().iterator();
-
-        while ( legends.hasNext() )
-        {
-            Legend legend = legends.next();
-            legends.remove();
-            legendService.deleteLegend( legend );
-        }
-
         LegendSet newLegendSet = renderService.fromJson( request.getInputStream(), LegendSet.class );
         newLegendSet.setUser( currentUserService.getCurrentUser() );
-        newLegendSet.getLegends().forEach( legendService::addLegend );
+        newLegendSet.setUid( legendSet.getUid() );
 
         legendSet.mergeWith( newLegendSet, params.getMergeMode() );
 
-        legendService.updateLegendSet( legendSet );
+        legendSetService.updateLegendSet( legendSet );
     }
 
     @Override
@@ -115,7 +103,7 @@ public class LegendSetController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
-        LegendSet legendSet = legendService.getLegendSet( uid );
+        LegendSet legendSet = legendSetService.getLegendSet( uid );
 
         if ( legendSet == null )
         {
@@ -123,6 +111,6 @@ public class LegendSetController
         }
 
         legendSet.getLegends().clear();
-        legendService.deleteLegendSet( legendSet );
+        legendSetService.deleteLegendSet( legendSet );
     }
 }

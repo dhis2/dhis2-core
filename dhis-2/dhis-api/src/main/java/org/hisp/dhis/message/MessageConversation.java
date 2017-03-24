@@ -73,6 +73,8 @@ public class MessageConversation
 
     private int messageCount;
 
+    private MessageType messageType;
+
     private MessageConversationPriority priority;
 
     private MessageConversationStatus status;
@@ -105,11 +107,12 @@ public class MessageConversation
         this.status = MessageConversationStatus.NONE;
     }
 
-    public MessageConversation( String subject, User lastSender )
+    public MessageConversation( String subject, User lastSender, MessageType messageType )
     {
         this.subject = subject;
         this.lastSender = lastSender;
         this.lastMessage = new Date();
+        this.messageType = messageType;
         this.priority = MessageConversationPriority.NONE;
         this.status = MessageConversationStatus.NONE;
     }
@@ -565,5 +568,17 @@ public class MessageConversation
     public void setAssignee( User assignee )
     {
         this.assignee = assignee;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public MessageType getMessageType()
+    {
+        return messageType;
+    }
+
+    public void setMessageType( MessageType messageType )
+    {
+        this.messageType = messageType;
     }
 }

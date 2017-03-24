@@ -1,4 +1,6 @@
-package org.hisp.dhis.webapi.controller.legend;
+package org.hisp.dhis.legend;
+
+import java.util.List;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,18 +30,20 @@ package org.hisp.dhis.webapi.controller.legend;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.legend.Legend;
-import org.hisp.dhis.schema.descriptors.LegendSchemaDescriptor;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Lars Helge Overland
  */
-@Controller
-@RequestMapping( value = LegendSchemaDescriptor.API_ENDPOINT )
-public class LegendController
-    extends AbstractCrudController<Legend>
+public interface LegendSetService
 {
+    int addLegendSet( LegendSet legend );
+
+    void updateLegendSet( LegendSet legend );
+
+    LegendSet getLegendSet( int id );
+
+    LegendSet getLegendSet( String uid );
+
+    void deleteLegendSet( LegendSet legendSet );
+
+    List<LegendSet> getAllLegendSets();
 }

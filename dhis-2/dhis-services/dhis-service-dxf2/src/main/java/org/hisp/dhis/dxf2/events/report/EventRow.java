@@ -61,6 +61,8 @@ public class EventRow
     
     private boolean trackedEntityInstanceInactive;
     
+    private String uid;
+
     private String event;
     
     private String program;
@@ -90,7 +92,17 @@ public class EventRow
     public EventRow()
     {
     }
-    
+
+    public String getUid()
+    {
+        return uid;
+    }
+
+    public void setUid( String uid )
+    {
+        this.uid = uid;
+    }
+
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public String getTrackedEntityInstance()

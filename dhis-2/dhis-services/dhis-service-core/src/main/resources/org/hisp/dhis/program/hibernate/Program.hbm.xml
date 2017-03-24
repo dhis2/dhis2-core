@@ -112,9 +112,7 @@
     <property name="relationshipFromA" />
 
     <many-to-one name="relatedProgram" class="org.hisp.dhis.program.Program"
-      column="relatedprogramid" foreign-key="fk_program_relatedprogram" />
-
-    <property name="dataEntryMethod" />
+      column="relatedprogramid" foreign-key="fk_program_relatedprogram" />    
 
     <many-to-one name="categoryCombo" class="org.hisp.dhis.dataelement.DataElementCategoryCombo"
       column="categorycomboid" not-null="true" foreign-key="fk_program_categorycomboid" />

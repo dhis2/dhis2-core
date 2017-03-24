@@ -29,9 +29,14 @@ package org.hisp.dhis.user.action;
  */
 
 import com.opensymphony.xwork2.Action;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.*;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -57,6 +62,9 @@ public class ValidateUserAction
     {
         this.i18n = i18n;
     }
+
+    @Autowired
+    private PasswordValidationService passwordValidationService;
 
     // -------------------------------------------------------------------------
     // Input
@@ -95,6 +103,27 @@ public class ValidateUserAction
     public void setInviteUsername( String inviteUsername )
     {
         this.inviteUsername = inviteUsername;
+    }
+
+    private String rawPassword;
+
+    public void setRawPassword( String rawPassword )
+    {
+        this.rawPassword = rawPassword;
+    }
+
+    private boolean newUser;
+
+    public void setNewUser(  boolean newUser)
+    {
+        this.newUser = newUser;
+    }
+
+    private String email;
+
+    public void setEmail( String email )
+    {
+        this.email = email;
     }
 
     // -------------------------------------------------------------------------
@@ -159,6 +188,32 @@ public class ValidateUserAction
             if ( match != null && (id == null || match.getId() != id) )
             {
                 message = i18n.getString( "username_in_use" );
+
+                return ERROR;
+            }
+        }
+
+        if( rawPassword != null && !rawPassword.isEmpty() )
+        {
+            PasswordValidationResult result;
+
+            CredentialsInfo credentialsInfo = new CredentialsInfo( username, rawPassword, email, true );
+
+            if ( id != null )
+            {
+                User user = userService.getUser( id );
+
+                if ( user != null )
+                {
+                    credentialsInfo = new CredentialsInfo( user.getUsername(), rawPassword, user.getEmail(), false );
+                }
+            }
+
+            result = passwordValidationService.validate( credentialsInfo );
+
+            if ( !result.isValid() )
+            {
+                message = i18n.getString( result.getI18ErrorMessage() );
 
                 return ERROR;
             }

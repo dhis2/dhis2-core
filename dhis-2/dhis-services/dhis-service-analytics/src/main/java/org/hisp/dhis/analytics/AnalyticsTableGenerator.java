@@ -56,6 +56,11 @@ public interface AnalyticsTableGenerator
     void generateTables( @Nullable Integer lastYears, @Nullable TaskId taskId, Set<AnalyticsTableType> skipTableTypes, boolean skipResourceTables );
 
     /**
+     * Drops all existing analytics tables.
+     */
+    void dropTables();
+    
+    /**
      * Generates all resource tables.
      *
      * @param taskId the task identifier, can be null.
