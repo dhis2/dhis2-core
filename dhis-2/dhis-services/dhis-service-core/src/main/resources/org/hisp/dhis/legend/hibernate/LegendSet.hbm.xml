@@ -19,7 +19,7 @@
 
     <property name="symbolizer" column="symbolizer" />
 
-    <set name="legends" cascade="save-update,delete">
+    <set name="legends" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="maplegendsetid" />
       <one-to-many class="org.hisp.dhis.legend.Legend" />

@@ -46,8 +46,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.legend.Legend;
-import org.hisp.dhis.legend.LegendService;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -117,7 +117,7 @@ public class EventDataQueryServiceTest
     private TrackedEntityAttributeService attributeService;
 
     @Autowired
-    private LegendService legendService;
+    private LegendSetService legendSetService;
 
     @Override
     public void setUpTest()
@@ -159,15 +159,12 @@ public class EventDataQueryServiceTest
         legendA = createLegend( 'A', 0d, 10d );
         legendB = createLegend( 'B', 10d, 20d );
 
-        legendService.addLegend( legendA );
-        legendService.addLegend( legendB );
-
         legendSetA = createLegendSet( 'A' );
 
         legendSetA.getLegends().add( legendA );
         legendSetA.getLegends().add( legendB );
 
-        legendService.addLegendSet( legendSetA );
+        legendSetService.addLegendSet( legendSetA );
     }
 
     @Test
@@ -181,7 +178,7 @@ public class EventDataQueryServiceTest
         filterParams.add( "pe:201401;201402" );
 
         EventQueryParams params = dataQueryService.getFromUrl( prA.getUid(), null,
-            null, null, dimensionParams, filterParams, null, null, false, false, false, false, 
+            null, null, dimensionParams, filterParams, null, null, false, false, false, false,
             false, false, null, null, null, null, null, false, false, null, null, null, null );
 
         assertEquals( prA, params.getProgram() );
@@ -201,7 +198,7 @@ public class EventDataQueryServiceTest
         filterParams.add( "pe:201401" );
 
         EventQueryParams params = dataQueryService.getFromUrl( prA.getUid(), null,
-            null, null, dimensionParams, filterParams, deA.getUid(), AggregationType.AVERAGE, false, 
+            null, null, dimensionParams, filterParams, deA.getUid(), AggregationType.AVERAGE, false,
             false, false, false, false, false, null, null, null, null, null, false, false, null, null, null, null );
 
         assertEquals( prA, params.getProgram() );
@@ -340,7 +337,7 @@ public class EventDataQueryServiceTest
         filterParams.add( atA.getUid() + ":LE:5" );
 
         EventQueryParams params = dataQueryService.getFromUrl( prA.getUid(), null,
-            null, null, dimensionParams, filterParams, null, null, false, false, false, false, 
+            null, null, dimensionParams, filterParams, null, null, false, false, false, false,
             false, false, null, null, null, null, null, false, false, null, null, null, null );
 
         assertEquals( prA, params.getProgram() );
@@ -355,7 +352,7 @@ public class EventDataQueryServiceTest
     {
         assertEquals( "geom", dataQueryService.getCoordinateField( EventQueryParams.EVENT_COORDINATE_FIELD ) );
         assertEquals( "geom", dataQueryService.getCoordinateField( null ) );
-        assertEquals( deC.getUid(), dataQueryService.getCoordinateField( deC.getUid() ) );        
+        assertEquals( deC.getUid(), dataQueryService.getCoordinateField( deC.getUid() ) );
     }
 
     @Test( expected = IllegalQueryException.class )

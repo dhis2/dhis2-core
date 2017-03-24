@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.legend;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,18 +28,16 @@ package org.hisp.dhis.webapi.controller.legend;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.legend.Legend;
-import org.hisp.dhis.schema.descriptors.LegendSchemaDescriptor;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-
 /**
+ * Marker interface for marking an object to not be treated as a id object (even
+ * if the class itself implements id object), this object will not be treated as
+ * normal metadata (no refs etc) but instead need to be contained in the entity
+ * that owns it.
+ * <p>
+ * Embedded objects should also always be implemented as cascade="delete-all-orphan".
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Controller
-@RequestMapping( value = LegendSchemaDescriptor.API_ENDPOINT )
-public class LegendController
-    extends AbstractCrudController<Legend>
+public interface EmbeddedObject
 {
 }

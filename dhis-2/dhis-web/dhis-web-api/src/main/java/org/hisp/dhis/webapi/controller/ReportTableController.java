@@ -33,7 +33,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.legend.LegendService;
+import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -79,7 +79,7 @@ public class ReportTableController
     private DimensionService dimensionService;
 
     @Autowired
-    private LegendService legendService;
+    private LegendSetService legendSetService;
 
     @Autowired
     private I18nManager i18nManager;
@@ -257,7 +257,7 @@ public class ReportTableController
 
         if ( reportTable.getLegendSet() != null )
         {
-            reportTable.setLegendSet( legendService.getLegendSet( reportTable.getLegendSet().getUid() ) );
+            reportTable.setLegendSet( legendSetService.getLegendSet( reportTable.getLegendSet().getUid() ) );
         }
     }
 }

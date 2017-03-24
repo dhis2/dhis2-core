@@ -83,12 +83,6 @@
 
   <!-- Store definitions -->
 
-  <bean id="org.hisp.dhis.dataset.DataInputPeriodStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
-    <property name="clazz" value="org.hisp.dhis.dataset.DataInputPeriod" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="cacheable" value="true" />
-  </bean>
-
   <bean id="org.hisp.dhis.report.ReportStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
     <property name="clazz" value="org.hisp.dhis.report.Report" />
     <property name="sessionFactory" ref="sessionFactory" />
@@ -222,12 +216,6 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
     <property name="transientIdentifiableProperties" value="true" />
-  </bean>
-
-  <bean id="org.hisp.dhis.dataset.DataSetElementStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
-    <property name="clazz" value="org.hisp.dhis.dataset.DataSetElement" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="cacheable" value="true" />
   </bean>
 
   <bean id="org.hisp.dhis.dataset.DataSetStore" class="org.hisp.dhis.dataset.hibernate.HibernateDataSetStore">
@@ -527,13 +515,6 @@
     class="org.hisp.dhis.mapping.hibernate.HibernateExternalMapLayerStore">
     <property name="clazz" value="org.hisp.dhis.mapping.ExternalMapLayer" />
     <property name="sessionFactory" ref="sessionFactory" />
-  </bean>
-
-  <bean id="org.hisp.dhis.legend.LegendStore"
-    class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
-    <property name="clazz" value="org.hisp.dhis.legend.Legend" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="cacheable" value="true" />
   </bean>
 
   <bean id="org.hisp.dhis.legend.LegendSetStore"
@@ -1093,8 +1074,7 @@
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
   </bean>
 
-  <bean id="org.hisp.dhis.legend.LegendService" class="org.hisp.dhis.legend.DefaultLegendService">
-    <property name="legendStore" ref="org.hisp.dhis.legend.LegendStore" />
+  <bean id="org.hisp.dhis.legend.LegendService" class="org.hisp.dhis.legend.DefaultLegendSetService">
     <property name="legendSetStore" ref="org.hisp.dhis.legend.LegendSetStore" />
   </bean>
 
@@ -1116,7 +1096,7 @@
         <value>africare</value>
         <value>akros</value>
         <value>algeria</value>
-	    <value>angola</value>
+        <value>angola</value>
         <value>armenia</value>
         <value>bangladesh</value>
         <value>benin</value>
@@ -1776,7 +1756,7 @@
     class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDeletionHandler" />
 
   <bean id="org.hisp.dhis.user.UserCredentialsDeletionHandler" class="org.hisp.dhis.user.UserCredentialsDeletionHandler" />
-  
+
   <bean id="org.hisp.dhis.user.UserDeletionHandler" class="org.hisp.dhis.user.UserDeletionHandler" />
 
   <bean id="org.hisp.dhis.user.UserGroupDeletionHandler" class="org.hisp.dhis.user.UserGroupDeletionHandler">
@@ -1929,8 +1909,8 @@
       <aop:before pointcut="execution( * org.hisp.dhis.user.UserGroupService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.option.OptionService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.attribute.AttributeService.delete*(..) )" method="intercept" />
-      <aop:before pointcut="execution( * org.hisp.dhis.legend.LegendService.deleteLegend(..) )" method="intercept" />
-      <aop:before pointcut="execution( * org.hisp.dhis.legend.LegendService.deleteLegendSet(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.legend.LegendSetService.deleteLegend(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.legend.LegendSetService.deleteLegendSet(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.mapping.MappingService.deleteMapView(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.mapping.MappingService.deleteMap(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.i18n.I18nLocaleService.delete*(..) )" method="intercept" />

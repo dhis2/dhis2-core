@@ -33,7 +33,7 @@ import com.opensymphony.xwork2.Action;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.legend.LegendService;
+import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.AnalyticsType;
@@ -61,7 +61,7 @@ public class UpdateProgramIndicatorAction
     }
 
     @Autowired
-    private LegendService legendService;
+    private LegendSetService legendSetService;
 
     @Autowired
     private AttributeService attributeService;
@@ -192,7 +192,7 @@ public class UpdateProgramIndicatorAction
     {
         ProgramIndicator indicator = programIndicatorService.getProgramIndicator( id );
 
-        LegendSet legendSet = legendService.getLegendSet( legendSetId );
+        LegendSet legendSet = legendSetService.getLegendSet( legendSetId );
         
         indicator.setName( StringUtils.trimToNull( name ) );
         indicator.setShortName( StringUtils.trimToNull( shortName ) );

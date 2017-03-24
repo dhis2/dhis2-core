@@ -66,7 +66,6 @@ import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.interpretation.Interpretation;
-import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.mapping.ExternalMapLayer;
 import org.hisp.dhis.mapping.Map;
@@ -199,8 +198,6 @@ public class Metadata
     private List<Map> maps = new ArrayList<>();
 
     private List<MapView> mapViews = new ArrayList<>();
-
-    private List<Legend> legends = new ArrayList<>();
 
     private List<LegendSet> legendSets = new ArrayList<>();
 
@@ -859,19 +856,6 @@ public class Metadata
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "legends", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "legend", namespace = DxfNamespaces.DXF_2_0 )
-    public List<Legend> getLegends()
-    {
-        return legends;
-    }
-
-    public void setLegends( List<Legend> legends )
-    {
-        this.legends = legends;
-    }
-
-    @JsonProperty
     @JacksonXmlElementWrapper( localName = "legendSets", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "legendSet", namespace = DxfNamespaces.DXF_2_0 )
     public List<LegendSet> getLegendSets()
@@ -1162,7 +1146,6 @@ public class Metadata
             ", reportTables=" + reportTables +
             ", maps=" + maps +
             ", mapViews=" + mapViews +
-            ", legends=" + legends +
             ", legendSets=" + legendSets +
             ", externalMapLayers=" + externalMapLayers +
             ", sections=" + sections +
