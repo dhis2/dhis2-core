@@ -412,6 +412,7 @@ public class HibernateGenericStore<T>
         {
             BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
             identifiableObject.setAutoFields();
+            identifiableObject.setLastUpdatedBy( user );
 
             if ( clearSharing )
             {
@@ -486,6 +487,7 @@ public class HibernateGenericStore<T>
         {
             BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
             identifiableObject.setAutoFields();
+            identifiableObject.setLastUpdatedBy( user );
 
             if ( identifiableObject.getUser() == null )
             {
