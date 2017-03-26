@@ -746,10 +746,17 @@ public class DefaultExpressionService
 
             for ( ValidationRule rule : validationRules )
             {
-                dataElementTotals.addAll(
-                    RegexUtils.getMatches( DATA_ELEMENT_TOTAL_PATTERN, rule.getLeftSide().getExpression(), 1 ) );
-                dataElementTotals.addAll(
-                    RegexUtils.getMatches( DATA_ELEMENT_TOTAL_PATTERN, rule.getRightSide().getExpression(), 1 ) );
+                if ( rule.getLeftSide().getExpression() != null )
+                {
+                    dataElementTotals.addAll(
+                        RegexUtils.getMatches( DATA_ELEMENT_TOTAL_PATTERN, rule.getLeftSide().getExpression(), 1 ) );
+                }
+
+                if ( rule.getRightSide().getExpression() != null )
+                {
+                    dataElementTotals.addAll(
+                        RegexUtils.getMatches( DATA_ELEMENT_TOTAL_PATTERN, rule.getRightSide().getExpression(), 1 ) );
+                }
             }
 
             if ( !dataElementTotals.isEmpty() )

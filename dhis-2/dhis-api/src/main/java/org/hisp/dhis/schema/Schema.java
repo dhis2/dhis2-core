@@ -37,15 +37,14 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.LinkObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 import org.springframework.core.Ordered;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,9 +78,9 @@ public class Schema implements Ordered, Klass
     private final boolean nameableObject;
 
     /**
-     * Does this class implement {@link org.hisp.dhis.common.LinkObject} ?
+     * Does this class implement {@link EmbeddedObject} ?
      */
-    private final boolean linkObject;
+    private final boolean embeddedObject;
 
     /**
      * Singular name.
@@ -171,22 +170,22 @@ public class Schema implements Ordered, Klass
     /**
      * Map of all readable properties, cached on first request.
      */
-    private Map<String, Property> readableProperties;
+    private Map<String, Property> readableProperties = new HashMap<>();
 
     /**
      * Map of all persisted properties, cached on first request.
      */
-    private Map<String, Property> persistedProperties;
+    private Map<String, Property> persistedProperties = new HashMap<>();
 
     /**
      * Map of all persisted properties, cached on first request.
      */
-    private Map<String, Property> nonPersistedProperties;
+    private Map<String, Property> nonPersistedProperties = new HashMap<>();
 
     /**
      * Map of all link object properties, cached on first request.
      */
-    private Map<String, Property> linkObjectProperties;
+    private Map<String, Property> embeddedObjectProperties;
 
     /**
      * Used for sorting of schema list when doing metadata import/export.
@@ -196,7 +195,7 @@ public class Schema implements Ordered, Klass
     public Schema( Class<?> klass, String singular, String plural )
     {
         this.klass = klass;
-        this.linkObject = LinkObject.class.isAssignableFrom( klass );
+        this.embeddedObject = EmbeddedObject.class.isAssignableFrom( klass );
         this.identifiableObject = IdentifiableObject.class.isAssignableFrom( klass );
         this.nameableObject = NameableObject.class.isAssignableFrom( klass );
         this.singular = singular;
@@ -227,9 +226,9 @@ public class Schema implements Ordered, Klass
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLinkObject()
+    public boolean isEmbeddedObject()
     {
-        return linkObject;
+        return embeddedObject;
     }
 
     @JsonProperty
@@ -488,26 +487,22 @@ public class Schema implements Ordered, Klass
         return references;
     }
 
-    public List<Property> getReadableProperties()
+    public Map<String, Property> getReadableProperties()
     {
-        if ( readableProperties == null )
+        if ( readableProperties.isEmpty() )
         {
-            readableProperties = new HashMap<>();
-
             getPropertyMap().entrySet().stream()
                 .filter( entry -> entry.getValue().isReadable() )
                 .forEach( entry -> readableProperties.put( entry.getKey(), entry.getValue() ) );
         }
 
-        return new ArrayList<>( readableProperties.values() );
+        return readableProperties;
     }
 
     public Map<String, Property> getPersistedProperties()
     {
-        if ( persistedProperties == null )
+        if ( persistedProperties.isEmpty() )
         {
-            persistedProperties = new HashMap<>();
-
             getPropertyMap().entrySet().stream()
                 .filter( entry -> entry.getValue().isPersisted() )
                 .forEach( entry -> persistedProperties.put( entry.getKey(), entry.getValue() ) );
@@ -518,10 +513,8 @@ public class Schema implements Ordered, Klass
 
     public Map<String, Property> getNonPersistedProperties()
     {
-        if ( nonPersistedProperties == null )
+        if ( nonPersistedProperties.isEmpty() )
         {
-            nonPersistedProperties = new HashMap<>();
-
             getPropertyMap().entrySet().stream()
                 .filter( entry -> !entry.getValue().isPersisted() )
                 .forEach( entry -> nonPersistedProperties.put( entry.getKey(), entry.getValue() ) );
@@ -530,18 +523,18 @@ public class Schema implements Ordered, Klass
         return nonPersistedProperties;
     }
 
-    public List<Property> getLinkObjectProperties()
+    public Map<String, Property> getEmbeddedObjectProperties()
     {
-        if ( linkObjectProperties == null )
+        if ( embeddedObjectProperties == null )
         {
-            linkObjectProperties = new HashMap<>();
+            embeddedObjectProperties = new HashMap<>();
 
             getPropertyMap().entrySet().stream()
-                .filter( entry -> entry.getValue().isLinkObject() )
-                .forEach( entry -> linkObjectProperties.put( entry.getKey(), entry.getValue() ) );
+                .filter( entry -> entry.getValue().isEmbeddedObject() )
+                .forEach( entry -> embeddedObjectProperties.put( entry.getKey(), entry.getValue() ) );
         }
 
-        return new ArrayList<>( linkObjectProperties.values() );
+        return embeddedObjectProperties;
     }
 
     public void addProperty( Property property )

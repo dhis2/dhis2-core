@@ -40,7 +40,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.indicator.IndicatorType;
-import org.hisp.dhis.legend.LegendService;
+import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -71,7 +71,7 @@ public class GeoToolsMapLayerTest
     private PeriodService periodService;
 
     @Autowired
-    private LegendService legendService;
+    private LegendSetService legendSetService;
     
     private OrganisationUnit organisationUnit;
     
@@ -125,7 +125,7 @@ public class GeoToolsMapLayerTest
         periodService.addPeriod( period );
 
         mapLegendSet = createLegendSet( 'A' );
-        legendService.addLegendSet( mapLegendSet );
+        legendSetService.addLegendSet( mapLegendSet );
 
         internalMapLayer = new InternalMapLayer();
         internalMapLayer.setRadiusLow( 15 );

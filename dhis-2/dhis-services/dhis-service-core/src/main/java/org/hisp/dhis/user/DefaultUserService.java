@@ -526,6 +526,7 @@ public class DefaultUserService
         // Encode and set password
 
         userCredentials.setPassword( passwordManager.encode( rawPassword ) );
+        userCredentials.getPreviousPasswords().add( passwordManager.encode( rawPassword ) );
     }
 
     @Override

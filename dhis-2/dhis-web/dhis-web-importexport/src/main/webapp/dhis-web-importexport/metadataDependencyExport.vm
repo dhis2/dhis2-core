@@ -9,6 +9,8 @@
         <option value="dataSets" selected="selected">$i18n.getString( "data_sets" )</option>
         <option value="programs">$i18n.getString( "programs" )</option>
         <option value="categoryCombos">$i18n.getString( "category_combo" )</option>
+        <option value="dashboards">$i18n.getString( "dashboard" )</option>
+        <option value="dataElementGroups">$i18n.getString( "data_element_group" )</option>
       </select>
     </td>
   </tr>
@@ -24,6 +26,16 @@
       <select id="format" style="width:280px">
         <option value="json">JSON</option>
         <option value="xml">XML</option>
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td>$i18n.getString( "compression" )</td>
+    <td>
+      <select id="compression" style="width: 300px;">
+        <option value=".zip">$i18n.getString( "compression_zip" )</option>
+        <option value=".gz">$i18n.getString( "compression_gzip" )</option>
+        <option value="">$i18n.getString( "uncompressed" )</option>
       </select>
     </td>
   </tr>

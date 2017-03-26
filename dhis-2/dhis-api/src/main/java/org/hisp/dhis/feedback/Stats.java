@@ -135,6 +135,17 @@ public class Stats
         ignored += n;
     }
 
+    public void ignored()
+    {
+        ignored += created;
+        ignored += updated;
+        ignored += deleted;
+
+        created = 0;
+        updated = 0;
+        deleted = 0;
+    }
+
     @Override
     public String toString()
     {

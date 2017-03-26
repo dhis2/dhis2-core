@@ -111,6 +111,7 @@ public class EnrollmentController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "", method = RequestMethod.GET )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_ENROLLMENT') or hasRole('F_PROGRAM_UNENROLLMENT') or hasRole('F_PROGRAM_ENROLLMENT_READ')" )
     public @ResponseBody RootNode getEnrollments(
         @RequestParam( required = false ) String ou,
         @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
@@ -160,6 +161,7 @@ public class EnrollmentController
     }
 
     @RequestMapping( value = "/{id}", method = RequestMethod.GET )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_ENROLLMENT') or hasRole('F_PROGRAM_UNENROLLMENT') or hasRole('F_PROGRAM_ENROLLMENT_READ')" )
     public @ResponseBody Enrollment getEnrollment( @PathVariable String id, @RequestParam Map<String, String> parameters, Model model ) throws NotFoundException
     {
         return getEnrollment( id );
@@ -170,7 +172,7 @@ public class EnrollmentController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_ENROLLMENT')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_ENROLLMENT')" )    
     public void postEnrollmentXml( @RequestParam( defaultValue = "CREATE" ) ImportStrategy strategy,
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
@@ -232,7 +234,7 @@ public class EnrollmentController
     }
 
     @RequestMapping( value = "/{id}/note", method = RequestMethod.POST, consumes = "application/json" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_UNENROLLMENT')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_ENROLLMENT')" )
     public void updateEnrollmentForNoteJson( @PathVariable String id, HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
@@ -245,7 +247,7 @@ public class EnrollmentController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_UNENROLLMENT')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_ENROLLMENT')" )
     public void updateEnrollmentXml( @PathVariable String id, ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
@@ -255,7 +257,7 @@ public class EnrollmentController
     }
 
     @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_UNENROLLMENT')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_ENROLLMENT')" )
     public void updateEnrollmentJson( @PathVariable String id, ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
@@ -278,7 +280,7 @@ public class EnrollmentController
     }
 
     @RequestMapping( value = "/{id}/completed", method = RequestMethod.PUT )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_UNENROLLMENT')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_ENROLLMENT')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void completeEnrollment( @PathVariable String id ) throws NotFoundException, WebMessageException
     {

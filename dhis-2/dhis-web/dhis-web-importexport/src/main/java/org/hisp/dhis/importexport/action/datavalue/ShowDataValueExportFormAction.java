@@ -1,6 +1,4 @@
-package org.hisp.dhis.legend;
-
-import java.util.List;
+package org.hisp.dhis.importexport.action.datavalue;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -30,40 +28,43 @@ import java.util.List;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Lars Helge Overland
- */
-public interface LegendService
+import java.util.List;
+
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.opensymphony.xwork2.Action;
+
+public class ShowDataValueExportFormAction
+    implements Action
 {
-    // -------------------------------------------------------------------------
-    // Legend
-    // -------------------------------------------------------------------------
+    @Autowired
+    private AttributeService attributeService;
+    
+    private List<Attribute> dataElementAttributes;
 
-    int addLegend( Legend legend );
-    
-    void updateLegend( Legend legend );
-    
-    Legend getLegend( int id );
-    
-    Legend getLegend( String uid );
-    
-    void deleteLegend( Legend legend );
-    
-    List<Legend> getAllLegends();
-    
-    // -------------------------------------------------------------------------
-    // LegendSet
-    // -------------------------------------------------------------------------
+    public List<Attribute> getDataElementAttributes()
+    {
+        return dataElementAttributes;
+    }
 
-    int addLegendSet( LegendSet legend );
+    private List<Attribute> orgUnitAttributes;
     
-    void updateLegendSet( LegendSet legend );
-    
-    LegendSet getLegendSet( int id );
-    
-    LegendSet getLegendSet( String uid );
-    
-    void deleteLegendSet( LegendSet legendSet );
-    
-    List<LegendSet> getAllLegendSets();
+    public List<Attribute> getOrgUnitAttributes()
+    {
+        return orgUnitAttributes;
+    }
+
+    @Override
+    public String execute()
+        throws Exception
+    {
+        dataElementAttributes = attributeService.getUniqueAttributes( DataElement.class );
+        orgUnitAttributes = attributeService.getUniqueAttributes( OrganisationUnit.class );
+        
+        return SUCCESS;
+    }
 }

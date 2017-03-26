@@ -270,14 +270,10 @@ public class DefaultValidationNotificationService
 
     private void sendNotification( Set<User> users, NotificationMessage notificationMessage )
     {
-        messageService.sendMessage(
+        messageService.sendValidationResultMessage(
             notificationMessage.getSubject(),
             notificationMessage.getMessage(),
-            null,
-            users,
-            null,
-            false,
-            false
+            users
         );
     }
 

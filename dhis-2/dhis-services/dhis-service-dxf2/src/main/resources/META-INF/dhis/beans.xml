@@ -6,7 +6,9 @@
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.IdentifiableObjectBundleHook" />
 
-  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.LinkObjectObjectBundleHook" />
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.EmbeddedObjectObjectBundleHook" />
+
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.VersionedObjectObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.AnalyticalObjectObjectBundleHook" />
 
