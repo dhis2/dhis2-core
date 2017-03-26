@@ -39,6 +39,8 @@ import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.common.MapMapMap;
+import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
@@ -64,6 +66,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -431,6 +434,132 @@ public class HibernateDataValueStore
         }
 
         return result;
+    }
+
+    @Override
+    public MapMapMap<Period, String, DimensionalItemObject, Double> getDataElementOperandValues(
+        Collection<DataElementOperand> dataElementOperands, Collection<Period> periods,
+        OrganisationUnit orgUnit )
+    {
+        MapMapMap<Period, String, DimensionalItemObject, Double> result = new MapMapMap<>();
+
+        Collection<Integer> periodIdList = IdentifiableObjectUtils.getIdentifiers( periods );
+
+        SetMap<DataElement, DataElementOperand> deosByDataElement = getDeosByDataElement( dataElementOperands );
+
+        if ( periods.size() == 0 || dataElementOperands.size() == 0 )
+        {
+            return result;
+        }
+
+        String sql = "select dv.dataelementid, coc.uid, dv.attributeoptioncomboid, dv.periodid, " +
+            "sum( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) ) as value " +
+            "from datavalue dv " +
+            "join organisationunit o on o.organisationunitid = dv.sourceid " +
+            "join categoryoptioncombo coc on coc.categoryoptioncomboid = dv.categoryoptioncomboid " +
+            "where o.path like '" + orgUnit.getPath() + "%' " +
+            "and dv.periodid in (" + TextUtils.getCommaDelimitedString( periodIdList ) + ") " +
+            "and dv.value is not null " +
+            "and dv.deleted is false " +
+            "and ( ";
+
+            String snippit = "";
+
+            for ( DataElement dataElement : deosByDataElement.keySet() )
+            {
+                sql += snippit + "( dv.dataelementid = " + dataElement.getId()
+                    + getDisaggRestriction( deosByDataElement.get( dataElement ) )
+                    + " ) ";
+
+                snippit = "or ";
+            }
+
+            sql += ") group by dv.dataelementid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.periodid";
+
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
+
+        Map<Integer, DataElement> dataElementsById = IdentifiableObjectUtils.getIdentifierMap( deosByDataElement.keySet() );
+        Map<Integer, Period> periodsById = IdentifiableObjectUtils.getIdentifierMap( periods );
+
+        while ( rowSet.next() )
+        {
+            Integer dataElementId = rowSet.getInt( 1 );
+            String categoryOptionComboUid = rowSet.getString( 2 );
+            Integer attributeOptionComboId = rowSet.getInt( 3 );
+            Integer periodId = rowSet.getInt( 4 );
+            Double value = rowSet.getDouble( 5 );
+
+            DataElement dataElement = dataElementsById.get ( dataElementId );
+            Period period = periodsById.get( periodId );
+
+            Set<DataElementOperand> deos = deosByDataElement.get( dataElement );
+
+            for ( DataElementOperand deo : deos )
+            {
+                if ( deo.getOptionComboId() == null || deo.getOptionComboId() == categoryOptionComboUid )
+                {
+                    Double existingValue = result.getValue(period, categoryOptionComboUid, deo );
+
+                    if ( existingValue != null )
+                    {
+                        value += existingValue;
+                    }
+
+                    result.putEntry( period, categoryOptionComboUid, deo, value );
+                }
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Groups a collection of DataElementOperands into sets according to the
+     * DataElement each one contains, and returns a map from each DataElement
+     * to the set of DataElementOperands containing it.
+     *
+     * @param deos the collection of DataElementOperands.
+     * @return the map from DataElement to its DataElementOperands.
+     */
+    private SetMap<DataElement, DataElementOperand> getDeosByDataElement( Collection<DataElementOperand> deos )
+    {
+        SetMap<DataElement, DataElementOperand> deosByDataElement = new SetMap<>();
+
+        for ( DataElementOperand deo : deos )
+        {
+            deosByDataElement.putValue( deo.getDataElement(), deo );
+        }
+
+        return deosByDataElement;
+    }
+
+    /**
+     * Examines a set of DataElementOperands, and returns a SQL condition
+     * restricting the CategoryOptionCombo to a list of specific combos
+     * if only specific combos are required, or returns no restriction
+     * if all CategoryOptionCombos are to be fetched.
+     *
+     * @param deos the collection of DataElementOperands.
+     * @return the SQL restriction.
+     */
+    private String getDisaggRestriction( Set<DataElementOperand> deos )
+    {
+        String restiction = " and coc.uid in ( ";
+        String snippit = "";
+
+        for ( DataElementOperand deo : deos )
+        {
+            if ( deo.getOptionComboId() == null )
+            {
+                return "";
+            }
+
+            restiction += snippit + deo.getOptionComboId();
+
+            snippit = ", ";
+        }
+
+        return restiction + " )";
     }
 
     @Override

@@ -1,4 +1,4 @@
-package org.hisp.dhis.predictor;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,38 +28,36 @@ package org.hisp.dhis.predictor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-
-import java.util.Collection;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 /**
- * Created by haase on 6/12/16.
+ * @author Jim Grace
  */
-public interface PredictorService
+public class ListMapMap<T, U, V>
+    extends HashMap<T, ListMap<U, V>>
 {
-    String ID = PredictorService.class.getName();
+    /**
+     * Determines if a de-serialized file is compatible with this class.
+     */
+    private static final long serialVersionUID = -8123821997295429997L;
 
-    int addPredictor( Predictor prediector );
+    public ListMapMap()
+    {
+        super();
+    }
 
-    void updatePredictor( Predictor prediector );
+    public ListMap<U, V> putValue( T key1, U key2, V value )
+    {
+        ListMap<U, V> listMap = this.get( key1 );
+        listMap = listMap == null ? new ListMap<>() : listMap;
+        listMap.putValue( key2, value );
+        super.put( key1, listMap );
+        return null;
+    }
 
-    void deletePredictor( Predictor prediector );
-
-    Predictor getPredictor( int id );
-
-    Predictor getPredictor( String uid );
-
-    List<Predictor> getAllPredictors();
-
-    List<Predictor> getPredictorsByUid( Collection<String> uids );
-
-    List<Predictor> getPredictorsByName( String name );
-
-    int getPredictorCount();
-
-    int predict( Predictor predictor, Date startDate, Date endDate );
+    public List<V> getValues( T key1, U key2 )
+    {
+        return this.get( key1 ) == null ? null : this.get( key1 ).get( key2 );
+    }
 }
