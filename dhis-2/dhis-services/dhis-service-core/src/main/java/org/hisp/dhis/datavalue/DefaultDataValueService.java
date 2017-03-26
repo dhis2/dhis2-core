@@ -33,7 +33,6 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;

@@ -485,7 +485,6 @@ public class HibernateDataValueStore
         {
             Integer dataElementId = rowSet.getInt( 1 );
             String categoryOptionComboUid = rowSet.getString( 2 );
-            Integer attributeOptionComboId = rowSet.getInt( 3 );
             Integer periodId = rowSet.getInt( 4 );
             Double value = rowSet.getDouble( 5 );
 
