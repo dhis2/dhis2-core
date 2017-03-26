@@ -1120,10 +1120,10 @@ public abstract class DhisConvenienceTest
     /**
      * Creates a Predictor
      *
-     * @param writes                the data element where the predictor stores its predictions
+     * @param output                the data element where the predictor stores its predictions
      * @param combo                 the category option combo (or null) under which the predictors are stored
      * @param uniqueCharacter       A unique character to identify the object.
-     * @param expr                  The right side expression.
+     * @param generator             The right side expression.
      * @param skipTest              The skiptest expression
      * @param periodType            The period-type.
      * @param organisationUnitLevel The unit level of organisations to be
@@ -1132,23 +1132,23 @@ public abstract class DhisConvenienceTest
      * @param annualSampleCount     How many years of past periods to sample.
      * @param sequentialSkipCount   How many periods in the current year to skip
      */
-    public static Predictor createPredictor( DataElement writes, DataElementCategoryOptionCombo combo,
-        String uniqueCharacter, Expression expr,
-        Expression skipTest, PeriodType periodType, OrganisationUnitLevel organisationUnitLevel, int sequentialSampleCount,
+    public static Predictor createPredictor( DataElement output, DataElementCategoryOptionCombo combo,
+        String uniqueCharacter, Expression generator, Expression skipTest, PeriodType periodType,
+        OrganisationUnitLevel organisationUnitLevel, int sequentialSampleCount,
         int sequentialSkipCount, int annualSampleCount )
     {
         Predictor predictor = new Predictor();
-        Set<OrganisationUnitLevel> orglevels = Sets.newHashSet( organisationUnitLevel );
+        Set<OrganisationUnitLevel> orgUnitlevels = Sets.newHashSet( organisationUnitLevel );
         predictor.setAutoFields();
 
-        predictor.setOutput( writes );
+        predictor.setOutput( output );
         predictor.setOutputCombo( combo );
         predictor.setName( "Predictor" + uniqueCharacter );
         predictor.setDescription( "Description" + uniqueCharacter );
-        predictor.setGenerator( expr );
+        predictor.setGenerator( generator );
         predictor.setSampleSkipTest( skipTest );
         predictor.setPeriodType( periodType );
-        predictor.setOrganisationUnitLevels( orglevels );
+        predictor.setOrganisationUnitLevels( orgUnitlevels );
         predictor.setSequentialSampleCount( sequentialSampleCount );
         predictor.setAnnualSampleCount( annualSampleCount );
         predictor.setSequentialSkipCount( sequentialSkipCount );

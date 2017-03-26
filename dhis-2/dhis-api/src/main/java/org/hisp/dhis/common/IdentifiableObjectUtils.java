@@ -117,6 +117,25 @@ public class IdentifiableObjectUtils
     }
 
     /**
+     * Returns a map from internal identifiers to IdentifiableObjects,
+     * for the given collection of IdentifiableObjects.
+     *
+     * @param objects the collection of IdentifiableObjects
+     * @return a map from the object internal identifiers to the objects
+     */
+    public static <T extends IdentifiableObject> Map<Integer, T> getIdentifierMap( Collection<T> objects )
+    {
+        Map<Integer, T> map = new HashMap<>();
+
+        for ( T object : objects )
+        {
+            map.put( object.getId(), object );
+        }
+
+        return map;
+    }
+
+    /**
      * Returns a list of calendar specific period identifiers for the given collection of
      * periods and calendar.
      *

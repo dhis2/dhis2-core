@@ -106,6 +106,12 @@ public class DataElementOperand
         this.categoryOptionCombo = categoryOptionCombo;
     }
 
+    public DataElementOperand( String dataElementId )
+    {
+        this.dataElementId = dataElementId;
+        this.operandId = String.valueOf( dataElementId );
+    }
+
     public DataElementOperand( String dataElementId, String optionComboId )
     {
         this.dataElementId = dataElementId;
@@ -258,8 +264,29 @@ public class DataElementOperand
     }
 
     /**
+     * Gets the dataElementId or, if null, returns
+     * the dataElement's UID if present.
+     */
+    public String getAnyDataElementId()
+    {
+        return dataElementId != null ? dataElementId :
+            dataElement != null ? dataElement.getUid() : null;
+    }
+
+    /**
+     * Gets the optionComboId or, if null, returns
+     * the categoryOptionCombo's UID if present.
+     */
+    public String getAnyOptionComboId()
+    {
+        return optionComboId != null ? optionComboId :
+            categoryOptionCombo != null ? categoryOptionCombo.getUid() : null;
+    }
+
+    /**
      * Generates a DataElementOperand based on the given formula. The formula
-     * needs to be on the form "#{<dataelementid>.<categoryoptioncomboid>}".
+     * needs to be on the form "#{<dataelementid>.<categoryoptioncomboid>}"
+     * or "#{<dataelementid>}".
      *
      * @param expression the formula.
      * @return a DataElementOperand.
@@ -272,7 +299,9 @@ public class DataElementOperand
         String dataElement = StringUtils.trimToNull( matcher.group( 1 ) );
         String categoryOptionCombo = StringUtils.trimToNull( matcher.group( 2 ) );
 
-        final DataElementOperand operand = new DataElementOperand( dataElement, categoryOptionCombo );
+        final DataElementOperand operand = categoryOptionCombo != null ?
+            new DataElementOperand( dataElement, categoryOptionCombo ) :
+            new DataElementOperand( dataElement );
         
         return operand;
     }
@@ -388,8 +417,8 @@ public class DataElementOperand
 
         result = prime * result + ((dataElement == null) ? 0 : dataElement.hashCode());
         result = prime * result + ((categoryOptionCombo == null) ? 0 : categoryOptionCombo.hashCodeIdentifiableObject());
-        result = prime * result + ((dataElementId == null) ? 0 : dataElementId.hashCode());
-        result = prime * result + ((optionComboId == null) ? 0 : optionComboId.hashCode());
+        result = prime * result + ((getAnyDataElementId() == null) ? 0 : getAnyDataElementId().hashCode());
+        result = prime * result + ((getAnyOptionComboId() == null) ? 0 : getAnyOptionComboId().hashCode());
 
         return result;
     }
@@ -412,17 +441,7 @@ public class DataElementOperand
             return false;
         }
 
-        if ( dataElement != null && categoryOptionCombo != null )
-        {
-            updateProperties( dataElement, categoryOptionCombo );
-        }
-
         DataElementOperand other = (DataElementOperand) object;
-
-        if ( other.getDataElement() != null && other.getCategoryOptionCombo() != null )
-        {
-            other.updateProperties( other.getDataElement(), other.getCategoryOptionCombo() );
-        }
 
         if ( dataElement == null )
         {
@@ -448,26 +467,26 @@ public class DataElementOperand
             return false;
         }
 
-        if ( dataElementId == null )
+        if ( getAnyDataElementId() == null )
         {
-            if ( other.dataElementId != null )
+            if ( other.getAnyDataElementId() != null )
             {
                 return false;
             }
         }
-        else if ( !dataElementId.equals( other.dataElementId ) )
+        else if ( !getAnyDataElementId().equals( other.getAnyDataElementId() ) )
         {
             return false;
         }
 
-        if ( optionComboId == null )
+        if ( getAnyOptionComboId() == null )
         {
-            if ( other.optionComboId != null )
+            if ( other.getAnyOptionComboId() != null )
             {
                 return false;
             }
         }
-        else if ( !optionComboId.equals( other.optionComboId ) )
+        else if ( !getAnyOptionComboId().equals( other.getAnyOptionComboId() ) )
         {
             return false;
         }
@@ -480,12 +499,12 @@ public class DataElementOperand
     {
         DataElementOperand other = (DataElementOperand) object;
 
-        if ( this.dataElementId.compareTo( other.dataElementId ) != 0 )
+        if ( getAnyDataElementId().compareTo( other.getAnyDataElementId() ) != 0 )
         {
-            return this.dataElementId.compareTo( other.dataElementId );
+            return getAnyDataElementId().compareTo( other.getAnyDataElementId() );
         }
 
-        return this.optionComboId.compareTo( other.optionComboId );
+        return getAnyOptionComboId().compareTo( other.getAnyOptionComboId() );
     }
 
     @Override

@@ -29,6 +29,7 @@ package org.hisp.dhis.datavalue;
  */
 
 import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
@@ -160,6 +161,26 @@ public interface DataValueStore
         Collection<Period> periods, Collection<OrganisationUnit> sources );
 
     /**
+     * Returns values for a collection of DataElementOperands, where each operand
+     * may include a specific CategoryOptionCombo, or may speicify a null COC if
+     * all CategoryOptionCombos are to be summed.
+     *
+     * Returns values within the periods specified, for the organisation unit
+     * specified or any of the organisation unit's descendants.
+     *
+     * Returns the values mapped by period, then attribute option combo UID,
+     * then DimensionalItemObject (containing the DataElementOperand.)
+     *
+     * @param dataElementOperands the DataElementOperands.
+     * @param periods the Periods of the DataValues.
+     * @param orgUnit the root of the OrganisationUnit tree to include.
+     * @return the map of values
+     */
+    MapMapMap<Period, String, DimensionalItemObject, Double> getDataElementOperandValues(
+        Collection<DataElementOperand> dataElementOperands, Collection<Period> periods,
+        OrganisationUnit orgUnit );
+
+    /**
      * Returns all DataValues for a given DataElement, DataElementCategoryOptionCombo,
      * collection of Periods, and collection of Sources.
      * This also returns DataValues for the children (in the orgunit hierarchy) of the
@@ -171,7 +192,7 @@ public interface DataValueStore
      * @param dataElement the DataElements of the DataValues.
      * @param categoryOptionCombo the DataElementCategoryOptionCombo of the DataValues.
      * @param periods the Periods of the DataValues.
-     * @param source the root of the OrganisationUnit tree to include
+     * @param source the root of the OrganisationUnit tree to include.
      * @return a collection of all DataValues which match the given DataElement,
      *         Periods, and Sources.
      */

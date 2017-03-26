@@ -303,9 +303,7 @@ public class Predictor
     }
 
     /**
-     * Clears the generator and skipTest expressions. This can be useful, for
-     * example, before changing the validation rule period type, because the
-     * data elements allowed in the expressions depend on the period type.
+     * Clears the generator and skipTest expressions.
      */
     public void clearExpressions()
     {

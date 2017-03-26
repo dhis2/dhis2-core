@@ -29,6 +29,7 @@ package org.hisp.dhis.datavalue;
  */
 
 import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
@@ -197,22 +198,24 @@ public interface DataValueService
         Collection<Period> periods, Collection<OrganisationUnit> sources );
 
     /**
-     * Returns all DataValues for a given DataElement, DataElementCategoryOptionCombo,
-     * collection of Periods, and collection of Sources.
-     * This also returns values for all of the children of the designated org units
-     * The values returned by this
-     * function are not persisted and are typically fetched outside of the hibernation
-     * layer. If categoryOptionCombo is null, all categoryOptionCombo values are returned.
+     * Returns values for a collection of DataElementOperands, where each operand
+     * may include a specific CategoryOptionCombo, or may speicify a null COC if
+     * all CategoryOptionCombos are to be summed.
      *
-     * @param dataElement         the DataElements of the DataValues.
-     * @param categoryOptionCombo the DataElementCategoryOptionCombo of the DataValues.
-     * @param periods             the Periods of the DataValues.
-     * @param sources             the Sources of the DataValues.
-     * @return a collection of all DataValues which match the given DataElement,
-     * Periods, and Sources.
+     * Returns values within the periods specified, for the organisation unit
+     * specified or any of the organisation unit's descendants.
+     *
+     * Returns the values mapped by period, then attribute option combo UID,
+     * then DimensionalItemObject (containing the DataElementOperand.)
+     *
+     * @param dataElementOperands the DataElementOperands.
+     * @param periods the Periods of the DataValues.
+     * @param orgUnit the root of the OrganisationUnit tree to include.
+     * @return the map of values
      */
-    List<DataValue> getRecursiveDeflatedDataValues( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo,
-        Collection<Period> periods, Collection<OrganisationUnit> sources );
+    MapMapMap<Period, String, DimensionalItemObject, Double> getDataElementOperandValues(
+        Collection<DataElementOperand> dataElementOperands, Collection<Period> periods,
+        OrganisationUnit orgUnit );
 
     /**
      * Gets the number of DataValues persisted since the given number of days.

@@ -313,12 +313,19 @@ public class DefaultExpressionService
         
         if ( comboId == null )
         {
+            DataElementOperand deo = new DataElementOperand( dataElement );
+
+            if ( valueMap.containsKey( deo ) )
+            {
+                return valueMap.get( deo );
+            }
+
             Double sum = null;
             final Set<DataElementCategoryOptionCombo> optionCombos = dataElement.getCategoryOptionCombos();
 
             for ( DataElementCategoryOptionCombo optionCombo : optionCombos )
             {
-                DataElementOperand deo = new DataElementOperand( elementId, optionCombo.getUid() );
+                deo = new DataElementOperand( elementId, optionCombo.getUid() );
                 Double value = valueMap.get( deo );
 
                 if ( value != null )
@@ -422,7 +429,7 @@ public class DefaultExpressionService
 
         if ( expression != null )
         {
-            final Matcher matcher = OPTION_COMBO_OPERAND_PATTERN.matcher( expression );
+            final Matcher matcher = OPERAND_PATTERN.matcher( expression );
 
             while ( matcher.find() )
             {
@@ -432,25 +439,12 @@ public class DefaultExpressionService
                 if ( operand.getOptionComboId() != null )
                 {
                     operand.setCategoryOptionCombo( categoryService.getDataElementCategoryOptionCombo( operand.getOptionComboId() ) );                    
-                    operandsInExpression.add( operand );
                 }
+                operandsInExpression.add( operand );
             }
         }
 
         return operandsInExpression;
-    }
-
-    @Override
-    @Transactional
-    public Set<BaseDimensionalItemObject> getDataInputsInExpression( String expression )
-    {
-        Set<BaseDimensionalItemObject> results=new HashSet<BaseDimensionalItemObject>();
-
-        results.addAll( getIdObjectsInExpression( DATA_ELEMENT_TOTAL_PATTERN, expression, 
-            ( m ) -> dataElementService.getDataElement( m.group( 1 ) ) ) );
-        results.addAll( getOperandsInExpression( expression ) );
-
-        return results;
     }
 
     @Override

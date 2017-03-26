@@ -210,6 +210,9 @@ public class HibernateDbmsManager
         emptyTable( "dataapprovalworkflow" );
         emptyTable( "dataapprovallevel" );
 
+        emptyTable( "predictororgunitlevels" );
+        emptyTable( "predictor" );
+
         emptyTable( "trackedentitydatavalue" );
         emptyTable( "programstageinstance" );
         emptyTable( "programinstance" );
@@ -225,7 +228,7 @@ public class HibernateDbmsManager
         emptyTable( "expressionsampleelement" );
         emptyTable( "expressionoptioncombo" );
         emptyTable( "calculateddataelement" );
-        
+
         emptyTable( "dataelementgroupsetmembers" );
         emptyTable( "dataelementgroupsetusergroupaccesses" );
         emptyTable( "dataelementgroupset" );
@@ -244,9 +247,10 @@ public class HibernateDbmsManager
         emptyTable( "categorycombos_categories" );
         emptyTable( "categories_categoryoptions" );
 
-        emptyTable( "categoryoption_organisationunits" );        
+        emptyTable( "categoryoption_organisationunits" );
         emptyTable( "organisationunit" );
-        
+        emptyTable( "orgunitlevel" );
+
         emptyTable( "version" );
         emptyTable( "mocksource" );
         emptyTable( "period" );
