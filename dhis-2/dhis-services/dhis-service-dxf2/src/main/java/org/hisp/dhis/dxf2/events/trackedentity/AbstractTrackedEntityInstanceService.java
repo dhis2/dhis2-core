@@ -140,6 +140,12 @@ public abstract class AbstractTrackedEntityInstanceService
     }
 
     @Override
+    public TrackedEntityInstance getTrackedEntityInstance( String uid, TrackedEntityInstanceParams params )
+    {
+        return getTrackedEntityInstance( teiService.getTrackedEntityInstance( uid ), params );
+    }
+
+    @Override
     public TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance )
     {
         return getTrackedEntityInstance( entityInstance, TrackedEntityInstanceParams.TRUE );

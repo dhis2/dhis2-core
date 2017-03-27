@@ -183,7 +183,10 @@ public class TrackedEntityInstanceController
         else
         {
             Set<String> trackedEntityInstanceIds = TextUtils.splitToArray( trackedEntityInstance, TextUtils.SEMICOLON );
-            trackedEntityInstances = trackedEntityInstanceIds != null ? trackedEntityInstanceIds.stream().map( id -> trackedEntityInstanceService.getTrackedEntityInstance( id ) ).collect( Collectors.toList() ) : null;
+
+            trackedEntityInstances = trackedEntityInstanceIds != null ? trackedEntityInstanceIds.stream()
+                .map( id -> trackedEntityInstanceService.getTrackedEntityInstance( id, getTrackedEntityInstanceParams( fields ) ) )
+                .collect( Collectors.toList() ) : null;
         }
 
         if ( queryParams.isPaging() && queryParams.isTotalPages() )
@@ -201,6 +204,11 @@ public class TrackedEntityInstanceController
     private TrackedEntityInstanceParams getTrackedEntityInstanceParams( List<String> fields )
     {
         String joined = Joiner.on( "" ).join( fields );
+
+        if ( joined.contains( "*" ) )
+        {
+            return TrackedEntityInstanceParams.TRUE;
+        }
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
 
@@ -394,7 +402,8 @@ public class TrackedEntityInstanceController
             fields.add( ":all" );
         }
 
-        CollectionNode collectionNode = fieldFilterService.filter( TrackedEntityInstance.class, Lists.newArrayList( getTrackedEntityInstance( pvId ) ), fields );
+        CollectionNode collectionNode = fieldFilterService.filter( TrackedEntityInstance.class,
+            Lists.newArrayList( getTrackedEntityInstance( pvId, fields ) ), fields );
 
         RootNode rootNode = new RootNode( collectionNode.getChildren().get( 0 ) );
         rootNode.setDefaultNamespace( DxfNamespaces.DXF_2_0 );
@@ -537,15 +546,17 @@ public class TrackedEntityInstanceController
     // HELPERS
     // -------------------------------------------------------------------------
 
-    private TrackedEntityInstance getTrackedEntityInstance( String id )
+    private TrackedEntityInstance getTrackedEntityInstance( String id, List<String> fields )
         throws NotFoundException
     {
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( id );
+        TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( id,
+            getTrackedEntityInstanceParams( fields ) );
 
         if ( trackedEntityInstance == null )
         {
             throw new NotFoundException( "TrackedEntityInstance", id );
         }
+
         return trackedEntityInstance;
     }
 
