@@ -38,7 +38,6 @@ import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
 import org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager;
-import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.AttributeUtils;
 import org.hisp.dhis.user.User;

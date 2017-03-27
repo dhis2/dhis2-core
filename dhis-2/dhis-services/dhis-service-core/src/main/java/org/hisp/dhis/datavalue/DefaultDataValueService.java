@@ -33,8 +33,8 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
@@ -362,76 +362,13 @@ public class DefaultDataValueService
         return result;
     }
 
-    /**
-     * Gets deflated (non-persisted) dataValues for a dataElement, period, and sources and
-     * will get the values recursively for children of the sources if they don't exist for any
-     * periods or attribute option combos.
-     */
     @Override
-    public List<DataValue> getRecursiveDeflatedDataValues(
-        DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo,
-        Collection<Period> periods, Collection<OrganisationUnit> sources )
+    public MapMapMap<Period, String, DimensionalItemObject, Double> getDataElementOperandValues(
+        Collection<DataElementOperand> dataElementOperands, Collection<Period> periods,
+        OrganisationUnit orgUnit )
     {
-        List<DataValue> result = new ArrayList<DataValue>();
-        DataElementCategoryOptionCombo coc = categoryOptionCombo == null || categoryOptionCombo.isDefault() ?
-            null : categoryOptionCombo;
-
-        Map<Integer, Period> periodIds = new HashMap<Integer, Period>();
-        Map<Integer, OrganisationUnit> sourceIds = new HashMap<Integer, OrganisationUnit>();
-
-        for ( Period period : periods )
-        {
-            periodIds.put( period.getId(), period );
-        }
-
-        for ( OrganisationUnit source : sources )
-        {
-            sourceIds.put( source.getId(), source );
-        }
-
-        for ( OrganisationUnit source: sources )
-        {
-            List<DeflatedDataValue> dataValues =
-                dataValueStore.sumRecursiveDeflatedDataValues( dataElement, coc, periods, source );
-            
-            ListMap<Integer, Integer> period2aoc = new ListMap<Integer, Integer>();
-
-            MapMap<Integer, Integer, DataValue> accumulatedValues = new MapMap<Integer, Integer, DataValue>();
-
-            for ( DeflatedDataValue ddv : dataValues )
-            {
-                Integer periodId = ddv.getPeriodId();
-                Integer aoc = ddv.getAttributeOptionComboId();
-
-                // TODO: Since dataElement and orgUnit are fixed, and the MapMap is by period and aoc,
-                // this just sums across disaggs. This could be done in instead within
-                // sumRecursiveDeflatedDataValues by removing categoryoptioncomboid from group by
-                if ( !( period2aoc.containsValue( periodId, aoc ) ) )
-                {
-                    DataValue dv = accumulatedValues.getValue( periodId, aoc );
-                    
-                    if ( dv == null )
-                    {
-                        dv = new DataValue( dataElement, periodIds.get( periodId ), 
-                            source, null, getCategoryOptionCombo( aoc ) );
-
-                        dv.setValue( ddv.getValue() );
-                        accumulatedValues.putEntry( periodId, aoc, dv );
-
-                        result.add( dv );
-                    }
-                    else
-                    {
-                        Double value = Double.valueOf( ddv.getValue() );
-                        Double cv = Double.valueOf( dv.getValue() );
-                        Double nv = value + cv;
-                        dv.setValue( nv.toString() );
-                    }
-                }
-            }
-        }
-
-        return result;
+        return dataValueStore.getDataElementOperandValues( dataElementOperands,
+            periods, orgUnit );
     }
 
     private DataElementCategoryOptionCombo getCategoryOptionCombo( Integer id )
