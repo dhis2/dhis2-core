@@ -338,7 +338,7 @@ public class AnalyticsUtils
             dv.setStoredBy( KEY_AGG_VALUE );
             dv.setCreated( created );
             dv.setLastUpdated( created );
-                        
+
             if ( !params.isDuplicatesOnly() || !primaryKeys.add( dv.getPrimaryKey() ) )
             {
                 dvs.getDataValues().add( dv );
