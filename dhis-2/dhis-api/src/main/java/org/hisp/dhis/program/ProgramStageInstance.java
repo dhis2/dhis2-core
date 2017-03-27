@@ -34,10 +34,13 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Abyot Asalefew
@@ -64,6 +67,8 @@ public class ProgramStageInstance
     private List<MessageConversation> messageConversations = new ArrayList<>();
 
     private List<TrackedEntityComment> comments = new ArrayList<>();
+
+    private Set<TrackedEntityDataValue> dataValues = new HashSet<>();
 
     private EventStatus status = EventStatus.ACTIVE;
 
@@ -233,6 +238,16 @@ public class ProgramStageInstance
     public void setComments( List<TrackedEntityComment> comments )
     {
         this.comments = comments;
+    }
+
+    public Set<TrackedEntityDataValue> getDataValues()
+    {
+        return dataValues;
+    }
+
+    public void setDataValues( Set<TrackedEntityDataValue> dataValues )
+    {
+        this.dataValues = dataValues;
     }
 
     public EventStatus getStatus()

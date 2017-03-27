@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event;
+package org.hisp.dhis.dxf2.events;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,59 +26,78 @@ package org.hisp.dhis.dxf2.events.event;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
+import com.google.common.base.MoreObjects;
 
-@JacksonXmlRootElement( localName = "note", namespace = DxfNamespaces.DXF_2_0 )
-public class Note
+/**
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
+public class TrackedEntityInstanceParams
 {
-    private String value;
+    public static final TrackedEntityInstanceParams TRUE = new TrackedEntityInstanceParams( true, true, true );
 
-    private String storedBy;
+    public static final TrackedEntityInstanceParams FALSE = new TrackedEntityInstanceParams( false, false, false );
 
-    private String storedDate;
+    private boolean includeRelationships;
 
-    public Note()
+    private boolean includeEnrollments;
+
+    private boolean includeEvents;
+
+    public TrackedEntityInstanceParams()
     {
+    }
+
+    public TrackedEntityInstanceParams( boolean includeRelationships, boolean includeEnrollments, boolean includeEvents )
+    {
+        this.includeRelationships = includeRelationships;
+        this.includeEnrollments = includeEnrollments;
+        this.includeEvents = includeEvents;
     }
 
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getValue()
+    public boolean isIncludeRelationships()
     {
-        return value;
+        return includeRelationships;
     }
 
-    public void setValue( String value )
+    public void setIncludeRelationships( boolean includeRelationships )
     {
-        this.value = value;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getStoredBy()
-    {
-        return storedBy;
-    }
-
-    public void setStoredBy( String storedBy )
-    {
-        this.storedBy = storedBy;
+        this.includeRelationships = includeRelationships;
     }
 
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getStoredDate()
+    public boolean isIncludeEnrollments()
     {
-        return storedDate;
+        return includeEnrollments;
     }
 
-    public void setStoredDate( String storedDate )
+    public void setIncludeEnrollments( boolean includeEnrollments )
     {
-        this.storedDate = storedDate;
+        this.includeEnrollments = includeEnrollments;
+    }
+
+    @JsonProperty
+    public boolean isIncludeEvents()
+    {
+        return includeEvents;
+    }
+
+    public void setIncludeEvents( boolean includeEvents )
+    {
+        this.includeEvents = includeEvents;
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "includeRelationships", includeRelationships )
+            .add( "includeEnrollments", includeEnrollments )
+            .add( "includeEvents", includeEvents )
+            .toString();
     }
 }

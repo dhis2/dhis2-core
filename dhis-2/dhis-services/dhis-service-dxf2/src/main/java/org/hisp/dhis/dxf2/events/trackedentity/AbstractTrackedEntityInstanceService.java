@@ -36,6 +36,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
@@ -44,6 +45,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -111,15 +113,15 @@ public abstract class AbstractTrackedEntityInstanceService
     // -------------------------------------------------------------------------
 
     @Override
-    public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params )
+    public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams, TrackedEntityInstanceParams params )
     {
-        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> teis = entityInstanceService.getTrackedEntityInstances( params );
+        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> teis = entityInstanceService.getTrackedEntityInstances( queryParams );
 
         List<TrackedEntityInstance> teiItems = new ArrayList<>();
 
         for ( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance : teis )
         {
-            teiItems.add( getTrackedEntityInstance( trackedEntityInstance, false ) );
+            teiItems.add( getTrackedEntityInstance( trackedEntityInstance, params ) );
         }
 
         return teiItems;
@@ -138,13 +140,20 @@ public abstract class AbstractTrackedEntityInstanceService
     }
 
     @Override
-    public TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance )
+    public TrackedEntityInstance getTrackedEntityInstance( String uid, TrackedEntityInstanceParams params )
     {
-        return getTrackedEntityInstance( entityInstance, true );
+        return getTrackedEntityInstance( teiService.getTrackedEntityInstance( uid ), params );
     }
 
     @Override
-    public TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance, boolean includeRelationships )
+    public TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance )
+    {
+        return getTrackedEntityInstance( entityInstance, TrackedEntityInstanceParams.TRUE );
+    }
+
+    @Override
+    public TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
+        TrackedEntityInstanceParams params )
     {
         if ( entityInstance == null )
         {
@@ -159,7 +168,7 @@ public abstract class AbstractTrackedEntityInstanceService
         trackedEntityInstance.setLastUpdated( DateUtils.getLongGmtDateString( entityInstance.getLastUpdated() ) );
         trackedEntityInstance.setInactive( entityInstance.isInactive() );
 
-        if ( includeRelationships )
+        if ( params.isIncludeRelationships() )
         {
             //TODO include relationships in data model and void transactional query in for-loop
 
@@ -177,14 +186,22 @@ public abstract class AbstractTrackedEntityInstanceService
                 // we might have cases where A <=> A, so we only include the relative if the UIDs do not match
                 if ( !entityRelationship.getEntityInstanceA().getUid().equals( entityInstance.getUid() ) )
                 {
-                    relationship.setRelative( getTrackedEntityInstance( entityRelationship.getEntityInstanceA(), false ) );
+                    relationship.setRelative( getTrackedEntityInstance( entityRelationship.getEntityInstanceA(), TrackedEntityInstanceParams.FALSE ) );
                 }
                 else if ( !entityRelationship.getEntityInstanceB().getUid().equals( entityInstance.getUid() ) )
                 {
-                    relationship.setRelative( getTrackedEntityInstance( entityRelationship.getEntityInstanceB(), false ) );
+                    relationship.setRelative( getTrackedEntityInstance( entityRelationship.getEntityInstanceB(), TrackedEntityInstanceParams.FALSE ) );
                 }
 
                 trackedEntityInstance.getRelationships().add( relationship );
+            }
+        }
+
+        if ( params.isIncludeEnrollments() )
+        {
+            for ( ProgramInstance programInstance : entityInstance.getProgramInstances() )
+            {
+                trackedEntityInstance.getEnrollments().add( enrollmentService.getEnrollment( programInstance, params ) );
             }
         }
 
