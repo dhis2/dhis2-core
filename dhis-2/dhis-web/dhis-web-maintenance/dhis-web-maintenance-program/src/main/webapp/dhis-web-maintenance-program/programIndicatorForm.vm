@@ -17,7 +17,7 @@
 				#end
 				<li><a href="#expression-tab3">$i18n.getString("variables")</a></li>
 				<li><a href="#expression-tab4">$i18n.getString("constants")</a></li>
-			</ul>	
+			</ul>
 			
 			<div id="expression-tab1">
 			  <table style="width:100%">
@@ -242,9 +242,11 @@
 							<option value="value_count">$i18n.getString( "value_count" )</option>
 							<option value="zero_pos_value_count">$i18n.getString( "zero_pos_value_count" )</option>
 							#if($program.programType=='WITH_REGISTRATION')
-                                                            <option value="enrollment_date">$i18n.getString( "enrollment_date" )</option>
-                                                            <option value="enrollment_status">$i18n.getString( "enrollment_status" )</option>
-                                                        #end
+							    <option value="enrollment_date">$i18n.getString( "enrollment_date" )</option>
+							    <option value="enrollment_status">$i18n.getString( "enrollment_status" )</option>
+							#end
+                                                        <option id="program_stage_name_variable" value="program_stage_name">$i18n.getString( "program_stage_name" )</option>
+                                                        <option id="program_stage_id_variable" value="program_stage_id">$i18n.getString( "program_stage_id" )</option>
 						</select>
 					</td>
 				</tr>
