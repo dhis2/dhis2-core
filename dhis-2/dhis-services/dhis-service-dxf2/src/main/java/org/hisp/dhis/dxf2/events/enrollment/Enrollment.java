@@ -221,7 +221,7 @@ public class Enrollment
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "attributes", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "events", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<Event> getEvents()
     {
