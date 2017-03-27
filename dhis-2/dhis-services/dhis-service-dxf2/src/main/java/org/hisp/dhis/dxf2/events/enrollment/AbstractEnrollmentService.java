@@ -40,6 +40,7 @@ import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Note;
@@ -163,6 +164,12 @@ public abstract class AbstractEnrollmentService
     @Override
     public Enrollment getEnrollment( ProgramInstance programInstance )
     {
+        return getEnrollment( programInstance, TrackedEntityInstanceParams.FALSE );
+    }
+
+    @Override
+    public Enrollment getEnrollment( ProgramInstance programInstance, TrackedEntityInstanceParams params )
+    {
         Enrollment enrollment = new Enrollment();
 
         enrollment.setEnrollment( programInstance.getUid() );
@@ -234,9 +241,12 @@ public abstract class AbstractEnrollmentService
             enrollment.getNotes().add( note );
         }
 
-        for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
+        if ( params.isIncludeEvents() )
         {
-            enrollment.getEvents().add( eventService.getEvent( programStageInstance ) );
+            for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
+            {
+                enrollment.getEvents().add( eventService.getEvent( programStageInstance ) );
+            }
         }
 
         return enrollment;

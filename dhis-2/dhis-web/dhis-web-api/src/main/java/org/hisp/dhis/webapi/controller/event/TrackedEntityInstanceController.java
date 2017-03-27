@@ -28,6 +28,7 @@ package org.hisp.dhis.webapi.controller.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,8 +41,8 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -153,8 +154,7 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
         @RequestParam( required = false ) boolean skipPaging,
-        @RequestParam( required = false ) String order,
-        TrackedEntityInstanceParams params ) throws Exception
+        @RequestParam( required = false ) String order ) throws Exception
     {
         programEnrollmentStartDate = ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
         programEnrollmentEndDate = ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
@@ -177,7 +177,8 @@ public class TrackedEntityInstanceController
 
         if ( trackedEntityInstance == null )
         {
-            trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( queryParams, params );
+            trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
+                getTrackedEntityInstanceParams( fields ) );
         }
         else
         {
@@ -195,6 +196,30 @@ public class TrackedEntityInstanceController
         rootNode.addChild( fieldFilterService.filter( TrackedEntityInstance.class, trackedEntityInstances, fields ) );
 
         return rootNode;
+    }
+
+    private TrackedEntityInstanceParams getTrackedEntityInstanceParams( List<String> fields )
+    {
+        String joined = Joiner.on( "" ).join( fields );
+
+        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+
+        if ( joined.contains( "relationships" ) )
+        {
+            params.setIncludeRelationships( true );
+        }
+
+        if ( joined.contains( "enrollments" ) )
+        {
+            params.setIncludeEnrollments( true );
+        }
+
+        if ( joined.contains( "events" ) )
+        {
+            params.setIncludeEvents( true );
+        }
+
+        return params;
     }
 
     @RequestMapping( value = "/query", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_JAVASCRIPT } )

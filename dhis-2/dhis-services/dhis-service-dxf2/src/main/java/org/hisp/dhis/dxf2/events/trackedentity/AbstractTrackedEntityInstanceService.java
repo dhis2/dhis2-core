@@ -195,7 +195,7 @@ public abstract class AbstractTrackedEntityInstanceService
         {
             for ( ProgramInstance programInstance : entityInstance.getProgramInstances() )
             {
-                trackedEntityInstance.getEnrollments().add( enrollmentService.getEnrollment( programInstance ) );
+                trackedEntityInstance.getEnrollments().add( enrollmentService.getEnrollment( programInstance, params ) );
             }
         }
 
