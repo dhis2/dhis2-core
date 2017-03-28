@@ -46,6 +46,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -101,6 +102,9 @@ public abstract class AbstractTrackedEntityInstanceService
 
     @Autowired
     protected EnrollmentService enrollmentService;
+
+    @Autowired
+    protected ProgramInstanceService programInstanceService;
 
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
@@ -329,16 +333,37 @@ public abstract class AbstractTrackedEntityInstanceService
         importSummary.setReference( entityInstance.getUid() );
         importSummary.getImportCount().incrementImported();
 
-        for ( Enrollment enrollment : trackedEntityInstance.getEnrollments() )
-        {
-            enrollment.setTrackedEntity( trackedEntityInstance.getTrackedEntity() );
-            enrollment.setTrackedEntityInstance( entityInstance.getUid() );
-        }
-
-        ImportSummaries importSummaries = enrollmentService.addEnrollments( trackedEntityInstance.getEnrollments(), importOptions );
-        importSummary.setEnrollments( importSummaries );
+        importOptions.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        importSummary.setEnrollments( handleEnrollments( trackedEntityInstance, entityInstance, importOptions ) );
 
         return importSummary;
+    }
+
+    private ImportSummaries handleEnrollments( TrackedEntityInstance trackedEntityInstanceDTO, org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions )
+    {
+        List<Enrollment> create = new ArrayList<>();
+        List<Enrollment> update = new ArrayList<>();
+
+        for ( Enrollment enrollment : trackedEntityInstanceDTO.getEnrollments() )
+        {
+            enrollment.setTrackedEntity( trackedEntityInstanceDTO.getTrackedEntity() );
+            enrollment.setTrackedEntityInstance( trackedEntityInstance.getUid() );
+
+            if ( !programInstanceService.programInstanceExists( enrollment.getEnrollment() ) )
+            {
+                create.add( enrollment );
+            }
+            else
+            {
+                update.add( enrollment );
+            }
+        }
+
+        ImportSummaries importSummaries = new ImportSummaries();
+        importSummaries.addImportSummaries( enrollmentService.addEnrollments( create, importOptions ) );
+        importSummaries.addImportSummaries( enrollmentService.updateEnrollments( update, importOptions ) );
+
+        return importSummaries;
     }
 
     // -------------------------------------------------------------------------
@@ -428,15 +453,8 @@ public abstract class AbstractTrackedEntityInstanceService
         importSummary.setReference( entityInstance.getUid() );
         importSummary.getImportCount().incrementUpdated();
 
-        for ( Enrollment enrollment : trackedEntityInstance.getEnrollments() )
-        {
-            enrollment.setTrackedEntity( trackedEntityInstance.getTrackedEntity() );
-            enrollment.setTrackedEntityInstance( entityInstance.getUid() );
-        }
-
         importOptions.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        ImportSummaries importSummaries = enrollmentService.addEnrollments( trackedEntityInstance.getEnrollments(), importOptions );
-        importSummary.setEnrollments( importSummaries );
+        importSummary.setEnrollments( handleEnrollments( trackedEntityInstance, entityInstance, importOptions ) );
 
         return importSummary;
     }
