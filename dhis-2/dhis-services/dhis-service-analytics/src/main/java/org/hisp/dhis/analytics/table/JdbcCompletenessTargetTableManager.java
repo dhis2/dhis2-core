@@ -195,12 +195,6 @@ public class JdbcCompletenessTargetTableManager
         
         return filterDimensionColumns( columns );
     }
-
-    @Override
-    public List<Integer> getDataYears( Date earliest )
-    {
-        return null; // Not relevant
-    }
     
     @Override
     @Async

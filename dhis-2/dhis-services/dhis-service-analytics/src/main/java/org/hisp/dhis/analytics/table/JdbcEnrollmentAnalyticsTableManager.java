@@ -137,12 +137,6 @@ public class JdbcEnrollmentAnalyticsTableManager
     }
 
     @Override
-    public List<Integer> getDataYears( Date earliest )
-    {
-        return null;
-    }
-
-    @Override
     protected List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTable table )
     {
         final String dbl = statementBuilder.getDoubleColumnType();
