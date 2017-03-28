@@ -76,6 +76,8 @@ public class ProgramIndicator
     public static final String VAR_ENROLLMENT_COUNT = "enrollment_count";
     public static final String VAR_TEI_COUNT = "tei_count";
     public static final String VAR_COMPLETED_DATE = "completed_date";
+    public static final String VAR_PROGRAM_STAGE_NAME = "program_stage_name";
+    public static final String VAR_PROGRAM_STAGE_ID = "program_stage_id";
 
     public static final String EXPRESSION_PREFIX_REGEXP = KEY_DATAELEMENT + "|" + KEY_ATTRIBUTE + "|" + KEY_PROGRAM_VARIABLE + "|" + KEY_CONSTANT;
     public static final String EXPRESSION_REGEXP = "(" + EXPRESSION_PREFIX_REGEXP + ")\\{([\\w\\_]+)" + SEPARATOR_ID + "?(\\w*)\\}";
