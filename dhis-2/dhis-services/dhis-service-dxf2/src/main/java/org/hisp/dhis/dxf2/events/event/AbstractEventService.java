@@ -359,7 +359,7 @@ public abstract class AbstractEventService
             {
                 if ( event.getEvent() != null )
                 {
-                    programStageInstance = manager.getObject( ProgramStageInstance.class, importOptions.getIdSchemes().getProgramStageInstanceIdScheme(), event.getEvent());
+                    programStageInstance = manager.getObject( ProgramStageInstance.class, importOptions.getIdSchemes().getProgramStageInstanceIdScheme(), event.getEvent() );
                     if ( programStageInstance == null )
                     {
                         if ( !CodeGenerator.isValidCode( event.getEvent() ) )
@@ -399,7 +399,7 @@ public abstract class AbstractEventService
 
             if ( event.getEvent() != null )
             {
-                programStageInstance = manager.getObject( ProgramStageInstance.class, importOptions.getIdSchemes().getProgramStageInstanceIdScheme(), event.getEvent());
+                programStageInstance = manager.getObject( ProgramStageInstance.class, importOptions.getIdSchemes().getProgramStageInstanceIdScheme(), event.getEvent() );
 
                 if ( programStageInstance == null )
                 {
@@ -1221,6 +1221,7 @@ public abstract class AbstractEventService
         {
             importSummary.getConflicts().add( new ImportConflict( dataElement.getUid(), status ) );
             importSummary.getImportCount().incrementIgnored();
+
             return false;
         }
 
@@ -1408,12 +1409,12 @@ public abstract class AbstractEventService
         ImportOptions importOptions )
     {
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.UID ))
+        if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.UID ) )
         {
             programStageInstance.setUid( CodeGenerator.isValidCode( programStageInstanceIdentifier ) ? programStageInstanceIdentifier
                 : CodeGenerator.generateCode() );
         }
-        else if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.CODE ))
+        else if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.CODE ) )
         {
             programStageInstance.setUid( CodeGenerator.generateCode() );
             programStageInstance.setCode( programStageInstanceIdentifier );
