@@ -418,7 +418,7 @@ public class TrackedEntityInstanceController
 
     @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_INSTANCE_ADD')" )
-    public void postTrackedEntityInstanceXml( @RequestParam( defaultValue = "CREATE" ) ImportStrategy strategy,
+    public void postTrackedEntityInstanceXml( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
         importOptions.setStrategy( strategy );
@@ -459,7 +459,7 @@ public class TrackedEntityInstanceController
 
     @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_INSTANCE_ADD')" )
-    public void postTrackedEntityInstanceJson( @RequestParam( defaultValue = "CREATE" ) ImportStrategy strategy,
+    public void postTrackedEntityInstanceJson( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
         importOptions.setStrategy( strategy );

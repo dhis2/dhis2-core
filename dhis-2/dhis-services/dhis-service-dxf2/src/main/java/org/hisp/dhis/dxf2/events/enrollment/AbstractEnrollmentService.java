@@ -42,6 +42,7 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.event.Coordinate;
+import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
@@ -52,6 +53,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -59,6 +61,7 @@ import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
@@ -88,6 +91,9 @@ public abstract class AbstractEnrollmentService
 {
     @Autowired
     protected ProgramInstanceService programInstanceService;
+
+    @Autowired
+    protected ProgramStageInstanceService programStageInstanceService;
 
     @Autowired
     protected ProgramService programService;
@@ -394,6 +400,9 @@ public abstract class AbstractEnrollmentService
         importSummary.setReference( programInstance.getUid() );
         importSummary.getImportCount().incrementImported();
 
+        importOptions.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        importSummary.setEvents( handleEvents( enrollment, programInstance, importOptions ) );
+
         return importSummary;
     }
 
@@ -518,6 +527,9 @@ public abstract class AbstractEnrollmentService
         importSummary.setReference( enrollment.getEnrollment() );
         importSummary.getImportCount().incrementUpdated();
 
+        importOptions.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        importSummary.setEvents( handleEvents( enrollment, programInstance, importOptions ) );
+
         return importSummary;
     }
 
@@ -609,6 +621,33 @@ public abstract class AbstractEnrollmentService
     // -------------------------------------------------------------------------
     // HELPERS
     // -------------------------------------------------------------------------
+
+    private ImportSummaries handleEvents( Enrollment enrollment, ProgramInstance programInstance, ImportOptions importOptions )
+    {
+        List<Event> create = new ArrayList<>();
+        List<Event> update = new ArrayList<>();
+
+        for ( Event event : enrollment.getEvents() )
+        {
+            event.setEnrollment( enrollment.getEnrollment() );
+            event.setProgram( programInstance.getProgram().getUid() );
+
+            if ( !programStageInstanceService.programStageInstanceExists( event.getEvent() ) )
+            {
+                create.add( event );
+            }
+            else
+            {
+                update.add( event );
+            }
+        }
+
+        ImportSummaries importSummaries = new ImportSummaries();
+        importSummaries.addImportSummaries( eventService.addEvents( create, importOptions ) );
+        importSummaries.addImportSummaries( eventService.updateEvents( update, false ) );
+
+        return importSummaries;
+    }
 
     private List<ImportConflict> checkAttributes( Enrollment enrollment, ImportOptions importOptions )
     {
