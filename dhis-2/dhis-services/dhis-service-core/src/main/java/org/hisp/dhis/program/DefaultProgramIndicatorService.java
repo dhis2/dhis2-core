@@ -631,6 +631,28 @@ public class DefaultProgramIndicatorService
         {
             return "completeddate";
         }
+        else if ( ProgramIndicator.VAR_PROGRAM_STAGE_NAME.equals( var ) )
+        {
+            if ( AnalyticsType.EVENT == analyticsType )
+            {
+                return "(select name from programstage where uid = ps)";
+            }
+            else
+            {
+                return "''";
+            }
+        }
+        else if ( ProgramIndicator.VAR_PROGRAM_STAGE_ID.equals( var ) )
+        {
+            if ( AnalyticsType.EVENT == analyticsType )
+            {
+                return "ps";
+            }
+            else
+            {
+                return "''";
+            }
+        }
 
         return null;
     }
