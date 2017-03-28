@@ -339,33 +339,6 @@ public abstract class AbstractTrackedEntityInstanceService
         return importSummary;
     }
 
-    private ImportSummaries handleEnrollments( TrackedEntityInstance trackedEntityInstanceDTO, org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions )
-    {
-        List<Enrollment> create = new ArrayList<>();
-        List<Enrollment> update = new ArrayList<>();
-
-        for ( Enrollment enrollment : trackedEntityInstanceDTO.getEnrollments() )
-        {
-            enrollment.setTrackedEntity( trackedEntityInstanceDTO.getTrackedEntity() );
-            enrollment.setTrackedEntityInstance( trackedEntityInstance.getUid() );
-
-            if ( !programInstanceService.programInstanceExists( enrollment.getEnrollment() ) )
-            {
-                create.add( enrollment );
-            }
-            else
-            {
-                update.add( enrollment );
-            }
-        }
-
-        ImportSummaries importSummaries = new ImportSummaries();
-        importSummaries.addImportSummaries( enrollmentService.addEnrollments( create, importOptions ) );
-        importSummaries.addImportSummaries( enrollmentService.updateEnrollments( update, importOptions ) );
-
-        return importSummaries;
-    }
-
     // -------------------------------------------------------------------------
     // UPDATE
     // -------------------------------------------------------------------------
@@ -501,6 +474,33 @@ public abstract class AbstractTrackedEntityInstanceService
     // -------------------------------------------------------------------------
     // HELPERS
     // -------------------------------------------------------------------------
+
+    private ImportSummaries handleEnrollments( TrackedEntityInstance trackedEntityInstanceDTO, org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions )
+    {
+        List<Enrollment> create = new ArrayList<>();
+        List<Enrollment> update = new ArrayList<>();
+
+        for ( Enrollment enrollment : trackedEntityInstanceDTO.getEnrollments() )
+        {
+            enrollment.setTrackedEntity( trackedEntityInstanceDTO.getTrackedEntity() );
+            enrollment.setTrackedEntityInstance( trackedEntityInstance.getUid() );
+
+            if ( !programInstanceService.programInstanceExists( enrollment.getEnrollment() ) )
+            {
+                create.add( enrollment );
+            }
+            else
+            {
+                update.add( enrollment );
+            }
+        }
+
+        ImportSummaries importSummaries = new ImportSummaries();
+        importSummaries.addImportSummaries( enrollmentService.addEnrollments( create, importOptions ) );
+        importSummaries.addImportSummaries( enrollmentService.updateEnrollments( update, importOptions ) );
+
+        return importSummaries;
+    }
 
     private void updateAttributeValues( TrackedEntityInstance trackedEntityInstance, org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance )
     {
