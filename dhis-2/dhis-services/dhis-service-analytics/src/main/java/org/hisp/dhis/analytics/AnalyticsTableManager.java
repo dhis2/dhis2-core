@@ -119,13 +119,6 @@ public interface AnalyticsTableManager
     void analyzeTables( List<AnalyticsTable> tables );
     
     /**
-     * Returns all years for which it exists data values.
-     * 
-     * @param earliest the earliest date to include as data year, null if no restriction.
-     */
-    List<Integer> getDataYears( Date earliest );
-    
-    /**
      * Drops the given table.
      * 
      * @param tableName the name of the table to drop.

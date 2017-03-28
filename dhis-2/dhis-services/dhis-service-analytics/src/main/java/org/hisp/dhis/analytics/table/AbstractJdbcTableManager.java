@@ -126,38 +126,9 @@ public abstract class AbstractJdbcTableManager
 
     @Override
     @Transactional
-    public List<AnalyticsTable> getTables( Date earliest )
-    {
-        log.info( "Get tables using earliest: " + earliest );
-
-        return getTables( getDataYears( earliest ) );
-    }
-
-    @Override
-    @Transactional
     public List<AnalyticsTable> getAllTables()
     {
         return getTables( ListUtils.getClosedOpenList( 1500, 2100 ) );
-    }
-    
-    private List<AnalyticsTable> getTables( List<Integer> dataYears )
-    {
-        List<AnalyticsTable> tables = new UniqueArrayList<>();
-        
-        Calendar calendar = PeriodType.getCalendar();
-
-        Collections.sort( dataYears );
-        
-        String baseName = getTableName();
-        
-        for ( Integer year : dataYears )
-        {
-            Period period = PartitionUtils.getPeriod( calendar, year );
-            
-            tables.add( new AnalyticsTable( baseName, getDimensionColumns( null ), period ) );
-        }
-
-        return tables;
     }
     
     @Override
@@ -302,6 +273,31 @@ public abstract class AbstractJdbcTableManager
         {
             log.debug( ex.getMessage() );
         }
+    }
+
+    /**
+     * Generates a list of {@link AnalyticsTable} based on a list of years with data.
+     * 
+     * @param dataYears the list of years of data.
+     */
+    protected List<AnalyticsTable> getTables( List<Integer> dataYears )
+    {
+        List<AnalyticsTable> tables = new UniqueArrayList<>();
+        
+        Calendar calendar = PeriodType.getCalendar();
+
+        Collections.sort( dataYears );
+        
+        String baseName = getTableName();
+        
+        for ( Integer year : dataYears )
+        {
+            Period period = PartitionUtils.getPeriod( calendar, year );
+            
+            tables.add( new AnalyticsTable( baseName, getDimensionColumns( null ), period ) );
+        }
+
+        return tables;
     }
     
     /**
