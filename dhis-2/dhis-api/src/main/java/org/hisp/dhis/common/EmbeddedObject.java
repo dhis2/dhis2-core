@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,27 +28,16 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.legend.Legend;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-
 /**
+ * Marker interface for marking an object to not be treated as a id object (even
+ * if the class itself implements id object), this object will not be treated as
+ * normal metadata (no refs etc) but instead need to be contained in the entity
+ * that owns it.
+ * <p>
+ * Embedded objects should also always be implemented as cascade="delete-all-orphan".
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class LegendSchemaDescriptor implements SchemaDescriptor
+public interface EmbeddedObject
 {
-    public static final String SINGULAR = "legend";
-
-    public static final String PLURAL = "legends";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( Legend.class, SINGULAR, PLURAL );
-        schema.setMetadata( false );
-
-        return schema;
-    }
 }

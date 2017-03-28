@@ -32,83 +32,53 @@ import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author Lars Helge Overland
  */
-public class LegendServiceTest
+public class LegendSetServiceTest
     extends DhisSpringTest
 {
     @Autowired
-    private LegendService legendService;
+    private LegendSetService legendSetService;
 
     private Legend legendA;
     private Legend legendB;
-    
+
     private LegendSet legendSetA;
-    
-    @Test
-    public void testAddGetLegend()
-    {
-        legendA = createLegend( 'A', 0d, 10d );
-        legendB = createLegend( 'B', 0d, 10d );
-        
-        int idA = legendService.addLegend( legendA );
-        int idB = legendService.addLegend( legendB );
-        
-        assertEquals( legendA, legendService.getLegend( idA ) );
-        assertEquals( legendB, legendService.getLegend( idB ) );
-    }
-    
-    @Test
-    public void testDeleteLegend()
-    {
-        legendA = createLegend( 'A', 0d, 10d );
 
-        int idA = legendService.addLegend( legendA );
-
-        legendService.deleteLegend( legendA );
-
-        assertNull( legendService.getLegend( idA ) );
-    }
-    
     @Test
     public void testAddGetLegendSet()
     {
         legendA = createLegend( 'A', 0d, 10d );
         legendB = createLegend( 'B', 0d, 10d );
-        
-        legendService.addLegend( legendA );
-        legendService.addLegend( legendB );
-        
+
         legendSetA = createLegendSet( 'A' );
         legendSetA.getLegends().add( legendA );
         legendSetA.getLegends().add( legendB );
-        
-        int idA = legendService.addLegendSet( legendSetA );
-        
-        assertEquals( legendSetA, legendService.getLegendSet( idA ) );
-        assertEquals( 2, legendService.getLegendSet( idA ).getLegends().size() );
+
+        int idA = legendSetService.addLegendSet( legendSetA );
+
+        assertEquals( legendSetA, legendSetService.getLegendSet( idA ) );
+        assertEquals( 2, legendSetService.getLegendSet( idA ).getLegends().size() );
     }
-    
+
     @Test
     public void testDeleteLegendSet()
     {
         legendA = createLegend( 'A', 0d, 10d );
         legendB = createLegend( 'B', 0d, 10d );
 
-        legendService.addLegend( legendA );
-        legendService.addLegend( legendB );
-
         legendSetA = createLegendSet( 'A' );
         legendSetA.getLegends().add( legendA );
         legendSetA.getLegends().add( legendB );
 
-        int idA = legendService.addLegendSet( legendSetA );
+        int idA = legendSetService.addLegendSet( legendSetA );
 
-        legendService.deleteLegendSet( legendSetA );
+        legendSetService.deleteLegendSet( legendSetA );
 
-        assertNull( legendService.getLegendSet( idA ) );
-    }   
+        assertNull( legendSetService.getLegendSet( idA ) );
+    }
 }

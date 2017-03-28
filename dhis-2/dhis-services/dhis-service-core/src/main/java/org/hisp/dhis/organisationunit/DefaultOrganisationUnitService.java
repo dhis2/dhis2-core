@@ -55,6 +55,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 
@@ -368,6 +369,12 @@ public class DefaultOrganisationUnitService
         }
 
         return organisationUnitStore.getOrganisationUnits( params );
+    }
+
+    @Override
+    public List<OrganisationUnit> getOrganisationUnitsAtOrgUnitLevels( Collection<OrganisationUnitLevel> levels, Collection<OrganisationUnit> parents )
+    {
+        return getOrganisationUnitsAtLevels( levels.stream().map( l -> l.getLevel() ).collect( Collectors.toList() ), parents );
     }
 
     @Override

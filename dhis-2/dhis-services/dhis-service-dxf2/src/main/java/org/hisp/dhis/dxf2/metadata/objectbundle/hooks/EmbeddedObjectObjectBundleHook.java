@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  *
  */
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.schema.Property;
@@ -40,7 +41,7 @@ import java.util.Collection;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class LinkObjectObjectBundleHook
+public class EmbeddedObjectObjectBundleHook
     extends AbstractObjectBundleHook
 {
     @Override
@@ -48,12 +49,12 @@ public class LinkObjectObjectBundleHook
     {
         Schema schema = schemaService.getDynamicSchema( object.getClass() );
 
-        if ( schema == null || schema.getLinkObjectProperties().isEmpty() )
+        if ( schema == null || schema.getEmbeddedObjectProperties().isEmpty() )
         {
             return;
         }
 
-        connectLinkObjects( object, bundle, schema.getLinkObjectProperties().values() );
+        handleEmbeddedObjects( object, bundle, schema.getEmbeddedObjectProperties().values() );
     }
 
     @Override
@@ -61,18 +62,18 @@ public class LinkObjectObjectBundleHook
     {
         Schema schema = schemaService.getDynamicSchema( object.getClass() );
 
-        if ( schema == null || schema.getLinkObjectProperties().isEmpty() )
+        if ( schema == null || schema.getEmbeddedObjectProperties().isEmpty() )
         {
             return;
         }
 
-        Collection<Property> properties = schema.getLinkObjectProperties().values();
+        Collection<Property> properties = schema.getEmbeddedObjectProperties().values();
 
-        clearLinkObjects( persistedObject, properties );
-        connectLinkObjects( object, bundle, properties );
+        clearEmbeddedObjects( persistedObject, properties );
+        handleEmbeddedObjects( object, bundle, properties );
     }
 
-    private <T extends IdentifiableObject> void clearLinkObjects( T object, Collection<Property> properties )
+    private <T extends IdentifiableObject> void clearEmbeddedObjects( T object, Collection<Property> properties )
     {
         for ( Property property : properties )
         {
@@ -89,18 +90,32 @@ public class LinkObjectObjectBundleHook
         sessionFactory.getCurrentSession().flush();
     }
 
-    private <T extends IdentifiableObject> void connectLinkObjects( T object, ObjectBundle bundle, Collection<Property> properties )
+    private <T extends IdentifiableObject> void handleEmbeddedObjects( T object, ObjectBundle bundle, Collection<Property> properties )
     {
         for ( Property property : properties )
         {
             if ( property.isCollection() )
             {
                 Collection<?> objects = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
-                objects.forEach( o -> preheatService.connectReferences( o, bundle.getPreheat(), bundle.getPreheatIdentifier() ) );
+                objects.forEach( o ->
+                {
+                    if ( property.isIdentifiableObject() )
+                    {
+                        ((BaseIdentifiableObject) o).setAutoFields();
+                    }
+
+                    preheatService.connectReferences( o, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+                } );
             }
             else
             {
                 Object o = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+
+                if ( property.isIdentifiableObject() )
+                {
+                    ((BaseIdentifiableObject) o).setAutoFields();
+                }
+
                 preheatService.connectReferences( o, bundle.getPreheat(), bundle.getPreheatIdentifier() );
             }
         }

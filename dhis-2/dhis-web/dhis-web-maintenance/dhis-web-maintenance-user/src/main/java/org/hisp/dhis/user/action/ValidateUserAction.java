@@ -29,18 +29,18 @@ package org.hisp.dhis.user.action;
  */
 
 import com.opensymphony.xwork2.Action;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.*;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashMap;
-import java.util.Map;
+import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.user.CredentialsInfo;
+import org.hisp.dhis.user.PasswordValidationResult;
+import org.hisp.dhis.user.PasswordValidationService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: ValidateUserAction.java 3816 2007-11-02 23:00:19Z larshelg $
  */
 public class ValidateUserAction
     implements Action
@@ -110,13 +110,6 @@ public class ValidateUserAction
     public void setRawPassword( String rawPassword )
     {
         this.rawPassword = rawPassword;
-    }
-
-    private boolean newUser;
-
-    public void setNewUser(  boolean newUser)
-    {
-        this.newUser = newUser;
     }
 
     private String email;

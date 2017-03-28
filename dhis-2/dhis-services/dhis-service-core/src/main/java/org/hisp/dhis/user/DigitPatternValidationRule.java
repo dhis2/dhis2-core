@@ -1,6 +1,5 @@
 package org.hisp.dhis.user;
 
-import java.util.Map;
 import java.util.regex.Pattern;
 
 /**

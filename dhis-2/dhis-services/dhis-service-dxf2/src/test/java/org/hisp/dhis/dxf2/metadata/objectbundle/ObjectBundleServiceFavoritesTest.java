@@ -36,7 +36,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.render.RenderFormat;
@@ -168,7 +167,7 @@ public class ObjectBundleServiceFavoritesTest
     }
 
     @Test
-    public void testCreateLegends() throws IOException
+    public void testCreateLegendSets() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/favorites/legends.json" ).getInputStream(), RenderFormat.JSON );
@@ -184,10 +183,8 @@ public class ObjectBundleServiceFavoritesTest
         objectBundleService.commit( bundle );
 
         List<LegendSet> legendSets = manager.getAll( LegendSet.class );
-        List<Legend> legends = manager.getAll( Legend.class );
 
         assertEquals( 1, legendSets.size() );
-        assertEquals( 7, legends.size() );
 
         LegendSet legendSet = legendSets.get( 0 );
 
@@ -197,7 +194,7 @@ public class ObjectBundleServiceFavoritesTest
     }
 
     @Test
-    public void testDeleteLegend() throws IOException
+    public void testDeleteLegendSet() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/favorites/legends.json" ).getInputStream(), RenderFormat.JSON );
@@ -213,10 +210,7 @@ public class ObjectBundleServiceFavoritesTest
         objectBundleService.commit( bundle );
 
         List<LegendSet> legendSets = manager.getAll( LegendSet.class );
-        List<Legend> legends = manager.getAll( Legend.class );
-
         assertEquals( 1, legendSets.size() );
-        assertEquals( 7, legends.size() );
 
         LegendSet legendSet = legendSets.get( 0 );
 
@@ -227,9 +221,6 @@ public class ObjectBundleServiceFavoritesTest
         manager.delete( legendSet );
 
         legendSets = manager.getAll( LegendSet.class );
-        legends = manager.getAll( Legend.class );
-
         assertTrue( legendSets.isEmpty() );
-        assertTrue( legends.isEmpty() );
     }
 }

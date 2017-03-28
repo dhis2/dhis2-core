@@ -34,8 +34,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.LinkObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.springframework.core.Ordered;
@@ -166,9 +166,9 @@ public class Property implements Ordered, Klass
     private boolean nameableObject;
 
     /**
-     * Does this class implement {@link org.hisp.dhis.common.LinkObject} ?
+     * Does this class implement {@link EmbeddedObject} ?
      */
-    private boolean linkObject;
+    private boolean embeddedObject;
 
     /**
      * Can this property be read.
@@ -283,7 +283,7 @@ public class Property implements Ordered, Klass
     {
         this.identifiableObject = IdentifiableObject.class.isAssignableFrom( klass );
         this.nameableObject = NameableObject.class.isAssignableFrom( klass );
-        this.linkObject = LinkObject.class.isAssignableFrom( klass );
+        this.embeddedObject = EmbeddedObject.class.isAssignableFrom( klass );
         this.klass = klass;
     }
 
@@ -513,14 +513,14 @@ public class Property implements Ordered, Klass
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLinkObject()
+    public boolean isEmbeddedObject()
     {
-        return linkObject;
+        return embeddedObject;
     }
 
-    public void setLinkObject( boolean linkObject )
+    public void setEmbeddedObject( boolean embeddedObject )
     {
-        this.linkObject = linkObject;
+        this.embeddedObject = embeddedObject;
     }
 
     @JsonProperty
