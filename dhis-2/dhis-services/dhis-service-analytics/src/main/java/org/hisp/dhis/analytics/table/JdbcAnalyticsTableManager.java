@@ -48,6 +48,7 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -86,6 +87,15 @@ public class JdbcAnalyticsTableManager
     public AnalyticsTableType getAnalyticsTableType()
     {
         return AnalyticsTableType.DATA_VALUE;
+    }
+
+    @Override
+    @Transactional
+    public List<AnalyticsTable> getTables( Date earliest )
+    {
+        log.info( "Get tables using earliest: " + earliest );
+
+        return getTables( getDataYears( earliest ) );
     }
     
     @Override
@@ -380,8 +390,7 @@ public class JdbcAnalyticsTableManager
         return filterDimensionColumns( columns );
     }
 
-    @Override
-    public List<Integer> getDataYears( Date earliest )
+    private List<Integer> getDataYears( Date earliest )
     {
         String sql =
             "select distinct(extract(year from pe.startdate)) " +

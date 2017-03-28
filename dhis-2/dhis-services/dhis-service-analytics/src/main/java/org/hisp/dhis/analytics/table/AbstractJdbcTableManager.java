@@ -57,7 +57,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -127,37 +126,6 @@ public abstract class AbstractJdbcTableManager
     @Override
     public void preCreateTables()
     {
-    }
-    
-    @Override
-    @Transactional
-    public List<AnalyticsTable> getTables( Date earliest )
-    {
-        log.info( "Get tables using earliest: " + earliest );
-
-        return getTables( getDataYears( earliest ) );
-    }
-    
-    private List<AnalyticsTable> getTables( List<Integer> dataYears )
-    {
-        List<AnalyticsTable> tables = new UniqueArrayList<>();
-        
-        Calendar calendar = PeriodType.getCalendar();
-
-        Collections.sort( dataYears );
-        
-        String baseName = getAnalyticsTableType().getTableName();
-        
-        for ( Integer year : dataYears )
-        {
-            Period period = PartitionUtils.getPeriod( calendar, year );
-            
-            AnalyticsTable table = new AnalyticsTable( baseName, getDimensionColumns( null ), period );
-            
-            tables.add( table );
-        }
-
-        return tables;
     }
     
     @Override
@@ -326,6 +294,33 @@ public abstract class AbstractJdbcTableManager
         {
             log.debug( ex.getMessage() );
         }
+    }
+    
+    /**
+     * Generates a list of {@link AnalyticsTable} based on a list of years with data.
+     * 
+     * @param dataYears the list of years of data.
+     */
+    protected List<AnalyticsTable> getTables( List<Integer> dataYears )
+    {
+        List<AnalyticsTable> tables = new UniqueArrayList<>();
+        
+        Calendar calendar = PeriodType.getCalendar();
+
+        Collections.sort( dataYears );
+        
+        String baseName = getAnalyticsTableType().getTableName();
+        
+        for ( Integer year : dataYears )
+        {
+            Period period = PartitionUtils.getPeriod( calendar, year );
+            
+            AnalyticsTable table = new AnalyticsTable( baseName, getDimensionColumns( null ), period );
+            
+            tables.add( table );
+        }
+
+        return tables;
     }
     
     /**
