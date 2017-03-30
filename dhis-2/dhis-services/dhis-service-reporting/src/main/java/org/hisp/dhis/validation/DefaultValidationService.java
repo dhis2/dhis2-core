@@ -1,5 +1,33 @@
 package org.hisp.dhis.validation;
 
+/*
+ * Copyright (c) 2004-2016, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
@@ -35,34 +63,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.DimensionItemType.*;
-
-/*
- * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
- * specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 
 /**
  * @author Jim Grace
@@ -106,7 +106,10 @@ public class DefaultValidationService
 
     private CurrentUserService currentUserService;
 
-
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
+    }
 
     // -------------------------------------------------------------------------
     // ValidationRule business logic
@@ -230,9 +233,8 @@ public class DefaultValidationService
 
     /**
      * Get the current and most recent periods to use when performing validation
-     * for generating notifications (previously 'alerts').
-     * <p>
-     * The periods are filtered against existing (persisted) periods.
+     * for generating notifications (previously 'alerts'). The periods are 
+     * filtered against existing (persisted) periods.
      * <p>
      * TODO Consider:
      * This method assumes that the last successful validation run was one day ago.
@@ -254,29 +256,9 @@ public class DefaultValidationService
     }
 
     /**
-     * Formats and sets name on the period of each result.
-     *
-     * @param results the collection of validation results.
-     * @param format  the i18n format.
-     */
-    private void formatPeriods( Collection<ValidationResult> results, I18nFormat format )
-    {
-        if ( format != null )
-        {
-            for ( ValidationResult result : results )
-            {
-                if ( result != null && result.getPeriod() != null )
-                {
-                    result.getPeriod().setName( format.formatPeriod( result.getPeriod() ) );
-                }
-            }
-        }
-    }
-
-    /**
-     * Gets the event dimension item for the validationsrules
-     * @param validationRules
-     * @return
+     * Gets the event dimension item for the validation rules.
+     * 
+     * @param validationRules the validation rules.
      */
     private Set<DimensionalItemObject> getDimensionItems( Collection<ValidationRule> validationRules )
     {
@@ -289,7 +271,7 @@ public class DefaultValidationService
 
     /**
      * Returns a new Builder with basic configuration based on the input parameters.
-     * @param sources org units to include in analysis
+     * @param sources organisation units to include in analysis
      * @param periods periods to include in analysis
      * @param validationRules rules to include in analysis
      * @return Builder with basic configuration based on input
@@ -327,7 +309,7 @@ public class DefaultValidationService
     /**
      * Adds Periods to the context, grouped by period type.
      *
-     * @param periods Periods to group and add
+     * @param periods periods to group and add.
      */
     private void addPeriodsToContext( Map<PeriodType, PeriodTypeExtended> periodTypeExtendedMap,
         Collection<Period> periods )
@@ -477,10 +459,5 @@ public class DefaultValidationService
         }
 
         return allowedPeriodTypes;
-    }
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
     }
 }
