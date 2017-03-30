@@ -1,4 +1,4 @@
-package org.hisp.dhis.deletedobject.hibernate;
+package org.hisp.dhis.deletedobject;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -29,45 +29,71 @@ package org.hisp.dhis.deletedobject.hibernate;
  *
  */
 
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.deletedobject.DeletedObject;
-import org.hisp.dhis.deletedobject.DeletedObjectId;
-import org.hisp.dhis.deletedobject.DeletedObjectStore;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.google.common.base.Objects;
 
-import java.util.List;
+import java.io.Serializable;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class HibernateDeletedObjectStore
-    implements DeletedObjectStore
+public class DeletedObjectId
+    implements Serializable
 {
-    @Autowired
-    private SessionFactory sessionFactory;
+    /**
+     * Class of object that was deleted.
+     */
+    private String klass;
 
-    @Override
-    public DeletedObjectId save( DeletedObject deletedObject )
+    /**
+     * The Unique Identifier for this Object.
+     */
+    private String uid;
+
+    private DeletedObjectId()
     {
-        return (DeletedObjectId) getCurrentSession().save( deletedObject );
+    }
+
+    public DeletedObjectId( String klass, String uid )
+    {
+        this.klass = klass;
+        this.uid = uid;
+    }
+
+    public String getKlass()
+    {
+        return klass;
+    }
+
+    public void setKlass( String klass )
+    {
+        this.klass = klass;
+    }
+
+    public String getUid()
+    {
+        return uid;
+    }
+
+    public void setUid( String uid )
+    {
+        this.uid = uid;
     }
 
     @Override
-    public void delete( DeletedObject deletedObject )
+    public boolean equals( Object o )
     {
-        getCurrentSession().delete( deletedObject );
+        if ( this == o ) return true;
+        if ( o == null || getClass() != o.getClass() ) return false;
+
+        DeletedObjectId that = (DeletedObjectId) o;
+
+        return Objects.equal( klass, that.klass ) &&
+            Objects.equal( uid, that.uid );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
-    public List<DeletedObject> getAll()
+    public int hashCode()
     {
-        return getCurrentSession().createCriteria( DeletedObject.class, "c" ).list();
-    }
-
-    private Session getCurrentSession()
-    {
-        return sessionFactory.getCurrentSession();
+        return Objects.hashCode( klass, uid );
     }
 }

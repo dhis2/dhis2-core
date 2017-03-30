@@ -445,11 +445,7 @@
     <property name="cacheable" value="true" />
   </bean>
 
-  <bean id="org.hisp.dhis.deletedobject.DeletedObjectStore" class="org.hisp.dhis.deletedobject.hibernate.HibernateDeletedObjectStore">
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="clazz" value="org.hisp.dhis.deletedobject.DeletedObject" />
-    <property name="cacheable" value="true" />
-  </bean>
+  <bean id="org.hisp.dhis.deletedobject.DeletedObjectStore" class="org.hisp.dhis.deletedobject.hibernate.HibernateDeletedObjectStore" />
 
   <bean id="org.hisp.dhis.version.VersionStore" class="org.hisp.dhis.version.hibernate.HibernateVersionStore">
     <property name="sessionFactory" ref="sessionFactory" />

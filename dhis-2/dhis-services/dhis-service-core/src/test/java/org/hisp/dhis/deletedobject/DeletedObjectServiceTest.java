@@ -1,4 +1,4 @@
-package org.hisp.dhis.deletedobject.hibernate;
+package org.hisp.dhis.deletedobject;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -29,45 +29,31 @@ package org.hisp.dhis.deletedobject.hibernate;
  *
  */
 
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.deletedobject.DeletedObject;
-import org.hisp.dhis.deletedobject.DeletedObjectId;
-import org.hisp.dhis.deletedobject.DeletedObjectStore;
+import org.hisp.dhis.DhisSpringTest;
+import org.junit.Assert;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class HibernateDeletedObjectStore
-    implements DeletedObjectStore
+public class DeletedObjectServiceTest
+    extends DhisSpringTest
 {
     @Autowired
-    private SessionFactory sessionFactory;
+    private DeletedObjectService deletedObjectService;
 
-    @Override
-    public DeletedObjectId save( DeletedObject deletedObject )
+    @Test
+    public void testAddDeletedObject()
     {
-        return (DeletedObjectId) getCurrentSession().save( deletedObject );
-    }
+        DeletedObject deletedObject1 = new DeletedObject( createDataElement( 'A' ) );
+        DeletedObject deletedObject2 = new DeletedObject( createDataElement( 'B' ) );
+        DeletedObject deletedObject3 = new DeletedObject( createDataElement( 'C' ) );
 
-    @Override
-    public void delete( DeletedObject deletedObject )
-    {
-        getCurrentSession().delete( deletedObject );
-    }
+        deletedObjectService.addDeletedObject( deletedObject1 );
+        deletedObjectService.addDeletedObject( deletedObject2 );
+        deletedObjectService.addDeletedObject( deletedObject3 );
 
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<DeletedObject> getAll()
-    {
-        return getCurrentSession().createCriteria( DeletedObject.class, "c" ).list();
-    }
-
-    private Session getCurrentSession()
-    {
-        return sessionFactory.getCurrentSession();
+        Assert.assertEquals( 3, deletedObjectService.getDeletedObjects().size() );
     }
 }

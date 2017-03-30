@@ -29,9 +29,16 @@ package org.hisp.dhis.deletedobject;
  *
  */
 
+import java.util.List;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface DeletedObjectService
 {
+    void addDeletedObject( DeletedObject deletedObject );
+
+    void deleteDeletedObject( DeletedObject deletedObject );
+
+    List<DeletedObject> getDeletedObjects();
 }

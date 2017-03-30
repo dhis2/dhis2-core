@@ -47,16 +47,19 @@ public class DefaultDeletedObjectService
         this.deletedObjectStore = deletedObjectStore;
     }
 
-    public int addDeletedObject( DeletedObject deletedObject )
+    @Override
+    public void addDeletedObject( DeletedObject deletedObject )
     {
-        return deletedObjectStore.save( deletedObject );
+        deletedObjectStore.save( deletedObject );
     }
 
+    @Override
     public void deleteDeletedObject( DeletedObject deletedObject )
     {
         deletedObjectStore.delete( deletedObject );
     }
 
+    @Override
     public List<DeletedObject> getDeletedObjects()
     {
         return deletedObjectStore.getAll();

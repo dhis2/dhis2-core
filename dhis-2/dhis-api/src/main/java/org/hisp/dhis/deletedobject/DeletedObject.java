@@ -29,6 +29,7 @@ package org.hisp.dhis.deletedobject;
  *
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -39,22 +40,13 @@ import java.util.Date;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DeletedObject implements Serializable
+public class DeletedObject
+    implements Serializable
 {
-    /**
-     * The database internal identifier for this Object.
-     */
-    private int id;
-
-    /**
-     * Class of object that was deleted.
-     */
-    private String klass;
-
     /**
      * The Unique Identifier for this Object.
      */
-    private String uid;
+    private DeletedObjectId deletedObjectId;
 
     /**
      * The unique code for this Object.
@@ -75,41 +67,23 @@ public class DeletedObject implements Serializable
         Assert.notNull( identifiableObject, "IdentifiableObject is required and can not be null." );
         Assert.notNull( identifiableObject.getUid(), "IdentifiableObject.uid is required and can not be null." );
 
-        this.klass = ClassUtils.getShortName( identifiableObject.getClass() );
-        this.uid = identifiableObject.getUid();
+        this.deletedObjectId = new DeletedObjectId(
+            ClassUtils.getShortName( identifiableObject.getClass() ), identifiableObject.getUid() );
         this.code = identifiableObject.getCode();
     }
 
-    public int getId()
+    @JsonProperty
+    public DeletedObjectId getDeletedObjectId()
     {
-        return id;
+        return deletedObjectId;
     }
 
-    public void setId( int id )
+    public void setDeletedObjectId( DeletedObjectId deletedObjectId )
     {
-        this.id = id;
+        this.deletedObjectId = deletedObjectId;
     }
 
-    public String getKlass()
-    {
-        return klass;
-    }
-
-    public void setKlass( String klass )
-    {
-        this.klass = klass;
-    }
-
-    public String getUid()
-    {
-        return uid;
-    }
-
-    public void setUid( String uid )
-    {
-        this.uid = uid;
-    }
-
+    @JsonProperty
     public String getCode()
     {
         return code;
@@ -120,6 +94,7 @@ public class DeletedObject implements Serializable
         this.code = code;
     }
 
+    @JsonProperty
     public Date getDeleted()
     {
         return deleted;

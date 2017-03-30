@@ -29,13 +29,16 @@ package org.hisp.dhis.deletedobject;
  *
  */
 
-import org.hisp.dhis.common.GenericStore;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface DeletedObjectStore
-    extends GenericStore<DeletedObject>
 {
-    String ID = DeletedObject.class.getName();
+    DeletedObjectId save( DeletedObject deletedObject );
+
+    void delete( DeletedObject deletedObject );
+
+    List<DeletedObject> getAll();
 }

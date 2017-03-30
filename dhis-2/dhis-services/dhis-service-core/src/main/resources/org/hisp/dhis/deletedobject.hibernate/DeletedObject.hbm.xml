@@ -8,7 +8,7 @@
 
     <cache usage="read-write" />
 
-    <composite-id>
+    <composite-id name="deletedObjectId" class="org.hisp.dhis.deletedobject.DeletedObjectId">
       <key-property name="klass" column="klass" />
       <key-property name="uid" column="uid" />
     </composite-id>
