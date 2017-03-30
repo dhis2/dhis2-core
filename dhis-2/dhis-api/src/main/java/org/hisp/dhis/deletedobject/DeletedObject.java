@@ -30,6 +30,10 @@ package org.hisp.dhis.deletedobject;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.Objects;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -40,6 +44,7 @@ import java.util.Date;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@JacksonXmlRootElement( localName = "deletedObject", namespace = DxfNamespaces.DXF_2_0 )
 public class DeletedObject
     implements Serializable
 {
@@ -73,6 +78,7 @@ public class DeletedObject
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public DeletedObjectId getDeletedObjectId()
     {
         return deletedObjectId;
@@ -84,6 +90,7 @@ public class DeletedObject
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getCode()
     {
         return code;
@@ -95,6 +102,7 @@ public class DeletedObject
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Date getDeleted()
     {
         return deleted;
@@ -103,5 +111,24 @@ public class DeletedObject
     public void setDeleted( Date deleted )
     {
         this.deleted = deleted;
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o ) return true;
+        if ( o == null || getClass() != o.getClass() ) return false;
+
+        DeletedObject that = (DeletedObject) o;
+
+        return Objects.equal( deletedObjectId, that.deletedObjectId ) &&
+            Objects.equal( code, that.code ) &&
+            Objects.equal( deleted, that.deleted );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hashCode( deletedObjectId, code, deleted );
     }
 }

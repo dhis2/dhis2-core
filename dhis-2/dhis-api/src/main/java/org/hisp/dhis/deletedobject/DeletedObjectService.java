@@ -40,5 +40,7 @@ public interface DeletedObjectService
 
     void deleteDeletedObject( DeletedObject deletedObject );
 
+    List<DeletedObject> getDeletedObjectsByKlass( String klass );
+
     List<DeletedObject> getDeletedObjects();
 }

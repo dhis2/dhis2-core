@@ -30,9 +30,11 @@ package org.hisp.dhis.deletedobject;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -46,14 +48,27 @@ public class DeletedObjectServiceTest
     @Test
     public void testAddDeletedObject()
     {
-        DeletedObject deletedObject1 = new DeletedObject( createDataElement( 'A' ) );
-        DeletedObject deletedObject2 = new DeletedObject( createDataElement( 'B' ) );
-        DeletedObject deletedObject3 = new DeletedObject( createDataElement( 'C' ) );
+        deletedObjectService.addDeletedObject( new DeletedObject( createDataElement( 'A' ) ) );
+        deletedObjectService.addDeletedObject( new DeletedObject( createDataElement( 'B' ) ) );
+        deletedObjectService.addDeletedObject( new DeletedObject( createDataElement( 'C' ) ) );
 
-        deletedObjectService.addDeletedObject( deletedObject1 );
-        deletedObjectService.addDeletedObject( deletedObject2 );
-        deletedObjectService.addDeletedObject( deletedObject3 );
+        assertEquals( 3, deletedObjectService.getDeletedObjects().size() );
+    }
 
-        Assert.assertEquals( 3, deletedObjectService.getDeletedObjects().size() );
+    @Test
+    public void testSearchForKlass()
+    {
+        deletedObjectService.addDeletedObject( new DeletedObject( createDataElement( 'A' ) ) );
+        deletedObjectService.addDeletedObject( new DeletedObject( createDataElement( 'B' ) ) );
+        deletedObjectService.addDeletedObject( new DeletedObject( createDataElement( 'C' ) ) );
+
+        deletedObjectService.addDeletedObject( new DeletedObject( createOrganisationUnit( 'A' ) ) );
+        deletedObjectService.addDeletedObject( new DeletedObject( createOrganisationUnit( 'B' ) ) );
+        deletedObjectService.addDeletedObject( new DeletedObject( createOrganisationUnit( 'C' ) ) );
+
+        assertEquals( 6, deletedObjectService.getDeletedObjects().size() );
+        assertEquals( 3, deletedObjectService.getDeletedObjectsByKlass( "DataElement" ).size() );
+        assertEquals( 3, deletedObjectService.getDeletedObjectsByKlass( "OrganisationUnit" ).size() );
+        assertTrue( deletedObjectService.getDeletedObjectsByKlass( "Indicator" ).isEmpty() );
     }
 }

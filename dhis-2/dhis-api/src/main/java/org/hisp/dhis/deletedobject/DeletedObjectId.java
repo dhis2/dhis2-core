@@ -29,13 +29,19 @@ package org.hisp.dhis.deletedobject;
  *
  */
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.Objects;
+import org.hisp.dhis.common.DxfNamespaces;
 
 import java.io.Serializable;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@JacksonXmlRootElement( localName = "deletedObjectId", namespace = DxfNamespaces.DXF_2_0 )
 public class DeletedObjectId
     implements Serializable
 {
@@ -53,12 +59,15 @@ public class DeletedObjectId
     {
     }
 
-    public DeletedObjectId( String klass, String uid )
+    @JsonCreator
+    public DeletedObjectId( @JsonProperty( "klass" ) String klass, @JsonProperty( "uid" ) String uid )
     {
         this.klass = klass;
         this.uid = uid;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getKlass()
     {
         return klass;
@@ -69,6 +78,8 @@ public class DeletedObjectId
         this.klass = klass;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getUid()
     {
         return uid;

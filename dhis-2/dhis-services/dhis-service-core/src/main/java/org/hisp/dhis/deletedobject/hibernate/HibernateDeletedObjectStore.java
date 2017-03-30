@@ -29,6 +29,7 @@ package org.hisp.dhis.deletedobject.hibernate;
  *
  */
 
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.deletedobject.DeletedObject;
@@ -57,6 +58,16 @@ public class HibernateDeletedObjectStore
     public void delete( DeletedObject deletedObject )
     {
         getCurrentSession().delete( deletedObject );
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public List<DeletedObject> getByKlass( String klass )
+    {
+        Query query = getCurrentSession().createQuery( "SELECT c FROM DeletedObject c WHERE c.deletedObjectId.klass=:klass" );
+        query.setString( "klass", klass );
+
+        return query.list();
     }
 
     @Override

@@ -60,6 +60,12 @@ public class DefaultDeletedObjectService
     }
 
     @Override
+    public List<DeletedObject> getDeletedObjectsByKlass( String klass )
+    {
+        return deletedObjectStore.getByKlass( klass );
+    }
+
+    @Override
     public List<DeletedObject> getDeletedObjects()
     {
         return deletedObjectStore.getAll();
