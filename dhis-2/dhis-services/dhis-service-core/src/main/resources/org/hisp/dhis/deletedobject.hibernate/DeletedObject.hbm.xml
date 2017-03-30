@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.deletedobject.DeletedObject" table="deletedobject">
+
+    <cache usage="read-write" />
+
+    <composite-id>
+      <key-property name="klass" column="klass" />
+      <key-property name="uid" column="uid" />
+    </composite-id>
+
+    <property name="code" column="code" not-null="false" length="50" />
+
+    <property name="deleted" type="timestamp" not-null="true" />
+
+  </class>
+</hibernate-mapping>
