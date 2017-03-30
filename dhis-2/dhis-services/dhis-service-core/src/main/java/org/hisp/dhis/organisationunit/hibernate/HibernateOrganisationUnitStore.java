@@ -35,13 +35,13 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.AuditLogUtil;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitHierarchy;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
@@ -128,8 +128,13 @@ public class HibernateOrganisationUnitStore
     {
         SqlHelper hlp = new SqlHelper();
 
-        String hql = "select o from OrganisationUnit o ";
+        String hql = "select distinct o from OrganisationUnit o ";
 
+        if ( params.hasGroups() )
+        {
+            hql += "join o.groups og ";
+        }
+        
         if ( params.hasQuery() )
         {
             hql += hlp.whereAnd() + " (lower(o.name) like :queryLower or o.code = :query or o.uid = :query) ";
@@ -149,14 +154,7 @@ public class HibernateOrganisationUnitStore
 
         if ( params.hasGroups() )
         {
-            hql += hlp.whereAnd() + " (";
-
-            for ( OrganisationUnitGroup group : params.getGroups() )
-            {
-                hql += " :" + group.getUid() + " in elements(o.groups) or ";
-            }
-
-            hql = TextUtils.removeLastOr( hql ) + ") ";
+            hql += hlp.whereAnd() + " og.id in (:groupIds) ";
         }
 
         if ( params.hasLevels() )
@@ -189,12 +187,9 @@ public class HibernateOrganisationUnitStore
 
         if ( params.hasGroups() )
         {
-            for ( OrganisationUnitGroup group : params.getGroups() )
-            {
-                query.setEntity( group.getUid(), group );
-            }
+            query.setParameterList( "groupIds", IdentifiableObjectUtils.getIdentifiers( params.getGroups() ) );
         }
-
+        
         if ( params.hasLevels() )
         {
             query.setParameterList( "levels", params.getLevels() );
