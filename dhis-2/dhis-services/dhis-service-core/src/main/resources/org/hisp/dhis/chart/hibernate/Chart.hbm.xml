@@ -52,6 +52,10 @@
       </type>
     </property>
 
+    <property name="title" />
+    
+    <property name="subtitle" />
+    
     <property name="hideTitle" />
 
     <property name="hideSubtitle" />
@@ -154,8 +158,6 @@
 
     <property name="completedOnly" column="completedonly" />
 
-    <property name="title" />
-
     <set name="interpretations" inverse="true">
       <key column="chartid" />
       <one-to-many class="org.hisp.dhis.interpretation.Interpretation" />
@@ -164,6 +166,10 @@
     <property name="showData" />
 
     <property name="hideEmptyRows" />
+    
+    <property name="percentStackedValues" />
+    
+    <property name="cumulativeValues" />
 
     <property name="rangeAxisMaxValue" />
 

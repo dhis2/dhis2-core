@@ -590,6 +590,30 @@ public abstract class PeriodType
     }
 
     /**
+     * Returns the previous period determined by the given number of periods.
+     *
+     * @param period the Period to base the previous Period on.
+     * @param periods the number of periods into the past.
+     * @return the previous period.
+     */
+    public Period getPreviousPeriod( Period period, int periods )
+    {
+        Period previousPeriod = period;
+
+        if ( periods > 0 )
+        {
+            org.hisp.dhis.calendar.Calendar calendar = getCalendar();
+
+            for ( int i = 0; i < periods; i++ )
+            {
+                previousPeriod = getPreviousPeriod( previousPeriod, calendar );
+            }
+        }
+
+        return previousPeriod;
+    }
+
+    /**
      * Returns a Period which is the previous of the given Period. Only valid
      * Periods are returned. If the given Period is of different PeriodType than
      * the executing PeriodType, or the given Period is invalid, the returned
@@ -599,6 +623,22 @@ public abstract class PeriodType
      * @return a Period which is the previous of the given Period.
      */
     public abstract Period getPreviousPeriod( Period period, org.hisp.dhis.calendar.Calendar calendar );
+
+    /**
+     * Returns the period at the same time of year going back a number of years.
+     *
+     * @param period the Period to base the previous Period on.
+     * @param yearCount how many years to go back.
+     * @return the past year period.
+     */
+    public Period getPreviousYearsPeriod( Period period, int yearCount )
+    {
+        Calendar calendar = PeriodType.createCalendarInstance( period.getStartDate() );
+
+        calendar.set( Calendar.YEAR, calendar.get( Calendar.YEAR ) - yearCount );
+
+        return createPeriod( calendar );
+    }
 
     // -------------------------------------------------------------------------
     // hashCode and equals

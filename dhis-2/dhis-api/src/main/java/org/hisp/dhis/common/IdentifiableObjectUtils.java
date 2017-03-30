@@ -109,11 +109,30 @@ public class IdentifiableObjectUtils
      * Returns a list of internal identifiers for the given collection of IdentifiableObjects.
      *
      * @param objects the list of IdentifiableObjects.
-     * @return a list of uids.
+     * @return a list of identifiers.
      */
     public static <T extends IdentifiableObject> List<Integer> getIdentifiers( Collection<T> objects )
     {
         return objects != null ? objects.stream().map( o -> o.getId() ).collect( Collectors.toList() ) : null;
+    }
+
+    /**
+     * Returns a map from internal identifiers to IdentifiableObjects,
+     * for the given collection of IdentifiableObjects.
+     *
+     * @param objects the collection of IdentifiableObjects
+     * @return a map from the object internal identifiers to the objects
+     */
+    public static <T extends IdentifiableObject> Map<Integer, T> getIdentifierMap( Collection<T> objects )
+    {
+        Map<Integer, T> map = new HashMap<>();
+
+        for ( T object : objects )
+        {
+            map.put( object.getId(), object );
+        }
+
+        return map;
     }
 
     /**

@@ -42,10 +42,7 @@ import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.*;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
@@ -116,6 +113,9 @@ public class AccountController
 
     @Autowired
     private WebMessageService webMessageService;
+
+    @Autowired
+    private PasswordValidationService passwordValidationService;
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -261,6 +261,8 @@ public class AccountController
         recapChallenge = StringUtils.trimToNull( recapChallenge );
         recapResponse = StringUtils.trimToNull( recapResponse );
 
+        CredentialsInfo credentialsInfo = new CredentialsInfo( username, password, email, true );
+
         // ---------------------------------------------------------------------
         // Validate input, return 400 if invalid
         // ---------------------------------------------------------------------
@@ -287,14 +289,16 @@ public class AccountController
             throw new WebMessageException( WebMessageUtils.badRequest( "Last name is not specified or invalid" ) );
         }
 
-        if ( password == null || !ValidationUtils.passwordIsValid( password ) )
+        if ( password == null )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Password is not specified or invalid" ) );
+            throw new WebMessageException( WebMessageUtils.badRequest( "Password is not specified" ) );
         }
 
-        if ( password.trim().equals( username != null ? username.trim() : null ) )
+        PasswordValidationResult result = passwordValidationService.validate( credentialsInfo );
+
+        if ( !result.isValid() )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Password cannot be equal to username" ) );
+            throw new WebMessageException( WebMessageUtils.badRequest( result.getErrorMessage() ) );
         }
 
         if ( email == null || !ValidationUtils.emailIsValid( email ) )
@@ -443,6 +447,8 @@ public class AccountController
             return;
         }
 
+        CredentialsInfo credentialsInfo = new CredentialsInfo( username, password, credentials.getUser().getEmail(), false );
+
         if ( userService.credentialsNonExpired( credentials ) )
         {
             result.put( "status", "NON_EXPIRED" );
@@ -461,10 +467,12 @@ public class AccountController
             return;
         }
 
-        if ( password == null || !ValidationUtils.passwordIsValid( password ) )
+        PasswordValidationResult passwordValidationResult = passwordValidationService.validate( credentialsInfo );
+
+        if ( !passwordValidationResult.isValid() )
         {
             result.put( "status", "PASSWORD_INVALID" );
-            result.put( "message", "Password is not specified or invalid" );
+            result.put( "message", passwordValidationResult.getErrorMessage() );
 
             ContextUtils.badRequestResponse( response, objectMapper.writeValueAsString( result ) );
             return;
@@ -500,6 +508,23 @@ public class AccountController
 
         result.put( "response", valid ? "success" : "error" );
         result.put( "message", valid ? "" : "Username is already taken" );
+
+        ContextUtils.okResponse( response, objectMapper.writeValueAsString( result ) );
+    }
+
+    @RequestMapping( value = "/password", method = RequestMethod.GET )
+    public void validatePassword( @RequestParam String password, HttpServletResponse response ) throws IOException
+    {
+        CredentialsInfo credentialsInfo = new CredentialsInfo( password, true );
+
+        PasswordValidationResult passwordValidationResult = passwordValidationService.validate( credentialsInfo );
+
+        // Custom code required because of our hacked jQuery validation
+
+        Map<String, String> result = new HashMap<>();
+
+        result.put( "response", passwordValidationResult.isValid() ? "success" : "error" );
+        result.put( "message", passwordValidationResult.isValid() ? "" : passwordValidationResult.getErrorMessage() );
 
         ContextUtils.okResponse( response, objectMapper.writeValueAsString( result ) );
     }

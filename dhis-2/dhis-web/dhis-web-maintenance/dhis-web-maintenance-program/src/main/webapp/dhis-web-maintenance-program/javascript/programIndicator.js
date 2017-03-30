@@ -166,9 +166,13 @@ function analyticsTypeChanged() {
     var analyticsType = getFieldValue('analyticsType');
     if ('ENROLLMENT' === analyticsType) {
         $("#event_count_variable").wrap('<span/>');
+        $("#program_stage_name_variable").wrap('<span/>');
+        $("#program_stage_id_variable").wrap('<span/>');
     }
     else {
         $('#event_count_variable').unwrap();
+        $("#program_stage_name_variable").unwrap();
+        $("#program_stage_id_variable").unwrap();
     }
 }
 

@@ -54,7 +54,7 @@ public class ProgramIndicatorGroupSchemaDescriptor implements SchemaDescriptor
         schema.setOrder( 1600 );
 
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE,
-            Lists.newArrayList( "F_PROGRAM_INDICATOR_GROUP_PUBLIC_ADD", " F_PROGRAM_INDICATOR_GROUP_PRIVATE_ADD" ) ) );
+            Lists.newArrayList( "F_PROGRAM_INDICATOR_GROUP_PUBLIC_ADD", "F_PROGRAM_INDICATOR_GROUP_PRIVATE_ADD" ) ) );
         schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAM_INDICATOR_GROUP_DELETE" ) ) );
 
         return schema;

@@ -359,8 +359,7 @@ public abstract class AbstractEventService
             {
                 if ( event.getEvent() != null )
                 {
-                    programStageInstance = programStageInstanceService.getProgramStageInstance( event.getEvent() );
-
+                    programStageInstance = manager.getObject( ProgramStageInstance.class, importOptions.getIdSchemes().getProgramStageInstanceIdScheme(), event.getEvent() );
                     if ( programStageInstance == null )
                     {
                         if ( !CodeGenerator.isValidCode( event.getEvent() ) )
@@ -400,11 +399,11 @@ public abstract class AbstractEventService
 
             if ( event.getEvent() != null )
             {
-                programStageInstance = programStageInstanceService.getProgramStageInstance( event.getEvent() );
+                programStageInstance = manager.getObject( ProgramStageInstance.class, importOptions.getIdSchemes().getProgramStageInstanceIdScheme(), event.getEvent() );
 
                 if ( programStageInstance == null )
                 {
-                    if ( !CodeGenerator.isValidCode( event.getEvent() ) )
+                    if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.UID ) && !CodeGenerator.isValidCode( event.getEvent() ) )
                     {
                         return new ImportSummary( ImportStatus.ERROR,
                             "Event.event did not point to a valid event: " + event.getEvent() ).incrementIgnored();
@@ -1222,6 +1221,7 @@ public abstract class AbstractEventService
         {
             importSummary.getConflicts().add( new ImportConflict( dataElement.getUid(), status ) );
             importSummary.getImportCount().incrementIgnored();
+
             return false;
         }
 
@@ -1405,12 +1405,20 @@ public abstract class AbstractEventService
 
     private ProgramStageInstance createProgramStageInstance( ProgramStage programStage, ProgramInstance programInstance,
         OrganisationUnit organisationUnit, Date dueDate, Date executionDate, int status, Coordinate coordinate,
-        String completedBy, String programStageInstanceUid, DataElementCategoryOptionCombo coc,
+        String completedBy, String programStageInstanceIdentifier, DataElementCategoryOptionCombo coc,
         ImportOptions importOptions )
     {
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setUid( CodeGenerator.isValidCode( programStageInstanceUid ) ? programStageInstanceUid
-            : CodeGenerator.generateCode() );
+        if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.UID ) )
+        {
+            programStageInstance.setUid( CodeGenerator.isValidCode( programStageInstanceIdentifier ) ? programStageInstanceIdentifier
+                : CodeGenerator.generateCode() );
+        }
+        else if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.CODE ) )
+        {
+            programStageInstance.setUid( CodeGenerator.generateCode() );
+            programStageInstance.setCode( programStageInstanceIdentifier );
+        }
 
         updateProgramStageInstance( programStage, programInstance, organisationUnit, dueDate, executionDate, status,
             coordinate, completedBy, programStageInstance, coc, importOptions );
@@ -1429,7 +1437,6 @@ public abstract class AbstractEventService
         programStageInstance.setExecutionDate( executionDate );
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setAttributeOptionCombo( coc );
-
         if ( programStage.getCaptureCoordinates() )
         {
             if ( coordinate != null && coordinate.isValid() )
@@ -1448,7 +1455,8 @@ public abstract class AbstractEventService
         }
         else
         {
-            sessionFactory.getCurrentSession().update( programStageInstance );
+            sessionFactory.getCurrentSession().save( programStageInstance );
+            sessionFactory.getCurrentSession().flush();
             sessionFactory.getCurrentSession().refresh( programStageInstance );
         }
 

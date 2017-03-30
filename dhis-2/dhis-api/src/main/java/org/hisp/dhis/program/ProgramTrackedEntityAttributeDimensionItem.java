@@ -33,8 +33,8 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.LinkObject;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
@@ -54,7 +54,7 @@ import java.util.List;
  */
 @JacksonXmlRootElement( localName = "programAttributeDimension", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramTrackedEntityAttributeDimensionItem
-    extends BaseDimensionalItemObject implements LinkObject
+    extends BaseDimensionalItemObject implements EmbeddedObject
 {
     private Program program;
 

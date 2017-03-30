@@ -86,7 +86,7 @@ public class TableAlteror
         executeSql( "ALTER TABLE programstage_dataelements DROP COLUMN showOnReport" );
 
         executeSql( "ALTER TABLE program DROP COLUMN hidedateofincident" );
-
+        executeSql( "ALTER TABLE program DROP COLUMN dataentrymethod" );
         executeSql( "UPDATE program SET type=2 where singleevent=true" );
         executeSql( "UPDATE program SET type=3 where anonymous=true" );
         executeSql( "ALTER TABLE program DROP COLUMN singleevent" );

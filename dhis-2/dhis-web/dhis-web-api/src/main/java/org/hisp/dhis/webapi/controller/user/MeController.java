@@ -46,12 +46,7 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.PasswordManager;
-import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.*;
 import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -60,21 +55,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -117,6 +104,9 @@ public class MeController
 
     @Autowired
     private UserSettingService userSettingService;
+
+    @Autowired
+    private PasswordValidationService passwordValidationService;
 
     private static final Set<String> USER_SETTING_NAMES = Sets.newHashSet(
         UserSettingKey.values() ).stream().map( UserSettingKey::getName ).collect( Collectors.toSet() );
@@ -291,11 +281,6 @@ public class MeController
             throw new NotAuthenticatedException();
         }
 
-        if ( !ValidationUtils.passwordIsValid( password ) )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Password must have at least 8 characters, one digit, one uppercase" ) );
-        }
-
         updatePassword( currentUser, password );
         manager.update( currentUser );
 
@@ -307,6 +292,13 @@ public class MeController
         throws WebMessageException
     {
         return verifyPasswordInternal( password, getCurrentUserOrThrow() );
+    }
+
+    @RequestMapping( value = "/validatePassword", method = RequestMethod.POST, consumes = "text/*" )
+    public @ResponseBody RootNode validatePasswordText( @RequestBody String password, HttpServletResponse response )
+            throws WebMessageException
+    {
+        return validatePasswordInternal( password, getCurrentUserOrThrow() );
     }
 
     @RequestMapping( value = "/verifyPassword", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
@@ -353,6 +345,29 @@ public class MeController
         return rootNode;
     }
 
+    private RootNode validatePasswordInternal( String password, User currentUser )
+            throws WebMessageException
+    {
+        if ( password == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Required attribute 'password' missing or null." ) );
+        }
+
+        CredentialsInfo credentialsInfo = new CredentialsInfo( currentUser.getUsername(), password, currentUser.getEmail(), false );
+
+        PasswordValidationResult result = passwordValidationService.validate( credentialsInfo );
+
+        RootNode rootNode = NodeUtils.createRootNode( "response" );
+        rootNode.addChild( new SimpleNode( "isValidPassword", result.isValid() ) );
+
+        if ( !result.isValid() )
+        {
+            rootNode.addChild( new SimpleNode( "errorMessage", result.getErrorMessage() ) );
+        }
+
+        return rootNode;
+    }
+
     private User getCurrentUserOrThrow() throws WebMessageException
     {
         User user = currentUserService.getCurrentUser();
@@ -391,13 +406,17 @@ public class MeController
     {
         if ( !StringUtils.isEmpty( password ) )
         {
-            if ( ValidationUtils.passwordIsValid( password ) )
+            CredentialsInfo credentialsInfo = new CredentialsInfo( currentUser.getUsername(), password, currentUser.getEmail(), false );
+
+            PasswordValidationResult result = passwordValidationService.validate( credentialsInfo );
+
+            if ( result.isValid() )
             {
                 userService.encodeAndSetPassword( currentUser.getUserCredentials(), password );
             }
             else
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "Invalid password format." ) );
+                throw new WebMessageException( WebMessageUtils.conflict( result.getErrorMessage() ) );
             }
         }
     }

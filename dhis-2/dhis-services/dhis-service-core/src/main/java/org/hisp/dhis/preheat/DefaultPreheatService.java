@@ -39,9 +39,9 @@ import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionItem;
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.LinkObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
@@ -742,14 +742,14 @@ public class DefaultPreheatService implements PreheatService
             List<?> objects = entry.getValue();
 
             Schema schema = schemaService.getDynamicSchema( klass );
-            List<Property> properties = schema.getLinkObjectProperties();
+            Map<String, Property> properties = schema.getEmbeddedObjectProperties();
 
             if ( properties.isEmpty() )
             {
                 return;
             }
 
-            for ( Property property : properties )
+            for ( Property property : properties.values() )
             {
                 if ( property.isCollection() )
                 {
@@ -961,6 +961,6 @@ public class DefaultPreheatService implements PreheatService
 
     private boolean skipConnect( Class<?> klass )
     {
-        return klass != null && (UserCredentials.class.isAssignableFrom( klass ) || LinkObject.class.isAssignableFrom( klass ));
+        return klass != null && (UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass ));
     }
 }

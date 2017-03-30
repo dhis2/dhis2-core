@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  */
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
@@ -48,15 +49,18 @@ public interface TrackedEntityInstanceService
     // READ
     // -------------------------------------------------------------------------
 
-    List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params );
+    List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams, TrackedEntityInstanceParams params );
 
     int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params );
 
     TrackedEntityInstance getTrackedEntityInstance( String uid );
 
+    TrackedEntityInstance getTrackedEntityInstance( String uid, TrackedEntityInstanceParams params );
+
     TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance );
 
-    TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance, boolean expandRelative );
+    TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
+        TrackedEntityInstanceParams params );
 
     // -------------------------------------------------------------------------
     // CREATE

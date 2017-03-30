@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.user;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -29,15 +29,53 @@ package org.hisp.dhis.common;
  */
 
 /**
- * Marker interface for marking an object to not be treated as a id object (even
- * if the class itself implements id object), this object will not be treated as
- * normal metadata (no refs etc) but instead need to be contained in the entity
- * that owns it.
- * <p>
- * Link objects should also always be implemented as cascade="delete-all-orphan".
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Created by zubair on 17.03.17.
  */
-public interface LinkObject
+public class CredentialsInfo
 {
+    private String username;
+
+    private String password;
+
+    private String email;
+
+    private boolean newUser;
+
+    private CredentialsInfo()
+    {
+    }
+
+    public CredentialsInfo( String username, String password, String email, boolean newUser )
+    {
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.newUser = newUser;
+    }
+
+    public CredentialsInfo( String password, boolean newUser )
+    {
+        this.password = password;
+        this.newUser = newUser;
+    }
+
+    public String getUsername()
+    {
+        return username;
+    }
+
+    public String getPassword()
+    {
+        return password;
+    }
+
+    public String getEmail()
+    {
+        return email;
+    }
+
+    public boolean isNewUser()
+    {
+        return newUser;
+    }
 }

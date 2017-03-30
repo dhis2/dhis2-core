@@ -37,7 +37,6 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -313,12 +312,19 @@ public class DefaultExpressionService
         
         if ( comboId == null )
         {
+            DataElementOperand deo = new DataElementOperand( dataElement );
+
+            if ( valueMap.containsKey( deo ) )
+            {
+                return valueMap.get( deo );
+            }
+
             Double sum = null;
             final Set<DataElementCategoryOptionCombo> optionCombos = dataElement.getCategoryOptionCombos();
 
             for ( DataElementCategoryOptionCombo optionCombo : optionCombos )
             {
-                DataElementOperand deo = new DataElementOperand( elementId, optionCombo.getUid() );
+                deo = new DataElementOperand( elementId, optionCombo.getUid() );
                 Double value = valueMap.get( deo );
 
                 if ( value != null )
@@ -422,7 +428,7 @@ public class DefaultExpressionService
 
         if ( expression != null )
         {
-            final Matcher matcher = OPTION_COMBO_OPERAND_PATTERN.matcher( expression );
+            final Matcher matcher = OPERAND_PATTERN.matcher( expression );
 
             while ( matcher.find() )
             {
@@ -432,25 +438,12 @@ public class DefaultExpressionService
                 if ( operand.getOptionComboId() != null )
                 {
                     operand.setCategoryOptionCombo( categoryService.getDataElementCategoryOptionCombo( operand.getOptionComboId() ) );                    
-                    operandsInExpression.add( operand );
                 }
+                operandsInExpression.add( operand );
             }
         }
 
         return operandsInExpression;
-    }
-
-    @Override
-    @Transactional
-    public Set<BaseDimensionalItemObject> getDataInputsInExpression( String expression )
-    {
-        Set<BaseDimensionalItemObject> results=new HashSet<BaseDimensionalItemObject>();
-
-        results.addAll( getIdObjectsInExpression( DATA_ELEMENT_TOTAL_PATTERN, expression, 
-            ( m ) -> dataElementService.getDataElement( m.group( 1 ) ) ) );
-        results.addAll( getOperandsInExpression( expression ) );
-
-        return results;
     }
 
     @Override
@@ -752,10 +745,17 @@ public class DefaultExpressionService
 
             for ( ValidationRule rule : validationRules )
             {
-                dataElementTotals.addAll(
-                    RegexUtils.getMatches( DATA_ELEMENT_TOTAL_PATTERN, rule.getLeftSide().getExpression(), 1 ) );
-                dataElementTotals.addAll(
-                    RegexUtils.getMatches( DATA_ELEMENT_TOTAL_PATTERN, rule.getRightSide().getExpression(), 1 ) );
+                if ( rule.getLeftSide().getExpression() != null )
+                {
+                    dataElementTotals.addAll(
+                        RegexUtils.getMatches( DATA_ELEMENT_TOTAL_PATTERN, rule.getLeftSide().getExpression(), 1 ) );
+                }
+
+                if ( rule.getRightSide().getExpression() != null )
+                {
+                    dataElementTotals.addAll(
+                        RegexUtils.getMatches( DATA_ELEMENT_TOTAL_PATTERN, rule.getRightSide().getExpression(), 1 ) );
+                }
             }
 
             if ( !dataElementTotals.isEmpty() )

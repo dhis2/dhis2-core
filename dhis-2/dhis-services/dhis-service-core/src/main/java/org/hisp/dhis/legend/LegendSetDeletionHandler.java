@@ -42,7 +42,7 @@ public class LegendSetDeletionHandler
     // -------------------------------------------------------------------------
 
     @Autowired
-    private LegendService legendService;
+    private LegendSetService legendSetService;
 
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
@@ -57,11 +57,11 @@ public class LegendSetDeletionHandler
     @Override
     public void deleteLegend( Legend legend )
     {
-        for ( LegendSet legendSet : legendService.getAllLegendSets() )
+        for ( LegendSet legendSet : legendSetService.getAllLegendSets() )
         {
             if ( legendSet.getLegends().remove( legend ) )
             {
-                legendService.updateLegendSet( legendSet );
+                legendSetService.updateLegendSet( legendSet );
             }
         }
     }

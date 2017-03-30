@@ -44,7 +44,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_P
  */
 @JacksonXmlRootElement( localName = "reportingRate", namespace = DxfNamespaces.DXF_2_0 )
 public class ReportingRate
-    extends BaseDimensionalItemObject implements LinkObject
+    extends BaseDimensionalItemObject implements EmbeddedObject
 {
     private DataSet dataSet;
 

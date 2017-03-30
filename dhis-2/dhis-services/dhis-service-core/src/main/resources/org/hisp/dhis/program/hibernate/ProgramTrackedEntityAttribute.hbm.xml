@@ -26,6 +26,8 @@
     <property name="sortOrder" column="sort_order" />
 
     <property name="allowFutureDate" column="allowFutureDate" />
+    
+    <property name="renderOptionsAsRadio" column="renderoptionsasradio" />
 
     <set name="groups" table="programtrackedentityattributegroupmembers" >
       <cache usage="read-write" />

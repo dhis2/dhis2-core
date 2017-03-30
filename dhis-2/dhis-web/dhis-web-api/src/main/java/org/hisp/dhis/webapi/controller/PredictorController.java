@@ -28,14 +28,10 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorService;
 import org.hisp.dhis.schema.descriptors.PredictorSchemaDescriptor;
@@ -69,11 +65,8 @@ public class PredictorController
     @Autowired
     private WebMessageService webMessageService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
-
     @RequestMapping( value = "/{uid}/run", method = { RequestMethod.POST, RequestMethod.PUT } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_ADD')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_RUN')" )
     public void runPredictor(
         @PathVariable( "uid" ) String uid,
         @RequestParam Date startDate,
@@ -93,35 +86,6 @@ public class PredictorController
         {
             log.error( "Unable to predict " + predictor.getName(), ex );
 
-            webMessageService.send( WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() ), response, request );
-        }
-    }
-
-    @RequestMapping( value = "/{uid}/dryRun", method = { RequestMethod.POST, RequestMethod.PUT } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_RUN')" )
-    public void testPredictor(
-        @PathVariable( "uid" ) String uid,
-        @RequestParam( required = false ) String ou,
-        @RequestParam Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        TranslateParams translateParams,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
-    {
-        Predictor predictor = predictorService.getPredictor( uid );
-        List<OrganisationUnit> sources = ou == null ? null :
-            Lists.newArrayList( organisationUnitService.getOrganisationUnit( ou ) );
-
-        try
-        {
-            List<DataValue> results = (sources == null) ?
-                (predictorService.getPredictions( predictor, startDate, endDate )) :
-                (predictorService.getPredictions( predictor, sources, startDate, endDate ));
-
-            webMessageService.send( WebMessageUtils.ok( "Generated " + results.size() + " predictions" ), response, request );
-        }
-        catch ( Exception ex )
-        {
-            log.error( "Unable to predict " + predictor.getName(), ex );
             webMessageService.send( WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() ), response, request );
         }
     }

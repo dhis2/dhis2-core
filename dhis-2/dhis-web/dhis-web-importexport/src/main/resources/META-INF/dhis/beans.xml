@@ -20,6 +20,10 @@
     class="org.hisp.dhis.importexport.action.datavalue.ExportDataValueAction"
     scope="prototype" />
 
+  <bean id="org.hisp.dhis.importexport.action.datavalue.ShowDataValueExportFormAction"
+    class="org.hisp.dhis.importexport.action.datavalue.ShowDataValueExportFormAction"
+    scope="prototype" />
+
   <!-- Events -->
 
   <bean id="org.hisp.dhis.importexport.action.event.ImportEventAction"

@@ -73,32 +73,23 @@ public class JdbcEventAnalyticsTableManager
     {
         log.info( String.format( "Get tables using earliest: %s, spatial support: %b", earliest, databaseInfo.isSpatialSupport() ) );
 
-        return getTables( getDataYears( earliest ) );
-    }
-
-    @Override
-    public Set<String> getExistingDatabaseTables()
-    {
-        return partitionManager.getEventAnalyticsPartitions();
-    }
-    
-    private List<AnalyticsTable> getTables( List<Integer> dataYears )
-    {
         List<AnalyticsTable> tables = new UniqueArrayList<>();
         Calendar calendar = PeriodType.getCalendar();
-
-        Collections.sort( dataYears );
         
         String baseName = getTableName();
-
-        for ( Integer year : dataYears )
+        
+        List<Program> programs = idObjectManager.getAllNoAcl( Program.class );
+        
+        for ( Program program : programs )
         {
-            Period period = PartitionUtils.getPeriod( calendar, year );
+            List<Integer> dataYears = getDataYears( program, earliest );
+
+            Collections.sort( dataYears );
             
-            List<Program> programs = idObjectManager.getAllNoAcl( Program.class );
-            
-            for ( Program program : programs )
+            for ( Integer year : dataYears )
             {
+                Period period = PartitionUtils.getPeriod( calendar, year );
+                
                 AnalyticsTable table = new AnalyticsTable( baseName, null, period, program );
                 List<AnalyticsTableColumn> dimensionColumns = getDimensionColumns( table );
                 table.setDimensionColumns( dimensionColumns );
@@ -109,6 +100,12 @@ public class JdbcEventAnalyticsTableManager
         return tables;
     }
 
+    @Override
+    public Set<String> getExistingDatabaseTables()
+    {
+        return partitionManager.getEventAnalyticsPartitions();
+    }
+    
     @Override
     protected void populateTable( AnalyticsTable table )
     {
@@ -312,13 +309,14 @@ public class JdbcEventAnalyticsTableManager
         return filterDimensionColumns( columns );
     }
 
-    @Override
-    public List<Integer> getDataYears( Date earliest )
+    private List<Integer> getDataYears( Program program, Date earliest )
     {
         String sql = 
             "select distinct(extract(year from psi.executiondate)) " +
             "from programstageinstance psi " +
-            "where psi.executiondate is not null " +
+            "inner join programinstance pi on psi.programinstanceid = pi.programinstanceid " +
+            "where pi.programid = " + program.getId() + " " +
+            "and psi.executiondate is not null " +
             "and psi.deleted is false ";
 
         if ( earliest != null )

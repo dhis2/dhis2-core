@@ -347,6 +347,20 @@ public class RelativePeriodTest
     }
 
     @Test
+    public void testGetBiMonthsThisYear()
+    {
+        List<Period> relatives = new RelativePeriods().setBiMonthsThisYear( true ).getRelativePeriods( getDate( 2001, 4, 1 ), I18N_FORMAT, false );
+
+        assertEquals( 6, relatives.size() );
+        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 1, 1 ), getDate( 2001, 2, 28 ) ), relatives.get( 0 ) );
+        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 3, 1 ), getDate( 2001, 4, 30 ) ), relatives.get( 1 ) );
+        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 5, 1 ), getDate( 2001, 6, 30 ) ), relatives.get( 2 ) );
+        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 8, 31 ) ), relatives.get( 3 ) );
+        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 9, 1 ), getDate( 2001, 10, 31 ) ), relatives.get( 4 ) );
+        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 11, 1 ), getDate( 2001, 12, 31 ) ), relatives.get( 5 ) );
+    }
+
+    @Test
     public void testGetLastWeek()
     {
         List<Period> relatives = new RelativePeriods().setLastWeek( true ).getRelativePeriods( getDate( 2012, 1, 20 ), I18N_FORMAT, false );
