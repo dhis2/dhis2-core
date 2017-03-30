@@ -61,7 +61,7 @@ public class DeletedObject
     /**
      * Date this object was deleted.
      */
-    private Date deleted = new Date();
+    private Date deletedAt = new Date();
 
     private DeletedObject()
     {
@@ -103,14 +103,14 @@ public class DeletedObject
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getDeleted()
+    public Date getDeletedAt()
     {
-        return deleted;
+        return deletedAt;
     }
 
-    public void setDeleted( Date deleted )
+    public void setDeletedAt( Date deletedAt )
     {
-        this.deleted = deleted;
+        this.deletedAt = deletedAt;
     }
 
     @Override
@@ -123,12 +123,12 @@ public class DeletedObject
 
         return Objects.equal( deletedObjectId, that.deletedObjectId ) &&
             Objects.equal( code, that.code ) &&
-            Objects.equal( deleted, that.deleted );
+            Objects.equal( deletedAt, that.deletedAt );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hashCode( deletedObjectId, code, deleted );
+        return Objects.hashCode( deletedObjectId, code, deletedAt );
     }
 }

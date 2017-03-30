@@ -15,7 +15,7 @@
 
     <property name="code" column="code" not-null="false" length="50" />
 
-    <property name="deleted" type="timestamp" not-null="true" />
+    <property name="deletedAt" column="deleted_at" type="timestamp" not-null="true" />
 
   </class>
 </hibernate-mapping>
