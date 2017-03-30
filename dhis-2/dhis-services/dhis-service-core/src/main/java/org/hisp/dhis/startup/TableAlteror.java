@@ -1449,8 +1449,8 @@ public class TableAlteror
     private void upgradeMapViewsToColumns()
     {
         String sql =
-            "insert into mapview_columns " +
-                "select mapviewid, 'dx', 0 " +
+            "insert into mapview_columns(mapviewid, sort_order, dimension) " +
+                "select mapviewid, 0, 'dx' " +
                 "from mapview mv " +
                 "where not exists (" +
                 "select mc.mapviewid " +
