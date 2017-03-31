@@ -33,6 +33,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.hisp.dhis.common.DxfNamespaces;
 
@@ -106,5 +107,15 @@ public class DeletedObjectId
     public int hashCode()
     {
         return Objects.hashCode( klass, uid );
+    }
+
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "klass", klass )
+            .add( "uid", uid )
+            .toString();
     }
 }

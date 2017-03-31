@@ -30,6 +30,9 @@ package org.hisp.dhis.deletedobject;
  */
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -44,6 +47,9 @@ public class DeletedObjectServiceTest
 {
     @Autowired
     private DeletedObjectService deletedObjectService;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
 
     @Test
     public void testAddDeletedObject()
@@ -70,5 +76,33 @@ public class DeletedObjectServiceTest
         assertEquals( 3, deletedObjectService.getDeletedObjectsByKlass( "DataElement" ).size() );
         assertEquals( 3, deletedObjectService.getDeletedObjectsByKlass( "OrganisationUnit" ).size() );
         assertTrue( deletedObjectService.getDeletedObjectsByKlass( "Indicator" ).isEmpty() );
+    }
+
+    @Test
+    public void testDeleteDataElement()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+        DataElement dataElementC = createDataElement( 'C' );
+        OrganisationUnit organisationUnitA = createOrganisationUnit( 'A' );
+        OrganisationUnit organisationUnitB = createOrganisationUnit( 'B' );
+
+        manager.save( dataElementA );
+        manager.save( dataElementB );
+        manager.save( dataElementC );
+        manager.save( organisationUnitA );
+        manager.save( organisationUnitB );
+
+        manager.delete( dataElementA );
+        manager.delete( dataElementB );
+        manager.delete( dataElementC );
+        manager.delete( organisationUnitA );
+        manager.delete( organisationUnitB );
+
+        manager.flush(); // need to flush to make changes happen within the same tx
+
+        assertEquals( 5, deletedObjectService.getDeletedObjects().size() );
+        assertEquals( 3, deletedObjectService.getDeletedObjectsByKlass( "DataElement" ).size() );
+        assertEquals( 2, deletedObjectService.getDeletedObjectsByKlass( "OrganisationUnit" ).size() );
     }
 }

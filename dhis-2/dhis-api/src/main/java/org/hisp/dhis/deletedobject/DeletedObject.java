@@ -32,6 +32,7 @@ package org.hisp.dhis.deletedobject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -130,5 +131,15 @@ public class DeletedObject
     public int hashCode()
     {
         return Objects.hashCode( deletedObjectId, code, deletedAt );
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "deletedObjectId", deletedObjectId )
+            .add( "code", code )
+            .add( "deletedAt", deletedAt )
+            .toString();
     }
 }
