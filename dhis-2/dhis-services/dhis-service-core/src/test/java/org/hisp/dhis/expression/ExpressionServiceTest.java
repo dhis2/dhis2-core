@@ -68,7 +68,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElement;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -124,7 +124,7 @@ public class ExpressionServiceTest
     private DataElementOperand opB;
 
     private TrackedEntityAttribute teaA;
-    private ProgramTrackedEntityAttribute pteaA;
+    private ProgramTrackedEntityAttributeDimensionItem pteaA;
     private ProgramDataElement pdeA;
     private ProgramIndicator piA;
     
@@ -227,12 +227,11 @@ public class ExpressionServiceTest
         idObjectManager.save( prA );
         
         teaA = createTrackedEntityAttribute( 'A' );        
-        pteaA = new ProgramTrackedEntityAttribute( prA, teaA );        
+        pteaA = new ProgramTrackedEntityAttributeDimensionItem( prA, teaA );        
         pdeA = new ProgramDataElement( prA, deA );
         piA = createProgramIndicator( 'A', prA, null, null );
 
         idObjectManager.save( teaA );
-        idObjectManager.save( pteaA );
         idObjectManager.save( pdeA );
         idObjectManager.save( piA );
         

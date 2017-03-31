@@ -987,6 +987,7 @@ public class TableAlteror
 
         upgradeMapViewsToColumns();
         upgradeDataDimensionItemsToReportingRateMetric();
+        upgradeDataDimensionItemToEmbeddedProgramAttribute();
 
         updateObjectTranslation();
         upgradeDataSetElements();
@@ -1552,6 +1553,23 @@ public class TableAlteror
             "where datasetid is not null " +
             "and metric is null;";
 
+        executeSql( sql );
+    }
+    
+    /**
+     * Upgrades data dimension items to use embedded 
+     * ProgramTrackedEntityAttributeDimensionItem class.
+     */
+    public void upgradeDataDimensionItemToEmbeddedProgramAttribute()
+    {
+        String sql =
+            "update datadimensionitem di " +
+            "set programattribute_programid = (select programid from program_attributes where programtrackedentityattributeid=di.programattributeid), " +
+            "programattribute_attributeid = (select trackedentityattributeid from program_attributes where programtrackedentityattributeid=di.programattributeid) " +
+            "where programattributeid is not null " +
+            "and (programattribute_programid is null and programattribute_attributeid is null); " +
+            "alter table datadimensionitem drop column programattributeid;";
+        
         executeSql( sql );
     }
 

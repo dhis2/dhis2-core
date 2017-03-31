@@ -79,14 +79,14 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElement;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.hisp.dhis.user.CurrentUserService;
@@ -110,9 +110,6 @@ public class DefaultDimensionService
 
     @Autowired
     private ProgramService programService;
-
-    @Autowired
-    private TrackedEntityAttributeService attributeService;
 
     @Autowired
     private PeriodService periodService;
@@ -342,7 +339,7 @@ public class DefaultDimensionService
             DataElementOperand operand = null;
             DataSet dataSet = null;
             ProgramDataElement programDataElement = null;
-            ProgramTrackedEntityAttribute programAttribute = null;
+            ProgramTrackedEntityAttributeDimensionItem programAttribute = null;
             
             if ( ( operand = operandService.getOrAddDataElementOperand( id0, id1 ) ) != null )
             {
@@ -356,7 +353,7 @@ public class DefaultDimensionService
             {
                 return programDataElement;
             }
-            else if ( ( programAttribute = attributeService.getOrAddProgramTrackedEntityAttribute( id0, id1 ) ) != null )
+            else if ( ( programAttribute = getProgramAttributeDimensionItem( idScheme, id0, id1 ) ) != null )
             {
                 return programAttribute;
             }
@@ -384,6 +381,8 @@ public class DefaultDimensionService
     @Override
     public DimensionalItemObject getDataDimensionalItemObject( IdScheme idScheme, String dimensionItem )
     {
+        //TODO Not working for composite identifiers with non-UID identifier schemes
+        
         if ( DimensionalObjectUtils.isCompositeDimensionalObject( dimensionItem ) )
         {
             String id0 = splitSafe( dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 0 );
@@ -392,8 +391,8 @@ public class DefaultDimensionService
             DataElementOperand operand = null;
             DataSet dataSet = null;
             ProgramDataElement programDataElement = null;
-            ProgramTrackedEntityAttribute programAttribute = null;
-
+            ProgramTrackedEntityAttributeDimensionItem programAttribute = null;
+            
             if ( ( operand = operandService.getDataElementOperand( id0, id1 ) ) != null )
             {
                 return operand;
@@ -406,7 +405,7 @@ public class DefaultDimensionService
             {
                 return programDataElement;
             }
-            else if ( ( programAttribute = attributeService.getProgramTrackedEntityAttribute( id0, id1 ) ) != null )
+            else if ( ( programAttribute = getProgramAttributeDimensionItem( idScheme, id0, id1 ) ) != null )
             {
                 return programAttribute;
             }
@@ -439,6 +438,26 @@ public class DefaultDimensionService
     //--------------------------------------------------------------------------
 
     /**
+     * Returns a ProgramTrackedEntityAttributeDimensionItem.
+     * 
+     * @param idScheme the identifier scheme.
+     * @param programId the program identifier.
+     * @param attributeId the attribute identifier.
+     */
+    private ProgramTrackedEntityAttributeDimensionItem getProgramAttributeDimensionItem( IdScheme idScheme, String programId, String attributeId )
+    {
+        Program program = identifiableObjectManager.getObject( Program.class, idScheme, programId );
+        TrackedEntityAttribute attribute = identifiableObjectManager.getObject( TrackedEntityAttribute.class, idScheme, attributeId );
+
+        if ( program == null || attribute == null )
+        {
+            return null;
+        }
+
+        return new ProgramTrackedEntityAttributeDimensionItem( program, attribute );
+    }
+    
+    /**
      * Sets persistent objects for dimensional associations on the given
      * BaseAnalyticalObject based on the given list of transient DimensionalObjects.
      * <p>
@@ -448,7 +467,7 @@ public class DefaultDimensionService
      * BaseAnalyticalObject.
      *
      * @param object     the BaseAnalyticalObject to merge.
-     * @param dimensions the
+     * @param dimensions the list of dimensions.
      */
     private void mergeDimensionalObjects( BaseAnalyticalObject object, List<DimensionalObject> dimensions )
     {
