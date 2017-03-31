@@ -617,13 +617,6 @@
     <property name="cacheable" value="true" />
   </bean>
 
-  <bean id="org.hisp.dhis.program.ProgramDataElementStore"
-    class="org.hisp.dhis.program.hibernate.HibernateProgramDataElementStore">
-    <property name="clazz" value="org.hisp.dhis.program.ProgramDataElement" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="cacheable" value="true" />
-  </bean>
-
   <bean id="org.hisp.dhis.program.ProgramMessageStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramMessageStore">
     <property name="clazz" value="org.hisp.dhis.program.message.ProgramMessage" />
@@ -1380,8 +1373,6 @@
     <property name="programStore" ref="org.hisp.dhis.program.ProgramStore" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
-    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="programDataElementStore" ref="org.hisp.dhis.program.ProgramDataElementStore" />
   </bean>
 
   <bean id="org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupService"

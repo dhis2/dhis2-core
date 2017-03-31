@@ -76,8 +76,8 @@ public class DataQueryServiceTest
     private DataElement deC;
     private DataElement deD;
     
-    private ProgramDataElement pdA;
-    private ProgramDataElement pdB;
+    private ProgramDataElementDimensionItem pdA;
+    private ProgramDataElementDimensionItem pdB;
     
     private DataElementCategoryOptionCombo cocA;
     
@@ -143,9 +143,6 @@ public class DataQueryServiceTest
     private ProgramService programService;
     
     @Autowired
-    private ProgramDataElementStore programDataElementStore;
-    
-    @Autowired
     private UserService internalUserService;
     
     @Override
@@ -175,11 +172,8 @@ public class DataQueryServiceTest
         dataElementService.addDataElement( deE );
         dataElementService.addDataElement( deF );
         
-        pdA = new ProgramDataElement( prA, deE );
-        pdB = new ProgramDataElement( prA, deF );
-        
-        programDataElementStore.save( pdA );
-        programDataElementStore.save( pdB );
+        pdA = new ProgramDataElementDimensionItem( prA, deE );
+        pdB = new ProgramDataElementDimensionItem( prA, deF );
         
         cocA = categoryService.getDefaultDataElementCategoryOptionCombo();
 

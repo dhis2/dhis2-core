@@ -80,9 +80,8 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElement;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -107,9 +106,6 @@ public class DefaultDimensionService
 
     @Autowired
     private DataElementOperandService operandService;
-
-    @Autowired
-    private ProgramService programService;
 
     @Autowired
     private PeriodService periodService;
@@ -338,7 +334,7 @@ public class DefaultDimensionService
 
             DataElementOperand operand = null;
             DataSet dataSet = null;
-            ProgramDataElement programDataElement = null;
+            ProgramDataElementDimensionItem programDataElement = null;
             ProgramTrackedEntityAttributeDimensionItem programAttribute = null;
             
             if ( ( operand = operandService.getOrAddDataElementOperand( id0, id1 ) ) != null )
@@ -349,7 +345,7 @@ public class DefaultDimensionService
             {                
                 return new ReportingRate( dataSet, ReportingRateMetric.valueOf( id1 ) );
             }
-            else if ( ( programDataElement = programService.getOrAddProgramDataElement( id0, id1 ) ) != null )
+            else if ( ( programDataElement = getProgramDataElementDimensionItem( idScheme, id0, id1 ) ) != null )
             {
                 return programDataElement;
             }
@@ -390,7 +386,7 @@ public class DefaultDimensionService
 
             DataElementOperand operand = null;
             DataSet dataSet = null;
-            ProgramDataElement programDataElement = null;
+            ProgramDataElementDimensionItem programDataElement = null;
             ProgramTrackedEntityAttributeDimensionItem programAttribute = null;
             
             if ( ( operand = operandService.getDataElementOperand( id0, id1 ) ) != null )
@@ -401,7 +397,7 @@ public class DefaultDimensionService
             {
                 return new ReportingRate( dataSet, ReportingRateMetric.valueOf( id1 ) );
             }
-            else if ( ( programDataElement = programService.getProgramDataElement( id0, id1 ) ) != null )
+            else if ( ( programDataElement = getProgramDataElementDimensionItem( idScheme, id0, id1 ) ) != null )
             {
                 return programDataElement;
             }
@@ -438,7 +434,7 @@ public class DefaultDimensionService
     //--------------------------------------------------------------------------
 
     /**
-     * Returns a ProgramTrackedEntityAttributeDimensionItem.
+     * Returns a {@link ProgramTrackedEntityAttributeDimensionItem}.
      * 
      * @param idScheme the identifier scheme.
      * @param programId the program identifier.
@@ -455,6 +451,26 @@ public class DefaultDimensionService
         }
 
         return new ProgramTrackedEntityAttributeDimensionItem( program, attribute );
+    }
+    
+    /**
+     * Returns a {@link ProgramDataElementDimensionItem}.
+     * 
+     * @param idScheme the identifier scheme.
+     * @param programId the program identifier.
+     * @param dataElementId the data element identifier.
+     */
+    private ProgramDataElementDimensionItem getProgramDataElementDimensionItem( IdScheme idScheme, String programId, String dataElementId )
+    {
+        Program program = identifiableObjectManager.getObject( Program.class, idScheme, programId );
+        DataElement dataElement = identifiableObjectManager.getObject( DataElement.class, idScheme, dataElementId );
+        
+        if ( program == null || dataElement == null )
+        {
+            return null;
+        }
+        
+        return new ProgramDataElementDimensionItem( program, dataElement );        
     }
     
     /**

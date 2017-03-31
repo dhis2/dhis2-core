@@ -60,6 +60,10 @@ public class ProgramTrackedEntityAttributeDimensionItem
 
     private TrackedEntityAttribute attribute;
     
+    public ProgramTrackedEntityAttributeDimensionItem()
+    {
+    }
+    
     public ProgramTrackedEntityAttributeDimensionItem( Program program, TrackedEntityAttribute attribute )
     {
         this.program = program;

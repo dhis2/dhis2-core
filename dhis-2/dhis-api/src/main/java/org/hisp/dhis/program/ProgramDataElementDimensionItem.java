@@ -51,7 +51,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_P
  * @author Lars Helge Overland
  */
 @JacksonXmlRootElement( localName = "programDataElement", namespace = DxfNamespaces.DXF_2_0 )
-public class ProgramDataElement
+public class ProgramDataElementDimensionItem
     extends BaseDimensionalItemObject implements EmbeddedObject
 {
     private Program program;
@@ -62,11 +62,11 @@ public class ProgramDataElement
     // Constructors
     // -------------------------------------------------------------------------
 
-    public ProgramDataElement()
+    public ProgramDataElementDimensionItem()
     {
     }
-
-    public ProgramDataElement( Program program, DataElement dataElement )
+    
+    public ProgramDataElementDimensionItem( Program program, DataElement dataElement )
     {
         this.program = program;
         this.dataElement = dataElement;

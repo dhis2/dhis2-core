@@ -142,6 +142,12 @@ public class ProgramTrackedEntityAttribute
     }
 
     @JsonProperty
+    public String getDisplayShortName()
+    {
+        return (program != null ? program.getDisplayShortName() + " " : "") + (attribute != null ? attribute.getDisplayShortName() : "");
+    }
+
+    @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ValueType getValueType()
     {

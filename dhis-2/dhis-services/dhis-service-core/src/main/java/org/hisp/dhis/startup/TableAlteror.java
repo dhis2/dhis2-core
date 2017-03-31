@@ -990,6 +990,7 @@ public class TableAlteror
         upgradeMapViewsToColumns();
         upgradeDataDimensionItemsToReportingRateMetric();
         upgradeDataDimensionItemToEmbeddedProgramAttribute();
+        upgradeDataDimensionItemToEmbeddedProgramDataElement();
 
         updateObjectTranslation();
         upgradeDataSetElements();
@@ -1567,7 +1568,7 @@ public class TableAlteror
         String sql =
             "update datadimensionitem di " +
             "set programattribute_programid = (select programid from program_attributes where programtrackedentityattributeid=di.programattributeid), " +
-            "programattribute_attributeid = (select trackedentityattributeid from program_attributes where programtrackedentityattributeid=di.programattributeid) " +
+                "programattribute_attributeid = (select trackedentityattributeid from program_attributes where programtrackedentityattributeid=di.programattributeid) " +
             "where programattributeid is not null " +
             "and (programattribute_programid is null and programattribute_attributeid is null); " +
             "alter table datadimensionitem drop column programattributeid;";
@@ -1575,6 +1576,25 @@ public class TableAlteror
         executeSql( sql );
     }
 
+    /**
+     * Upgrades data dimension items to use embedded 
+     * ProgramDataElementDimensionItem class.
+     */
+    private void upgradeDataDimensionItemToEmbeddedProgramDataElement()
+    {
+        String sql =
+            "update datadimensionitem di " +
+            "set programdataelement_programid = (select programid from programdataelement where programdataelementid=di.programdataelementid), " +
+                "programdataelement_dataelementid = (select dataelementid from programdataelement where programdataelementid=di.programdataelementid) " +
+            "where di.programdataelementid is not null " +
+            "and (programdataelement_programid is null and programdataelement_dataelementid is null); " +
+            "alter table datadimensionitem drop column programdataelementid; " +
+            "drop table programdataelementtranslations; " +
+            "drop table programdataelement;"; // Remove if program data element is to be reintroduced
+        
+        executeSql( sql );
+    }
+    
     private int executeSql( String sql )
     {
         try
