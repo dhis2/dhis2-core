@@ -55,10 +55,6 @@ public class CredentialsExpiryAlertTask implements Runnable
 
     public static final String KEY_TASK = "credentialsExpiryAlertTask";
 
-    private static int FIRST_EXPIRY_THRESHOLD = 14;
-
-    private static int SECOND_EXPIRY_THRESHOLD = 7;
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -91,41 +87,21 @@ public class CredentialsExpiryAlertTask implements Runnable
 
         log.info( String.format( "%s has started", KEY_TASK ) );
 
-        List<User> users = userService.getAllUsers();
+        List<User> users = userService.getExpiringUsers();
 
         Map<String, String> content = new HashMap<>();
 
         for ( User user :  users )
         {
-            if ( isExpiring( user.getUserCredentials() ) )
+            if ( user.getEmail() != null )
             {
-                if ( user.getEmail() != null )
-                {
-                    content.put( user.getEmail(), createText( user ) );
-                }
+                content.put( user.getEmail(), createText( user ) );
             }
         }
 
         log.info( String.format( "Users added for alert: %d", content.size() ) );
 
         sendExpiryAlert( content );
-    }
-
-    private boolean isExpiring( UserCredentials userCredentials )
-    {
-        if ( userCredentials == null )
-        {
-            return false;
-        }
-
-        int remainingDays = getRemainingDays( userCredentials );
-
-        if ( remainingDays == FIRST_EXPIRY_THRESHOLD || remainingDays == SECOND_EXPIRY_THRESHOLD )
-        {
-            return true;
-        }
-
-        return false;
     }
 
     private void sendExpiryAlert( Map<String,String> content )
@@ -154,8 +130,6 @@ public class CredentialsExpiryAlertTask implements Runnable
 
         Date passwordLastUpdated = userCredentials.getPasswordLastUpdated();
 
-        int daysPassed = DateUtils.daysBetween( passwordLastUpdated, new Date() );
-
-        return ( daysBeforeChangeRequired - daysPassed );
+        return ( daysBeforeChangeRequired - DateUtils.daysBetween( passwordLastUpdated, new Date() ) );
     }
 }
