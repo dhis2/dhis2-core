@@ -37,8 +37,13 @@
     <many-to-one name="programIndicator" class="org.hisp.dhis.program.ProgramIndicator"
       column="programindicatorid" foreign-key="fk_datadimensionitem_programindicatorid" />
 
-    <many-to-one name="programDataElement" class="org.hisp.dhis.program.ProgramDataElement"
-      column="programdataelementid" foreign-key="fk_datadimensionitem_programdataelementid" />
+    <component name="programDataElement" class="org.hisp.dhis.program.ProgramDataElementDimensionItem">
+      <many-to-one name="program"  class="org.hisp.dhis.program.Program"
+        column="programdataelement_programid" foreign-key="fk_datadimensionitem_programdataelement_programid" />
+        
+      <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement"
+        column="programdataelement_dataelementid" foreign-key="fk_datadimensionitem_programdataelement_dataelementid" />
+    </component>
 
     <component name="programAttribute" class="org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem">
       <many-to-one name="program" class="org.hisp.dhis.program.Program"

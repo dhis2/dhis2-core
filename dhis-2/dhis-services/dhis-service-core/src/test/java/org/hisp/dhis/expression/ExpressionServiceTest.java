@@ -66,7 +66,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElement;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -125,7 +125,7 @@ public class ExpressionServiceTest
 
     private TrackedEntityAttribute teaA;
     private ProgramTrackedEntityAttributeDimensionItem pteaA;
-    private ProgramDataElement pdeA;
+    private ProgramDataElementDimensionItem pdeA;
     private ProgramIndicator piA;
     
     private Period period;
@@ -228,7 +228,7 @@ public class ExpressionServiceTest
         
         teaA = createTrackedEntityAttribute( 'A' );        
         pteaA = new ProgramTrackedEntityAttributeDimensionItem( prA, teaA );        
-        pdeA = new ProgramDataElement( prA, deA );
+        pdeA = new ProgramDataElementDimensionItem( prA, deA );
         piA = createProgramIndicator( 'A', prA, null, null );
 
         idObjectManager.save( teaA );

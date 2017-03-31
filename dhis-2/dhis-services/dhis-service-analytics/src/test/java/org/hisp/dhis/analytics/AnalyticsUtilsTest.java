@@ -46,7 +46,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElement;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -78,8 +78,8 @@ public class AnalyticsUtilsTest
         
         DataElement deA = createDataElement( 'A', new DataElementCategoryCombo() );
         DataElement deB = createDataElement( 'B', new DataElementCategoryCombo() );
-        ProgramDataElement pdeA = new ProgramDataElement( prA, deA );
-        ProgramDataElement pdeB = new ProgramDataElement( prA, deB );
+        ProgramDataElementDimensionItem pdeA = new ProgramDataElementDimensionItem( prA, deA );
+        ProgramDataElementDimensionItem pdeB = new ProgramDataElementDimensionItem( prA, deB );
         ProgramIndicator piA = createProgramIndicator( 'A', prA, null, null );
         
         List<DimensionalItemObject> list = Lists.newArrayList( deA, deB, pdeA, pdeB, piA );

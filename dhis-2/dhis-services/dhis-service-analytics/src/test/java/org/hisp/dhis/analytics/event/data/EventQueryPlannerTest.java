@@ -54,7 +54,7 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElement;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
@@ -76,10 +76,10 @@ public class EventQueryPlannerTest
     private DataElement deC;
     private DataElement deD;
     
-    private ProgramDataElement pdeA;
-    private ProgramDataElement pdeB;
-    private ProgramDataElement pdeC;
-    private ProgramDataElement pdeD;
+    private ProgramDataElementDimensionItem pdeA;
+    private ProgramDataElementDimensionItem pdeB;
+    private ProgramDataElementDimensionItem pdeC;
+    private ProgramDataElementDimensionItem pdeD;
     
     private TrackedEntityAttribute atA;
     private TrackedEntityAttribute atB;
@@ -121,15 +121,10 @@ public class EventQueryPlannerTest
         idObjectManager.save( deC );
         idObjectManager.save( deD );
         
-        pdeA = new ProgramDataElement( prA, deA );
-        pdeB = new ProgramDataElement( prA, deB );
-        pdeC = new ProgramDataElement( prA, deC );
-        pdeD = new ProgramDataElement( prA, deD );
-        
-        idObjectManager.save( pdeA );
-        idObjectManager.save( pdeB );
-        idObjectManager.save( pdeC );
-        idObjectManager.save( pdeD );
+        pdeA = new ProgramDataElementDimensionItem( prA, deA );
+        pdeB = new ProgramDataElementDimensionItem( prA, deB );
+        pdeC = new ProgramDataElementDimensionItem( prA, deC );
+        pdeD = new ProgramDataElementDimensionItem( prA, deD );
         
         atA = createTrackedEntityAttribute( 'A' );
         atB = createTrackedEntityAttribute( 'B' );
