@@ -79,9 +79,9 @@ public class HibernateDeletedObjectStore
     {
         Criteria criteria = getCurrentSession().createCriteria( DeletedObject.class );
 
-        if ( query.getKlass() != null )
+        if ( !query.getKlass().isEmpty() )
         {
-            criteria.add( Restrictions.eq( "deletedObjectId.klass", query.getKlass() ) );
+            criteria.add( Restrictions.in( "deletedObjectId.klass", query.getKlass() ) );
         }
 
         if ( query.getFirst() != null )

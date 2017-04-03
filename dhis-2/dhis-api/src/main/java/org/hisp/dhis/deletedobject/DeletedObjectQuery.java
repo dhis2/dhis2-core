@@ -32,6 +32,9 @@ package org.hisp.dhis.deletedobject;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.Pager;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -39,7 +42,7 @@ public class DeletedObjectQuery
 {
     public static final DeletedObjectQuery EMPTY = new DeletedObjectQuery();
 
-    private String klass;
+    private List<String> klass = new ArrayList<>();
 
     private Integer first;
 
@@ -49,12 +52,12 @@ public class DeletedObjectQuery
     {
     }
 
-    public String getKlass()
+    public List<String> getKlass()
     {
         return klass;
     }
 
-    public void setKlass( String klass )
+    public void setKlass( List<String> klass )
     {
         this.klass = klass;
     }
