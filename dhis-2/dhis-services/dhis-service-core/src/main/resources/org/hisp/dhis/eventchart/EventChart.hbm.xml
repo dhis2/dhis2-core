@@ -115,6 +115,8 @@
     <property name="completedOnly" column="completedonly" />
 
     <property name="title" />
+    
+    <property name="subtitle" />
 
     <set name="interpretations" inverse="true">
       <key column="eventchartid" />
