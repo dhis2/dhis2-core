@@ -113,16 +113,17 @@ public class DefaultSchemaService
         add( new OrganisationUnitLevelSchemaDescriptor() ).
         add( new OrganisationUnitSchemaDescriptor() ).
         add( new PredictorSchemaDescriptor() ).
+        add( new ProgramDataElementDimensionItemSchemaDescriptor() ).
         add( new ProgramIndicatorSchemaDescriptor() ).
         add( new ProgramRuleActionSchemaDescriptor() ).
         add( new ProgramRuleSchemaDescriptor() ).
         add( new ProgramRuleVariableSchemaDescriptor() ).
         add( new ProgramSchemaDescriptor() ).
-        add( new ProgramDataElementSchemaDescriptor() ).
         add( new ProgramStageDataElementSchemaDescriptor() ).
         add( new ProgramStageSchemaDescriptor() ).
         add( new ProgramStageSectionSchemaDescriptor() ).
         add( new ProgramTrackedEntityAttributeSchemaDescriptor() ).
+        add( new ProgramTrackedEntityAttributeDimensionItemSchemaDescriptor() ).
         add( new ProgramNotificationTemplateSchemaDescriptor() ).
         add( new RelationshipTypeSchemaDescriptor() ).
         add( new ReportSchemaDescriptor() ).

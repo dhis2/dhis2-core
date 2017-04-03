@@ -37,7 +37,7 @@ import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.program.ProgramDataElement;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
@@ -45,7 +45,7 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.schema.descriptors.ProgramDataElementSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.ProgramDataElementDimensionItemSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
@@ -63,7 +63,7 @@ import java.util.Map;
  * @author Lars Helge Overland
  */
 @Controller
-@RequestMapping( value = ProgramDataElementSchemaDescriptor.API_ENDPOINT )
+@RequestMapping( value = ProgramDataElementDimensionItemSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class ProgramDataElementController
 {
@@ -88,7 +88,7 @@ public class ProgramDataElementController
     public @ResponseBody RootNode getObjectList( @RequestParam Map<String, String> rpParameters, OrderParams orderParams )
         throws QueryParserException
     {
-        Schema schema = schemaService.getDynamicSchema( ProgramDataElement.class );
+        Schema schema = schemaService.getDynamicSchema( ProgramDataElementDimensionItem.class );
 
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
@@ -102,8 +102,8 @@ public class ProgramDataElementController
         WebOptions options = new WebOptions( rpParameters );
         WebMetadata metadata = new WebMetadata();
 
-        List<ProgramDataElement> programDataElements;
-        Query query = queryService.getQueryFromUrl( ProgramDataElement.class, filters, orders, options.getRootJunction() );
+        List<ProgramDataElementDimensionItem> programDataElements;
+        Query query = queryService.getQueryFromUrl( ProgramDataElementDimensionItem.class, filters, orders, options.getRootJunction() );
         query.setDefaultOrder();
 
         if ( options.contains( "program" ) )
@@ -113,7 +113,7 @@ public class ProgramDataElementController
             query.setObjects( programDataElements );
         }
 
-        programDataElements = (List<ProgramDataElement>) queryService.query( query );
+        programDataElements = (List<ProgramDataElementDimensionItem>) queryService.query( query );
 
         Pager pager = metadata.getPager();
 
@@ -130,7 +130,7 @@ public class ProgramDataElementController
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
 
-        rootNode.addChild( fieldFilterService.filter( ProgramDataElement.class, programDataElements, fields ) );
+        rootNode.addChild( fieldFilterService.filter( ProgramDataElementDimensionItem.class, programDataElements, fields ) );
 
         return rootNode;
     }

@@ -54,8 +54,8 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElement;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -76,16 +76,16 @@ public class EventQueryPlannerTest
     private DataElement deC;
     private DataElement deD;
     
-    private ProgramDataElement pdeA;
-    private ProgramDataElement pdeB;
-    private ProgramDataElement pdeC;
-    private ProgramDataElement pdeD;
+    private ProgramDataElementDimensionItem pdeA;
+    private ProgramDataElementDimensionItem pdeB;
+    private ProgramDataElementDimensionItem pdeC;
+    private ProgramDataElementDimensionItem pdeD;
     
     private TrackedEntityAttribute atA;
     private TrackedEntityAttribute atB;
     
-    private ProgramTrackedEntityAttribute patA;
-    private ProgramTrackedEntityAttribute patB;
+    private ProgramTrackedEntityAttributeDimensionItem patA;
+    private ProgramTrackedEntityAttributeDimensionItem patB;
     
     private OrganisationUnit ouA;
     private OrganisationUnit ouB;
@@ -121,15 +121,10 @@ public class EventQueryPlannerTest
         idObjectManager.save( deC );
         idObjectManager.save( deD );
         
-        pdeA = new ProgramDataElement( prA, deA );
-        pdeB = new ProgramDataElement( prA, deB );
-        pdeC = new ProgramDataElement( prA, deC );
-        pdeD = new ProgramDataElement( prA, deD );
-        
-        idObjectManager.save( pdeA );
-        idObjectManager.save( pdeB );
-        idObjectManager.save( pdeC );
-        idObjectManager.save( pdeD );
+        pdeA = new ProgramDataElementDimensionItem( prA, deA );
+        pdeB = new ProgramDataElementDimensionItem( prA, deB );
+        pdeC = new ProgramDataElementDimensionItem( prA, deC );
+        pdeD = new ProgramDataElementDimensionItem( prA, deD );
         
         atA = createTrackedEntityAttribute( 'A' );
         atB = createTrackedEntityAttribute( 'B' );
@@ -137,12 +132,9 @@ public class EventQueryPlannerTest
         idObjectManager.save( atA );
         idObjectManager.save( atB );
         
-        patA = new ProgramTrackedEntityAttribute( prA, atA );
-        patB = new ProgramTrackedEntityAttribute( prA, atB );
-        
-        idObjectManager.save( patA );
-        idObjectManager.save( patB );
-        
+        patA = new ProgramTrackedEntityAttributeDimensionItem( prA, atA );
+        patB = new ProgramTrackedEntityAttributeDimensionItem( prA, atB );
+                
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B', ouA );
         ouC = createOrganisationUnit( 'C', ouA );

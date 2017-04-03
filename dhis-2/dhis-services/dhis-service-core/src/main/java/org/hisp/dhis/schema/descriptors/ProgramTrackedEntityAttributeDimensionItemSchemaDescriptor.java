@@ -1,4 +1,4 @@
-package org.hisp.dhis.program;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,14 +28,22 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
 
-/**
- * @author Lars Helge Overland
- */
-public interface ProgramDataElementStore
-    extends GenericIdentifiableObjectStore<ProgramDataElement>
+public class ProgramTrackedEntityAttributeDimensionItemSchemaDescriptor implements SchemaDescriptor
 {
-    ProgramDataElement get( Program program, DataElement dataElement );
+    public static final String SINGULAR = "programTrackedEntityAttribute";
+
+    public static final String PLURAL = "programTrackedEntityAttributes";
+
+    @Override
+    public Schema getSchema()
+    {
+        Schema schema = new Schema( ProgramStageDataElement.class, SINGULAR, PLURAL );
+        schema.setMetadata( false );
+
+        return schema;
+    }
 }
