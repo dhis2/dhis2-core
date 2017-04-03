@@ -244,7 +244,6 @@ public class DataValidationTask
 
         if ( validationResults.size() > 0 )
         {
-            log.info("WE FOUND " + validationResults.size() + " VIOLATIONS");
             context.getValidationResults().addAll( validationResults );
             validationResultService.saveValidationResults( validationResults );
         }
