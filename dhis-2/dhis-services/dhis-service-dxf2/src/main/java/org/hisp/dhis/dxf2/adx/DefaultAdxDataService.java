@@ -30,9 +30,9 @@ package org.hisp.dhis.dxf2.adx;
 
 import java.util.Set;
 
-import org.amplecode.staxwax.factory.XMLFactory;
-import org.amplecode.staxwax.reader.XMLReader;
-import org.amplecode.staxwax.writer.XMLWriter;
+import org.hisp.staxwax.factory.XMLFactory;
+import org.hisp.staxwax.reader.XMLReader;
+import org.hisp.staxwax.writer.XMLWriter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
