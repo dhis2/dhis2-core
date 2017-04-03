@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,29 +26,14 @@ package org.hisp.dhis.schema.descriptors;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
-
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 
 /**
+ * Marker interface marking the class as a proper metadata object (not data, not embedded object, etc).
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackedEntityProgramIndicatorDimensionSchemaDescriptor implements SchemaDescriptor
+public interface MetadataObject
 {
-    public static final String SINGULAR = "dataElementDimension";
-
-    public static final String PLURAL = "dataElementDimensions";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( TrackedEntityProgramIndicatorDimension.class, SINGULAR, PLURAL );
-        schema.setMetadata( false );
-
-        return schema;
-    }
 }

@@ -43,6 +43,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.common.adapter.JacksonOrganisationUnitChildrenSerializer;
 import org.hisp.dhis.dataelement.DataElement;
@@ -71,7 +72,7 @@ import java.util.regex.Pattern;
  */
 @JacksonXmlRootElement( localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0 )
 public class OrganisationUnit
-    extends BaseDimensionalItemObject
+    extends BaseDimensionalItemObject implements MetadataObject
 {
     private static final String PATH_SEP = "/";
 
@@ -640,12 +641,12 @@ public class OrganisationUnit
         Collections.reverse( units );
         return units;
     }
-    
+
     /**
      * Returns the list of ancestor organisation unit UIDs up to any of the given roots
      * for this organisation unit. Does not include itself. The list is ordered by
      * root first.
-     * 
+     *
      * @param rootUids the root organisation units, if null using real roots.
      */
     public List<String> getAncestorUids( Set<String> rootUids )
@@ -654,22 +655,22 @@ public class OrganisationUnit
         {
             return Lists.newArrayList();
         }
-        
+
         String[] ancestors = path.substring( 1 ).split( PATH_SEP ); // Skip first delimiter, root unit first
         int lastIndex = ancestors.length - 2; // Skip this unit        
         List<String> uids = Lists.newArrayList();
-        
+
         for ( int i = lastIndex; i >= 0; i-- )
         {
-            String uid = ancestors[ i ];            
+            String uid = ancestors[i];
             uids.add( 0, uid );
-            
+
             if ( rootUids != null && rootUids.contains( uid ) )
             {
                 break;
             }
         }
-        
+
         return uids;
     }
 
@@ -684,16 +685,16 @@ public class OrganisationUnit
 
         return dataElements;
     }
-    
+
     public Map<PeriodType, Set<DataElement>> getDataElementsInDataSetsByPeriodType()
     {
         SetMap<PeriodType, DataElement> map = new SetMap<>();
-        
+
         for ( DataSet dataSet : dataSets )
         {
             map.putValues( dataSet.getPeriodType(), dataSet.getDataElements() );
         }
-        
+
         return map;
     }
 
@@ -751,7 +752,7 @@ public class OrganisationUnit
     public String getParentGraph( Collection<OrganisationUnit> roots )
     {
         Set<String> rootUids = roots != null ? Sets.newHashSet( IdentifiableObjectUtils.getUids( roots ) ) : null;
-        List<String> ancestors = getAncestorUids( rootUids );        
+        List<String> ancestors = getAncestorUids( rootUids );
         return StringUtils.join( ancestors, PATH_SEP );
     }
 
@@ -759,7 +760,7 @@ public class OrganisationUnit
      * Returns a string representing the graph of ancestors. The string is delimited
      * by "/". The ancestors are ordered by root first and represented by names.
      *
-     * @param roots the root organisation units, if null using real roots.
+     * @param roots       the root organisation units, if null using real roots.
      * @param includeThis whether to include this organisation unit in the graph.
      */
     public String getParentNameGraph( Collection<OrganisationUnit> roots, boolean includeThis )

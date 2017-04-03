@@ -36,6 +36,7 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.UserGroup;
@@ -49,7 +50,7 @@ import java.util.Set;
  */
 public class ValidationNotificationTemplate
     extends BaseIdentifiableObject
-    implements NotificationTemplate
+    implements NotificationTemplate, MetadataObject
 {
     private static final Set<DeliveryChannel> ALL_DELIVERY_CHANNELS = Sets.newHashSet( DeliveryChannel.values() );
 

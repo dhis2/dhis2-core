@@ -48,7 +48,6 @@ public class UserCredentialsSchemaDescriptor implements SchemaDescriptor
     {
         Schema schema = new Schema( UserCredentials.class, SINGULAR, PLURAL );
         schema.setMetadata( false );
-        schema.setOrder( 2000 );
 
         return schema;
     }

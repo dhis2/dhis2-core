@@ -35,6 +35,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.legend.LegendSet;
 
 /**
@@ -42,7 +43,7 @@ import org.hisp.dhis.legend.LegendSet;
  */
 @JacksonXmlRootElement( localName = "externalMapLayer", namespace = DxfNamespaces.DXF_2_0 )
 public class ExternalMapLayer
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     private MapService mapService;
 
