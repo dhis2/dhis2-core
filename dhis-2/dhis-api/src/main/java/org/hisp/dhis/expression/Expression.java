@@ -87,7 +87,7 @@ public class Expression
     /**
      * This expression should be given sliding window based data
      */
-    private Boolean slidingWindow;
+    private Boolean slidingWindow = false;
 
     /**
      * Indicates whether the expression should evaluate to null if all or any

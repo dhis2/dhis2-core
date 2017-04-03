@@ -159,7 +159,7 @@ public class DataValidationTask
                         {
                             Map<String, Double> leftSideValues;
 
-                            if ( rule.getLeftSide().getSlidingWindow() )
+                            if ( rule.getLeftSide() != null && rule.getLeftSide().getSlidingWindow() )
                             {
                                 leftSideValues = getExpressionValueMap( rule.getLeftSide(), slidingWindowEventMap,
                                     period );
@@ -171,7 +171,7 @@ public class DataValidationTask
 
                             Map<String, Double> rightSideValues;
 
-                            if ( rule.getRightSide().getSlidingWindow() )
+                            if ( rule.getRightSide() != null && rule.getRightSide().getSlidingWindow() )
                             {
                                 rightSideValues = getExpressionValueMap( rule.getRightSide(), slidingWindowEventMap, period );
                             }
