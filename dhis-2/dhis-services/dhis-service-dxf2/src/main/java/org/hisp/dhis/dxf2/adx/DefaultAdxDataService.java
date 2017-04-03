@@ -268,63 +268,66 @@ public class DefaultAdxDataService
 
         ExecutorService executor = Executors.newSingleThreadExecutor();
 
-        int count = 0;
+        int groupCount = 0;
 
-        // submit each ADX group to DXF importer as a datavalueSet
-        while ( adxReader.moveToStartElement( AdxDataService.GROUP, AdxDataService.NAMESPACE ) )
+        try ( PipedOutputStream pipeOut = new PipedOutputStream() )
         {
-            try ( PipedOutputStream pipeOut = new PipedOutputStream() )
+            Future<ImportSummary> futureImportSummary = executor.submit( new AdxPipedImporter( dataValueSetService, adxImportOptions, id, pipeOut, sessionFactory ) );
+            XMLOutputFactory factory = XMLOutputFactory.newInstance();
+            XMLStreamWriter dxfWriter = factory.createXMLStreamWriter( pipeOut );
+
+            List<ImportConflict> adxConflicts = new LinkedList<>();
+
+            dxfWriter.writeStartDocument( "1.0" );
+            dxfWriter.writeStartElement( "dataValueSet" );
+            dxfWriter.writeDefaultNamespace( "http://dhis2.org/schema/dxf/2.0" );
+
+            while ( adxReader.moveToStartElement( AdxDataService.GROUP, AdxDataService.NAMESPACE ) )
             {
-                notifier.notify( id, "Importing ADX data group: " + count );
-                
-                Future<ImportSummary> futureImportSummary = executor.submit( new AdxPipedImporter( dataValueSetService, adxImportOptions, id, pipeOut, sessionFactory ) );
-                XMLOutputFactory factory = XMLOutputFactory.newInstance();
-                XMLStreamWriter dxfWriter = factory.createXMLStreamWriter( pipeOut );
+                notifier.clear( id ).notify( id, "Importing ADX data group: " + groupCount );
+                log.error("Importing ADX data group: " + groupCount );
 
                 // note this returns conflicts which are detected at ADX level
-                List<ImportConflict> adxConflicts = parseAdxGroupToDxf( adxReader, dxfWriter, adxImportOptions );
-
-                pipeOut.flush();
-
-                ImportSummary summary = futureImportSummary.get( TOTAL_MINUTES_TO_WAIT, TimeUnit.MINUTES );
-
-                // add ADX conflicts to the import summary
-                for ( ImportConflict conflict : adxConflicts )
-                {
-                    summary.getConflicts().add( conflict );
-                    summary.getImportCount().incrementIgnored();
-                }
-
-                importSummaries.addImportSummary( summary );
-            }
-            catch ( AdxException ex )
-            {
-                ImportSummary importSummary = new ImportSummary();
-                importSummary.setStatus( ImportStatus.ERROR );
-                importSummary.setDescription( "Data set import failed for group number: " + count );
-                importSummary.getConflicts().add( ex.getImportConflict() );
-                importSummaries.addImportSummary( importSummary );
-                importSummaries.setStatus( ImportStatus.ERROR );
-                notifier.notify( id, NotificationLevel.ERROR, "ADX data import procss failed", true );
-                log.warn( "Import failed: " + DebugUtils.getStackTrace( ex ) );
-            }
-            catch ( IOException | XMLStreamException | InterruptedException | ExecutionException | TimeoutException ex )
-            {
-                ImportSummary importSummary = new ImportSummary();
-                importSummary.setStatus( ImportStatus.ERROR );
-                importSummary.setDescription( "Data set import failed for group number: " + count );
-                importSummaries.addImportSummary( importSummary );
-                importSummaries.setStatus( ImportStatus.ERROR );
-                notifier.notify( id, NotificationLevel.ERROR, "ADX data import procss failed", true );
-                log.warn( "Import failed: " + DebugUtils.getStackTrace( ex ) );
+                adxConflicts.addAll( parseAdxGroupToDxf( adxReader, dxfWriter, adxImportOptions ) );
+                groupCount++;
             }
 
-            count++;
+            dxfWriter.writeEndElement(); // end dataValueSet
+            dxfWriter.writeEndDocument();
+
+            pipeOut.flush();
+
+            ImportSummary summary = futureImportSummary.get( TOTAL_MINUTES_TO_WAIT, TimeUnit.MINUTES );
+            summary.getConflicts().addAll( adxConflicts );
+            summary.getImportCount().incrementIgnored( adxConflicts.size() );
+
+            importSummaries.addImportSummary( summary );
+        }
+        catch ( AdxException ex )
+        {
+            ImportSummary importSummary = new ImportSummary();
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.setDescription( "Data set import failed within group number: " + groupCount );
+            importSummary.getConflicts().add( ex.getImportConflict() );
+            importSummaries.addImportSummary( importSummary );
+            importSummaries.setStatus( ImportStatus.ERROR );
+            notifier.clear( id ).notify( id, NotificationLevel.ERROR, "ADX data import done", true );
+            log.warn( "Import failed: " + DebugUtils.getStackTrace( ex ) );
+        }
+        catch ( IOException | XMLStreamException | InterruptedException | ExecutionException | TimeoutException ex )
+        {
+            ImportSummary importSummary = new ImportSummary();
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.setDescription( "Data set import failed within group number: " + groupCount );
+            importSummaries.addImportSummary( importSummary );
+            importSummaries.setStatus( ImportStatus.ERROR );
+            notifier.clear( id ).notify( id, NotificationLevel.ERROR, "ADX data import done", true );
+            log.warn( "Import failed: " + DebugUtils.getStackTrace( ex ) );
         }
 
         executor.shutdown();
         
-        notifier.notify( id, INFO, "ADX data import done", true ).addTaskSummary( id, importSummaries );
+        notifier.clear( id ).notify( id, INFO, "ADX data import done", true ).addTaskSummary( id, importSummaries );
         log.info( "ADX data import done: " + importSummaries.toCountString() );
 
         return importSummaries;
@@ -339,10 +342,6 @@ public class DefaultAdxDataService
             throws XMLStreamException, AdxException
     {
         List<ImportConflict> adxConflicts = new LinkedList<>();
-
-        dxfWriter.writeStartDocument( "1.0" );
-        dxfWriter.writeStartElement( "dataValueSet" );
-        dxfWriter.writeDefaultNamespace( "http://dhis2.org/schema/dxf/2.0" );
 
         IdentifiableProperty dataElementIdScheme = importOptions.getIdSchemes().getDataElementIdScheme().getIdentifiableProperty();
         IdentifiableProperty dataSetIdScheme = importOptions.getIdSchemes().getDataSetIdScheme().getIdentifiableProperty();
@@ -385,18 +384,12 @@ public class DefaultAdxDataService
             convertAttributesToDxf( groupAttributes, AdxDataService.ATTOPTCOMBO, attributeCombo, dataElementIdScheme );
         }
 
-        // write the remaining attributes through to DXF stream
-        for ( String attribute : groupAttributes.keySet() )
-        {
-            dxfWriter.writeAttribute( attribute, groupAttributes.get( attribute ) );
-        }
-
         // process the dataValues
         while ( adxReader.moveToStartElement( AdxDataService.DATAVALUE, AdxDataService.GROUP ) )
         {
             try
             {
-                parseADXDataValueToDxf( adxReader, dxfWriter, importOptions );
+                parseADXDataValueToDxf( adxReader, dxfWriter, groupAttributes, importOptions );
             }
             catch ( AdxException ex )
             {
@@ -406,13 +399,11 @@ public class DefaultAdxDataService
             }
         }
 
-        dxfWriter.writeEndElement();
-        dxfWriter.writeEndDocument();
-
         return adxConflicts;
     }
 
-    private void parseADXDataValueToDxf( XMLReader adxReader, XMLStreamWriter dxfWriter, ImportOptions importOptions )
+    private void parseADXDataValueToDxf( XMLReader adxReader, XMLStreamWriter dxfWriter,
+        Map<String, String> groupAttributes, ImportOptions importOptions )
         throws XMLStreamException, AdxException
     {
         Map<String, String> dvAttributes = adxReader.readAttributes();
@@ -473,13 +464,19 @@ public class DefaultAdxDataService
 
         dxfWriter.writeStartElement( "dataValue" );
 
+        // write the group attributes through to DXF stream
+        for ( String attribute : groupAttributes.keySet() )
+        {
+            dxfWriter.writeAttribute( attribute, groupAttributes.get( attribute ) );
+        }
+
         // pass through the remaining attributes to DXF
         for ( String attribute : dvAttributes.keySet() )
         {
             dxfWriter.writeAttribute( attribute, dvAttributes.get( attribute ) );
         }
 
-        dxfWriter.writeEndElement();
+        dxfWriter.writeEndElement(); // dataValue
     }
 
     private Map<String, DataElementCategory> getCodeCategoryMap( DataElementCategoryCombo categoryCombo )
