@@ -85,6 +85,11 @@ public class Expression
     private String description;
 
     /**
+     * This expression should be given sliding window based data
+     */
+    private Boolean slidingWindow = false;
+
+    /**
      * Indicates whether the expression should evaluate to null if all or any
      * data values are missing in the expression.
      */
@@ -326,5 +331,17 @@ public class Expression
         expression = other.getExpression() == null ? expression : other.getExpression();
         description = other.getDescription() == null ? description : other.getDescription();
         missingValueStrategy = other.getMissingValueStrategy() == null ? missingValueStrategy : other.getMissingValueStrategy();
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getSlidingWindow()
+    {
+        return slidingWindow;
+    }
+
+    public void setSlidingWindow( Boolean slidingWindow )
+    {
+        this.slidingWindow = slidingWindow;
     }
 }
