@@ -46,7 +46,6 @@ public class ProgramDataElementDimensionItemSchemaDescriptor implements SchemaDe
     {
         Schema schema = new Schema( ProgramDataElementDimensionItem.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setMetadata( false );
 
         return schema;
     }

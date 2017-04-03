@@ -46,9 +46,6 @@ public class TrackedEntityDataElementDimensionSchemaDescriptor implements Schema
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( TrackedEntityDataElementDimension.class, SINGULAR, PLURAL );
-        schema.setMetadata( false );
-
-        return schema;
+        return new Schema( TrackedEntityDataElementDimension.class, SINGULAR, PLURAL );
     }
 }

@@ -39,6 +39,7 @@ import com.google.common.collect.Maps;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
@@ -93,6 +94,11 @@ public class Schema implements Ordered, Klass
     private final String plural;
 
     /**
+     * Is this class considered metadata, this is mainly used for our metadata importer/exporter.
+     */
+    private final boolean metadata;
+
+    /**
      * Namespace URI to be used for this class.
      */
     private String namespace;
@@ -133,11 +139,6 @@ public class Schema implements Ordered, Klass
      * Used by LinkService to link to the Schema describing this type (if reference).
      */
     private String href;
-
-    /**
-     * Is this class considered metadata, this is mainly used for our metadata importer/exporter.
-     */
-    private boolean metadata = true;
 
     /**
      * Are any properties on this class being persisted, if false, this file does not have any hbm file attached to it.
@@ -200,6 +201,7 @@ public class Schema implements Ordered, Klass
         this.nameableObject = NameableObject.class.isAssignableFrom( klass );
         this.singular = singular;
         this.plural = plural;
+        this.metadata = MetadataObject.class.isAssignableFrom( klass );
     }
 
     @Override
@@ -250,6 +252,13 @@ public class Schema implements Ordered, Klass
     public String getPlural()
     {
         return plural;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isMetadata()
+    {
+        return metadata;
     }
 
     @JsonProperty
@@ -352,18 +361,6 @@ public class Schema implements Ordered, Klass
     public void setHref( String href )
     {
         this.href = href;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isMetadata()
-    {
-        return metadata;
-    }
-
-    public void setMetadata( boolean metadata )
-    {
-        this.metadata = metadata;
     }
 
     @JsonProperty
