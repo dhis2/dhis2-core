@@ -33,6 +33,7 @@ import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.Pager;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -43,6 +44,8 @@ public class DeletedObjectQuery
     public static final DeletedObjectQuery EMPTY = new DeletedObjectQuery();
 
     private List<String> klass = new ArrayList<>();
+
+    private Date deletedAt;
 
     private Integer first;
 
@@ -60,6 +63,16 @@ public class DeletedObjectQuery
     public void setKlass( List<String> klass )
     {
         this.klass = klass;
+    }
+
+    public Date getDeletedAt()
+    {
+        return deletedAt;
+    }
+
+    public void setDeletedAt( Date deletedAt )
+    {
+        this.deletedAt = deletedAt;
     }
 
     public Integer getFirst()

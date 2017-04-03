@@ -30,7 +30,6 @@ package org.hisp.dhis.deletedobject.hibernate;
  */
 
 import org.hibernate.Criteria;
-import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
@@ -67,10 +66,10 @@ public class HibernateDeletedObjectStore
     @SuppressWarnings( "unchecked" )
     public List<DeletedObject> getByKlass( String klass )
     {
-        Query query = getCurrentSession().createQuery( "SELECT c FROM DeletedObject c WHERE c.deletedObjectId.klass=:klass" );
-        query.setString( "klass", klass );
+        DeletedObjectQuery query = new DeletedObjectQuery();
+        query.getKlass().add( klass );
 
-        return query.list();
+        return getAll( query );
     }
 
     @Override
@@ -82,6 +81,11 @@ public class HibernateDeletedObjectStore
         if ( !query.getKlass().isEmpty() )
         {
             criteria.add( Restrictions.in( "deletedObjectId.klass", query.getKlass() ) );
+        }
+
+        if ( query.getDeletedAt() != null )
+        {
+            criteria.add( Restrictions.ge( "deletedAt", query.getDeletedAt() ) );
         }
 
         if ( query.getFirst() != null )
