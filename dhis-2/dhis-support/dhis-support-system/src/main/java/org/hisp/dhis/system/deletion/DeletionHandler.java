@@ -80,7 +80,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElement;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorGroup;
 import org.hisp.dhis.program.ProgramInstance;
@@ -902,15 +901,6 @@ public abstract class DeletionHandler
     public String allowDeleteOAuth2Client( OAuth2Client oAuth2Client )
     {
         return null;
-    }
-
-    public String allowDeleteProgramDataElement( ProgramDataElement programDataElement )
-    {
-        return null;
-    }
-
-    public void deleteProgramDataElement( ProgramDataElement programDataElement )
-    {
     }
 
     public String allowDeleteColorSet( ColorSet colorSet )

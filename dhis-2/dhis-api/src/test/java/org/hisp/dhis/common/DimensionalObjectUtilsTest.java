@@ -43,7 +43,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElement;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 
 /**
  * @author Lars Helge Overland
@@ -112,10 +112,10 @@ public class DimensionalObjectUtilsTest
         deA.setCode( "DCodeA" );
         deB.setCode( "DCodeB" );
         
-        ProgramDataElement pdeA = new ProgramDataElement( prA, deA );
-        ProgramDataElement pdeB = new ProgramDataElement( prA, deB );
+        ProgramDataElementDimensionItem pdeA = new ProgramDataElementDimensionItem( prA, deA );
+        ProgramDataElementDimensionItem pdeB = new ProgramDataElementDimensionItem( prA, deB );
         
-        List<ProgramDataElement> elements = Lists.newArrayList( pdeA, pdeB );
+        List<ProgramDataElementDimensionItem> elements = Lists.newArrayList( pdeA, pdeB );
         
         Map<String, String> map = DimensionalObjectUtils.getDimensionItemIdSchemeMap( elements, IdScheme.CODE );
 
