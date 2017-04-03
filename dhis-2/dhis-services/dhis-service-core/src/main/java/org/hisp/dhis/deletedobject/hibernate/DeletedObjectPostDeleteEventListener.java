@@ -33,6 +33,7 @@ import org.hibernate.event.spi.PostDeleteEvent;
 import org.hibernate.event.spi.PostDeleteEventListener;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.deletedobject.DeletedObject;
 
 /**
@@ -43,7 +44,7 @@ public class DeletedObjectPostDeleteEventListener implements PostDeleteEventList
     @Override
     public void onPostDelete( PostDeleteEvent event )
     {
-        if ( IdentifiableObject.class.isInstance( event.getEntity() ) )
+        if ( MetadataObject.class.isInstance( event.getEntity() ) )
         {
             IdentifiableObject identifiableObject = (IdentifiableObject) event.getEntity();
             event.getSession().persist( new DeletedObject( identifiableObject ) );
