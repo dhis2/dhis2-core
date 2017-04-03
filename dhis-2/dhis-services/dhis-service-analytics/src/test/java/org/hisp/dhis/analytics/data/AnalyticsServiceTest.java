@@ -3,7 +3,9 @@ package org.hisp.dhis.analytics.data;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
@@ -18,6 +20,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.reporttable.ReportTable;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +56,9 @@ public class AnalyticsServiceTest
 
         // Params for data query
         private HashMap<String, DataQueryParams> dataQueryParams = new HashMap<>();
+
+        // Analytical objects for data query
+        private HashMap<String, AnalyticalObject> analyticalObjectHashMap = new HashMap<>();
 
         // Results
         private HashMap<String, HashMap<String, Double>> results = new HashMap<>();
@@ -273,6 +279,9 @@ public class AnalyticsServiceTest
                 analyticsTableGenerator.generateTables( null, null, null, false );
 
                 // Set params
+                List<Indicator> param_indicators = new ArrayList<>();
+                List<ReportingRate> param_reportingRates = new ArrayList<>();
+
                 // all org units - 2017
                 Period y2017 = createPeriod( "2017" );
                 DataQueryParams ou_2017_params = DataQueryParams.newBuilder()
@@ -311,28 +320,49 @@ public class AnalyticsServiceTest
                     .build();
 
                 // org unit B - data element C - mar 2017
-                List<DataElement> dataElementsC = new ArrayList<>();
-                dataElementsC.add( deC );
+                List<DataElement> dataElements1 = new ArrayList<>(  );
+                dataElements1.add( deC );
                 DataQueryParams deC_ouB_2017_03_params = DataQueryParams.newBuilder()
                     .withOrganisationUnit( ouB )
-                    .withDataElements( dataElementsC )
+                    .withDataElements( dataElements1 )
                     .withAggregationType( AggregationType.SUM )
                     .withOutputFormat( OutputFormat.ANALYTICS )
                     .withPeriod( y2017_mar )
                     .build();
 
+
+                List<OrganisationUnit> organisationUnits1 = new ArrayList<>();
+                organisationUnits1.add( ouB );
+                List<Period> periods1 = new ArrayList<>();
+                periods1.add( y2017_mar );
+                List<DataElement> dataElements2 = new ArrayList<>();
+                dataElements2.add( deC );
+
+                AnalyticalObject deC_ouB_2017_03_analytical = new ReportTable( "deC_ouB_2017_03", dataElements2,
+                    param_indicators, param_reportingRates, periods1, organisationUnits1, false, true, true,
+                    null, null, null );
+
                 // org unit A - data element A - Q1 2017
-                List<DataElement> dataElementsA = new ArrayList<>();
-                dataElementsA.add( deA );
+                List<DataElement> dataElements3 = new ArrayList<>();
+                dataElements3.add( deA );
                 Period quarter = createPeriod( "2017Q1" );
 
                 DataQueryParams deA_ouA_2017_Q01_params = DataQueryParams.newBuilder()
                     .withOrganisationUnit( ouA )
-                    .withDataElements( dataElementsA )
+                    .withDataElements( dataElements3 )
                     .withAggregationType( AggregationType.SUM )
                     .withOutputFormat( OutputFormat.ANALYTICS )
                     .withPeriod( quarter )
                     .build();
+
+                List<OrganisationUnit> organisationUnits2 = new ArrayList<>();
+                organisationUnits2.add( ouA );
+                List<Period> periods2 = new ArrayList<>();
+                periods2.add( quarter );
+
+                AnalyticalObject deA_ouA_2017_Q01_analytical = new ReportTable( "deA_ouA_2017_Q01", dataElements3,
+                    param_indicators, param_reportingRates, periods2, organisationUnits2, false, true, true,
+                    null, null, null );
 
                 // org units B and C - feb 2017
                 List<OrganisationUnit> organisationUnits = new ArrayList<>();
@@ -375,55 +405,65 @@ public class AnalyticsServiceTest
                     .build();
 
                 // indicator A - 2017
-                List<Indicator> indicators = new ArrayList<>();
-                indicators.add( indicatorA );
+                List<Indicator> param_indicators1 = new ArrayList<>();
+                param_indicators1.add( indicatorA );
                 DataQueryParams inA_2017_params = DataQueryParams.newBuilder()
-                    .withIndicators( indicators )
+                    .withIndicators( param_indicators1 )
                     .withAggregationType( AggregationType.SUM )
                     .withOutputFormat( OutputFormat.ANALYTICS )
                     .withPeriod( y2017 )
                     .build();
 
-                // indicator B (deB+deC) - 2017 Q1
-                indicators.clear();
-                indicators.add( indicatorB );
+                // indicator B (deB + deC) - 2017 Q1
+                List<Indicator> param_indicators2 = new ArrayList<>();
+                param_indicators2.add( indicatorB );
                 DataQueryParams inB_deB_deC_2017_Q01_params = DataQueryParams.newBuilder()
-                    .withIndicators( indicators )
+                    .withIndicators( param_indicators2 )
                     .withAggregationType( AggregationType.SUM )
                     .withOutputFormat( OutputFormat.ANALYTICS )
                     .withPeriod( quarter )
                     .build();
 
-                // indicator C (deB*deC) in hundreds - 2017 Q1
-                indicators.clear();
-                indicators.add( indicatorC );
+                // indicator C (deB * deC) in hundreds - 2017 Q1
+                List<Indicator> param_indicators3 = new ArrayList<>();
+                param_indicators3.add( indicatorC );
                 DataQueryParams inC_deB_deC_2017_Q01_params = DataQueryParams.newBuilder()
-                    .withIndicators( indicators )
+                    .withIndicators( param_indicators3 )
                     .withAggregationType( AggregationType.SUM )
                     .withOutputFormat( OutputFormat.ANALYTICS )
                     .withPeriod( quarter )
                     .build();
 
-                // indicator D (deA*deC)/deB - 2017 Q1
-                indicators.clear();
-                indicators.add( indicatorD );
+                List<OrganisationUnit> organisationUnits3 = new ArrayList<>();
+                organisationUnits3.add( ouA );
+                List<DataElement> dataElements4 = new ArrayList<>();
+                List<Period> periods3 = new ArrayList<>();
+                periods3.add( quarter );
+
+                AnalyticalObject inC_deB_deC_2017_Q01_analytical = new ReportTable( "deA_ouA_2017_Q01", dataElements4,
+                    param_indicators3, param_reportingRates, periods3, organisationUnits3, true, true, true,
+                    null, null, null );
+
+                // indicator D (deA * deC)/deB - 2017 Q1
+                List<Indicator> param_indicators4 = new ArrayList<>();
+                param_indicators4.add( indicatorD );
                 DataQueryParams inD_deA_deB_deC_2017_Q01_params = DataQueryParams.newBuilder()
-                    .withIndicators( indicators )
+                    .withIndicators( param_indicators4 )
                     .withAggregationType( AggregationType.SUM )
                     .withOutputFormat( OutputFormat.ANALYTICS )
                     .withPeriod( quarter )
                     .build();
 
                 // Max value - org unit B and C - data element A - 2017 Feb
-                dataElements.clear();
-                dataElements.add( deA );
+                List<DataElement> dataElements5 = new ArrayList<>();
+                dataElements5.add( deA );
 
                 organisationUnits.clear();
                 organisationUnits.add( ouB );
                 organisationUnits.add( ouC );
                 DataQueryParams deA_ouB_ouC_2017_02_params = DataQueryParams.newBuilder()
                     .withFilterOrganisationUnits( organisationUnits )
-                    .withDataElements( dataElements )
+                    .withDataElements( dataElements5 )
                     .withAggregationType( AggregationType.MAX )
                     .withOutputFormat( OutputFormat.ANALYTICS )
                     .withPeriod( peFeb )
@@ -434,17 +474,20 @@ public class AnalyticsServiceTest
                 dataQueryParams.put( "ouB_2017_02", ouB_2017_02_params );
                 dataQueryParams.put( "de_avg_2017_03", de_avg_2017_03_params );
                 dataQueryParams.put( "deC_ouB_2017_03", deC_ouB_2017_03_params );
-                dataQueryParams.put( "deA_ouA_2017_Q1", deA_ouA_2017_Q01_params );
+                dataQueryParams.put( "deA_ouA_2017_Q01", deA_ouA_2017_Q01_params );
                 dataQueryParams.put( "ouB__ouC_2017_02", ouB_ouC_2017_02_params );
                 dataQueryParams.put( "ouA_2017_01_03", ouA_2017_01_03_params );
                 dataQueryParams.put( "ouB_2017_Q01", ouB_2017_Q01_params );
                 dataQueryParams.put( "ouC_2017_Q01", ouC_2017_Q01_params );
                 dataQueryParams.put( "inA_2017", inA_2017_params );
-                dataQueryParams.put( "inB_deB_deC_2017_Q1", inB_deB_deC_2017_Q01_params );
-                dataQueryParams.put( "inC_deB_deC_2017_Q1", inC_deB_deC_2017_Q01_params );
-                dataQueryParams.put( "inD_deA_deB_deC_2017_Q1", inD_deA_deB_deC_2017_Q01_params );
+                dataQueryParams.put( "inB_deB_deC_2017_Q01", inB_deB_deC_2017_Q01_params );
+                dataQueryParams.put( "inC_deB_deC_2017_Q01", inC_deB_deC_2017_Q01_params );
+                dataQueryParams.put( "inD_deA_deB_deC_2017_Q01", inD_deA_deB_deC_2017_Q01_params );
                 dataQueryParams.put( "deA_ouB_ouC_2017_02", deA_ouB_ouC_2017_02_params );
 
+                analyticalObjectHashMap.put( "deC_ouB_2017_03", deC_ouB_2017_03_analytical );
+                analyticalObjectHashMap.put( "deA_ouA_2017_Q01", deA_ouA_2017_Q01_analytical );
+                analyticalObjectHashMap.put( "inC_deB_deC_2017_Q01", inC_deB_deC_2017_Q01_analytical );
 
                 // Set results
                 HashMap<String, Double> ou_2017_keyValue = new HashMap<>();
@@ -469,9 +512,11 @@ public class AnalyticsServiceTest
 
                 HashMap<String, Double> deC_ouB_2017_03_keyValue = new HashMap<>();
                 deC_ouB_2017_03_keyValue.put( "deabcdefghC-ouabcdefghB-201703", 6.0 );
+                deC_ouB_2017_03_keyValue.put( "deabcdefghC-201703-ouabcdefghB", 6.0 );
 
                 HashMap<String, Double> deA_ouA_2017_Q01_keyValue = new HashMap<>();
                 deA_ouA_2017_Q01_keyValue.put( "deabcdefghA-ouabcdefghA-2017Q1", 308.0 );
+                deA_ouA_2017_Q01_keyValue.put( "deabcdefghA-2017Q1-ouabcdefghA", 308.0 );
 
                 HashMap<String, Double> ouB_ouC_2017_02_keyValue = new HashMap<>();
                 ouB_ouC_2017_02_keyValue.put( "201702", 669.0 );
@@ -493,6 +538,7 @@ public class AnalyticsServiceTest
 
                 HashMap<String, Double> inC_deB_deC_2017_Q01_keyValue = new HashMap<>();
                 inC_deB_deC_2017_Q01_keyValue.put( "inabcdefghC-2017Q1", 258.50 );
+                inC_deB_deC_2017_Q01_keyValue.put( "inabcdefghC-2017Q1-ouabcdefghA", 258.50 );
 
                 HashMap<String, Double> inD_deA_deB_deC_2017_Q01_keyValue = new HashMap<>();
                 inD_deA_deB_deC_2017_Q01_keyValue.put( "inabcdefghD-2017Q1", 29.8 );
@@ -505,15 +551,15 @@ public class AnalyticsServiceTest
                 results.put( "ouB_2017_02", ouB_2017_02_keyValue );
                 results.put( "de_avg_2017_03", de_avg_2017_03_keyValue );
                 results.put( "deC_ouB_2017_03", deC_ouB_2017_03_keyValue );
-                results.put( "deA_ouA_2017_Q1", deA_ouA_2017_Q01_keyValue );
+                results.put( "deA_ouA_2017_Q01", deA_ouA_2017_Q01_keyValue );
                 results.put( "ouB__ouC_2017_02", ouB_ouC_2017_02_keyValue );
                 results.put( "ouA_2017_01_03", ouA_2017_01_03_keyValue );
                 results.put( "ouB_2017_Q01", ouB_2017_Q01_keyValue );
                 results.put( "ouC_2017_Q01", ouC_2017_Q01_keyValue );
                 results.put( "inA_2017", inA_2017_keyValue );
-                results.put( "inB_deB_deC_2017_Q1", inB_deB_deC_2017_Q01_keyValue );
-                results.put( "inC_deB_deC_2017_Q1", inC_deB_deC_2017_Q01_keyValue );
-                results.put( "inD_deA_deB_deC_2017_Q1", inD_deA_deB_deC_2017_Q01_keyValue );
+                results.put( "inB_deB_deC_2017_Q01", inB_deB_deC_2017_Q01_keyValue );
+                results.put( "inC_deB_deC_2017_Q01", inC_deB_deC_2017_Q01_keyValue );
+                results.put( "inD_deA_deB_deC_2017_Q01", inD_deA_deB_deC_2017_Q01_keyValue );
                 results.put( "deA_ouB_ouC_2017_02", deA_ouB_ouC_2017_02_keyValue );
         }
 
@@ -531,14 +577,20 @@ public class AnalyticsServiceTest
         }
 
         @Test
-        @Ignore
         public void testMappingAggregation()
         {
-                Map<String, Object> aggregatedDataValueMapping;
 
-                int numberOfAsserts = (dataQueryParams.size() == results.size()) ? dataQueryParams.size() : -1;
-                assertNotEquals( "Uneven amount of parameters and results - testMappingAggregation", -1,
-                    numberOfAsserts );
+                Map<String, Object> aggregatedDataValueMapping;
+                for(Map.Entry<String, AnalyticalObject> entry : analyticalObjectHashMap.entrySet() )
+                {
+                        String key = entry.getKey();
+                        AnalyticalObject params = entry.getValue();
+
+                        aggregatedDataValueMapping = analyticsService
+                            .getAggregatedDataValueMapping( params );
+
+                        assertDataValueMapping( aggregatedDataValueMapping, results.get( key ) );
+                }
 
                 for ( Map.Entry<String, DataQueryParams> entry : dataQueryParams.entrySet() )
                 {
@@ -557,10 +609,6 @@ public class AnalyticsServiceTest
         public void testGridAggregation()
         {
                 Grid aggregatedDataValueGrid;
-
-                int numberOfAsserts = (dataQueryParams.size() == results.size()) ? dataQueryParams.size() : -1;
-                assertNotEquals( "Uneven amount of parameters and results - testGridAggregation", -1, numberOfAsserts );
-
                 for ( Map.Entry<String, DataQueryParams> entry : dataQueryParams.entrySet() )
                 {
                         String key = entry.getKey();
@@ -574,6 +622,7 @@ public class AnalyticsServiceTest
         }
 
         @Test
+        @Ignore
         public void testSetAggregation()
         {
                 // Params: Sum for all org units for 2017
