@@ -29,18 +29,64 @@ package org.hisp.dhis.deletedobject;
  *
  */
 
-import java.util.List;
+import com.google.common.base.MoreObjects;
+import org.hisp.dhis.common.Pager;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface DeletedObjectStore
+public class DeletedObjectQuery
 {
-    DeletedObjectId save( DeletedObject deletedObject );
+    public static final DeletedObjectQuery EMPTY = new DeletedObjectQuery();
 
-    void delete( DeletedObject deletedObject );
+    private String klass;
 
-    List<DeletedObject> getByKlass( String klass );
+    private Integer first;
 
-    List<DeletedObject> getAll( DeletedObjectQuery query );
+    private Integer max = Pager.DEFAULT_PAGE_SIZE;
+
+    public DeletedObjectQuery()
+    {
+    }
+
+    public String getKlass()
+    {
+        return klass;
+    }
+
+    public void setKlass( String klass )
+    {
+        this.klass = klass;
+    }
+
+    public Integer getFirst()
+    {
+        return first;
+    }
+
+    public void setFirst( Integer first )
+    {
+        this.first = first;
+    }
+
+    public Integer getMax()
+    {
+        return max;
+    }
+
+    public void setMax( Integer max )
+    {
+        this.max = max;
+    }
+
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "klass", klass )
+            .add( "first", first )
+            .add( "max", max )
+            .toString();
+    }
 }

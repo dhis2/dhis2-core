@@ -68,6 +68,12 @@ public class DefaultDeletedObjectService
     @Override
     public List<DeletedObject> getDeletedObjects()
     {
-        return deletedObjectStore.getAll();
+        return deletedObjectStore.getAll( DeletedObjectQuery.EMPTY );
+    }
+
+    @Override
+    public List<DeletedObject> getDeletedObjects( DeletedObjectQuery query )
+    {
+        return deletedObjectStore.getAll( query );
     }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.deletedobject.hibernate;
+package org.hisp.dhis.webapi.controller;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -29,72 +29,56 @@ package org.hisp.dhis.deletedobject.hibernate;
  *
  */
 
-import org.hibernate.Criteria;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Restrictions;
+import com.google.common.collect.Lists;
 import org.hisp.dhis.deletedobject.DeletedObject;
-import org.hisp.dhis.deletedobject.DeletedObjectId;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
-import org.hisp.dhis.deletedobject.DeletedObjectStore;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
+import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.node.NodeUtils;
+import org.hisp.dhis.node.Preset;
+import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.webapi.service.ContextService;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class HibernateDeletedObjectStore
-    implements DeletedObjectStore
+@Controller
+@RequestMapping( value = "/deletedObjects" )
+public class DeletedObjectController
 {
-    @Autowired
-    private SessionFactory sessionFactory;
+    private final FieldFilterService fieldFilterService;
+    private final DeletedObjectService deletedObjectService;
+    private final ContextService contextService;
 
-    @Override
-    public DeletedObjectId save( DeletedObject deletedObject )
+    public DeletedObjectController( FieldFilterService fieldFilterService, DeletedObjectService deletedObjectService,
+        ContextService contextService )
     {
-        return (DeletedObjectId) getCurrentSession().save( deletedObject );
+        this.fieldFilterService = fieldFilterService;
+        this.deletedObjectService = deletedObjectService;
+        this.contextService = contextService;
     }
 
-    @Override
-    public void delete( DeletedObject deletedObject )
+    @GetMapping
+    public @ResponseBody RootNode getDeletedObjects( DeletedObjectQuery query )
     {
-        getCurrentSession().delete( deletedObject );
-    }
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<DeletedObject> getByKlass( String klass )
-    {
-        Query query = getCurrentSession().createQuery( "SELECT c FROM DeletedObject c WHERE c.deletedObjectId.klass=:klass" );
-        query.setString( "klass", klass );
-
-        return query.list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<DeletedObject> getAll( DeletedObjectQuery query )
-    {
-        Criteria criteria = getCurrentSession().createCriteria( DeletedObject.class );
-
-        if ( query.getKlass() != null )
+        if ( fields.isEmpty() )
         {
-            criteria.add( Restrictions.eq( "deletedObjectId.klass", query.getKlass() ) );
+            fields.addAll( Preset.ALL.getFields() );
         }
 
-        if ( query.getFirst() != null )
-        {
-            criteria.setFirstResult( query.getFirst() );
-            criteria.setMaxResults( query.getMax() );
-        }
+        List<DeletedObject> deletedObjects = deletedObjectService.getDeletedObjects( query );
 
-        return criteria.list();
-    }
+        RootNode rootNode = NodeUtils.createMetadata();
+        rootNode.addChild( fieldFilterService.filter( DeletedObject.class, deletedObjects, fields ) );
 
-    private Session getCurrentSession()
-    {
-        return sessionFactory.getCurrentSession();
+        return rootNode;
     }
 }

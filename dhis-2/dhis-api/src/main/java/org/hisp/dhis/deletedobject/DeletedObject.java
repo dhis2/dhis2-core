@@ -78,8 +78,6 @@ public class DeletedObject
         this.code = identifiableObject.getCode();
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public DeletedObjectId getDeletedObjectId()
     {
         return deletedObjectId;
@@ -88,6 +86,20 @@ public class DeletedObject
     public void setDeletedObjectId( DeletedObjectId deletedObjectId )
     {
         this.deletedObjectId = deletedObjectId;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getUid()
+    {
+        return deletedObjectId != null ? deletedObjectId.getUid() : null;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getKlass()
+    {
+        return deletedObjectId != null ? deletedObjectId.getKlass() : null;
     }
 
     @JsonProperty

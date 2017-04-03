@@ -43,4 +43,6 @@ public interface DeletedObjectService
     List<DeletedObject> getDeletedObjectsByKlass( String klass );
 
     List<DeletedObject> getDeletedObjects();
+
+    List<DeletedObject> getDeletedObjects( DeletedObjectQuery query );
 }
