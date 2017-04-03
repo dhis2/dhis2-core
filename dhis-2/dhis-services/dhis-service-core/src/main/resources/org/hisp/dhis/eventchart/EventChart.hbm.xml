@@ -116,6 +116,8 @@
 
     <property name="title" />
     
+    <property name="subtitle" />
+    
     <set name="interpretations" inverse="true">
       <key column="eventchartid" />
       <one-to-many class="org.hisp.dhis.interpretation.Interpretation" />

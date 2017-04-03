@@ -144,6 +144,8 @@ public abstract class BaseAnalyticalObject
     
     protected String title;
     
+    protected String subtitle;
+    
     protected Set<Interpretation> interpretations = new HashSet<>();
 
     // -------------------------------------------------------------------------
@@ -853,12 +855,14 @@ public abstract class BaseAnalyticalObject
                 relatives = object.getRelatives();
                 aggregationType = object.getAggregationType();
                 title = object.getTitle();
+                subtitle = object.getSubtitle();
             }
             else if ( mergeMode.isMerge() )
             {
                 relatives = object.getRelatives() == null ? relatives : object.getRelatives();
                 aggregationType = object.getAggregationType() == null ? aggregationType : object.getAggregationType();
                 title = object.getTitle() == null ? title : object.getTitle();
+                subtitle = object.getSubtitle() == null ? subtitle : object.getSubtitle();
             }
 
             dataDimensionItems.addAll( object.getDataDimensionItems() );
@@ -1165,6 +1169,18 @@ public abstract class BaseAnalyticalObject
     public void setTitle( String title )
     {
         this.title = title;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getSubtitle()
+    {
+        return subtitle;
+    }
+
+    public void setSubtitle( String subtitle )
+    {
+        this.subtitle = subtitle;
     }
 
     @JsonProperty
