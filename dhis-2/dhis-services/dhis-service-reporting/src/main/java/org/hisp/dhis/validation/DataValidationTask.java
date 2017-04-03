@@ -142,6 +142,11 @@ public class DataValidationTask
                             periodTypeX.getDataElements(), sourceDataElements, periodTypeX.getAllowedPeriodTypes(),
                             period, sourceX.getSource(), lastUpdatedMap );
 
+                        MapMap<String, DimensionalItemObject, Double> slidingWindowEventMap = getEventMapForSlidingWindow(
+                            context.getDimensionItems(), period, sourceX.getSource() );
+
+                        slidingWindowEventMap.putMap( dataValueMap );
+
                         MapMap<String, DimensionalItemObject, Double> eventMap = getEventMap(
                             context.getDimensionItems(), period, sourceX.getSource() );
 
@@ -152,11 +157,28 @@ public class DataValidationTask
 
                         for ( ValidationRule rule : rules )
                         {
-                            Map<String, Double> leftSideValues =
-                                getExpressionValueMap( rule.getLeftSide(), dataValueMap, period );
+                            Map<String, Double> leftSideValues;
 
-                            Map<String, Double> rightSideValues =
-                                getExpressionValueMap( rule.getRightSide(), dataValueMap, period );
+                            if ( rule.getLeftSide().getSlidingWindow() )
+                            {
+                                leftSideValues = getExpressionValueMap( rule.getLeftSide(), slidingWindowEventMap,
+                                    period );
+                            }
+                            else
+                            {
+                                leftSideValues = getExpressionValueMap( rule.getLeftSide(), dataValueMap, period );
+                            }
+
+                            Map<String, Double> rightSideValues;
+
+                            if ( rule.getRightSide().getSlidingWindow() )
+                            {
+                                rightSideValues = getExpressionValueMap( rule.getRightSide(), slidingWindowEventMap, period );
+                            }
+                            else
+                            {
+                                rightSideValues = getExpressionValueMap( rule.getRightSide(), dataValueMap, period );
+                            }
 
                             Set<String> attributeOptionCombos = Sets.newHashSet( leftSideValues.keySet() );
                             attributeOptionCombos.addAll( rightSideValues.keySet() );
@@ -222,6 +244,7 @@ public class DataValidationTask
 
         if ( validationResults.size() > 0 )
         {
+            log.info("WE FOUND " + validationResults.size() + " VIOLATIONS");
             context.getValidationResults().addAll( validationResults );
             validationResultService.saveValidationResults( validationResults );
         }
@@ -356,6 +379,56 @@ public class DataValidationTask
             .withFilterOrganisationUnits( Lists.newArrayList( organisationUnit ) )
             .build();
 
+        return getEventData( params );
+    }
+
+    private MapMap<String, DimensionalItemObject, Double> getEventMapForSlidingWindow(
+        Set<DimensionalItemObject> dimensionItems,
+        Period period, OrganisationUnit organisationUnit )
+    {
+        MapMap<String, DimensionalItemObject, Double> map = new MapMap<>();
+
+        if ( dimensionItems.isEmpty() || period == null || organisationUnit == null )
+        {
+            return map;
+        }
+
+        // We want to position the sliding window over the most recent data. To achieve this, we need to satisfy the
+        // following criteria:
+        //
+        // 1. Window end should not be later than the current date
+        // 2. Window end should not be later than the period.endDate
+
+        // Criteria 1
+        Calendar endDate = Calendar.getInstance();
+        Calendar startDate = Calendar.getInstance();
+
+        // Criteria 2
+        if ( endDate.after( period.getEndDate() ) )
+        {
+            endDate.setTime( period.getEndDate() );
+        }
+
+        // The window size is based on the frequencyOrder of the period's periodType:
+        startDate.setTime( endDate.getTime() );
+        startDate.add( Calendar.DATE, (-1 * period.frequencyOrder()) );
+
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataDimensionItems( Lists.newArrayList( dimensionItems ) )
+            .withAttributeOptionCombos( Lists.newArrayList() )
+            .withStartDate( startDate.getTime() )
+            .withEndDate( endDate.getTime() )
+            .withFilterOrganisationUnits( Lists.newArrayList( organisationUnit ) )
+            .build();
+
+        return getEventData( params );
+
+    }
+
+    private MapMap<String, DimensionalItemObject, Double> getEventData( DataQueryParams params )
+    {
+        MapMap<String, DimensionalItemObject, Double> map = new MapMap<>();
+
         Grid grid = analyticsService.getAggregatedDataValues( params );
 
         int dxInx = grid.getIndexOfHeader( DimensionalObject.DATA_X_DIM_ID );
@@ -372,5 +445,7 @@ public class DataValidationTask
         }
 
         return map;
+
     }
+
 }
