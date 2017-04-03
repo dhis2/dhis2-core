@@ -41,7 +41,7 @@ public class CredentialsInfo
 
     private boolean newUser;
 
-    private CredentialsInfo()
+    protected CredentialsInfo()
     {
     }
 
