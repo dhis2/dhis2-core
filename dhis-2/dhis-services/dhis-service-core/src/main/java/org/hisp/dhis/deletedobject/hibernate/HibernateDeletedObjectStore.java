@@ -69,12 +69,30 @@ public class HibernateDeletedObjectStore
         DeletedObjectQuery query = new DeletedObjectQuery();
         query.getKlass().add( klass );
 
-        return getAll( query );
+        return query( query );
+    }
+
+    @Override
+    public int count( DeletedObjectQuery query )
+    {
+        Criteria criteria = getCurrentSession().createCriteria( DeletedObject.class );
+
+        if ( !query.getKlass().isEmpty() )
+        {
+            criteria.add( Restrictions.in( "deletedObjectId.klass", query.getKlass() ) );
+        }
+
+        if ( query.getDeletedAt() != null )
+        {
+            criteria.add( Restrictions.ge( "deletedAt", query.getDeletedAt() ) );
+        }
+
+        return criteria.list().size();
     }
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public List<DeletedObject> getAll( DeletedObjectQuery query )
+    public List<DeletedObject> query( DeletedObjectQuery query )
     {
         Criteria criteria = getCurrentSession().createCriteria( DeletedObject.class );
 

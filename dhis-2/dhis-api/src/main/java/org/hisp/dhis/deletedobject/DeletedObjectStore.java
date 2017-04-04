@@ -42,5 +42,7 @@ public interface DeletedObjectStore
 
     List<DeletedObject> getByKlass( String klass );
 
-    List<DeletedObject> getAll( DeletedObjectQuery query );
+    int count( DeletedObjectQuery query );
+
+    List<DeletedObject> query( DeletedObjectQuery query );
 }
