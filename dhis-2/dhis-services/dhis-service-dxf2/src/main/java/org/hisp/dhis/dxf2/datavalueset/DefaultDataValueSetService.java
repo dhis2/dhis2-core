@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2.datavalueset;
  */
 
 import com.csvreader.CsvReader;
-import org.amplecode.staxwax.factory.XMLFactory;
+import org.hisp.staxwax.factory.XMLFactory;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
