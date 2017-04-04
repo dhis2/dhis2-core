@@ -44,6 +44,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +55,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "categoryOptionGroupSet", namespace = DxfNamespaces.DXF_2_0 )
 public class CategoryOptionGroupSet
-    extends BaseDimensionalObject
+    extends BaseDimensionalObject implements MetadataObject
 {
     private List<CategoryOptionGroup> members = new ArrayList<>();
 

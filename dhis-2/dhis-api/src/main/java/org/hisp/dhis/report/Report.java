@@ -36,6 +36,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheable;
 import org.hisp.dhis.period.RelativePeriods;
@@ -48,7 +49,7 @@ import org.hisp.dhis.reporttable.ReportTable;
 @JacksonXmlRootElement( localName = "report", namespace = DxfNamespaces.DXF_2_0 )
 public class Report
     extends BaseIdentifiableObject
-    implements Cacheable
+    implements Cacheable, MetadataObject
 {
     public static final String TEMPLATE_DIR = "templates";
 

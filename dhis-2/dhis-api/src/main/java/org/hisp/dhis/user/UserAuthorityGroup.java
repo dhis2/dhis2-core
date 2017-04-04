@@ -39,6 +39,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -53,7 +54,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "userRole", namespace = DxfNamespaces.DXF_2_0 )
 public class UserAuthorityGroup
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     public static final String AUTHORITY_ALL = "ALL";
 

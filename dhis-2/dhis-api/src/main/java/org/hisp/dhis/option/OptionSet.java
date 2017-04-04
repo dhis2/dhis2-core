@@ -37,6 +37,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.VersionedObject;
 
@@ -51,7 +52,7 @@ import java.util.stream.Collectors;
 @JacksonXmlRootElement( localName = "optionSet", namespace = DxfNamespaces.DXF_2_0 )
 public class OptionSet
     extends BaseIdentifiableObject
-    implements VersionedObject
+    implements VersionedObject, MetadataObject
 {
     private List<Option> options = new ArrayList<>();
 

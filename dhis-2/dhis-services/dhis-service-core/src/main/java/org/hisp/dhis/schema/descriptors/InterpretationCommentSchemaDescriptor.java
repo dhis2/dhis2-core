@@ -46,10 +46,6 @@ public class InterpretationCommentSchemaDescriptor implements SchemaDescriptor
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( InterpretationComment.class, SINGULAR, PLURAL );
-        schema.setMetadata( false );
-        schema.setOrder( 1441 );
-
-        return schema;
+        return new Schema( InterpretationComment.class, SINGULAR, PLURAL );
     }
 }

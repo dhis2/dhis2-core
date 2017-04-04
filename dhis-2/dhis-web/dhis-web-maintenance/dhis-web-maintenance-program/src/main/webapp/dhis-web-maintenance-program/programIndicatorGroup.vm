@@ -4,7 +4,7 @@
   <ul id="contextMenuItems" class="contextMenuItems">
     <li><a data-target-fn="showUpdateProgramIndicatorGroupForm"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "edit" )</a></li>
     <li><a data-target-fn="translateWithContext"><i class="fa fa-globe"></i>&nbsp;&nbsp;$i18n.getString( "translation_translate" )</a></li>
-    <li><a data-target-fn="removeProgramIndicatorGrouop"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
+    <li><a data-target-fn="removeProgramIndicatorGroup"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
     <li><a data-target-fn="showProgramIndicatorGroupDetails"><i class="fa fa-info-circle"></i>&nbsp;&nbsp;$i18n.getString( "show_details" )</a></li>
   </ul>
 </div>
