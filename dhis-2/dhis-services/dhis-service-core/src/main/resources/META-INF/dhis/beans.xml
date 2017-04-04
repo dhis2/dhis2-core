@@ -587,12 +587,6 @@
     <property name="cacheable" value="true" />
   </bean>
 
-  <bean id="org.hisp.dhis.program.ProgramValidationStore"
-    class="org.hisp.dhis.program.hibernate.HibernateProgramValidationStore">
-    <property name="clazz" value="org.hisp.dhis.program.ProgramValidation" />
-    <property name="sessionFactory" ref="sessionFactory" />
-  </bean>
-
   <bean id="org.hisp.dhis.program.ProgramDataElementStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramDataElementStore">
     <property name="clazz" value="org.hisp.dhis.program.ProgramDataElement" />
@@ -1365,12 +1359,6 @@
   <bean id="org.hisp.dhis.email.EmailMessageBatchCreator" class="org.hisp.dhis.email.EmailMessageBatchCreator">
   </bean>
 
-  <bean id="org.hisp.dhis.program.ProgramValidationService" class="org.hisp.dhis.program.DefaultProgramValidationService">
-    <property name="validationStore" ref="org.hisp.dhis.program.ProgramValidationStore" />
-    <property name="expressionService" ref="org.hisp.dhis.program.ProgramExpressionService" />
-    <property name="dataValueService" ref="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService" />
-  </bean>
-
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceService"
     class="org.hisp.dhis.trackedentity.DefaultTrackedEntityInstanceService" />
 
@@ -1563,7 +1551,6 @@
         <value>programstageinstance</value>
         <value>programstagesection</value>
         <value>program_attributes</value>
-        <value>programvalidation</value>
         <value>programrule</value>
         <value>programruleaction</value>
         <value>programrulevariable</value>
@@ -1821,12 +1808,6 @@
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
-  <bean id="org.hisp.dhis.program.ProgramValidationDeletionHandler"
-    class="org.hisp.dhis.program.ProgramValidationDeletionHandler">
-    <property name="programValidationService"
-      ref="org.hisp.dhis.program.ProgramValidationService" />
-  </bean>
-
   <bean id="org.hisp.dhis.program.ProgramDataEntryFormDeletionHandler"
     class="org.hisp.dhis.program.ProgramDataEntryFormDeletionHandler">
     <property name="dataEntryFormService" ref="org.hisp.dhis.dataentryform.DataEntryFormService" />
@@ -1897,7 +1878,6 @@
       <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramStageService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramStageInstanceService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramStageDataElementService.delete*(..) )" method="intercept" />
-      <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramValidationService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramIndicatorService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.validation.ValidationCriteriaService.delete*(..) )" method="intercept" />

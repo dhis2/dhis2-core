@@ -26,10 +26,6 @@ function programStageManagement( context ) {
   location.href = 'programStage.action?id=' + context.id;
 }
 
-function programValidationManagement( context ) {
-  location.href = 'programValidation.action?programId=' + context.id;
-}
-
 function defineProgramAssociationsForm( context ) {
   location.href = 'defineProgramAssociationsForm.action?id=' + context.id;
 }
