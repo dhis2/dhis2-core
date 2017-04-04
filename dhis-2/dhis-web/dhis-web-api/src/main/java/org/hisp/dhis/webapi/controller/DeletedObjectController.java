@@ -77,6 +77,13 @@ public class DeletedObjectController
         List<DeletedObject> deletedObjects = deletedObjectService.getDeletedObjects( query );
 
         RootNode rootNode = NodeUtils.createMetadata();
+
+        if ( !query.isSkipPaging() )
+        {
+            query.setTotal( deletedObjectService.countDeletedObjects( query ) );
+            rootNode.addChild( NodeUtils.createPager( query.getPager() ) );
+        }
+
         rootNode.addChild( fieldFilterService.filter( DeletedObject.class, deletedObjects, fields ) );
 
         return rootNode;

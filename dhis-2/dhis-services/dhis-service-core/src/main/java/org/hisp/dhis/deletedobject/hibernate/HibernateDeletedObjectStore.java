@@ -33,6 +33,7 @@ import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.deletedobject.DeletedObject;
 import org.hisp.dhis.deletedobject.DeletedObjectId;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
@@ -106,10 +107,11 @@ public class HibernateDeletedObjectStore
             criteria.add( Restrictions.ge( "deletedAt", query.getDeletedAt() ) );
         }
 
-        if ( query.getFirst() != null )
+        if ( !query.isSkipPaging() )
         {
-            criteria.setFirstResult( query.getFirst() );
-            criteria.setMaxResults( query.getMax() );
+            Pager pager = query.getPager();
+            criteria.setFirstResult( pager.getOffset() );
+            criteria.setMaxResults( pager.getPageSize() );
         }
 
         return criteria.list();

@@ -58,7 +58,7 @@ public class DeletedObjectServiceTest
         deletedObjectService.addDeletedObject( new DeletedObject( createDataElement( 'B' ) ) );
         deletedObjectService.addDeletedObject( new DeletedObject( createDataElement( 'C' ) ) );
 
-        assertEquals( 3, deletedObjectService.getDeletedObjects().size() );
+        assertEquals( 3, deletedObjectService.countDeletedObjects() );
     }
 
     @Test
@@ -72,7 +72,7 @@ public class DeletedObjectServiceTest
         deletedObjectService.addDeletedObject( new DeletedObject( createOrganisationUnit( 'B' ) ) );
         deletedObjectService.addDeletedObject( new DeletedObject( createOrganisationUnit( 'C' ) ) );
 
-        assertEquals( 6, deletedObjectService.getDeletedObjects().size() );
+        assertEquals( 6, deletedObjectService.countDeletedObjects() );
         assertEquals( 3, deletedObjectService.getDeletedObjectsByKlass( "DataElement" ).size() );
         assertEquals( 3, deletedObjectService.getDeletedObjectsByKlass( "OrganisationUnit" ).size() );
         assertTrue( deletedObjectService.getDeletedObjectsByKlass( "Indicator" ).isEmpty() );
@@ -101,7 +101,7 @@ public class DeletedObjectServiceTest
 
         manager.flush(); // need to flush to make changes happen within the same tx
 
-        assertEquals( 5, deletedObjectService.getDeletedObjects().size() );
+        assertEquals( 5, deletedObjectService.countDeletedObjects() );
         assertEquals( 3, deletedObjectService.getDeletedObjectsByKlass( "DataElement" ).size() );
         assertEquals( 2, deletedObjectService.getDeletedObjectsByKlass( "OrganisationUnit" ).size() );
     }

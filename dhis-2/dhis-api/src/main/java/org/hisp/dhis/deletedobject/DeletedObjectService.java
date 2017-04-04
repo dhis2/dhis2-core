@@ -42,6 +42,10 @@ public interface DeletedObjectService
 
     List<DeletedObject> getDeletedObjectsByKlass( String klass );
 
+    int countDeletedObjects();
+
+    int countDeletedObjects( DeletedObjectQuery query );
+
     List<DeletedObject> getDeletedObjects();
 
     List<DeletedObject> getDeletedObjects( DeletedObjectQuery query );

@@ -72,8 +72,20 @@ public class DefaultDeletedObjectService
     }
 
     @Override
+    public int countDeletedObjects()
+    {
+        return deletedObjectStore.count( DeletedObjectQuery.EMPTY );
+    }
+
+    @Override
     public List<DeletedObject> getDeletedObjects( DeletedObjectQuery query )
     {
         return deletedObjectStore.query( query );
+    }
+
+    @Override
+    public int countDeletedObjects( DeletedObjectQuery query )
+    {
+        return deletedObjectStore.count( query );
     }
 }

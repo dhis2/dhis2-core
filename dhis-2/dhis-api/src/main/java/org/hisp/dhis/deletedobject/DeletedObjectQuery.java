@@ -47,9 +47,13 @@ public class DeletedObjectQuery
 
     private Date deletedAt;
 
-    private Integer first;
+    private boolean skipPaging;
 
-    private Integer max = Pager.DEFAULT_PAGE_SIZE;
+    private int page = 1;
+
+    private int pageSize = Pager.DEFAULT_PAGE_SIZE;
+
+    private int total;
 
     public DeletedObjectQuery()
     {
@@ -75,34 +79,60 @@ public class DeletedObjectQuery
         this.deletedAt = deletedAt;
     }
 
-    public Integer getFirst()
+    public boolean isSkipPaging()
     {
-        return first;
+        return skipPaging;
     }
 
-    public void setFirst( Integer first )
+    public void setSkipPaging( boolean skipPaging )
     {
-        this.first = first;
+        this.skipPaging = skipPaging;
     }
 
-    public Integer getMax()
+    public int getPage()
     {
-        return max;
+        return page;
     }
 
-    public void setMax( Integer max )
+    public void setPage( int page )
     {
-        this.max = max;
+        this.page = page;
     }
 
+    public int getPageSize()
+    {
+        return pageSize;
+    }
+
+    public void setPageSize( int pageSize )
+    {
+        this.pageSize = pageSize;
+    }
+
+    public int getTotal()
+    {
+        return total;
+    }
+
+    public void setTotal( int total )
+    {
+        this.total = total;
+    }
+
+    public Pager getPager()
+    {
+        return skipPaging ? null : new Pager( page, total, pageSize );
+    }
 
     @Override
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
             .add( "klass", klass )
-            .add( "first", first )
-            .add( "max", max )
+            .add( "deletedAt", deletedAt )
+            .add( "page", page )
+            .add( "pageSize", pageSize )
+            .add( "total", total )
             .toString();
     }
 }
