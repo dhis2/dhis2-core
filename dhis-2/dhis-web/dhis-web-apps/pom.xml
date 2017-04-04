@@ -152,6 +152,15 @@
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-mapping</outputDirectory>
                   <includes>**/*.*</includes>
                 </artifactItem>
+                <!-- Event Reports -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-event-reports</artifactId>
+                  <version>2.27-SNAPSHOT</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-event-reports</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
                 <!-- Translations -->
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
