@@ -84,7 +84,6 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
-import org.hisp.dhis.program.ProgramValidation;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
@@ -228,8 +227,6 @@ public class Metadata
     private List<ProgramStageDataElement> programStageDataElements = new ArrayList<>();
 
     private List<ProgramIndicator> programIndicators = new ArrayList<>();
-
-    private List<ProgramValidation> programValidations = new ArrayList<>();
 
     private List<ProgramStageSection> programStageSections = new ArrayList<>();
 
@@ -956,19 +953,6 @@ public class Metadata
     public void setProgramIndicators( List<ProgramIndicator> programIndicators )
     {
         this.programIndicators = programIndicators;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "programValidations", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "programValidation", namespace = DxfNamespaces.DXF_2_0 )
-    public List<ProgramValidation> getProgramValidations()
-    {
-        return programValidations;
-    }
-
-    public void setProgramValidations( List<ProgramValidation> programValidations )
-    {
-        this.programValidations = programValidations;
     }
 
     @JsonProperty

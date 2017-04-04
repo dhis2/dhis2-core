@@ -1621,7 +1621,6 @@ public class TableAlteror
         addTranslationTable( listTables, "ProgramStageInstance", "programstageinstancetranslations", "programstageinstance", "programstageinstanceid" );
         addTranslationTable( listTables, "ProgramStageSection", "programstagesectiontranslations", "programstagesection", "programstagesectionid" );
         addTranslationTable( listTables, "ProgramTrackedEntityAttribute", "programattributestranslations", "programtrackedentityattribute", "programtrackedentityattributeid" );
-        addTranslationTable( listTables, "ProgramValidation", "programvalidationtranslations", "programvalidation", "programvalidationid" );
         addTranslationTable( listTables, "ProgramRule", "programruletranslations", "programrule", "programruleid" );
         addTranslationTable( listTables, "ProgramRuleAction", "programruleactiontranslations", "programruleaction", "programruleactionid" );
         addTranslationTable( listTables, "ProgramRuleVariable", "programrulevariabletranslations", "programrulevariable", "programrulevariableid" );
