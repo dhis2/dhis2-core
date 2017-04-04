@@ -82,6 +82,13 @@ public class PasswordHistoryValidationRule implements PasswordValidationRule
     @Override
     public boolean isRuleApplicable( CredentialsInfo credentialsInfo )
     {
+        UserCredentials userCredentials = userService.getUserCredentialsByUsername( credentialsInfo.getUsername() );
+
+        if ( !userService.credentialsNonExpired( userCredentials ) )
+        {
+            return true;
+        }
+
         return ( credentialsInfo.isNewUser() ||
                 !currentUserService.getCurrentUsername().equals( credentialsInfo.getUsername() ) ) ? false : true;
     }
