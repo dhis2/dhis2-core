@@ -49,6 +49,7 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -77,7 +78,7 @@ import static org.hisp.dhis.common.DimensionalObject.*;
  */
 @JacksonXmlRootElement( localName = "reportTable", namespace = DxfNamespaces.DXF_2_0 )
 public class ReportTable
-    extends BaseAnalyticalObject
+    extends BaseAnalyticalObject implements MetadataObject
 {
     public static final String REPORTING_MONTH_COLUMN_NAME = "reporting_month_name";
     public static final String PARAM_ORGANISATIONUNIT_COLUMN_NAME = "param_organisationunit_name";
@@ -177,7 +178,7 @@ public class ReportTable
      * The legend set in the table.
      */
     private LegendSet legendSet;
-    
+
     /**
      * The legend set display strategy.
      */
@@ -579,9 +580,9 @@ public class ReportTable
         {
             grid.addHeader( new GridHeader( "Reporting month", REPORTING_MONTH_COLUMN_NAME,
                 ValueType.TEXT, String.class.getName(), true, true ) );
-            grid.addHeader( new GridHeader( "Organisation unit parameter", PARAM_ORGANISATIONUNIT_COLUMN_NAME, 
+            grid.addHeader( new GridHeader( "Organisation unit parameter", PARAM_ORGANISATIONUNIT_COLUMN_NAME,
                 ValueType.TEXT, String.class.getName(), true, true ) );
-            grid.addHeader( new GridHeader( "Organisation unit is parent", ORGANISATION_UNIT_IS_PARENT_COLUMN_NAME, 
+            grid.addHeader( new GridHeader( "Organisation unit is parent", ORGANISATION_UNIT_IS_PARENT_COLUMN_NAME,
                 ValueType.TEXT, String.class.getName(), true, true ) );
         }
 
@@ -590,7 +591,7 @@ public class ReportTable
 
         for ( List<DimensionalItemObject> column : gridColumns )
         {
-            grid.addHeader( new GridHeader( getPrettyColumnName( column, displayProperty ), getColumnName( column ), 
+            grid.addHeader( new GridHeader( getPrettyColumnName( column, displayProperty ), getColumnName( column ),
                 ValueType.NUMBER, Double.class.getName(), false, false ) );
         }
 

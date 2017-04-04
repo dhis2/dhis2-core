@@ -46,9 +46,6 @@ public class DataInputPeriodSchemaDescriptor implements SchemaDescriptor
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( DataInputPeriod.class, SINGULAR, PLURAL );
-        schema.setMetadata( false );
-
-        return schema;
+        return new Schema( DataInputPeriod.class, SINGULAR, PLURAL );
     }
 }

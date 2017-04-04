@@ -46,6 +46,7 @@ import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.FontSize;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -65,7 +66,7 @@ import java.util.List;
 @JacksonXmlRootElement( localName = "eventReport", namespace = DxfNamespaces.DXF_2_0 )
 public class EventReport
     extends BaseAnalyticalObject
-    implements EventAnalyticalObject
+    implements EventAnalyticalObject, MetadataObject
 {
     public static final String DATA_TYPE_AGGREGATED_VALUES = "aggregated_values";
     public static final String DATA_TYPE_INDIVIDUAL_CASES = "individual_cases";

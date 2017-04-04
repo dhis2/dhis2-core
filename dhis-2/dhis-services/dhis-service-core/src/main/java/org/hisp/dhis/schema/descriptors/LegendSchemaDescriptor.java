@@ -46,9 +46,6 @@ public class LegendSchemaDescriptor implements SchemaDescriptor
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( Legend.class, SINGULAR, PLURAL );
-        schema.setMetadata( false );
-
-        return schema;
+        return new Schema( Legend.class, SINGULAR, PLURAL );
     }
 }

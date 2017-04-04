@@ -46,9 +46,6 @@ public class UserGroupAccessSchemaDescriptor implements SchemaDescriptor
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( UserGroupAccess.class, SINGULAR, PLURAL );
-        schema.setMetadata( false );
-
-        return schema;
+        return new Schema( UserGroupAccess.class, SINGULAR, PLURAL );
     }
 }

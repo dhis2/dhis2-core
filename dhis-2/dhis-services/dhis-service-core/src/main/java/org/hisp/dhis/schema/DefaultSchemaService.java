@@ -246,7 +246,6 @@ public class DefaultSchemaService
         schema = new Schema( klass, name, name + "s" );
         schema.setDisplayName( beautify( schema ) );
         schema.setPropertyMap( new HashMap<>( propertyIntrospectorService.getPropertiesMap( schema.getKlass() ) ) );
-        schema.setMetadata( false );
 
         updateSelf( schema );
 

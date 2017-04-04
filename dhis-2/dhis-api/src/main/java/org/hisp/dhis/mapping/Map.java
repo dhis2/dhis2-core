@@ -39,6 +39,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.InterpretableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
@@ -53,7 +54,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "map", namespace = DxfNamespaces.DXF_2_0 )
 public class Map
-    extends BaseNameableObject implements InterpretableObject
+    extends BaseNameableObject implements InterpretableObject, MetadataObject
 {
     private Double longitude;
 
@@ -62,11 +63,11 @@ public class Map
     private Integer zoom;
 
     private String basemap;
-    
+
     private String title;
-    
+
     private List<MapView> mapViews = new ArrayList<>();
-    
+
     private Set<Interpretation> interpretations = new HashSet<>();
 
     // -------------------------------------------------------------------------

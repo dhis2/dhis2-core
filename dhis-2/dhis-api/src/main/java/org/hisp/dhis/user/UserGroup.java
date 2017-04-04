@@ -38,6 +38,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -47,7 +48,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "userGroup", namespace = DxfNamespaces.DXF_2_0 )
 public class UserGroup
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     public static final String AUTH_USER_ADD = "F_USER_ADD";
     public static final String AUTH_USER_DELETE = "F_USER_DELETE";

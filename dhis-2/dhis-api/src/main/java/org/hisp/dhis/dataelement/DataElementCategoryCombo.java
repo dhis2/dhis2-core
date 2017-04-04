@@ -39,6 +39,7 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -50,7 +51,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0 )
 public class DataElementCategoryCombo
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     public static final String DEFAULT_CATEGORY_COMBO_NAME = "default";
 
@@ -201,7 +202,7 @@ public class DataElementCategoryCombo
             for ( DataElementCategoryOptionCombo optionCombo : optionCombos )
             {
                 Set<DataElementCategoryOption> persistedCategoryOptions = new HashSet<>( optionCombo.getCategoryOptions() );
-                
+
                 if ( categoryOptionSet.equals( persistedCategoryOptions ) )
                 {
                     list.add( optionCombo );
