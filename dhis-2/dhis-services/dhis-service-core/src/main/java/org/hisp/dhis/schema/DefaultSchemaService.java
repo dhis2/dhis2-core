@@ -31,7 +31,6 @@ package org.hisp.dhis.schema;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.hibernate.SessionFactory;
@@ -39,7 +38,6 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.schema.descriptors.*;
 import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.oauth2.OAuth2Client;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,10 +60,6 @@ import static java.util.stream.Collectors.toSet;
 public class DefaultSchemaService
     implements SchemaService
 {
-    private static final ImmutableMap<Class<?>, String> BEAUTIFY_OVERRIDE = ImmutableMap.<Class<?>, String>builder()
-        .put( OAuth2Client.class, "OAuth2 Client" )
-        .build();
-
     private ImmutableList<SchemaDescriptor> descriptors = new ImmutableList.Builder<SchemaDescriptor>().
         add( new MetadataVersionSchemaDescriptor() ).
         add( new AttributeSchemaDescriptor() ).

@@ -56,7 +56,7 @@ public class DeletedObjectId
      */
     private String uid;
 
-    private DeletedObjectId()
+    protected DeletedObjectId()
     {
     }
 
