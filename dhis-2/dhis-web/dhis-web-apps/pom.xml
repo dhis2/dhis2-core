@@ -161,6 +161,15 @@
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-event-reports</outputDirectory>
                   <includes>**/*.*</includes>
                 </artifactItem>
+                <!-- Event Visualizer -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-event-visualizer</artifactId>
+                  <version>2.27-SNAPSHOT</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-event-visualizer</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
                 <!-- Translations -->
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
