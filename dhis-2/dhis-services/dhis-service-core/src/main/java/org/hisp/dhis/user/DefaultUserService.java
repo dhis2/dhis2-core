@@ -44,6 +44,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.deletion.DeletionManager;
 import org.hisp.dhis.system.filter.UserAuthorityGroupCanIssueFilter;
 import org.hisp.dhis.system.util.DateUtils;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +62,8 @@ public class DefaultUserService
     implements UserService
 {
     private static final Log log = LogFactory.getLog( DefaultUserService.class );
+
+    private static final int EXPIRY_THRESHOLD = 14;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -638,5 +641,19 @@ public class DefaultUserService
         } );
 
         return errors;
+    }
+
+    @Override
+    public List<User> getExpiringUsers()
+    {
+        int daysBeforePasswordChangeRequired = (Integer) systemSettingManager.getSystemSetting( SettingKey.CREDENTIALS_EXPIRES ) * 30;
+
+        Date daysPassed = new DateTime( new Date() ).minusDays( daysBeforePasswordChangeRequired - EXPIRY_THRESHOLD ).toDate();
+
+        UserQueryParams userQueryParams = new UserQueryParams();
+
+        userQueryParams.setDaysPassedSincePasswordChange( daysPassed );
+
+        return userStore.getExpiringUsers( userQueryParams );
     }
 }

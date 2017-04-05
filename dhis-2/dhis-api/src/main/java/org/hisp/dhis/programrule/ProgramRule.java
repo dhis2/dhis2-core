@@ -37,6 +37,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
@@ -48,7 +49,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "programRule", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramRule
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     /**
      * The description of the program rule

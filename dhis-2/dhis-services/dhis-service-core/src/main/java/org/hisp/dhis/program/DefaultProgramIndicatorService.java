@@ -38,6 +38,7 @@ import org.hisp.dhis.commons.sqlfunc.OneIfZeroOrPositiveSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.SqlFunction;
 import org.hisp.dhis.commons.sqlfunc.ZeroIfNegativeSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.ZeroPositiveValueCountFunction;
+import org.hisp.dhis.commons.sqlfunc.HasValueSqlFunction;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.Constant;
@@ -72,7 +73,8 @@ public class DefaultProgramIndicatorService
         put( OneIfZeroOrPositiveSqlFunction.KEY, new OneIfZeroOrPositiveSqlFunction() ).
         put( ZeroPositiveValueCountFunction.KEY, new ZeroPositiveValueCountFunction() ).
         put( DaysBetweenSqlFunction.KEY, new DaysBetweenSqlFunction() ).
-        put( ConditionalSqlFunction.KEY, new ConditionalSqlFunction() ).build();
+        put( ConditionalSqlFunction.KEY, new ConditionalSqlFunction() ).
+        put( HasValueSqlFunction.KEY, new HasValueSqlFunction() ).build();
 
     // -------------------------------------------------------------------------
     // Dependencies

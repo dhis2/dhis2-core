@@ -36,6 +36,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
@@ -47,7 +48,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
  */
 @JacksonXmlRootElement( localName = "programRuleAction", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramRuleAction
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     /**
      * The programRule that the action belongs to

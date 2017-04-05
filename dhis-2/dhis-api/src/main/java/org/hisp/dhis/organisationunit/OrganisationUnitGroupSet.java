@@ -40,6 +40,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.adapter.JacksonOrganisationUnitGroupSymbolSerializer;
 
 import java.util.ArrayList;
@@ -54,7 +55,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "organisationUnitGroupSet", namespace = DxfNamespaces.DXF_2_0 )
 public class OrganisationUnitGroupSet
-    extends BaseDimensionalObject
+    extends BaseDimensionalObject implements MetadataObject
 {
     private boolean compulsory;
 

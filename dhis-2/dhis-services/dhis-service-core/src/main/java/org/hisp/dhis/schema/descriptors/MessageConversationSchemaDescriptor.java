@@ -48,8 +48,6 @@ public class MessageConversationSchemaDescriptor implements SchemaDescriptor
     {
         Schema schema = new Schema( MessageConversation.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setMetadata( false );
-        schema.setOrder( 1430 );
 
         return schema;
     }
