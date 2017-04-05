@@ -110,6 +110,7 @@ public class AnalyticsServiceTest
         // Manage teardown of database
         @Override
         public void setUpTest()
+            throws IOException
         {
                 //  Set up meta data for data values
                 //  --------------------------------------------------------------------
@@ -612,33 +613,19 @@ public class AnalyticsServiceTest
          * @param inputFile points to file in class path
          */
         public void readInputFile( String inputFile )
+            throws IOException
         {
-                InputStream input = null;
-                try
-                {
-                        input = new ClassPathResource( inputFile ).getInputStream();
-                }
-                catch ( IOException e )
-                {
-                        e.printStackTrace();
-                }
-
+                InputStream input = new ClassPathResource( inputFile ).getInputStream();
                 assertNotNull( "Reading '" + inputFile + "' failed", input );
 
                 CsvReader reader = new CsvReader( input, Charset.forName( "UTF-8" ) );
-                try
-                {
-                        reader.readRecord(); // Ignore first row
-                        while ( reader.readRecord() )
-                        {
-                                String[] values = reader.getValues();
-                                parse( values );
 
-                        }
-                }
-                catch ( IOException e )
+                reader.readRecord(); // Ignore first row
+                while ( reader.readRecord() )
                 {
-                        e.printStackTrace();
+                        String[] values = reader.getValues();
+                        parse( values );
+
                 }
 
                 assertEquals( "Import of data failed, number of imports are wrong",
