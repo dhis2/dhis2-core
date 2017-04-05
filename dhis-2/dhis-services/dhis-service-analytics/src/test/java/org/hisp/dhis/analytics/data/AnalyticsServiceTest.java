@@ -1,5 +1,6 @@
 package org.hisp.dhis.analytics.data;
 
+import com.csvreader.CsvReader;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.analytics.*;
@@ -24,7 +25,11 @@ import org.hisp.dhis.reporttable.ReportTable;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,10 +37,7 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
-//mer avanserte tester -> Groupset
 // mvn -Dtest=AnalyticsServiceTest test
-// Statementbuilder
-// ValidationNotificationServiceTest
 
 /**
  * Created by henninghakonsen on 13/03/2017.
@@ -43,7 +45,7 @@ import static org.junit.Assert.*;
  *
  * This test class tests aggregation of data in analytics tables
  *
- * Add a new test case this way:
+ * One way to make a new test:
  * 1. Make new DataQueryParam/AnalyticalObject
  * 2. Add to 'dataQueryParams'/'analyticalObjectHashMap' hashmap
  * 3. Add HashMap<String, Double> with expected output to results hashmap
@@ -52,8 +54,6 @@ import static org.junit.Assert.*;
 public class AnalyticsServiceTest
     extends DhisTest
 {
-        private List<DataElement> dataElements = new ArrayList<>();
-
         // Params for data query
         private HashMap<String, DataQueryParams> dataQueryParams = new HashMap<>();
 
@@ -87,6 +87,8 @@ public class AnalyticsServiceTest
         @Autowired
         private IndicatorService indicatorService;
 
+        private DataElementCategoryOptionCombo ocDef;
+
         //  Database (value, data element, period)
         //  --------------------------------------------------------------------
         //
@@ -106,11 +108,12 @@ public class AnalyticsServiceTest
         //  --------------------------------------------------------------------
         // TODO
         // Manage teardown of database
-
         @Override
         public void setUpTest()
         {
-                DataElementCategoryOptionCombo ocDef = categoryService.getDefaultDataElementCategoryOptionCombo();
+                //  Set up meta data for data values
+                //  --------------------------------------------------------------------
+                ocDef = categoryService.getDefaultDataElementCategoryOptionCombo();
                 ocDef.setCode( "OC_DEF_CODE" );
                 ocDef.setUid( "OC_DEF_UID" );
                 categoryService.updateDataElementCategoryOptionCombo( ocDef );
@@ -120,12 +123,6 @@ public class AnalyticsServiceTest
                 Period peMar = createPeriod( "2017-03" );
                 Period peApril = createPeriod( "2017-04" );
                 Period quarter = createPeriod( "2017Q1" );
-
-                List<Period> periods = new ArrayList<>();
-                periods.add( peJan );
-                periods.add( peFeb );
-                periods.add( peMar );
-                periods.add( peApril );
 
                 periodService.addPeriod( peJan );
                 periodService.addPeriod( peFeb );
@@ -146,11 +143,6 @@ public class AnalyticsServiceTest
                 dataElementService.addDataElement( deC );
                 dataElementService.addDataElement( deD );
 
-                dataElements.add( deA );
-                dataElements.add( deB );
-                dataElements.add( deC );
-                dataElements.add( deD );
-
                 OrganisationUnit ouA = createOrganisationUnit( 'A' );
                 OrganisationUnit ouB = createOrganisationUnit( 'B' );
                 OrganisationUnit ouC = createOrganisationUnit( 'C' );
@@ -164,80 +156,12 @@ public class AnalyticsServiceTest
                 organisationUnitService.addOrganisationUnit( ouD );
                 organisationUnitService.addOrganisationUnit( ouE );
 
-                // Data values for A
-                List<DataValue> dataValuesA = new ArrayList<>();
-                for ( int i = 1; i < 5; i++ )
-                {
-                        dataValuesA
-                            .add( new DataValue( dataElements.get( i - 1 ), periods.get( i - 1 ), ouA, ocDef, ocDef ) );
-                        dataValuesA.get( i - 1 ).setValue( i * 2 + "" );
-                        dataValueService.addDataValue( dataValuesA.get( i - 1 ) );
-                }
+                //  Read data values from csv file
+                //  --------------------------------------------------------------------
+                readInputFile( "csv/dataValues.csv" );
 
-                // Data values for B
-                List<DataValue> dataValuesB = new ArrayList<>();
-                for ( int i = 1; i < 5; i++ )
-                {
-                        dataValuesB
-                            .add( new DataValue( dataElements.get( i - 1 ), periods.get( i - 1 ), ouB, ocDef, ocDef ) );
-                        dataValuesB.get( i - 1 ).setValue( i * 2 - 1 + "" );
-                        dataValueService.addDataValue( dataValuesB.get( i - 1 ) );
-                }
-
-                // Data values for C
-                List<DataValue> dataValuesC = new ArrayList<>();
-                for ( int i = 1; i < 5; i++ )
-                {
-                        dataValuesC
-                            .add( new DataValue( dataElements.get( i - 1 ), periods.get( i - 1 ), ouC, ocDef, ocDef ) );
-                        dataValuesC.get( i - 1 ).setValue( i * 5 + "" );
-                        dataValueService.addDataValue( dataValuesC.get( i - 1 ) );
-                }
-
-                // Data values for E
-                List<DataValue> dataValuesE = new ArrayList<>();
-                for ( int i = 1; i < 5; i++ )
-                {
-                        dataValuesE
-                            .add( new DataValue( dataElements.get( i - 1 ), periods.get( i - 1 ), ouE, ocDef, ocDef ) );
-                        dataValuesE.get( i - 1 ).setValue( "1" );
-                        dataValueService.addDataValue( dataValuesE.get( i - 1 ) );
-                }
-
-                // "Special" data values
-                DataValue dataValue_100_m01 = new DataValue( deB, peJan, ouA, ocDef, ocDef );
-                dataValue_100_m01.setValue( "100" );
-                dataValueService.addDataValue( dataValue_100_m01 );
-
-                DataValue dataValue_2_m02 = new DataValue( deD, peFeb, ouA, ocDef, ocDef );
-                dataValue_2_m02.setValue( "2" );
-                dataValueService.addDataValue( dataValue_2_m02 );
-
-                DataValue dataValue_4_m01 = new DataValue( deD, peJan, ouC, ocDef, ocDef );
-                dataValue_4_m01.setValue( "4" );
-                dataValueService.addDataValue( dataValue_4_m01 );
-
-                DataValue dataValue_23_m02 = new DataValue( deC, peFeb, ouC, ocDef, ocDef );
-                dataValue_23_m02.setValue( "23" );
-                dataValueService.addDataValue( dataValue_23_m02 );
-
-                DataValue dataValue_66_m01 = new DataValue( deA, peJan, ouD, ocDef, ocDef );
-                dataValue_66_m01.setValue( "66" );
-                dataValueService.addDataValue( dataValue_66_m01 );
-
-                DataValue dataValue_233_m02 = new DataValue( deA, peFeb, ouD, ocDef, ocDef );
-                dataValue_233_m02.setValue( "233" );
-                dataValueService.addDataValue( dataValue_233_m02 );
-
-                DataValue dataValue_399_m02 = new DataValue( deB, peFeb, ouD, ocDef, ocDef );
-                dataValue_399_m02.setValue( "399" );
-                dataValueService.addDataValue( dataValue_399_m02 );
-
-                DataValue dataValue_32_m01 = new DataValue( deD, peJan, ouE, ocDef, ocDef );
-                dataValue_32_m01.setValue( "32" );
-                dataValueService.addDataValue( dataValue_32_m01 );
-
-                // Indicators
+                //  Make indicators
+                //  --------------------------------------------------------------------
                 IndicatorType indicatorType_1 = createIndicatorType( 'A' );
                 indicatorType_1.setFactor( 1 );
 
@@ -271,16 +195,17 @@ public class AnalyticsServiceTest
                 indicatorD.setNumerator( expressionD );
                 indicatorD.setDenominator( "#{" + deB.getUid() + ".OC_DEF_UID}" );
 
-
                 indicatorService.addIndicator( indicatorA );
                 indicatorService.addIndicator( indicatorB );
                 indicatorService.addIndicator( indicatorC );
                 indicatorService.addIndicator( indicatorD );
 
-                // Generate analytics tables
+                //  Generate analytics tables
+                //  --------------------------------------------------------------------
                 analyticsTableGenerator.generateTables( null, null, null, false );
 
-                // Set params
+                //  Set parameters
+                //  --------------------------------------------------------------------
                 List<Indicator> param_indicators = new ArrayList<>();
                 List<ReportingRate> param_reportingRates = new ArrayList<>();
 
@@ -314,7 +239,7 @@ public class AnalyticsServiceTest
                 // all data elements - mar 2017
                 Period y2017_mar = createPeriod( "2017-03" );
                 DataQueryParams de_avg_2017_03_params = DataQueryParams.newBuilder()
-                    .withDataElements( dataElements )
+                    .withDataElements( dataElementService.getAllDataElements() )
                     .withAggregationType( AggregationType.AVERAGE )
                     .withSkipRounding( true )
                     .withOutputFormat( OutputFormat.ANALYTICS )
@@ -336,20 +261,18 @@ public class AnalyticsServiceTest
                 organisationUnits1.add( ouB );
                 List<Period> periods1 = new ArrayList<>();
                 periods1.add( y2017_mar );
-                List<DataElement> dataElements2 = new ArrayList<>();
-                dataElements2.add( deC );
 
-                AnalyticalObject deC_ouB_2017_03_analytical = new ReportTable( "deC_ouB_2017_03", dataElements2,
+                AnalyticalObject deC_ouB_2017_03_analytical = new ReportTable( "deC_ouB_2017_03", dataElements1,
                     param_indicators, param_reportingRates, periods1, organisationUnits1, false, true, true,
                     null, null, null );
 
                 // org unit A - data element A - Q1 2017
-                List<DataElement> dataElements3 = new ArrayList<>();
-                dataElements3.add( deA );
+                List<DataElement> dataElements2 = new ArrayList<>();
+                dataElements2.add( deA );
 
                 DataQueryParams deA_ouA_2017_Q01_params = DataQueryParams.newBuilder()
                     .withOrganisationUnit( ouA )
-                    .withDataElements( dataElements3 )
+                    .withDataElements( dataElements2 )
                     .withAggregationType( AggregationType.SUM )
                     .withOutputFormat( OutputFormat.ANALYTICS )
                     .withPeriod( quarter )
@@ -360,7 +283,7 @@ public class AnalyticsServiceTest
                 List<Period> periods2 = new ArrayList<>();
                 periods2.add( quarter );
 
-                AnalyticalObject deA_ouA_2017_Q01_analytical = new ReportTable( "deA_ouA_2017_Q01", dataElements3,
+                AnalyticalObject deA_ouA_2017_Q01_analytical = new ReportTable( "deA_ouA_2017_Q01", dataElements2,
                     param_indicators, param_reportingRates, periods2, organisationUnits2, false, true, true,
                     null, null, null );
 
@@ -521,7 +444,8 @@ public class AnalyticsServiceTest
                 analyticalObjectHashMap.put( "deA_ouA_2017_Q01", deA_ouA_2017_Q01_analytical );
                 analyticalObjectHashMap.put( "inC_deB_deC_2017_Q01", inC_deB_deC_2017_Q01_analytical );
 
-                // Set results
+                //  Set results
+                //  --------------------------------------------------------------------
                 HashMap<String, Double> ou_2017_keyValue = new HashMap<>();
                 ou_2017_keyValue.put( "ouabcdefghA-2017", 949.0 );
                 ou_2017_keyValue.put( "ouabcdefghB-2017", 750.0 );
@@ -620,10 +544,10 @@ public class AnalyticsServiceTest
         public void testMappingAggregation()
         {
                 Map<String, Object> aggregatedDataValueMapping;
-                for ( Map.Entry<String, AnalyticalObject> entry : analyticalObjectHashMap.entrySet() )
+                for ( Map.Entry<String, DataQueryParams> entry : dataQueryParams.entrySet() )
                 {
                         String key = entry.getKey();
-                        AnalyticalObject params = entry.getValue();
+                        DataQueryParams params = entry.getValue();
 
                         aggregatedDataValueMapping = analyticsService
                             .getAggregatedDataValueMapping( params );
@@ -631,10 +555,10 @@ public class AnalyticsServiceTest
                         assertDataValueMapping( aggregatedDataValueMapping, results.get( key ) );
                 }
 
-                for ( Map.Entry<String, DataQueryParams> entry : dataQueryParams.entrySet() )
+                for ( Map.Entry<String, AnalyticalObject> entry : analyticalObjectHashMap.entrySet() )
                 {
                         String key = entry.getKey();
-                        DataQueryParams params = entry.getValue();
+                        AnalyticalObject params = entry.getValue();
 
                         aggregatedDataValueMapping = analyticsService
                             .getAggregatedDataValueMapping( params );
@@ -671,7 +595,8 @@ public class AnalyticsServiceTest
                 assertDataValueSet( aggregatedDataValueSet, results.get( "deC_ouB_2017_03" ) );
 
                 // Params: Sum for all org unit A, in data element a in Q1 2017
-                aggregatedDataValueSet = analyticsService.getAggregatedDataValueSet( dataQueryParams.get( "deA_ouA_2017_Q01" ) );
+                aggregatedDataValueSet = analyticsService
+                    .getAggregatedDataValueSet( dataQueryParams.get( "deA_ouA_2017_Q01" ) );
 
                 assertDataValueSet( aggregatedDataValueSet, results.get( "deA_ouA_2017_Q01" ) );
         }
@@ -679,6 +604,62 @@ public class AnalyticsServiceTest
         //  -------------------------------------------------------------------------
         //  Internal Logic
         //  -------------------------------------------------------------------------
+
+        /**
+         * Reads CSV input file with following set up:
+         * "dataelement","period","orgunit","categoryoptioncombo","value"
+         *
+         * @param inputFile points to file in class path
+         */
+        public void readInputFile( String inputFile )
+        {
+                InputStream input = null;
+                try
+                {
+                        input = new ClassPathResource( inputFile ).getInputStream();
+                }
+                catch ( IOException e )
+                {
+                        e.printStackTrace();
+                }
+
+                assertNotNull( "Reading '" + inputFile + "' failed", input );
+
+                CsvReader reader = new CsvReader( input, Charset.forName( "UTF-8" ) );
+                try
+                {
+                        reader.readRecord(); // Ignore first row
+                        while ( reader.readRecord() )
+                        {
+                                String[] values = reader.getValues();
+                                parse( values );
+
+                        }
+                }
+                catch ( IOException e )
+                {
+                        e.printStackTrace();
+                }
+
+                assertEquals( "Import of data failed, number of imports are wrong",
+                    dataValueService.getAllDataValues().size(), 24 );
+        }
+
+        /**
+         * Adds data value based on input from vales
+         *
+         * @param values the array of property values.
+         */
+        private void parse( String[] values )
+        {
+                DataElement dataElement = dataElementService.getDataElement( values[0] );
+                Period period = periodService.getPeriod( values[1] );
+                OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( values[2] );
+
+                DataValue dataValue = new DataValue( dataElement, period, organisationUnit, ocDef, ocDef );
+                dataValue.setValue( values[3] );
+                dataValueService.addDataValue( dataValue );
+        }
 
         /**
          * Configure org unit hierarchy like so:

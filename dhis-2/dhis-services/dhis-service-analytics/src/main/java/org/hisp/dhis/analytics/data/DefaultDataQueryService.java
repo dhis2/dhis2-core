@@ -155,8 +155,8 @@ public class DefaultDataQueryService
         I18nFormat format = i18nManager.getI18nFormat();        
         IdScheme idScheme = IdScheme.UID;
         Date date = object.getRelativePeriodDate();
-        
-        String userOrgUnit = object.getRelativeOrganisationUnit() != null ? 
+
+        String userOrgUnit = object.getRelativeOrganisationUnit() != null ?
             object.getRelativeOrganisationUnit().getUid() : null;
 
         List<OrganisationUnit> userOrgUnits = getUserOrgUnits( null, userOrgUnit );
