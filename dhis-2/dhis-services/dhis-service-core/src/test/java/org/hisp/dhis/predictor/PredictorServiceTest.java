@@ -591,7 +591,6 @@ public class PredictorServiceTest
     {
         setupTestData();
 
-        String auid = dataElementA.getUid();
         Predictor p = createPredictor( dataElementX, defaultCombo, "PredictSequential",
             expressionA, null, periodTypeMonthly, orgUnitLevel1, 3, 1, 0 );
 
@@ -617,7 +616,6 @@ public class PredictorServiceTest
     {
         setupTestData();
 
-        String auid = dataElementA.getUid();
         Predictor p = createPredictor( dataElementX, altCombo, "GetPredictionsSeasonal",
             expressionA, null, periodTypeMonthly, orgUnitLevel1, 3, 1, 2 );
 

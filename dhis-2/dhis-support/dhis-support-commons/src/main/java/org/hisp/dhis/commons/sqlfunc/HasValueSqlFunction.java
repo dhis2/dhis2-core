@@ -1,5 +1,7 @@
+package org.hisp.dhis.commons.sqlfunc;
+
 /*
- * Copyright (c) 2004-2013, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,54 +28,26 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-var validationRules = {
-  rules: {
-    oldPassword: {
-      required: true
-    },
-    password: {
-      required: true,
-      rangelength: [8, 40],
-      password: true,
-      notequalto: "#oldPassword"
-
-    },
-    retypePassword: {
-      required: true,
-      equalTo: "#password"
+/**
+ * Function which evaluates whether a given expression is not null in the database
+ * 
+ * @author Markus Bekken
+ */
+public class HasValueSqlFunction
+    implements SqlFunction
+{
+    public static final String KEY = "hasValue";
+    
+    @Override
+    public String evaluate( String... args )
+    {
+        if ( args == null || args.length != 1 )
+        {
+            throw new IllegalArgumentException( "Illegal arguments, expected 1 argument." );
+        }
+        
+        String expression = args[0];
+        
+        return "((" + expression + ") is null)";
     }
-  }
-};
-
-$(document).ready(function() {
-  $("#accountForm").validate({
-    rules: validationRules.rules,
-    submitHandler: accountSubmitHandler,
-    errorPlacement: function(error, element) {
-      element.parent("td").append("<br>").append(error);
-    }
-  });
-});
-
-function accountSubmitHandler() {
-  $("#submitButton").attr("disabled", "disabled");
-
-  $.ajax({
-    url: '../../api/account/password',
-    data: $("#accountForm").serialize(),
-    type: 'POST',
-    success: function(data) {
-      window.location.href = "../../dhis-web-commons-about/redirect.action";
-    },
-    error: function(jqXHR, textStatus, errorThrown) {
-      var data = JSON.parse(jqXHR.responseText);
-
-      if( data.status === 'NON_EXPIRED' ) {
-        window.location.href = "login.action";
-      }
-
-      $("#messageSpan").show().text(data.message);
-      $("#submitButton").removeAttr("disabled");
-    }
-  });
 }

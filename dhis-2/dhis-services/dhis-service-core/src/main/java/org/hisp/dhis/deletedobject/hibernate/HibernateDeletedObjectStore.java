@@ -64,7 +64,6 @@ public class HibernateDeletedObjectStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<DeletedObject> getByKlass( String klass )
     {
         DeletedObjectQuery query = new DeletedObjectQuery();

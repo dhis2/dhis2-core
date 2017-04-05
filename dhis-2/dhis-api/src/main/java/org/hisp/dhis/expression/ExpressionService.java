@@ -28,7 +28,6 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;

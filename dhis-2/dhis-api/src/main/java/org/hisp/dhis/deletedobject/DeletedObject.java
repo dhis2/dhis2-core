@@ -64,7 +64,7 @@ public class DeletedObject
      */
     private Date deletedAt = new Date();
 
-    private DeletedObject()
+    protected DeletedObject()
     {
     }
 
