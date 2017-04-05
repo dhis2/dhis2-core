@@ -35,6 +35,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.user.UserGroup;
 
@@ -49,9 +50,8 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "pushanalysis", namespace = DxfNamespaces.DXF_2_0 )
 public class PushAnalysis
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
-
     /**
      * PushAnalysis uses a dashboard to base it's reports on
      */

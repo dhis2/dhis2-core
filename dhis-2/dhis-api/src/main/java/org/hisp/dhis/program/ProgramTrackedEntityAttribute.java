@@ -32,31 +32,23 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-
-import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 
 /**
  * @author Chau Thu Tran
  */
 @JacksonXmlRootElement( localName = "programTrackedEntityAttribute", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramTrackedEntityAttribute
-    extends BaseDimensionalItemObject implements EmbeddedObject
+    extends BaseIdentifiableObject implements EmbeddedObject
 {
     private Program program;
 
@@ -149,8 +141,8 @@ public class ProgramTrackedEntityAttribute
         return (program != null ? program.getDisplayName() + " " : "") + (attribute != null ? attribute.getDisplayName() : "");
     }
 
-    @Override
-    public String getShortName()
+    @JsonProperty
+    public String getDisplayShortName()
     {
         return (program != null ? program.getDisplayShortName() + " " : "") + (attribute != null ? attribute.getDisplayShortName() : "");
     }
@@ -161,7 +153,7 @@ public class ProgramTrackedEntityAttribute
     {
         return attribute != null ? attribute.getValueType() : null;
     }
-
+    
     @Override
     public String toString()
     {
@@ -174,40 +166,6 @@ public class ProgramTrackedEntityAttribute
             "\"created\":\"" + created + "\", " +
             "\"lastUpdated\":\"" + lastUpdated + "\" " +
             "}";
-    }
-
-    // -------------------------------------------------------------------------
-    // DimensionalItemObject
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String getDimensionItem()
-    {
-        return (program != null ? program.getUid() : "") + COMPOSITE_DIM_OBJECT_PLAIN_SEP + (attribute != null ? attribute.getUid() : "");
-    }
-
-    @Override
-    public String getDimensionItem( IdScheme idScheme )
-    {
-        return program.getPropertyValue( idScheme ) + COMPOSITE_DIM_OBJECT_PLAIN_SEP + attribute.getPropertyValue( idScheme );
-    }
-
-    @Override
-    public DimensionItemType getDimensionItemType()
-    {
-        return DimensionItemType.PROGRAM_ATTRIBUTE;
-    }
-
-    @Override
-    public List<LegendSet> getLegendSets()
-    {
-        return attribute != null ? attribute.getLegendSets() : null;
-    }
-
-    @Override
-    public AggregationType getAggregationType()
-    {
-        return attribute != null ? attribute.getAggregationType() : null;
     }
 
     // -------------------------------------------------------------------------

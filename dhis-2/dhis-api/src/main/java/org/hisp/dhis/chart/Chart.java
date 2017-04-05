@@ -37,6 +37,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -51,7 +52,7 @@ import java.util.List;
  */
 @JacksonXmlRootElement( localName = "chart", namespace = DxfNamespaces.DXF_2_0 )
 public class Chart
-    extends BaseChart
+    extends BaseChart implements MetadataObject
 {
     private String series;
 

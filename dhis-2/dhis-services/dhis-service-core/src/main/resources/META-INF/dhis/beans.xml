@@ -445,6 +445,8 @@
     <property name="cacheable" value="true" />
   </bean>
 
+  <bean id="org.hisp.dhis.deletedobject.DeletedObjectStore" class="org.hisp.dhis.deletedobject.hibernate.HibernateDeletedObjectStore" />
+
   <bean id="org.hisp.dhis.version.VersionStore" class="org.hisp.dhis.version.hibernate.HibernateVersionStore">
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="clazz" value="org.hisp.dhis.version.Version" />
@@ -613,13 +615,6 @@
   <bean id="org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramTrackedEntityAttributeGroupStore">
     <property name="clazz" value="org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="cacheable" value="true" />
-  </bean>
-
-  <bean id="org.hisp.dhis.program.ProgramDataElementStore"
-    class="org.hisp.dhis.program.hibernate.HibernateProgramDataElementStore">
-    <property name="clazz" value="org.hisp.dhis.program.ProgramDataElement" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
@@ -1051,6 +1046,8 @@
     <property name="constantStore" ref="org.hisp.dhis.constant.ConstantStore" />
   </bean>
 
+  <bean id="org.hisp.dhis.deletedobject.DeletedObjectService" class="org.hisp.dhis.deletedobject.DefaultDeletedObjectService" />
+
   <bean id="org.hisp.dhis.version.VersionService" class="org.hisp.dhis.version.DefaultVersionService">
     <property name="versionStore" ref="org.hisp.dhis.version.VersionStore" />
   </bean>
@@ -1168,12 +1165,15 @@
         <value>pepfar</value>
         <value>peru</value>
         <value>psi</value>
+        <value>puntland</value>
         <value>rwanda</value>
         <value>save_the_children</value>
         <value>senegal</value>
         <value>sierra_leone</value>
         <value>sierra_leone_coat_of_arms</value>
         <value>solomon_islands</value>
+        <value>somalia</value>
+        <value>somaliland</value>
         <value>south_africa</value>
         <value>south_africa_department_of_health</value>
         <value>south_sudan</value>
@@ -1377,8 +1377,6 @@
     <property name="programStore" ref="org.hisp.dhis.program.ProgramStore" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
-    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="programDataElementStore" ref="org.hisp.dhis.program.ProgramDataElementStore" />
   </bean>
 
   <bean id="org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupService"

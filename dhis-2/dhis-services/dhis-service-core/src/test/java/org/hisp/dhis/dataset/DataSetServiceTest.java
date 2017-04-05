@@ -122,7 +122,6 @@ public class DataSetServiceTest
     // -------------------------------------------------------------------------
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public void setUpTest()
         throws Exception
     {

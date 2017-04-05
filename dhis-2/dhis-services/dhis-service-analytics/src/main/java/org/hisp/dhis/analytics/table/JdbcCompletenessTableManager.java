@@ -45,6 +45,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -59,6 +60,15 @@ public class JdbcCompletenessTableManager
     public AnalyticsTableType getAnalyticsTableType()
     {
         return AnalyticsTableType.COMPLETENESS;
+    }
+
+    @Override
+    @Transactional
+    public List<AnalyticsTable> getTables( Date earliest )
+    {
+        log.info( "Get tables using earliest: " + earliest );
+
+        return getTables( getDataYears( earliest ) );
     }
     
     @Override
@@ -212,8 +222,7 @@ public class JdbcCompletenessTableManager
         return filterDimensionColumns( columns );
     }
 
-    @Override
-    public List<Integer> getDataYears( Date earliest )
+    private List<Integer> getDataYears( Date earliest )
     {
         String sql = 
             "select distinct(extract(year from pe.startdate)) " +

@@ -35,13 +35,14 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 
 /**
  * @author Lars Helge Overland
  */
 @JacksonXmlRootElement( localName = "color", namespace = DxfNamespaces.DXF_2_0 )
 public class Color
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     private String color;
 
