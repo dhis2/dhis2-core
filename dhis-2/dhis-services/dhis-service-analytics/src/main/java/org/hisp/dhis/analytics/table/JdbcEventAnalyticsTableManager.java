@@ -364,7 +364,7 @@ public class JdbcEventAnalyticsTableManager
             "from programstageinstance psi " +
             "inner join programinstance pi on psi.programinstanceid = pi.programinstanceid " +
             "where pi.programid = " + program.getId() + " " +
-            "and psi.executiondate is not null";
+            "and psi.executiondate is not null ";
 
         if ( earliest != null )
         {
