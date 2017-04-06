@@ -32,6 +32,8 @@ package org.hisp.dhis.deletedobject.hibernate;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Conjunction;
+import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.deletedobject.DeletedObject;
@@ -102,19 +104,43 @@ public class HibernateDeletedObjectStore
     {
         Criteria criteria = getCurrentSession().createCriteria( DeletedObject.class );
 
-        if ( !query.getKlass().isEmpty() )
+        if ( !(query.getCode().isEmpty() || query.getUid().isEmpty()) && query.getKlass().isEmpty() )
         {
-            criteria.add( Restrictions.in( "klass", query.getKlass() ) );
-        }
+            Disjunction disjunction = Restrictions.disjunction();
 
-        if ( !query.getUid().isEmpty() )
-        {
-            criteria.add( Restrictions.in( "uid", query.getUid() ) );
-        }
+            if ( !query.getUid().isEmpty() )
+            {
+                disjunction.add( Restrictions.in( "uid", query.getUid() ) );
+            }
 
-        if ( !query.getCode().isEmpty() )
+            if ( !query.getCode().isEmpty() )
+            {
+                disjunction.add( Restrictions.in( "code", query.getCode() ) );
+            }
+
+            criteria.add( disjunction );
+        }
+        else
         {
-            criteria.add( Restrictions.in( "code", query.getCode() ) );
+            Disjunction disjunction = Restrictions.disjunction();
+
+            if ( !query.getUid().isEmpty() )
+            {
+                Conjunction conjunction = Restrictions.conjunction();
+                conjunction.add( Restrictions.in( "klass", query.getKlass() ) );
+                conjunction.add( Restrictions.in( "uid", query.getUid() ) );
+                disjunction.add( conjunction );
+            }
+
+            if ( !query.getCode().isEmpty() )
+            {
+                Conjunction conjunction = Restrictions.conjunction();
+                conjunction.add( Restrictions.in( "klass", query.getKlass() ) );
+                conjunction.add( Restrictions.in( "code", query.getCode() ) );
+                disjunction.add( conjunction );
+            }
+
+            criteria.add( disjunction );
         }
 
         if ( query.getDeletedAt() != null )
