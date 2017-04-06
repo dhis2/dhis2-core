@@ -104,7 +104,7 @@ public class HibernateDeletedObjectStore
     {
         Criteria criteria = getCurrentSession().createCriteria( DeletedObject.class );
 
-        if ( !(query.getCode().isEmpty() || query.getUid().isEmpty()) && query.getKlass().isEmpty() )
+        if ( query.getKlass().isEmpty() )
         {
             Disjunction disjunction = Restrictions.disjunction();
 
@@ -119,6 +119,10 @@ public class HibernateDeletedObjectStore
             }
 
             criteria.add( disjunction );
+        }
+        else if ( query.getUid().isEmpty() && query.getCode().isEmpty() )
+        {
+            criteria.add( Restrictions.in( "klass", query.getKlass() ) );
         }
         else
         {
