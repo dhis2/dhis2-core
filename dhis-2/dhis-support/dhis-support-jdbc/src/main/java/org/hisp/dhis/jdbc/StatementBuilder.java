@@ -88,30 +88,30 @@ public interface StatementBuilder
     String getAutoIncrementValue();
     
     /**
-     * Returns statement for vacuum operations for a table. Returns null if 
+     * Returns statement for vacuum operation for a table. Returns null if 
      * such statement is not relevant.
      * 
      * @param table the table to vacuum.
      * @return vacuum and analyze operations for a table.
      */
     String getVacuum( String table );
-
+    
     /**
-     * Return statement for analyze operations for a table. Returns empty string if analyze is not
-     * supported for the SQL language
-     *
-     * @param table the table to analyze
-     * @return analyze statement
+     * Returns statement for analytics operation for a table. Returns null if 
+     * such statement is not relevant.
+     * 
+     * @param table the table to analyze.
+     * @return statement for analytics operation for a table.
      */
     String getAnalyze( String table );
     
     /**
-     * Returns a sql statement to include in create table statements with applies
+     * Returns an SQL statement to include in create table statements with applies
      * options to the table. Returns an empty string if all options are set to the
      * default value.
      * 
      * @param autoVacuum whether to enable automatic vacuum, default is true.
-     * @return a sql option string.
+     * @return statement part with applies options to the table.
      */
     String getTableOptions( boolean autoVacuum );
     

@@ -59,6 +59,7 @@ public class ImportSummary extends AbstractWebMessageResponse
     private String href;
 
     private ImportSummaries enrollments;
+    private ImportSummaries events;
 
     public ImportSummary()
     {
@@ -207,6 +208,18 @@ public class ImportSummary extends AbstractWebMessageResponse
     {
         this.enrollments = enrollments;
         return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ImportSummaries getEvents()
+    {
+        return events;
+    }
+
+    public void setEvents( ImportSummaries events )
+    {
+        this.events = events;
     }
 
     public ImportSummary incrementImported()

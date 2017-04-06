@@ -116,6 +116,8 @@ public class InitTableAlteror
         // Message Conversation Message Type
         updateMessageConversationMessageTypes();
 
+        executeSql( "UPDATE expression SET slidingWindow = FALSE WHERE slidingWindow IS NULL" );
+
     }
 
     private void updateMessageConversationMessageTypes()

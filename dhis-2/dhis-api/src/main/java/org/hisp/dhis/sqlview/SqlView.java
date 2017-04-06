@@ -37,6 +37,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheable;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -54,7 +55,7 @@ import java.util.regex.Pattern;
 @JacksonXmlRootElement( localName = "sqlView", namespace = DxfNamespaces.DXF_2_0 )
 public class SqlView
     extends BaseIdentifiableObject
-    implements Cacheable
+    implements Cacheable, MetadataObject
 {
     public static final String PREFIX_VIEWNAME = "_view";
 

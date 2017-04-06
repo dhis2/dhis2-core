@@ -57,11 +57,11 @@ public class MySQLStatementBuilder
     {
         return "optimize table " + table + ";";
     }
-
+    
     @Override
     public String getAnalyze( String table )
     {
-        return "analyze " + table;
+        return "analyze table " + table + ";";
     }
 
     @Override

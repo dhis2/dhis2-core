@@ -47,7 +47,6 @@ import java.util.List;
 public class Event
     extends BaseLinkableObject
 {
-
     private String uid;
 
     private String event;

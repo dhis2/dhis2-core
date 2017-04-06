@@ -55,7 +55,7 @@ public class H2StatementBuilder
     @Override
     public String getAnalyze( String table )
     {
-        return "";
+        return null;
     }
 
     @Override

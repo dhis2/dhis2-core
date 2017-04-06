@@ -159,12 +159,6 @@ public class JdbcOrgUnitTargetTableManager
         
         return filterDimensionColumns( columns );
     }
-
-    @Override
-    public List<Integer> getDataYears( Date earliest )
-    {
-        return null; // Not relevant
-    }
     
     @Override
     @Async

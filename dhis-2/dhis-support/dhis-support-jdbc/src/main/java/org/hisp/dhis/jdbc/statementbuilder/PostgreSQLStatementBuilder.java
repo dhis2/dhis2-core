@@ -61,9 +61,9 @@ public class PostgreSQLStatementBuilder
     @Override
     public String getAnalyze( String table )
     {
-        return "analyze " + table;
-    }
-
+        return "analyze " + table + ";";
+    }   
+    
     @Override
     public String getAutoIncrementValue()
     {

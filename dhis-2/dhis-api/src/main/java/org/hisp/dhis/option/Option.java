@@ -36,6 +36,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
@@ -44,7 +45,7 @@ import org.hisp.dhis.schema.annotation.Property;
  */
 @JacksonXmlRootElement( localName = "option", namespace = DxfNamespaces.DXF_2_0 )
 public class Option
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     private OptionSet optionSet;
     private Integer sortOrder;

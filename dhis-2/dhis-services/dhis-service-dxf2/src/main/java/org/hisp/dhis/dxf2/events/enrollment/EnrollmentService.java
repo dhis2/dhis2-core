@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.enrollment;
  */
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramInstance;
@@ -51,6 +52,8 @@ public interface EnrollmentService
     Enrollment getEnrollment( String id );
 
     Enrollment getEnrollment( ProgramInstance programInstance );
+
+    Enrollment getEnrollment( ProgramInstance programInstance, TrackedEntityInstanceParams params );
 
     List<Enrollment> getEnrollments( Iterable<ProgramInstance> programInstances );
 

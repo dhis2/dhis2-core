@@ -35,7 +35,6 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableStore;
 import org.hisp.dhis.system.util.Clock;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.List;
@@ -49,9 +48,6 @@ public class JdbcResourceTableStore
 {
     private static final Log log = LogFactory.getLog( JdbcResourceTableStore.class );
 
-    @Autowired
-    private StatementBuilder statementBuilder;
-    
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -63,6 +59,13 @@ public class JdbcResourceTableStore
         this.jdbcTemplate = jdbcTemplate;
     }
     
+    private StatementBuilder statementBuilder;
+    
+    public void setStatementBuilder( StatementBuilder statementBuilder )
+    {
+        this.statementBuilder = statementBuilder;
+    }
+
     private DbmsManager dbmsManager;
 
     public void setDbmsManager( DbmsManager dbmsManager )
@@ -81,6 +84,7 @@ public class JdbcResourceTableStore
         final Optional<String> populateTableSql = resourceTable.getPopulateTempTableStatement();
         final Optional<List<Object[]>> populateTableContent = resourceTable.getPopulateTempTableContent();
         final List<String> createIndexSql = resourceTable.getCreateIndexStatements();
+        final String analyzeTableSql = statementBuilder.getAnalyze( resourceTable.getTableName() );
 
         // ---------------------------------------------------------------------
         // Drop temporary table if it exists
@@ -151,7 +155,12 @@ public class JdbcResourceTableStore
         // Analyze
         // ---------------------------------------------------------------------
 
-        jdbcTemplate.execute( statementBuilder.getAnalyze(resourceTable.getTableName()) + ";" );
+        if ( analyzeTableSql != null )
+        {
+            log.info( "Analyze table SQL: " + analyzeTableSql );
+            
+            jdbcTemplate.execute( analyzeTableSql );
+        }
         
         log.info( "Analyzed resource table: " + resourceTable.getTableName() + ", done in: " + clock.time() );
     }

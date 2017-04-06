@@ -659,6 +659,8 @@ public class TableAlteror
 
         executeSql( "UPDATE userroleauthorities SET authority='F_VALIDATIONRULE_PUBLIC_ADD' WHERE authority='F_VALIDATIONRULE_ADD'" );
 
+        executeSql( "UPDATE userroleauthorities SET authority='F_ATTRIBUTE_PUBLIC_ADD' WHERE authority='F_ATTRIBUTE_ADD'" );
+
         // remove unused authorities
         executeSql( "DELETE FROM userroleauthorities WHERE authority='F_CONCEPT_UPDATE'" );
         executeSql( "DELETE FROM userroleauthorities WHERE authority='F_CONSTANT_UPDATE'" );
@@ -987,6 +989,8 @@ public class TableAlteror
 
         upgradeMapViewsToColumns();
         upgradeDataDimensionItemsToReportingRateMetric();
+        upgradeDataDimensionItemToEmbeddedProgramAttribute();
+        upgradeDataDimensionItemToEmbeddedProgramDataElement();
 
         updateObjectTranslation();
         upgradeDataSetElements();
@@ -1530,8 +1534,8 @@ public class TableAlteror
     private void upgradeMapViewsToColumns()
     {
         String sql =
-            "insert into mapview_columns " +
-                "select mapviewid, 'dx', 0 " +
+            "insert into mapview_columns(mapviewid, sort_order, dimension) " +
+                "select mapviewid, 0, 'dx' " +
                 "from mapview mv " +
                 "where not exists (" +
                 "select mc.mapviewid " +
@@ -1554,7 +1558,43 @@ public class TableAlteror
 
         executeSql( sql );
     }
+    
+    /**
+     * Upgrades data dimension items to use embedded 
+     * ProgramTrackedEntityAttributeDimensionItem class.
+     */
+    public void upgradeDataDimensionItemToEmbeddedProgramAttribute()
+    {
+        String sql =
+            "update datadimensionitem di " +
+            "set programattribute_programid = (select programid from program_attributes where programtrackedentityattributeid=di.programattributeid), " +
+                "programattribute_attributeid = (select trackedentityattributeid from program_attributes where programtrackedentityattributeid=di.programattributeid) " +
+            "where programattributeid is not null " +
+            "and (programattribute_programid is null and programattribute_attributeid is null); " +
+            "alter table datadimensionitem drop column programattributeid;";
+        
+        executeSql( sql );
+    }
 
+    /**
+     * Upgrades data dimension items to use embedded 
+     * ProgramDataElementDimensionItem class.
+     */
+    private void upgradeDataDimensionItemToEmbeddedProgramDataElement()
+    {
+        String sql =
+            "update datadimensionitem di " +
+            "set programdataelement_programid = (select programid from programdataelement where programdataelementid=di.programdataelementid), " +
+                "programdataelement_dataelementid = (select dataelementid from programdataelement where programdataelementid=di.programdataelementid) " +
+            "where di.programdataelementid is not null " +
+            "and (programdataelement_programid is null and programdataelement_dataelementid is null); " +
+            "alter table datadimensionitem drop column programdataelementid; " +
+            "drop table programdataelementtranslations; " +
+            "drop table programdataelement;"; // Remove if program data element is to be reintroduced
+        
+        executeSql( sql );
+    }
+    
     private int executeSql( String sql )
     {
         try

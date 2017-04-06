@@ -28,7 +28,6 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
@@ -238,19 +237,9 @@ public interface ExpressionService
     Set<DataElementOperand> getOperandsInExpression( String expression );
 
     /**
-     * Returns all data elements and data element operands included in an expression string.
-     * This includes all of the operands, as in getOperandsInExpression as well as
-     * data elements without any modifiers, bundled as a DataElementOperand object.
-     *
-     * @param expression The expression string.
-     * @return A Set of Operands.
-     */
-    Set<BaseDimensionalItemObject> getDataInputsInExpression( String expression );
-
-    /**
-     * Returns all aggregates included in an expression string. An aggregate has the form
-     * #[expr]  where expr is a well-formed sub-expression.  This returns the
-     * empty set if the given expression is null or there are no aggregates.
+     * Returns all aggregates included in an expression string. An aggregate has the
+     * AGGREGATE_FUNCTION(expr)  where expr is a well-formed sub-expression.  This
+     * returns the empty set if the given expression is null or there are no aggregates.
      *
      * @param expression The expression string.
      * @return A Set of Expression strings.

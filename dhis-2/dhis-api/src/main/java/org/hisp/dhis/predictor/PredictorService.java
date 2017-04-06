@@ -28,10 +28,6 @@ package org.hisp.dhis.predictor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -61,13 +57,5 @@ public interface PredictorService
 
     int getPredictorCount();
 
-    List<DataValue> getPredictions( Predictor predictor, Collection<OrganisationUnit> sources, Collection<Period> periods );
-
-    List<DataValue> getPredictions( Predictor predictor, Collection<OrganisationUnit> sources, Date start, Date end );
-
-    List<DataValue> getPredictions( Predictor predictor, Date start, Date end );
-
-    int predict( Predictor prediector, Collection<OrganisationUnit> sources, Collection<Period> periods );
-
-    int predict( Predictor prediector, Date Start, Date end );
+    int predict( Predictor predictor, Date startDate, Date endDate );
 }

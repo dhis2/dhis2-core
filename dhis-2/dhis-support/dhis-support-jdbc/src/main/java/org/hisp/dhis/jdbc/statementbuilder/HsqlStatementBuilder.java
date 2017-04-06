@@ -55,7 +55,7 @@ public class HsqlStatementBuilder
     @Override
     public String getAnalyze( String table )
     {
-        return "";
+        return null;
     }
 
     @Override

@@ -28,8 +28,8 @@ package org.hisp.dhis.dxf2.dataset.streaming;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.amplecode.staxwax.reader.XMLReader;
-import org.amplecode.staxwax.writer.XMLWriter;
+import org.hisp.staxwax.reader.XMLReader;
+import org.hisp.staxwax.writer.XMLWriter;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrations;
 

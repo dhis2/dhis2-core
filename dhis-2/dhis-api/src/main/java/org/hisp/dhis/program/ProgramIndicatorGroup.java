@@ -39,6 +39,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
 import java.util.HashSet;
@@ -48,9 +49,9 @@ import java.util.Set;
  * @author Viet Nguyen <viet@dhis2.org>
  */
 
-@JacksonXmlRootElement( localName = "programIndicatorGroup", namespace = DxfNamespaces.DXF_2_0)
+@JacksonXmlRootElement( localName = "programIndicatorGroup", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramIndicatorGroup
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     private Set<ProgramIndicator> members = new HashSet<>();
 
@@ -148,7 +149,7 @@ public class ProgramIndicatorGroup
 
         if ( other.getClass().isInstance( this ) )
         {
-            ProgramIndicatorGroup indicatorGroup = ( ProgramIndicatorGroup ) other;
+            ProgramIndicatorGroup indicatorGroup = (ProgramIndicatorGroup) other;
 
             if ( mergeMode.isReplace() )
             {
