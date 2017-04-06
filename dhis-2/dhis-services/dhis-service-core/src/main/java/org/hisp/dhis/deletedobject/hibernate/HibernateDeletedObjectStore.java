@@ -63,6 +63,13 @@ public class HibernateDeletedObjectStore
     }
 
     @Override
+    public void delete( DeletedObjectQuery query )
+    {
+        query.setSkipPaging( false );
+        query( query ).forEach( this::delete );
+    }
+
+    @Override
     public List<DeletedObject> getByKlass( String klass )
     {
         DeletedObjectQuery query = new DeletedObjectQuery();
