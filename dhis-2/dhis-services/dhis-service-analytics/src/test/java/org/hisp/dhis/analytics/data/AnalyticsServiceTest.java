@@ -22,7 +22,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.reporttable.ReportTable;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -37,8 +36,6 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
-// mvn -Dtest=AnalyticsServiceTest test
-
 /**
  * Created by henninghakonsen on 13/03/2017. Project: dhis-2.
  *
@@ -52,13 +49,10 @@ import static org.junit.Assert.*;
 public class AnalyticsServiceTest
     extends DhisTest
 {
-    // Params for data query
     private HashMap<String, DataQueryParams> dataQueryParams = new HashMap<>();
 
-    // Analytical objects for data query
     private HashMap<String, AnalyticalObject> analyticalObjectHashMap = new HashMap<>();
 
-    // Results
     private HashMap<String, HashMap<String, Double>> results = new HashMap<>();
 
     @Autowired
@@ -507,7 +501,6 @@ public class AnalyticsServiceTest
         }
     }
 
-    @Ignore
     @Test
     public void testGridAggregation()
     {
@@ -523,7 +516,6 @@ public class AnalyticsServiceTest
         }
     }
 
-    @Ignore
     @Test
     public void testSetAggregation()
     {
