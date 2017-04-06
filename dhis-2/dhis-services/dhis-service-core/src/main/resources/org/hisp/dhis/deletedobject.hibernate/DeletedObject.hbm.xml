@@ -8,12 +8,19 @@
 
     <cache usage="read-write" />
 
-    <composite-id name="deletedObjectId" class="org.hisp.dhis.deletedobject.DeletedObjectId">
-      <key-property name="klass" column="klass" />
-      <key-property name="uid" column="uid" />
-    </composite-id>
+    <id name="id" column="deletedobjectid">
+      <generator class="native" />
+    </id>
 
-    <property name="code" column="code" not-null="false" length="50" />
+    <properties name="key_deleted_object_klass_uid">
+      <property name="klass" not-null="true" unique-key="key_deleted_object_klass_uid" />
+      <property name="uid" not-null="true" unique-key="key_deleted_object_klass_uid" />
+    </properties>
+
+    <properties name="key_deleted_object_klass_code">
+      <property name="klass" update="false" insert="false" unique-key="key_deleted_object_klass_code" />
+      <property name="code" unique-key="key_deleted_object_klass_code" />
+    </properties>
 
     <property name="deletedAt" column="deleted_at" type="timestamp" not-null="true" />
 
