@@ -35,19 +35,17 @@ public class EmailConfiguration
 {
     private String hostName;
 
-    private  String username;
+    private String username;
 
-    private  String password;
+    private String password;
 
-    private  String from;
+    private String from;
 
-    private  int port;
+    private int port;
 
-    private  boolean tls;
+    private boolean tls;
 
-    private boolean ok;
-
-    private EmailConfiguration()
+    protected EmailConfiguration()
     {
     }
 
