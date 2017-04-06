@@ -45,6 +45,10 @@ public class DeletedObjectQuery
 
     private List<String> klass = new ArrayList<>();
 
+    private List<String> uid = new ArrayList<>();
+
+    private List<String> code = new ArrayList<>();
+
     private Date deletedAt;
 
     private boolean skipPaging;
@@ -67,6 +71,26 @@ public class DeletedObjectQuery
     public void setKlass( List<String> klass )
     {
         this.klass = klass;
+    }
+
+    public List<String> getUid()
+    {
+        return uid;
+    }
+
+    public void setUid( List<String> uid )
+    {
+        this.uid = uid;
+    }
+
+    public List<String> getCode()
+    {
+        return code;
+    }
+
+    public void setCode( List<String> code )
+    {
+        this.code = code;
     }
 
     public Date getDeletedAt()
@@ -129,6 +153,8 @@ public class DeletedObjectQuery
     {
         return MoreObjects.toStringHelper( this )
             .add( "klass", klass )
+            .add( "uid", uid )
+            .add( "code", code )
             .add( "deletedAt", deletedAt )
             .add( "page", page )
             .add( "pageSize", pageSize )
