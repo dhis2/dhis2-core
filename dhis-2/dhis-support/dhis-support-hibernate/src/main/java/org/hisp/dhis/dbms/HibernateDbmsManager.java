@@ -99,12 +99,12 @@ public class HibernateDbmsManager
         emptyTable( "dashboardusergroupaccesses" );
         emptyTable( "dashboard" );
 
-        emptyTable( "delete from interpretation_comments" );
-        emptyTable( "delete from interpretationcommenttranslations" );
-        emptyTable( "delete from interpretationcomment" );
-        emptyTable( "delete from interpretationtranslations" );
-        emptyTable( "delete from interpretationusergroupaccesses" );
-        emptyTable( "delete from interpretation" );
+        emptyTable( "interpretation_comments" );
+        emptyTable( "interpretationcommenttranslations" );
+        emptyTable( "interpretationcomment" );
+        emptyTable( "interpretationtranslations" );
+        emptyTable( "interpretationusergroupaccesses" );
+        emptyTable( "interpretation" );
 
         emptyTable( "delete from reportusergroupaccesses" );
         emptyTable( "delete from report" );
@@ -296,17 +296,18 @@ public class HibernateDbmsManager
         emptyTable( "users" );
         emptyTable( "userinfo" );
 
+        dropTable( "_orgunitstructure" );
+        dropTable( "_datasetorganisationunitcategory" );
         dropTable( "_categoryoptioncomboname" );
-        dropTable( "_categoryoptiongroupsetstructure" );
-        dropTable( "_categorystructure" );
-        dropTable( "_dataelementcategoryoptioncombo" );
         dropTable( "_dataelementgroupsetstructure" );
-        dropTable( "_dataelementstructure" );
-        dropTable( "_dateperiodstructure" );
         dropTable( "_indicatorgroupsetstructure" );
         dropTable( "_organisationunitgroupsetstructure" );
-        dropTable( "_orgunitstructure" );
+        dropTable( "_categorystructure" );
+        dropTable( "_dataelementstructure" );
+        dropTable( "_dateperiodstructure" );
         dropTable( "_periodstructure" );
+        dropTable( "_dataelementcategoryoptioncombo" );
+        dropTable( "_dataapprovalminlevel" );
 
         log.debug( "Cleared database contents" );
 
