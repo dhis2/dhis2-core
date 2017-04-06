@@ -35,7 +35,6 @@ import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.deletedobject.DeletedObject;
-import org.hisp.dhis.deletedobject.DeletedObjectId;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectStore;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,9 +51,9 @@ public class HibernateDeletedObjectStore
     private SessionFactory sessionFactory;
 
     @Override
-    public DeletedObjectId save( DeletedObject deletedObject )
+    public int save( DeletedObject deletedObject )
     {
-        return (DeletedObjectId) getCurrentSession().save( deletedObject );
+        return (int) getCurrentSession().save( deletedObject );
     }
 
     @Override
@@ -79,7 +78,7 @@ public class HibernateDeletedObjectStore
 
         if ( !query.getKlass().isEmpty() )
         {
-            criteria.add( Restrictions.in( "deletedObjectId.klass", query.getKlass() ) );
+            criteria.add( Restrictions.in( "klass", query.getKlass() ) );
         }
 
         if ( query.getDeletedAt() != null )
@@ -98,7 +97,17 @@ public class HibernateDeletedObjectStore
 
         if ( !query.getKlass().isEmpty() )
         {
-            criteria.add( Restrictions.in( "deletedObjectId.klass", query.getKlass() ) );
+            criteria.add( Restrictions.in( "klass", query.getKlass() ) );
+        }
+
+        if ( !query.getUid().isEmpty() )
+        {
+            criteria.add( Restrictions.in( "uid", query.getUid() ) );
+        }
+
+        if ( !query.getCode().isEmpty() )
+        {
+            criteria.add( Restrictions.in( "code", query.getCode() ) );
         }
 
         if ( query.getDeletedAt() != null )
