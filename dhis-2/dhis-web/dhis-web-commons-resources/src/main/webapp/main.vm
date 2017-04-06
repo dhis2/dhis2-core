@@ -133,7 +133,20 @@
       dhis2.period.calendar = $.calendars.instance('$keyCalendar');
       #end
       dhis2.period.generator = new dhis2.period.PeriodGenerator( dhis2.period.calendar, dhis2.period.format );
-      dhis2.period.picker = new dhis2.period.DatePicker( dhis2.period.calendar, dhis2.period.format );
+      dhis2.period.picker = new dhis2.period.DatePicker( dhis2.period.calendar, dhis2.period.format );      
+      var i18n_month_january = '$encoder.jsEscape( $i18n.getString( "month.january" ) , "'")';
+      var i18n_month_february = '$encoder.jsEscape( $i18n.getString( "month.february" ) , "'")';
+      var i18n_month_march = '$encoder.jsEscape( $i18n.getString( "month.march" ) , "'")';
+      var i18n_month_april = '$encoder.jsEscape( $i18n.getString( "month.april" ) , "'")';
+      var i18n_month_may = '$encoder.jsEscape( $i18n.getString( "month.may" ) , "'")';
+      var i18n_month_june = '$encoder.jsEscape( $i18n.getString( "month.june" ) , "'")';
+      var i18n_month_july = '$encoder.jsEscape( $i18n.getString( "month.july" ) , "'")';
+      var i18n_month_august = '$encoder.jsEscape( $i18n.getString( "month.august" ) , "'")';
+      var i18n_month_september = '$encoder.jsEscape( $i18n.getString( "month.september" ) , "'")';
+      var i18n_month_october = '$encoder.jsEscape( $i18n.getString( "month.october" ) , "'")';
+      var i18n_month_november = '$encoder.jsEscape( $i18n.getString( "month.november" ) , "'")';
+      var i18n_month_december = '$encoder.jsEscape( $i18n.getString( "month.december" ) , "'")';
+      
     </script>
   </head>
 
