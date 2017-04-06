@@ -40,6 +40,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.HideEmptyItemStrategy;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
@@ -82,7 +83,7 @@ public abstract class BaseChart
 
     protected boolean showData;
 
-    protected boolean hideEmptyRows;
+    protected HideEmptyItemStrategy hideEmptyRowItems;
 
     protected boolean percentStackedValues;
 
@@ -367,16 +368,16 @@ public abstract class BaseChart
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isHideEmptyRows()
+    public HideEmptyItemStrategy getHideEmptyRowItems()
     {
-        return hideEmptyRows;
+        return hideEmptyRowItems;
     }
 
-    public void setHideEmptyRows( boolean hideEmptyRows )
+    public void setHideEmptyRowItems( HideEmptyItemStrategy hideEmptyRowItems )
     {
-        this.hideEmptyRows = hideEmptyRows;
+        this.hideEmptyRowItems = hideEmptyRowItems;
     }
-
+    
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isPercentStackedValues()
@@ -480,12 +481,12 @@ public abstract class BaseChart
             hideTitle = chart.isHideTitle();
             hideSubtitle = chart.isHideSubtitle();
             showData = chart.isShowData();
-            hideEmptyRows = chart.isHideEmptyRows();
             percentStackedValues = chart.isPercentStackedValues();
             cumulativeValues = chart.isCumulativeValues();
 
             if ( mergeMode.isReplace() )
             {
+                hideEmptyRowItems = chart.getHideEmptyRowItems();
                 domainAxisLabel = chart.getDomainAxisLabel();
                 rangeAxisLabel = chart.getRangeAxisLabel();
                 type = chart.getType();
@@ -501,6 +502,7 @@ public abstract class BaseChart
             }
             else if ( mergeMode.isMerge() )
             {
+                hideEmptyRowItems = chart.getHideEmptyRowItems() == null ? hideEmptyRowItems : chart.getHideEmptyRowItems();
                 domainAxisLabel = chart.getDomainAxisLabel() == null ? domainAxisLabel : chart.getDomainAxisLabel();
                 rangeAxisLabel = chart.getRangeAxisLabel() == null ? rangeAxisLabel : chart.getRangeAxisLabel();
                 type = chart.getType() == null ? type : chart.getType();
