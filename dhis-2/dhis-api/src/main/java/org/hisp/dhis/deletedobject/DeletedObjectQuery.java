@@ -30,7 +30,11 @@ package org.hisp.dhis.deletedobject;
  */
 
 import com.google.common.base.MoreObjects;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Pager;
+import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -61,6 +65,19 @@ public class DeletedObjectQuery
 
     public DeletedObjectQuery()
     {
+    }
+
+    public DeletedObjectQuery( IdentifiableObject identifiableObject )
+    {
+        Assert.notNull( identifiableObject, "identifiableObject is a required parameter and can not be null." );
+
+        klass.add( ClassUtils.getShortName( identifiableObject.getClass() ) );
+        uid.add( identifiableObject.getUid() );
+
+        if ( !StringUtils.isEmpty( identifiableObject.getCode() ) )
+        {
+            code.add( identifiableObject.getCode() );
+        }
     }
 
     public List<String> getKlass()
