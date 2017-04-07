@@ -11,7 +11,22 @@
     <tr><td>$i18n.getString('analytics_skip_aggregate')   </td><td><input type="checkbox" id="cbAggregate" value="t"/></td></tr>
     <tr><td>$i18n.getString('analytics_skip_event_tables')      </td><td><input type="checkbox" id="cbEvent" value="t"/></td></tr>
     <tr><td>$i18n.getString('analytics_skip_enrollment_tables')</td><td><input type="checkbox" id="cbEnrollment" value="t"/></td></tr>
-    <tr><td>$i18n.getString('analytics_last_years')</td><td><input type="text" id="lastYears"/></td></tr>
+    <tr><td>$i18n.getString('analytics_last_years')</td><td>
+
+      <select  id="lastYears" width="50px">
+        <option value="">All</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+      </select>
+    </td></tr>
   </table>
 </div>
 
