@@ -56,6 +56,7 @@ public class HibernateUserStore
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<User> getExpiringUsers( UserQueryParams params )
     {
         return getUserQuery( params, false ).list();

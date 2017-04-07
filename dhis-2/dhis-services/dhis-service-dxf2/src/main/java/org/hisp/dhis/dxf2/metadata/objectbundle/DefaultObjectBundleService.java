@@ -37,7 +37,10 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.deletedobject.DeletedObjectQuery;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.MergeParams;
 import org.hisp.dhis.dxf2.metadata.MergeService;
@@ -94,6 +97,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
     @Autowired
     private MergeService mergeService;
+
+    @Autowired
+    private DeletedObjectService deletedObjectService;
 
     @Autowired( required = false )
     private List<ObjectBundleHook> objectBundleHooks = new ArrayList<>();
@@ -217,6 +223,11 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             session.save( object );
 
+            if ( MetadataObject.class.isInstance( object ) )
+            {
+                deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
+            }
+
             bundle.getPreheat().replace( bundle.getPreheatIdentifier(), object );
 
             objectBundleHooks.forEach( hook -> hook.postCreate( object, bundle ) );
@@ -278,6 +289,11 @@ public class DefaultObjectBundleService implements ObjectBundleService
             }
 
             session.update( persistedObject );
+
+            if ( MetadataObject.class.isInstance( object ) )
+            {
+                deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
+            }
 
             objectBundleHooks.forEach( hook -> hook.postUpdate( persistedObject, bundle ) );
 

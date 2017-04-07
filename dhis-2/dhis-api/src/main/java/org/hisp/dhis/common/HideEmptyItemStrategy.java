@@ -1,4 +1,4 @@
-package org.hisp.dhis.jdbc.statementbuilder;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,75 +28,16 @@ package org.hisp.dhis.jdbc.statementbuilder;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Lars Helge Overland
- */
-public class HsqlStatementBuilder
-    extends AbstractStatementBuilder
+public enum HideEmptyItemStrategy
 {
-    @Override
-    public String getDoubleColumnType()
+    NONE,
+    BEFORE_FIRST,
+    AFTER_LAST,
+    BEFORE_FIRST_AFTER_LAST,
+    ALL;
+    
+    public boolean isHide()
     {
-        return "double";
-    }
-
-    @Override
-    public String getColumnQuote()
-    {
-        return "\"";
-    }
-
-    @Override
-    public String getVacuum( String table )
-    {
-        return null;
-    }
-
-    @Override
-    public String getAnalyze( String table )
-    {
-        return null;
-    }
-
-    @Override
-    public String getTableOptions( boolean autoVacuum )
-    {
-        return "";
-    }
-
-    @Override
-    public String getRegexpMatch()
-    {
-        return "regexp";
-    }
-
-    @Override
-    public String getRegexpWordStart() //TODO test
-    {
-        return "[[:<:]]";
-    }
-
-    @Override
-    public String getRegexpWordEnd()
-    {
-        return "[[:>:]]";
-    }
-
-    @Override
-    public String getRandom( int n )
-    {
-        return "cast(floor(" + n + "*rand()) as integer)";
-    }
-
-    @Override
-    public String getCharAt( String str, String n )
-    {
-        return "substring(" + str + "," + n + ",1)";
-    }
-
-    @Override
-    public String getAddDate( String dateField, int days )
-    {
-        return "DATEADD('DAY'," + days + "," + dateField + ")";
+        return this == BEFORE_FIRST || this == AFTER_LAST || this == BEFORE_FIRST_AFTER_LAST || this == ALL;
     }
 }

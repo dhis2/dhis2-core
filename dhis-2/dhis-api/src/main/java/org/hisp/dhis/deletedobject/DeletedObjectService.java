@@ -40,6 +40,8 @@ public interface DeletedObjectService
 
     void deleteDeletedObject( DeletedObject deletedObject );
 
+    void deleteDeletedObjects( DeletedObjectQuery query );
+
     List<DeletedObject> getDeletedObjectsByKlass( String klass );
 
     int countDeletedObjects();

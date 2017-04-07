@@ -30,7 +30,11 @@ package org.hisp.dhis.deletedobject;
  */
 
 import com.google.common.base.MoreObjects;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Pager;
+import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -44,6 +48,10 @@ public class DeletedObjectQuery
     public static final DeletedObjectQuery EMPTY = new DeletedObjectQuery();
 
     private List<String> klass = new ArrayList<>();
+
+    private List<String> uid = new ArrayList<>();
+
+    private List<String> code = new ArrayList<>();
 
     private Date deletedAt;
 
@@ -59,6 +67,19 @@ public class DeletedObjectQuery
     {
     }
 
+    public DeletedObjectQuery( IdentifiableObject identifiableObject )
+    {
+        Assert.notNull( identifiableObject, "identifiableObject is a required parameter and can not be null." );
+
+        klass.add( ClassUtils.getShortName( identifiableObject.getClass() ) );
+        uid.add( identifiableObject.getUid() );
+
+        if ( !StringUtils.isEmpty( identifiableObject.getCode() ) )
+        {
+            code.add( identifiableObject.getCode() );
+        }
+    }
+
     public List<String> getKlass()
     {
         return klass;
@@ -67,6 +88,26 @@ public class DeletedObjectQuery
     public void setKlass( List<String> klass )
     {
         this.klass = klass;
+    }
+
+    public List<String> getUid()
+    {
+        return uid;
+    }
+
+    public void setUid( List<String> uid )
+    {
+        this.uid = uid;
+    }
+
+    public List<String> getCode()
+    {
+        return code;
+    }
+
+    public void setCode( List<String> code )
+    {
+        this.code = code;
     }
 
     public Date getDeletedAt()
@@ -129,6 +170,8 @@ public class DeletedObjectQuery
     {
         return MoreObjects.toStringHelper( this )
             .add( "klass", klass )
+            .add( "uid", uid )
+            .add( "code", code )
             .add( "deletedAt", deletedAt )
             .add( "page", page )
             .add( "pageSize", pageSize )
