@@ -3,6 +3,7 @@ package org.hisp.dhis.analytics.data;
 import com.csvreader.CsvReader;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.Grid;
@@ -23,6 +24,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
@@ -46,6 +48,7 @@ import static org.junit.Assert.*;
  * 2. Add to 'dataQueryParams'/'analyticalObjectHashMap' hashmap
  * 3. Add HashMap<String, Double> with expected output to results hashmap
  */
+@Category( IntegrationTest.class )
 public class AnalyticsServiceTest
     extends DhisTest
 {
