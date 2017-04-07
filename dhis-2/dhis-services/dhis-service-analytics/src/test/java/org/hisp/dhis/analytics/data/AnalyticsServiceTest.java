@@ -41,10 +41,10 @@ import static org.junit.Assert.*;
  *
  * This test class tests aggregation of data in analytics tables
  *
- * One way to make a new test: 1. Make new DataQueryParam/AnalyticalObject 2.
- * Add to 'dataQueryParams'/'analyticalObjectHashMap' hashmap 3. Add
- * HashMap<String, Double> with expected output to results hashmap
- *
+ * One way to make a new test:
+ * 1. Make new DataQueryParam/AnalyticalObject
+ * 2. Add to 'dataQueryParams'/'analyticalObjectHashMap' hashmap
+ * 3. Add HashMap<String, Double> with expected output to results hashmap
  */
 public class AnalyticsServiceTest
     extends DhisTest
@@ -348,17 +348,6 @@ public class AnalyticsServiceTest
             .withAggregationType( AggregationType.AVERAGE ).withOutputFormat( OutputFormat.ANALYTICS )
             .withPeriod( peApril ).build();
 
-        // Average value - org unit C and E - data element A, B and D - 2017
-        // April (
-        // TODO make average work for org units
-        organisationUnits.clear();
-        organisationUnits.add( ouB );
-        organisationUnits.add( ouC );
-
-        DataQueryParams deA_deB_2017_Q01_params = DataQueryParams.newBuilder()
-            .withFilterOrganisationUnits( organisationUnits ).withAggregationType( AggregationType.AVERAGE )
-            .withOutputFormat( OutputFormat.ANALYTICS ).withPeriod( quarter ).build();
-
         dataQueryParams.put( "ou_2017", ou_2017_params );
         dataQueryParams.put( "ou_2017_01", ou_2017_01_params );
         dataQueryParams.put( "ouB_2017_02", ouB_2017_02_params );
@@ -375,7 +364,6 @@ public class AnalyticsServiceTest
         dataQueryParams.put( "inD_deA_deB_deC_2017_Q01", inD_deA_deB_deC_2017_Q01_params );
         dataQueryParams.put( "deA_ouB_ouC_2017_02", deA_ouB_ouC_2017_02_params );
         dataQueryParams.put( "deA_deB_deD_ouC_ouE_2017_04", deA_deB_deD_ouC_ouE_2017_04_params );
-        // dataQueryParams.put( "deA_deB_2017_Q01", deA_deB_2017_Q01_params );
 
         analyticalObjectHashMap.put( "deC_ouB_2017_03", deC_ouB_2017_03_analytical );
         analyticalObjectHashMap.put( "deA_ouA_2017_Q01", deA_ouA_2017_Q01_analytical );
@@ -581,7 +569,11 @@ public class AnalyticsServiceTest
     /**
      * Configure org unit hierarchy like so:
      *
-     * A / \ B C / \ D E
+     *          A
+     *         / \
+     *        B   C
+     *       / \
+     *      D   E
      *
      * @param A root
      * @param B leftRoot
