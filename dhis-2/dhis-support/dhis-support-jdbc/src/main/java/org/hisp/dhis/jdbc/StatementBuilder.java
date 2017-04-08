@@ -201,8 +201,8 @@ public interface StatementBuilder
      * Returns a statement which calculates the number of days between the two
      * given dates or columns of type date.
      * 
-     * @param from the from date column.
-     * @param to the to date column.
+     * @param fromColumn the from date column.
+     * @param toColumn the to date column.
      * @return statement which calculates the number of days between the given dates.
      */
     String getDaysBetweenDates( String fromColumn, String toColumn );

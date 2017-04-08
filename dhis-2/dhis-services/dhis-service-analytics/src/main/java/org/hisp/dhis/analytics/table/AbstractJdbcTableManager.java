@@ -180,7 +180,9 @@ public abstract class AbstractJdbcTableManager
     @Override
     public void analyzeTable( String tableName )
     {
-        executeSilently( "analyze " + tableName );
+        String sql = StringUtils.trimToEmpty( statementBuilder.getAnalyze( tableName ) );
+        
+        executeSilently( sql );
     }
 
     @Override

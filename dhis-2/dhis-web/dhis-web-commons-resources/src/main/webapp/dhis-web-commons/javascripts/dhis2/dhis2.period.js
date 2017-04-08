@@ -1057,42 +1057,44 @@ function getHMISMonthsInYear( calendar, year ) {
  */
 function getMonthTranslation( monthName )
 {	
+	//todo: convert into some kind of JSON. Potentially this JSON can be fetched from api/i18n/calendar
+	
 	switch( monthName ) {
 	    case 'January':
-	        return i18n_month_january;
+	        return typeof i18n_month_january !== 'undefined' ? i18n_month_january : monthName;
 	        break;
 	    case 'February':
-	        return i18n_month_february;
+	    	return typeof i18n_month_february !== 'undefined' ? i18n_month_february : monthName;
 	        break;
 	    case 'March':
-	        return i18n_month_march;
+	    	return typeof i18n_month_march !== 'undefined' ? i18n_month_march : monthName;
 	        break;
 	    case 'April':
-	        return i18n_month_april;
+	    	return typeof i18n_month_april !== 'undefined' ? i18n_month_april : monthName;
 	        break;
 	    case 'May':
-	        return i18n_month_may;
+	    	return typeof i18n_month_may !== 'undefined' ? i18n_month_may : monthName;
 	        break;
 	    case 'June':
-	        return i18n_month_june;
+	    	return typeof i18n_month_june !== 'undefined' ? i18n_month_june : monthName;
 	        break;
 	    case 'July':
-	        return i18n_month_july;
+	    	return typeof i18n_month_july !== 'undefined' ? i18n_month_july : monthName;
 	        break;
 	    case 'August':
-	        return i18n_month_august;
+	    	return typeof i18n_month_august !== 'undefined' ? i18n_month_august : monthName;
 	        break;
 	    case 'September':
-	        return i18n_month_september;
+	    	return typeof i18n_month_september !== 'undefined' ? i18n_month_september : monthName;
 	        break;
 	    case 'October':
-	        return i18n_month_october;
+	    	return typeof i18n_month_october !== 'undefined' ? i18n_month_october : monthName;
 	        break;
 	    case 'November':
-	        return i18n_month_november;
+	    	return typeof i18n_month_november !== 'undefined' ? i18n_month_november : monthName;
 	        break;
 	    case 'December':
-	        return i18n_month_december;
+	    	return typeof i18n_month_december !== 'undefined' ? i18n_month_december : monthName;
 	        break;
 	    default:
 	        return monthName;

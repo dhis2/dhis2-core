@@ -47,7 +47,10 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.deletedobject.DeletedObjectQuery;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
@@ -95,6 +98,9 @@ public class HibernateGenericStore<T>
 
     @Autowired
     protected SchemaService schemaService;
+
+    @Autowired
+    protected DeletedObjectService deletedObjectService;
 
     /**
      * Allows injection (e.g. by a unit test)
@@ -462,7 +468,14 @@ public class HibernateGenericStore<T>
         }
 
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_CREATE );
-        return (Integer) getSession().save( object );
+        Integer result = (Integer) getSession().save( object );
+
+        if ( MetadataObject.class.isInstance( object ) )
+        {
+            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( (IdentifiableObject) object ) );
+        }
+
+        return result;
     }
 
     private boolean checkPublicAccess( User user, IdentifiableObject identifiableObject )
@@ -506,6 +519,11 @@ public class HibernateGenericStore<T>
         if ( object != null )
         {
             getSession().update( object );
+        }
+
+        if ( MetadataObject.class.isInstance( object ) )
+        {
+            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( (IdentifiableObject) object ) );
         }
     }
 
