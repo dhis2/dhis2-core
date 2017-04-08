@@ -664,7 +664,7 @@ $.extend(dhis2.period.MonthlyGenerator.prototype, {
       var period = {};
       period['startDate'] = startDate.formatDate(this.format);
       period['endDate'] = endDate.formatDate(this.format);
-      period['name'] = startDate.formatDate("MM yyyy");
+      period['name'] = getMonthTranslation( startDate.formatDate("MM") ) + ' ' + year;
       period['id'] = 'Monthly_' + period['startDate'];
       period['iso'] = startDate.formatDate("yyyymm");
 
@@ -709,7 +709,7 @@ $.extend(dhis2.period.BiMonthlyGenerator.prototype, {
       var period = {};
       period['startDate'] = startDate.formatDate(this.format);
       period['endDate'] = endDate.formatDate(this.format);
-      period['name'] = startDate.formatDate("MM") + ' - ' + endDate.formatDate('MM') + ' ' + year;
+      period['name'] = getMonthTranslation( startDate.formatDate("MM") ) + ' - ' + getMonthTranslation( endDate.formatDate("MM") ) + ' ' + year;
       period['id'] = 'BiMonthly_' + period['startDate'];
       period['iso'] = startDate.formatDate("yyyy") + '0' + idx + 'B';
 
@@ -753,8 +753,8 @@ $.extend(dhis2.period.QuarterlyGenerator.prototype, {
 
       var period = {};
       period['startDate'] = startDate.formatDate(this.format);
-      period['endDate'] = endDate.formatDate(this.format);
-      period['name'] = startDate.formatDate("MM") + ' - ' + endDate.formatDate('MM') + ' ' + year;
+      period['endDate'] = endDate.formatDate(this.format);      
+      period['name'] = getMonthTranslation( startDate.formatDate("MM") ) + ' - ' + getMonthTranslation( endDate.formatDate("MM") ) + ' ' + year;
       period['id'] = 'Quarterly_' + period['startDate'];
       period['iso'] = startDate.formatDate("yyyy") + 'Q' + idx;
 
@@ -797,8 +797,8 @@ $.extend(dhis2.period.SixMonthlyGenerator.prototype, {
 
     var period = {};
     period['startDate'] = startDate.formatDate(this.format);
-    period['endDate'] = endDate.formatDate(this.format);
-    period['name'] = startDate.formatDate("MM") + ' - ' + endDate.formatDate('MM') + ' ' + year;
+    period['endDate'] = endDate.formatDate(this.format);    
+    period['name'] = getMonthTranslation( startDate.formatDate("MM") ) + ' - ' + getMonthTranslation( endDate.formatDate("MM") ) + ' ' + year;
     period['id'] = 'SixMonthly_' + period['startDate'];
     period['iso'] = startDate.formatDate("yyyy") + 'S1';
 
@@ -813,8 +813,8 @@ $.extend(dhis2.period.SixMonthlyGenerator.prototype, {
 
     period = {};
     period['startDate'] = startDate.formatDate(this.format);
-    period['endDate'] = endDate.formatDate(this.format);
-    period['name'] = startDate.formatDate("MM") + ' - ' + endDate.formatDate('MM') + ' ' + year;
+    period['endDate'] = endDate.formatDate(this.format);    
+    period['name'] = getMonthTranslation( startDate.formatDate("MM") ) + ' - ' + getMonthTranslation( endDate.formatDate("MM") ) + ' ' + year;
     period['id'] = 'SixMonthly_' + period['startDate'];
     period['iso'] = startDate.formatDate("yyyy") + 'S2';
 
@@ -856,8 +856,8 @@ $.extend(dhis2.period.SixMonthlyAprilGenerator.prototype, {
 
     var period = {};
     period['startDate'] = startDate.formatDate(this.format);
-    period['endDate'] = endDate.formatDate(this.format);
-    period['name'] = startDate.formatDate("MM") + ' - ' + endDate.formatDate('MM') + ' ' + year;
+    period['endDate'] = endDate.formatDate(this.format);    
+    period['name'] = getMonthTranslation( startDate.formatDate("MM") ) + ' - ' + getMonthTranslation( endDate.formatDate("MM") ) + ' ' + year;
     period['id'] = 'SixMonthlyApril_' + period['startDate'];
     period['iso'] = startDate.formatDate("yyyy") + 'AprilS1';
 
@@ -972,7 +972,7 @@ $.extend(dhis2.period.FinancialBaseGenerator.prototype, {
       var period = {};
       period['startDate'] = startDate.formatDate(this.format);
       period['endDate'] = endDate.formatDate(this.format);
-      period['name'] = startDate.formatDate("MM yyyy") + ' - ' + endDate.formatDate("MM yyyy");
+      period['name'] = getMonthTranslation( startDate.formatDate("MM") ) + ' ' + year + ' - ' + getMonthTranslation( endDate.formatDate("MM") ) + ' ' + year;      
       period['id'] = 'Financial' + this.monthShortName + '_' + period['startDate'];
       period['iso'] = startDate.formatDate("yyyy") + this.monthShortName;
 
@@ -1051,6 +1051,53 @@ function getHMISMonthsInYear( calendar, year ) {
 
   	return monthsInYear;
 }
+
+/**
+ * Convenience method to get month translations which are fetched by main.vm
+ */
+function getMonthTranslation( monthName )
+{	
+	switch( monthName ) {
+	    case 'January':
+	        return i18n_month_january;
+	        break;
+	    case 'February':
+	        return i18n_month_february;
+	        break;
+	    case 'March':
+	        return i18n_month_march;
+	        break;
+	    case 'April':
+	        return i18n_month_april;
+	        break;
+	    case 'May':
+	        return i18n_month_may;
+	        break;
+	    case 'June':
+	        return i18n_month_june;
+	        break;
+	    case 'July':
+	        return i18n_month_july;
+	        break;
+	    case 'August':
+	        return i18n_month_august;
+	        break;
+	    case 'September':
+	        return i18n_month_september;
+	        break;
+	    case 'October':
+	        return i18n_month_october;
+	        break;
+	    case 'November':
+	        return i18n_month_november;
+	        break;
+	    case 'December':
+	        return i18n_month_december;
+	        break;
+	    default:
+	        return monthName;
+	}	
+};
 
 
 
