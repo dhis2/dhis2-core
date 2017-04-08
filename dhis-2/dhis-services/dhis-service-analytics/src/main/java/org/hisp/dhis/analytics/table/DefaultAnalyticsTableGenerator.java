@@ -56,7 +56,7 @@ import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
  * @author Lars Helge Overland
  */
 public class DefaultAnalyticsTableGenerator
-        implements AnalyticsTableGenerator
+    implements AnalyticsTableGenerator
 {
     private static final Log log = LogFactory.getLog( DefaultAnalyticsTableGenerator.class );
 
@@ -85,8 +85,8 @@ public class DefaultAnalyticsTableGenerator
         final Date startTime = new Date();
         final Clock clock = new Clock( log ).startClock();
         final Set<AnalyticsTableType> skipTypes = CollectionUtils.emptyIfNull( skipTableTypes );
-        final Set<AnalyticsTableType> availableTypes = analyticsTableServices
-                .stream().map( AnalyticsTableService::getAnalyticsTableType ).collect( Collectors.toSet() );
+        final Set<AnalyticsTableType> availableTypes = analyticsTableServices.
+            stream().map( AnalyticsTableService::getAnalyticsTableType ).collect( Collectors.toSet() );
 
         log.info( String.format( "Found %d analytics table types: %s", availableTypes.size(), availableTypes ) );
         log.info( String.format( "Skip %d analytics table types: %s", skipTypes.size(), skipTypes ) );

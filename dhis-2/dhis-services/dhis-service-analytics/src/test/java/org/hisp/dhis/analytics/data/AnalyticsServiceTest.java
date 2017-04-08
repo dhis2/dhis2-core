@@ -1,5 +1,33 @@
 package org.hisp.dhis.analytics.data;
 
+/*
+ * Copyright (c) 2004-2017, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 import com.csvreader.CsvReader;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
@@ -39,24 +67,27 @@ import java.util.Map;
 import static org.junit.Assert.*;
 
 /**
- * Created by henninghakonsen on 13/03/2017. Project: dhis-2.
- *
- * This test class tests aggregation of data in analytics tables
- *
- * One way to make a new test:
- * 1. Make new DataQueryParam/AnalyticalObject
- * 2. Add to 'dataQueryParams'/'analyticalObjectHashMap' hashmap
- * 3. Add HashMap<String, Double> with expected output to results hashmap
+ * Tests aggregation of data in analytics tables.
+ * <p>
+ * To create a new test:
+ * <p>
+ * <ul>
+ * <li>Make new DataQueryParam/AnalyticalObject.</li>
+ * <li>Add to 'dataQueryParams'/'analyticalObjectHashMap' map.</li>
+ * <li>Add HashMap<String, Double> with expected output to results map.</li>
+ * </ul>
+ * 
+ * @author Henning Haakonsen
  */
 @Category( IntegrationTest.class )
 public class AnalyticsServiceTest
     extends DhisTest
 {
-    private HashMap<String, DataQueryParams> dataQueryParams = new HashMap<>();
+    private Map<String, DataQueryParams> dataQueryParams = new HashMap<>();
 
-    private HashMap<String, AnalyticalObject> analyticalObjectHashMap = new HashMap<>();
+    private Map<String, AnalyticalObject> analyticalObjectHashMap = new HashMap<>();
 
-    private HashMap<String, HashMap<String, Double>> results = new HashMap<>();
+    private Map<String, HashMap<String, Double>> results = new HashMap<>();
 
     @Autowired
     private DataElementService dataElementService;
@@ -101,8 +132,7 @@ public class AnalyticsServiceTest
     // 32, deD, peJan
     //
     // --------------------------------------------------------------------
-    // TODO
-    // Manage teardown of database
+    
     @Override
     public void setUpTest()
         throws IOException
@@ -152,7 +182,7 @@ public class AnalyticsServiceTest
         organisationUnitService.addOrganisationUnit( ouD );
         organisationUnitService.addOrganisationUnit( ouE );
 
-        // Read data values from csv file
+        // Read data values from CSV file
         // --------------------------------------------------------------------
         readInputFile( "csv/dataValues.csv" );
 
