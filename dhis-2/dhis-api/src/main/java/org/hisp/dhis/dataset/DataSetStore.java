@@ -37,7 +37,6 @@ import org.hisp.dhis.period.PeriodType;
 
 /**
  * @author Kristian Nordal
- * @version $Id: DataSetStore.java 6255 2008-11-10 16:01:24Z larshelg $
  */
 public interface DataSetStore
     extends GenericNameableObjectStore<DataSet>
@@ -60,8 +59,6 @@ public interface DataSetStore
      * Returns all DataSets that can be collected through mobile.
      */
     List<DataSet> getDataSetsForMobile( OrganisationUnit source );
-
-    List<DataSet> getDataSetsForMobile();
 
     /**
      * Gets all DataSets associated with the given DataEntryForm.

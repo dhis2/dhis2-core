@@ -113,13 +113,4 @@ public class HibernateDataSetStore
 
         return getQuery( hql ).setEntity( "dataEntryForm", dataEntryForm ).list();
     }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public List<DataSet> getDataSetsForMobile()
-    {
-        String hql = "from DataSet d where d.mobile = true";
-        
-        return getQuery( hql ).list();
-    }
 }

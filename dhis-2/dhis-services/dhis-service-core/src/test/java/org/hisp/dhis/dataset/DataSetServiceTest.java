@@ -348,34 +348,6 @@ public class DataSetServiceTest
     }
 
     @Test
-    public void testGetDataSetByName()
-    {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        DataSet dataSetB = createDataSet( 'B', periodType );
-
-        int idA = dataSetService.addDataSet( dataSetA );
-        int idB = dataSetService.addDataSet( dataSetB );
-
-        assertEquals( dataSetService.getDataSetByName( "DataSetA" ).get( 0 ).getId(), idA );
-        assertEquals( dataSetService.getDataSetByName( "DataSetB" ).get( 0 ).getId(), idB );
-        assertTrue( dataSetService.getDataSetByName( "DataSetC" ).isEmpty() );
-    }
-
-    @Test
-    public void testGetDataSetByShortName()
-    {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        DataSet dataSetB = createDataSet( 'B', periodType );
-
-        int idA = dataSetService.addDataSet( dataSetA );
-        int idB = dataSetService.addDataSet( dataSetB );
-
-        assertEquals( dataSetService.getDataSetByShortName( "DataSetShortA" ).get( 0 ).getId(), idA );
-        assertEquals( dataSetService.getDataSetByShortName( "DataSetShortB" ).get( 0 ).getId(), idB );
-        assertTrue( dataSetService.getDataSetByShortName( "DataSetShortC" ).isEmpty() );
-    }
-
-    @Test
     public void testGetAllDataSets()
     {
         DataSet dataSetA = createDataSet( 'A', periodType );
