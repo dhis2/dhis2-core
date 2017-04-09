@@ -49,7 +49,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -349,34 +348,6 @@ public class DataSetServiceTest
     }
 
     @Test
-    public void testGetDataSetByName()
-    {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        DataSet dataSetB = createDataSet( 'B', periodType );
-
-        int idA = dataSetService.addDataSet( dataSetA );
-        int idB = dataSetService.addDataSet( dataSetB );
-
-        assertEquals( dataSetService.getDataSetByName( "DataSetA" ).get( 0 ).getId(), idA );
-        assertEquals( dataSetService.getDataSetByName( "DataSetB" ).get( 0 ).getId(), idB );
-        assertTrue( dataSetService.getDataSetByName( "DataSetC" ).isEmpty() );
-    }
-
-    @Test
-    public void testGetDataSetByShortName()
-    {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        DataSet dataSetB = createDataSet( 'B', periodType );
-
-        int idA = dataSetService.addDataSet( dataSetA );
-        int idB = dataSetService.addDataSet( dataSetB );
-
-        assertEquals( dataSetService.getDataSetByShortName( "DataSetShortA" ).get( 0 ).getId(), idA );
-        assertEquals( dataSetService.getDataSetByShortName( "DataSetShortB" ).get( 0 ).getId(), idB );
-        assertTrue( dataSetService.getDataSetByShortName( "DataSetShortC" ).isEmpty() );
-    }
-
-    @Test
     public void testGetAllDataSets()
     {
         DataSet dataSetA = createDataSet( 'A', periodType );
@@ -388,45 +359,6 @@ public class DataSetServiceTest
         List<DataSet> dataSets = dataSetService.getAllDataSets();
 
         assertEquals( dataSets.size(), 2 );
-        assertTrue( dataSets.contains( dataSetA ) );
-        assertTrue( dataSets.contains( dataSetB ) );
-    }
-
-    @Test
-    @Ignore
-    public void testGetDataSetsBySources()
-    {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        DataSet dataSetB = createDataSet( 'B', periodType );
-        DataSet dataSetC = createDataSet( 'C', periodType );
-        DataSet dataSetD = createDataSet( 'D', periodType );
-        dataSetA.getSources().add( unitA );
-        dataSetA.getSources().add( unitB );
-        dataSetB.getSources().add( unitA );
-        dataSetC.getSources().add( unitB );
-
-        dataSetService.addDataSet( dataSetA );
-        dataSetService.addDataSet( dataSetB );
-        dataSetService.addDataSet( dataSetC );
-        dataSetService.addDataSet( dataSetD );
-
-        List<OrganisationUnit> sources = new ArrayList<>();
-        sources.add( unitA );
-        sources.add( unitB );
-
-        List<DataSet> dataSets = dataSetService.getDataSetsBySources( sources );
-
-        assertEquals( 3, dataSets.size() );
-        assertTrue( dataSets.contains( dataSetA ) );
-        assertTrue( dataSets.contains( dataSetB ) );
-        assertTrue( dataSets.contains( dataSetC ) );
-
-        sources = new ArrayList<>();
-        sources.add( unitA );
-
-        dataSets = dataSetService.getDataSetsBySources( sources );
-
-        assertEquals( 2, dataSets.size() );
         assertTrue( dataSets.contains( dataSetA ) );
         assertTrue( dataSets.contains( dataSetB ) );
     }

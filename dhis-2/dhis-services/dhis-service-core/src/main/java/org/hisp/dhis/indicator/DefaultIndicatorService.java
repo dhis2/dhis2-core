@@ -31,8 +31,6 @@ package org.hisp.dhis.indicator;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -112,12 +110,6 @@ public class DefaultIndicatorService
     public List<Indicator> getAllIndicators()
     {
         return indicatorStore.getAll();
-    }
-
-    @Override
-    public List<Indicator> getIndicatorsByUid( Collection<String> uids )
-    {
-        return indicatorStore.getByUid( uids );
     }
 
     @Override
@@ -251,13 +243,6 @@ public class DefaultIndicatorService
     {
         return indicatorGroupSetStore.getByUid( uid );
     }
-
-    @Override
-    public List<IndicatorGroupSet> getIndicatorGroupSetByName( String name )
-    {
-        return new ArrayList<>( indicatorGroupSetStore.getAllEqName( name ) );
-    }
-
 
     @Override
     public List<IndicatorGroupSet> getAllIndicatorGroupSets()

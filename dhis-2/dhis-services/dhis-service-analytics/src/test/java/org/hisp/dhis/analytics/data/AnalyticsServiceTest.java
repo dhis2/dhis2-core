@@ -87,7 +87,7 @@ public class AnalyticsServiceTest
 
     private Map<String, AnalyticalObject> analyticalObjectHashMap = new HashMap<>();
 
-    private Map<String, HashMap<String, Double>> results = new HashMap<>();
+    private Map<String, Map<String, Double>> results = new HashMap<>();
 
     @Autowired
     private DataElementService dataElementService;
@@ -404,66 +404,66 @@ public class AnalyticsServiceTest
 
         // Set results
         // --------------------------------------------------------------------
-        HashMap<String, Double> ou_2017_keyValue = new HashMap<>();
+        Map<String, Double> ou_2017_keyValue = new HashMap<>();
         ou_2017_keyValue.put( "ouabcdefghA-2017", 949.0 );
         ou_2017_keyValue.put( "ouabcdefghB-2017", 750.0 );
         ou_2017_keyValue.put( "ouabcdefghC-2017", 77.0 );
         ou_2017_keyValue.put( "ouabcdefghD-2017", 698.0 );
         ou_2017_keyValue.put( "ouabcdefghE-2017", 36.0 );
 
-        HashMap<String, Double> ou_2017_01_keyValue = new HashMap<>();
+        Map<String, Double> ou_2017_01_keyValue = new HashMap<>();
         ou_2017_01_keyValue.put( "ouabcdefghA-201701", 211.0 );
         ou_2017_01_keyValue.put( "ouabcdefghB-201701", 100.0 );
         ou_2017_01_keyValue.put( "ouabcdefghC-201701", 9.0 );
         ou_2017_01_keyValue.put( "ouabcdefghD-201701", 66.0 );
         ou_2017_01_keyValue.put( "ouabcdefghE-201701", 33.0 );
 
-        HashMap<String, Double> ouB_2017_02_keyValue = new HashMap<>();
+        Map<String, Double> ouB_2017_02_keyValue = new HashMap<>();
         ouB_2017_02_keyValue.put( "ouabcdefghB-201702", 636.00 );
 
-        HashMap<String, Double> de_avg_2017_03_keyValue = new HashMap<>();
+        Map<String, Double> de_avg_2017_03_keyValue = new HashMap<>();
         de_avg_2017_03_keyValue.put( "deabcdefghC-201703", 6.75 );
 
-        HashMap<String, Double> deC_ouB_2017_03_keyValue = new HashMap<>();
+        Map<String, Double> deC_ouB_2017_03_keyValue = new HashMap<>();
         deC_ouB_2017_03_keyValue.put( "deabcdefghC-ouabcdefghB-201703", 6.0 );
         deC_ouB_2017_03_keyValue.put( "deabcdefghC-201703-ouabcdefghB", 6.0 );
 
-        HashMap<String, Double> deA_ouA_2017_Q01_keyValue = new HashMap<>();
+        Map<String, Double> deA_ouA_2017_Q01_keyValue = new HashMap<>();
         deA_ouA_2017_Q01_keyValue.put( "deabcdefghA-ouabcdefghA-2017Q1", 308.0 );
         deA_ouA_2017_Q01_keyValue.put( "deabcdefghA-2017Q1-ouabcdefghA", 308.0 );
 
-        HashMap<String, Double> ouB_ouC_2017_02_keyValue = new HashMap<>();
+        Map<String, Double> ouB_ouC_2017_02_keyValue = new HashMap<>();
         ouB_ouC_2017_02_keyValue.put( "201702", 669.0 );
 
-        HashMap<String, Double> ouA_2017_01_03_keyValue = new HashMap<>();
+        Map<String, Double> ouA_2017_01_03_keyValue = new HashMap<>();
         ouA_2017_01_03_keyValue.put( "ouabcdefghA", 238.0 );
 
-        HashMap<String, Double> ouB_2017_Q01_keyValue = new HashMap<>();
+        Map<String, Double> ouB_2017_Q01_keyValue = new HashMap<>();
         ouB_2017_Q01_keyValue.put( "ouabcdefghB-2017Q1", 742.0 );
 
-        HashMap<String, Double> ouC_2017_Q01_keyValue = new HashMap<>();
+        Map<String, Double> ouC_2017_Q01_keyValue = new HashMap<>();
         ouC_2017_Q01_keyValue.put( "ouabcdefghC-2017Q1", 57.0 );
 
-        HashMap<String, Double> inA_2017_keyValue = new HashMap<>();
+        Map<String, Double> inA_2017_keyValue = new HashMap<>();
         inA_2017_keyValue.put( "inabcdefghA-2017", 308.0 );
 
-        HashMap<String, Double> inB_deB_deC_2017_Q01_keyValue = new HashMap<>();
+        Map<String, Double> inB_deB_deC_2017_Q01_keyValue = new HashMap<>();
         inB_deB_deC_2017_Q01_keyValue.put( "inabcdefghB-2017Q1", 567.0 );
 
-        HashMap<String, Double> inC_deB_deC_2017_Q01_keyValue = new HashMap<>();
+        Map<String, Double> inC_deB_deC_2017_Q01_keyValue = new HashMap<>();
         inC_deB_deC_2017_Q01_keyValue.put( "inabcdefghC-2017Q1", 258.50 );
         inC_deB_deC_2017_Q01_keyValue.put( "inabcdefghC-2017Q1-ouabcdefghA", 258.50 );
 
-        HashMap<String, Double> inD_deA_deB_deC_2017_Q01_keyValue = new HashMap<>();
+        Map<String, Double> inD_deA_deB_deC_2017_Q01_keyValue = new HashMap<>();
         inD_deA_deB_deC_2017_Q01_keyValue.put( "inabcdefghD-2017Q1", 29.8 );
 
-        HashMap<String, Double> deA_ouB_ouC_2017_02_keyValue = new HashMap<>();
+        Map<String, Double> deA_ouB_ouC_2017_02_keyValue = new HashMap<>();
         deA_ouB_ouC_2017_02_keyValue.put( "deabcdefghA-201702", 233.0 );
 
-        HashMap<String, Double> deA_deB_deD_ouC_ouE_2017_04_keyValue = new HashMap<>();
+        Map<String, Double> deA_deB_deD_ouC_ouE_2017_04_keyValue = new HashMap<>();
         deA_deB_deD_ouC_ouE_2017_04_keyValue.put( "deabcdefghD-201704", 10.5 );
 
-        HashMap<String, Double> deA_deB_2017_Q01_keyValue = new HashMap<>();
+        Map<String, Double> deA_deB_2017_Q01_keyValue = new HashMap<>();
         deA_deB_2017_Q01_keyValue.put( "2017Q1", 53.3 );
 
         results.put( "ou_2017", ou_2017_keyValue );
@@ -576,11 +576,10 @@ public class AnalyticsServiceTest
         {
             String[] values = reader.getValues();
             parse( values );
-
         }
 
-        assertEquals( "Import of data failed, number of imports are wrong", dataValueService.getAllDataValues().size(),
-            24 );
+        assertEquals( "Import of data failed, number of imports are wrong", 
+            dataValueService.getAllDataValues().size(), 24 );
     }
 
     /**
@@ -608,22 +607,22 @@ public class AnalyticsServiceTest
      *       / \
      *      D   E
      *
-     * @param A root
-     * @param B leftRoot
-     * @param C rightRoot
-     * @param D leftB
-     * @param E rightB
+     * @param ouA root
+     * @param ouB leftRoot
+     * @param ouC rightRoot
+     * @param ouD leftB
+     * @param ouE rightB
      */
-    private void configureHierarchy( OrganisationUnit A, OrganisationUnit B, OrganisationUnit C, OrganisationUnit D,
-        OrganisationUnit E )
+    private void configureHierarchy( OrganisationUnit ouA, OrganisationUnit ouB, 
+        OrganisationUnit ouC, OrganisationUnit ouD, OrganisationUnit ouE )
     {
-        A.getChildren().addAll( Sets.newHashSet( B, C ) );
-        B.setParent( A );
-        C.setParent( A );
+        ouA.getChildren().addAll( Sets.newHashSet( ouB, ouC ) );
+        ouB.setParent( ouA );
+        ouC.setParent( ouA );
 
-        B.getChildren().addAll( Sets.newHashSet( D, E ) );
-        D.setParent( B );
-        E.setParent( B );
+        ouB.getChildren().addAll( Sets.newHashSet( ouD, ouE ) );
+        ouD.setParent( ouB );
+        ouE.setParent( ouB );
     }
 
     /**
@@ -635,7 +634,7 @@ public class AnalyticsServiceTest
      * @param keyValue expected results
      */
     private void assertDataValueMapping( Map<String, Object> aggregatedDataValueMapping,
-        HashMap<String, Double> keyValue )
+        Map<String, Double> keyValue )
     {
         assertNotNull( aggregatedDataValueMapping );
         assertNull( aggregatedDataValueMapping.get( "testNull" ) );
@@ -658,7 +657,7 @@ public class AnalyticsServiceTest
      * @param aggregatedDataValueGrid aggregated values
      * @param keyValue expected results
      */
-    private void assertDataValueGrid( Grid aggregatedDataValueGrid, HashMap<String, Double> keyValue )
+    private void assertDataValueGrid( Grid aggregatedDataValueGrid, Map<String, Double> keyValue )
     {
         assertNotNull( aggregatedDataValueGrid );
         for ( int i = 0; i < aggregatedDataValueGrid.getRows().size(); i++ )
@@ -690,7 +689,7 @@ public class AnalyticsServiceTest
      * @param aggregatedDataValueSet aggregated values
      * @param keyValue expected results
      */
-    private void assertDataValueSet( DataValueSet aggregatedDataValueSet, HashMap<String, Double> keyValue )
+    private void assertDataValueSet( DataValueSet aggregatedDataValueSet, Map<String, Double> keyValue )
     {
         for ( org.hisp.dhis.dxf2.datavalue.DataValue dataValue : aggregatedDataValueSet.getDataValues() )
         {

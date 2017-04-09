@@ -177,12 +177,6 @@ public class DefaultDataElementCategoryService
     }
 
     @Override
-    public List<DataElementCategory> getDataElementCategoriesByUid( Collection<String> uids )
-    {
-        return categoryStore.getByUid( uids );
-    }
-
-    @Override
     public DataElementCategory getDataElementCategoryByName( String name )
     {
         List<DataElementCategory> dataElementCategories = new ArrayList<>(
@@ -288,12 +282,6 @@ public class DefaultDataElementCategoryService
     public DataElementCategoryOption getDataElementCategoryOptionByCode( String code )
     {
         return categoryOptionStore.getByCode( code );
-    }
-
-    @Override
-    public List<DataElementCategoryOption> getDataElementCategoryOptionsByUid( Collection<String> uids )
-    {
-        return categoryOptionStore.getByUid( uids );
     }
 
     @Override
@@ -466,12 +454,6 @@ public class DefaultDataElementCategoryService
     public DataElementCategoryOptionCombo getDataElementCategoryOptionComboByCode( String code )
     {
         return categoryOptionComboStore.getByCode( code );
-    }
-
-    @Override
-    public List<DataElementCategoryOptionCombo> getDataElementCategoryOptionCombosByUid( Collection<String> uids )
-    {
-        return categoryOptionComboStore.getByUid( uids );
     }
 
     @Override
@@ -817,12 +799,6 @@ public class DefaultDataElementCategoryService
     }
 
     @Override
-    public List<CategoryOptionGroup> getCategoryOptionGroupsByUid( Collection<String> uids )
-    {
-        return categoryOptionGroupStore.getByUid( uids );
-    }
-
-    @Override
     public void deleteCategoryOptionGroup( CategoryOptionGroup group )
     {
         categoryOptionGroupStore.delete( group );
@@ -886,12 +862,6 @@ public class DefaultDataElementCategoryService
     public CategoryOptionGroupSet getCategoryOptionGroupSet( String uid )
     {
         return categoryOptionGroupSetStore.getByUid( uid );
-    }
-
-    @Override
-    public List<CategoryOptionGroupSet> getCategoryOptionGroupSetsByUid( Collection<String> uids )
-    {
-        return categoryOptionGroupSetStore.getByUid( uids );
     }
 
     @Override
