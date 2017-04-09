@@ -122,11 +122,6 @@ public interface DataSetService
     DataSet getDataSetByCode( String code );
 
     /**
-     * Returns all DataSets associated with the specified sources.
-     */
-    List<DataSet> getDataSetsBySources( Collection<OrganisationUnit> sources );
-
-    /**
      * Returns all DataSets associated with the given DataEntryForm.
      *
      * @param dataEntryForm the DataEntryForm.

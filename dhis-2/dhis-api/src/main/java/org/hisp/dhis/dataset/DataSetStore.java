@@ -28,7 +28,6 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
 import java.util.List;
 
 import org.hisp.dhis.common.GenericNameableObjectStore;
@@ -63,8 +62,6 @@ public interface DataSetStore
     List<DataSet> getDataSetsForMobile( OrganisationUnit source );
 
     List<DataSet> getDataSetsForMobile();
-
-    List<DataSet> getDataSetsBySources( Collection<OrganisationUnit> sources );
 
     /**
      * Gets all DataSets associated with the given DataEntryForm.

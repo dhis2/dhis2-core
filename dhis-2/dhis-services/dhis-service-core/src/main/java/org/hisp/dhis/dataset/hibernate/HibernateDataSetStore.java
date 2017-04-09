@@ -28,12 +28,10 @@ package org.hisp.dhis.dataset.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
 import java.util.List;
 
 import com.google.common.collect.Lists;
 import org.hibernate.criterion.Restrictions;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.DataSet;
@@ -91,15 +89,6 @@ public class HibernateDataSetStore
         periodType = periodService.reloadPeriodType( periodType );
 
         return getCriteria( Restrictions.eq( "periodType", periodType ) ).list();
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public List<DataSet> getDataSetsBySources( Collection<OrganisationUnit> sources )
-    {
-        String hql = "select distinct d from DataSet d join d.sources s where s.id in (:ids)";
-
-        return getQuery( hql ).setParameterList( "ids", IdentifiableObjectUtils.getIdentifiers( sources ) ).list();
     }
 
     @Override

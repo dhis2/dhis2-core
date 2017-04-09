@@ -158,12 +158,6 @@ public class DefaultDataSetService
     }
 
     @Override
-    public List<DataSet> getDataSetsBySources( Collection<OrganisationUnit> sources )
-    {
-        return dataSetStore.getDataSetsBySources( sources );
-    }
-
-    @Override
     public List<DataSet> getDataSetsByDataEntryForm( DataEntryForm dataEntryForm )
     {
         return dataSetStore.getDataSetsByDataEntryForm( dataEntryForm );
