@@ -31,6 +31,7 @@ package org.hisp.dhis.keyjsonvalue;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Date;
 
 /**
  * @author Stian Sandvold
@@ -60,6 +61,12 @@ public class DefaultKeyJsonValueService
     public List<String> getKeysInNamespace( String namespace )
     {
         return keyJsonValueStore.getKeysInNamespace( namespace );
+    }
+
+    @Override
+    public List<String> getKeysInNamespace( String namespace, Date lastUpdated )
+    {
+        return keyJsonValueStore.getKeysInNamespace( namespace, lastUpdated );
     }
 
     @Override
