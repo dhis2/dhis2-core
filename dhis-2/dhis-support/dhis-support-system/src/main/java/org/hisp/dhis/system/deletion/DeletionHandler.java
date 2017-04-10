@@ -87,6 +87,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -589,16 +590,11 @@ public abstract class DeletionHandler
         return null;
     }
 
-    public String allowDeleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
-    {
-        return null;
-    }
-
     public void deleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
     {
     }
 
-    public String allowDeleteTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue )
+    public String allowDeleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
     {
         return null;
     }
@@ -607,7 +603,7 @@ public abstract class DeletionHandler
     {
     }
 
-    public String allowDeleteRelationship( Relationship relationship )
+    public String allowDeleteTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue )
     {
         return null;
     }
@@ -616,7 +612,7 @@ public abstract class DeletionHandler
     {
     }
 
-    public String allowDeleteRelationshipType( RelationshipType relationshipType )
+    public String allowDeleteRelationship( Relationship relationship )
     {
         return null;
     }
@@ -625,7 +621,7 @@ public abstract class DeletionHandler
     {
     }
 
-    public String allowDeleteProgram( Program program )
+    public String allowDeleteRelationshipType( RelationshipType relationshipType )
     {
         return null;
     }
@@ -634,7 +630,7 @@ public abstract class DeletionHandler
     {
     }
 
-    public String allowDeleteProgramInstance( ProgramInstance programInstance )
+    public String allowDeleteProgram( Program program )
     {
         return null;
     }
@@ -643,13 +639,18 @@ public abstract class DeletionHandler
     {
     }
 
-    public String allowDeleteProgramStage( ProgramStage programStage )
+    public String allowDeleteProgramInstance( ProgramInstance programInstance )
     {
         return null;
     }
 
     public void deleteProgramStage( ProgramStage programStage )
     {
+    }
+
+    public String allowDeleteProgramStage( ProgramStage programStage )
+    {
+        return null;
     }
 
     public void deleteProgramStageSection( ProgramStageSection programStageSection )
@@ -661,12 +662,16 @@ public abstract class DeletionHandler
         return null;
     }
 
+    public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
+    {
+    }
+
     public String allowDeleteProgramStageInstance( ProgramStageInstance programStageInstance )
     {
         return null;
     }
 
-    public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
+    public void deleteProgramNotificationTemplate( ProgramNotificationTemplate programNotificationTemplate )
     {
     }
 
@@ -674,7 +679,7 @@ public abstract class DeletionHandler
     {
     }
 
-    public void deleteProgramNotificationTemplate( ProgramNotificationTemplate programNotificationTemplate )
+    public void deleteProgramRule( ProgramRule programRule )
     {
     }
 
@@ -683,7 +688,7 @@ public abstract class DeletionHandler
         return null;
     }
 
-    public void deleteProgramRule( ProgramRule programRule )
+    public void deleteProgramRuleVariable( ProgramRuleVariable programRuleVariable )
     {
     }
 
@@ -692,7 +697,7 @@ public abstract class DeletionHandler
         return null;
     }
 
-    public void deleteProgramRuleVariable( ProgramRuleVariable programRuleVariable )
+    public void deleteProgramRuleAction( ProgramRuleAction programRuleAction )
     {
     }
 
@@ -701,7 +706,7 @@ public abstract class DeletionHandler
         return null;
     }
 
-    public void deleteProgramRuleAction( ProgramRuleAction programRuleAction )
+    public void deleteProgramStageDataElement( ProgramStageDataElement programStageDataElement )
     {
     }
 
@@ -710,17 +715,13 @@ public abstract class DeletionHandler
         return null;
     }
 
-    public void deleteProgramStageDataElement( ProgramStageDataElement programStageDataElement )
+    public void deleteTrackedEntityDataValue( TrackedEntityDataValue dataValue )
     {
     }
 
     public String allowDeleteTrackedEntityDataValue( TrackedEntityDataValue dataValue )
     {
         return null;
-    }
-
-    public void deleteTrackedEntityDataValue( TrackedEntityDataValue dataValue )
-    {
     }
 
     public void deleteProgramIndicator( ProgramIndicator programIndicator )
@@ -741,16 +742,11 @@ public abstract class DeletionHandler
         return null;
     }
 
-    public String allowDeleteValidationCriteria( ValidationCriteria validationCriteria )
-    {
-        return null;
-    }
-
     public void deleteValidationCriteria( ValidationCriteria validationCriteria )
     {
     }
 
-    public String allowDeleteConstant( Constant constant )
+    public String allowDeleteValidationCriteria( ValidationCriteria validationCriteria )
     {
         return null;
     }
@@ -759,7 +755,7 @@ public abstract class DeletionHandler
     {
     }
 
-    public String allowDeleteOptionSet( OptionSet optionSet )
+    public String allowDeleteConstant( Constant constant )
     {
         return null;
     }
@@ -768,7 +764,7 @@ public abstract class DeletionHandler
     {
     }
 
-    public String allowDeleteOptionGroupSet( OptionGroupSet optionGroupSet )
+    public String allowDeleteOptionSet( OptionSet optionSet )
     {
         return null;
     }
@@ -777,7 +773,7 @@ public abstract class DeletionHandler
     {
     }
 
-    public String allowDeleteOptionGroup( OptionGroup optionGroup )
+    public String allowDeleteOptionGroupSet( OptionGroupSet optionGroupSet )
     {
         return null;
     }
@@ -786,7 +782,7 @@ public abstract class DeletionHandler
     {
     }
 
-    public String allowDeleteOption( Option option )
+    public String allowDeleteOptionGroup( OptionGroup optionGroup )
     {
         return null;
     }
@@ -795,13 +791,18 @@ public abstract class DeletionHandler
     {
     }
 
-    public String allowDeleteLockException( LockException lockException )
+    public String allowDeleteOption( Option option )
     {
         return null;
     }
 
     public void deleteLockException( LockException lockException )
     {
+    }
+
+    public String allowDeleteLockException( LockException lockException )
+    {
+        return null;
     }
 
     public void deleteIntepretation( Interpretation interpretation )
@@ -903,16 +904,11 @@ public abstract class DeletionHandler
         return null;
     }
 
-    public String allowDeleteColorSet( ColorSet colorSet )
-    {
-        return null;
-    }
-
     public void deleteColorSet( ColorSet colorSet )
     {
     }
 
-    public String allowDeleteColor( Color color )
+    public String allowDeleteColorSet( ColorSet colorSet )
     {
         return null;
     }
@@ -921,7 +917,16 @@ public abstract class DeletionHandler
     {
     }
 
-    public String allowDeleteProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup group )
+    public String allowDeleteColor( Color color )
+    {
+        return null;
+    }
+    
+    public void deleteProgramTrackedEntityAttribute( ProgramTrackedEntityAttribute attribute )
+    {        
+    }
+    
+    public String allowDeleteProgramTrackedEntityAttribute( ProgramTrackedEntityAttribute attribute )
     {
         return null;
     }
@@ -929,13 +934,18 @@ public abstract class DeletionHandler
     public void deleteProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup color )
     {
     }
-
-    public String allowDeletePushAnalysis( PushAnalysis pushAnalysis )
+    
+    public String allowDeleteProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup group )
     {
         return null;
     }
 
     public void deletePushAnalysis( PushAnalysis pushAnalysis )
     {
+    }
+    
+    public String allowDeletePushAnalysis( PushAnalysis pushAnalysis )
+    {
+        return null;
     }
 }
