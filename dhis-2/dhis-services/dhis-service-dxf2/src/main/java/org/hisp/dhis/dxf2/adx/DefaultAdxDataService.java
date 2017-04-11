@@ -604,6 +604,7 @@ public class DefaultAdxDataService
             }
             else
             {
+                log.debug("Category combo " + catCombo. + catCombo.getName() + " must have " + categoryMap.get( category ).getName() )
                 throw new AdxException(
                     "Category combo " + catCombo.getName() + " must have " + categoryMap.get( category ).getName() );
             }
