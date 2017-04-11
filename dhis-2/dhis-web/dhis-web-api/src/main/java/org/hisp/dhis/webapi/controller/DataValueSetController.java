@@ -233,11 +233,11 @@ public class DataValueSetController
         }
         else
         {
-            ImportSummaries summaries = adxDataService.saveDataValueSet( request.getInputStream(), importOptions, null );
-            summaries.setImportOptions( importOptions );
+            ImportSummary summary = adxDataService.saveDataValueSet( request.getInputStream(), importOptions, null );
+            summary.setImportOptions( importOptions );
 
             response.setContentType( CONTENT_TYPE_XML );
-            renderService.toXml( response.getOutputStream(), summaries );
+            renderService.toXml( response.getOutputStream(), summary );
         }
     }
 
