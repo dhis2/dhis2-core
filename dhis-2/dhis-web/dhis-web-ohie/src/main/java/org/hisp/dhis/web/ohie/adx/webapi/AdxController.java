@@ -31,6 +31,7 @@ package org.hisp.dhis.web.ohie.adx.webapi;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -68,12 +69,12 @@ public class AdxController
     public void postXMLDataValueSet( ImportOptions importOptions,
         HttpServletResponse response, InputStream in, Model model ) throws IOException
     {
-        ImportSummaries importSummaries = adxService.saveDataValueSet( in, importOptions, null );
-        
+        ImportSummary importSummary = adxService.saveDataValueSet( in, importOptions, null );
+
         log.debug( "Data values set saved" );
 
         response.setContentType( CONTENT_TYPE_XML );
-        JacksonUtils.toXml( response.getOutputStream(), importSummaries );
+        JacksonUtils.toXml( response.getOutputStream(), importSummary );
     }
 
 }
