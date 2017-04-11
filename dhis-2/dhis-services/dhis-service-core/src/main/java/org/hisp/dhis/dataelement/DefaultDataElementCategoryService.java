@@ -754,7 +754,6 @@ public class DefaultDataElementCategoryService
         if ( !categoryCombo.isDefault() && includeTotals )
         {
             DataElementOperand operand = new DataElementOperand( dataElement );
-            operand.updateProperties( dataElement );
 
             operands.add( operand );
         }
@@ -762,7 +761,6 @@ public class DefaultDataElementCategoryService
         for ( DataElementCategoryOptionCombo categoryOptionCombo : categoryCombo.getSortedOptionCombos() )
         {
             DataElementOperand operand = new DataElementOperand( dataElement, categoryOptionCombo );
-            operand.updateProperties( dataElement, categoryOptionCombo );
 
             operands.add( operand );
         }
