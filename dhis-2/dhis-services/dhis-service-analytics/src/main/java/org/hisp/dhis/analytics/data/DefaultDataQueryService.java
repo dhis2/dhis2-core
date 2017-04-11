@@ -94,7 +94,7 @@ public class DefaultDataQueryService
 
     @Override
     public DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType,
-        String measureCriteria, String preAggregationMeasureCriteria, boolean skipMeta, boolean skipData, boolean skipRounding,
+        String measureCriteria, String preAggregationMeasureCriteria, Date startDate, Date endDate, boolean skipMeta, boolean skipData, boolean skipRounding,
         boolean completedOnly, boolean hierarchyMeta, boolean ignoreLimit, boolean hideEmptyRows, boolean showHierarchy,
         boolean includeNumDen, DisplayProperty displayProperty, IdScheme outputIdScheme, IdScheme inputIdScheme,
         boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit, DhisApiVersion apiVersion )
@@ -127,6 +127,8 @@ public class DefaultDataQueryService
 
         return params
             .withAggregationType( aggregationType )
+            .withStartDate( startDate )
+            .withEndDate( endDate )
             .withSkipMeta( skipMeta )
             .withSkipData( skipData )
             .withSkipRounding( skipRounding )
