@@ -29,7 +29,6 @@ package org.hisp.dhis.dataelement;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -225,61 +224,6 @@ public class DataElementStoreTest
         assertNotNull( dataElements );
         assertEquals( dataElementsRef.size(), dataElements.size() );
         assertTrue( dataElements.containsAll( dataElementsRef ) );
-    }
-
-    @Test
-    public void testGetAggregateableDataElements()
-    {
-        assertEquals( 0, dataElementStore.getAggregateableDataElements().size() );
-
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        DataElement dataElementC = createDataElement( 'C' );
-        DataElement dataElementD = createDataElement( 'D' );
-
-        dataElementA.setValueType( ValueType.INTEGER );
-        dataElementB.setValueType( ValueType.BOOLEAN );
-        dataElementC.setValueType( ValueType.TEXT );
-        dataElementD.setValueType( ValueType.INTEGER );
-
-        dataElementStore.save( dataElementA );
-        dataElementStore.save( dataElementB );
-        dataElementStore.save( dataElementC );
-        dataElementStore.save( dataElementD );
-
-        List<DataElement> dataElementsRef = new ArrayList<>();
-        dataElementsRef.add( dataElementA );
-        dataElementsRef.add( dataElementB );
-        dataElementsRef.add( dataElementD );
-
-        List<DataElement> dataElements = dataElementStore.getAggregateableDataElements();
-        assertNotNull( dataElements );
-        assertEquals( dataElementsRef.size(), dataElements.size() );
-        assertTrue( dataElements.containsAll( dataElementsRef ) );
-    }
-
-    @Test
-    public void testGetDataElementsByAggregationType()
-    {
-        assertEquals( 0, dataElementStore.getDataElementsByAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT ).size() );
-        assertEquals( 0, dataElementStore.getDataElementsByAggregationType( AggregationType.SUM ).size() );
-
-        DataElement dataElementA = createDataElement( 'A' );
-        dataElementA.setAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT );
-        DataElement dataElementB = createDataElement( 'B' );
-        dataElementB.setAggregationType( AggregationType.SUM );
-        DataElement dataElementC = createDataElement( 'C' );
-        dataElementC.setAggregationType( AggregationType.SUM );
-        DataElement dataElementD = createDataElement( 'D' );
-        dataElementD.setAggregationType( AggregationType.SUM );
-
-        dataElementStore.save( dataElementA );
-        dataElementStore.save( dataElementB );
-        dataElementStore.save( dataElementC );
-        dataElementStore.save( dataElementD );
-
-        assertEquals( 1, dataElementStore.getDataElementsByAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT ).size() );
-        assertEquals( 3, dataElementStore.getDataElementsByAggregationType( AggregationType.SUM ).size() );
     }
 
     @Test

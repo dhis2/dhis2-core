@@ -415,15 +415,6 @@ public class DefaultDimensionService
             {
                 return itemObject;
             }
-
-            // TODO Maintain DataSet compatibility from 2.23 until 2.25
-            
-            DataSet dataSet = identifiableObjectManager.getObject( DataSet.class, idScheme, dimensionItem );
-            
-            if ( dataSet != null )
-            {
-                return new ReportingRate( dataSet );
-            }
         }
 
         return null;

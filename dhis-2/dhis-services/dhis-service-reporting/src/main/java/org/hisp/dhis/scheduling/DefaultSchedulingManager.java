@@ -29,6 +29,7 @@ package org.hisp.dhis.scheduling;
  */
 
 import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.credentials.CredentialsExpiryAlertTask;
 import org.hisp.dhis.datastatistics.DataStatisticsTask;
 import org.hisp.dhis.fileresource.FileResourceCleanUpTask;
 import org.hisp.dhis.setting.SettingKey;
@@ -84,6 +85,9 @@ public class DefaultSchedulingManager
     @Autowired
     private DataStatisticsTask dataStatisticsTask;
 
+    @Autowired
+    private CredentialsExpiryAlertTask credentialsExpiryAlertTask;
+
     // TODO Avoid map, use bean identifier directly and get bean from context
 
     // -------------------------------------------------------------------------
@@ -121,6 +125,7 @@ public class DefaultSchedulingManager
     {
         scheduler.scheduleTask( FileResourceCleanUpTask.KEY_TASK, fileResourceCleanUpTask, Scheduler.CRON_DAILY_2AM );
         scheduler.scheduleTask( DataStatisticsTask.KEY_TASK, dataStatisticsTask, Scheduler.CRON_DAILY_2AM );
+        scheduler.scheduleTask( CredentialsExpiryAlertTask.KEY_TASK, credentialsExpiryAlertTask, Scheduler.CRON_DAILY_2AM );
     }
     
     @Override

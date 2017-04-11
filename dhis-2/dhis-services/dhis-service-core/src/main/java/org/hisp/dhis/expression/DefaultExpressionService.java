@@ -439,6 +439,7 @@ public class DefaultExpressionService
                 {
                     operand.setCategoryOptionCombo( categoryService.getDataElementCategoryOptionCombo( operand.getOptionComboId() ) );                    
                 }
+                
                 operandsInExpression.add( operand );
             }
         }

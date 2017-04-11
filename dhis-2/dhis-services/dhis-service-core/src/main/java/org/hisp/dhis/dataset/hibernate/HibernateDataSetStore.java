@@ -28,12 +28,10 @@ package org.hisp.dhis.dataset.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
 import java.util.List;
 
 import com.google.common.collect.Lists;
 import org.hibernate.criterion.Restrictions;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.DataSet;
@@ -95,15 +93,6 @@ public class HibernateDataSetStore
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<DataSet> getDataSetsBySources( Collection<OrganisationUnit> sources )
-    {
-        String hql = "select distinct d from DataSet d join d.sources s where s.id in (:ids)";
-
-        return getQuery( hql ).setParameterList( "ids", IdentifiableObjectUtils.getIdentifiers( sources ) ).list();
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
     public List<DataSet> getDataSetsForMobile( OrganisationUnit source )
     {
         String hql = "from DataSet d where :source in elements(d.sources) and d.mobile = true";
@@ -123,14 +112,5 @@ public class HibernateDataSetStore
         final String hql = "from DataSet d where d.dataEntryForm = :dataEntryForm";
 
         return getQuery( hql ).setEntity( "dataEntryForm", dataEntryForm ).list();
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public List<DataSet> getDataSetsForMobile()
-    {
-        String hql = "from DataSet d where d.mobile = true";
-        
-        return getQuery( hql ).list();
     }
 }

@@ -41,9 +41,6 @@ public class ProgramTrackedEntityAttributeDimensionItemSchemaDescriptor implemen
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( ProgramStageDataElement.class, SINGULAR, PLURAL );
-        schema.setMetadata( false );
-
-        return schema;
+        return new Schema( ProgramStageDataElement.class, SINGULAR, PLURAL );
     }
 }

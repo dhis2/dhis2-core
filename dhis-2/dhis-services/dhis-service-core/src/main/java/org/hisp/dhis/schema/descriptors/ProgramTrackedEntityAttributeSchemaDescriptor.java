@@ -46,9 +46,6 @@ public class ProgramTrackedEntityAttributeSchemaDescriptor implements SchemaDesc
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( ProgramTrackedEntityAttribute.class, SINGULAR, PLURAL );
-        schema.setMetadata( false );
-
-        return schema;
+        return new Schema( ProgramTrackedEntityAttribute.class, SINGULAR, PLURAL );
     }
 }

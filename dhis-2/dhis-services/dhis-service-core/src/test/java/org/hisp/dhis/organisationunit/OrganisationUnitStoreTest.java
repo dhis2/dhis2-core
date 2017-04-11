@@ -318,25 +318,7 @@ public class OrganisationUnitStoreTest
         assertEquals( 3, ous.size() );
         assertTrue( ous.containsAll( Sets.newHashSet( ouB, ouD, ouE ) ) );
     }
-    
-    @Test
-    public void testGetWithCategoryOptions()
-    {
-        ouA.addCategoryOption( coA );
-        ouA.addCategoryOption( coB );
-        ouC.addCategoryOption( coA );
         
-        orgUnitStore.save( ouA );
-        orgUnitStore.save( ouB );
-        orgUnitStore.save( ouC );
-        
-        List<OrganisationUnit> units = orgUnitStore.getOrganisationUnitsWithCategoryOptions();
-        
-        assertEquals( 2, units.size() );
-        assertTrue( units.contains( ouA ) );
-        assertTrue( units.contains( ouC ) );
-    }
-    
     // -------------------------------------------------------------------------
     // OrganisationUnitLevel
     // -------------------------------------------------------------------------

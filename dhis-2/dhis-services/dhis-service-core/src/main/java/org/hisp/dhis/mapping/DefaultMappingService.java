@@ -156,12 +156,6 @@ public class DefaultMappingService
         return mapStore.getAll();
     }
 
-    @Override
-    public List<Map> getMapsBetweenLikeName( String name, int first, int max )
-    {
-        return mapStore.getAllLikeName( name, first, max );
-    }
-
     // -------------------------------------------------------------------------
     // MapView
     // -------------------------------------------------------------------------
@@ -234,12 +228,6 @@ public class DefaultMappingService
     public List<MapView> getAllMapViews()
     {
         return mapViewStore.getAll();
-    }
-
-    @Override
-    public List<MapView> getMapViewsBetweenByName( String name, int first, int max )
-    {
-        return mapViewStore.getAllLikeName( name, first, max );
     }
 
     @Override

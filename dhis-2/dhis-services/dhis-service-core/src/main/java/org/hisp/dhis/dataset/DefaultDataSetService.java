@@ -29,14 +29,11 @@ package org.hisp.dhis.dataset;
  */
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.QueryParserException;
@@ -76,13 +73,6 @@ public class DefaultDataSetService
     public void setLockExceptionStore( LockExceptionStore lockExceptionStore )
     {
         this.lockExceptionStore = lockExceptionStore;
-    }
-
-    private OrganisationUnitService organisationUnitService;
-
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
-    {
-        this.organisationUnitService = organisationUnitService;
     }
 
     private CurrentUserService currentUserService;
@@ -140,30 +130,6 @@ public class DefaultDataSetService
     }
 
     @Override
-    public List<DataSet> getDataSetByName( String name )
-    {
-        return new ArrayList<>( dataSetStore.getAllEqName( name ) );
-    }
-
-    @Override
-    public List<DataSet> getDataSetByShortName( String shortName )
-    {
-        return new ArrayList<>( dataSetStore.getAllEqShortName( shortName ) );
-    }
-
-    @Override
-    public DataSet getDataSetByCode( String code )
-    {
-        return dataSetStore.getByCode( code );
-    }
-
-    @Override
-    public List<DataSet> getDataSetsBySources( Collection<OrganisationUnit> sources )
-    {
-        return dataSetStore.getDataSetsBySources( sources );
-    }
-
-    @Override
     public List<DataSet> getDataSetsByDataEntryForm( DataEntryForm dataEntryForm )
     {
         return dataSetStore.getDataSetsByDataEntryForm( dataEntryForm );
@@ -188,21 +154,9 @@ public class DefaultDataSetService
     }
 
     @Override
-    public List<DataSet> getDataSetsByUidNoAcl( Collection<String> uids )
-    {
-        return dataSetStore.getByUidNoAcl( uids );
-    }
-    
-    @Override
     public List<DataSet> getDataSetsForMobile( OrganisationUnit source )
     {
         return dataSetStore.getDataSetsForMobile( source );
-    }
-
-    @Override
-    public List<DataSet> getDataSetsForMobile()
-    {
-        return dataSetStore.getDataSetsForMobile();
     }
 
     @Override
@@ -348,24 +302,6 @@ public class DefaultDataSetService
         }
 
         return dataApprovalService.isApproved( dataSet.getWorkflow(), period, organisationUnit, attributeOptionCombo );
-    }
-
-    @Override
-    public void mergeWithCurrentUserOrganisationUnits( DataSet dataSet, Collection<OrganisationUnit> mergeOrganisationUnits )
-    {
-        Set<OrganisationUnit> selectedOrgUnits = Sets.newHashSet( dataSet.getSources() );
-
-        OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
-        params.setParents( currentUserService.getCurrentUser().getOrganisationUnits() );
-
-        Set<OrganisationUnit> userOrganisationUnits = Sets.newHashSet( organisationUnitService.getOrganisationUnitsByQuery( params ) );
-
-        selectedOrgUnits.removeAll( userOrganisationUnits );
-        selectedOrgUnits.addAll( mergeOrganisationUnits );
-
-        dataSet.updateOrganisationUnits( selectedOrgUnits );
-
-        updateDataSet( dataSet );
     }
 
     @Override

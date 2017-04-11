@@ -38,6 +38,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataelement.DataElement;
@@ -59,7 +60,7 @@ import java.util.stream.Collectors;
  */
 @JacksonXmlRootElement( localName = "programStage", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramStage
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     private String description;
 
@@ -78,7 +79,7 @@ public class ProgramStage
     private Integer standardInterval;
 
     private String executionDateLabel;
-    
+
     private String dueDateLabel;
 
     private Set<ProgramNotificationTemplate> notificationTemplates = new HashSet<>();
@@ -139,15 +140,15 @@ public class ProgramStage
             .filter( element -> element.getDataElement() != null )
             .map( ProgramStageDataElement::getDataElement ).collect( Collectors.toList() );
     }
-    
+
     public boolean addDataElement( DataElement dataElement, Integer sortOrder )
     {
         ProgramStageDataElement element = new ProgramStageDataElement( this, dataElement, false, sortOrder );
         element.setAutoFields();
-        
-        return this.programStageDataElements.add( element );        
+
+        return this.programStageDataElements.add( element );
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public FormType getFormType()
@@ -333,7 +334,7 @@ public class ProgramStage
     {
         this.executionDateLabel = executionDateLabel;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @PropertyRange( min = 2 )

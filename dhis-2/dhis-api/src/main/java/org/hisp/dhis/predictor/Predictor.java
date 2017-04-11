@@ -39,6 +39,7 @@ import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataelement.DataElement;
@@ -57,7 +58,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "Predictor", namespace = DxfNamespaces.DXF_2_0 )
 public class Predictor
-    extends BaseNameableObject
+    extends BaseNameableObject implements MetadataObject
 {
     /**
      * The data element into which the predictor writes

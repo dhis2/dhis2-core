@@ -148,6 +148,11 @@ public class BaseIdentifiableObject
      */
     protected transient String displayName;
 
+    /**
+     * Last user updated this object
+     */
+    private User lastUpdatedBy;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -289,6 +294,20 @@ public class BaseIdentifiableObject
     public void setCreated( Date created )
     {
         this.created = created;
+    }
+
+    @Override
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public User getLastUpdatedBy()
+    {
+        return lastUpdatedBy;
+    }
+
+    public void setLastUpdatedBy( User lastUpdatedBy )
+    {
+        this.lastUpdatedBy = lastUpdatedBy;
     }
 
     @Override

@@ -164,6 +164,24 @@ public class DataElementOperand
     // -------------------------------------------------------------------------
 
     @Override
+    public String getUid()
+    {
+        String uid = null;
+        
+        if ( dataElement != null )
+        {
+            uid = dataElement.getUid();
+        }
+        
+        if ( categoryOptionCombo != null && !categoryOptionCombo.isDefault() )
+        {
+            uid += SEPARATOR + categoryOptionCombo.getUid();
+        }
+        
+        return uid;
+    }
+    
+    @Override
     public String getName()
     {
         if ( name != null )
@@ -202,65 +220,6 @@ public class DataElementOperand
         }
 
         return shortName;
-    }
-
-    /**
-     * Returns a pretty-print name based on the given data element and category
-     * option combo.
-     *
-     * @param dataElement         the data element.
-     * @param categoryOptionCombo the category option combo.
-     * @return the name.
-     */
-    public static String getPrettyName( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo )
-    {
-        if ( dataElement == null ) // Invalid
-        {
-            return null;
-        }
-
-        if ( categoryOptionCombo == null ) // Total
-        {
-            return dataElement.getDisplayName() + SPACE + NAME_TOTAL;
-        }
-
-        return categoryOptionCombo.isDefault() ? dataElement.getDisplayName() : dataElement.getDisplayName() + SPACE + categoryOptionCombo.getName();
-    }
-
-    /**
-     * Updates all transient properties.
-     *
-     * @param dataElement
-     * @param categoryOptionCombo
-     */
-    public void updateProperties( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo )
-    {
-        this.dataElementId = dataElement.getUid();
-        this.optionComboId = categoryOptionCombo.getUid();
-        this.operandId = dataElementId + SEPARATOR + optionComboId;
-        this.operandName = getPrettyName( dataElement, categoryOptionCombo );
-        this.legendSets = dataElement.getLegendSets();
-        this.aggregationType = dataElement.getAggregationType();
-
-        this.uid = dataElementId + SEPARATOR + optionComboId;
-        this.name = getPrettyName( dataElement, categoryOptionCombo );
-    }
-
-    /**
-     * Updates all transient properties.
-     *
-     * @param dataElement
-     */
-    public void updateProperties( DataElement dataElement )
-    {
-        this.dataElementId = dataElement.getUid();
-        this.operandId = String.valueOf( dataElementId );
-        this.operandName = getPrettyName( dataElement, null );
-        this.legendSets = dataElement.getLegendSets();
-        this.aggregationType = dataElement.getAggregationType();
-
-        this.uid = dataElementId;
-        this.name = getPrettyName( dataElement, null );
     }
 
     /**
@@ -409,11 +368,6 @@ public class DataElementOperand
     {
         final int prime = 31;
         int result = 1;
-
-        if ( dataElement != null && categoryOptionCombo != null )
-        {
-            updateProperties( dataElement, categoryOptionCombo );
-        }
 
         result = prime * result + ((dataElement == null) ? 0 : dataElement.hashCode());
         result = prime * result + ((categoryOptionCombo == null) ? 0 : categoryOptionCombo.hashCodeIdentifiableObject());

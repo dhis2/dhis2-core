@@ -46,9 +46,6 @@ public class UserAccessSchemaDescriptor implements SchemaDescriptor
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( UserAccess.class, SINGULAR, PLURAL );
-        schema.setMetadata( false );
-
-        return schema;
+        return new Schema( UserAccess.class, SINGULAR, PLURAL );
     }
 }

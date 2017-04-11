@@ -28,12 +28,12 @@ package org.hisp.dhis.resourcetable;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Optional;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.CodeGenerator;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Lars Helge Overland
@@ -86,11 +86,6 @@ public abstract class ResourceTable<T>
         return "alter table " + getTempTableName() + " rename to " + getTableName() + ";";
     }
     
-    public final String getAnalyzeTableStatement()
-    {
-        return "analyze " + getTableName() + ";";
-    }
-
     // -------------------------------------------------------------------------
     // Protected methods
     // -------------------------------------------------------------------------

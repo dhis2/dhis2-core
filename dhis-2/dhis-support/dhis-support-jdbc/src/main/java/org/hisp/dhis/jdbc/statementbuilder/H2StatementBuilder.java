@@ -51,7 +51,13 @@ public class H2StatementBuilder
     {
         return null;
     }
-    
+
+    @Override
+    public String getAnalyze( String table )
+    {
+        return null;
+    }
+
     @Override
     public String getTableOptions( boolean autoVacuum )
     {
