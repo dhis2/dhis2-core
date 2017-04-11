@@ -266,8 +266,8 @@ public class ProgramIndicatorServiceTest
         // ProgramIndicator
         // ---------------------------------------------------------------------
 
-        String expressionA = "( " + KEY_PROGRAM_VARIABLE + "{" + ProgramIndicator.VAR_ENROLLMENT_DATE + "} - " + KEY_PROGRAM_VARIABLE + "{"
-            + ProgramIndicator.VAR_INCIDENT_DATE + "} )  / " + ProgramIndicator.KEY_CONSTANT + "{" + constantA.getUid() + "}";
+        String expressionA = "( d2:daysBetween(" + KEY_PROGRAM_VARIABLE + "{" + ProgramIndicator.VAR_ENROLLMENT_DATE + "}, " + KEY_PROGRAM_VARIABLE + "{"
+            + ProgramIndicator.VAR_INCIDENT_DATE + "}) )  / " + ProgramIndicator.KEY_CONSTANT + "{" + constantA.getUid() + "}";
         indicatorA = createProgramIndicator( 'A', programA, expressionA, null );
         programA.getProgramIndicators().add( indicatorA );
 
@@ -379,7 +379,7 @@ public class ProgramIndicatorServiceTest
         assertEquals( "70", description );
 
         description = programIndicatorService.getExpressionDescription( indicatorA.getExpression() );
-        assertEquals( "( Enrollment date - Incident date )  / ConstantA", description );
+        assertEquals( "( d2:daysBetween(Enrollment date, Incident date) )  / ConstantA", description );
     }
 
     @Test
