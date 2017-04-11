@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
@@ -37,7 +39,6 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.datavalueset.tasks.ImportDataValueTask;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.TaskCategory;
@@ -75,6 +76,8 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.*;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class DataValueSetController
 {
+    private static final Log log = LogFactory.getLog( DataValueSetController.class );
+
     public static final String RESOURCE_PATH = "/dataValueSets";
 
     @Autowired
@@ -233,11 +236,21 @@ public class DataValueSetController
         }
         else
         {
-            ImportSummary summary = adxDataService.saveDataValueSet( request.getInputStream(), importOptions, null );
-            summary.setImportOptions( importOptions );
+            try
+            {
+                ImportSummary summary = adxDataService.saveDataValueSet( request.getInputStream(), importOptions, null );
 
-            response.setContentType( CONTENT_TYPE_XML );
-            renderService.toXml( response.getOutputStream(), summary );
+                summary.setImportOptions( importOptions );
+
+                response.setContentType( CONTENT_TYPE_XML );
+                renderService.toXml( response.getOutputStream(), summary );
+            }
+            catch ( Exception ex )
+            {
+                log.error( "ADX Import error: ", ex );
+
+                throw ex;
+            }
         }
     }
 

@@ -36,7 +36,6 @@ import org.hisp.dhis.common.IdSchemes;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.datavalue.DataExportParams;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.scheduling.TaskId;
 

@@ -61,7 +61,6 @@ import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -604,7 +603,6 @@ public class DefaultAdxDataService
             }
             else
             {
-                log.debug("Category combo " + catCombo. + catCombo.getName() + " must have " + categoryMap.get( category ).getName() )
                 throw new AdxException(
                     "Category combo " + catCombo.getName() + " must have " + categoryMap.get( category ).getName() );
             }
