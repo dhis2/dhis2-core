@@ -180,6 +180,12 @@ public class DefaultAnalyticsSecurityManager
         return builder.build();
     }
 
+    /**
+     * Applies organisation unit security constraint.
+     * 
+     * @param builder the data query parameters builder.
+     * @param params the data query parameters.
+     */
     private void applyOrganisationUnitConstraint( DataQueryParams.Builder builder, DataQueryParams params )
     {
         User user = currentUserService.getCurrentUser();
@@ -216,7 +222,13 @@ public class DefaultAnalyticsSecurityManager
 
         log.debug( String.format( "User: %s constrained by data view organisation units", user.getUsername() ) );        
     }
-    
+
+    /**
+     * Applies user security constraint.
+     * 
+     * @param builder the data query parameters builder.
+     * @param params the data query parameters.
+     */
     private void applyUserConstraints( DataQueryParams.Builder builder, DataQueryParams params )
     {
         User user = currentUserService.getCurrentUser();
