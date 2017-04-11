@@ -75,6 +75,23 @@ public class DefaultProgramIndicatorService
         put( DaysBetweenSqlFunction.KEY, new DaysBetweenSqlFunction() ).
         put( ConditionalSqlFunction.KEY, new ConditionalSqlFunction() ).
         put( HasValueSqlFunction.KEY, new HasValueSqlFunction() ).build();
+    
+    private static final Map<String, String> VARIABLE_SAMPLE_VALUE_MAP = ImmutableMap.<String, String>builder().
+        put( ProgramIndicator.VAR_COMPLETED_DATE, "'2017-07-08'" ).
+        put( ProgramIndicator.VAR_CURRENT_DATE, "'2017-07-08'" ).
+        put( ProgramIndicator.VAR_DUE_DATE, "'2017-07-08'" ).
+        put( ProgramIndicator.VAR_ENROLLMENT_COUNT, "1" ).
+        put( ProgramIndicator.VAR_ENROLLMENT_DATE, "'2017-07-08'" ).
+        put( ProgramIndicator.VAR_ENROLLMENT_STATUS, "'COMPLETED'" ).
+        put( ProgramIndicator.VAR_EVENT_COUNT, "1" ).
+        put( ProgramIndicator.VAR_EVENT_DATE, "'2017-07-08'" ).
+        put( ProgramIndicator.VAR_EXECUTION_DATE, "'2017-07-08'" ).
+        put( ProgramIndicator.VAR_INCIDENT_DATE, "'2017-07-08'" ).
+        put( ProgramIndicator.VAR_PROGRAM_STAGE_ID, "'WZbXY0S00lP'" ).
+        put( ProgramIndicator.VAR_PROGRAM_STAGE_NAME, "'First antenatal care visit'" ).
+        put( ProgramIndicator.VAR_TEI_COUNT, "1" ).
+        put( ProgramIndicator.VAR_VALUE_COUNT, "1" ).
+        put( ProgramIndicator.VAR_ZERO_POS_VALUE_COUNT, "1" ).build();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -444,7 +461,8 @@ public class DefaultProgramIndicatorService
     {
         String expr = getSubstitutedExpression( expression );
 
-        if ( ProgramIndicator.INVALID_IDENTIFIERS_IN_EXPRESSION.equals( expr ) )
+        if ( ProgramIndicator.INVALID_IDENTIFIERS_IN_EXPRESSION.equals( expr ) 
+            || ProgramIndicator.UNKNOWN_VARIABLE.equals( expr ) )
         {
             return expr;
         }
@@ -463,7 +481,8 @@ public class DefaultProgramIndicatorService
     {
         String expr = getSubstitutedExpression( filter );
 
-        if ( ProgramIndicator.INVALID_IDENTIFIERS_IN_EXPRESSION.equals( expr ) )
+        if ( ProgramIndicator.INVALID_IDENTIFIERS_IN_EXPRESSION.equals( expr )
+            || ProgramIndicator.UNKNOWN_VARIABLE.equals( expr ) )
         {
             return expr;
         }
@@ -541,7 +560,16 @@ public class DefaultProgramIndicatorService
             }
             else if ( ProgramIndicator.KEY_PROGRAM_VARIABLE.equals( key ) )
             {
-                matcher.appendReplacement( expr, String.valueOf( 1 ) );
+                String sampleValue = VARIABLE_SAMPLE_VALUE_MAP.get( uid );
+                
+                if ( sampleValue != null )
+                {
+                    matcher.appendReplacement( expr, sampleValue );
+                }
+                else
+                {
+                    return ProgramIndicator.UNKNOWN_VARIABLE;
+                }
             }
         }
 
