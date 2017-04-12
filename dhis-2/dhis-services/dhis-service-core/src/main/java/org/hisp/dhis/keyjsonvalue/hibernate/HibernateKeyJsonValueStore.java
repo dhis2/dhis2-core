@@ -35,7 +35,6 @@ import org.hibernate.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueStore;
-import org.hisp.dhis.system.util.DateUtils;
 import java.util.Date;
 
 /**

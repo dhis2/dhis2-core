@@ -49,7 +49,7 @@ import java.util.*;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertFalse;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
-import static org.hisp.dhis.expression.ExpressionService.DAYS_SYMBOL;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.Operator.*;
 
@@ -204,7 +204,7 @@ public class ValidationServiceTest
         expressionJ = new Expression( "#{" + dataElementB.getUid() + suffix + "}", "expressionJ" );
         expressionK = new Expression( "#{" + dataElementC.getUid() + "}", "expressionK", NEVER_SKIP );
         expressionL = new Expression( "#{" + dataElementD.getUid() + "}", "expressionL", NEVER_SKIP );
-        expressionP = new Expression( DAYS_SYMBOL, "expressionP", NEVER_SKIP );
+        expressionP = new Expression( SYMBOL_DAYS, "expressionP", NEVER_SKIP );
         expressionQ = new Expression( "#{" + dataElementE.getUid() + "}", "expressionQ", NEVER_SKIP );
 
         expressionService.addExpression( expressionA );

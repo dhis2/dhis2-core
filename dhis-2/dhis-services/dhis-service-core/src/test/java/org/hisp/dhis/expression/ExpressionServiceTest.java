@@ -29,7 +29,7 @@ package org.hisp.dhis.expression;
  */
 
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
-import static org.hisp.dhis.expression.ExpressionService.DAYS_SYMBOL;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -258,7 +258,7 @@ public class ExpressionServiceTest
         expressionB = "#{" + deC.getUid() + SEPARATOR + coc.getUid() + "}-#{" + deD.getUid() + SEPARATOR
             + coc.getUid() + "}";
         expressionC = "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "}+#{" + deE.getUid() + "}-10";
-        expressionD = "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "}+" + DAYS_SYMBOL;
+        expressionD = "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "}+" + SYMBOL_DAYS;
         expressionE = "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "}*C{" + constantA.getUid() + "}";
         expressionF = "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "}";
         expressionG = expressionF + "+#{" + deB.getUid() + "}-#{" + deC.getUid() + "}";

@@ -63,7 +63,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.google.common.collect.Sets.newHashSet;
-import static org.hisp.dhis.expression.ExpressionService.DAYS_SYMBOL;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
 import static org.junit.Assert.*;
 
 /**
@@ -216,7 +216,7 @@ public class PredictorServiceTest
             "AVG(#{" + dataElementA.getUid() + "})+1.5*STDDEV(#{" + dataElementA.getUid() + "})", "descriptionA" );
         expressionB = new Expression( "#{" + dataElementB.getUid() + "}", "descriptionB" );
         expressionC = new Expression( "1234", "descriptionB" );
-        expressionD = new Expression( DAYS_SYMBOL, "descriptionB" );
+        expressionD = new Expression( SYMBOL_DAYS, "descriptionB" );
 
         expressionService.addExpression( expressionA );
         expressionService.addExpression( expressionB );
