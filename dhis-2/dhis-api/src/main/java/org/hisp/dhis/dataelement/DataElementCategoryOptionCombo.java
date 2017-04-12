@@ -84,6 +84,11 @@ public class DataElementCategoryOptionCombo
     {
     }
 
+    public DataElementCategoryOptionCombo( String uid )
+    {
+        this.uid = uid;
+    }
+
     // -------------------------------------------------------------------------
     // hashCode, equals and toString
     // -------------------------------------------------------------------------
