@@ -495,7 +495,7 @@ public class HibernateDataValueStore
 
             for ( DataElementOperand deo : deos )
             {
-                if ( deo.getOptionComboId() == null || deo.getOptionComboId() == categoryOptionComboUid )
+                if ( deo.getCategoryOptionCombo() == null || deo.getCategoryOptionCombo().getUid() == categoryOptionComboUid )
                 {
                     Double existingValue = result.getValue(period, categoryOptionComboUid, deo );
 
@@ -548,12 +548,12 @@ public class HibernateDataValueStore
 
         for ( DataElementOperand deo : deos )
         {
-            if ( deo.getOptionComboId() == null )
+            if ( deo.getCategoryOptionCombo() == null )
             {
                 return "";
             }
 
-            restiction += snippit + deo.getOptionComboId();
+            restiction += snippit + deo.getCategoryOptionCombo().getUid();
 
             snippit = ", ";
         }
