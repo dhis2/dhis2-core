@@ -68,12 +68,13 @@ public class HibernateKeyJsonValueStore
     public List<String> getKeysInNamespace( String namespace, Date lastUpdated )
     {
         String hql = "select key from KeyJsonValue where namespace = :namespace";
-        if(lastUpdated != null) {
+        if ( lastUpdated != null )
+        {
             hql += " and lastupdated >= :lastUpdated ";
         }
-        Query query = getQuery( hql );
-        query.setString( "namespace", namespace );
-        if(lastUpdated != null) {
+        Query query = getQuery( hql ).setString( "namespace", namespace );
+        if ( lastUpdated != null )
+        {
             query.setTimestamp( "lastUpdated", lastUpdated );
         }
 
