@@ -29,6 +29,7 @@ package org.hisp.dhis.keyjsonvalue;
  */
 
 import java.util.List;
+import java.util.Date;
 
 /**
  * @author Stian Sandvold
@@ -47,6 +48,14 @@ public interface KeyJsonValueService
      * @return a list of strings representing the keys from the namespace
      */
     List<String> getKeysInNamespace( String namespace );
+
+    /**
+     * Retrieves a list of keys from a namespace which are updated after lastUpdated time
+     * @param namespace the namespace to retrieve keys from
+     * @param lastUpdated the lastUpdated time to retrieve keys from
+     * @return a list of strings representing the keys from the namespace
+     */
+    List<String> getKeysInNamespace( String namespace, Date lastUpdated );
 
     /**
      * Deletes all keys associated with a given namespace

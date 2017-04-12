@@ -31,9 +31,12 @@ package org.hisp.dhis.keyjsonvalue.hibernate;
 import java.util.List;
 
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueStore;
+import org.hisp.dhis.system.util.DateUtils;
+import java.util.Date;
 
 /**
  * @author Stian Sandvold
@@ -56,8 +59,26 @@ public class HibernateKeyJsonValueStore
     public List<String> getKeysInNamespace( String namespace )
     {
         String hql = "select key from KeyJsonValue where namespace = :namespace";
-        
+
         return getQuery( hql ).setString( "namespace", namespace ).list();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public List<String> getKeysInNamespace( String namespace, Date lastUpdated )
+    {
+        String hql = "select key from KeyJsonValue where namespace = :namespace";
+        if ( lastUpdated != null )
+        {
+            hql += " and lastupdated >= :lastUpdated ";
+        }
+        Query query = getQuery( hql ).setString( "namespace", namespace );
+        if ( lastUpdated != null )
+        {
+            query.setTimestamp( "lastUpdated", lastUpdated );
+        }
+
+        return query.list();
     }
 
     @Override

@@ -51,6 +51,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+import java.util.Date;
 
 /**
  * @author Stian Sandvold
@@ -87,7 +88,7 @@ public class KeyJsonValueController
      * Returns a list of strings representing keys in the given namespace.
      */
     @RequestMapping( value = "/{namespace}", method = RequestMethod.GET, produces = "application/json" )
-    public @ResponseBody List<String> getKeysInNamespace( @PathVariable String namespace, HttpServletResponse response )
+    public @ResponseBody List<String> getKeysInNamespace( @RequestParam( required = false ) Date lastUpdated, @PathVariable String namespace, HttpServletResponse response )
         throws IOException, WebMessageException
     {
         if ( !keyJsonValueService.getNamespaces().contains( namespace ) )
@@ -96,7 +97,7 @@ public class KeyJsonValueController
                 WebMessageUtils.notFound( "The namespace '" + namespace + "' was not found." ) );
         }
 
-        return keyJsonValueService.getKeysInNamespace( namespace );
+        return keyJsonValueService.getKeysInNamespace( namespace, lastUpdated );
     }
 
     /**
