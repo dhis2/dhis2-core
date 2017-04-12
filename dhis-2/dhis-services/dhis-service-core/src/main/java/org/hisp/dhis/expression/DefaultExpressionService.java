@@ -291,8 +291,8 @@ public class DefaultExpressionService
     private Double getSimpleExpressionValue( Expression expression, Matcher expressionMatch,
         Map<? extends DimensionalItemObject, Double> valueMap )
     {
-        String elementId = expressionMatch.group( 1 );
-        String comboId = StringUtils.trimToNull( expressionMatch.group( 2 ) );
+        String elementId = expressionMatch.group( GROUP_DATA_ELEMENT );
+        String comboId = StringUtils.trimToNull( expressionMatch.group( GROUP_CATEGORORY_OPTION_COMBO ) );
         DataElement dataElement = dataElementService.getDataElement( elementId );
         
         //TODO this needs to be rewritten
@@ -369,7 +369,7 @@ public class DefaultExpressionService
     public Set<DataElement> getDataElementsInExpression( String expression )
     {
         return getIdObjectsInExpression( OPERAND_PATTERN, expression,
-            ( m ) -> dataElementService.getDataElement( m.group( 1 ) ) );
+            ( m ) -> dataElementService.getDataElement( m.group( GROUP_DATA_ELEMENT ) ) );
     }
 
     @Override
@@ -432,9 +432,9 @@ public class DefaultExpressionService
 
             while ( matcher.find() )
             {
-                String dataElementUid = StringUtils.trimToNull( matcher.group( 1 ) );
+                String dataElementUid = StringUtils.trimToNull( matcher.group( GROUP_DATA_ELEMENT ) );
 
-                String optionComboUid = StringUtils.trimToNull( matcher.group( 2 ) );
+                String optionComboUid = StringUtils.trimToNull( matcher.group( GROUP_CATEGORORY_OPTION_COMBO ) );
 
                 DataElement dataElement = dataElementService.getDataElement( dataElementUid );
 
@@ -795,7 +795,7 @@ public class DefaultExpressionService
             {
                 final StringBuilder replace = new StringBuilder( PAR_OPEN );
 
-                String de = matcher.group( 1 );
+                String de = matcher.group( GROUP_DATA_ELEMENT );
 
                 List<String> cocs = dataElementOptionComboMap.get( de );
 
@@ -831,7 +831,7 @@ public class DefaultExpressionService
             {
                 final StringBuilder replace = new StringBuilder( PAR_OPEN );
 
-                final DataElement dataElement = idObjectManager.getNoAcl( DataElement.class, matcher.group( 1 ) );
+                final DataElement dataElement = idObjectManager.getNoAcl( DataElement.class, matcher.group( GROUP_DATA_ELEMENT ) );
 
                 for ( DataElementCategoryOptionCombo categoryOptionCombo : dataElement.getCategoryOptionCombos() )
                 {

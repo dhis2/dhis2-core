@@ -74,7 +74,7 @@ public interface ExpressionService
     String DAYS_SYMBOL = "[days]";
 
     String VARIABLE_EXPRESSION = "(#|D|A|I)\\{(([a-zA-Z]\\w{10})\\.?(\\w*))\\}";
-    String OPERAND_EXPRESSION = "#\\{([a-zA-Z]\\w{10})\\.?(\\w*)\\}";
+    String OPERAND_EXPRESSION = "#\\{(?<de>[a-zA-Z]\\w{10})(\\.(?<coc>[a-zA-Z]\\w{10}))?\\}";
     String PROGRAM_DATA_ELEMENT_EXPRESSION = "D\\{([a-zA-Z]\\w{10})\\.?([a-zA-Z]\\w{10})\\}";
     String DATA_ELEMENT_TOTAL_EXPRESSION = "#\\{([a-zA-Z]\\w{10})\\}";
     String OPTION_COMBO_OPERAND_EXPRESSION = "#\\{([a-zA-Z]\\w{10})\\.([a-zA-Z]\\w{10})\\}";
@@ -90,6 +90,9 @@ public interface ExpressionService
     Pattern CONSTANT_PATTERN = Pattern.compile( CONSTANT_EXPRESSION );
     Pattern OU_GROUP_PATTERN = Pattern.compile( OU_GROUP_EXPRESSION );
     Pattern DAYS_PATTERN = Pattern.compile( DAYS_EXPRESSION );
+    
+    String GROUP_DATA_ELEMENT = "de";
+    String GROUP_CATEGORORY_OPTION_COMBO = "coc";
 
     /**
      * Adds a new Expression to the database.
