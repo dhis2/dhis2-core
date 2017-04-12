@@ -28,13 +28,6 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.regex.Matcher;
-
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.expression.ExpressionService;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -89,63 +82,6 @@ public class DefaultDataElementOperandService
     public DataElementOperand getDataElementOperand( int id )
     {
         return dataElementOperandStore.get( id );
-    }
-
-    @Override
-    public DataElementOperand getDataElementOperandByUid( String uid )
-    {
-        if ( StringUtils.isEmpty( uid ) )
-        {
-            return null;
-        }
-
-        Matcher matcher = ExpressionService.OPERAND_UID_PATTERN.matcher( uid );
-
-        matcher.find();
-
-        String deUid = matcher.group( 1 );
-        String cocUid = matcher.group( 2 );
-
-        DataElement dataElement = dataElementService.getDataElement( deUid );
-
-        if ( dataElement == null )
-        {
-            return null;
-        }
-
-        DataElementCategoryOptionCombo categoryOptionCombo = null;
-
-        if ( cocUid != null )
-        {
-            categoryOptionCombo = categoryService.getDataElementCategoryOptionCombo( cocUid );
-        }
-
-        return new DataElementOperand( dataElement, categoryOptionCombo );
-    }
-
-    @Override
-    public List<DataElementOperand> getDataElementOperandsByUid( Collection<String> uids )
-    {
-        List<DataElementOperand> list = new ArrayList<>();
-
-        for ( String uid : uids )
-        {
-            list.add( getDataElementOperandByUid( uid ) );
-        }
-
-        return list;
-    }
-    
-    @Override
-    public List<DataElementOperand> getAllDataElementOperands()
-    {
-        return dataElementOperandStore.getAllOrderedName();
-    }
-
-    @Override
-    public List<DataElementOperand> getAllDataElementOperands( int first, int max )
-    {
-        return dataElementOperandStore.getAllOrderedName( first, max );
     }
     
     @Override
