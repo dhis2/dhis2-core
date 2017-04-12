@@ -89,16 +89,6 @@ public class DataElementOperand
         this.categoryOptionCombo = categoryOptionCombo;
     }
 
-    public DataElementOperand( String dataElementUid, String categoryOptionComboUid )
-    {
-        this.dataElement = new DataElement( null, dataElementUid );
-
-        if ( categoryOptionComboUid != null )
-        {
-            this.categoryOptionCombo = new DataElementCategoryOptionCombo( categoryOptionComboUid );
-        }
-    }
-
     // -------------------------------------------------------------------------
     // DimensionalItemObject
     // -------------------------------------------------------------------------
@@ -206,6 +196,29 @@ public class DataElementOperand
         }
 
         return shortName;
+    }
+    
+    /**
+     * Creates a {@link DataElementOperand} instance from the given identifiers.
+     * 
+     * @param dataElementUid the data element identifier.
+     * @param categoryOptionComboUid the category option combo identifier.
+     * @return a data element operand instance. 
+     */
+    public static DataElementOperand instance( String dataElementUid, String categoryOptionComboUid )
+    {
+        DataElement de = new DataElement();
+        de.setUid( dataElementUid );
+        
+        DataElementCategoryOptionCombo coc = null;
+        
+        if ( categoryOptionComboUid != null )
+        {
+            coc = new DataElementCategoryOptionCombo();
+            coc.setUid( categoryOptionComboUid );
+        }
+        
+        return new DataElementOperand( de, coc );
     }
 
     // -------------------------------------------------------------------------

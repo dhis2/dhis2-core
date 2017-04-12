@@ -324,7 +324,7 @@ public class DefaultExpressionService
 
             for ( DataElementCategoryOptionCombo optionCombo : optionCombos )
             {
-                deo = new DataElementOperand( elementId, optionCombo.getUid() );
+                deo = DataElementOperand.instance( elementId, optionCombo.getUid() );
                 Double value = valueMap.get( deo );
 
                 if ( value != null )
@@ -342,7 +342,7 @@ public class DefaultExpressionService
         }
         else
         {
-            DataElementOperand deo = new DataElementOperand( elementId, comboId );
+            DataElementOperand deo = DataElementOperand.instance( elementId, comboId );
 
             return getDeoValueFromValueMap( valueMap, deo );
         }

@@ -166,13 +166,6 @@ public class DataElement
         this.name = name;
     }
 
-    public DataElement( String name, String uid )
-    {
-        this();
-        this.name = name;
-        this.uid = uid;
-    }
-
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
