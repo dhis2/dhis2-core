@@ -36,7 +36,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.AuthorityType;
-import org.hisp.dhis.security.acl.AccessStringHelper.Permission;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -394,20 +393,21 @@ public class DefaultAclService implements AclService
             return errorReports;
         }
 
+        if ( !AccessStringHelper.isValid( object.getPublicAccess() ) )
+        {
+            errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3010, object.getPublicAccess() ) );
+            return errorReports;
+        }
+
         boolean canMakePublic = canCreatePublic( user, object.getClass() );
         boolean canMakePrivate = canCreatePrivate( user, object.getClass() );
-        boolean canExternalize = canExternalize( user, object.getClass() );
+        boolean canMakeExternal = canExternalize( user, object.getClass() );
 
         if ( object.getExternalAccess() )
         {
-            if ( !canExternalize )
+            if ( !canMakeExternal )
             {
                 errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3006, user.getUsername(), object.getClass() ) );
-            }
-
-            if ( !AccessStringHelper.isEnabled( object.getPublicAccess(), Permission.READ ) )
-            {
-                errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3007, user.getUsername(), object.getClass() ) );
             }
         }
 

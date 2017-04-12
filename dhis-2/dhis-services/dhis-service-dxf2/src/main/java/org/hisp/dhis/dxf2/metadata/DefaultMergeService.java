@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.metadata;
 
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
@@ -58,6 +59,12 @@ public class DefaultMergeService implements MergeService
 
         for ( Property property : schema.getProperties() )
         {
+            // passwords should only be merged manually
+            if ( property.is( PropertyType.PASSWORD ) )
+            {
+                continue;
+            }
+
             if ( property.isCollection() )
             {
                 Collection sourceObject = ReflectionUtils.invokeMethod( source, property.getGetterMethod() );

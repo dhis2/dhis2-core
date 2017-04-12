@@ -64,7 +64,7 @@ public class JdbcCompletenessTargetTableManager
     @Override
     public List<AnalyticsTable> getAllTables()
     {
-        return getTables( null );
+        return getTables( new Date() );
     }
     
     @Override
@@ -205,12 +205,6 @@ public class JdbcCompletenessTargetTableManager
         columns.addAll( Lists.newArrayList( ouOpening, ouClosed, coStart, coEnd, ds, ao ) );
         
         return columns;
-    }
-
-    @Override
-    public List<Integer> getDataYears( Date earliest )
-    {
-        return null; // Not relevant
     }
     
     @Override

@@ -143,12 +143,7 @@ public class AddProgramStageSectionAction
             programStage.getProgramStageSections().size() );
         programStageSection.setAutoFields();
 
-        // ---------------------------------------------------------------------
-        // Update program stage
-        // ---------------------------------------------------------------------
 
-        Set<ProgramStageSection> sections = programStage.getProgramStageSections();
-        sections.add( programStageSection );
 
         // ---------------------------------------------------------------------
         // Program indicators
@@ -163,6 +158,14 @@ public class AddProgramStageSectionAction
         }
 
         programStageSection.setProgramIndicators( programIndicators );
+        programStageSection.setProgramStage( programStage );
+
+        // ---------------------------------------------------------------------
+        // Update program stage
+        // ---------------------------------------------------------------------
+
+        Set<ProgramStageSection> sections = programStage.getProgramStageSections();
+        sections.add( programStageSection );
 
         programStage.setProgramStageSections( sections );
         programStageService.updateProgramStage( programStage );

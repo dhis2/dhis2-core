@@ -2973,10 +2973,11 @@ dhis2.de.setOptionNameInField = function( fieldId, value )
 		if ( obj && obj.optionSet && obj.optionSet.options ) {			
 			$.each( obj.optionSet.options, function( inx, option ) {
 				if ( option && option.code == value.val ) {
-                    option.id = option.code;
-                    option.text = option.name;
-                    $( fieldId ).select2('data', option);
-                }
+			          option.id = option.code;
+			          option.text = option.displayName;
+			          $( fieldId ).select2('data', option);
+			          return false;
+				}
 			} );
 		}		
 	} );
@@ -3022,7 +3023,7 @@ dhis2.de.searchOptionSet = function( uid, query, success )
 
                 success( $.map( options, function ( item ) {
                     return {
-                        label: item.name,
+                        label: item.displayName,
                         id: item.code
                     };
                 } ) );
@@ -3051,7 +3052,7 @@ dhis2.de.getOptions = function( uid, query, success )
         success: function ( data ) {
             success( $.map( data.options, function ( item ) {
                 return {
-                    label: item.name,
+                    label: item.displayName,
                     id: item.code
                 };
             } ) );
@@ -3137,7 +3138,7 @@ dhis2.de.insertOptionSets = function()
 		if ( obj && obj.optionSet && obj.optionSet.options ) {
 
                     $.each( obj.optionSet.options, function( inx, option ) {
-                        option.text = option.name;
+                        option.text = option.displayName;
                         option.id = option.code;
                     } );
                     

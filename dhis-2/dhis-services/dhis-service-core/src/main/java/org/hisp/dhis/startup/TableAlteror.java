@@ -129,6 +129,7 @@ public class TableAlteror
         executeSql( "DROP TABLE datadictionaryindicators" );
         executeSql( "DROP TABLE datadictionarydataelements" );
         executeSql( "DROP TABLE datadictionary" );
+        executeSql( "DROP TABLE caseaggregationcondition" );
         executeSql( "ALTER TABLE categoryoptioncombo drop column userid" );
         executeSql( "ALTER TABLE categoryoptioncombo drop column publicaccess" );
         executeSql( "ALTER TABLE categoryoptioncombo alter column name type text" );
@@ -1448,8 +1449,8 @@ public class TableAlteror
     private void upgradeMapViewsToColumns()
     {
         String sql =
-            "insert into mapview_columns " +
-                "select mapviewid, 'dx', 0 " +
+            "insert into mapview_columns(mapviewid, sort_order, dimension) " +
+                "select mapviewid, 0, 'dx' " +
                 "from mapview mv " +
                 "where not exists (" +
                 "select mc.mapviewid " +
@@ -1562,7 +1563,6 @@ public class TableAlteror
         addTranslationTable( listTables, "ProgramStageInstance", "programstageinstancetranslations", "programstageinstance", "programstageinstanceid" );
         addTranslationTable( listTables, "ProgramStageSection", "programstagesectiontranslations", "programstagesection", "programstagesectionid" );
         addTranslationTable( listTables, "ProgramTrackedEntityAttribute", "programattributestranslations", "programtrackedentityattribute", "programtrackedentityattributeid" );
-        addTranslationTable( listTables, "ProgramValidation", "programvalidationtranslations", "programvalidation", "programvalidationid" );
         addTranslationTable( listTables, "ProgramRule", "programruletranslations", "programrule", "programruleid" );
         addTranslationTable( listTables, "ProgramRuleAction", "programruleactiontranslations", "programruleaction", "programruleactionid" );
         addTranslationTable( listTables, "ProgramRuleVariable", "programrulevariabletranslations", "programrulevariable", "programrulevariableid" );

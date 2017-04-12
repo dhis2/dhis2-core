@@ -32,6 +32,7 @@ import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.LegendService;
@@ -49,7 +50,6 @@ import org.hisp.dhis.schema.descriptors.MapSchemaDescriptor;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -149,6 +149,7 @@ public class MapController
         Map newMap = deserializeJsonEntity( request, response );
 
         map.mergeWith( newMap, params.getMergeMode() );
+        map.setUid( uid );
 
         mappingService.updateMap( map );
     }

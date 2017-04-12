@@ -51,6 +51,7 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -110,6 +111,15 @@ public class JdbcAnalyticsTableManager
         log.info( "Approval enabled: " + isApprovalEnabled() );
 
         return null;
+    }
+
+    @Override
+    @Transactional
+    public List<AnalyticsTable> getTables( Date earliest )
+    {
+        log.info( "Get tables using earliest: " + earliest );
+
+        return getTables( getDataYears( earliest ) );
     }
 
     @Override
@@ -389,8 +399,7 @@ public class JdbcAnalyticsTableManager
         return columns;
     }
 
-    @Override
-    public List<Integer> getDataYears( Date earliest )
+    private List<Integer> getDataYears( Date earliest )
     {
         String sql =
             "select distinct(extract(year from pe.startdate)) " +

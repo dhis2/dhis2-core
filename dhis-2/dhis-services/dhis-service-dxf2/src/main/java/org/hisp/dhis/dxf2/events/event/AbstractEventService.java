@@ -769,8 +769,7 @@ public abstract class AbstractEventService
         {
             if ( programStageInstance.getProgramStage().getCaptureCoordinates() )
             {
-                
-                if ( event.getCoordinate().isValid() )
+                if ( event.getCoordinate() != null && event.getCoordinate().isValid() )
                 {
                     programStageInstance.setLatitude( event.getCoordinate().getLatitude() );
                     programStageInstance.setLongitude( event.getCoordinate().getLongitude() );
@@ -786,7 +785,7 @@ public abstract class AbstractEventService
         Program program = getProgram( importOptions.getIdSchemes().getProgramIdScheme(), event.getProgram() );
 
         validateExpiryDays( event, program, programStageInstance );
-        
+
         if ( event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null )
         {
             DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(
@@ -808,7 +807,7 @@ public abstract class AbstractEventService
 
         Set<TrackedEntityDataValue> dataValues = new HashSet<>(
             dataValueService.getTrackedEntityDataValues( programStageInstance ) );
-        Map<String, TrackedEntityDataValue> existingDataValues = getDataElementDataValueMap( dataValues );        
+        Map<String, TrackedEntityDataValue> existingDataValues = getDataElementDataValueMap( dataValues );
 
         for ( DataValue value : event.getDataValues() )
         {

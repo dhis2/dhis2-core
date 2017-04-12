@@ -4,8 +4,6 @@
   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
     http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.2.xsd">
 
-
-
   <bean id="org.hisp.dhis.pushanalysis.PushAnalysisService" class="org.hisp.dhis.pushanalysis.DefaultPushAnalysisService">
     <property name="pushAnalysisStore" ref="org.hisp.dhis.pushanalysis.PushAnalysisStore" />
   </bean>
@@ -21,11 +19,11 @@
   </bean>
 
   <bean id="org.hisp.dhis.datastatistics.DataStatisticsStore" class="org.hisp.dhis.datastatistics.hibernate.HibernateDataStatisticsStore">
-    <property name="clazz" value="org.hisp.dhis.datastatistics.DataStatistics"/>
-    <property name="sessionFactory" ref="sessionFactory"/>
+    <property name="clazz" value="org.hisp.dhis.datastatistics.DataStatistics" />
+    <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
-  <bean id="dataStatisticsTask" class="org.hisp.dhis.datastatistics.DataStatisticsTask" scope="prototype"/>
+  <bean id="dataStatisticsTask" class="org.hisp.dhis.datastatistics.DataStatisticsTask" scope="prototype" />
 
   <!-- ReportTable -->
 
@@ -112,7 +110,9 @@
     <property name="dashboardStore" ref="org.hisp.dhis.dashboard.DashboardStore" />
   </bean>
 
-  <bean id="org.hisp.dhis.dashboard.impl.DashboardItemDeletionHandler" class="org.hisp.dhis.dashboard.DashboardItemDeletionHandler" />
+  <bean id="org.hisp.dhis.dashboard.DashboardDeletionHandler" class="org.hisp.dhis.dashboard.DashboardDeletionHandler" />
+
+  <bean id="org.hisp.dhis.dashboard.DashboardItemDeletionHandler" class="org.hisp.dhis.dashboard.DashboardItemDeletionHandler" />
 
   <!-- Organisation Unit Distribution -->
 
@@ -155,7 +155,7 @@
     <property name="scheduler" ref="scheduler" />
     <property name="tasks">
       <map>
-        <entry key="dataStatisticsTask" value-ref="dataStatisticsTask"/>
+        <entry key="dataStatisticsTask" value-ref="dataStatisticsTask" />
         <entry key="resourceTableTask" value-ref="resourceTableTask" />
         <entry key="resourceTable15MinTask" value-ref="resourceTable15MinTask" />
         <entry key="analyticsAllTask" value-ref="analyticsAllTask" />

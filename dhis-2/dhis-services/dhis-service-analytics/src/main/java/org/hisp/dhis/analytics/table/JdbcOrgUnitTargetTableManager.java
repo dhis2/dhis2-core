@@ -59,7 +59,7 @@ public class JdbcOrgUnitTargetTableManager
     @Override
     public List<AnalyticsTable> getAllTables()
     {
-        return getTables( null );
+        return getTables( new Date() );
     }
     
     @Override
@@ -168,12 +168,6 @@ public class JdbcOrgUnitTargetTableManager
         columns.add( ds );
         
         return columns;
-    }
-
-    @Override
-    public List<Integer> getDataYears( Date earliest )
-    {
-        return null; // Not relevant
     }
     
     @Override

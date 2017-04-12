@@ -1,7 +1,7 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.dashboard;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,34 +28,32 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.program.ProgramValidation;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ProgramValidationSchemaDescriptor implements SchemaDescriptor
+public class DashboardDeletionHandler extends DeletionHandler
 {
-    public static final String SINGULAR = "programValidation";
-
-    public static final String PLURAL = "programValidations";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    @Autowired
+    private DashboardService dashboardService;
 
     @Override
-    public Schema getSchema()
+    protected String getClassName()
     {
-        Schema schema = new Schema( ProgramValidation.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1530 );
+        return Dashboard.class.getSimpleName();
+    }
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PROGRAM_VALIDATION" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAM_VALIDATION" ) ) );
+    @Override
+    public void deleteDashboardItem( DashboardItem dashboardItem )
+    {
+        Dashboard dashboard = dashboardService.getDashboardFromDashboardItem( dashboardItem );
 
-        return schema;
+        if ( dashboard != null )
+        {
+            dashboard.getItems().remove( dashboardItem );
+            dashboardService.updateDashboard( dashboard );
+        }
     }
 }

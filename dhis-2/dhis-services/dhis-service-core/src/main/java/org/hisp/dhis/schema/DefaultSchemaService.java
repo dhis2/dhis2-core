@@ -120,7 +120,6 @@ public class DefaultSchemaService
         add( new ProgramStageSectionSchemaDescriptor() ).
         add( new ProgramTrackedEntityAttributeSchemaDescriptor() ).
         add( new ProgramNotificationTemplateSchemaDescriptor() ).
-        add( new ProgramValidationSchemaDescriptor() ).
         add( new RelationshipTypeSchemaDescriptor() ).
         add( new ReportSchemaDescriptor() ).
         add( new ReportTableSchemaDescriptor() ).

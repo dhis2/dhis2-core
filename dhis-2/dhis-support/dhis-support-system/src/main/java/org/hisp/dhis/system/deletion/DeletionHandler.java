@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.deletion;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.color.Color;
 import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.constant.Constant;
+import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
@@ -87,7 +88,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageSection;
-import org.hisp.dhis.program.ProgramValidation;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -716,15 +717,6 @@ public abstract class DeletionHandler
     {
     }
 
-    public String allowDeleteProgramValidation( ProgramValidation programValidation )
-    {
-        return null;
-    }
-
-    public void deleteProgramValidation( ProgramValidation programValidation )
-    {
-    }
-
     public void deleteProgramIndicator( ProgramIndicator programIndicator )
     {
     }
@@ -833,6 +825,15 @@ public abstract class DeletionHandler
         return null;
     }
 
+    public void deleteDashboard( Dashboard dashboard )
+    {
+    }
+
+    public String allowDeleteDashboard( Dashboard dashboard )
+    {
+        return null;
+    }
+
     public void deleteDashboardItem( DashboardItem dashboardItem )
     {
     }
@@ -903,6 +904,15 @@ public abstract class DeletionHandler
 
     public void deleteProgramDataElement( ProgramDataElement programDataElement )
     {
+    }
+
+    public void deleteProgramTrackedEntityAttribute( ProgramTrackedEntityAttribute attribute )
+    {        
+    }
+    
+    public String allowDeleteProgramTrackedEntityAttribute( ProgramTrackedEntityAttribute attribute )
+    {
+        return null;
     }
 
     public String allowDeleteColorSet( ColorSet colorSet )

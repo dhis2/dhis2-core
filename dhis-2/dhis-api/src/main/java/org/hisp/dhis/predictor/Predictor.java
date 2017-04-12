@@ -31,8 +31,10 @@ package org.hisp.dhis.predictor;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -190,7 +192,9 @@ public class Predictor
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( localName = "organisationUnitLevel", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "organisationUnitLevels", namespace = DxfNamespaces.DXF_2_0 )
     public Set<OrganisationUnitLevel> getOrganisationUnitLevels()
     {
         return organisationUnitLevels;
@@ -292,14 +296,14 @@ public class Predictor
                 description = predictor.getDescription() == null ? description : predictor.getDescription();
                 periodType = predictor.getPeriodType() == null ? periodType : predictor.getPeriodType();
                 output = predictor.getOutput() == null ? output : predictor.getOutput();
-                sequentialSampleCount = ( predictor.getSequentialSampleCount() == null ) ?
-		    sequentialSampleCount : predictor.getSequentialSampleCount();
-                sequentialSkipCount = ( predictor.getSequentialSkipCount() == null ) ?
-		    sequentialSkipCount : predictor.getSequentialSkipCount();
-                annualSampleCount = ( predictor.getAnnualSampleCount() == null ) ? 
-		    annualSampleCount : predictor.getAnnualSampleCount();
-                organisationUnitLevels = ( predictor.getOrganisationUnitLevels() == null ) ?
-		    organisationUnitLevels : predictor.getOrganisationUnitLevels();
+                sequentialSampleCount = (predictor.getSequentialSampleCount() == null) ?
+                    sequentialSampleCount : predictor.getSequentialSampleCount();
+                sequentialSkipCount = (predictor.getSequentialSkipCount() == null) ?
+                    sequentialSkipCount : predictor.getSequentialSkipCount();
+                annualSampleCount = (predictor.getAnnualSampleCount() == null) ?
+                    annualSampleCount : predictor.getAnnualSampleCount();
+                organisationUnitLevels = (predictor.getOrganisationUnitLevels() == null) ?
+                    organisationUnitLevels : predictor.getOrganisationUnitLevels();
             }
 
             if ( generator != null && predictor.getGenerator() != null )

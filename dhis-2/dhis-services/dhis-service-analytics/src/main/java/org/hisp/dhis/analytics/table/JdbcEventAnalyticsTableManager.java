@@ -69,40 +69,30 @@ public class JdbcEventAnalyticsTableManager
     extends AbstractJdbcTableManager
 {
     private static final Set<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
-    
+
     @Override
     @Transactional
     public List<AnalyticsTable> getTables( Date earliest )
     {
-        log.info( "Get tables using earliest: " + earliest + ", spatial support: " + databaseInfo.isSpatialSupport() );
+        log.info( String.format( "Get tables using earliest: %s, spatial support: %b", earliest, databaseInfo.isSpatialSupport() ) );
 
-        return getTables( getDataYears( earliest ) );
-    }
-
-    @Override
-    @Transactional
-    public List<AnalyticsTable> getAllTables()
-    {
-        return getTables( ListUtils.getClosedOpenList( 1500, 2100 ) );
-    }
-    
-    private List<AnalyticsTable> getTables( List<Integer> dataYears )
-    {
         List<AnalyticsTable> tables = new UniqueArrayList<>();
         Calendar calendar = PeriodType.getCalendar();
-
-        Collections.sort( dataYears );
         
         String baseName = getTableName();
-
-        for ( Integer year : dataYears )
+        
+        List<Program> programs = idObjectManager.getAllNoAcl( Program.class );
+        
+        for ( Program program : programs )
         {
-            Period period = PartitionUtils.getPeriod( calendar, year );
+            List<Integer> dataYears = getDataYears( program, earliest );
+
+            Collections.sort( dataYears );
             
-            List<Program> programs = idObjectManager.getAllNoAcl( Program.class );
-            
-            for ( Program program : programs )
+            for ( Integer year : dataYears )
             {
+                Period period = PartitionUtils.getPeriod( calendar, year );
+                
                 AnalyticsTable table = new AnalyticsTable( baseName, null, period, program );
                 List<AnalyticsTableColumn> dimensionColumns = getDimensionColumns( table );
                 table.setDimensionColumns( dimensionColumns );
@@ -111,6 +101,13 @@ public class JdbcEventAnalyticsTableManager
         }
 
         return tables;
+    }
+    
+    @Override
+    @Transactional
+    public List<AnalyticsTable> getAllTables()
+    {
+        return getTables( ListUtils.getClosedOpenList( 1500, 2100 ) );
     }
     
     @Override
@@ -359,14 +356,15 @@ public class JdbcEventAnalyticsTableManager
                 
         return columns;
     }
-
-    @Override
-    public List<Integer> getDataYears( Date earliest )
+    
+    private List<Integer> getDataYears( Program program, Date earliest )
     {
         String sql = 
             "select distinct(extract(year from psi.executiondate)) " +
             "from programstageinstance psi " +
-            "where psi.executiondate is not null ";
+            "inner join programinstance pi on psi.programinstanceid = pi.programinstanceid " +
+            "where pi.programid = " + program.getId() + " " +
+            "and psi.executiondate is not null ";
 
         if ( earliest != null )
         {
@@ -375,7 +373,7 @@ public class JdbcEventAnalyticsTableManager
         
         return jdbcTemplate.queryForList( sql, Integer.class );
     }
-        
+    
     @Override
     @Async
     public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTable> tables,
