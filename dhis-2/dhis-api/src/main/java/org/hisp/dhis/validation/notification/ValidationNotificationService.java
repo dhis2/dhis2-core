@@ -38,4 +38,6 @@ import java.util.Set;
 public interface ValidationNotificationService
 {
     void sendNotifications( Set<ValidationResult> results );
+
+    void sendUnsentNotifications();
 }

@@ -35,6 +35,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.scheduling.ScheduledTaskStatus;
 import org.hisp.dhis.system.scheduling.Scheduler;
+import org.hisp.dhis.validation.notification.ValidationResultNotificationTask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -84,6 +85,9 @@ public class DefaultSchedulingManager
     @Autowired
     private DataStatisticsTask dataStatisticsTask;
 
+    @Autowired
+    private ValidationResultNotificationTask validationResultNotificationTask;
+
     // TODO Avoid map, use bean identifier directly and get bean from context
 
     // -------------------------------------------------------------------------
@@ -121,6 +125,7 @@ public class DefaultSchedulingManager
     {
         scheduler.scheduleTask( FileResourceCleanUpTask.KEY_TASK, fileResourceCleanUpTask, Scheduler.CRON_DAILY_2AM );
         scheduler.scheduleTask( DataStatisticsTask.KEY_TASK, dataStatisticsTask, Scheduler.CRON_DAILY_2AM );
+        scheduler.scheduleTask( ValidationResultNotificationTask.KEY_TASK, validationResultNotificationTask, Scheduler.CRON_DAILY_7AM );
     }
     
     @Override

@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.validation.notification;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -31,33 +31,29 @@ package org.hisp.dhis.program.notification;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.security.NoSecurityContextRunnable;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Calendar;
-import java.util.Date;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author Halvdan Hoem Grelland
+ * @author Stian Sandvold
  */
-public class ProgramNotificationTask
+public class ValidationResultNotificationTask
     extends NoSecurityContextRunnable
 {
-    @Autowired
-    private ProgramNotificationService programNotificationService;
 
     @Autowired
-    private SystemSettingManager systemSettingManager;
+    private ValidationNotificationService notificationService;
 
     @Autowired
     private MessageService messageService;
 
     @Autowired
     private Notifier notifier;
+
+    public static final String KEY_TASK = "validationResultNotificationTask";
 
     private TaskId taskId;
 
@@ -75,32 +71,31 @@ public class ProgramNotificationTask
     {
         final Clock clock = new Clock().startClock();
 
-        notifier.notify( taskId, "Generating and sending scheduled program notifications" );
+        notifier.notify( taskId, "Sending new validation result notifications" );
 
         try
         {
             runInternal();
 
-            notifier.notify( taskId, NotificationLevel.INFO, "Generated and sent scheduled program notifications: " + clock.time(), true );
+            notifier.notify( taskId, NotificationLevel.INFO,
+                "Sent validation result notifications: " + clock.time(), true );
         }
         catch ( RuntimeException ex )
         {
             notifier.notify( taskId, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
 
-            messageService.sendSystemErrorNotification( "Generating and sending scheduled program notifications failed", ex );
+            messageService
+                .sendSystemErrorNotification( "Sending validation result notifications failed", ex );
 
             throw ex;
         }
-
-        systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS, new Date( clock.getStartTime() ) );
     }
 
+    @Transactional
     private void runInternal()
     {
-        // Today at 00:00:00
-        Calendar calendar = Calendar.getInstance();
-        calendar.set( Calendar.HOUR, 0 );
 
-        programNotificationService.sendScheduledNotificationsForDay( calendar.getTime() );
+        notificationService.sendUnsentNotifications();
+
     }
 }

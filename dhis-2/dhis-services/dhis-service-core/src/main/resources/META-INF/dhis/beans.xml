@@ -1522,7 +1522,12 @@
   <!-- Scheduled task for scheduled program notifications -->
 
   <bean id="scheduledProgramNotificationsTask"
-    class="org.hisp.dhis.program.notification.ProgramNotificationTask" scope="prototype" />
+        class="org.hisp.dhis.program.notification.ProgramNotificationTask" scope="prototype" />
+
+  <!-- Scheduled task for validation result notifications -->
+
+  <bean id="validationResultNotificationTask"
+        class="org.hisp.dhis.validation.notification.ValidationResultNotificationTask" scope="prototype" />
 
   <!-- Startup routine definitions -->
 

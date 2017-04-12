@@ -179,6 +179,7 @@
         <entry key="metadataSyncTask" value-ref="metadataSyncTask" />
         <entry key="sendScheduledMessageTaskNow" value-ref="sendScheduledMessageTaskNow" />
         <entry key="scheduledProgramNotificationsTask" value-ref="scheduledProgramNotificationsTask" />
+        <entry key="validationResultNotificationTask" value-ref="validationResultNotificationTask" />
       </map>
     </property>
   </bean>

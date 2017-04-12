@@ -39,6 +39,7 @@ import java.util.List;
 /**
  * @author Stian Sandvold
  */
+@Transactional
 public class DefaultValidationResultService
     implements ValidationResultService
 {
@@ -49,7 +50,6 @@ public class DefaultValidationResultService
     private BatchHandlerFactory batchHandlerFactory;
 
     @Override
-    @Transactional
     public void saveValidationResults( Collection<ValidationResult> validationResults )
     {
         BatchHandler<ValidationResult> validationResultBatchHandler = batchHandlerFactory
@@ -72,8 +72,29 @@ public class DefaultValidationResultService
     }
 
     @Override
+    public List<ValidationResult> getAllUnReportedValidationResults()
+    {
+        return validationResultStore.getAllUnreportedValidationResults();
+    }
+
+    @Override
     public void deleteValidationResult( ValidationResult validationResult )
     {
         validationResultStore.delete( validationResult );
+    }
+
+    @Override
+    public void setNotificationSent( List<ValidationResult> validationResults, boolean sent )
+    {
+        BatchHandler<ValidationResult> validationResultBatchHandler = batchHandlerFactory
+            .createBatchHandler( ValidationResultBatchHandler.class ).init();
+
+        validationResults.forEach( validationResult ->
+        {
+            validationResult.setNotificationSent( sent );
+            validationResultBatchHandler.updateObject( validationResult );
+        } );
+
+        validationResultBatchHandler.flush();
     }
 }

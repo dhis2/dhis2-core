@@ -48,8 +48,21 @@ public interface ValidationResultService
     List<ValidationResult> getAllValidationResults();
 
     /**
+     * Returns a list of al ValidationResults where notificationSent is false
+     * @return
+     */
+    List<ValidationResult> getAllUnReportedValidationResults();
+
+    /**
      * Deletes the validationResult
      * @param validationResult
      */
     void deleteValidationResult( ValidationResult validationResult );
+
+    /**
+     * Sets all validationResults "notificationSent" to the given value
+     * @param validationResults validationResults to update
+     * @param sent true if notifications was sent
+     */
+    void setNotificationSent( List<ValidationResult> validationResults, boolean sent );
 }

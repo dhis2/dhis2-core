@@ -45,15 +45,13 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.Importance;
 import org.hisp.dhis.validation.ValidationResult;
+import org.hisp.dhis.validation.ValidationResultService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -63,6 +61,7 @@ import static org.hisp.dhis.commons.util.TextUtils.LN;
 /**
  * @author Halvdan Hoem Grelland
  */
+@Transactional
 public class DefaultValidationNotificationService
     implements ValidationNotificationService
 {
@@ -90,6 +89,9 @@ public class DefaultValidationNotificationService
     {
         this.messageService = messageService;
     }
+
+    @Autowired
+    private ValidationResultService validationResultService;
 
     // -------------------------------------------------------------------------
     // ValidationNotificationService implementation
@@ -125,6 +127,15 @@ public class DefaultValidationNotificationService
         summaryMessages.forEach( this::sendNotification );
 
         clock.logTime( "Done sending validation notifications" );
+    }
+
+    @Override
+    public void sendUnsentNotifications()
+    {
+        List<ValidationResult> validationResults = validationResultService.getAllUnReportedValidationResults();
+        sendNotifications( Sets.newHashSet( validationResults ) );
+
+        validationResultService.setNotificationSent( validationResults, true);
     }
 
     // -------------------------------------------------------------------------

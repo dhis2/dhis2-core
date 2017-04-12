@@ -28,6 +28,7 @@ package org.hisp.dhis.webapi.controller.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataset.DataSet;
@@ -38,18 +39,15 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.ValidationSummary;
+import org.hisp.dhis.validation.notification.ValidationResultNotificationTask;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
@@ -73,6 +71,12 @@ public class ValidationController
 
     @Autowired
     private DataElementCategoryService categoryService;
+
+    @Autowired
+    private ValidationResultNotificationTask notificationTask;
+
+    @Autowired
+    private Scheduler scheduler;
 
     @RequestMapping( value = "/dataSet/{ds}", method = RequestMethod.GET )
     public @ResponseBody ValidationSummary validate( @PathVariable String ds, @RequestParam String pe,
@@ -113,5 +117,15 @@ public class ValidationController
         summary.setCommentRequiredViolations( validationService.validateRequiredComments( dataSet, period, orgUnit, attributeOptionCombo ) );
 
         return summary;
+    }
+
+    @RequestMapping( value = "/sendNotifications", method = RequestMethod.GET )
+    public @ResponseBody String sendNotifications()
+    {
+
+        scheduler.executeTask( notificationTask );
+
+        return "OK";
+
     }
 }

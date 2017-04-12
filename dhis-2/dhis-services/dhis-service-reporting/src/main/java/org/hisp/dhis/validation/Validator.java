@@ -59,7 +59,7 @@ public class Validator
             applicationContext.getBean( DataElementCategoryService.class );
                 
         int threadPoolSize = getThreadPoolSize( context );
-        ExecutorService executor = Executors.newFixedThreadPool( threadPoolSize );
+        ExecutorService executor = Executors.newFixedThreadPool( 1 );
 
         for ( OrganisationUnitExtended sourceX : context.getSourceXs() )
         {
