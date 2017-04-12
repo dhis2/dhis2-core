@@ -60,9 +60,8 @@ public interface ValidationResultService
     void deleteValidationResult( ValidationResult validationResult );
 
     /**
-     * Sets all validationResults "notificationSent" to the given value
+     * Updates a list of ValidationResults
      * @param validationResults validationResults to update
-     * @param sent true if notifications was sent
      */
-    void setNotificationSent( List<ValidationResult> validationResults, boolean sent );
+    void updateValidationResults( List<ValidationResult> validationResults );
 }

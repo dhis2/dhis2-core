@@ -84,14 +84,13 @@ public class DefaultValidationResultService
     }
 
     @Override
-    public void setNotificationSent( List<ValidationResult> validationResults, boolean sent )
+    public void updateValidationResults( List<ValidationResult> validationResults )
     {
         BatchHandler<ValidationResult> validationResultBatchHandler = batchHandlerFactory
             .createBatchHandler( ValidationResultBatchHandler.class ).init();
 
         validationResults.forEach( validationResult ->
         {
-            validationResult.setNotificationSent( sent );
             validationResultBatchHandler.updateObject( validationResult );
         } );
 
