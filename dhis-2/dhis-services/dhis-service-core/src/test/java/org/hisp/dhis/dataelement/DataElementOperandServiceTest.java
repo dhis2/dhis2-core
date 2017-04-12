@@ -113,22 +113,4 @@ public class DataElementOperandServiceTest
         assertNull( operandService.getDataElementOperand( idB ) );
         assertNull( operandService.getDataElementOperand( idC ) );
     }
-    
-    public void testGetByUid()
-    {
-        DataElementOperand opA = new DataElementOperand( deA, coc );
-        DataElementOperand opB = new DataElementOperand( deB, coc );
-        
-        operandService.addDataElementOperand( opA );
-        operandService.addDataElementOperand( opB );
-        
-        String uidA = deA.getUid() + DataElementOperand.SEPARATOR + coc.getUid();
-        String uidB = deB.getUid() + DataElementOperand.SEPARATOR + coc.getUid();
-        
-        assertEquals( opA, operandService.getDataElementOperandByUid( uidA ) );
-        assertEquals( opB, operandService.getDataElementOperandByUid( uidB ) );
-        
-        assertNull( operandService.getDataElementOperandByUid( null ) );
-        assertNull( operandService.getDataElementOperandByUid( "SomeFunnyUid" ) );
-    }
 }

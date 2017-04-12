@@ -28,9 +28,6 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.List;
-
 /**
  * @author Abyot Asalefew
  */
@@ -44,14 +41,6 @@ public interface DataElementOperandService
 
     DataElementOperand getDataElementOperand( int id );
 
-    DataElementOperand getDataElementOperandByUid( String uid );
-
-    List<DataElementOperand> getDataElementOperandsByUid( Collection<String> uids );
-
-    List<DataElementOperand> getAllDataElementOperands();
-
-    List<DataElementOperand> getAllDataElementOperands( int first, int max );
-    
     DataElementOperand getDataElementOperand( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo );
     
     DataElementOperand getDataElementOperand( String dataElementUid, String categoryOptionComboUid );
