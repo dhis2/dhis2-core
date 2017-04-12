@@ -500,8 +500,8 @@ public class ExpressionServiceTest
     public void testGenerateExpressionMap()
     {
         Map<DataElementOperand, Double> valueMap = new HashMap<>();
-        valueMap.put( new DataElementOperand( deA.getUid(), coc.getUid() ), 12d );
-        valueMap.put( new DataElementOperand( deB.getUid(), coc.getUid() ), 34d );
+        valueMap.put( DataElementOperand.instance( deA.getUid(), coc.getUid() ), 12d );
+        valueMap.put( DataElementOperand.instance( deB.getUid(), coc.getUid() ), 34d );
         
         Map<String, Double> constantMap = new HashMap<>();
         constantMap.put( constantA.getUid(), 2.0 );
@@ -536,8 +536,8 @@ public class ExpressionServiceTest
         Expression expH = new Expression( expressionH, null );
         
         Map<DataElementOperand, Double> valueMap = new HashMap<>();
-        valueMap.put( new DataElementOperand( deA.getUid(), coc.getUid() ), 12d );
-        valueMap.put( new DataElementOperand( deB.getUid(), coc.getUid() ), 34d );
+        valueMap.put( DataElementOperand.instance( deA.getUid(), coc.getUid() ), 12d );
+        valueMap.put( DataElementOperand.instance( deB.getUid(), coc.getUid() ), 34d );
         
         Map<String, Double> constantMap = new HashMap<>();
         constantMap.put( constantA.getUid(), 2.0 );
@@ -560,8 +560,8 @@ public class ExpressionServiceTest
         indicatorA.setDenominator( expressionF );
 
         Map<DataElementOperand, Double> valueMap = new HashMap<>();
-        valueMap.put( new DataElementOperand( deA.getUid(), coc.getUid() ), 12d );
-        valueMap.put( new DataElementOperand( deB.getUid(), coc.getUid() ), 34d );
+        valueMap.put( DataElementOperand.instance( deA.getUid(), coc.getUid() ), 12d );
+        valueMap.put( DataElementOperand.instance( deB.getUid(), coc.getUid() ), 34d );
         
         Map<String, Double> constantMap = new HashMap<>();
         constantMap.put( constantA.getUid(), 2.0 );
@@ -578,8 +578,8 @@ public class ExpressionServiceTest
         indicatorA.setDenominator( expressionF );
 
         Map<DataElementOperand, Double> valueMap = new HashMap<>();
-        valueMap.put( new DataElementOperand( deA.getUid(), coc.getUid() ), 12d );
-        valueMap.put( new DataElementOperand( deB.getUid(), coc.getUid() ), 34d );
+        valueMap.put( DataElementOperand.instance( deA.getUid(), coc.getUid() ), 12d );
+        valueMap.put( DataElementOperand.instance( deB.getUid(), coc.getUid() ), 34d );
         
         Map<String, Double> constantMap = new HashMap<>();
         constantMap.put( constantA.getUid(), 2.0 );

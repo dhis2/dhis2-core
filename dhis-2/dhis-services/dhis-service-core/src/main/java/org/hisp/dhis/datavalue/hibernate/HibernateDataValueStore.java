@@ -650,7 +650,7 @@ public class HibernateDataValueStore
 
             if ( value != null )
             {
-                DataElementOperand dataElementOperand = new DataElementOperand( dataElement, categoryOptionCombo );
+                DataElementOperand dataElementOperand = DataElementOperand.instance( dataElement, categoryOptionCombo );
 
                 Long existingPeriodInterval = checkForDuplicates.getValue( attributeOptionCombo, dataElementOperand );
 
