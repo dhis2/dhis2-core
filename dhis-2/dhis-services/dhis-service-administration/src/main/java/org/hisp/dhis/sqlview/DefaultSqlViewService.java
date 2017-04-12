@@ -245,7 +245,7 @@ public class DefaultSqlViewService
         }
         
         final Set<String> sqlVars = SqlViewUtils.getVariables( sqlView.getSqlQuery() );
-        final String sql = sqlView.getSqlQuery().toLowerCase();
+        final String sql = sqlView.getSqlQuery().replaceAll("\\r|\\n"," ").toLowerCase();
         
         if ( !SELECT_PATTERN.matcher( sql ).matches() )
         {

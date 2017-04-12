@@ -211,6 +211,15 @@ public class SqlViewServiceTest
     }
 
     @Test( expected = IllegalQueryException.class )
+    public void testValidateProtectedTables3()
+    {
+        SqlView sqlView = new SqlView( "Name", "select users.username \n FROM \"public\".users;", SqlViewType.QUERY );
+
+        sqlViewService.validateSqlView( sqlView, null, null );
+    }
+
+
+    @Test( expected = IllegalQueryException.class )
     public void testValidateMissingVariables()
     {
         SqlView sqlView = new SqlView( "Name", "select * from dataelement where valueType = '${valueType}' and aggregationtype = '${aggregationType}'", SqlViewType.QUERY );
