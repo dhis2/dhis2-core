@@ -28,11 +28,9 @@ package org.hisp.dhis.commons.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.commons.filter.Filter;
+import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -42,8 +40,11 @@ import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.system.filter.AggregatableDataElementFilter;
 import org.hisp.dhis.system.filter.DataElementPeriodTypeAllowAverageFilter;
 import org.hisp.dhis.system.filter.DataElementPeriodTypeFilter;
-import org.hisp.dhis.commons.filter.Filter;
-import org.hisp.dhis.commons.filter.FilterUtils;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
@@ -141,6 +142,13 @@ public class GetOperandsAction
     {
         this.includeTotals = includeTotals;
     }
+
+    private String valueType;
+
+    public void setValueType( String valueType )
+    {
+        this.valueType = valueType;
+    }
     
     // -------------------------------------------------------------------------
     // Output
@@ -195,6 +203,11 @@ public class GetOperandsAction
         else if ( periodType != null && periodTypeAllowAverage )
         {
             FilterUtils.filter( dataElements, new DataElementPeriodTypeAllowAverageFilter( periodType ) );
+        }
+
+        if ( "NUMERIC".equalsIgnoreCase( valueType ) )
+        {
+            dataElements = dataElements.stream().filter( de -> de.getValueType().isNumeric() ).collect( Collectors.toList() ) ;
         }
 
         Collections.sort( dataElements );
