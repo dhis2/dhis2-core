@@ -29,6 +29,7 @@ package org.hisp.dhis.validation;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Stian Sandvold
@@ -63,5 +64,5 @@ public interface ValidationResultService
      * Updates a list of ValidationResults
      * @param validationResults validationResults to update
      */
-    void updateValidationResults( List<ValidationResult> validationResults );
+    void updateValidationResults( Set<ValidationResult> validationResults );
 }

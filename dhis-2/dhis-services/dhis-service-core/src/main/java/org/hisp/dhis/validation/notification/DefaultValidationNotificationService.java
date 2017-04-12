@@ -133,8 +133,8 @@ public class DefaultValidationNotificationService
     @Override
     public void sendUnsentNotifications()
     {
-        List<ValidationResult> validationResults = validationResultService.getAllUnReportedValidationResults();
-        sendNotifications( Sets.newHashSet( validationResults ) );
+        Set<ValidationResult> validationResults = Sets.newHashSet( validationResultService.getAllUnReportedValidationResults() );
+        sendNotifications( validationResults );
 
         validationResults.forEach( vr -> vr.setNotificationSent( true ) );
         validationResultService.updateValidationResults( validationResults );

@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Stian Sandvold
@@ -84,7 +85,7 @@ public class DefaultValidationResultService
     }
 
     @Override
-    public void updateValidationResults( List<ValidationResult> validationResults )
+    public void updateValidationResults( Set<ValidationResult> validationResults )
     {
         BatchHandler<ValidationResult> validationResultBatchHandler = batchHandlerFactory
             .createBatchHandler( ValidationResultBatchHandler.class ).init();
