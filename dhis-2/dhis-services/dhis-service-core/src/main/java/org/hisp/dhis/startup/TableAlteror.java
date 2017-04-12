@@ -987,6 +987,7 @@ public class TableAlteror
         updateNameColumnLengths();
 
         upgradeMapViewsToColumns();
+        upgradeDataDimensionsToEmbeddedOperand();
         upgradeDataDimensionItemsToReportingRateMetric();
         upgradeDataDimensionItemToEmbeddedProgramAttribute();
         upgradeDataDimensionItemToEmbeddedProgramDataElement();
@@ -1561,10 +1562,33 @@ public class TableAlteror
     }
 
     /**
+     * Upgrades data dimension items to use embedded data element operands.
+     */
+    private void upgradeDataDimensionsToEmbeddedOperand()
+    {
+        String sql =
+            "update datadimensionitem di " +
+            "set dataelementoperand_dataelementid = ( " +
+                "select op.dataelementid " +
+                "from dataelementoperand op " +
+                "where di.dataelementoperandid=op.dataelementoperandid " +
+            "), " +
+            "dataelementoperand_categoryoptioncomboid = ( " +
+                "select op.categoryoptioncomboid " +
+                "from dataelementoperand op " +
+                "where di.dataelementoperandid=op.dataelementoperandid " +
+            ") " +
+            "where di.dataelementoperandid is not null; " +
+            "alter table datadimensionitem drop column dataelementoperandid;";
+        
+        executeSql( sql );
+    }
+    
+    /**
      * Upgrade data dimension items for legacy data sets to use REPORTING_RATE
      * as metric.
      */
-    public void upgradeDataDimensionItemsToReportingRateMetric()
+    private void upgradeDataDimensionItemsToReportingRateMetric()
     {
         String sql = "update datadimensionitem " +
             "set metric='REPORTING_RATE' " +
@@ -1578,7 +1602,7 @@ public class TableAlteror
      * Upgrades data dimension items to use embedded 
      * ProgramTrackedEntityAttributeDimensionItem class.
      */
-    public void upgradeDataDimensionItemToEmbeddedProgramAttribute()
+    private void upgradeDataDimensionItemToEmbeddedProgramAttribute()
     {
         String sql =
             "update datadimensionitem di " +
