@@ -267,24 +267,6 @@ public class DimensionServiceTest
     }
     
     @Test
-    public void testGetOrAddDimensionalItemObject()
-    {
-        String idA = deA.getUid();
-        String idB = prA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + deA.getUid();
-        String idC = prA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + atA.getUid();
-        String idD = dsA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + ReportingRateMetric.REPORTING_RATE.name();
-        String idE = dsA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + "UNKNOWN_METRIC";
-        
-        assertNotNull( dimensionService.getOrAddDataDimensionalItemObject( IdScheme.UID, idA ) );
-        assertNotNull( dimensionService.getOrAddDataDimensionalItemObject( IdScheme.UID, idB ) );
-        assertNotNull( dimensionService.getOrAddDataDimensionalItemObject( IdScheme.UID, idC ) );
-        assertNotNull( dimensionService.getOrAddDataDimensionalItemObject( IdScheme.UID, idD ) );        
-        assertNull( dimensionService.getOrAddDataDimensionalItemObject( IdScheme.UID, idE ) );
-        
-        assertEquals( deA, dimensionService.getOrAddDataDimensionalItemObject( IdScheme.UID, idA ) );
-    }
-
-    @Test
     public void testGetDimensionalItemObject()
     {
         String idA = deA.getUid();

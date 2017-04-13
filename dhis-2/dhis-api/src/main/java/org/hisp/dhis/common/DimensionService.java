@@ -57,16 +57,6 @@ public interface DimensionService
 
     /**
      * Gets a dimension item object which are among the data dimension item 
-     * objects. The composite dimensional items will be saved if not existing.
-     *
-     * @param idScheme the idScheme to identify the item.
-     * @param dimensionItem the dimension item identifier.
-     * @return a dimensional item object.
-     */
-    DimensionalItemObject getOrAddDataDimensionalItemObject( IdScheme idScheme, String dimensionItem );
-
-    /**
-     * Gets a dimension item object which are among the data dimension item 
      * objects. The composite dimensional items will be transient and the
      * associated objects will be persistent.
      *
