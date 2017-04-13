@@ -809,12 +809,6 @@
     <property name="externalFileResourceStore" ref="org.hisp.dhis.fileresource.ExternalFileResourceStore" />
   </bean>
 
-  <bean id="org.hisp.dhis.dataelement.DataElementOperandService" class="org.hisp.dhis.dataelement.DefaultDataElementOperandService">
-    <property name="dataElementOperandStore" ref="org.hisp.dhis.dataelement.DataElementOperandStore" />
-    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
-  </bean>
-
   <bean id="org.hisp.dhis.datavalue.DataValueService" class="org.hisp.dhis.datavalue.DefaultDataValueService">
     <property name="dataValueStore" ref="org.hisp.dhis.datavalue.DataValueStore" />
     <property name="dataValueAuditService" ref="org.hisp.dhis.datavalue.DataValueAuditService" />
