@@ -28,8 +28,6 @@ package org.hisp.dhis.dataset.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import com.google.common.collect.Lists;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -39,6 +37,8 @@ import org.hisp.dhis.dataset.DataSetStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+
+import java.util.List;
 
 /**
  * @author Kristian Nordal
@@ -63,13 +63,13 @@ public class HibernateDataSetStore
     // -------------------------------------------------------------------------
 
     @Override
-    public int save( DataSet dataSet )
+    public void save( DataSet dataSet )
     {
         PeriodType periodType = periodService.reloadPeriodType( dataSet.getPeriodType() );
 
         dataSet.setPeriodType( periodType );
 
-        return super.save( dataSet );
+        super.save( dataSet );
     }
 
     @Override

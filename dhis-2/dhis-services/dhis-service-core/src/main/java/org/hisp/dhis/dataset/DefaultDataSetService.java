@@ -96,7 +96,8 @@ public class DefaultDataSetService
     @Override
     public int addDataSet( DataSet dataSet )
     {
-        return dataSetStore.save( dataSet );
+        dataSetStore.save( dataSet );
+        return dataSet.getId();
     }
 
     @Override
@@ -186,7 +187,8 @@ public class DefaultDataSetService
     @Override
     public int addLockException( LockException lockException )
     {
-        return lockExceptionStore.save( lockException );
+        lockExceptionStore.save( lockException );
+        return lockException.getId();
     }
 
     @Override

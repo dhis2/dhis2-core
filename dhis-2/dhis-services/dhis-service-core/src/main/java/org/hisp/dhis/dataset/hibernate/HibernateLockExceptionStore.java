@@ -78,11 +78,11 @@ public class HibernateLockExceptionStore
     // -------------------------------------------------------------------------
 
     @Override
-    public int save( LockException lockException )
+    public void save( LockException lockException )
     {
         lockException.setPeriod( periodService.reloadPeriod( lockException.getPeriod() ) );
 
-        return super.save( lockException );
+        super.save( lockException );
     }
 
     @Override

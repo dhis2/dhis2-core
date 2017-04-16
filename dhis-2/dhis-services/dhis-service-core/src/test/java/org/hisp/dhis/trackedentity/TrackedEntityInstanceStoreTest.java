@@ -134,8 +134,10 @@ public class TrackedEntityInstanceStoreTest
     @Test
     public void testAddGet()
     {
-        int idA = teiStore.save( teiA );
-        int idB = teiStore.save( teiB );
+        teiStore.save( teiA );
+        int idA = teiA.getId();
+        teiStore.save( teiB );
+        int idB = teiB.getId();
 
         assertNotNull( teiStore.get( idA ) );
         assertNotNull( teiStore.get( idB ) );
@@ -144,8 +146,10 @@ public class TrackedEntityInstanceStoreTest
     @Test
     public void testAddGetbyOu()
     {
-        int idA = teiStore.save( teiA );
-        int idB = teiStore.save( teiB );
+        teiStore.save( teiA );
+        int idA = teiA.getId();
+        teiStore.save( teiB );
+        int idB = teiB.getId();
 
         assertEquals( teiA.getName(), teiStore.get( idA ).getName() );
         assertEquals( teiB.getName(), teiStore.get( idB ).getName() );
@@ -154,8 +158,10 @@ public class TrackedEntityInstanceStoreTest
     @Test
     public void testDelete()
     {
-        int idA = teiStore.save( teiA );
-        int idB = teiStore.save( teiB );
+        teiStore.save( teiA );
+        int idA = teiA.getId();
+        teiStore.save( teiB );
+        int idB = teiB.getId();
 
         assertNotNull( teiStore.get( idA ) );
         assertNotNull( teiStore.get( idB ) );

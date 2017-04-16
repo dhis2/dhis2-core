@@ -81,7 +81,8 @@ public class DefaultRelationshipTypeService
     @Override
     public int addRelationshipType( RelationshipType relationshipType )
     {
-        return relationshipTypeStore.save( relationshipType );
+        relationshipTypeStore.save( relationshipType );
+        return relationshipType.getId();
     }
 
     @Override

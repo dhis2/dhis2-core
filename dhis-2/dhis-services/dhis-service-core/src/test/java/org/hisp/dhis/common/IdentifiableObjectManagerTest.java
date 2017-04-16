@@ -28,22 +28,10 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -52,6 +40,7 @@ import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
@@ -59,8 +48,14 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -103,14 +98,18 @@ public class IdentifiableObjectManagerTest
         DataElement dataElementA = createDataElement( 'A' );
         DataElement dataElementB = createDataElement( 'B' );
 
-        int dataElementIdA = dataElementService.addDataElement( dataElementA );
-        int dataElementIdB = dataElementService.addDataElement( dataElementB );
+        dataElementService.addDataElement( dataElementA );
+        int dataElementIdA = dataElementA.getId();
+        dataElementService.addDataElement( dataElementB );
+        int dataElementIdB = dataElementB.getId();
 
-        DataElementGroup dataElementGroupA = createDataElementGroup( 'A' );
+            DataElementGroup dataElementGroupA = createDataElementGroup( 'A' );
         DataElementGroup dataElementGroupB = createDataElementGroup( 'B' );
 
-        int dataElementGroupIdA = dataElementService.addDataElementGroup( dataElementGroupA );
-        int dataElementGroupIdB = dataElementService.addDataElementGroup( dataElementGroupB );
+        dataElementService.addDataElementGroup( dataElementGroupA );
+        int dataElementGroupIdA = dataElementGroupA.getId();
+        dataElementService.addDataElementGroup( dataElementGroupB );
+        int dataElementGroupIdB = dataElementGroupB.getId();
 
         assertEquals( dataElementA, identifiableObjectManager.getObject( dataElementIdA, DataElement.class.getSimpleName() ) );
         assertEquals( dataElementB, identifiableObjectManager.getObject( dataElementIdB, DataElement.class.getSimpleName() ) );

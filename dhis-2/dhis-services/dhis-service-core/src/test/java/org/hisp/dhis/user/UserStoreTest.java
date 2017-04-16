@@ -28,18 +28,16 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import java.util.HashSet;
-import java.util.Set;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Nguyen Hong Duc
@@ -81,9 +79,11 @@ public class UserStoreTest
         userA.setOrganisationUnits( units );
         userB.setOrganisationUnits( units );
 
-        int idA = userStore.save( userA );
-        int idB = userStore.save( userB );
-        
+        userStore.save( userA );
+        int idA = userA.getId();
+        userStore.save( userB );
+        int idB = userB.getId();
+
         assertEquals( userA, userStore.get( idA ) );
         assertEquals( userB, userStore.get( idB ) );
         
@@ -97,8 +97,10 @@ public class UserStoreTest
         User userA = createUser( 'A' );
         User userB = createUser( 'B' );
 
-        int idA = userStore.save( userA );
-        int idB = userStore.save( userB );
+        userStore.save( userA );
+        int idA = userA.getId();
+        userStore.save( userB );
+        int idB = userB.getId();
 
         assertEquals( userA, userStore.get( idA ) );
         assertEquals( userB, userStore.get( idB ) );
@@ -116,8 +118,10 @@ public class UserStoreTest
         User userA = createUser( 'A' );
         User userB = createUser( 'B' );
 
-        int idA = userStore.save( userA );
-        int idB = userStore.save( userB );
+        userStore.save( userA );
+        int idA = userA.getId();
+        userStore.save( userB );
+        int idB = userB.getId();
 
         assertEquals( userA, userStore.get( idA ) );
         assertEquals( userB, userStore.get( idB ) );

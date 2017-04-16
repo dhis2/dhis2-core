@@ -28,19 +28,16 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import org.hisp.dhis.DhisSpringTest;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.junit.Assert.*;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -67,9 +64,12 @@ public class PeriodStoreTest
         Period periodA = new Period( periodTypeA, getDay( 1 ), getDay( 2 ) );
         Period periodB = new Period( periodTypeA, getDay( 2 ), getDay( 3 ) );
         Period periodC = new Period( periodTypeB, getDay( 2 ), getDay( 3 ) );
-        int idA = periodStore.addPeriod( periodA );
-        int idB = periodStore.addPeriod( periodB );
-        int idC = periodStore.addPeriod( periodC );
+        periodStore.addPeriod( periodA );
+        int idA = periodA.getId();
+        periodStore.addPeriod( periodB );
+        int idB = periodB.getId();
+        periodStore.addPeriod( periodC );
+        int idC = periodC.getId();
 
         periodA = periodStore.get( idA );
         assertNotNull( periodA );
@@ -105,10 +105,14 @@ public class PeriodStoreTest
         Period periodB = new Period( periodTypeA, getDay( 2 ), getDay( 3 ) );
         Period periodC = new Period( periodTypeB, getDay( 2 ), getDay( 3 ) );
         Period periodD = new Period( periodTypeB, getDay( 3 ), getDay( 4 ) );
-        int idA = periodStore.addPeriod( periodA );
-        int idB = periodStore.addPeriod( periodB );
-        int idC = periodStore.addPeriod( periodC );
-        int idD = periodStore.addPeriod( periodD );
+        periodStore.addPeriod( periodA );
+        int idA = periodA.getId();
+        periodStore.addPeriod( periodB );
+        int idB = periodB.getId();
+        periodStore.addPeriod( periodC );
+        int idC = periodC.getId();
+        periodStore.addPeriod( periodD );
+        int idD = periodD.getId();
 
         assertNotNull( periodStore.get( idA ) );
         assertNotNull( periodStore.get( idB ) );
@@ -153,11 +157,16 @@ public class PeriodStoreTest
         Period periodC = new Period( periodTypeB, getDay( 2 ), getDay( 3 ) );
         Period periodD = new Period( periodTypeB, getDay( 3 ), getDay( 4 ) );
         Period periodE = new Period( periodTypeA, getDay( 3 ), getDay( 4 ) );
-        int idA = periodStore.addPeriod( periodA );
-        int idB = periodStore.addPeriod( periodB );
-        int idC = periodStore.addPeriod( periodC );
-        int idD = periodStore.addPeriod( periodD );
-        int idE = periodStore.addPeriod( periodE );
+        periodStore.addPeriod( periodA );
+        int idA = periodA.getId();
+        periodStore.addPeriod( periodB );
+        int idB = periodB.getId();
+        periodStore.addPeriod( periodC );
+        int idC = periodC.getId();
+        periodStore.addPeriod( periodD );
+        int idD = periodD.getId();
+        periodStore.addPeriod( periodE );
+        int idE = periodE.getId();
 
         periodA = periodStore.getPeriod( getDay( 1 ), getDay( 2 ), periodTypeA );
         assertNotNull( periodA );

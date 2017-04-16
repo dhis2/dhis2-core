@@ -28,18 +28,6 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.expression.Operator.equal_to;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.annotation.Resource;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
@@ -51,6 +39,14 @@ import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.annotation.Resource;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.hisp.dhis.expression.Operator.equal_to;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -145,8 +141,11 @@ public class ValidationRuleGroupStoreTest
         groupA.setMembers( rules );
         groupB.setMembers( rules );
 
-        int idA = validationRuleGroupStore.save( groupA );
-        int idB = validationRuleGroupStore.save( groupB );
+        validationRuleGroupStore.save( groupA );
+        int idA = groupA.getId();
+        validationRuleGroupStore.save( groupB );
+        int idB = groupB.getId();
+
 
         assertEquals( groupA, validationRuleGroupStore.get( idA ) );
         assertEquals( groupB, validationRuleGroupStore.get( idB ) );
@@ -172,8 +171,10 @@ public class ValidationRuleGroupStoreTest
         groupA.setMembers( rules );
         groupB.setMembers( rules );
 
-        int idA = validationRuleGroupStore.save( groupA );
-        int idB = validationRuleGroupStore.save( groupB );
+        validationRuleGroupStore.save( groupA );
+        int idA = groupA.getId();
+        validationRuleGroupStore.save( groupB );
+        int idB = groupB.getId();
 
         assertEquals( groupA, validationRuleGroupStore.get( idA ) );
         assertEquals( groupB, validationRuleGroupStore.get( idB ) );
@@ -208,8 +209,10 @@ public class ValidationRuleGroupStoreTest
         groupA.setMembers( rules );
         groupB.setMembers( rules );
 
-        int idA = validationRuleGroupStore.save( groupA );
-        int idB = validationRuleGroupStore.save( groupB );
+        validationRuleGroupStore.save( groupA );
+        int idA = groupA.getId();
+        validationRuleGroupStore.save( groupB );
+        int idB = groupB.getId();
 
         assertNotNull( validationRuleGroupStore.get( idA ) );
         assertNotNull( validationRuleGroupStore.get( idB ) );

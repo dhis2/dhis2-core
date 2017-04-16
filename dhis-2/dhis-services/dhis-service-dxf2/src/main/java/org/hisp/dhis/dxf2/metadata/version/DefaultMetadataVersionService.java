@@ -67,7 +67,8 @@ import java.util.List;
  * @author aamerm
  */
 @Transactional
-public class DefaultMetadataVersionService
+public class
+DefaultMetadataVersionService
     implements MetadataVersionService
 {
     private static final Log log = LogFactory.getLog( DefaultMetadataVersionService.class );
@@ -98,7 +99,9 @@ public class DefaultMetadataVersionService
     @Override
     public int addVersion( MetadataVersion version )
     {
-        return versionStore.save( version );
+        versionStore.save( version );
+
+        return version.getId();
     }
 
     @Override

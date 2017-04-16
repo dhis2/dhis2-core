@@ -28,11 +28,11 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Lars Helge Overland
@@ -82,9 +82,11 @@ public class UserCredentialsStoreTest
         UserCredentials credentialsA = createUserCredentials( 'A', userA );
         UserCredentials credentialsB = createUserCredentials( 'B', userB );
         
-        int idA = userCredentialsStore.save( credentialsA );
-        int idB = userCredentialsStore.save( credentialsB );
-        
+        userCredentialsStore.save( credentialsA );
+        int idA = credentialsA.getId();
+        userCredentialsStore.save( credentialsB );
+        int idB = credentialsB.getId();
+
         assertEquals( credentialsA, userCredentialsStore.get( idA ) );
         assertEquals( credentialsB, userCredentialsStore.get( idB ) );
     }

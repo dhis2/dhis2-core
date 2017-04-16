@@ -157,7 +157,8 @@ public class DefaultProgramIndicatorService
     @Transactional
     public int addProgramIndicator( ProgramIndicator programIndicator )
     {
-        return programIndicatorStore.save( programIndicator );
+        programIndicatorStore.save( programIndicator );
+        return programIndicator.getId();
     }
 
     @Override
@@ -705,7 +706,8 @@ public class DefaultProgramIndicatorService
     @Transactional
     public int addProgramIndicatorGroup( ProgramIndicatorGroup programIndicatorGroup )
     {
-        return programIndicatorGroupStore.save( programIndicatorGroup );
+        programIndicatorGroupStore.save( programIndicatorGroup );
+        return programIndicatorGroup.getId();
     }
 
     @Override

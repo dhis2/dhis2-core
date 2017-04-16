@@ -28,12 +28,12 @@ package org.hisp.dhis.eventchart;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.GenericAnalyticalObjectService;
 import org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
 * @author Lars Helge Overland
@@ -63,7 +63,9 @@ public class DefaultEventChartService
     @Override
     public int saveEventChart( EventChart eventChart )
     {
-        return eventChartStore.save( eventChart );
+        eventChartStore.save( eventChart );
+
+        return eventChart.getId();
     }
     
     @Override
