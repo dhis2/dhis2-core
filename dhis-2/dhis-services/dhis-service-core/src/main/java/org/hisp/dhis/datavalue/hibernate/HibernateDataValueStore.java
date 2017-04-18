@@ -364,7 +364,7 @@ public class HibernateDataValueStore
     }
 
     @Override
-    public int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate )
+    public int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted )
     {
         if ( startDate == null && endDate == null )
         {
@@ -373,9 +373,13 @@ public class HibernateDataValueStore
         
         Criteria criteria = sessionFactory.getCurrentSession()
             .createCriteria( DataValue.class )
-            .add( Restrictions.eq( "deleted", false ) )
             .setProjection( Projections.rowCount() );
 
+        if ( !includeDeleted )
+        {
+            criteria.add( Restrictions.eq( "deleted", false ) );
+        }
+        
         if ( startDate != null )
         {
             criteria.add( Restrictions.ge( "lastUpdated", startDate ) );

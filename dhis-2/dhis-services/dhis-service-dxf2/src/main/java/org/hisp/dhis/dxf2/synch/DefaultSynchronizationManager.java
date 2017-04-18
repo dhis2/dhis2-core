@@ -229,7 +229,7 @@ public class DefaultSynchronizationManager
         final Date startTime = new Date();
         final Date lastSuccessTime = getLastSynchSuccessFallback();
 
-        final int lastUpdatedCount = dataValueService.getDataValueCountLastUpdatedAfter( lastSuccessTime );
+        final int lastUpdatedCount = dataValueService.getDataValueCountLastUpdatedAfter( lastSuccessTime, true );
 
         log.info( "Values: " + lastUpdatedCount + " since last synch success: " + lastSuccessTime );
 
