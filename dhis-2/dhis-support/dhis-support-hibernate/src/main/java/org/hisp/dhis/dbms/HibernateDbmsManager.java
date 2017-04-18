@@ -324,6 +324,12 @@ public class HibernateDbmsManager
     }
 
     @Override
+    public void flushSession()
+    {
+        sessionFactory.getCurrentSession().flush();
+    }
+
+    @Override
     public void emptyTable( String table )
     {
         try

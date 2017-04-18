@@ -43,6 +43,7 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -87,6 +88,9 @@ public class DataValueSetServiceExportTest
     
     @Autowired
     private AttributeService attributeService;
+    
+    @Autowired
+    private DbmsManager dbmsManager;
 
     private DataElement deA;
     private DataElement deB;
@@ -188,6 +192,10 @@ public class DataValueSetServiceExportTest
         dataValueService.addDataValue( new DataValue( deB, peA, ouA, cocB, cocB, "1", "storedBy", new Date(), "comment" ) );
         dataValueService.addDataValue( new DataValue( deB, peA, ouB, cocA, cocA, "1", "storedBy", new Date(), "comment" ) );
         dataValueService.addDataValue( new DataValue( deB, peA, ouB, cocB, cocB, "1", "storedBy", new Date(), "comment" ) );
+        
+        // Flush session to make data values visible to JDBC query
+        
+        dbmsManager.flushSession();
 
         // Service mocks
 
@@ -276,7 +284,7 @@ public class DataValueSetServiceExportTest
         assertNotNull( dvs );
         assertNotNull( dvs.getDataSet() );
         assertEquals( dsA.getUid(), dvs.getDataSet() );
-        // TODO assert data values size = 8
+        assertEquals( 8, dvs.getDataValues().size() );
 
         for ( org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues() )
         {
