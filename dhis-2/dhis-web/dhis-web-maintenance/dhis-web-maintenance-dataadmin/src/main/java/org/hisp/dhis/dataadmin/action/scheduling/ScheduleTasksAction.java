@@ -63,7 +63,6 @@ import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_6AM;
 import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_7AM;
 import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_8AM;
 import static org.hisp.dhis.system.scheduling.Scheduler.CRON_EVERY_15MIN;
-import static org.hisp.dhis.system.scheduling.Scheduler.CRON_EVERY_MIN;
 
 /**
  * @author Lars Helge Overland

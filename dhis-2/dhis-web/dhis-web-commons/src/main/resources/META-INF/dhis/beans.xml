@@ -259,7 +259,6 @@
 
   <bean id="org.hisp.dhis.i18n.action.I18nAction" class="org.hisp.dhis.i18n.action.I18nAction" scope="prototype">
     <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
-    <property name="localeManager" ref="org.hisp.dhis.i18n.locale.LocaleManager" />
     <property name="identifiableObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
   </bean>
 

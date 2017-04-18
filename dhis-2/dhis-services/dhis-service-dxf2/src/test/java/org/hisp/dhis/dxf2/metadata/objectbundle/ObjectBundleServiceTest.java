@@ -1384,7 +1384,6 @@ public class ObjectBundleServiceTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        System.err.println( "V: " + validate.getErrorReports() );
         assertTrue( validate.getErrorReports().isEmpty() );
 
         objectBundleService.commit( bundle );

@@ -361,13 +361,17 @@ public class HibernateDataValueStore
     }
 
     @Override
-    public int getDataValueCountLastUpdatedAfter( Date date )
+    public int getDataValueCountLastUpdatedAfter( Date date, boolean includeDeleted )
     {
         Criteria criteria = sessionFactory.getCurrentSession()
             .createCriteria( DataValue.class )
             .add( Restrictions.ge( "lastUpdated", date ) )
-            .add( Restrictions.eq( "deleted", false ) )
             .setProjection( Projections.rowCount() );
+        
+        if ( !includeDeleted )
+        {
+            criteria.add( Restrictions.eq( "deleted", false ) );
+        }
 
         Number rs = (Number) criteria.uniqueResult();
 

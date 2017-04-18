@@ -31,6 +31,9 @@ package org.hisp.dhis.datavalue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
@@ -319,5 +322,30 @@ public class DataValueServiceTest
 
         assertEquals( 1, dataValueService.getDataValues( Sets.newHashSet( dataElementA ), Sets.newHashSet( periodA ), Sets.newHashSet( sourceB ) ).size() );
         assertEquals( dataValueB, dataValueService.getDataValues( Sets.newHashSet( dataElementA ), Sets.newHashSet( periodA ), Sets.newHashSet( sourceB ) ).iterator().next() );        
+    }
+    
+    @Test
+    public void testGetDataValueCountLastUpdatedBetween()
+    {
+        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo, "1", "userA", new Date(), "Comment" );
+        DataValue dataValueB = new DataValue( dataElementA, periodA, sourceB, optionCombo, optionCombo, "2", "userA", new Date(), "Comment" );
+        DataValue dataValueC = new DataValue( dataElementA, periodB, sourceA, optionCombo, optionCombo, "3", "userA", new Date(), "Comment" );
+        
+        assertTrue( dataValueService.addDataValue( dataValueA ) );
+        assertTrue( dataValueService.addDataValue( dataValueB ) );
+        assertTrue( dataValueService.addDataValue( dataValueC ) );
+                
+        assertEquals( 3, dataValueService.getDataValueCountLastUpdatedAfter( getDate( 1970, 1, 1 ), false ) );
+        assertEquals( 3, dataValueService.getDataValueCountLastUpdatedAfter( getDate( 1970, 1, 1 ), true ) );
+        
+        dataValueService.deleteDataValue( dataValueC );
+
+        assertEquals( 3, dataValueService.getDataValueCountLastUpdatedAfter( getDate( 1970, 1, 1 ), true ) );
+        assertEquals( 2, dataValueService.getDataValueCountLastUpdatedAfter( getDate( 1970, 1, 1 ), false ) );
+        
+        dataValueService.deleteDataValue( dataValueB );
+
+        assertEquals( 3, dataValueService.getDataValueCountLastUpdatedAfter( getDate( 1970, 1, 1 ), true ) );
+        assertEquals( 1, dataValueService.getDataValueCountLastUpdatedAfter( getDate( 1970, 1, 1 ), false ) );
     }
 }
