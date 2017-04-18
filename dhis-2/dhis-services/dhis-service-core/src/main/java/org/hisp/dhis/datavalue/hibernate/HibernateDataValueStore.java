@@ -50,7 +50,6 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueStore;
-import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -336,104 +335,6 @@ public class HibernateDataValueStore
             .add( Restrictions.eq( "attributeOptionCombo", attributeOptionCombo ) )
             .add( Restrictions.eq( "deleted", false ) )
             .list();
-    }
-
-    @Override
-    public List<DeflatedDataValue> getDeflatedDataValues( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo,
-	  Collection<Period> periods, Collection<OrganisationUnit> sources )
-    {
-        List<DeflatedDataValue> result = new ArrayList<DeflatedDataValue>();
-        Collection<Integer> periodIdList = IdentifiableObjectUtils.getIdentifiers( periods );
-        List<Integer> sourceIdList = IdentifiableObjectUtils.getIdentifiers( sources );
-        Integer dataElementId = dataElement.getId();
-
-        String sql = "select categoryoptioncomboid, attributeoptioncomboid, value, " +
-            "sourceid, periodid, storedby, created, lastupdated, comment, followup " +
-            "from datavalue " +
-            "where dataelementid=" + dataElementId + " " +
-            ( ( categoryOptionCombo == null ) ? "" : ( "and categoryoptioncomboid=" + categoryOptionCombo.getId() + " " ) ) +
-            "and sourceid in (" + TextUtils.getCommaDelimitedString( sourceIdList ) + ") " +
-            "and periodid in (" + TextUtils.getCommaDelimitedString( periodIdList ) + ") " +
-            "and deleted is false";
-
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
-
-        while ( rowSet.next() )
-        {
-            Integer categoryOptionComboId = rowSet.getInt( 1 );
-            Integer attributeOptionComboId = rowSet.getInt( 2 );
-            String value = rowSet.getString( 3 );
-            Integer sourceId = rowSet.getInt( 4 );
-            Integer periodId = rowSet.getInt( 5 );
-            String storedBy = rowSet.getString( 6 );
-            Date created = rowSet.getDate( 7 );
-            Date lastUpdated = rowSet.getDate( 8 );
-            String comment = rowSet.getString( 9 );
-            boolean followup = rowSet.getBoolean( 10 );
-
-            if ( value != null )
-            {
-                DeflatedDataValue dv = new DeflatedDataValue( dataElementId, periodId, sourceId,
-                    categoryOptionComboId, attributeOptionComboId, value,
-                    storedBy, created, lastUpdated,
-                    comment, followup );
-
-                result.add( dv );
-            }
-        }
-
-        return result;
-    }
-
-    @Override
-    public List<DeflatedDataValue> sumRecursiveDeflatedDataValues(
-        DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo,
-        Collection<Period> periods, OrganisationUnit source )
-    {
-        List<DeflatedDataValue> result = new ArrayList<DeflatedDataValue>();
-        Collection<Integer> periodIdList = IdentifiableObjectUtils.getIdentifiers( periods );
-        Integer dataElementId = dataElement.getId();
-        String sourcePrefix = source.getPath();
-        Integer sourceId = source.getId();
-
-        if ( periodIdList.size() == 0 )
-        {
-            return result;
-        }
-
-        String castType = statementBuilder.getDoubleColumnType();
-
-        String sql = "select dataelementid, categoryoptioncomboid, attributeoptioncomboid, periodid, " +
-            "sum(cast(value as "+castType+")) as value " +
-            "from datavalue, organisationunit " +
-            "where dataelementid=" + dataElementId + " " +
-            "and sourceid = organisationunitid " +
-            ((categoryOptionCombo == null) ? "" :
-                ("and categoryoptioncomboid=" + categoryOptionCombo.getId() + " ")) +
-            "and path like '" + sourcePrefix + "%' " +
-            "and periodid in (" + TextUtils.getCommaDelimitedString( periodIdList ) + ") " +
-            "and deleted is false " +
-            "group by dataelementid, categoryoptioncomboid, attributeoptioncomboid, periodid";
-
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
-
-        while ( rowSet.next() )
-        {
-            Integer categoryOptionComboId = rowSet.getInt( 2 );
-            Integer attributeOptionComboId = rowSet.getInt( 3 );
-            Integer periodId = rowSet.getInt( 4 );
-            String value = rowSet.getString( 5 );
-
-            if ( value != null )
-            {
-                DeflatedDataValue dv = new DeflatedDataValue( dataElementId, periodId, 
-                    sourceId, categoryOptionComboId, attributeOptionComboId, value );
-
-                result.add( dv );
-            }
-        }
-
-        return result;
     }
 
     @Override

@@ -145,22 +145,6 @@ public interface DataValueStore
         Collection<DataElement> dataElements, DataElementCategoryOptionCombo attributeOptionCombo );
     
     /**
-     * Returns all DataValues for a given DataElement, DataElementCategoryOptionCombo,
-     * collection of Periods, and collection of Sources. The values returned by this
-     * function are not persisted and are typically fetched outside of the hibernation
-     * layer. If categoryOptionCombo is null, all categoryOptionCombo values are returned.
-     *
-     * @param dataElement the DataElements of the DataValues.
-     * @param categoryOptionCombo the DataElementCategoryOptionCombo of the DataValues.
-     * @param periods the Periods of the DataValues.
-     * @param sources the Sources of the DataValues.
-     * @return a collection of all DataValues which match the given DataElement,
-     *         Periods, and Sources.
-     */
-    List<DeflatedDataValue> getDeflatedDataValues( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo,
-        Collection<Period> periods, Collection<OrganisationUnit> sources );
-
-    /**
      * Returns values for a collection of DataElementOperands, where each operand
      * may include a specific CategoryOptionCombo, or may speicify a null COC if
      * all CategoryOptionCombos are to be summed.
@@ -179,26 +163,6 @@ public interface DataValueStore
     MapMapMap<Period, String, DimensionalItemObject, Double> getDataElementOperandValues(
         Collection<DataElementOperand> dataElementOperands, Collection<Period> periods,
         OrganisationUnit orgUnit );
-
-    /**
-     * Returns all DataValues for a given DataElement, DataElementCategoryOptionCombo,
-     * collection of Periods, and collection of Sources.
-     * This also returns DataValues for the children (in the orgunit hierarchy) of the
-     * designated sources.
-     * The values returned by this function are not persisted and are typically fetched
-     * outside of the hibernation layer. If categoryOptionCombo is null, all categoryOptionCombo
-     * values are returned.
-     *
-     * @param dataElement the DataElements of the DataValues.
-     * @param categoryOptionCombo the DataElementCategoryOptionCombo of the DataValues.
-     * @param periods the Periods of the DataValues.
-     * @param source the root of the OrganisationUnit tree to include.
-     * @return a collection of all DataValues which match the given DataElement,
-     *         Periods, and Sources.
-     */
-    List<DeflatedDataValue> sumRecursiveDeflatedDataValues(
-        DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo,
-        Collection<Period> periods, OrganisationUnit source );
 
     /**
      * Gets the number of DataValues which have been updated between the given 

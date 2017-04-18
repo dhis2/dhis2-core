@@ -49,13 +49,10 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
@@ -329,51 +326,12 @@ public class DefaultDataValueService
     }
 
     @Override
-    public List<DataValue> getDeflatedDataValues( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo,
-        Collection<Period> periods, Collection<OrganisationUnit> sources )
-    {
-        List<DeflatedDataValue> dataValues = dataValueStore.getDeflatedDataValues( dataElement, categoryOptionCombo, periods, sources );
-        List<DataValue> result = new ArrayList<DataValue>();
-
-        Map<Integer, Period> periodIds = new HashMap<Integer, Period>();
-        Map<Integer, OrganisationUnit> sourceIds = new HashMap<Integer, OrganisationUnit>();
-
-        for ( Period period : periods )
-        {
-            periodIds.put( period.getId(), period );
-        }
-
-        for ( OrganisationUnit source : sources )
-        {
-            sourceIds.put( source.getId(), source );
-        }
-
-        for ( DeflatedDataValue ddv : dataValues )
-        {
-            DataValue dv = new DataValue( dataElement, periodIds.get( ddv.getPeriodId() ),
-                sourceIds.get( ddv.getSourceId() ), getCategoryOptionCombo( ddv.getCategoryOptionComboId() ),
-                getCategoryOptionCombo( ddv.getAttributeOptionComboId() ) );
-
-            dv.setValue( ddv.getValue() );
-
-            result.add( dv );
-        }
-
-        return result;
-    }
-
-    @Override
     public MapMapMap<Period, String, DimensionalItemObject, Double> getDataElementOperandValues(
         Collection<DataElementOperand> dataElementOperands, Collection<Period> periods,
         OrganisationUnit orgUnit )
     {
         return dataValueStore.getDataElementOperandValues( dataElementOperands,
             periods, orgUnit );
-    }
-
-    private DataElementCategoryOptionCombo getCategoryOptionCombo( Integer id )
-    {
-        return categoryService.getDataElementCategoryOptionCombo( id );
     }
 
     @Override
