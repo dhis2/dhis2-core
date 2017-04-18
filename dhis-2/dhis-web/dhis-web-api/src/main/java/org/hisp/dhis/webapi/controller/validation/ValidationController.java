@@ -39,10 +39,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.ValidationSummary;
-import org.hisp.dhis.validation.notification.ValidationResultNotificationTask;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -71,12 +69,6 @@ public class ValidationController
 
     @Autowired
     private DataElementCategoryService categoryService;
-
-    @Autowired
-    private ValidationResultNotificationTask notificationTask;
-
-    @Autowired
-    private Scheduler scheduler;
 
     @RequestMapping( value = "/dataSet/{ds}", method = RequestMethod.GET )
     public @ResponseBody ValidationSummary validate( @PathVariable String ds, @RequestParam String pe,
@@ -117,15 +109,5 @@ public class ValidationController
         summary.setCommentRequiredViolations( validationService.validateRequiredComments( dataSet, period, orgUnit, attributeOptionCombo ) );
 
         return summary;
-    }
-
-    @RequestMapping( value = "/sendNotifications", method = RequestMethod.GET )
-    public @ResponseBody String sendNotifications()
-    {
-
-        scheduler.executeTask( notificationTask );
-
-        return "OK";
-
     }
 }

@@ -229,7 +229,7 @@ public class DataValidationTask
                                         periodService.getDayInPeriod( period, new Date() ) ) );
                                 }
 
-                                log.info( "Evaluated " + rule.getName() + ", combo id " + optionCombo
+                                log.debug( "Evaluated " + rule.getName() + ", combo id " + optionCombo
                                     + ": " + (violation ? "violation" : "OK") + " "
                                     + (leftSide == null ? "(null)" : leftSide.toString()) + " "
                                     + rule.getOperator() + " "
