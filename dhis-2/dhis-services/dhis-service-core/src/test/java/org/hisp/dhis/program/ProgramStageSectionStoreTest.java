@@ -28,12 +28,7 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.google.api.client.util.Lists;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -42,7 +37,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.api.client.util.Lists;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Chau Thu Tran
@@ -134,8 +133,9 @@ public class ProgramStageSectionStoreTest
         ProgramStageSection sectionA = createProgramStageSection( 'A', 1 );
         sectionA.setDataElements( dataElements );
         
-        int idA = programStageSectionStore.save( sectionA );
-        
+        programStageSectionStore.save( sectionA );
+        int idA = sectionA.getId();
+
         assertEquals( sectionA, programStageSectionStore.get( idA ) );
     }
 }

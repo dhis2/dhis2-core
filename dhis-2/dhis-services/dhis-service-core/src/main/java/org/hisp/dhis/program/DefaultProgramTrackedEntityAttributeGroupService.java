@@ -58,7 +58,9 @@ public class DefaultProgramTrackedEntityAttributeGroupService
     @Override
     public int addProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup attributeGroup )
     {
-        return attributeGroupStore.save( attributeGroup );
+        attributeGroupStore.save( attributeGroup );
+
+        return attributeGroup.getId();
     }
 
     @Override

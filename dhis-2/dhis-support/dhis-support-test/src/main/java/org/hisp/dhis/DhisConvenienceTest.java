@@ -77,6 +77,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
@@ -2016,6 +2017,23 @@ public abstract class DhisConvenienceTest
         sw.flush();
 
         return sw.toString();
+    }
+
+    protected ProgramDataElementDimensionItem createProgramDataElement( char name )
+    {
+        Program pr = new Program();
+
+        pr.setUid( "P123456789" + name );
+
+        pr.setCode( "PCode" + name );
+
+        DataElement de = new DataElement( "Name" + name );
+
+        de.setUid( "D123456789" + name );
+
+        de.setCode( "DCode" + name );
+
+        return new ProgramDataElementDimensionItem( pr, de );
     }
 
 }

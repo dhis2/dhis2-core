@@ -134,7 +134,9 @@ public class DefaultUserService
     {
         AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_CREATE );
 
-        return userStore.save( user );
+        userStore.save( user );
+
+        return user.getId();
     }
 
     @Override
@@ -390,7 +392,8 @@ public class DefaultUserService
     @Override
     public int addUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
     {
-        return userAuthorityGroupStore.save( userAuthorityGroup );
+        userAuthorityGroupStore.save( userAuthorityGroup );
+        return userAuthorityGroup.getId();
     }
 
     @Override
@@ -482,7 +485,8 @@ public class DefaultUserService
     @Override
     public int addUserCredentials( UserCredentials userCredentials )
     {
-        return userCredentialsStore.save( userCredentials );
+        userCredentialsStore.save( userCredentials );
+        return userCredentials.getId();
     }
 
     @Override

@@ -110,7 +110,8 @@ public class DefaultPredictorService
     @Override
     public int addPredictor( Predictor predictor )
     {
-        return predictorStore.save( predictor );
+        predictorStore.save( predictor );
+        return predictor.getId();
     }
 
     @Override

@@ -78,7 +78,9 @@ public class DefaultDataElementService
     @Override
     public int addDataElement( DataElement dataElement )
     {
-        return dataElementStore.save( dataElement );
+        dataElementStore.save( dataElement );
+
+        return dataElement.getId();
     }
 
     @Override
@@ -178,9 +180,9 @@ public class DefaultDataElementService
     @Override
     public int addDataElementGroup( DataElementGroup dataElementGroup )
     {
-        int id = dataElementGroupStore.save( dataElementGroup );
+        dataElementGroupStore.save( dataElementGroup );
 
-        return id;
+        return dataElementGroup.getId();
     }
 
     @Override
@@ -253,7 +255,9 @@ public class DefaultDataElementService
     @Override
     public int addDataElementGroupSet( DataElementGroupSet groupSet )
     {
-        return dataElementGroupSetStore.save( groupSet );
+        dataElementGroupSetStore.save( groupSet );
+
+        return groupSet.getId();
     }
 
     @Override

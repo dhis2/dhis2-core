@@ -28,18 +28,14 @@ package org.hisp.dhis.document;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-
-import javax.annotation.Resource;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.junit.Test;
+
+import javax.annotation.Resource;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -66,17 +62,20 @@ public class DocumentStoreTest
     @Test
     public void testSaveGet()
     {
-        int id = documentStore.save( documentA );
-        
+        documentStore.save( documentA );
+        int id = documentA.getId();
+
         assertEquals( documentA, documentStore.get( id ) );
     }
 
     @Test
     public void testDelete()
     {
-        int idA = documentStore.save( documentA );
-        int idB = documentStore.save( documentB );
-        
+        documentStore.save( documentA );
+        int idA = documentA.getId();
+        documentStore.save( documentB );
+        int idB = documentB.getId();
+
         assertNotNull( documentStore.get( idA ) );
         assertNotNull( documentStore.get( idB ) );
         

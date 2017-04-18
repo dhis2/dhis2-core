@@ -28,21 +28,17 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.annotation.Resource;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -105,9 +101,12 @@ public class DataElementCategoryStoreTest
         categoryB = new DataElementCategory( "CategoryB", DataDimensionType.DISAGGREGATION, categoryOptions );
         categoryC = new DataElementCategory( "CategoryC", DataDimensionType.DISAGGREGATION, categoryOptions );
 
-        int idA = categoryStore.save( categoryA );
-        int idB = categoryStore.save( categoryB );
-        int idC = categoryStore.save( categoryC );
+        categoryStore.save( categoryA );
+        int idA = categoryA.getId();
+        categoryStore.save( categoryB );
+        int idB = categoryB.getId();
+        categoryStore.save( categoryC );
+        int idC = categoryC.getId();
 
         assertEquals( categoryA, categoryStore.get( idA ) );
         assertEquals( categoryB, categoryStore.get( idB ) );
@@ -125,9 +124,12 @@ public class DataElementCategoryStoreTest
         categoryB = new DataElementCategory( "CategoryB", DataDimensionType.DISAGGREGATION, categoryOptions );
         categoryC = new DataElementCategory( "CategoryC", DataDimensionType.DISAGGREGATION, categoryOptions );
 
-        int idA = categoryStore.save( categoryA );
-        int idB = categoryStore.save( categoryB );
-        int idC = categoryStore.save( categoryC );
+        categoryStore.save( categoryA );
+        int idA = categoryA.getId();
+        categoryStore.save( categoryB );
+        int idB = categoryB.getId();
+        categoryStore.save( categoryC );
+        int idC = categoryC.getId();
 
         assertNotNull( categoryStore.get( idA ) );
         assertNotNull( categoryStore.get( idB ) );

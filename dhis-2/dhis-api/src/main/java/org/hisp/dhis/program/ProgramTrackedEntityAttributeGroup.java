@@ -38,6 +38,7 @@ import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -48,7 +49,7 @@ import java.util.Set;
 
 @JacksonXmlRootElement( localName = "programTrackedEntityAttributeGroup", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramTrackedEntityAttributeGroup
-    extends BaseNameableObject
+    extends BaseNameableObject implements MetadataObject
 {
     private Set<ProgramTrackedEntityAttribute> attributes = new HashSet<>();
 

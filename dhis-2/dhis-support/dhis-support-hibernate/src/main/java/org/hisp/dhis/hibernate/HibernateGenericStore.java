@@ -392,25 +392,25 @@ public class HibernateGenericStore<T>
     // -------------------------------------------------------------------------
 
     @Override
-    public int save( T object )
+    public void save( T object )
     {
-        return save( object, currentUserService.getCurrentUser(), true );
+        save( object, currentUserService.getCurrentUser(), true );
     }
 
     @Override
-    public int save( T object, User user )
+    public void save( T object, User user )
     {
-        return save( object, user, true );
+        save( object, user, true );
     }
 
     @Override
-    public int save( T object, boolean clearSharing )
+    public void save( T object, boolean clearSharing )
     {
-        return save( object, currentUserService.getCurrentUser(), clearSharing );
+        save( object, currentUserService.getCurrentUser(), clearSharing );
     }
 
     @Override
-    public int save( T object, User user, boolean clearSharing )
+    public void save( T object, User user, boolean clearSharing )
     {
         String username = user != null ? user.getUsername() : "system-process";
 
@@ -468,14 +468,12 @@ public class HibernateGenericStore<T>
         }
 
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_CREATE );
-        Integer result = (Integer) getSession().save( object );
+        getSession().save( object );
 
         if ( MetadataObject.class.isInstance( object ) )
         {
             deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( (IdentifiableObject) object ) );
         }
-
-        return result;
     }
 
     private boolean checkPublicAccess( User user, IdentifiableObject identifiableObject )

@@ -79,7 +79,9 @@ public class DefaultSqlViewService
     @Override
     public int saveSqlView( SqlView sqlView )
     {
-        return sqlViewStore.save( sqlView );
+        sqlViewStore.save( sqlView );
+
+        return sqlView.getId();
     }
 
     @Override
