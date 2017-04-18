@@ -87,14 +87,6 @@ public class DefaultValidationResultService
     @Override
     public void updateValidationResults( Set<ValidationResult> validationResults )
     {
-        BatchHandler<ValidationResult> validationResultBatchHandler = batchHandlerFactory
-            .createBatchHandler( ValidationResultBatchHandler.class ).init();
-
-        validationResults.forEach( validationResult ->
-        {
-            validationResultBatchHandler.updateObject( validationResult );
-        } );
-
-        validationResultBatchHandler.flush();
+        validationResults.forEach( vr -> validationResultStore.update( vr ) );
     }
 }

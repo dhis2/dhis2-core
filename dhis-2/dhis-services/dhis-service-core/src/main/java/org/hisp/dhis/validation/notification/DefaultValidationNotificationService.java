@@ -46,7 +46,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.Importance;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
@@ -90,19 +89,23 @@ public class DefaultValidationNotificationService
         this.messageService = messageService;
     }
 
-    @Autowired
     private ValidationResultService validationResultService;
+
+    public void setValidationResultService( ValidationResultService validationResultService )
+    {
+        this.validationResultService = validationResultService;
+    }
 
     // -------------------------------------------------------------------------
     // ValidationNotificationService implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public void sendNotifications( Set<ValidationResult> validationResults )
+    public Set<ValidationResult> sendNotifications( Set<ValidationResult> validationResults )
     {
         if ( validationResults.isEmpty() )
         {
-            return;
+            return Sets.newHashSet();
         }
 
         Clock clock = new Clock( log ).startClock()
@@ -128,13 +131,15 @@ public class DefaultValidationNotificationService
         summaryMessages.forEach( this::sendNotification );
 
         clock.logTime( "Done sending validation notifications" );
+
+        return applicableResults;
     }
 
     @Override
     public void sendUnsentNotifications()
     {
-        Set<ValidationResult> validationResults = Sets.newHashSet( validationResultService.getAllUnReportedValidationResults() );
-        sendNotifications( validationResults );
+        Set<ValidationResult> validationResults =
+            sendNotifications( Sets.newHashSet( validationResultService.getAllUnReportedValidationResults() ) );
 
         validationResults.forEach( vr -> vr.setNotificationSent( true ) );
         validationResultService.updateValidationResults( validationResults );
