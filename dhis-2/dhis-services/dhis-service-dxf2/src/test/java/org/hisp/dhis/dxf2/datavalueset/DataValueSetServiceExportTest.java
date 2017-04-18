@@ -94,6 +94,7 @@ public class DataValueSetServiceExportTest
 
     private DataElement deA;
     private DataElement deB;
+    private DataElement deC;
 
     private DataElementCategoryCombo ccA;
 
@@ -123,9 +124,11 @@ public class DataValueSetServiceExportTest
     {
         deA = createDataElement( 'A' );
         deB = createDataElement( 'B' );
+        deC = createDataElement( 'C' );
 
         idObjectManager.save( deA );
         idObjectManager.save( deB );
+        idObjectManager.save( deC );
 
         ccA = createCategoryCombo( 'A' );
 
@@ -178,20 +181,20 @@ public class DataValueSetServiceExportTest
 
         // Data values
 
-        dataValueService.addDataValue( new DataValue( deA, peA, ouA, cocA, cocA, "1", "storedBy", new Date(), "comment" ) );
-        dataValueService.addDataValue( new DataValue( deA, peA, ouA, cocB, cocB, "1", "storedBy", new Date(), "comment" ) );
-        dataValueService.addDataValue( new DataValue( deA, peA, ouB, cocA, cocA, "1", "storedBy", new Date(), "comment" ) );
-        dataValueService.addDataValue( new DataValue( deA, peA, ouB, cocB, cocB, "1", "storedBy", new Date(), "comment" ) );
+        dataValueService.addDataValue( new DataValue( deA, peA, ouA, cocA, cocA, "1" ) );
+        dataValueService.addDataValue( new DataValue( deA, peA, ouA, cocB, cocB, "1" ) );
+        dataValueService.addDataValue( new DataValue( deA, peA, ouB, cocA, cocA, "1" ) );
+        dataValueService.addDataValue( new DataValue( deA, peA, ouB, cocB, cocB, "1" ) );
 
-        dataValueService.addDataValue( new DataValue( deA, peB, ouA, cocA, cocA, "1", "storedBy", new Date(), "comment" ) );
-        dataValueService.addDataValue( new DataValue( deA, peB, ouA, cocB, cocB, "1", "storedBy", new Date(), "comment" ) );
-        dataValueService.addDataValue( new DataValue( deA, peB, ouB, cocA, cocA, "1", "storedBy", new Date(), "comment" ) );
-        dataValueService.addDataValue( new DataValue( deA, peB, ouB, cocB, cocB, "1", "storedBy", new Date(), "comment" ) );
+        dataValueService.addDataValue( new DataValue( deA, peB, ouA, cocA, cocA, "1" ) );
+        dataValueService.addDataValue( new DataValue( deA, peB, ouA, cocB, cocB, "1" ) );
+        dataValueService.addDataValue( new DataValue( deA, peB, ouB, cocA, cocA, "1" ) );
+        dataValueService.addDataValue( new DataValue( deA, peB, ouB, cocB, cocB, "1" ) );
 
-        dataValueService.addDataValue( new DataValue( deB, peA, ouA, cocA, cocA, "1", "storedBy", new Date(), "comment" ) );
-        dataValueService.addDataValue( new DataValue( deB, peA, ouA, cocB, cocB, "1", "storedBy", new Date(), "comment" ) );
-        dataValueService.addDataValue( new DataValue( deB, peA, ouB, cocA, cocA, "1", "storedBy", new Date(), "comment" ) );
-        dataValueService.addDataValue( new DataValue( deB, peA, ouB, cocB, cocB, "1", "storedBy", new Date(), "comment" ) );
+        dataValueService.addDataValue( new DataValue( deB, peA, ouA, cocA, cocA, "1" ) );
+        dataValueService.addDataValue( new DataValue( deB, peA, ouA, cocB, cocB, "1" ) );
+        dataValueService.addDataValue( new DataValue( deB, peA, ouB, cocA, cocA, "1" ) );
+        dataValueService.addDataValue( new DataValue( deB, peA, ouB, cocB, cocB, "1" ) );
         
         // Flush session to make data values visible to JDBC query
         
@@ -362,5 +365,60 @@ public class DataValueSetServiceExportTest
             assertEquals( avA.getValue(), dv.getDataElement() );
             assertEquals( avB.getValue(), dv.getOrgUnit() );
         }
+    }
+
+    @Test
+    public void testExportLastUpdated()
+    {
+        Date lastUpdated = getDate( 1970, 1, 1 );
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        
+        dataValueSetService.writeDataValueSetJson( lastUpdated, out, new IdSchemes() );
+
+        DataValueSet dvs = JacksonUtils.fromJson( out.toByteArray(), DataValueSet.class );
+        
+        assertNotNull( dvs );
+        assertEquals( 12, dvs.getDataValues().size() );
+
+        for ( org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues() )
+        {
+            assertNotNull( dv );
+        }
+    }
+
+    @Test
+    public void testExportLastUpdatedWithDeletedValues()
+    {
+        DataValue dvA = new DataValue( deC, peA, ouA, cocA, cocA, "1" );
+        DataValue dvB = new DataValue( deC, peB, ouA, cocA, cocA, "2" );
+        
+        dataValueService.addDataValue( dvA );
+        dataValueService.addDataValue( dvB );
+        
+        dbmsManager.flushSession();
+        
+        Date lastUpdated = getDate( 1970, 1, 1 );
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        
+        dataValueSetService.writeDataValueSetJson( lastUpdated, out, new IdSchemes() );
+
+        DataValueSet dvs = JacksonUtils.fromJson( out.toByteArray(), DataValueSet.class );
+        
+        assertNotNull( dvs );
+        assertEquals( 14, dvs.getDataValues().size() );
+        
+        dataValueService.deleteDataValue( dvA );
+        dataValueService.deleteDataValue( dvB );
+
+        dbmsManager.flushSession();
+        
+        out = new ByteArrayOutputStream();
+        
+        dataValueSetService.writeDataValueSetJson( lastUpdated, out, new IdSchemes() );
+
+        dvs = JacksonUtils.fromJson( out.toByteArray(), DataValueSet.class );
+        
+        assertNotNull( dvs );
+        assertEquals( 14, dvs.getDataValues().size() );        
     }
 }
