@@ -74,7 +74,7 @@ public class DataSynchronizationTask
 
         try
         {
-            synchronizationManager.executeAnonymousEventPush();
+            synchronizationManager.executeEventPush();
         }
         catch ( RuntimeException ex )
         {
