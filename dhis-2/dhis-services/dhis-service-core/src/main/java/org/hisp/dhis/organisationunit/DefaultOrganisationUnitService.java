@@ -112,7 +112,7 @@ public class DefaultOrganisationUnitService
     @Override
     public int addOrganisationUnit( OrganisationUnit organisationUnit )
     {
-        int id = organisationUnitStore.save( organisationUnit );
+        organisationUnitStore.save( organisationUnit );
         User user = currentUserService.getCurrentUser();
 
         if ( organisationUnit.getParent() == null && user != null )
@@ -121,7 +121,7 @@ public class DefaultOrganisationUnitService
             user.getOrganisationUnits().add( organisationUnit );
         }
 
-        return id;
+        return organisationUnit.getId();
     }
 
     @Override
@@ -479,7 +479,8 @@ public class DefaultOrganisationUnitService
     @Override
     public int addOrganisationUnitLevel( OrganisationUnitLevel organisationUnitLevel )
     {
-        return organisationUnitLevelStore.save( organisationUnitLevel );
+        organisationUnitLevelStore.save( organisationUnitLevel );
+        return organisationUnitLevel.getId();
     }
 
     @Override

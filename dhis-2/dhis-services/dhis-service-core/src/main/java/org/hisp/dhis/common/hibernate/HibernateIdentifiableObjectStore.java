@@ -83,10 +83,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     // -------------------------------------------------------------------------
 
     @Override
-    public int save( T object )
+    public void save( T object )
     {
         object.setAutoFields();
-        return super.save( object );
+        super.save( object );
     }
 
     @Override

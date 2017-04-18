@@ -28,17 +28,6 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.expression.Operator.equal_to;
-import static org.hisp.dhis.expression.Operator.greater_than;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -52,6 +41,14 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.hisp.dhis.expression.Operator.equal_to;
+import static org.hisp.dhis.expression.Operator.greater_than;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -141,7 +138,8 @@ public class ValidationRuleStoreTest
     {
         ValidationRule validationRule = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
 
-        int id = validationRuleStore.save( validationRule );
+        validationRuleStore.save( validationRule );
+        int id = validationRule.getId();
 
         validationRule = validationRuleStore.get( id );
 
@@ -158,7 +156,8 @@ public class ValidationRuleStoreTest
     {
         ValidationRule validationRule = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
 
-        int id = validationRuleStore.save( validationRule );
+        validationRuleStore.save( validationRule );
+        int id = validationRule.getId();
 
         validationRule = validationRuleStore.get( id );
 
@@ -185,8 +184,10 @@ public class ValidationRuleStoreTest
         ValidationRule validationRuleA = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
         ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionA, expressionB, periodType );
 
-        int idA = validationRuleStore.save( validationRuleA );
-        int idB = validationRuleStore.save( validationRuleB );
+        validationRuleStore.save( validationRuleA );
+        int idA = validationRuleA.getId();
+        validationRuleStore.save( validationRuleB );
+        int idB = validationRuleB.getId();
 
         assertNotNull( validationRuleStore.get( idA ) );
         assertNotNull( validationRuleStore.get( idB ) );
@@ -228,7 +229,8 @@ public class ValidationRuleStoreTest
         ValidationRule validationRuleA = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
         ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionA, expressionB, periodType );
 
-        int id = validationRuleStore.save( validationRuleA );
+        validationRuleStore.save( validationRuleA );
+        int id = validationRuleA.getId();
         validationRuleStore.save( validationRuleB );
 
         ValidationRule rule = validationRuleStore.getByName( "ValidationRuleA" );

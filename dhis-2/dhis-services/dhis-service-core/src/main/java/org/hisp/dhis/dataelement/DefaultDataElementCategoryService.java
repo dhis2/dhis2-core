@@ -143,7 +143,9 @@ public class DefaultDataElementCategoryService
     @Override
     public int addDataElementCategory( DataElementCategory dataElementCategory )
     {
-        return categoryStore.save( dataElementCategory );
+        categoryStore.save( dataElementCategory );
+
+        return dataElementCategory.getId();
     }
 
     @Override
@@ -233,7 +235,9 @@ public class DefaultDataElementCategoryService
     @Override
     public int addDataElementCategoryOption( DataElementCategoryOption dataElementCategoryOption )
     {
-        return categoryOptionStore.save( dataElementCategoryOption );
+        categoryOptionStore.save( dataElementCategoryOption );
+
+        return dataElementCategoryOption.getId();
     }
 
     @Override
@@ -323,7 +327,9 @@ public class DefaultDataElementCategoryService
     @Override
     public int addDataElementCategoryCombo( DataElementCategoryCombo dataElementCategoryCombo )
     {
-        return categoryComboStore.save( dataElementCategoryCombo );
+        categoryComboStore.save( dataElementCategoryCombo );
+
+        return dataElementCategoryCombo.getId();
     }
 
     @Override
@@ -423,7 +429,9 @@ public class DefaultDataElementCategoryService
     @Override
     public int addDataElementCategoryOptionCombo( DataElementCategoryOptionCombo dataElementCategoryOptionCombo )
     {
-        return categoryOptionComboStore.save( dataElementCategoryOptionCombo );
+        categoryOptionComboStore.save( dataElementCategoryOptionCombo );
+
+        return dataElementCategoryOptionCombo.getId();
     }
 
     @Override
@@ -775,7 +783,9 @@ public class DefaultDataElementCategoryService
     @Override
     public int saveCategoryOptionGroup( CategoryOptionGroup group )
     {
-        return categoryOptionGroupStore.save( group );
+        categoryOptionGroupStore.save( group );
+
+        return group.getId();
     }
 
     @Override
@@ -841,7 +851,9 @@ public class DefaultDataElementCategoryService
     @Override
     public int saveCategoryOptionGroupSet( CategoryOptionGroupSet group )
     {
-        return categoryOptionGroupSetStore.save( group );
+        categoryOptionGroupSetStore.save( group );
+
+        return group.getId();
     }
 
     @Override

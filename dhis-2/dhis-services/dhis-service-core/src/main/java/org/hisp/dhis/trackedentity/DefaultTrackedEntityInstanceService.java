@@ -521,7 +521,9 @@ public class DefaultTrackedEntityInstanceService
     @Override
     public int addTrackedEntityInstance( TrackedEntityInstance instance )
     {
-        return trackedEntityInstanceStore.save( instance );
+        trackedEntityInstanceStore.save( instance );
+
+        return instance.getId();
     }
 
     @Override

@@ -79,7 +79,9 @@ public class DefaultIndicatorService
     @Override
     public int addIndicator( Indicator indicator )
     {
-        return indicatorStore.save( indicator );
+        indicatorStore.save( indicator );
+
+        return indicator.getId();
     }
 
     @Override
@@ -137,7 +139,9 @@ public class DefaultIndicatorService
     @Override
     public int addIndicatorType( IndicatorType indicatorType )
     {
-        return indicatorTypeStore.save( indicatorType );
+        indicatorTypeStore.save( indicatorType );
+
+        return indicatorType.getId();
     }
 
     @Override
@@ -177,7 +181,9 @@ public class DefaultIndicatorService
     @Override
     public int addIndicatorGroup( IndicatorGroup indicatorGroup )
     {
-        return indicatorGroupStore.save( indicatorGroup );
+        indicatorGroupStore.save( indicatorGroup );
+
+        return indicatorGroup.getId();
     }
 
     @Override
@@ -217,7 +223,9 @@ public class DefaultIndicatorService
     @Override
     public int addIndicatorGroupSet( IndicatorGroupSet groupSet )
     {
-        return indicatorGroupSetStore.save( groupSet );
+        indicatorGroupSetStore.save( groupSet );
+
+        return groupSet.getId();
     }
 
     @Override

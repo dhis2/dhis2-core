@@ -59,5 +59,10 @@ public class ProgramDataElementDocumentation
     public void testDeleteByIdOk()
     {
     }
+
+    @Override
+    public void testGetAll()
+    {
+    }
 }
 

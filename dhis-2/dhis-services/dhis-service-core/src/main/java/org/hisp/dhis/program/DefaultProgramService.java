@@ -85,7 +85,8 @@ public class DefaultProgramService
     @Override
     public int addProgram( Program program )
     {
-        return programStore.save( program );
+        programStore.save( program );
+        return program.getId();
     }
 
     @Override

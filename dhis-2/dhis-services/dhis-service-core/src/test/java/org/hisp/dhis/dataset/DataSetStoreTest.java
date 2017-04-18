@@ -28,19 +28,16 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Kristian Nordal
@@ -85,8 +82,10 @@ public class DataSetStoreTest
         DataSet dataSetA = createDataSet( 'A', periodType );
         DataSet dataSetB = createDataSet( 'B', periodType );
 
-        int idA = dataSetStore.save( dataSetA );
-        int idB = dataSetStore.save( dataSetB );
+        dataSetStore.save( dataSetA );
+        int idA = dataSetA.getId();
+        dataSetStore.save( dataSetB );
+        int idB = dataSetB.getId();
 
         dataSetA = dataSetStore.get( idA );
         dataSetB = dataSetStore.get( idB );
@@ -103,7 +102,8 @@ public class DataSetStoreTest
     {
         DataSet dataSet = createDataSet( 'A', periodType );
 
-        int id = dataSetStore.save( dataSet );
+        dataSetStore.save( dataSet );
+        int id = dataSet.getId();
 
         dataSet = dataSetStore.get( id );
 
@@ -124,8 +124,10 @@ public class DataSetStoreTest
         DataSet dataSetA = createDataSet( 'A', periodType );
         DataSet dataSetB = createDataSet( 'B', periodType );
 
-        int idA = dataSetStore.save( dataSetA );
-        int idB = dataSetStore.save( dataSetB );
+        dataSetStore.save( dataSetA );
+        int idA = dataSetA.getId();
+        dataSetStore.save( dataSetB );
+        int idB = dataSetB.getId();
 
         assertNotNull( dataSetStore.get( idA ) );
         assertNotNull( dataSetStore.get( idB ) );
@@ -142,8 +144,10 @@ public class DataSetStoreTest
         DataSet dataSetA = createDataSet( 'A', periodType );
         DataSet dataSetB = createDataSet( 'B', periodType );
 
-        int idA = dataSetStore.save( dataSetA );
-        int idB = dataSetStore.save( dataSetB );
+        dataSetStore.save( dataSetA );
+        int idA = dataSetA.getId();
+        dataSetStore.save( dataSetB );
+        int idB = dataSetB.getId();
 
         assertEquals( dataSetStore.getByName( "DataSetA" ).getId(), idA );
         assertEquals( dataSetStore.getByName( "DataSetB" ).getId(), idB );
@@ -156,8 +160,10 @@ public class DataSetStoreTest
         DataSet dataSetA = createDataSet( 'A', periodType );
         DataSet dataSetB = createDataSet( 'B', periodType );
 
-        int idA = dataSetStore.save( dataSetA );
-        int idB = dataSetStore.save( dataSetB );
+        dataSetStore.save( dataSetA );
+        int idA = dataSetA.getId();
+        dataSetStore.save( dataSetB );
+        int idB = dataSetB.getId();
 
         assertEquals( dataSetStore.getByShortName( "DataSetShortA" ).getId(), idA );
         assertEquals( dataSetStore.getByShortName( "DataSetShortB" ).getId(), idB );

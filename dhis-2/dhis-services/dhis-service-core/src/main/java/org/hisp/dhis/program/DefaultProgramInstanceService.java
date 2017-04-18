@@ -101,7 +101,8 @@ public class DefaultProgramInstanceService
     @Override
     public int addProgramInstance( ProgramInstance programInstance )
     {
-        return programInstanceStore.save( programInstance );
+        programInstanceStore.save( programInstance );
+        return programInstance.getId();
     }
 
     @Override

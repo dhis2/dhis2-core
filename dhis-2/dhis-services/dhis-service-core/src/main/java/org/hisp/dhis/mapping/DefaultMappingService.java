@@ -115,7 +115,9 @@ public class DefaultMappingService
     {
         map.getMapViews().forEach( mapView -> mapView.setAutoFields() );
         
-        return mapStore.save( map );
+        mapStore.save( map );
+
+        return map.getId();
     }
 
     @Override
@@ -163,7 +165,8 @@ public class DefaultMappingService
     @Override
     public int addMapView( MapView mapView )
     {
-        return mapViewStore.save( mapView );
+        mapViewStore.save( mapView );
+        return mapView.getId();
     }
 
     @Override
@@ -243,7 +246,8 @@ public class DefaultMappingService
     @Override
     public int addExternalMapLayer( ExternalMapLayer externalMapLayer )
     {
-        return externalMapLayerStore.save( externalMapLayer );
+        externalMapLayerStore.save( externalMapLayer );
+        return externalMapLayer.getId();
     }
 
     @Override

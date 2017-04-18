@@ -314,7 +314,8 @@ public class DefaultMessageService
     @Override
     public int saveMessageConversation( MessageConversation conversation )
     {
-        return messageConversationStore.save( conversation );
+        messageConversationStore.save( conversation );
+        return conversation.getId();
     }
 
     @Override

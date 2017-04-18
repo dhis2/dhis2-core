@@ -28,17 +28,17 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.expression.ExpressionService;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Margrethe Store
@@ -81,7 +81,9 @@ public class DefaultValidationRuleService
     @Override
     public int saveValidationRule( ValidationRule validationRule )
     {
-        return validationRuleStore.save( validationRule );
+        validationRuleStore.save( validationRule );
+
+        return validationRule.getId();
     }
 
     @Override
@@ -199,7 +201,9 @@ public class DefaultValidationRuleService
     @Override
     public int addValidationRuleGroup( ValidationRuleGroup validationRuleGroup )
     {
-        return validationRuleGroupStore.save( validationRuleGroup );
+        validationRuleGroupStore.save( validationRuleGroup );
+
+        return validationRuleGroup.getId();
     }
 
     @Override
