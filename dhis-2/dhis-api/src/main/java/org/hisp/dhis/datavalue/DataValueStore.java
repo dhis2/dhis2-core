@@ -171,9 +171,10 @@ public interface DataValueStore
      * 
      * @param startDate the start date to compare against data value last updated.
      * @param endDate the end date to compare against data value last updated.
+     * @param includeDeleted whether to include deleted data values.
      * @return the number of DataValues.
      */
-    int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate );
+    int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted );
 
     /**
      * Returns a map of values for each attribute option combo found.

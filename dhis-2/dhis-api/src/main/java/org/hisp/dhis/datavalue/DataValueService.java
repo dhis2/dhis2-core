@@ -214,9 +214,10 @@ public interface DataValueService
      * date time.
      * 
      * @param date the date time.
+     * @param includeDeleted whether to include deleted data values.
      * @return the number of DataValues.
      */
-    int getDataValueCountLastUpdatedAfter( Date date );
+    int getDataValueCountLastUpdatedAfter( Date date, boolean includeDeleted );
 
     /**
      * Gets the number of DataValues which have been updated between the given 
@@ -225,9 +226,10 @@ public interface DataValueService
      * 
      * @param startDate the start date to compare against data value last updated.
      * @param endDate the end date to compare against data value last updated.
+     * @param includeDeleted whether to include deleted data values.
      * @return the number of DataValues.
      */
-    int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate );
+    int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted );
 
     /**
      * Returns a map of values for each attribute option combo found.

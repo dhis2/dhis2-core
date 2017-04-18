@@ -475,10 +475,24 @@ public class DataValueServiceTest
         dataValueA.setValue( "1" );
         DataValue dataValueB = new DataValue( dataElementA, periodA, sourceB, optionCombo, optionCombo );
         dataValueB.setValue( "2" );
+        DataValue dataValueC = new DataValue( dataElementB, periodA, sourceB, optionCombo, optionCombo );
+        dataValueC.setValue( "3" );
         
         dataValueService.addDataValue( dataValueA );
         dataValueService.addDataValue( dataValueB );
+        dataValueService.addDataValue( dataValueC );
         
-        assertEquals( 2, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null ) );
+        assertEquals( 3, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null, false ) );
+        assertEquals( 3, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null, true ) );
+        
+        dataValueService.deleteDataValue( dataValueC );
+
+        assertEquals( 3, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null, true ) );
+        assertEquals( 2, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null, false ) );
+        
+        dataValueService.deleteDataValue( dataValueB );
+
+        assertEquals( 3, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null, true ) );
+        assertEquals( 1, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null, false ) );
     }
 }
