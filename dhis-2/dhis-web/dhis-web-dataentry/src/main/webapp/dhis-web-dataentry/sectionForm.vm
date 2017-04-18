@@ -34,11 +34,11 @@
 #macro( renderSection $section $indicators $title $description )
     
     <div class="formSection sectionContainer">
-        <div class="cent"><h3>$!encoder.htmlEncode( $title )</h3></div>
+        <div class="cent"><h3>$!encoder.htmlEncode( $title ) </h3></div>
         #if ( $description )
             <div class="cent sectionDescription">$!encoder.htmlEncode( $description )</div>
         #end
-
+        #set( $categoryComboIds = "null" )
         #set( $categoryComboIds = $sectionCombos.get( $section.id ) )
 
         #foreach( $categoryComboId in $categoryComboIds )
