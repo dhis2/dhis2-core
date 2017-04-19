@@ -855,8 +855,9 @@ public class DefaultDataValueSetService
                 continue;
             }
 
-            if ( dataValue.getValue() == null && dataValue.getComment() == null )
+            if ( dataValue.isNullValue() && !dataValue.isDeletedValue() )
             {
+                summary.getConflicts().add( new ImportConflict( "Value", "Data value or comment not specified for data element: " + dataElement.getUid() ) );
                 continue;
             }
 

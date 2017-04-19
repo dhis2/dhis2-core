@@ -103,6 +103,17 @@ public class DataValue
             .toArray(), DimensionalObject.DIMENSION_SEP );
     }
     
+    public boolean isNullValue()
+    {
+        return getValue() == null && getComment() == null;
+    }
+    
+    public boolean isDeletedValue()
+    {
+        Boolean deleted = getDeleted();
+        return deleted != null && deleted;
+    }
+    
     @Override
     public String toString()
     {

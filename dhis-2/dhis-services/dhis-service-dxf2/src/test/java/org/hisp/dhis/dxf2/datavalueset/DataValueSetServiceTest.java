@@ -914,7 +914,7 @@ public class DataValueSetServiceTest
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
         assertEquals( 2, summary.getImportCount().getIgnored() );
         assertEquals( 1, summary.getImportCount().getImported() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertEquals( summary.getConflicts().toString(), 2, summary.getConflicts().size() );
 
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
 
