@@ -110,6 +110,8 @@ public class AnalyticsController
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, startDate, endDate, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
             ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, false, approvalLevel, relativePeriodDate, userOrgUnit, apiVersion );
 
+        System.out.println("Params: " + params);
+
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
     }
