@@ -28,20 +28,17 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DataDimensionType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -124,8 +121,9 @@ public class DataElementCategoryOptionComboStoreTest
         categoryOptionComboA.setCategoryCombo( categoryComboA );
         categoryOptionComboA.setCategoryOptions( categoryOptions );        
         
-        int id = categoryOptionComboStore.save( categoryOptionComboA );
-        
+        categoryOptionComboStore.save( categoryOptionComboA );
+        int id = categoryOptionComboA.getId();
+
         categoryOptionComboA = categoryOptionComboStore.get( id );
         
         assertNotNull( categoryOptionComboA );
@@ -143,11 +141,10 @@ public class DataElementCategoryOptionComboStoreTest
         categoryOptionComboA.setCategoryCombo( categoryComboA );
         categoryOptionComboA.setCategoryOptions( categoryOptions );        
         
-        int id = categoryOptionComboStore.save( categoryOptionComboA );
-        
-        categoryOptionComboA = categoryOptionComboStore.get( id );
-        
-        assertNotNull( categoryOptionComboA );
+        categoryOptionComboStore.save( categoryOptionComboA );
+        int id = categoryOptionComboA.getId();
+
+        assertNotNull( categoryOptionComboStore.get( id ) );
         assertEquals( categoryComboA, categoryOptionComboA.getCategoryCombo() );
         assertEquals( categoryOptions, categoryOptionComboA.getCategoryOptions() );
         
@@ -179,10 +176,13 @@ public class DataElementCategoryOptionComboStoreTest
         categoryOptionComboB.setCategoryOptions( categoryOptions );
         categoryOptionComboC.setCategoryOptions( categoryOptions );
 
-        int idA = categoryOptionComboStore.save( categoryOptionComboA );
-        int idB = categoryOptionComboStore.save( categoryOptionComboB );
-        int idC = categoryOptionComboStore.save( categoryOptionComboC );
-        
+        categoryOptionComboStore.save( categoryOptionComboA );
+        int idA = categoryOptionComboA.getId();
+        categoryOptionComboStore.save( categoryOptionComboB );
+        int idB = categoryOptionComboB.getId();
+        categoryOptionComboStore.save( categoryOptionComboC );
+        int idC = categoryOptionComboC.getId();
+
         assertNotNull( categoryOptionComboStore.get( idA ) );
         assertNotNull( categoryOptionComboStore.get( idB ) );
         assertNotNull( categoryOptionComboStore.get( idC ) );

@@ -33,6 +33,8 @@ import java.io.InputStream;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -63,6 +65,9 @@ public class DataValueSetServiceIntegrationTest
     private IdentifiableObjectManager idObjectManager;
 
     @Autowired
+    private DataSetService dataSetService;
+    
+    @Autowired
     private PeriodService periodService;
 
     @Autowired
@@ -74,6 +79,10 @@ public class DataValueSetServiceIntegrationTest
     private DataElement deA;
     private DataElement deB;
     private DataElement deC;
+    
+    private PeriodType ptA;
+    
+    private DataSet dsA;
 
     private Period peA;
     private Period peB;
@@ -93,7 +102,7 @@ public class DataValueSetServiceIntegrationTest
         deA = createDataElement( 'A' );
         deB = createDataElement( 'B' );
         deC = createDataElement( 'C' );
-
+        
         deA.setUid( "f7n9E0hX8qk" );
         deB.setUid( "Ix2HsbDMLea" );
         deC.setUid( "eY5ehpbEsB7" );
@@ -101,6 +110,12 @@ public class DataValueSetServiceIntegrationTest
         idObjectManager.save( deA );
         idObjectManager.save( deB );
         idObjectManager.save( deC );
+        
+        ptA = new MonthlyPeriodType();
+        
+        dsA = createDataSet( 'A', ptA );        
+        dsA.setUid( "pBOMPrpg1QX" );        
+        dataSetService.addDataSet( dsA );
         
         peA = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2012, 1, 1 ), getDate( 2012, 1, 31 ) );
         peB = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2012, 2, 1 ), getDate( 2012, 2, 29 ) );
@@ -138,6 +153,38 @@ public class DataValueSetServiceIntegrationTest
     // Tests
     // -------------------------------------------------------------------------
 
+    /**
+     * Import 3 data values, then delete 3 data values.
+     */
+    @Test
+    public void testImportDeleteValuesXml()
+        throws Exception
+    {
+        assertEquals( 0, dataValueService.getAllDataValues().size() );
+        
+        in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
+
+        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        
+        assertEquals( 3, summary.getImportCount().getImported() );
+        assertEquals( 0, summary.getImportCount().getUpdated() );
+        assertEquals( 0, summary.getImportCount().getDeleted() );
+        
+        assertEquals( 3, dataValueService.getAllDataValues().size() );
+        
+        // Delete values
+
+        in = new ClassPathResource( "datavalueset/dataValueSetADeleted.xml" ).getInputStream();
+
+        summary = dataValueSetService.saveDataValueSet( in );
+        
+        assertEquals( 0, summary.getImportCount().getImported() );
+        assertEquals( 0, summary.getImportCount().getUpdated() );
+        assertEquals( 3, summary.getImportCount().getDeleted() );
+        
+        assertEquals( 0, dataValueService.getAllDataValues().size() );
+    }
+    
     /**
      * Import 12 data values.
      */

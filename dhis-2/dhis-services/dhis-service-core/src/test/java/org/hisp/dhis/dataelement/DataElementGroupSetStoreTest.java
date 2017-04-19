@@ -55,4 +55,10 @@ public class DataElementGroupSetStoreTest
     {
         return "org.hisp.dhis.dataelement.DataElementGroupSetStore";
     }
+
+    @Override
+    protected int getObjectId( DataElementGroupSet object )
+    {
+        return object.getId();
+    }
 }

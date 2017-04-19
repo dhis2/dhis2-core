@@ -177,7 +177,8 @@ public class DefaultAnalyticsService
             getAggregatedDataValuesTableLayout( params, columns, rows ) :
             getAggregatedDataValues( params );
     }
-    
+
+    @Override
     public Grid getRawDataValues( DataQueryParams params )
     {        
         securityManager.decideAccess( params );

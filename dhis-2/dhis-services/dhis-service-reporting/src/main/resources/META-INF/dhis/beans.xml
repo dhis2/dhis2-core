@@ -27,6 +27,8 @@
 
   <bean id="dataStatisticsTask" class="org.hisp.dhis.datastatistics.DataStatisticsTask" scope="prototype" />
 
+  <bean id="credentialsExpiryAlertTask" class="org.hisp.dhis.credentials.CredentialsExpiryAlertTask" scope="prototype"/>
+
   <!-- ReportTable -->
 
   <bean id="org.hisp.dhis.reporttable.ReportTableService" class="org.hisp.dhis.reporttable.impl.DefaultReportTableService">
@@ -180,6 +182,7 @@
         <entry key="sendScheduledMessageTaskNow" value-ref="sendScheduledMessageTaskNow" />
         <entry key="scheduledProgramNotificationsTask" value-ref="scheduledProgramNotificationsTask" />
         <entry key="validationResultNotificationTask" value-ref="validationResultNotificationTask" />
+        <entry key="credentialsExpiryAlertTask" value-ref="credentialsExpiryAlertTask" />
       </map>
     </property>
   </bean>

@@ -163,7 +163,9 @@ public class DefaultExpressionService
     @Transactional
     public int addExpression( Expression expression )
     {
-        return expressionStore.save( expression );
+        expressionStore.save( expression );
+
+        return expression.getId();
     }
 
     @Override
@@ -309,7 +311,7 @@ public class DefaultExpressionService
                 return value;
             }
         }
-        
+
         if ( comboId == null )
         {
             DataElementOperand deo = new DataElementOperand( dataElement );
@@ -324,7 +326,7 @@ public class DefaultExpressionService
 
             for ( DataElementCategoryOptionCombo optionCombo : optionCombos )
             {
-                deo = new DataElementOperand( elementId, optionCombo.getUid() );
+                deo = DataElementOperand.instance( elementId, optionCombo.getUid() );
                 Double value = valueMap.get( deo );
 
                 if ( value != null )
@@ -342,7 +344,7 @@ public class DefaultExpressionService
         }
         else
         {
-            DataElementOperand deo = new DataElementOperand( elementId, comboId );
+            DataElementOperand deo = DataElementOperand.instance( elementId, comboId );
 
             return getDeoValueFromValueMap( valueMap, deo );
         }
@@ -356,7 +358,7 @@ public class DefaultExpressionService
             {
                 DataElementOperand deo = (DataElementOperand) d;
 
-                if ( deo.getOperandId().compareTo( match.getOperandId() ) == 0 )
+                if ( deo.equals( match ) )
                 {
                     return valueMap.get( deo );
                 }
@@ -432,14 +434,16 @@ public class DefaultExpressionService
 
             while ( matcher.find() )
             {
-                DataElementOperand operand = DataElementOperand.getOperand( matcher.group() );
-                operand.setDataElement( dataElementService.getDataElement( operand.getDataElementId() ) );
+                String dataElementUid = StringUtils.trimToNull( matcher.group( 1 ) );
 
-                if ( operand.getOptionComboId() != null )
-                {
-                    operand.setCategoryOptionCombo( categoryService.getDataElementCategoryOptionCombo( operand.getOptionComboId() ) );                    
-                }
-                operandsInExpression.add( operand );
+                String optionComboUid = StringUtils.trimToNull( matcher.group( 2 ) );
+
+                DataElement dataElement = dataElementService.getDataElement( dataElementUid );
+
+                DataElementCategoryOptionCombo optionCombo = optionComboUid == null ? null :
+                    categoryService.getDataElementCategoryOptionCombo( optionComboUid );
+
+                operandsInExpression.add ( new DataElementOperand( dataElement, optionCombo ) );
             }
         }
 

@@ -158,8 +158,14 @@
 
     <property name="showData" />
 
-    <property name="hideEmptyRows" />
-
+    <property name="hideEmptyRowItems" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.HideEmptyItemStrategy</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
     <property name="hideNaData" />
 
     <property name="rangeAxisMaxValue" />

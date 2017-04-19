@@ -28,11 +28,11 @@ package org.hisp.dhis.relationship;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.apache.commons.lang3.NotImplementedException;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * @author Abyot Asalefew
@@ -77,7 +77,8 @@ public class DefaultRelationshipService
     @Override
     public int addRelationship( Relationship relationship )
     {
-        return relationshipStore.save( relationship );
+        relationshipStore.save( relationship );
+        return relationship.getId();
     }
 
     @Override

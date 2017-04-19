@@ -28,13 +28,7 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -53,7 +47,12 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Jim Grace
@@ -124,7 +123,9 @@ public class DefaultDataApprovalService
     @Override
     public int addWorkflow( DataApprovalWorkflow workflow )
     {
-        return workflowStore.save( workflow );
+        workflowStore.save( workflow );
+
+        return workflow.getId();
     }
 
     @Override

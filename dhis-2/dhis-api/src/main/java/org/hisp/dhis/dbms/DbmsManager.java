@@ -39,6 +39,8 @@ public interface DbmsManager
     
     void clearSession();
     
+    void flushSession();
+    
     void emptyTable( String table );
     
     boolean tableExists( String tableName );

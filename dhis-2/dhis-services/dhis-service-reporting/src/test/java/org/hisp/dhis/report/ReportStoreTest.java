@@ -28,21 +28,17 @@ package org.hisp.dhis.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-
-import javax.annotation.Resource;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.annotation.Resource;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -81,9 +77,11 @@ public class ReportStoreTest
         Report reportA = new Report( "ReportA", ReportType.JASPER_REPORT_TABLE, "DesignA", reportTableA );
         Report reportB = new Report( "ReportB", ReportType.JASPER_REPORT_TABLE, "DesignB", reportTableA );
         
-        int idA = reportStore.save( reportA );
-        int idB = reportStore.save( reportB );
-        
+        reportStore.save( reportA );
+        int idA = reportA.getId();
+        reportStore.save( reportB );
+        int idB = reportB.getId();
+
         assertEquals( reportA, reportStore.get( idA ) );
         assertEquals( reportB, reportStore.get( idB ) );
     }
@@ -94,18 +92,22 @@ public class ReportStoreTest
         Report reportA = new Report( "ReportA", ReportType.JASPER_REPORT_TABLE, "DesignA", reportTableA );
         Report reportB = new Report( "ReportB", ReportType.JASPER_REPORT_TABLE, "DesignB", reportTableA );
         
-        int idA = reportStore.save( reportA );
-        int idB = reportStore.save( reportB );
-        
+        reportStore.save( reportA );
+        int idA = reportA.getId();
+        reportStore.save( reportB );
+        int idB = reportB.getId();
+
         assertEquals( reportA, reportStore.get( idA ) );
         assertEquals( reportB, reportStore.get( idB ) );
         
         reportA.setDesignContent( "UpdatedDesignA" );
         reportB.setDesignContent( "UpdatedDesignB" );
         
-        int updatedIdA = reportStore.save( reportA );
-        int updatedIdB = reportStore.save( reportB );
-        
+        reportStore.save( reportA );
+        int updatedIdA = reportA.getId();
+        reportStore.save( reportB );
+        int updatedIdB = reportB.getId();
+
         assertEquals( idA, updatedIdA );
         assertEquals( idB, updatedIdB );
         
@@ -119,9 +121,11 @@ public class ReportStoreTest
         Report reportA = new Report( "ReportA", ReportType.JASPER_REPORT_TABLE, "DesignA", reportTableA );
         Report reportB = new Report( "ReportB", ReportType.JASPER_REPORT_TABLE, "DesignB", reportTableA );
         
-        int idA = reportStore.save( reportA );
-        int idB = reportStore.save( reportB );
-        
+        reportStore.save( reportA );
+        int idA = reportA.getId();
+        reportStore.save( reportB );
+        int idB = reportB.getId();
+
         assertNotNull( reportStore.get( idA ) );
         assertNotNull( reportStore.get( idB ) );
         

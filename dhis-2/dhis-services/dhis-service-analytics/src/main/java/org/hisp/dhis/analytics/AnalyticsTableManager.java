@@ -28,14 +28,14 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.analytics.table.AnalyticsTableType;
+
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
-
-import org.hisp.dhis.analytics.table.AnalyticsTableType;
 
 /**
  * Manager for the analytics database tables.
@@ -47,26 +47,31 @@ public interface AnalyticsTableManager
     public static final String TABLE_TEMP_SUFFIX = "_temp";
     
     /**
-     * Returns the type of analytics table which this manager handles.
+     * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
+     * 
+     * @return type of analytics table.
      */
     AnalyticsTableType getAnalyticsTableType();
     
     /**
-     * Returns a list of generated analytics tables for yearly partitions.
+     * Returns a list of generated {@link AnalyticsTable} for yearly partitions.
      * 
      * @param earliest the start date for the first year to generate table partitions.
-     * @param latest the end date for the last year to generate table partitions.
+     * @return list of analytics tables.
      */
     List<AnalyticsTable> getTables( Date earliest );
     
     /**
      * Returns a list of existing analytics database table names.
+     * 
+     * @return a list of existing analytics database table names.
      */
     Set<String> getExistingDatabaseTables();
     
     /**
      * Checks if the database content is in valid state for analytics table generation.
-     * Returns null if valid, a descriptive string if invalid.
+     * 
+     * @return null if valid, a descriptive string if invalid.
      */
     String validState();
     
@@ -78,7 +83,7 @@ public interface AnalyticsTableManager
     /**
      * Attempts to drop and then create analytics table.
      * 
-     * @param tableName the table name.
+     * @param table the table name.
      */
     void createTable( AnalyticsTable table );
     
@@ -87,6 +92,7 @@ public interface AnalyticsTableManager
      * the given name.
      * 
      * @param indexes the analytics indexes.
+     * @return a future representing the asynchronous task.
      */
     Future<?> createIndexesAsync( ConcurrentLinkedQueue<AnalyticsIndex> indexes );
     
@@ -103,6 +109,7 @@ public interface AnalyticsTableManager
      * The data range is based on the start date of the data value row.
      * 
      * @param tables the analytics tables.
+     * @return a future representing the asynchronous task.
      */
     Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables );
     
@@ -135,6 +142,7 @@ public interface AnalyticsTableManager
      * @param tables the analytics tables.
      * @param dataElements the data element uids to apply aggregation levels for.
      * @param aggregationLevel the aggregation level.
+     * @return a future representing the asynchronous task.
      */
     Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTable> tables, Collection<String> dataElements, int aggregationLevel );
     
@@ -143,6 +151,7 @@ public interface AnalyticsTableManager
      * performed is dependent on the underlying DBMS.
      * 
      * @param tables the analytics tables.
+     * @return a future representing the asynchronous task.
      */
     Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables );
 }

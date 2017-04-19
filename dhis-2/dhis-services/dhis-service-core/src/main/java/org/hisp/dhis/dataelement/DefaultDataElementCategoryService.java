@@ -143,7 +143,9 @@ public class DefaultDataElementCategoryService
     @Override
     public int addDataElementCategory( DataElementCategory dataElementCategory )
     {
-        return categoryStore.save( dataElementCategory );
+        categoryStore.save( dataElementCategory );
+
+        return dataElementCategory.getId();
     }
 
     @Override
@@ -174,12 +176,6 @@ public class DefaultDataElementCategoryService
     public DataElementCategory getDataElementCategory( String uid )
     {
         return categoryStore.getByUid( uid );
-    }
-
-    @Override
-    public List<DataElementCategory> getDataElementCategoriesByUid( Collection<String> uids )
-    {
-        return categoryStore.getByUid( uids );
     }
 
     @Override
@@ -239,7 +235,9 @@ public class DefaultDataElementCategoryService
     @Override
     public int addDataElementCategoryOption( DataElementCategoryOption dataElementCategoryOption )
     {
-        return categoryOptionStore.save( dataElementCategoryOption );
+        categoryOptionStore.save( dataElementCategoryOption );
+
+        return dataElementCategoryOption.getId();
     }
 
     @Override
@@ -291,12 +289,6 @@ public class DefaultDataElementCategoryService
     }
 
     @Override
-    public List<DataElementCategoryOption> getDataElementCategoryOptionsByUid( Collection<String> uids )
-    {
-        return categoryOptionStore.getByUid( uids );
-    }
-
-    @Override
     public List<DataElementCategoryOption> getAllDataElementCategoryOptions()
     {
         return categoryOptionStore.getAll();
@@ -335,7 +327,9 @@ public class DefaultDataElementCategoryService
     @Override
     public int addDataElementCategoryCombo( DataElementCategoryCombo dataElementCategoryCombo )
     {
-        return categoryComboStore.save( dataElementCategoryCombo );
+        categoryComboStore.save( dataElementCategoryCombo );
+
+        return dataElementCategoryCombo.getId();
     }
 
     @Override
@@ -435,7 +429,9 @@ public class DefaultDataElementCategoryService
     @Override
     public int addDataElementCategoryOptionCombo( DataElementCategoryOptionCombo dataElementCategoryOptionCombo )
     {
-        return categoryOptionComboStore.save( dataElementCategoryOptionCombo );
+        categoryOptionComboStore.save( dataElementCategoryOptionCombo );
+
+        return dataElementCategoryOptionCombo.getId();
     }
 
     @Override
@@ -466,12 +462,6 @@ public class DefaultDataElementCategoryService
     public DataElementCategoryOptionCombo getDataElementCategoryOptionComboByCode( String code )
     {
         return categoryOptionComboStore.getByCode( code );
-    }
-
-    @Override
-    public List<DataElementCategoryOptionCombo> getDataElementCategoryOptionCombosByUid( Collection<String> uids )
-    {
-        return categoryOptionComboStore.getByUid( uids );
     }
 
     @Override
@@ -772,7 +762,6 @@ public class DefaultDataElementCategoryService
         if ( !categoryCombo.isDefault() && includeTotals )
         {
             DataElementOperand operand = new DataElementOperand( dataElement );
-            operand.updateProperties( dataElement );
 
             operands.add( operand );
         }
@@ -780,7 +769,6 @@ public class DefaultDataElementCategoryService
         for ( DataElementCategoryOptionCombo categoryOptionCombo : categoryCombo.getSortedOptionCombos() )
         {
             DataElementOperand operand = new DataElementOperand( dataElement, categoryOptionCombo );
-            operand.updateProperties( dataElement, categoryOptionCombo );
 
             operands.add( operand );
         }
@@ -795,7 +783,9 @@ public class DefaultDataElementCategoryService
     @Override
     public int saveCategoryOptionGroup( CategoryOptionGroup group )
     {
-        return categoryOptionGroupStore.save( group );
+        categoryOptionGroupStore.save( group );
+
+        return group.getId();
     }
 
     @Override
@@ -814,12 +804,6 @@ public class DefaultDataElementCategoryService
     public CategoryOptionGroup getCategoryOptionGroup( String uid )
     {
         return categoryOptionGroupStore.getByUid( uid );
-    }
-
-    @Override
-    public List<CategoryOptionGroup> getCategoryOptionGroupsByUid( Collection<String> uids )
-    {
-        return categoryOptionGroupStore.getByUid( uids );
     }
 
     @Override
@@ -867,7 +851,9 @@ public class DefaultDataElementCategoryService
     @Override
     public int saveCategoryOptionGroupSet( CategoryOptionGroupSet group )
     {
-        return categoryOptionGroupSetStore.save( group );
+        categoryOptionGroupSetStore.save( group );
+
+        return group.getId();
     }
 
     @Override
@@ -886,12 +872,6 @@ public class DefaultDataElementCategoryService
     public CategoryOptionGroupSet getCategoryOptionGroupSet( String uid )
     {
         return categoryOptionGroupSetStore.getByUid( uid );
-    }
-
-    @Override
-    public List<CategoryOptionGroupSet> getCategoryOptionGroupSetsByUid( Collection<String> uids )
-    {
-        return categoryOptionGroupSetStore.getByUid( uids );
     }
 
     @Override

@@ -28,13 +28,7 @@ package org.hisp.dhis.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
@@ -43,7 +37,9 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -318,25 +314,7 @@ public class OrganisationUnitStoreTest
         assertEquals( 3, ous.size() );
         assertTrue( ous.containsAll( Sets.newHashSet( ouB, ouD, ouE ) ) );
     }
-    
-    @Test
-    public void testGetWithCategoryOptions()
-    {
-        ouA.addCategoryOption( coA );
-        ouA.addCategoryOption( coB );
-        ouC.addCategoryOption( coA );
         
-        orgUnitStore.save( ouA );
-        orgUnitStore.save( ouB );
-        orgUnitStore.save( ouC );
-        
-        List<OrganisationUnit> units = orgUnitStore.getOrganisationUnitsWithCategoryOptions();
-        
-        assertEquals( 2, units.size() );
-        assertTrue( units.contains( ouA ) );
-        assertTrue( units.contains( ouC ) );
-    }
-    
     // -------------------------------------------------------------------------
     // OrganisationUnitLevel
     // -------------------------------------------------------------------------
@@ -347,8 +325,10 @@ public class OrganisationUnitStoreTest
         OrganisationUnitLevel levelA = new OrganisationUnitLevel( 1, "National" );
         OrganisationUnitLevel levelB = new OrganisationUnitLevel( 2, "District" );
 
-        int idA = orgUnitLevelStore.save( levelA );
-        int idB = orgUnitLevelStore.save( levelB );
+        orgUnitLevelStore.save( levelA );
+        int idA = levelA.getId();
+        orgUnitLevelStore.save( levelB );
+        int idB = levelB.getId();
 
         assertEquals( levelA, orgUnitLevelStore.get( idA ) );
         assertEquals( levelB, orgUnitLevelStore.get( idB ) );
@@ -377,8 +357,10 @@ public class OrganisationUnitStoreTest
         OrganisationUnitLevel levelA = new OrganisationUnitLevel( 1, "National" );
         OrganisationUnitLevel levelB = new OrganisationUnitLevel( 2, "District" );
 
-        int idA = orgUnitLevelStore.save( levelA );
-        int idB = orgUnitLevelStore.save( levelB );
+        orgUnitLevelStore.save( levelA );
+        int idA = levelA.getId();
+        orgUnitLevelStore.save( levelB );
+        int idB = levelB.getId();
 
         assertNotNull( orgUnitLevelStore.get( idA ) );
         assertNotNull( orgUnitLevelStore.get( idB ) );

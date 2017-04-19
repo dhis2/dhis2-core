@@ -63,7 +63,8 @@ public class DefaultPeriodService
     @Override
     public int addPeriod( Period period )
     {
-        return periodStore.addPeriod( period );
+        periodStore.addPeriod( period );
+        return period.getId();
     }
 
     @Override

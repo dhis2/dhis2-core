@@ -38,6 +38,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -50,9 +51,19 @@ public class DeletedObject
     implements Serializable
 {
     /**
+     * The database internal identifier for this Object.
+     */
+    private int id;
+
+    /**
+     * Class of object that was deleted.
+     */
+    private String klass;
+
+    /**
      * The Unique Identifier for this Object.
      */
-    private DeletedObjectId deletedObjectId;
+    private String uid;
 
     /**
      * The unique code for this Object.
@@ -64,7 +75,7 @@ public class DeletedObject
      */
     private Date deletedAt = new Date();
 
-    private DeletedObject()
+    protected DeletedObject()
     {
     }
 
@@ -73,33 +84,43 @@ public class DeletedObject
         Assert.notNull( identifiableObject, "IdentifiableObject is required and can not be null." );
         Assert.notNull( identifiableObject.getUid(), "IdentifiableObject.uid is required and can not be null." );
 
-        this.deletedObjectId = new DeletedObjectId(
-            ClassUtils.getShortName( identifiableObject.getClass() ), identifiableObject.getUid() );
-        this.code = identifiableObject.getCode();
+        this.klass = ClassUtils.getShortName( identifiableObject.getClass() );
+        this.uid = identifiableObject.getUid();
+        this.code = !StringUtils.isEmpty( identifiableObject.getCode() ) ? identifiableObject.getCode() : null;
     }
 
-    public DeletedObjectId getDeletedObjectId()
+    public int getId()
     {
-        return deletedObjectId;
+        return id;
     }
 
-    public void setDeletedObjectId( DeletedObjectId deletedObjectId )
+    public void setId( int id )
     {
-        this.deletedObjectId = deletedObjectId;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getUid()
-    {
-        return deletedObjectId != null ? deletedObjectId.getUid() : null;
+        this.id = id;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getKlass()
     {
-        return deletedObjectId != null ? deletedObjectId.getKlass() : null;
+        return klass;
+    }
+
+    public void setKlass( String klass )
+    {
+        this.klass = klass;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getUid()
+    {
+        return uid;
+    }
+
+    public void setUid( String uid )
+    {
+        this.uid = uid;
     }
 
     @JsonProperty
@@ -134,7 +155,8 @@ public class DeletedObject
 
         DeletedObject that = (DeletedObject) o;
 
-        return Objects.equal( deletedObjectId, that.deletedObjectId ) &&
+        return Objects.equal( klass, that.klass ) &&
+            Objects.equal( uid, that.uid ) &&
             Objects.equal( code, that.code ) &&
             Objects.equal( deletedAt, that.deletedAt );
     }
@@ -142,14 +164,16 @@ public class DeletedObject
     @Override
     public int hashCode()
     {
-        return Objects.hashCode( deletedObjectId, code, deletedAt );
+        return Objects.hashCode( klass, uid, code, deletedAt );
     }
+
 
     @Override
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-            .add( "deletedObjectId", deletedObjectId )
+            .add( "klass", klass )
+            .add( "uid", uid )
             .add( "code", code )
             .add( "deletedAt", deletedAt )
             .toString();

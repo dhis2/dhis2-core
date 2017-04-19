@@ -182,22 +182,6 @@ public interface DataValueService
         Collection<DataElement> dataElements, DataElementCategoryOptionCombo attributeOptionCombo );
     
     /**
-     * Returns all DataValues for a given DataElement, DataElementCategoryOptionCombo,
-     * collection of Periods, and collection of Sources. The values returned by this
-     * function are not persisted and are typically fetched outside of the hibernation
-     * layer. If categoryOptionCombo is null, all categoryOptionCombo values are returned.
-     *
-     * @param dataElement the DataElements of the DataValues.
-     * @param categoryOptionCombo the DataElementCategoryOptionCombo of the DataValues.
-     * @param periods the Periods of the DataValues.
-     * @param sources the Sources of the DataValues.
-     * @return a collection of all DataValues which match the given DataElement,
-     *         Periods, and Sources.
-     */
-    List<DataValue> getDeflatedDataValues( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo,
-        Collection<Period> periods, Collection<OrganisationUnit> sources );
-
-    /**
      * Returns values for a collection of DataElementOperands, where each operand
      * may include a specific CategoryOptionCombo, or may speicify a null COC if
      * all CategoryOptionCombos are to be summed.
@@ -230,9 +214,10 @@ public interface DataValueService
      * date time.
      * 
      * @param date the date time.
+     * @param includeDeleted whether to include deleted data values.
      * @return the number of DataValues.
      */
-    int getDataValueCountLastUpdatedAfter( Date date );
+    int getDataValueCountLastUpdatedAfter( Date date, boolean includeDeleted );
 
     /**
      * Gets the number of DataValues which have been updated between the given 
@@ -241,9 +226,10 @@ public interface DataValueService
      * 
      * @param startDate the start date to compare against data value last updated.
      * @param endDate the end date to compare against data value last updated.
+     * @param includeDeleted whether to include deleted data values.
      * @return the number of DataValues.
      */
-    int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate );
+    int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted );
 
     /**
      * Returns a map of values for each attribute option combo found.

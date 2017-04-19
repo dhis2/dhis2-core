@@ -61,4 +61,6 @@ public interface UserStore
      * @return number of users
      */
     int getUserCount();
+
+    List<User> getExpiringUsers( UserQueryParams userQueryParams );
 }

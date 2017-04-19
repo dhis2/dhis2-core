@@ -28,23 +28,19 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.system.util.DateUtils.dateIsValid;
-import static org.hisp.dhis.system.util.DateUtils.dateTimeIsValid;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNotNull;
+import com.google.common.collect.Sets;
+import org.hisp.dhis.calendar.impl.NepaliCalendar;
+import org.joda.time.DateTime;
+import org.junit.Test;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
 
-import org.joda.time.DateTime;
-import org.junit.Test;
-
-import com.google.common.collect.Sets;
+import static org.hisp.dhis.system.util.DateUtils.dateIsValid;
+import static org.hisp.dhis.system.util.DateUtils.dateTimeIsValid;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -59,7 +55,6 @@ public class DateUtilsTest
         assertFalse( dateIsValid( "07-07-2000" ) );
         assertFalse( dateIsValid( "2000-03-40" ) );
         assertFalse( dateIsValid( "20d20-03-01" ) );
-        assertTrue( dateIsValid( "0000-12-32" ) );
         assertTrue( dateIsValid( "2014-01-01" ) );
         assertFalse( dateIsValid( "2014-12-33" ) );
         assertFalse( dateIsValid( "2014-13-32" ) );
@@ -67,6 +62,13 @@ public class DateUtilsTest
         assertFalse( dateIsValid( "201-01-01" ) );
         assertFalse( dateIsValid( "01-01-01" ) );
         assertFalse( dateIsValid( "abcd-01-01" ) );
+        assertFalse( dateIsValid( "2017-04-31" ) );
+        assertFalse( dateIsValid( "2017-04-32" ) );
+        assertFalse( dateIsValid( "2016-09-31" ) );
+
+        assertTrue( dateIsValid( NepaliCalendar.getInstance(), "2074-04-32" ) );
+        assertFalse( dateIsValid( NepaliCalendar.getInstance(), "2074-03-32" ) );
+        assertFalse( dateIsValid( NepaliCalendar.getInstance(), "2074-04-33" ) );
     }
 
     @Test
@@ -84,13 +86,13 @@ public class DateUtilsTest
         assertFalse( dateTimeIsValid( "01-01-2000" ) );
         assertFalse( dateTimeIsValid( "abcd" ) );
     }
-    
+
     @Test
     public void testDaysBetween()
     {
         assertEquals( 6, DateUtils.daysBetween( new DateTime( 2014, 3, 1, 0, 0 ).toDate(), new DateTime( 2014, 3, 7, 0, 0 ).toDate() ) );
     }
-    
+
     @Test
     public void testMax()
     {
@@ -98,15 +100,15 @@ public class DateUtilsTest
         Date date2 = new DateTime( 2014, 5, 18, 1, 1 ).toDate();
         Date date3 = null;
         Date date4 = null;
-        
+
         assertEquals( date2, DateUtils.max( date1, date2 ) );
         assertEquals( date2, DateUtils.max( date2, date1 ) );
         assertEquals( date1, DateUtils.max( date1, date3 ) );
         assertEquals( date1, DateUtils.max( date3, date1 ) );
-        
+
         assertNull( DateUtils.max( date3, date4 ) );
     }
-    
+
     @Test
     public void testMaxCollection()
     {
@@ -116,7 +118,7 @@ public class DateUtilsTest
         Date date4 = null;
         Date date5 = null;
         Date date6 = null;
-        
+
         assertEquals( date2, DateUtils.max( Sets.newHashSet( date1, date2, date4 ) ) );
         assertEquals( date2, DateUtils.max( Sets.newHashSet( date2, date1, date4 ) ) );
         assertEquals( date3, DateUtils.max( Sets.newHashSet( date1, date2, date3 ) ) );
@@ -124,10 +126,10 @@ public class DateUtilsTest
         assertEquals( date3, DateUtils.max( Sets.newHashSet( date3, date4, date5 ) ) );
         assertEquals( null, DateUtils.max( Sets.newHashSet( date4, date5, date6 ) ) );
         assertEquals( date1, DateUtils.max( Sets.newHashSet( date1, date5, date4 ) ) );
-        
+
         assertNull( DateUtils.max( Sets.newHashSet( date4, date5, date6 ) ) );
     }
-    
+
     @Test
     public void testMin()
     {
@@ -135,12 +137,12 @@ public class DateUtilsTest
         Date date2 = new DateTime( 2014, 5, 18, 1, 1 ).toDate();
         Date date3 = null;
         Date date4 = null;
-        
+
         assertEquals( date1, DateUtils.min( date1, date2 ) );
         assertEquals( date1, DateUtils.min( date2, date1 ) );
         assertEquals( date1, DateUtils.min( date1, date3 ) );
         assertEquals( date1, DateUtils.min( date3, date1 ) );
-        
+
         assertNull( DateUtils.max( date3, date4 ) );
     }
 
@@ -153,7 +155,7 @@ public class DateUtilsTest
         Date date4 = null;
         Date date5 = null;
         Date date6 = null;
-        
+
         assertEquals( date1, DateUtils.min( Sets.newHashSet( date1, date2, date4 ) ) );
         assertEquals( date1, DateUtils.min( Sets.newHashSet( date2, date1, date4 ) ) );
         assertEquals( date1, DateUtils.min( Sets.newHashSet( date1, date2, date3 ) ) );
@@ -161,41 +163,41 @@ public class DateUtilsTest
         assertEquals( date3, DateUtils.min( Sets.newHashSet( date3, date4, date5 ) ) );
         assertEquals( null, DateUtils.min( Sets.newHashSet( date4, date5, date6 ) ) );
         assertEquals( date1, DateUtils.min( Sets.newHashSet( date1, date5, date4 ) ) );
-        
+
         assertNull( DateUtils.max( Sets.newHashSet( date4, date5, date6 ) ) );
     }
-    
+
     @Test
     public void testGetPrettyInterval()
     {
         Date start = new DateTime( 2014, 5, 18, 15, 10, 5, 12 ).toDate();
         Date end = new DateTime( 2014, 5, 19, 11, 45, 42, 56 ).toDate();
-        
+
         String interval = DateUtils.getPrettyInterval( start, end );
-        
+
         assertNotNull( interval );
     }
 
     @Test
     public void testGetMediumDate()
-    {        
+    {
         assertEquals( new DateTime( 2014, 5, 18, 0, 0, 0, 0 ).toDate(), DateUtils.getMediumDate( "2014-05-18" ) );
         assertEquals( new DateTime( 2015, 11, 3, 0, 0, 0, 0 ).toDate(), DateUtils.getMediumDate( "2015-11-03" ) );
-        
+
         assertNull( DateUtils.getMediumDate( null ) );
     }
-    
+
     @Test( expected = IllegalArgumentException.class )
     public void testGetInvalidMediumDate()
     {
         DateUtils.getMediumDate( "StringWhichIsNotADate" );
     }
-    
+
     @Test
     public void testGetMediumDateString()
     {
         Date date = new DateTime( 2014, 5, 18, 15, 10, 5, 12 ).toDate();
-        
+
         assertEquals( "2014-05-18", DateUtils.getMediumDateString( date ) );
         assertNull( DateUtils.getMediumDateString( null ) );
     }
@@ -204,20 +206,20 @@ public class DateUtilsTest
     public void testGetLongDateString()
     {
         Date date = new DateTime( 2014, 5, 18, 15, 10, 5, 12 ).toDate();
-        
+
         assertEquals( "2014-05-18T15:10:05", DateUtils.getLongDateString( date ) );
         assertNull( DateUtils.getLongDateString( null ) );
     }
-    
+
     @Test
     public void testGetHttpDateString()
     {
         Date date = new DateTime( 2014, 5, 18, 15, 10, 5, 12 ).toDate();
-        
+
         assertEquals( "Sun, 18 May 2014 15:10:05 GMT", DateUtils.getHttpDateString( date ) );
-        assertNull( DateUtils.getLongDateString( null ) );        
+        assertNull( DateUtils.getLongDateString( null ) );
     }
-    
+
     @Test
     public void testGetDuration()
     {
@@ -225,24 +227,24 @@ public class DateUtilsTest
         Duration m20 = DateUtils.getDuration( "20m" );
         Duration h2 = DateUtils.getDuration( "2h" );
         Duration d14 = DateUtils.getDuration( "14d" );
-        
+
         assertEquals( 50, s50.getSeconds() );
         assertEquals( 1200, m20.getSeconds() );
         assertEquals( 7200, h2.getSeconds() );
         assertEquals( 1209600, d14.getSeconds() );
-        
+
         assertNull( DateUtils.getDuration( "123x" ) );
         assertNull( DateUtils.getDuration( "1y" ) );
         assertNull( DateUtils.getDuration( "10ddd" ) );
     }
-    
+
     @Test
     public void getDate()
     {
         LocalDateTime time = LocalDateTime.of( 2012, 1, 10, 10, 5 );
-        
+
         Date date = DateUtils.getDate( time );
-        
-        assertEquals( time.toInstant( ZoneOffset.UTC ).toEpochMilli(), date.getTime() );        
+
+        assertEquals( time.toInstant( ZoneOffset.UTC ).toEpochMilli(), date.getTime() );
     }
 }

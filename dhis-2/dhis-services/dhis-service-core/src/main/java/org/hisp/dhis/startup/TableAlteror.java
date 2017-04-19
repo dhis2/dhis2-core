@@ -429,7 +429,6 @@ public class TableAlteror
         executeSql( "update chart set regression = false where regression is null" );
         executeSql( "update chart set hidesubtitle = false where hidesubtitle is null" );
         executeSql( "update chart set userorganisationunit = false where userorganisationunit is null" );
-        executeSql( "update chart set hideemptyrows = false where hideemptyrows is null" );
         executeSql( "update chart set percentstackedvalues = false where percentstackedvalues is null" );
         executeSql( "update chart set cumulativevalues = false where cumulativevalues is null" );
         executeSql( "update indicator set annualized = false where annualized is null" );
@@ -988,6 +987,7 @@ public class TableAlteror
         updateNameColumnLengths();
 
         upgradeMapViewsToColumns();
+        upgradeDataDimensionsToEmbeddedOperand();
         upgradeDataDimensionItemsToReportingRateMetric();
         upgradeDataDimensionItemToEmbeddedProgramAttribute();
         upgradeDataDimensionItemToEmbeddedProgramDataElement();
@@ -998,6 +998,7 @@ public class TableAlteror
         removeOutdatedTranslationProperties();
 
         updateLegendRelationship();
+        updateHideEmptyRows();
 
         executeSql( "update programindicator set analyticstype = 'EVENT' where analyticstype is null" );
         executeSql( "alter table programindicator alter column analyticstype set not null" );
@@ -1470,6 +1471,21 @@ public class TableAlteror
 
         return idMap;
     }
+    
+    private void updateHideEmptyRows()
+    {
+        executeSql( 
+            "update chart set hideemptyrowitems = 'NONE' where hideemptyrows is false or hideemptyrows is null; " +
+            "update chart set hideemptyrowitems = 'ALL' where hideemptyrows is true; " +
+            "alter table chart alter column hideemptyrowitems set not null; " +
+            "alter table chart drop column hideemptyrows;" );
+        
+        executeSql(
+            "update eventchart set hideemptyrowitems = 'NONE' where hideemptyrows is false or hideemptyrows is null; " +
+            "update eventchart set hideemptyrowitems = 'ALL' where hideemptyrows is true; " +
+            "alter table eventchart alter column hideemptyrowitems set not null; " +
+            "alter table eventchart drop column hideemptyrows;" );        
+    }
 
     private void updateSortOrder( String table, String col1, String col2 )
     {
@@ -1546,10 +1562,33 @@ public class TableAlteror
     }
 
     /**
+     * Upgrades data dimension items to use embedded data element operands.
+     */
+    private void upgradeDataDimensionsToEmbeddedOperand()
+    {
+        String sql =
+            "update datadimensionitem di " +
+            "set dataelementoperand_dataelementid = ( " +
+                "select op.dataelementid " +
+                "from dataelementoperand op " +
+                "where di.dataelementoperandid=op.dataelementoperandid " +
+            "), " +
+            "dataelementoperand_categoryoptioncomboid = ( " +
+                "select op.categoryoptioncomboid " +
+                "from dataelementoperand op " +
+                "where di.dataelementoperandid=op.dataelementoperandid " +
+            ") " +
+            "where di.dataelementoperandid is not null; " +
+            "alter table datadimensionitem drop column dataelementoperandid;";
+        
+        executeSql( sql );
+    }
+    
+    /**
      * Upgrade data dimension items for legacy data sets to use REPORTING_RATE
      * as metric.
      */
-    public void upgradeDataDimensionItemsToReportingRateMetric()
+    private void upgradeDataDimensionItemsToReportingRateMetric()
     {
         String sql = "update datadimensionitem " +
             "set metric='REPORTING_RATE' " +
@@ -1563,7 +1602,7 @@ public class TableAlteror
      * Upgrades data dimension items to use embedded 
      * ProgramTrackedEntityAttributeDimensionItem class.
      */
-    public void upgradeDataDimensionItemToEmbeddedProgramAttribute()
+    private void upgradeDataDimensionItemToEmbeddedProgramAttribute()
     {
         String sql =
             "update datadimensionitem di " +

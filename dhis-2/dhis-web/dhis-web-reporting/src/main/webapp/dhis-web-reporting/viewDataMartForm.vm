@@ -5,6 +5,31 @@
 
 <div class="setting">$i18n.getString( "analytics_tables_update" )</div>
 
+<div class="setting">
+  <table>
+    <tr><td>$i18n.getString('analytics_skip_resource_tables')   </td><td><input type="checkbox" id="cbResource" value="t"/></td></tr>
+    <tr><td>$i18n.getString('analytics_skip_aggregate')   </td><td><input type="checkbox" id="cbAggregate" value="t"/></td></tr>
+    <tr><td>$i18n.getString('analytics_skip_event_tables')      </td><td><input type="checkbox" id="cbEvent" value="t"/></td></tr>
+    <tr><td>$i18n.getString('analytics_skip_enrollment_tables')</td><td><input type="checkbox" id="cbEnrollment" value="t"/></td></tr>
+    <tr><td>$i18n.getString('analytics_last_years')</td><td>
+
+      <select  id="lastYears" width="50px">
+        <option value="">All</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+      </select>
+    </td></tr>
+  </table>
+</div>
+
 <div class="setting"><input type="button" onclick="startExport()" value="$i18n.getString( 'start_export' )" style="width:120px"></div>
 
 <div>
@@ -13,3 +38,5 @@
 <col width="360">
 </table>
 </div>
+
+<input type="hidden" id="invalidLastYears" value="$i18n.getString('analytics_invalid_last_years')"/>

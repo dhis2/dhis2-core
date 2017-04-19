@@ -79,7 +79,9 @@ public class DefaultSqlViewService
     @Override
     public int saveSqlView( SqlView sqlView )
     {
-        return sqlViewStore.save( sqlView );
+        sqlViewStore.save( sqlView );
+
+        return sqlView.getId();
     }
 
     @Override
@@ -306,7 +308,7 @@ public class DefaultSqlViewService
         }
         
         final Set<String> sqlVars = SqlViewUtils.getVariables( sqlView.getSqlQuery() );
-        final String sql = sqlView.getSqlQuery().toLowerCase();
+        final String sql = sqlView.getSqlQuery().replaceAll("\\r|\\n"," ").toLowerCase();
         
         if ( !SELECT_PATTERN.matcher( sql ).matches() )
         {

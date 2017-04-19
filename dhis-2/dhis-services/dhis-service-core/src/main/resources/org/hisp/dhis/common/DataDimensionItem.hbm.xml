@@ -18,8 +18,13 @@
     <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement"
       column="dataelementid" foreign-key="fk_datadimensionitem_dataelementid" />
 
-    <many-to-one name="dataElementOperand" class="org.hisp.dhis.dataelement.DataElementOperand"
-      column="dataelementoperandid" foreign-key="fk_datadimensionitem_dataelementoperandid" />
+    <component name="dataElementOperand" class="org.hisp.dhis.dataelement.DataElementOperand">
+      <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement"
+        column="dataelementoperand_dataelementid" foreign-key="fk_datadimensionitem_dataelementoperand_dataelementid" />
+        
+      <many-to-one name="categoryOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo"
+        column="dataelementoperand_categoryoptioncomboid" foreign-key="fk_datadimensionitem_dataelementoperand_categoryoptioncomboid" />
+    </component>
 
     <component name="reportingRate" class="org.hisp.dhis.common.ReportingRate">
       <many-to-one name="dataSet" class="org.hisp.dhis.dataset.DataSet"

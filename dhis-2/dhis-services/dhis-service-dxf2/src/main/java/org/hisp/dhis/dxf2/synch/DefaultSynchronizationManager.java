@@ -136,7 +136,7 @@ public class DefaultSynchronizationManager
         String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
         String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
 
-        log.debug( "Remote server ping URL: " + url + ", username: " + username );
+        log.debug( String.format( "Remote server ping URL: %s, username: %s", url, username ) );
 
         HttpEntity<String> request = getBasicAuthRequestEntity( username, password );
 
@@ -227,9 +227,9 @@ public class DefaultSynchronizationManager
         // ---------------------------------------------------------------------
 
         final Date startTime = new Date();
-        final Date lastSuccessTime = getLastSynchSuccessFallback();
+        final Date lastSuccessTime = getLastDataSynchSuccessFallback();
 
-        final int lastUpdatedCount = dataValueService.getDataValueCountLastUpdatedAfter( lastSuccessTime );
+        final int lastUpdatedCount = dataValueService.getDataValueCountLastUpdatedAfter( lastSuccessTime, true );
 
         log.info( "Values: " + lastUpdatedCount + " since last synch success: " + lastSuccessTime );
 
@@ -265,7 +265,7 @@ public class DefaultSynchronizationManager
 
         if ( summary != null && ImportStatus.SUCCESS.equals( summary.getStatus() ) )
         {
-            setLastSynchSuccess( startTime );
+            setLastDataSynchSuccess( startTime );
             log.info( "Synch successful, setting last success time: " + startTime );
         }
         else
@@ -277,7 +277,7 @@ public class DefaultSynchronizationManager
     }
 
     @Override
-    public ImportSummaries executeAnonymousEventPush()
+    public ImportSummaries executeEventPush()
     {
         AvailabilityStatus availability = isRemoteServerAvailable();
 
@@ -297,7 +297,7 @@ public class DefaultSynchronizationManager
 
         int lastUpdatedEventsCount = eventService.getAnonymousEventValuesCountLastUpdatedAfter( lastSuccessTime );
 
-        log.info( "Event Values: " + lastUpdatedEventsCount + " since last synch success: " + lastSuccessTime );
+        log.info( "Events: " + lastUpdatedEventsCount + " since last synch success: " + lastSuccessTime );
 
         if ( lastUpdatedEventsCount == 0 )
         {
@@ -352,9 +352,15 @@ public class DefaultSynchronizationManager
     }
 
     @Override
-    public Date getLastSynchSuccess()
+    public Date getLastDataSynchSuccess()
     {
         return (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_DATA_SYNC );
+    }
+
+    @Override
+    public Date getLastEventSynchSuccess()
+    {
+        return (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_EVENT_DATA_SYNC );
     }
 
     @Override
@@ -364,7 +370,7 @@ public class DefaultSynchronizationManager
 
         String userUid = user != null ? user.getUid() : null;
 
-        log.info( "Metadata pull, url: " + url + ", user: " + userUid );
+        log.info( String.format( "Metadata pull, url: %s, user: %s", url, userUid ) );
 
         String json = restTemplate.getForObject( url, String.class );
 
@@ -392,16 +398,20 @@ public class DefaultSynchronizationManager
     // -------------------------------------------------------------------------
 
     /**
-     * Gets the time of the last successful synchronization operation. If not set,
-     * the current date subtracted three days is returned.
+     * Gets the time of the last successful data synchronization operation. If not set,
+     * the current date subtracted by three days is returned.
      */
-    private Date getLastSynchSuccessFallback()
+    private Date getLastDataSynchSuccessFallback()
     {
         Date fallback = new DateTime().minusDays( 3 ).toDate();
 
         return (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_DATA_SYNC, fallback );
     }
 
+    /**
+     * Gets the time of the last successful event synchronization operation. If not set,
+     * the current date subtracted by three days is returned.
+     */
     private Date getLastEventSynchSuccessFallback()
     {
         Date fallback = new DateTime().minusDays( 3 ).toDate();
@@ -410,17 +420,15 @@ public class DefaultSynchronizationManager
     }
 
     /**
-     * Sets the time of the last successful synchronization operation.
+     * Sets the time of the last successful data synchronization operation.
      */
-    private void setLastSynchSuccess( Date time )
+    private void setLastDataSynchSuccess( Date time )
     {
         systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_DATA_SYNC, time );
     }
 
     /**
-     * Sets the time of the last successful synchronization for Anonymous events
-     *
-     * @param time
+     * Sets the time of the last successful event synchronization operation.
      */
     private void setLastEventSynchSuccess( Date time )
     {
