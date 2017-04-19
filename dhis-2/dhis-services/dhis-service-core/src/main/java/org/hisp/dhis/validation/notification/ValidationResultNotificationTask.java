@@ -1,4 +1,5 @@
-package org.hisp.dhis.validation;
+package org.hisp.dhis.validation.notification;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -27,66 +28,74 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.jdbc.batchhandler.ValidationResultBatchHandler;
-import org.hisp.quick.BatchHandler;
-import org.hisp.quick.BatchHandlerFactory;
+import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.security.NoSecurityContextRunnable;
+import org.hisp.dhis.system.notification.NotificationLevel;
+import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.system.util.Clock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author Stian Sandvold
  */
-@Transactional
-public class DefaultValidationResultService
-    implements ValidationResultService
+public class ValidationResultNotificationTask
+    extends NoSecurityContextRunnable
 {
-    @Autowired
-    private ValidationResultStore validationResultStore;
 
     @Autowired
-    private BatchHandlerFactory batchHandlerFactory;
+    private ValidationNotificationService notificationService;
+
+    @Autowired
+    private MessageService messageService;
+
+    @Autowired
+    private Notifier notifier;
+
+    public static final String KEY_TASK = "validationResultNotificationTask";
+
+    private TaskId taskId;
+
+    public void setTaskId( TaskId taskId )
+    {
+        this.taskId = taskId;
+    }
+
+    // -------------------------------------------------------------------------
+    // Runnable implementation
+    // -------------------------------------------------------------------------
 
     @Override
-    public void saveValidationResults( Collection<ValidationResult> validationResults )
+    public void call()
     {
-        BatchHandler<ValidationResult> validationResultBatchHandler = batchHandlerFactory
-            .createBatchHandler( ValidationResultBatchHandler.class ).init();
+        final Clock clock = new Clock().startClock();
 
-        validationResults.forEach( validationResult ->
+        notifier.notify( taskId, "Sending new validation result notifications" );
+
+        try
         {
-            if ( !validationResultBatchHandler.objectExists( validationResult ) )
-            {
-                validationResultBatchHandler.addObject( validationResult );
-            }
-        } );
+            runInternal();
 
-        validationResultBatchHandler.flush();
+            notifier.notify( taskId, NotificationLevel.INFO,
+                "Sent validation result notifications: " + clock.time(), true );
+        }
+        catch ( RuntimeException ex )
+        {
+            notifier.notify( taskId, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
+
+            messageService
+                .sendSystemErrorNotification( "Sending validation result notifications failed", ex );
+
+            throw ex;
+        }
     }
 
-    public List<ValidationResult> getAllValidationResults()
+    @Transactional
+    private void runInternal()
     {
-        return validationResultStore.getAll();
-    }
 
-    @Override
-    public List<ValidationResult> getAllUnReportedValidationResults()
-    {
-        return validationResultStore.getAllUnreportedValidationResults();
-    }
+        notificationService.sendUnsentNotifications();
 
-    @Override
-    public void deleteValidationResult( ValidationResult validationResult )
-    {
-        validationResultStore.delete( validationResult );
-    }
-
-    @Override
-    public void updateValidationResults( Set<ValidationResult> validationResults )
-    {
-        validationResults.forEach( vr -> validationResultStore.update( vr ) );
     }
 }

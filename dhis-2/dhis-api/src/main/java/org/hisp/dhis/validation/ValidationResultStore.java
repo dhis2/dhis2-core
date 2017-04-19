@@ -29,10 +29,15 @@ package org.hisp.dhis.validation;
 
 import org.hisp.dhis.common.GenericStore;
 
+import java.util.List;
+
 /**
  * @author Stian Sandvold
  */
 public interface ValidationResultStore
     extends GenericStore<ValidationResult>
 {
+
+    List<ValidationResult> getAllUnreportedValidationResults();
+
 }

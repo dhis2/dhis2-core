@@ -31,6 +31,8 @@
 
             <property name="dayInPeriod" column="dayInPeriod" />
 
+            <property name="notificationSent" column="notificationSent" />
+
         </properties>
 
     </class>

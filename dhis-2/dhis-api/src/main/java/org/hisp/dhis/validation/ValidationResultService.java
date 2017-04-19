@@ -29,6 +29,7 @@ package org.hisp.dhis.validation;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Stian Sandvold
@@ -48,8 +49,20 @@ public interface ValidationResultService
     List<ValidationResult> getAllValidationResults();
 
     /**
+     * Returns a list of al ValidationResults where notificationSent is false
+     * @return
+     */
+    List<ValidationResult> getAllUnReportedValidationResults();
+
+    /**
      * Deletes the validationResult
      * @param validationResult
      */
     void deleteValidationResult( ValidationResult validationResult );
+
+    /**
+     * Updates a list of ValidationResults
+     * @param validationResults validationResults to update
+     */
+    void updateValidationResults( Set<ValidationResult> validationResults );
 }
