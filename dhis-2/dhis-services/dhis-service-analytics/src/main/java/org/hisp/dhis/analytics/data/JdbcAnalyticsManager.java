@@ -131,7 +131,7 @@ public class JdbcAnalyticsManager
             }
 
             log.debug( sql );
-            System.out.println("SQL: " + sql);
+            //System.out.println("SQL: " + sql);
 
             Map<String, Object> map;
 
@@ -143,11 +143,13 @@ public class JdbcAnalyticsManager
             {
                 log.info( "Query failed, likely because the requested analytics table does not exist", ex );
 
+                System.out.println("Query failed!!, ex: " + ex  );
                 return new AsyncResult<>( new HashMap<String, Object>() );
             }
 
             replaceDataPeriodsWithAggregationPeriods( map, params, dataPeriodAggregationPeriodMap );
 
+            //System.out.println("MAP: " + map);
             return new AsyncResult<>( map );
         }
         catch ( RuntimeException ex )
