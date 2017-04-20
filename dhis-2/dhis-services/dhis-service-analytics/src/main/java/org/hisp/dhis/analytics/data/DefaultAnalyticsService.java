@@ -315,7 +315,6 @@ public class DefaultAnalyticsService
      */
     private void postHandleGrid( DataQueryParams params, Grid grid )
     {
-        //System.out.println("PARAMS: " + params.getDimensions() + " period: " + params.getPeriods() + ", startDate: " + params.getStartDate() + ", endDate: " + params.getEndDate());
         if ( params.hasProcessingHint( ProcessingHint.SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM ) )
         {
             grid.removeColumn( DataQueryParams.DX_INDEX );
