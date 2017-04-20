@@ -765,13 +765,16 @@ public class DataApprovalController
             for ( Approval approval : approvals.getApprovals() )
             {
                 OrganisationUnit unit = organisationUnitService.getOrganisationUnit( approval.getOu() );
-                DataElementCategoryOptionCombo optionCombo = categoryService.getDataElementCategoryOptionCombo( approval.getAoc() );
+
+                DataElementCategoryOptionCombo attributeOptionCombo = approval.getAoc() != null ?
+                        categoryService.getDataElementCategoryOptionCombo(approval.getAoc()) :
+                        categoryService.getDefaultDataElementCategoryOptionCombo();
 
                 for ( Period period : periods )
                 {
-                    if ( dataSetOptionCombos != null && dataSetOptionCombos.contains( optionCombo ) )
+                    if ( dataSetOptionCombos != null && dataSetOptionCombos.contains( attributeOptionCombo ) )
                     {
-                        DataApproval dataApproval = new DataApproval( null, dataSet.getWorkflow(), period, unit, optionCombo, false, date, user );
+                        DataApproval dataApproval = new DataApproval( null, dataSet.getWorkflow(), period, unit, attributeOptionCombo, false, date, user );
                         set.add( dataApproval );
                     }
                 }
