@@ -595,7 +595,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             webMessage.setHttpStatus( HttpStatus.CREATED );
             response.setHeader( "Location", contextService.getApiPath() + getSchema().getRelativeApiEndpoint()
                 + "/" + objectReport.getUid() );
-            T entity = manager.get( objectReport.getUid() );
+            T entity = manager.get( getEntityClass(), objectReport.getUid() );
             postCreateEntity( entity );
         }
 
@@ -634,7 +634,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             response.setHeader( "Location", contextService.getApiPath() + getSchema().getRelativeApiEndpoint()
                 + "/" + objectReport.getUid() );
 
-            T entity = manager.get( objectReport.getUid() );
+            T entity = manager.get( getEntityClass(), objectReport.getUid() );
             postCreateEntity( entity );
         }
 
@@ -692,7 +692,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         if ( importReport.getStatus() == Status.OK )
         {
-            T entity = manager.get( pvUid );
+            T entity = manager.get( getEntityClass(), pvUid );
             postUpdateEntity( entity );
         }
 
@@ -732,7 +732,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         if ( importReport.getStatus() == Status.OK )
         {
-            T entity = manager.get( pvUid );
+            T entity = manager.get( getEntityClass(), pvUid );
             postUpdateEntity( entity );
         }
 
