@@ -210,8 +210,6 @@ public class DefaultDataQueryService
     public DimensionalObject getDimension( String dimension, List<String> items, Date relativePeriodDate,
         List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull, IdScheme inputIdScheme )
     {
-
-
         final boolean allItems = items.isEmpty();
 
         if ( DATA_X_DIM_ID.equals( dimension ) )

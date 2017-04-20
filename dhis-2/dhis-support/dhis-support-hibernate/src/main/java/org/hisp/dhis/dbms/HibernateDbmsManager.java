@@ -355,25 +355,25 @@ public class HibernateDbmsManager
     @Override
     public List<List<Object>> getTableContent( String table )
     {
-        List<List<Object>> tableContent = new ArrayList<>(  );
+        List<List<Object>> tableContent = new ArrayList<>();
 
         SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet( "select * from " + table );
         int cols = sqlRowSet.getMetaData().getColumnCount() + 1;
 
         List<Object> headers = new ArrayList<>();
 
-        for (int i = 1; i < cols; i++)
+        for ( int i = 1; i < cols; i++ )
         {
             headers.add( sqlRowSet.getMetaData().getColumnName( i ) );
         }
 
         tableContent.add( headers );
 
-        while (sqlRowSet.next())
+        while ( sqlRowSet.next() )
         {
-            List<Object> row = new ArrayList<>(  );
+            List<Object> row = new ArrayList<>();
 
-            for (int i = 1; i < cols; i++)
+            for ( int i = 1; i < cols; i++ )
             {
                 row.add( sqlRowSet.getObject( i ) );
 
@@ -381,7 +381,6 @@ public class HibernateDbmsManager
 
             tableContent.add( row );
         }
-
 
         return tableContent;
     }

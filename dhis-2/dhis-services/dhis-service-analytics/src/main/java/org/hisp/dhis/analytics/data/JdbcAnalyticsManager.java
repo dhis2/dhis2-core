@@ -132,7 +132,7 @@ public class JdbcAnalyticsManager
 
             log.debug( sql );
 
-            Map<String, Object> map;
+            Map<String, Object> map = null;
 
             try
             {
@@ -227,7 +227,7 @@ public class JdbcAnalyticsManager
      */
     private String getNumericValueColumn( DataQueryParams params )
     {
-        String sql;
+        String sql = "";
 
         if ( params.isAggregationType( AVERAGE_SUM_INT ) )
         {

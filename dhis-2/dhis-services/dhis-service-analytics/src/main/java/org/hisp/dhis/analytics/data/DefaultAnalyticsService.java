@@ -406,7 +406,12 @@ public class DefaultAnalyticsService
 
                         grid.addRow()
                             .addValues( DimensionItem.getItemIdentifiers( row ) )
-                            .addValue( AnalyticsUtils.getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getValue() ) );
+                            .addValue( indicator.getDecimals() == 0 ?
+                                AnalyticsUtils
+                                    .getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getValue() )
+                                    .intValue() :
+                                AnalyticsUtils
+                                    .getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getValue() ) );
 
                         if ( params.isIncludeNumDen() )
                         {
