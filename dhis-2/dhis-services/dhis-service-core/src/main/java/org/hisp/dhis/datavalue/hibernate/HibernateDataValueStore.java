@@ -375,7 +375,7 @@ public class HibernateDataValueStore
                 snippit = "or ";
             }
 
-            sql += ") group by dv.dataelementid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.periodid";
+            sql += ") group by dv.dataelementid, coc.uid, dv.attributeoptioncomboid, dv.periodid";
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
