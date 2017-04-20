@@ -4183,7 +4183,7 @@ console.log("favorite.id", favorite.id);
                     }
                 });
 
-                //this.toggleProgramIndicators();
+                this.toggleProgramIndicators();
             },
             toggleProgramIndicators: function(type) {
                 type = type || ns.app.typeToolbar.getType();
