@@ -403,8 +403,8 @@ public class JdbcAnalyticsManager
 
         if ( params.hasStartEndDate() )
         {
-            sql += sqlHelper.whereAnd() + " pestartdate >= '" + getMediumDateString( params.getStartDate() ) + "' ";
-            sql += "and peenddate <= '" + getMediumDateString( params.getEndDate() ) + "' ";
+            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "pestartdate" ) + "  >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+            sql += "and " + statementBuilder.columnQuote( "peenddate" ) + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
         }
 
         if ( params.isTimely() )
