@@ -1330,18 +1330,16 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                     });
 
                     var programIndicators = {rules:programRules, variables:variables};
-
-                    MetaDataFactory.getByProgram('programValidations',programUid).then(function(programValidations){                    
-                        MetaDataFactory.getByProgram('programRuleVariables',programUid).then(function(programVariables){                    
-                            MetaDataFactory.getByProgram('programRules',programUid).then(function(prs){
-                                var programRules = [];
-                                angular.forEach(prs, function(rule){
-                                    rule.actions = [];
-                                    rule.programStageId = rule.programStage && rule.programStage.id ? rule.programStage.id : null;
-                                    programRules.push(rule);
-                                });                                
-                                def.resolve({constants: constants, programIndicators: programIndicators, programValidations: programValidations, programVariables: programVariables, programRules: programRules});
-                            });
+             
+                    MetaDataFactory.getByProgram('programRuleVariables',programUid).then(function(programVariables){                    
+                        MetaDataFactory.getByProgram('programRules',programUid).then(function(prs){
+                            var programRules = [];
+                            angular.forEach(prs, function(rule){
+                                rule.actions = [];
+                                rule.programStageId = rule.programStage && rule.programStage.id ? rule.programStage.id : null;
+                                programRules.push(rule);
+                            });                                
+                            def.resolve({constants: constants, programIndicators: programIndicators, programVariables: programVariables, programRules: programRules});
                         });
                     });
                 }); 
