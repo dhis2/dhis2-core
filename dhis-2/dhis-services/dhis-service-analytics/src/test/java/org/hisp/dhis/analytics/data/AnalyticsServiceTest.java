@@ -32,6 +32,7 @@ import com.csvreader.CsvReader;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.Grid;
@@ -42,7 +43,6 @@ import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.dbms.HibernateDbmsManager;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
@@ -51,8 +51,8 @@ import org.hisp.dhis.organisationunit.*;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.reporttable.ReportTable;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
@@ -79,6 +79,7 @@ import static org.junit.Assert.*;
  * 
  * @author Henning Haakonsen
  */
+@Category( IntegrationTest.class )
 public class AnalyticsServiceTest
     extends DhisTest
 {
@@ -116,9 +117,6 @@ public class AnalyticsServiceTest
 
     @Autowired
     private IndicatorService indicatorService;
-
-    @Autowired
-    private HibernateDbmsManager hibernateDbmsManager;
 
     // Database (value, data element, period)
     // --------------------------------------------------------------------
@@ -581,7 +579,6 @@ public class AnalyticsServiceTest
     }
 
     @Test
-    @Ignore
     public void testGridAggregation()
     {
         Grid aggregatedDataValueGrid;
@@ -597,7 +594,6 @@ public class AnalyticsServiceTest
     }
 
     @Test
-    @Ignore
     public void testSetAggregation()
     {
         // Params: Sum for all org units for 2017
