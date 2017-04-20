@@ -196,7 +196,7 @@ public class DefaultDataQueryService
 
                 if ( dimension != null && items != null )
                 {
-                    if(!dimension.equals( "startDate" )) list.add( getDimension( dimension, items, relativePeriodDate, userOrgUnits, format, false, inputIdScheme ) );
+                    list.add( getDimension( dimension, items, relativePeriodDate, userOrgUnits, format, false, inputIdScheme ) );
                 }
             }
         }
