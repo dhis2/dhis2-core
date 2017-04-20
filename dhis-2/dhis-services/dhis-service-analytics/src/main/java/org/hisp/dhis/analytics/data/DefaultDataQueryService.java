@@ -39,7 +39,10 @@ import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.*;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
@@ -193,7 +196,7 @@ public class DefaultDataQueryService
 
                 if ( dimension != null && items != null )
                 {
-                    list.add( getDimension( dimension, items, relativePeriodDate, userOrgUnits, format, false, inputIdScheme ) );
+                    if(!dimension.equals( "startDate" )) list.add( getDimension( dimension, items, relativePeriodDate, userOrgUnits, format, false, inputIdScheme ) );
                 }
             }
         }
@@ -207,6 +210,8 @@ public class DefaultDataQueryService
     public DimensionalObject getDimension( String dimension, List<String> items, Date relativePeriodDate,
         List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull, IdScheme inputIdScheme )
     {
+
+
         final boolean allItems = items.isEmpty();
 
         if ( DATA_X_DIM_ID.equals( dimension ) )

@@ -29,11 +29,11 @@ package org.hisp.dhis.analytics.data;
  */
 
 import com.csvreader.CsvReader;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.common.AnalyticalObject;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.dataelement.DataElement;
@@ -51,7 +51,6 @@ import org.hisp.dhis.organisationunit.*;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.reporttable.ReportTable;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -59,7 +58,10 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -79,6 +81,8 @@ import static org.junit.Assert.*;
 public class AnalyticsServiceTest
     extends DhisTest
 {
+    private DataElementCategoryOptionCombo ocDef;
+
     private Map<String, DataQueryParams> dataQueryParams = new HashMap<>();
 
     private Map<String, AnalyticalObject> analyticalObjectHashMap = new HashMap<>();
@@ -112,11 +116,8 @@ public class AnalyticsServiceTest
     @Autowired
     private IndicatorService indicatorService;
 
-    private DataElementCategoryOptionCombo ocDef;
-
     @Autowired
     private HibernateDbmsManager hibernateDbmsManager;
-
 
     // Database (value, data element, period)
     // --------------------------------------------------------------------
@@ -159,13 +160,9 @@ public class AnalyticsServiceTest
         periodService.addPeriod( peApril );
 
         DataElement deA = createDataElement( 'A' );
-        deA.setCode( "DE_A" );
         DataElement deB = createDataElement( 'B' );
-        deB.setCode( "DE_B" );
         DataElement deC = createDataElement( 'C' );
-        deC.setCode( "DE_C" );
         DataElement deD = createDataElement( 'D' );
-        deD.setCode( "DE_D" );
 
         dataElementService.addDataElement( deA );
         dataElementService.addDataElement( deB );
@@ -200,10 +197,10 @@ public class AnalyticsServiceTest
         organisationUnitGroupC.setUid( "a2345groupC" );
         organisationUnitGroupC.addOrganisationUnit( ouA );
         organisationUnitGroupC.addOrganisationUnit( ouB );
+        organisationUnitGroupC.addOrganisationUnit( ouC );
 
         OrganisationUnitGroup organisationUnitGroupD = createOrganisationUnitGroup( 'D' );
         organisationUnitGroupD.setUid( "a2345groupD" );
-        organisationUnitGroupD.addOrganisationUnit( ouC );
         organisationUnitGroupD.addOrganisationUnit( ouD );
         organisationUnitGroupD.addOrganisationUnit( ouE );
 
@@ -283,42 +280,37 @@ public class AnalyticsServiceTest
         Period y2017 = createPeriod( "2017" );
         DataQueryParams ou_2017_params = DataQueryParams.newBuilder()
             .withOrganisationUnits( organisationUnitService.getAllOrganisationUnits() )
-            .withAggregationType( AggregationType.SUM ).withOutputFormat( OutputFormat.ANALYTICS ).withPeriod( y2017 )
-            .build();
+            .withAggregationType( AggregationType.SUM ).withPeriod( y2017 )
+            .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         // all org units - jan 2017
         Period y2017_jan = createPeriod( "2017-01" );
         DataQueryParams ou_2017_01_params = DataQueryParams.newBuilder()
             .withOrganisationUnits( organisationUnitService.getAllOrganisationUnits() )
-            .withAggregationType( AggregationType.SUM ).withOutputFormat( OutputFormat.ANALYTICS )
-            .withPeriod( y2017_jan ).build();
+            .withAggregationType( AggregationType.SUM )
+            .withPeriod( y2017_jan ).withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         // org unit B - feb 2017
         Period y2017_feb = createPeriod( "2017-02" );
         DataQueryParams ouB_2017_02_params = DataQueryParams.newBuilder().withOrganisationUnit( ouB )
-            .withAggregationType( AggregationType.SUM ).withOutputFormat( OutputFormat.ANALYTICS )
-            .withPeriod( y2017_feb ).build();
+            .withAggregationType( AggregationType.SUM )
+            .withPeriod( y2017_feb ).withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         // all data elements - mar 2017
         Period y2017_mar = createPeriod( "2017-03" );
         DataQueryParams de_avg_2017_03_params = DataQueryParams.newBuilder()
             .withDataElements( dataElementService.getAllDataElements() ).withAggregationType( AggregationType.AVERAGE )
-            .withSkipRounding( true ).withOutputFormat( OutputFormat.ANALYTICS ).withPeriod( y2017_mar ).build();
+            .withSkipRounding( true ).withPeriod( y2017_mar ).withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         // org unit B - data element C - mar 2017
         List<DataElement> dataElements1 = new ArrayList<>();
         dataElements1.add( deC );
         DataQueryParams deC_ouB_2017_03_params = DataQueryParams.newBuilder().withOrganisationUnit( ouB )
             .withDataElements( dataElements1 ).withAggregationType( AggregationType.SUM )
-            .withOutputFormat( OutputFormat.ANALYTICS ).withPeriod( y2017_mar ).build();
-
-        List<OrganisationUnit> organisationUnits1 = new ArrayList<>();
-        organisationUnits1.add( ouB );
-        List<Period> periods1 = new ArrayList<>();
-        periods1.add( y2017_mar );
+            .withPeriod( y2017_mar ).withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         AnalyticalObject deC_ouB_2017_03_analytical = new ReportTable( "deC_ouB_2017_03", dataElements1,
-            param_indicators, param_reportingRates, periods1, organisationUnits1, false, true, true, null, null, null );
+            param_indicators, param_reportingRates, Lists.newArrayList( y2017_mar ), Lists.newArrayList( ouB ), false, true, true, null, null, null );
 
         // org unit A - data element A - Q1 2017
         List<DataElement> dataElements2 = new ArrayList<>();
@@ -326,140 +318,96 @@ public class AnalyticsServiceTest
 
         DataQueryParams deA_ouA_2017_Q01_params = DataQueryParams.newBuilder().withOrganisationUnit( ouA )
             .withDataElements( dataElements2 ).withAggregationType( AggregationType.SUM )
-            .withOutputFormat( OutputFormat.ANALYTICS ).withPeriod( quarter ).build();
-
-        List<OrganisationUnit> organisationUnits2 = new ArrayList<>();
-        organisationUnits2.add( ouA );
-        List<Period> periods2 = new ArrayList<>();
-        periods2.add( quarter );
+            .withPeriod( quarter ).withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         AnalyticalObject deA_ouA_2017_Q01_analytical = new ReportTable( "deA_ouA_2017_Q01", dataElements2,
-            param_indicators, param_reportingRates, periods2, organisationUnits2, false, true, true, null, null, null );
+            param_indicators, param_reportingRates, Lists.newArrayList( quarter ), Lists.newArrayList( ouA ), false, true, true, null, null, null );
 
         // org units B and C - feb 2017
-        List<OrganisationUnit> organisationUnits = new ArrayList<>();
-        organisationUnits.add( ouB );
-        organisationUnits.add( ouC );
-
         DataQueryParams ouB_ouC_2017_02_params = DataQueryParams.newBuilder()
-            .withFilterOrganisationUnits( organisationUnits ).withAggregationType( AggregationType.SUM )
-            .withOutputFormat( OutputFormat.ANALYTICS ).withPeriod( y2017_feb ).build();
+            .withFilterOrganisationUnits( Lists.newArrayList( ouB, ouC ) ).withAggregationType( AggregationType.SUM )
+            .withPeriod( y2017_feb ).withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         // org unit A - jan and feb 2017
-        List<Period> periodsFilter = new ArrayList<>();
-        periodsFilter.add( peJan );
-        periodsFilter.add( peMar );
-
         DataQueryParams ouA_2017_01_03_params = DataQueryParams.newBuilder().withOrganisationUnit( ouA )
-            .withFilterPeriods( periodsFilter ).withAggregationType( AggregationType.SUM )
+            .withFilterPeriods( Lists.newArrayList( peJan, peMar ) ).withAggregationType( AggregationType.SUM )
             .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         // org unit B - Q1 2017
         DataQueryParams ouB_2017_Q01_params = DataQueryParams.newBuilder().withOrganisationUnit( ouB )
-            .withPeriod( quarter ).withAggregationType( AggregationType.SUM ).withOutputFormat( OutputFormat.ANALYTICS )
-            .build();
+            .withPeriod( quarter ).withAggregationType( AggregationType.SUM )
+            .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         // org unit C - Q1 2017
         DataQueryParams ouC_2017_Q01_params = DataQueryParams.newBuilder().withOrganisationUnit( ouC )
-            .withPeriod( quarter ).withAggregationType( AggregationType.SUM ).withOutputFormat( OutputFormat.ANALYTICS )
-            .build();
+            .withPeriod( quarter ).withAggregationType( AggregationType.SUM )
+            .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         // indicator A - 2017
-        List<Indicator> param_indicators1 = new ArrayList<>();
-        param_indicators1.add( indicatorA );
-        DataQueryParams inA_2017_params = DataQueryParams.newBuilder().withIndicators( param_indicators1 )
-            .withAggregationType( AggregationType.SUM ).withOutputFormat( OutputFormat.ANALYTICS ).withPeriod( y2017 )
-            .build();
+        DataQueryParams inA_2017_params = DataQueryParams.newBuilder().withIndicators( Lists.newArrayList( indicatorA ) )
+            .withAggregationType( AggregationType.SUM ).withPeriod( y2017 )
+            .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         // indicator B (deB + deC) - 2017 Q1
-        List<Indicator> param_indicators2 = new ArrayList<>();
-        param_indicators2.add( indicatorB );
-        DataQueryParams inB_deB_deC_2017_Q01_params = DataQueryParams.newBuilder().withIndicators( param_indicators2 )
-            .withAggregationType( AggregationType.SUM ).withOutputFormat( OutputFormat.ANALYTICS ).withPeriod( quarter )
-            .build();
+        DataQueryParams inB_deB_deC_2017_Q01_params = DataQueryParams.newBuilder().withIndicators( Lists.newArrayList( indicatorB ) )
+            .withAggregationType( AggregationType.SUM ).withPeriod( quarter )
+            .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         // indicator C (deB * deC) in hundreds - 2017 Q1
         List<Indicator> param_indicators3 = new ArrayList<>();
         param_indicators3.add( indicatorC );
         DataQueryParams inC_deB_deC_2017_Q01_params = DataQueryParams.newBuilder().withIndicators( param_indicators3 )
-            .withAggregationType( AggregationType.SUM ).withOutputFormat( OutputFormat.ANALYTICS ).withPeriod( quarter )
-            .build();
+            .withAggregationType( AggregationType.SUM ).withPeriod( quarter )
+            .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
-        List<OrganisationUnit> organisationUnits3 = new ArrayList<>();
-        organisationUnits3.add( ouA );
-        List<DataElement> dataElements4 = new ArrayList<>();
-        List<Period> periods3 = new ArrayList<>();
-        periods3.add( quarter );
-
-        AnalyticalObject inC_deB_deC_2017_Q01_analytical = new ReportTable( "deA_ouA_2017_Q01", dataElements4,
-            param_indicators3, param_reportingRates, periods3, organisationUnits3, true, true, true, null, null, null );
+        AnalyticalObject inC_deB_deC_2017_Q01_analytical = new ReportTable( "deA_ouA_2017_Q01", Lists.newArrayList( ),
+            param_indicators3, param_reportingRates, Lists.newArrayList( quarter ), Lists.newArrayList( ouA ), true, true, true, null, null, null );
 
         // indicator D (deA * deC)/deB - 2017 Q1
-        List<Indicator> param_indicators4 = new ArrayList<>();
-        param_indicators4.add( indicatorD );
         DataQueryParams inD_deA_deB_deC_2017_Q01_params = DataQueryParams.newBuilder()
-            .withIndicators( param_indicators4 ).withAggregationType( AggregationType.SUM )
-            .withOutputFormat( OutputFormat.ANALYTICS ).withPeriod( quarter ).build();
+            .withIndicators( Lists.newArrayList( indicatorD) ).withAggregationType( AggregationType.SUM )
+            .withPeriod( quarter ).withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         // Max value - org unit B and C - data element A - 2017 Feb
-        List<DataElement> dataElements5 = new ArrayList<>();
-        dataElements5.add( deA );
-
-        List<OrganisationUnit> organisationUnits4 = new ArrayList<>(  );
-        organisationUnits4.add( ouB );
-        organisationUnits4.add( ouC );
         DataQueryParams deA_ouB_ouC_2017_02_params = DataQueryParams.newBuilder()
-            .withFilterOrganisationUnits( organisationUnits4 ).withDataElements( dataElements5 )
-            .withAggregationType( AggregationType.MAX ).withOutputFormat( OutputFormat.ANALYTICS ).withPeriod( peFeb )
-            .build();
+            .withFilterOrganisationUnits( Lists.newArrayList( ouB, ouC) ).withDataElements( Lists.newArrayList( deA ) )
+            .withAggregationType( AggregationType.MAX ).withPeriod( peFeb )
+            .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         // Average value - org unit C and E - data element A, B and D - 2017 April
-        List<DataElement> dataElements6 = new ArrayList<>();
-        dataElements6.add( deA );
-        dataElements6.add( deB );
-        dataElements6.add( deD );
-
-        List<OrganisationUnit> organisationUnits5 = new ArrayList<>(  );
-        organisationUnits5.add( ouC );
-        organisationUnits5.add( ouE );
         DataQueryParams deA_deB_deD_ouC_ouE_2017_04_params = DataQueryParams.newBuilder()
-            .withFilterOrganisationUnits( organisationUnits5 ).withDataElements( dataElements6 )
-            .withAggregationType( AggregationType.AVERAGE ).withOutputFormat( OutputFormat.ANALYTICS )
-            .withPeriod( peApril ).build();
+            .withFilterOrganisationUnits( Lists.newArrayList( ouC, ouE) )
+            .withDataElements( Lists.newArrayList( deA, deB, deD) )
+            .withAggregationType( AggregationType.AVERAGE )
+            .withOutputFormat( OutputFormat.ANALYTICS )
+            .withPeriod( peApril ).withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         // Sum org unit B - 2017-02-15 -> 2017-05-10
         DataQueryParams ouB_2017_02_15_2017_05_10_params = DataQueryParams.newBuilder()
+            .withDataElements( Lists.newArrayList( deA, deB ) )
             .withOrganisationUnit( ouB )
-            .withStartDate( new Date( 2017, 1, 15 ) )
-            .withEndDate( new Date( 2017, 4, 10 ) )
+            .withStartDate( getDate( 2017, 1, 1 ) )
+            .withEndDate( getDate( 2017, 1, 31 ) )
             .withAggregationType( AggregationType.SUM )
             .withOutputFormat( OutputFormat.ANALYTICS )
             .build();
 
-        System.out.println(ouB_2017_02_15_2017_05_10_params);
+        System.out.println("PARAMS: " + ouB_2017_02_15_2017_05_10_params.getDimensions() + " period: " + ouB_2017_02_15_2017_05_10_params.getPeriods() + ", startDate: " + ouB_2017_02_15_2017_05_10_params.getStartDate() + ", endDate: " + ouB_2017_02_15_2017_05_10_params.getEndDate());
 
 
         // Sum org group set A - 2017
-        List<DimensionalObject> dimensionalObjects = new ArrayList<>(  );
-        dimensionalObjects.add( organisationUnitGroupSetA );
-
         DataQueryParams ouGroupSetA_2017_params = DataQueryParams.newBuilder()
-            .withDimensions( dimensionalObjects )
+            .withDimensions( Lists.newArrayList( organisationUnitGroupSetA ) )
             .withAggregationType( AggregationType.SUM )
-            .withOutputFormat( OutputFormat.ANALYTICS )
             .withPeriod( y2017 )
-            .build();
+            .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         // Sum org group set B - 2017
-        List<DimensionalObject> dimensionalObjects1 = new ArrayList<>(  );
-        dimensionalObjects.add( organisationUnitGroupSetB );
-
-        DataQueryParams ouGroupSetB_2017_params = DataQueryParams.newBuilder()
-            .withDimensions( dimensionalObjects1 )
+        DataQueryParams ouGroupSetB_2017_03_params = DataQueryParams.newBuilder()
+            .withDimensions( Lists.newArrayList( organisationUnitGroupSetB ) )
             .withAggregationType( AggregationType.SUM )
-            .withOutputFormat( OutputFormat.ANALYTICS )
-            .withPeriod( y2017 )
-            .build();
+            .withPeriod( y2017_mar )
+            .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         dataQueryParams.put( "ou_2017", ou_2017_params );
         dataQueryParams.put( "ou_2017_01", ou_2017_01_params );
@@ -479,7 +427,7 @@ public class AnalyticsServiceTest
         dataQueryParams.put( "deA_deB_deD_ouC_ouE_2017_04", deA_deB_deD_ouC_ouE_2017_04_params );
         dataQueryParams.put( "ouB_2017_02_15_2017_05_10", ouB_2017_02_15_2017_05_10_params );
         dataQueryParams.put( "ouGroupSetA_2017", ouGroupSetA_2017_params );
-        dataQueryParams.put( "ouGroupSetB_2017", ouGroupSetB_2017_params );
+        dataQueryParams.put( "ouGroupSetB_2017_03", ouGroupSetB_2017_03_params );
 
 
         analyticalObjectHashMap.put( "deC_ouB_2017_03", deC_ouB_2017_03_analytical );
@@ -554,11 +502,12 @@ public class AnalyticsServiceTest
         ouB_2017_02_15_2017_05_10_keyValue.put( "ouB_2017_02_15_2017_05_10", 0.0 );
 
         Map<String, Double> ouGroupSetA_2017_keyValue = new HashMap<>();
-        ouGroupSetA_2017_keyValue.put( "a2345groupA-2017-a2345groupC", 138.0 );
-        ouGroupSetA_2017_keyValue.put( "a2345groupB-2017-a2345groupD", 811.0 );
+        ouGroupSetA_2017_keyValue.put( "a2345groupA-2017", 138.0 );
+        ouGroupSetA_2017_keyValue.put( "a2345groupB-2017", 811.0 );
 
-        Map<String, Double> ouGroupSetB_2017_keyValue = new HashMap<>();
-        ouGroupSetB_2017_keyValue.put( "2017", 949.0 );
+        Map<String, Double> ouGroupSetB_2017_03_keyValue = new HashMap<>();
+        ouGroupSetB_2017_03_keyValue.put( "a2345groupC-201703", 26.0 );
+        ouGroupSetB_2017_03_keyValue.put( "a2345groupD-201703", 1.0 );
 
         results.put( "ou_2017", ou_2017_keyValue );
         results.put( "ou_2017_01", ou_2017_01_keyValue );
@@ -579,7 +528,7 @@ public class AnalyticsServiceTest
         results.put( "deA_deB_2017_Q01", deA_deB_2017_Q01_keyValue );
         results.put( "ouB_2017_02_15_2017_05_10", ouB_2017_02_15_2017_05_10_keyValue );
         results.put( "ouGroupSetA_2017", ouGroupSetA_2017_keyValue );
-        results.put( "ouGroupSetB_2017", ouGroupSetB_2017_keyValue );
+        results.put( "ouGroupSetB_2017_03", ouGroupSetB_2017_03_keyValue );
     }
 
     @Override
@@ -599,6 +548,14 @@ public class AnalyticsServiceTest
     {
         List<List<Object>> table = hibernateDbmsManager.getTableContent( "analytics_2017" );
 
+        for ( List<Object> row : table )
+        {
+            for ( Object content : row )
+            {
+                System.out.print(content + ", ");
+            }
+            System.out.println();
+        }
         
         Map<String, Object> aggregatedDataValueMapping;
         for ( Map.Entry<String, DataQueryParams> entry : dataQueryParams.entrySet() )
@@ -625,7 +582,6 @@ public class AnalyticsServiceTest
     }
 
     @Test
-    @Ignore
     public void testGridAggregation()
     {
         Grid aggregatedDataValueGrid;
@@ -636,12 +592,13 @@ public class AnalyticsServiceTest
 
             aggregatedDataValueGrid = analyticsService.getAggregatedDataValues( params );
 
+            System.out.println("AggregatedMapping: " + aggregatedDataValueGrid + ", key: " + key);
+
             assertDataValueGrid( aggregatedDataValueGrid, results.get( key ) );
         }
     }
 
     @Test
-    @Ignore
     public void testSetAggregation()
     {
         // Params: Sum for all org units for 2017

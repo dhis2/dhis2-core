@@ -296,12 +296,10 @@ public class DefaultAnalyticsService
         {
             DimensionalObject dx = params.getFilter( DATA_X_DIM_ID );
 
-            DataQueryParams query = DataQueryParams.newBuilder( params )
+            return DataQueryParams.newBuilder( params )
                 .addDimension( dx )
                 .removeFilter( DATA_X_DIM_ID )
                 .addProcessingHint( ProcessingHint.SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM ).build();
-
-            return query;
         }
 
         return params;
@@ -317,6 +315,7 @@ public class DefaultAnalyticsService
      */
     private void postHandleGrid( DataQueryParams params, Grid grid )
     {
+        //System.out.println("PARAMS: " + params.getDimensions() + " period: " + params.getPeriods() + ", startDate: " + params.getStartDate() + ", endDate: " + params.getEndDate());
         if ( params.hasProcessingHint( ProcessingHint.SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM ) )
         {
             grid.removeColumn( DataQueryParams.DX_INDEX );
@@ -536,7 +535,6 @@ public class DefaultAnalyticsService
      * @param params the data query parameters.
      * @param grid the grid.
      * @param metric the reporting rate metric.
-     * @param includeNumDen whether to include numerator and denominator.
      */
     private void addReportingRates( DataQueryParams params, Grid grid, ReportingRateMetric metric )
     {
