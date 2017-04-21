@@ -490,7 +490,7 @@ public class JdbcAnalyticsManager
     {
         Map<String, Object> map = new HashMap<>();
 
-        log.debug( "Analytics SQL: " + sql );
+        log.debug( String.format( "Analytics SQL: %s", sql ) );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
