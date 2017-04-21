@@ -59,6 +59,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -162,7 +163,7 @@ public class JdbcEventAnalyticsManager
     
     private void getAggregatedEventData( Grid grid, EventQueryParams params, String sql )
     {
-        log.debug( "Analytics event aggregate SQL: " + sql );
+        log.debug( String.format( "Analytics event aggregate SQL: %s", sql ) );
         
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -289,7 +290,7 @@ public class JdbcEventAnalyticsManager
 
     private void getEvents( Grid grid, EventQueryParams params, String sql )
     {
-        log.debug( "Analytics event query SQL: " + sql );
+        log.debug( String.format( "Analytics event query SQL: %s", sql ) );
         
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -339,7 +340,7 @@ public class JdbcEventAnalyticsManager
         
         sql += "group by ST_SnapToGrid(ST_Transform(" + clusterField + ", 3785), " + params.getClusterSize() + ") ";
 
-        log.debug( "Analytics event cluster SQL: " + sql );
+        log.debug( String.format( "Analytics event cluster SQL: %s", sql ) );
         
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -387,7 +388,7 @@ public class JdbcEventAnalyticsManager
         
         sql += getFromWhereClause( params, Lists.newArrayList( "psi", clusterField ) );
 
-        log.debug( "Analytics event count and extent SQL: " + sql );
+        log.debug( String.format( "Analytics event count and extent SQL: %s", sql ) );
         
         Rectangle rectangle = new Rectangle();
         
@@ -410,6 +411,8 @@ public class JdbcEventAnalyticsManager
 
     /**
      * Returns the count clause based on value dimension and output type.
+     * 
+     * @param params the {@link EventQueryParams}.
      * 
      * TODO include output type if aggregation type is count
      */
@@ -457,6 +460,8 @@ public class JdbcEventAnalyticsManager
 
     /**
      * Returns columns based on value dimension and output type.
+     * 
+     * @param params the {@link EventQueryParams}.
      */
     private List<String> getAggregateColumns( EventQueryParams params )
     {
@@ -490,6 +495,8 @@ public class JdbcEventAnalyticsManager
     /**
      * Returns the dynamic select columns. Dimensions come first and query items
      * second. Program indicator expressions are converted to SQL expressions.
+     * 
+     * @param params the {@link EventQueryParams}.
      */
     private List<String> getSelectColumns( EventQueryParams params )
     {
@@ -533,6 +540,8 @@ public class JdbcEventAnalyticsManager
      * Returns the dynamic select columns. Dimensions come first and query items
      * second. Program indicator expressions are exploded into attributes and
      * data element identifiers.
+     * 
+     * @param params the {@link EventQueryParams}.
      */
     private List<String> getPartitionSelectColumns( EventQueryParams params )
     {
@@ -568,7 +577,7 @@ public class JdbcEventAnalyticsManager
     /**
      * Returns a from and where SQL clause.
      * 
-     * @param params the event query parameters.
+     * @param params the {@link EventQueryParams}.
      * @param fixedColumns the list of fixed column names to include.
      */
     private String getFromWhereClause( EventQueryParams params, List<String> fixedColumns )
@@ -587,7 +596,7 @@ public class JdbcEventAnalyticsManager
      * Returns a from and where SQL clause for all partitions part of the given
      * query parameters.
      * 
-     * @param params the event query parameters.
+     * @param params the {@link EventQueryParams}.
      * @param fixedColumns the list of fixed column names to include.
      */
     private String getFromWhereMultiplePartitionsClause( EventQueryParams params, List<String> fixedColumns )
@@ -616,7 +625,7 @@ public class JdbcEventAnalyticsManager
      * Returns a from and where SQL clause for the given analytics table 
      * partition.
      * 
-     * @param params the event query parameters.
+     * @param params the {@link EventQueryParams}.
      * @param partition the partition name.
      */
     private String getFromWhereSinglePartitionClause( EventQueryParams params, String partition )
@@ -775,6 +784,8 @@ public class JdbcEventAnalyticsManager
     /**
      * Returns an encoded column name wrapped in lower directive if not numeric
      * or boolean.
+     * 
+     * @param item the {@link QueryItem}.
      */
     private String getColumn( QueryItem item )
     {
@@ -785,6 +796,9 @@ public class JdbcEventAnalyticsManager
     
     /**
      * Returns the filter value for the given query item.
+     * 
+     * @param filter the {@link QueryFilter}.
+     * @param item the {@link QueryItem}.
      */
     private String getSqlFilter( QueryFilter filter, QueryItem item )
     {
@@ -801,6 +815,10 @@ public class JdbcEventAnalyticsManager
      * the matching legend name. If the given query item has an option set, the 
      * item value is treated as a code and substituted with the matching option 
      * name.
+     * 
+     * @param params the {@link EventQueryParams}..
+     * @param item the {@link QueryItem}.
+     * @param itemValue the item value.
      */
     private String getCollapsedDataItemValue( EventQueryParams params, QueryItem item, String itemValue )
     {
