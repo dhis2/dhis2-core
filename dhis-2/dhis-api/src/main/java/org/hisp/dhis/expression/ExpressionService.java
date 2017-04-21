@@ -71,25 +71,58 @@ public interface ExpressionService
     String DAYS_DESCRIPTION = "[Number of days]";
     String NULL_REPLACEMENT = "0";
     String SPACE = " ";
-    String DAYS_SYMBOL = "[days]";
+    String SYMBOL_DAYS = "[days]";
+    String SYMBOL_WILDCARD = "*";
 
-    String VARIABLE_EXPRESSION = "(#|D|A|I)\\{(([a-zA-Z]\\w{10})\\.?(\\w*))\\}";
-    String OPERAND_EXPRESSION = "#\\{([a-zA-Z]\\w{10})\\.?(\\w*)\\}";
-    String PROGRAM_DATA_ELEMENT_EXPRESSION = "D\\{([a-zA-Z]\\w{10})\\.?([a-zA-Z]\\w{10})\\}";
-    String DATA_ELEMENT_TOTAL_EXPRESSION = "#\\{([a-zA-Z]\\w{10})\\}";
-    String OPTION_COMBO_OPERAND_EXPRESSION = "#\\{([a-zA-Z]\\w{10})\\.([a-zA-Z]\\w{10})\\}";
-    String CONSTANT_EXPRESSION = "C\\{([a-zA-Z]\\w{10})\\}";
-    String OU_GROUP_EXPRESSION = "OUG\\{([a-zA-Z]\\w{10})\\}";
+    String VARIABLE_EXPRESSION = "(?<key>#|D|A|I)\\{(?<id>(?<id1>[a-zA-Z]\\w{10})(\\.(?<id2>[a-zA-Z]\\w{10}|\\*))?)\\}";
+    String OPERAND_EXPRESSION = "#\\{(?<de>[a-zA-Z]\\w{10})(\\.(?<coc>[a-zA-Z]\\w{10}|\\*))?\\}";
+    String DATA_ELEMENT_TOTAL_EXPRESSION = "#\\{(?<id>[a-zA-Z]\\w{10})\\}";
+    String OPTION_COMBO_OPERAND_EXPRESSION = "#\\{(?<de>[a-zA-Z]\\w{10})\\.(?<coc>[a-zA-Z]\\w{10})\\}";
+    String CONSTANT_EXPRESSION = "C\\{(?<id>[a-zA-Z]\\w{10})\\}";
+    String OU_GROUP_EXPRESSION = "OUG\\{(?<id>[a-zA-Z]\\w{10})\\}";
     String DAYS_EXPRESSION = "\\[days\\]";
 
+    /**
+     * Variable pattern. Contains the named groups {@code key}, {@code id}, {@code id1} and {@code id2}.  
+     */
     Pattern VARIABLE_PATTERN = Pattern.compile( VARIABLE_EXPRESSION );
+    
+    /**
+     * Data element operand pattern. Contains the named groups {@code de} and {@code coc}.
+     */
     Pattern OPERAND_PATTERN = Pattern.compile( OPERAND_EXPRESSION );
-    Pattern PROGRAM_DATA_ELEMENT_PATTERN = Pattern.compile( PROGRAM_DATA_ELEMENT_EXPRESSION );
+
+    /**
+     * Data element total pattern. Contains the named group {@code id}.
+     */
     Pattern DATA_ELEMENT_TOTAL_PATTERN = Pattern.compile( DATA_ELEMENT_TOTAL_EXPRESSION );
+
+    /**
+     * Option combo pattern. Contains the named groups {@code de} and {@code coc}.
+     */
     Pattern OPTION_COMBO_OPERAND_PATTERN = Pattern.compile( OPTION_COMBO_OPERAND_EXPRESSION );
+    
+    /**
+     * Constant pattern. Contains the named group {@code id}.
+     */
     Pattern CONSTANT_PATTERN = Pattern.compile( CONSTANT_EXPRESSION );
+
+    /**
+     * Organisation unit groups pattern. Contains the named group {@code id}.
+     */
     Pattern OU_GROUP_PATTERN = Pattern.compile( OU_GROUP_EXPRESSION );
+    
+    /**
+     * Days pattern.
+     */
     Pattern DAYS_PATTERN = Pattern.compile( DAYS_EXPRESSION );
+
+    String GROUP_KEY = "key";
+    String GROUP_ID = "id";
+    String GROUP_ID1 = "id1";
+    String GROUP_ID2 = "id2";
+    String GROUP_DATA_ELEMENT = "de";
+    String GROUP_CATEGORORY_OPTION_COMBO = "coc";
 
     /**
      * Adds a new Expression to the database.
@@ -173,7 +206,6 @@ public interface ExpressionService
      */
     Double getExpressionValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days );
-
 
     /**
      * Generates the calculated value for the given expression base on the values

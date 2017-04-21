@@ -29,7 +29,8 @@ package org.hisp.dhis.expression;
  */
 
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
-import static org.hisp.dhis.expression.ExpressionService.DAYS_SYMBOL;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -154,6 +155,7 @@ public class ExpressionServiceTest
     private String expressionK;
     private String expressionJ;
     private String expressionL;
+    private String expressionM;
 
     private String descriptionA;
     private String descriptionB;
@@ -258,7 +260,7 @@ public class ExpressionServiceTest
         expressionB = "#{" + deC.getUid() + SEPARATOR + coc.getUid() + "}-#{" + deD.getUid() + SEPARATOR
             + coc.getUid() + "}";
         expressionC = "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "}+#{" + deE.getUid() + "}-10";
-        expressionD = "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "}+" + DAYS_SYMBOL;
+        expressionD = "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "}+" + SYMBOL_DAYS;
         expressionE = "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "}*C{" + constantA.getUid() + "}";
         expressionF = "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "}";
         expressionG = expressionF + "+#{" + deB.getUid() + "}-#{" + deC.getUid() + "}";
@@ -268,6 +270,7 @@ public class ExpressionServiceTest
         expressionJ = "#{" + opA.getDimensionItem() + "}+#{" + opB.getDimensionItem() + "}";
         expressionK = "1.5*AVG("+expressionJ+")";
         expressionL = "AVG("+expressionJ+")+1.5*STDDEV("+expressionJ+")";
+        expressionM = "#{" + deA.getUid() + SEPARATOR + SYMBOL_WILDCARD + "} - #{" + deB.getUid() + SEPARATOR + coc.getUid() + "}";
 
         descriptionA = "Expression A";
         descriptionB = "Expression B";
@@ -366,6 +369,22 @@ public class ExpressionServiceTest
         assertTrue( dataElements.contains( deA ) );
         assertTrue( dataElements.contains( deB ) );
         assertTrue( dataElements.contains( deC ) );
+        
+        dataElements = expressionService.getDataElementsInExpression( expressionM );
+
+        assertEquals( 2, dataElements.size() );
+        assertTrue( dataElements.contains( deA ) );
+        assertTrue( dataElements.contains( deB ) );
+    }
+    
+    @Test
+    public void testGetOperandsInExpression()
+    {
+        Set<DataElementOperand> operands = expressionService.getOperandsInExpression( expressionA );
+
+        assertEquals( 2, operands.size() );
+        assertTrue( operands.contains( opA ) );
+        assertTrue( operands.contains( opB ) );        
     }
     
     @Test
@@ -417,7 +436,7 @@ public class ExpressionServiceTest
 
     private Object calculateExpression( String expressionString )
     {
-        Expression expression = new Expression( expressionString, "test: " + expressionString );
+        Expression expression = new Expression( expressionString, "Test " + expressionString );
         
         return expressionService.getExpressionValue( expression, new HashMap<DimensionalItemObject, Double>(),
             new HashMap<String, Double>(), new HashMap<String, Integer>(), 0 );
@@ -450,9 +469,9 @@ public class ExpressionServiceTest
 
         assertEquals( ExpressionValidationOutcome.DIMENSIONAL_ITEM_OBJECT_DOES_NOT_EXIST, expressionService.expressionIsValid( expressionA ) );
 
-        expressionA = "#{" + deA.getUid() + SEPARATOR + 999 + "} + 12";
+        expressionA = "#{" + deA.getUid() + SEPARATOR + "999} + 12";
 
-        assertEquals( ExpressionValidationOutcome.DIMENSIONAL_ITEM_OBJECT_DOES_NOT_EXIST, expressionService
+        assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, expressionService
             .expressionIsValid( expressionA ) );
 
         expressionA = "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "} + ( 12";

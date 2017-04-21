@@ -51,7 +51,6 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.notification.ValidationNotificationService;
@@ -104,9 +103,6 @@ public class DefaultValidationService
 
     @Autowired
     private ApplicationContext applicationContext;
-
-    @Autowired
-    private Scheduler schedulingManager;
 
     private CurrentUserService currentUserService;
 

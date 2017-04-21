@@ -293,8 +293,8 @@ public class DefaultExpressionService
     private Double getSimpleExpressionValue( Expression expression, Matcher expressionMatch,
         Map<? extends DimensionalItemObject, Double> valueMap )
     {
-        String elementId = expressionMatch.group( 1 );
-        String comboId = StringUtils.trimToNull( expressionMatch.group( 2 ) );
+        String elementId = expressionMatch.group( GROUP_DATA_ELEMENT );
+        String comboId = StringUtils.trimToNull( expressionMatch.group( GROUP_CATEGORORY_OPTION_COMBO ) );
         DataElement dataElement = dataElementService.getDataElement( elementId );
         
         //TODO this needs to be rewritten
@@ -371,21 +371,21 @@ public class DefaultExpressionService
     public Set<DataElement> getDataElementsInExpression( String expression )
     {
         return getIdObjectsInExpression( OPERAND_PATTERN, expression,
-            ( m ) -> dataElementService.getDataElement( m.group( 1 ) ) );
+            ( m ) -> dataElementService.getDataElement( m.group( GROUP_DATA_ELEMENT ) ) );
     }
 
     @Override
     public Set<DataElementCategoryOptionCombo> getOptionCombosInExpression( String expression )
     {
         return getIdObjectsInExpression( OPTION_COMBO_OPERAND_PATTERN, expression, 
-            ( m  ) -> categoryService.getDataElementCategoryOptionCombo( m.group( 2 ) ) );
+            ( m  ) -> categoryService.getDataElementCategoryOptionCombo( m.group( GROUP_CATEGORORY_OPTION_COMBO ) ) );
     }
 
     @Override
     public Set<OrganisationUnitGroup> getOrganisationUnitGroupsInExpression( String expression )
     {
         return getIdObjectsInExpression( OU_GROUP_PATTERN, expression, 
-            ( m ) -> organisationUnitGroupService.getOrganisationUnitGroup( m.group( 1 ) ) );
+            ( m ) -> organisationUnitGroupService.getOrganisationUnitGroup( m.group( GROUP_ID ) ) );
     }
 
     /**
@@ -434,9 +434,8 @@ public class DefaultExpressionService
 
             while ( matcher.find() )
             {
-                String dataElementUid = StringUtils.trimToNull( matcher.group( 1 ) );
-
-                String optionComboUid = StringUtils.trimToNull( matcher.group( 2 ) );
+                String dataElementUid = StringUtils.trimToNull( matcher.group( GROUP_DATA_ELEMENT ) );
+                String optionComboUid = StringUtils.trimToNull( matcher.group( GROUP_CATEGORORY_OPTION_COMBO ) );
 
                 DataElement dataElement = dataElementService.getDataElement( dataElementUid );
 
@@ -502,8 +501,8 @@ public class DefaultExpressionService
 
         while ( matcher.find() )
         {
-            String dimensionItem = matcher.group( 2 );
-
+            String dimensionItem = matcher.group( GROUP_ID );
+            
             DimensionalItemObject dimensionItemObject = dimensionService.getDataDimensionalItemObject( dimensionItem );
 
             if ( dimensionItemObject != null )
@@ -572,7 +571,7 @@ public class DefaultExpressionService
 
         while ( matcher.find() )
         {
-            String dimensionItem = matcher.group( 2 );
+            String dimensionItem = matcher.group( GROUP_ID );
 
             if ( dimensionService.getDataDimensionalItemObject( dimensionItem ) == null )
             {
@@ -593,7 +592,7 @@ public class DefaultExpressionService
 
         while ( matcher.find() )
         {
-            String constant = matcher.group( 1 );
+            String constant = matcher.group( GROUP_ID );
 
             if ( idObjectManager.getNoAcl( Constant.class, constant ) == null )
             {
@@ -614,7 +613,7 @@ public class DefaultExpressionService
 
         while ( matcher.find() )
         {
-            String group = matcher.group( 1 );
+            String group = matcher.group( GROUP_ID );
 
             if ( idObjectManager.getNoAcl( OrganisationUnitGroup.class, group ) == null )
             {
@@ -662,7 +661,7 @@ public class DefaultExpressionService
 
         while ( matcher.find() )
         {
-            String dimensionItem = matcher.group( 2 );
+            String dimensionItem = matcher.group( GROUP_ID );
 
             DimensionalItemObject dimensionItemObject = dimensionService.getDataDimensionalItemObject( dimensionItem );
 
@@ -685,7 +684,7 @@ public class DefaultExpressionService
 
         while ( matcher.find() )
         {
-            String co = matcher.group( 1 );
+            String co = matcher.group( GROUP_ID );
 
             Constant constant = constantService.getConstant( co );
 
@@ -708,7 +707,7 @@ public class DefaultExpressionService
 
         while ( matcher.find() )
         {
-            String oug = matcher.group( 1 );
+            String oug = matcher.group( GROUP_ID );
 
             OrganisationUnitGroup group = organisationUnitGroupService.getOrganisationUnitGroup( oug );
 
@@ -752,13 +751,13 @@ public class DefaultExpressionService
                 if ( rule.getLeftSide().getExpression() != null )
                 {
                     dataElementTotals.addAll(
-                        RegexUtils.getMatches( DATA_ELEMENT_TOTAL_PATTERN, rule.getLeftSide().getExpression(), 1 ) );
+                        RegexUtils.getMatches( DATA_ELEMENT_TOTAL_PATTERN, rule.getLeftSide().getExpression(), GROUP_ID ) );
                 }
 
                 if ( rule.getRightSide().getExpression() != null )
                 {
                     dataElementTotals.addAll(
-                        RegexUtils.getMatches( DATA_ELEMENT_TOTAL_PATTERN, rule.getRightSide().getExpression(), 1 ) );
+                        RegexUtils.getMatches( DATA_ELEMENT_TOTAL_PATTERN, rule.getRightSide().getExpression(), GROUP_ID ) );
                 }
             }
 
@@ -797,7 +796,7 @@ public class DefaultExpressionService
             {
                 final StringBuilder replace = new StringBuilder( PAR_OPEN );
 
-                String de = matcher.group( 1 );
+                String de = matcher.group( GROUP_DATA_ELEMENT );
 
                 List<String> cocs = dataElementOptionComboMap.get( de );
 
@@ -833,7 +832,7 @@ public class DefaultExpressionService
             {
                 final StringBuilder replace = new StringBuilder( PAR_OPEN );
 
-                final DataElement dataElement = idObjectManager.getNoAcl( DataElement.class, matcher.group( 1 ) );
+                final DataElement dataElement = idObjectManager.getNoAcl( DataElement.class, matcher.group( GROUP_DATA_ELEMENT ) );
 
                 for ( DataElementCategoryOptionCombo categoryOptionCombo : dataElement.getCategoryOptionCombos() )
                 {
@@ -888,7 +887,7 @@ public class DefaultExpressionService
 
         while ( matcher.find() )
         {
-            String co = matcher.group( 1 );
+            String co = matcher.group( GROUP_ID );
 
             Constant constant = constants.get( co );
 
@@ -908,7 +907,7 @@ public class DefaultExpressionService
 
         while ( matcher.find() )
         {
-            String oug = matcher.group( 1 );
+            String oug = matcher.group( GROUP_ID );
 
             OrganisationUnitGroup group = orgUnitGroups.get( oug );
 
@@ -1031,7 +1030,7 @@ public class DefaultExpressionService
         {
             matchCount++;
 
-            String dimItem = matcher.group( 2 );
+            String dimItem = matcher.group( GROUP_ID );
 
             final Double value = dimensionItemValueMap.get( dimItem );
 
@@ -1068,7 +1067,7 @@ public class DefaultExpressionService
 
         while ( matcher.find() )
         {
-            final Double constant = constantMap != null ? constantMap.get( matcher.group( 1 ) ) : null;
+            final Double constant = constantMap != null ? constantMap.get( matcher.group( GROUP_ID ) ) : null;
 
             String replacement = constant != null ? String.valueOf( constant ) : NULL_REPLACEMENT;
 
@@ -1086,7 +1085,7 @@ public class DefaultExpressionService
 
         while ( matcher.find() )
         {
-            final Integer count = orgUnitCountMap != null ? orgUnitCountMap.get( matcher.group( 1 ) ) : null;
+            final Integer count = orgUnitCountMap != null ? orgUnitCountMap.get( matcher.group( GROUP_ID ) ) : null;
 
             String replacement = count != null ? String.valueOf( count ) : NULL_REPLACEMENT;
 
@@ -1118,6 +1117,8 @@ public class DefaultExpressionService
 
     private boolean operandIsTotal( Matcher matcher )
     {
-        return matcher != null && StringUtils.trimToEmpty( matcher.group( 2 ) ).isEmpty();
+        String coc = StringUtils.trimToEmpty( matcher.group( GROUP_CATEGORORY_OPTION_COMBO ) );
+        
+        return coc.isEmpty() || coc.equals( SYMBOL_WILDCARD );
     }
 }

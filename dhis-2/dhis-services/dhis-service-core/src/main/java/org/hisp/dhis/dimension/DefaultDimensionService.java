@@ -329,9 +329,7 @@ public class DefaultDimensionService
     
     @Override
     public DimensionalItemObject getDataDimensionalItemObject( IdScheme idScheme, String dimensionItem )
-    {
-        //TODO Not working for composite identifiers with non-UID identifier schemes
-        
+    {        
         if ( DimensionalObjectUtils.isCompositeDimensionalObject( dimensionItem ) )
         {
             String id0 = splitSafe( dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 0 );
