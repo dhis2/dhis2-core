@@ -406,9 +406,18 @@ public class DefaultAnalyticsService
 
                         row.add( DX_INDEX, new DimensionItem( DATA_X_DIM_ID, indicator ) );
 
-                        grid.addRow()
-                            .addValues( DimensionItem.getItemIdentifiers( row ) )
-                            .addValue( AnalyticsUtils.getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getValue() ) );
+                        if ( indicator.getDecimals() != null && indicator.getDecimals() == 0)
+                        {
+                            grid.addRow()
+                                .addValues( DimensionItem.getItemIdentifiers( row ) )
+                                .addValue( ((int) value.getValue()) );
+                        }
+                        else
+                        {
+                            grid.addRow()
+                                .addValues( DimensionItem.getItemIdentifiers( row ) )
+                                .addValue( AnalyticsUtils.getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getValue() ) );
+                        }
 
                         if ( params.isIncludeNumDen() )
                         {
@@ -536,7 +545,6 @@ public class DefaultAnalyticsService
      * @param params the data query parameters.
      * @param grid the grid.
      * @param metric the reporting rate metric.
-     * @param includeNumDen whether to include numerator and denominator.
      */
     private void addReportingRates( DataQueryParams params, Grid grid, ReportingRateMetric metric )
     {
