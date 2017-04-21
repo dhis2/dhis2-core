@@ -34,7 +34,9 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -353,6 +355,40 @@ public class HibernateDbmsManager
         List<Object> tables = jdbcTemplate.queryForList( sql, Object.class );
 
         return tables != null && tables.size() > 0;
+    }
+
+
+    @Override
+    public List<List<Object>> getTableContent( String table )
+    {
+        List<List<Object>> tableContent = new ArrayList<>();
+
+        SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet( "select * from " + table );
+        int cols = sqlRowSet.getMetaData().getColumnCount() + 1;
+
+        List<Object> headers = new ArrayList<>();
+
+        for ( int i = 1; i < cols; i++ )
+        {
+            headers.add( sqlRowSet.getMetaData().getColumnName( i ) );
+        }
+
+        tableContent.add( headers );
+
+        while ( sqlRowSet.next() )
+        {
+            List<Object> row = new ArrayList<>();
+
+            for ( int i = 1; i < cols; i++ )
+            {
+                row.add( sqlRowSet.getObject( i ) );
+
+            }
+
+            tableContent.add( row );
+        }
+
+        return tableContent;
     }
 
     // -------------------------------------------------------------------------
