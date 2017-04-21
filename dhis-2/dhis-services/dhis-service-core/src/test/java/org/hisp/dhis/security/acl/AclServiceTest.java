@@ -28,11 +28,13 @@ package org.hisp.dhis.security.acl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.legend.LegendSet;
@@ -48,6 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -422,5 +425,92 @@ public class AclServiceTest
         manager.update( dataElement );
 
         assertTrue( aclService.canUpdate( user2, dataElement ) );
+    }
+
+    @Test
+    public void testCategoryOptionSharingPrivateRW()
+    {
+        User user1 = createUser( "user1", "F_CATEGORY_OPTION_PRIVATE_ADD" );
+        User user2 = createUser( "user2" );
+
+        DataElementCategoryOption categoryOption = createCategoryOption( 'A' );
+        categoryOption.setUser( user1 );
+        manager.save( categoryOption );
+
+        assertFalse( aclService.canUpdate( user2, categoryOption ) );
+        assertEquals( AccessStringHelper.DEFAULT, categoryOption.getPublicAccess() );
+
+        UserGroup userGroup = createUserGroup( 'A', new HashSet<>() );
+        userGroup.getMembers().add( user1 );
+        userGroup.getMembers().add( user2 );
+
+        manager.save( userGroup );
+
+        categoryOption.getUserGroupAccesses().add( new UserGroupAccess( userGroup, "rw------" ) );
+        manager.update( categoryOption );
+
+        assertTrue( aclService.canUpdate( user2, categoryOption ) );
+    }
+
+    @Test
+    public void testUserCanUpdateDashboard()
+    {
+        User user1 = createUser( 'A' );
+        User user2 = createUser( 'B' );
+
+        manager.save( user1 );
+        manager.save( user2 );
+
+        Dashboard dashboard = new Dashboard( "Dashboard" );
+        dashboard.setUser( user1 );
+
+        manager.save( dashboard );
+
+        assertTrue( aclService.canRead( user1, dashboard ) );
+        assertTrue( aclService.canUpdate( user1, dashboard ) );
+        assertTrue( aclService.canDelete( user1, dashboard ) );
+        assertTrue( aclService.canManage( user1, dashboard ) );
+
+        assertFalse( aclService.canRead( user2, dashboard ) );
+        assertFalse( aclService.canUpdate( user2, dashboard ) );
+        assertFalse( aclService.canDelete( user2, dashboard ) );
+        assertFalse( aclService.canManage( user2, dashboard ) );
+    }
+
+    @Test
+    public void testUserCanUpdateDashboardSharedWithUserGroup()
+    {
+        User user1 = createUser( 'A' );
+        User user2 = createUser( 'B' );
+
+        manager.save( user1 );
+        manager.save( user2 );
+
+        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user1, user2 ) );
+        manager.save( userGroup );
+
+        Dashboard dashboard = new Dashboard( "Dashboard" );
+        dashboard.setUser( user1 );
+        manager.save( dashboard );
+
+        UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.READ );
+        dashboard.getUserGroupAccesses().add( userGroupAccess );
+        manager.update( dashboard );
+
+        assertTrue( aclService.canRead( user1, dashboard ) );
+        assertTrue( aclService.canUpdate( user1, dashboard ) );
+        assertTrue( aclService.canDelete( user1, dashboard ) );
+        assertTrue( aclService.canManage( user1, dashboard ) );
+
+        Access access = aclService.getAccess( dashboard, user2 );
+        assertTrue( access.isRead() );
+        assertFalse( access.isUpdate() );
+        assertFalse( access.isDelete() );
+        assertFalse( access.isManage() );
+
+        assertTrue( aclService.canRead( user2, dashboard ) );
+        assertFalse( aclService.canUpdate( user2, dashboard ) );
+        assertFalse( aclService.canDelete( user2, dashboard ) );
+        assertFalse( aclService.canManage( user2, dashboard ) );
     }
 }
