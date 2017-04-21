@@ -368,11 +368,13 @@ public class JdbcAnalyticsTableManager
         AnalyticsTableColumn de = new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "de.uid" );
         AnalyticsTableColumn co = new AnalyticsTableColumn( quote( "co" ), "character(11) not null", "co.uid" );
         AnalyticsTableColumn ao = new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" );
+        AnalyticsTableColumn startDate = new AnalyticsTableColumn( quote( "pestartdate" ), "timestamp", "pe.startdate" );
+        AnalyticsTableColumn endDate = new AnalyticsTableColumn( quote( "peenddate" ),"timestamp", "pe.enddate" );
         AnalyticsTableColumn pe = new AnalyticsTableColumn( quote( "pe" ), "character varying(15) not null", "ps.iso" );
         AnalyticsTableColumn ou = new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" );
         AnalyticsTableColumn level = new AnalyticsTableColumn( quote( "level" ), "integer", "ous.level" );
 
-        columns.addAll( Lists.newArrayList( de, co, ao, pe, ou, level ) );
+        columns.addAll( Lists.newArrayList( de, co, ao, startDate, endDate, pe, ou, level ) );
 
         if ( isApprovalEnabled( table ) )
         {

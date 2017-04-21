@@ -49,10 +49,7 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.analytics.DataQueryParams.*;
@@ -94,7 +91,7 @@ public class DefaultDataQueryService
 
     @Override
     public DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType,
-        String measureCriteria, String preAggregationMeasureCriteria, boolean skipMeta, boolean skipData, boolean skipRounding,
+        String measureCriteria, String preAggregationMeasureCriteria, Date startDate, Date endDate, boolean skipMeta, boolean skipData, boolean skipRounding,
         boolean completedOnly, boolean hierarchyMeta, boolean ignoreLimit, boolean hideEmptyRows, boolean showHierarchy,
         boolean includeNumDen, DisplayProperty displayProperty, IdScheme outputIdScheme, IdScheme inputIdScheme,
         boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit, DhisApiVersion apiVersion )
@@ -127,6 +124,8 @@ public class DefaultDataQueryService
 
         return params
             .withAggregationType( aggregationType )
+            .withStartDate( startDate )
+            .withEndDate( endDate )
             .withSkipMeta( skipMeta )
             .withSkipData( skipData )
             .withSkipRounding( skipRounding )

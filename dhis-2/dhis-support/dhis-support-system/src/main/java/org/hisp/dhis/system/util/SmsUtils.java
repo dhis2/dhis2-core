@@ -218,8 +218,6 @@ public class SmsUtils
 
             if ( phoneNumber != null && !phoneNumber.isEmpty() )
             {
-                log.info( "Adding " + phoneNumber + " to list of recipients" );
-
                 recipients.add( phoneNumber );
             }
         }

@@ -28,6 +28,8 @@ package org.hisp.dhis.dbms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
 /**
  * @author Lars Helge Overland
  */
@@ -44,4 +46,6 @@ public interface DbmsManager
     void emptyTable( String table );
     
     boolean tableExists( String tableName );
+
+    List<List<Object>> getTableContent( String table );
 }

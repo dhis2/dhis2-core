@@ -45,10 +45,9 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.User;
 import org.springframework.util.Assert;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import javax.annotation.Nullable;
 
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE_INT_DISAGGREGATION;
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE_SUM_INT_DISAGGREGATION;
@@ -362,6 +361,8 @@ public class DataQueryParams
         params.aggregationType = this.aggregationType;
         params.measureCriteria = this.measureCriteria;
         params.preAggregateMeasureCriteria = this.preAggregateMeasureCriteria;
+        params.startDate = this.startDate;
+        params.endDate = this.endDate;
         params.skipMeta = this.skipMeta;
         params.skipData = this.skipData;
         params.skipHeaders = this.skipHeaders;
@@ -1226,7 +1227,7 @@ public class DataQueryParams
     private DataQueryParams pruneToDimensionType( DimensionType type )
     {
         Iterator<DimensionalObject> dimensionIter = dimensions.iterator();
-        
+
         while ( dimensionIter.hasNext() )
         {
             if ( !dimensionIter.next().getDimensionType().equals( type ) )
