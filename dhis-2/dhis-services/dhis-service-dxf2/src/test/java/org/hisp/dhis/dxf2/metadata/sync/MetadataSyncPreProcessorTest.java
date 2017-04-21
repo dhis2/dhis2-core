@@ -149,7 +149,7 @@ public class MetadataSyncPreProcessorTest
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
 
         metadataSyncPreProcessor.handleEventDataPush( mockRetryContext );
-        verify( synchronizationManager, times( 1 ) ).executeAnonymousEventPush();
+        verify( synchronizationManager, times( 1 ) ).executeEventPush();
     }
 
     @Test( expected = MetadataSyncServiceException.class )

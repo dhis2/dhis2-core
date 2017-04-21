@@ -51,6 +51,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.notification.ValidationNotificationService;
@@ -103,6 +104,9 @@ public class DefaultValidationService
 
     @Autowired
     private ApplicationContext applicationContext;
+
+    @Autowired
+    private Scheduler schedulingManager;
 
     private CurrentUserService currentUserService;
 
@@ -174,7 +178,7 @@ public class DefaultValidationService
 
         ValidationRunContext context = getValidationContext( sources, periods, rules )
             .withMaxResults( MAX_SCHEDULED_ALERTS )
-            .withSendNotifications( true )
+            .withSendNotifications( false )
             .build();
 
         startValidationAnalysis( context );
@@ -184,6 +188,9 @@ public class DefaultValidationService
     {
 
         Collection<ValidationResult> results = Validator.validate( context, applicationContext );
+
+        log.info( "Send Notifications: " + context.isSendNotifications() );
+        log.info( "Violations: " + context.getValidationResults().size() );
 
         if ( context.isSendNotifications() )
         {

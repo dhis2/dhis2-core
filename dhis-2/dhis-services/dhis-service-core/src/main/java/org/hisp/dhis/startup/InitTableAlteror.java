@@ -117,6 +117,7 @@ public class InitTableAlteror
         updateMessageConversationMessageTypes();
 
         executeSql( "UPDATE expression SET slidingWindow = FALSE WHERE slidingWindow IS NULL" );
+        executeSql( "UPDATE validationResult set notificationsent = false WHERE notificationsent is null" );
 
     }
 
