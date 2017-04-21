@@ -195,11 +195,16 @@ public class DefaultAclService implements AclService
         }
 
         List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.UPDATE );
-        anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE ) );
-        anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ) );
-        anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE_PUBLIC ) );
 
-        return schema.isImplicitPrivateAuthority() || canAccess( user, anyAuthorities ) && (!schema.isShareable() || canWrite( user, object ));
+        if ( anyAuthorities.isEmpty() )
+        {
+            anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE ) );
+            anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ) );
+            anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE_PUBLIC ) );
+        }
+
+        return (schema.isImplicitPrivateAuthority() && userCheck( user, object ))
+            || canAccess( user, anyAuthorities ) && (!schema.isShareable() || canWrite( user, object ));
     }
 
     @Override
@@ -431,5 +436,15 @@ public class DefaultAclService implements AclService
         }
 
         return errorReports;
+    }
+
+    private boolean userCheck( User user, IdentifiableObject object )
+    {
+        if ( user == null || object.getUser() == null )
+        {
+            return false;
+        }
+
+        return user.equals( object.getUser() );
     }
 }
