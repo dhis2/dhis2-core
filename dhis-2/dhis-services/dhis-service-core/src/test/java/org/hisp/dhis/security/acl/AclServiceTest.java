@@ -512,4 +512,80 @@ public class AclServiceTest
         assertFalse( aclService.canDelete( user2, dashboard ) );
         assertFalse( aclService.canManage( user2, dashboard ) );
     }
+
+    @Test
+    public void testReadPrivateDataElementSharedThroughGroup()
+    {
+        User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
+        User user2 = createUser( "user2" );
+
+        manager.save( user1 );
+        manager.save( user2 );
+
+        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user1, user2 ) );
+        manager.save( userGroup );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setUser( user1 );
+
+        manager.save( dataElement );
+
+        UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.READ );
+        dataElement.getUserGroupAccesses().add( userGroupAccess );
+        manager.update( dataElement );
+
+        assertTrue( aclService.canRead( user1, dataElement ) );
+        assertTrue( aclService.canUpdate( user1, dataElement ) );
+        assertFalse( aclService.canDelete( user1, dataElement ) );
+        assertTrue( aclService.canManage( user1, dataElement ) );
+
+        Access access = aclService.getAccess( dataElement, user2 );
+        assertTrue( access.isRead() );
+        assertFalse( access.isUpdate() );
+        assertFalse( access.isDelete() );
+        assertFalse( access.isManage() );
+
+        assertTrue( aclService.canRead( user2, dataElement ) );
+        assertFalse( aclService.canUpdate( user2, dataElement ) );
+        assertFalse( aclService.canDelete( user2, dataElement ) );
+        assertFalse( aclService.canManage( user2, dataElement ) );
+    }
+
+    @Test
+    public void testUpdatePrivateDataElementSharedThroughGroup()
+    {
+        User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
+        User user2 = createUser( "user2" );
+
+        manager.save( user1 );
+        manager.save( user2 );
+
+        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user1, user2 ) );
+        manager.save( userGroup );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setUser( user1 );
+
+        manager.save( dataElement );
+
+        UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.READ_WRITE );
+        dataElement.getUserGroupAccesses().add( userGroupAccess );
+        manager.update( dataElement );
+
+        assertTrue( aclService.canRead( user1, dataElement ) );
+        assertTrue( aclService.canUpdate( user1, dataElement ) );
+        assertFalse( aclService.canDelete( user1, dataElement ) );
+        assertTrue( aclService.canManage( user1, dataElement ) );
+
+        Access access = aclService.getAccess( dataElement, user2 );
+        assertTrue( access.isRead() );
+        assertTrue( access.isUpdate() );
+        assertFalse( access.isDelete() );
+        assertTrue( access.isManage() );
+
+        assertTrue( aclService.canRead( user2, dataElement ) );
+        assertTrue( aclService.canUpdate( user2, dataElement ) );
+        assertFalse( aclService.canDelete( user2, dataElement ) );
+        assertTrue( aclService.canManage( user2, dataElement ) );
+    }
 }
