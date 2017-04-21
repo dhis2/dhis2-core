@@ -464,7 +464,6 @@ public class ExpressionServiceTest
         assertTrue( expressionService.expressionIsValid( expressionH ).isValid() );
         assertTrue( expressionService.expressionIsValid( expressionK ).isValid() );
         assertTrue( expressionService.expressionIsValid( expressionL ).isValid() );
-        assertTrue( expressionService.expressionIsValid( expressionM ).isValid() );
 
         expressionA = "#{nonExisting" + SEPARATOR + coc.getUid() + "} + 12";
 

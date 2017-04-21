@@ -31,6 +31,7 @@ package org.hisp.dhis.common;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,7 +69,7 @@ public class DimensionalObjectUtils
      * Matching data element operand, program data element, program attribute,
      * data set reporting rate metric.
      */
-    private static final Pattern COMPOSITE_DIM_OBJECT_PATTERN = Pattern.compile( "([a-zA-Z]\\w{10})\\.(\\w{5,30})" );
+    private static final Pattern COMPOSITE_DIM_OBJECT_PATTERN = Pattern.compile( "(?<id1>\\w+)\\.(?<id2>\\w+|\\*)" );
     
     public static List<DimensionalObject> getCopies( List<DimensionalObject> dimensions )
     {
@@ -380,6 +381,17 @@ public class DimensionalObjectUtils
         return matcher.matches() ? matcher.group( 2 ) : null;
     }
 
+    /**
+     * Indicates whether the given identifier is a wildcard.
+     * 
+     * @param identifier the identifier.
+     * @return true if the given identifier is a wildcard, false if not.
+     */
+    public static boolean isWildCard( String identifier )
+    {
+        return SYMBOL_WILDCARD.equals( identifier );
+    }
+    
     /**
      * Returns a list of DimensionalItemObjects.
      *

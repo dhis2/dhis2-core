@@ -64,6 +64,8 @@ public class DimensionalObjectUtilsTest
     public void testIsCompositeDimensionObject()
     {
         assertTrue( DimensionalObjectUtils.isCompositeDimensionalObject( "d4HjsAHkj42.G142kJ2k3Gj" ) );
+        assertTrue( DimensionalObjectUtils.isCompositeDimensionalObject( "d4HjsAHkj42.*" ) );
+        assertTrue( DimensionalObjectUtils.isCompositeDimensionalObject( "codeA.codeB" ) );
         
         assertFalse( DimensionalObjectUtils.isCompositeDimensionalObject( "d4HjsAHkj42" ) );
         assertFalse( DimensionalObjectUtils.isCompositeDimensionalObject( "14HjsAHkj42-G142kJ2k3Gj" ) );
@@ -190,14 +192,14 @@ public class DimensionalObjectUtilsTest
     @Test
     public void testGetFirstSecondIdentifier()
     {
-        assertEquals( "A123456789A", DimensionalObjectUtils.getFirstIdentifer( "A123456789A.P123456789A" ) );        
-        assertNull( DimensionalObjectUtils.getFirstIdentifer( "123NotVald" ) );
+        assertEquals( "A123456789A", DimensionalObjectUtils.getFirstIdentifer( "A123456789A.P123456789A" ) );
+        assertNull( DimensionalObjectUtils.getFirstIdentifer( "A123456789A" ) );
     }
 
     @Test
     public void testGetSecondIdentifier()
     {
         assertEquals( "P123456789A", DimensionalObjectUtils.getSecondIdentifer( "A123456789A.P123456789A" ) );
-        assertNull( DimensionalObjectUtils.getSecondIdentifer( "A123456789A.312" ) );
+        assertNull( DimensionalObjectUtils.getSecondIdentifer( "A123456789A" ) );
     }
 }
