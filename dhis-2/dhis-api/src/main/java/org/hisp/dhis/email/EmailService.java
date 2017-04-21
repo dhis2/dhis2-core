@@ -28,6 +28,8 @@ package org.hisp.dhis.email;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Set;
+
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
@@ -39,12 +41,17 @@ public interface EmailService
      */
     boolean emailEnabled();
 
+    boolean emailConfigured();
+
     /**
      * Sends an email to the recipient user from the sender.
      *
      * @param email the email to send.
      */
     void sendEmail( Email email );
+
+
+    void sendEmail( String subject, String message, Set<String> recipients );
 
     /**
      * Sends an automatically generated email message to the current user.
