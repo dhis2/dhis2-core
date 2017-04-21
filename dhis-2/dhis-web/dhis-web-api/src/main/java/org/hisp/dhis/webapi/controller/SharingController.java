@@ -127,8 +127,8 @@ public class SharingController
 
         Sharing sharing = new Sharing();
 
-        sharing.getMeta().setAllowPublicAccess( aclService.canCreatePublic( user, object.getClass() ) );
-        sharing.getMeta().setAllowExternalAccess( aclService.canExternalize( user, object.getClass() ) );
+        sharing.getMeta().setAllowPublicAccess( aclService.canMakePublic( user, object.getClass() ) );
+        sharing.getMeta().setAllowExternalAccess( aclService.canMakeExternal( user, object.getClass() ) );
 
         sharing.getObject().setId( object.getUid() );
         sharing.getObject().setName( object.getDisplayName() );
@@ -139,7 +139,7 @@ public class SharingController
         {
             String access;
 
-            if ( aclService.canCreatePublic( user, klass ) )
+            if ( aclService.canMakePublic( user, klass ) )
             {
                 access = AccessStringHelper.newInstance().enable( AccessStringHelper.Permission.READ ).enable( AccessStringHelper.Permission.WRITE ).build();
             }
@@ -212,7 +212,7 @@ public class SharingController
         // Ignore externalAccess if user is not allowed to make objects external
         // ---------------------------------------------------------------------
 
-        if ( aclService.canExternalize( user, object.getClass() ) )
+        if ( aclService.canMakeExternal( user, object.getClass() ) )
         {
             object.setExternalAccess( sharing.getObject().hasExternalAccess() );
         }
@@ -221,7 +221,7 @@ public class SharingController
         // Ignore publicAccess if user is not allowed to make objects public
         // ---------------------------------------------------------------------
 
-        if ( aclService.canCreatePublic( user, object.getClass() ) )
+        if ( aclService.canMakePublic( user, object.getClass() ) )
         {
             object.setPublicAccess( sharing.getObject().getPublicAccess() );
         }
