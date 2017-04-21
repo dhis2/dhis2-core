@@ -580,7 +580,7 @@ public class DefaultQueryPlanner
      * Groups queries by their data type.
      * 
      * @param params the data query parameters.
-     * @return a list of @{link {@link DataQueryParams}.
+     * @return a list of {@link DataQueryParams}.
      */
     private List<DataQueryParams> groupByDataType( DataQueryParams params )
     {
@@ -637,7 +637,7 @@ public class DefaultQueryPlanner
      * element group sets specified the aggregation type will fall back to sum.
      * 
      * @param params the data query parameters.
-     * @return a list of @{link {@link DataQueryParams}.
+     * @return a list of {@link DataQueryParams}.
      */
     private List<DataQueryParams> groupByAggregationType( DataQueryParams params )
     {
@@ -696,12 +696,12 @@ public class DefaultQueryPlanner
     /**
      * Groups the given query into sub queries based on the number of days in the
      * aggregation period. This only applies if the aggregation type is
-     * AVERAGE_SUM_INT and the query has at least one period as dimension option.
-     * This is necessary since the number of days in the aggregation period is
-     * part of the expression for aggregating the value.
+     * {@link AggregationType#AVERAGE_SUM_INT} and the query has at least one period as 
+     * dimension option. This is necessary since the number of days in the aggregation 
+     * period is part of the expression for aggregating the value.
      * 
      * @param params the data query parameters.
-     * @return a list of @{link {@link DataQueryParams}.
+     * @return a list of {@link DataQueryParams}.
      */
     private List<DataQueryParams> groupByDaysInPeriod( DataQueryParams params )
     {
@@ -740,7 +740,7 @@ public class DefaultQueryPlanner
      * if the aggregation type of the query involves disaggregation.
      * 
      * @param params the data query parameters.
-     * @return a list of @{link {@link DataQueryParams}.
+     * @return a list of {@link DataQueryParams}.
      */
     private List<DataQueryParams> groupByDataPeriodType( DataQueryParams params )
     {
