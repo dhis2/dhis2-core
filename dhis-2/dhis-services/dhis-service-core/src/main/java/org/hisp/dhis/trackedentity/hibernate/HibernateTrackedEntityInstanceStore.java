@@ -133,6 +133,16 @@ public class HibernateTrackedEntityInstanceStore
             hql += hlp.whereAnd() + "tei.trackedEntity.uid='" + params.getTrackedEntity().getUid() + "'";
         }
 
+        if ( params.hasLastUpdatedStartDate() )
+        {
+            hql += hlp.whereAnd() + "tei.lastUpdated >= '" + getMediumDateString( params.getLastUpdatedStartDate() ) + "'";
+        }
+
+        if ( params.hasLastUpdatedEndDate() )
+        {
+            hql += hlp.whereAnd() + "tei.lastUpdated < '" + getMediumDateString( params.getLastUpdatedEndDate() ) + "'";
+        }
+
         if ( params.hasOrganisationUnits() )
         {
             params.handleOrganisationUnits();
@@ -256,7 +266,7 @@ public class HibernateTrackedEntityInstanceStore
         for ( QueryItem item : params.getAttributes() )
         {
             String col = statementBuilder.columnQuote( item.getItemId() );
-            
+
             sql += item.isNumeric() ? "CAST( " + col + ".value AS NUMERIC ) as " : col + ".value as ";
 
             sql += col + ", ";
@@ -269,11 +279,11 @@ public class HibernateTrackedEntityInstanceStore
         // ---------------------------------------------------------------------
 
         sql += getFromWhereClause( params, hlp );
-        
+
         // ---------------------------------------------------------------------
         // Order clause
         // ---------------------------------------------------------------------
-        
+
         sql += getOrderClause( params );
 
         // ---------------------------------------------------------------------
@@ -497,7 +507,7 @@ public class HibernateTrackedEntityInstanceStore
 
         return sql;
     }
-    
+
     private String getOrderClause( TrackedEntityInstanceQueryParams params )
     {
         List<String> cols = getStaticGridColumns();
@@ -544,10 +554,11 @@ public class HibernateTrackedEntityInstanceStore
 
         return "order by lastUpdated desc ";
     }
-    
-    private List<String> getStaticGridColumns(){
-        
-        return Arrays.asList( TRACKED_ENTITY_INSTANCE_ID, CREATED_ID, LAST_UPDATED_ID, ORG_UNIT_ID, ORG_UNIT_NAME, TRACKED_ENTITY_ID, INACTIVE_ID);
+
+    private List<String> getStaticGridColumns()
+    {
+
+        return Arrays.asList( TRACKED_ENTITY_INSTANCE_ID, CREATED_ID, LAST_UPDATED_ID, ORG_UNIT_ID, ORG_UNIT_NAME, TRACKED_ENTITY_ID, INACTIVE_ID );
     }
 
     private String getEventStatusWhereClause( TrackedEntityInstanceQueryParams params )

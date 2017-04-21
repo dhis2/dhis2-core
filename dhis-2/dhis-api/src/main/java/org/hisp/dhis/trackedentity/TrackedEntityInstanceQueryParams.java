@@ -467,6 +467,16 @@ public class TrackedEntityInstanceQueryParams
         return followUp != null;
     }
 
+    public boolean hasLastUpdatedStartDate()
+    {
+        return lastUpdatedStartDate != null;
+    }
+
+    public boolean hasLastUpdatedEndDate()
+    {
+        return lastUpdatedEndDate != null;
+    }
+
     /**
      * Indicates whether this parameters specifies a program enrollment start date.
      */
@@ -687,7 +697,7 @@ public class TrackedEntityInstanceQueryParams
         return this;
     }
 
-    public Date StartDate()
+    public Date getLastUpdatedStartDate()
     {
         return lastUpdatedStartDate;
     }
