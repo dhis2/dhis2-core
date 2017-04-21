@@ -384,14 +384,14 @@ public class HibernateGenericStore<T>
 
             if ( clearSharing )
             {
-                if ( aclService.canCreatePublic( user, identifiableObject.getClass() ) )
+                if ( aclService.canMakePublic( user, identifiableObject.getClass() ) )
                 {
                     if ( aclService.defaultPublic( identifiableObject.getClass() ) )
                     {
                         identifiableObject.setPublicAccess( AccessStringHelper.READ_WRITE );
                     }
                 }
-                else if ( aclService.canCreatePrivate( user, identifiableObject.getClass() ) )
+                else if ( aclService.canMakePrivate( user, identifiableObject.getClass() ) )
                 {
                     identifiableObject.setPublicAccess( AccessStringHelper.newInstance().build() );
                 }
@@ -410,8 +410,8 @@ public class HibernateGenericStore<T>
 
     private boolean checkPublicAccess( User user, IdentifiableObject identifiableObject )
     {
-        return aclService.canCreatePublic( user, identifiableObject.getClass() ) ||
-            (aclService.canCreatePrivate( user, identifiableObject.getClass() ) &&
+        return aclService.canMakePublic( user, identifiableObject.getClass() ) ||
+            (aclService.canMakePrivate( user, identifiableObject.getClass() ) &&
                 !AccessStringHelper.canReadOrWrite( identifiableObject.getPublicAccess() ));
     }
 

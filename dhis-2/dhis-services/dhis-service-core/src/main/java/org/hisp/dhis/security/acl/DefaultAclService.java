@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.acl;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -103,9 +103,9 @@ public class DefaultAclService implements AclService
         }
 
         if ( haveOverrideAuthority( user )
-            || (object.getUser() == null && canCreatePublic( user, object.getClass() ) && !schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ).isEmpty())
+            || (object.getUser() == null && canMakePublic( user, object.getClass() ) && !schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ).isEmpty())
             || (user != null && object.getUser() != null && user.getUid().equals( object.getUser().getUid() ))
-            || ((object instanceof User) && canCreatePrivate( user, object.getClass() ))
+            || ((object instanceof User) && canMakePrivate( user, object.getClass() ))
             || AccessStringHelper.canWrite( object.getPublicAccess() ) )
         {
             return true;
@@ -226,7 +226,7 @@ public class DefaultAclService implements AclService
 
         if ( haveOverrideAuthority( user )
             || user.equals( object.getUser() )
-            || (object.getUser() == null && canCreatePublic( user, object.getClass() ) && !schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ).isEmpty())
+            || (object.getUser() == null && canMakePublic( user, object.getClass() ) && !schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ).isEmpty())
             || AccessStringHelper.canWrite( object.getPublicAccess() ) )
         {
             return true;
@@ -269,11 +269,11 @@ public class DefaultAclService implements AclService
             return canAccess( user, schema.getAuthorityByType( AuthorityType.CREATE ) );
         }
 
-        return canCreatePublic( user, klass ) || canCreatePrivate( user, klass );
+        return canMakePublic( user, klass ) || canMakePrivate( user, klass );
     }
 
     @Override
-    public <T extends IdentifiableObject> boolean canCreatePublic( User user, Class<T> klass )
+    public <T extends IdentifiableObject> boolean canMakePublic( User user, Class<T> klass )
     {
         Schema schema = schemaService.getSchema( klass );
         return !(schema == null || !schema.isShareable())
@@ -281,7 +281,7 @@ public class DefaultAclService implements AclService
     }
 
     @Override
-    public <T extends IdentifiableObject> boolean canCreatePrivate( User user, Class<T> klass )
+    public <T extends IdentifiableObject> boolean canMakePrivate( User user, Class<T> klass )
     {
         Schema schema = schemaService.getSchema( klass );
         return !(schema == null || !schema.isShareable())
@@ -289,7 +289,7 @@ public class DefaultAclService implements AclService
     }
 
     @Override
-    public <T extends IdentifiableObject> boolean canExternalize( User user, Class<T> klass )
+    public <T extends IdentifiableObject> boolean canMakeExternal( User user, Class<T> klass )
     {
         Schema schema = schemaService.getSchema( klass );
         return !(schema == null || !schema.isShareable())
@@ -350,7 +350,7 @@ public class DefaultAclService implements AclService
     {
         Access access = new Access();
         access.setManage( canManage( user, object ) );
-        access.setExternalize( canExternalize( user, object.getClass() ) );
+        access.setExternalize( canMakeExternal( user, object.getClass() ) );
         access.setWrite( canWrite( user, object ) );
         access.setRead( canRead( user, object ) );
         access.setUpdate( canUpdate( user, object ) );
@@ -377,7 +377,7 @@ public class DefaultAclService implements AclService
             baseIdentifiableObject.setUser( user );
         }
 
-        if ( canCreatePublic( user, object.getClass() ) )
+        if ( canMakePublic( user, object.getClass() ) )
         {
             if ( defaultPublic( object.getClass() ) )
             {
@@ -404,9 +404,9 @@ public class DefaultAclService implements AclService
             return errorReports;
         }
 
-        boolean canMakePublic = canCreatePublic( user, object.getClass() );
-        boolean canMakePrivate = canCreatePrivate( user, object.getClass() );
-        boolean canMakeExternal = canExternalize( user, object.getClass() );
+        boolean canMakePublic = canMakePublic( user, object.getClass() );
+        boolean canMakePrivate = canMakePrivate( user, object.getClass() );
+        boolean canMakeExternal = canMakeExternal( user, object.getClass() );
 
         if ( object.getExternalAccess() )
         {

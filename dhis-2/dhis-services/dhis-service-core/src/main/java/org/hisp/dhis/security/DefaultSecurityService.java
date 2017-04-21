@@ -28,16 +28,18 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.i18n.locale.LocaleManager;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.period.Cal;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -51,9 +53,6 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -87,7 +86,7 @@ public class DefaultSecurityService
     private final LoadingCache<String, Integer> CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS = Caffeine.newBuilder()
         .expireAfterWrite( LOGIN_LOCKOUT_MINS, TimeUnit.MINUTES )
         .build( ( u ) -> 0 );
-    
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -147,11 +146,11 @@ public class DefaultSecurityService
         {
             return;
         }
-        
+
         Integer attempts = CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS.get( username );
-        
+
         attempts++;
-        
+
         CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS.put( username, attempts );
     }
 
@@ -162,8 +161,8 @@ public class DefaultSecurityService
         {
             return;
         }
-        
-        CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS.invalidate( username );        
+
+        CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS.invalidate( username );
     }
 
     @Override
@@ -173,15 +172,15 @@ public class DefaultSecurityService
         {
             return false;
         }
-        
+
         return CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS.get( username ) > LOGIN_MAX_FAILED_ATTEMPTS;
     }
-    
+
     private boolean isBlockFailedLogins()
     {
         return (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOCK_MULTIPLE_FAILED_LOGINS );
     }
-    
+
     @Override
     public boolean prepareUserForInvite( User user )
     {
@@ -526,7 +525,7 @@ public class DefaultSecurityService
     public boolean canCreatePublic( IdentifiableObject identifiableObject )
     {
         return !aclService.isShareable( identifiableObject.getClass() )
-            || aclService.canCreatePublic( currentUserService.getCurrentUser(), identifiableObject.getClass() );
+            || aclService.canMakePublic( currentUserService.getCurrentUser(), identifiableObject.getClass() );
     }
 
     @Override
@@ -535,14 +534,14 @@ public class DefaultSecurityService
         Class<? extends IdentifiableObject> klass = aclService.classForType( type );
 
         return !aclService.isShareable( klass )
-            || aclService.canCreatePublic( currentUserService.getCurrentUser(), klass );
+            || aclService.canMakePublic( currentUserService.getCurrentUser(), klass );
     }
 
     @Override
     public boolean canCreatePrivate( IdentifiableObject identifiableObject )
     {
         return !aclService.isShareable( identifiableObject.getClass() )
-            || aclService.canCreatePrivate( currentUserService.getCurrentUser(), identifiableObject.getClass() );
+            || aclService.canMakePrivate( currentUserService.getCurrentUser(), identifiableObject.getClass() );
     }
 
     @Override
@@ -559,7 +558,7 @@ public class DefaultSecurityService
         Class<? extends IdentifiableObject> klass = aclService.classForType( type );
 
         return !aclService.isShareable( klass )
-            || aclService.canCreatePrivate( currentUserService.getCurrentUser(), klass );
+            || aclService.canMakePrivate( currentUserService.getCurrentUser(), klass );
     }
 
     @Override
@@ -601,11 +600,11 @@ public class DefaultSecurityService
     public boolean hasAnyAuthority( String... authorities )
     {
         User user = currentUserService.getCurrentUser();
-        
+
         if ( user != null && user.getUserCredentials() != null )
         {
             UserCredentials userCredentials = user.getUserCredentials();
-    
+
             for ( String authority : authorities )
             {
                 if ( userCredentials.isAuthorized( authority ) )
