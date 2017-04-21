@@ -28,9 +28,7 @@ package org.hisp.dhis.validation.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -39,6 +37,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
+import org.hisp.dhis.notification.SendStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.DateUtils;
@@ -119,16 +118,21 @@ public class DefaultValidationNotificationService
         // Transform into distinct pairs of ValidationRule and ValidationNotificationTemplate
         SortedSet<MessagePair> messagePairs = createMessagePairs( applicableResults );
 
-        // Group the set of MessagePair into divisions representing a single summarized message and its recipients
-        Map<Set<User>, SortedSet<MessagePair>> groupedByRecipients = createRecipientsToMessagePairsMap( messagePairs );
+        // Segregate MessagePairs based on SendStrategy
+        Map<SendStrategy, SortedSet<MessagePair>> segregatedMap = segregateMessagePairBasedOnStrategy( messagePairs );
 
-        // Flatten the grouped and sorted MessagePairs into single NotificationMessages
-        Map<Set<User>, NotificationMessage> summaryMessages = createSummaryNotificationMessages( groupedByRecipients,
-            new Date() );
+        Map<SendStrategy, Map<Set<User>, NotificationMessage>> notficationCollections = new HashMap<>();
 
-        clock.logTime( String.format( "Sending %d summarized notification(s)", summaryMessages.size() ) );
+        notficationCollections.put( SendStrategy.SINGLE_NOTIFICATION , createSingleNotifications( segregatedMap.getOrDefault( SendStrategy.SINGLE_NOTIFICATION, new TreeSet<>() ) ) );
 
-        summaryMessages.forEach( this::sendNotification );
+        notficationCollections.put( SendStrategy.COLLECTIVE_SUMMARY, createSummaryNotifications( segregatedMap.getOrDefault( SendStrategy.COLLECTIVE_SUMMARY, new TreeSet<>() ) ) );
+
+        for (Map.Entry<SendStrategy, Map<Set<User>, NotificationMessage>> entry : notficationCollections.entrySet() )
+        {
+            clock.logTime( String.format( "Sending %d %s notification(s)", entry.getValue().size(), entry.getKey().getDescription() ) );
+
+            entry.getValue().forEach( this::sendNotification );
+        }
 
         clock.logTime( "Done sending validation notifications" );
 
@@ -148,6 +152,52 @@ public class DefaultValidationNotificationService
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    private Map<SendStrategy, SortedSet<MessagePair>> segregateMessagePairBasedOnStrategy( SortedSet<MessagePair> messagePairs )
+    {
+        Map<SendStrategy, SortedSet<MessagePair>> segregatedMap = new HashMap<>();
+
+        for ( MessagePair messagePair : messagePairs )
+        {
+            if ( SendStrategy.SINGLE_NOTIFICATION.equals( messagePair.template.getSendStrategy() ) )
+            {
+                segregatedMap.computeIfAbsent( SendStrategy.SINGLE_NOTIFICATION, k -> new TreeSet<>() ).add( messagePair );
+            }
+            else
+            {
+                segregatedMap.computeIfAbsent( SendStrategy.COLLECTIVE_SUMMARY, k -> new TreeSet<>() ).add( messagePair );
+            }
+        }
+
+        return segregatedMap;
+    }
+
+    private Map<Set<User>, NotificationMessage> createSingleNotifications( SortedSet<MessagePair> messagePairs )
+    {
+        BiMap<Set<User>, NotificationMessage> singleNotificationCollection = HashBiMap.create();
+
+        for ( MessagePair messagePair : messagePairs )
+        {
+            NotificationMessage notificationMessage = notificationMessageRenderer.render( messagePair.result, messagePair.template );
+
+            singleNotificationCollection.put( new HashSet<>(), notificationMessage );
+
+            resolveRecipients( messagePair ).forEach( user -> singleNotificationCollection.inverse().get( notificationMessage ).add( user ) );
+        }
+
+        return singleNotificationCollection;
+    }
+
+    private Map<Set<User>, NotificationMessage> createSummaryNotifications( SortedSet<MessagePair> messagePairs )
+    {
+        // Group the set of MessagePair into divisions representing a single summarized message and its recipients
+        Map<Set<User>, SortedSet<MessagePair>> groupedByRecipientsForSummary = createRecipientsToMessagePairsMap( messagePairs );
+
+        // Flatten the grouped and sorted MessagePairs into single NotificationMessages
+        Map<Set<User>, NotificationMessage> summaryMessages = createSummaryNotificationMessages( groupedByRecipientsForSummary, new Date() );
+
+        return summaryMessages;
+    }
 
     private Map<Set<User>, NotificationMessage> createSummaryNotificationMessages(
         Map<Set<User>, SortedSet<MessagePair>> groupedByRecipients, final Date validationDate )
