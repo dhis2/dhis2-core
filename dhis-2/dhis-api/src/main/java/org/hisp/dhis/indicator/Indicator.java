@@ -135,16 +135,6 @@ public class Indicator
         attributeValues.clear();
     }
 
-    public String getExplodedNumeratorFallback()
-    {
-        return explodedNumerator != null ? explodedNumerator : numerator;
-    }
-
-    public String getExplodedDenominatorFallback()
-    {
-        return explodedDenominator != null ? explodedDenominator : denominator;
-    }
-
     public boolean hasDecimals()
     {
         return decimals != null && decimals >= 0;

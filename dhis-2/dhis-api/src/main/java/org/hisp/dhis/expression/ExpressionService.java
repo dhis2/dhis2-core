@@ -356,15 +356,6 @@ public interface ExpressionService
     void explodeValidationRuleExpressions( Collection<ValidationRule> validationRules );
 
     /**
-     * Replaces references to data element totals with references to all
-     * category option combos in the category combo for that data element.
-     *
-     * @param expression the expression to explode.
-     * @return the exploded expression string.
-     */
-    String explodeExpression( String expression );
-
-    /**
      * Substitutes potential constant and days in the numerator and denominator
      * on all indicators in the given collection.
      */

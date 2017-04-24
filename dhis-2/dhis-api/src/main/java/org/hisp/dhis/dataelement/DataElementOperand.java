@@ -220,6 +220,17 @@ public class DataElementOperand
         
         return new DataElementOperand( de, coc );
     }
+    
+    /**
+     * Indicates whether this operand specifies a data element only
+     * with no option combinations.
+     * 
+     * @return true if operand specifies a data element only.
+     */
+    public boolean isTotal()
+    {
+        return categoryOptionCombo != null;
+    }
 
     // -------------------------------------------------------------------------
     // Getters & setters
