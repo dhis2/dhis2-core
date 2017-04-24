@@ -671,9 +671,7 @@ public class DataQueryParams
         
         CombinationGenerator<DimensionItem> generator = new CombinationGenerator<>( dimensionOptions.toArray( DIM_OPT_2D_ARR ) );
         
-        List<List<DimensionItem>> permutations = generator.getCombinations();
-        
-        return permutations;
+        return generator.getCombinations();
     }
 
     /**

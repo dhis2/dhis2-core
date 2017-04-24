@@ -458,6 +458,8 @@ public class DefaultAnalyticsService
         }
     }
 
+    // TODO handle * in separate queries in order to aggregate, handle as individual cases
+    
     /**
      * Adds data element operand values to the given grid based on the given data
      * query parameters.

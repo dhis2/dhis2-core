@@ -101,7 +101,8 @@ public class JdbcAnalyticsManager
     {
         try
         {
-            ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap = params.getDataPeriodAggregationPeriodMap();
+            ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap = 
+                params.getDataPeriodAggregationPeriodMap();
 
             if ( params.isDisaggregation() && params.hasDataPeriodType() )
             {
@@ -158,7 +159,8 @@ public class JdbcAnalyticsManager
     }
 
     @Override
-    public void replaceDataPeriodsWithAggregationPeriods( Map<String, Object> dataValueMap, DataQueryParams params, ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap )
+    public void replaceDataPeriodsWithAggregationPeriods( Map<String, Object> dataValueMap, 
+        DataQueryParams params, ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap )
     {
         if ( params.isDisaggregation() )
         {
