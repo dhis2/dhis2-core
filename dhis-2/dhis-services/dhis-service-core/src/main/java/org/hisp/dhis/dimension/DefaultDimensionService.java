@@ -46,6 +46,7 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_ORGUNIT_GROUP;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_CHILDREN;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_GRANDCHILDREN;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.apache.commons.lang3.EnumUtils.isValidEnum;
 
 import java.util.ArrayList;
@@ -70,6 +71,7 @@ import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -376,7 +378,9 @@ public class DefaultDimensionService
     //--------------------------------------------------------------------------
 
     /**
-     * Returns a {@link DataElementOperand}.
+     * Returns a {@link DataElementOperand}. For identifier wild cards 
+     * {@link ExpressionService#SYMBOL_WILDCARD}, the relevant property
+     * will be null.
      * 
      * @param idScheme the identifier scheme.
      * @param dataElementId the data element identifier.
@@ -387,7 +391,7 @@ public class DefaultDimensionService
         DataElement dataElement = idObjectManager.getObject( DataElement.class, idScheme, dataElementId );
         DataElementCategoryOptionCombo categoryOptionCombo = idObjectManager.getObject( DataElementCategoryOptionCombo.class, idScheme, categoryOptionComboId );
         
-        if ( dataElement == null || categoryOptionCombo == null )
+        if ( dataElement == null || ( categoryOptionCombo == null && !SYMBOL_WILDCARD.equals( categoryOptionComboId ) ) )
         {
             return null;
         }
