@@ -38,6 +38,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -117,10 +118,11 @@ public class EmailController
         webMessageService.send( WebMessageUtils.ok( "System notification email sent" ), response, request );
     }
 
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_SEND_EMAIL')" )
     @RequestMapping( value = "/notification", method = RequestMethod.POST, produces = "application/json" )
     public void sendEmailNotification( @RequestParam Set<String> recipients, @RequestParam String message,
-                                             @RequestParam ( defaultValue = "DHIS 2" ) String subject,
-                                             HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
+                                       @RequestParam ( defaultValue = "DHIS 2" ) String subject,
+                                       HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
     {
         boolean smtpConfigured = emailService.emailEnabled();
 
