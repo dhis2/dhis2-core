@@ -200,7 +200,7 @@ public class DataElement
         dataSetElements.remove( element );
         return element.getDataSet().getDataSetElements().remove( element );
     }
-
+    
     /**
      * Returns the resolved category combinations by joining the category
      * combinations of the data set elements of which this data element is part
@@ -306,22 +306,6 @@ public class DataElement
     public Set<DataSet> getDataSets()
     {
         return ImmutableSet.copyOf( dataSetElements.stream().map( e -> e.getDataSet() ).collect( Collectors.toSet() ) );
-    }
-
-    /**
-     * Returns the attribute category combinations associated with the data sets
-     * of this data element.
-     */
-    public Set<DataElementCategoryCombo> getDataSetCategoryCombos()
-    {
-        Set<DataElementCategoryCombo> categoryCombos = new HashSet<>();
-
-        for ( DataSet dataSet : getDataSets() )
-        {
-            categoryCombos.add( dataSet.getCategoryCombo() );
-        }
-
-        return categoryCombos;
     }
 
     /**
@@ -525,16 +509,31 @@ public class DataElement
         return expiryDays != DataSet.NO_EXPIRY && new DateTime( period.getEndDate() ).plusDays( expiryDays ).isBefore( new DateTime( now ) );
     }
 
+    /**
+     * Indicates whether this data element has a description.
+     * 
+     * @return true if this data element has a description.
+     */
     public boolean hasDescription()
     {
         return description != null && !description.trim().isEmpty();
     }
 
+    /**
+     * Indicates whether this data element has a URL.
+     * 
+     * @return true if this data element has a URL.
+     */
     public boolean hasUrl()
     {
         return url != null && !url.trim().isEmpty();
     }
 
+    /**
+     * Indicates whether this data element has an option set.
+     * 
+     * @return true if this data element has an option set.
+     */
     public boolean hasOptionSet()
     {
         return optionSet != null;

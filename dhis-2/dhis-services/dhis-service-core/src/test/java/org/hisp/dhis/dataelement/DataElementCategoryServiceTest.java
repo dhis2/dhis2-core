@@ -250,6 +250,8 @@ public class DataElementCategoryServiceTest
         categoryService.addDataElementCategoryCombo( ccA );
         
         categoryService.generateOptionCombos( ccA );
+        
+        List<DataElementCategoryOptionCombo> optionCombos = Lists.newArrayList( ccA.getOptionCombos() );
 
         deA = createDataElement( 'A', ccA );
         deB = createDataElement( 'B', ccA );
@@ -260,5 +262,43 @@ public class DataElementCategoryServiceTest
         List<DataElementOperand> operands = categoryService.getOperands( Lists.newArrayList( deA, deB ) );
         
         assertEquals( 4, operands.size() );
+        assertTrue( operands.contains( new DataElementOperand( deA, optionCombos.get( 0 ) ) ) );
+        assertTrue( operands.contains( new DataElementOperand( deA, optionCombos.get( 1 ) ) ) );
+        assertTrue( operands.contains( new DataElementOperand( deB, optionCombos.get( 0 ) ) ) );
+        assertTrue( operands.contains( new DataElementOperand( deB, optionCombos.get( 1 ) ) ) );
+    }
+
+    @Test
+    public void testGetOperandsWithTotals()
+    {
+        categoryA = createDataElementCategory( 'A', categoryOptionA, categoryOptionB );
+        categoryB = createDataElementCategory( 'B', categoryOptionC );
+
+        categoryService.addDataElementCategory( categoryA );
+        categoryService.addDataElementCategory( categoryB );
+        
+        ccA = createCategoryCombo( 'A', categoryA, categoryB );
+        
+        categoryService.addDataElementCategoryCombo( ccA );
+        
+        categoryService.generateOptionCombos( ccA );
+
+        List<DataElementCategoryOptionCombo> optionCombos = Lists.newArrayList( ccA.getOptionCombos() );
+
+        deA = createDataElement( 'A', ccA );
+        deB = createDataElement( 'B', ccA );
+        
+        idObjectManager.save( deA );
+        idObjectManager.save( deB );
+        
+        List<DataElementOperand> operands = categoryService.getOperands( Lists.newArrayList( deA, deB ), true );
+        
+        assertEquals( 6, operands.size() );
+        assertTrue( operands.contains( new DataElementOperand( deA ) ) );
+        assertTrue( operands.contains( new DataElementOperand( deA, optionCombos.get( 0 ) ) ) );
+        assertTrue( operands.contains( new DataElementOperand( deA, optionCombos.get( 1 ) ) ) );
+        assertTrue( operands.contains( new DataElementOperand( deB ) ) );
+        assertTrue( operands.contains( new DataElementOperand( deB, optionCombos.get( 0 ) ) ) );
+        assertTrue( operands.contains( new DataElementOperand( deB, optionCombos.get( 1 ) ) ) );
     }
 }

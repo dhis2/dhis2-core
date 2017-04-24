@@ -733,13 +733,17 @@ public class DefaultDataElementCategoryService
 
         for ( DataElement dataElement : dataElements )
         {
-            for ( DataElementCategoryCombo categoryCombo : dataElement.getCategoryCombos() )
+            Set<DataElementCategoryCombo> categoryCombos = dataElement.getCategoryCombos();
+            
+            boolean anyIsDefault = categoryCombos.stream().anyMatch( cc -> cc.isDefault() );
+            
+            if ( includeTotals && !anyIsDefault )
             {
-                if ( includeTotals && categoryCombo.isDefault() )
-                {
-                    operands.add( new DataElementOperand( dataElement ) );
-                }
-                
+                operands.add( new DataElementOperand( dataElement ) );
+            }
+            
+            for ( DataElementCategoryCombo categoryCombo : categoryCombos )
+            {
                 operands.addAll( getOperands( dataElement, categoryCombo ) );
             }
         }
@@ -756,7 +760,7 @@ public class DefaultDataElementCategoryService
         {
             DataElementCategoryCombo categoryCombo = element.getResolvedCategoryCombo();
             
-            if ( includeTotals && categoryCombo.isDefault() )
+            if ( includeTotals && !categoryCombo.isDefault() )
             {
                 operands.add( new DataElementOperand( element.getDataElement() ) );
             }
@@ -773,9 +777,7 @@ public class DefaultDataElementCategoryService
         
         for ( DataElementCategoryOptionCombo categoryOptionCombo : categoryCombo.getSortedOptionCombos() )
         {
-            DataElementOperand operand = new DataElementOperand( dataElement, categoryOptionCombo );
-
-            operands.add( operand );
+            operands.add( new DataElementOperand( dataElement, categoryOptionCombo ) );
         }
         
         return operands;
