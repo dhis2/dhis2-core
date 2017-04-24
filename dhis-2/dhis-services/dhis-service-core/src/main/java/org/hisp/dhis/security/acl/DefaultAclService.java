@@ -418,7 +418,7 @@ public class DefaultAclService implements AclService
 
         if ( AccessStringHelper.DEFAULT.equals( object.getPublicAccess() ) )
         {
-            if ( canMakePublic || canMakePrivate )
+            if ( canMakePublic || canMakePrivate || sharingCanWrite( object, user ) )
             {
                 return errorReports;
             }
@@ -436,6 +436,21 @@ public class DefaultAclService implements AclService
         }
 
         return errorReports;
+    }
+
+    private <T extends IdentifiableObject> boolean sharingCanWrite( T object, User user )
+    {
+        for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
+        {
+            /* Is the user allowed to read this object through group access? */
+            if ( AccessStringHelper.canWrite( userGroupAccess.getAccess() )
+                && userGroupAccess.getUserGroup().getMembers().contains( user ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private boolean userCheck( User user, IdentifiableObject object )
