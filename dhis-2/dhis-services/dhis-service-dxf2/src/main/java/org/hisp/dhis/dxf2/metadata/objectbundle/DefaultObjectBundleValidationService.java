@@ -214,17 +214,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
     private void handleDefaults( List<IdentifiableObject> objects )
     {
-        Iterator<IdentifiableObject> iterator = objects.iterator();
-
-        while ( iterator.hasNext() )
-        {
-            IdentifiableObject object = iterator.next();
-
-            if ( Preheat.isDefault( object ) )
-            {
-                iterator.remove();
-            }
-        }
+        objects.removeIf( Preheat::isDefault );
     }
 
     private void validateAtomicity( ObjectBundle bundle, ObjectBundleValidationReport validation )

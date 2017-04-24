@@ -66,6 +66,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.validation.ValidationRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -254,6 +255,7 @@ public class DefaultPreheatService implements PreheatService
         }
 
         handleAttributes( params.getObjects(), preheat );
+        handleSecurity( params.getObjects(), params.getPreheatIdentifier(), preheat );
 
         periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
         periodStore.getAllPeriodTypes().forEach( periodType -> preheat.getPeriodTypeMap().put( periodType.getName(), periodType ) );
@@ -316,6 +318,38 @@ public class DefaultPreheatService implements PreheatService
                 }
             }
         }
+    }
+
+    private void handleSecurity( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects, PreheatIdentifier identifier, Preheat preheat )
+    {
+        objects.forEach( ( klass, list ) -> list.forEach( object ->
+        {
+            object.getUserGroupAccesses().forEach( uga ->
+            {
+                UserGroup userGroup = null;
+
+                if ( uga.getUserGroup() != null )
+                {
+                    if ( PreheatIdentifier.UID == identifier )
+                    {
+                        userGroup = preheat.get( identifier, UserGroup.class, uga.getUserGroup().getUid() );
+                    }
+                    else if ( PreheatIdentifier.CODE == identifier )
+                    {
+                        userGroup = preheat.get( identifier, UserGroup.class, uga.getUserGroup().getCode() );
+                    }
+                }
+                else
+                {
+                    userGroup = preheat.get( PreheatIdentifier.UID, UserGroup.class, uga.getUserGroupUid() );
+                }
+
+                if ( userGroup != null )
+                {
+                    uga.setUserGroup( userGroup );
+                }
+            } );
+        } ) );
     }
 
     private void handleUniqueAttributeValues( Class<? extends IdentifiableObject> klass, List<? extends IdentifiableObject> objects, Preheat preheat )
