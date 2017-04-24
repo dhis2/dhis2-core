@@ -132,7 +132,7 @@ public class AclServiceTest
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
 
-        assertTrue( aclService.canUpdate( user, dataElement ) );
+        assertFalse( aclService.canUpdate( user, dataElement ) );
     }
 
     @Test
@@ -430,7 +430,7 @@ public class AclServiceTest
     public void testCategoryOptionSharingPrivateRW()
     {
         User user1 = createUser( "user1", "F_CATEGORY_OPTION_PRIVATE_ADD" );
-        User user2 = createUser( "user2" );
+        User user2 = createUser( "user2", "F_CATEGORY_OPTION_PRIVATE_ADD" );
 
         DataElementCategoryOption categoryOption = createCategoryOption( 'A' );
         categoryOption.setUser( user1 );
@@ -517,7 +517,7 @@ public class AclServiceTest
     public void testReadPrivateDataElementSharedThroughGroup()
     {
         User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
-        User user2 = createUser( "user2" );
+        User user2 = createUser( "user2", "F_DATAELEMENT_PRIVATE_ADD" );
 
         manager.save( user1 );
         manager.save( user2 );
@@ -555,7 +555,7 @@ public class AclServiceTest
     public void testUpdatePrivateDataElementSharedThroughGroup()
     {
         User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
-        User user2 = createUser( "user2" );
+        User user2 = createUser( "user2", "F_DATAELEMENT_PRIVATE_ADD" );
 
         manager.save( user1 );
         manager.save( user2 );
