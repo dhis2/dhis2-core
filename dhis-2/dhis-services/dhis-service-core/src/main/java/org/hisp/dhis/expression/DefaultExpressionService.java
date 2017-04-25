@@ -351,11 +351,11 @@ public class DefaultExpressionService
 
     private Double getDeoValueFromValueMap( Map<? extends DimensionalItemObject, Double> valueMap, DataElementOperand match )
     {
-        for ( DimensionalItemObject d : valueMap.keySet() )
+        for ( DimensionalItemObject item : valueMap.keySet() )
         {
-            if ( d instanceof DataElementOperand )
+            if ( item instanceof DataElementOperand )
             {
-                DataElementOperand deo = (DataElementOperand) d;
+                DataElementOperand deo = (DataElementOperand) item;
 
                 if ( deo.equals( match ) )
                 {
@@ -363,6 +363,7 @@ public class DefaultExpressionService
                 }
             }
         }
+        
         return null;
     }
 
@@ -376,7 +377,7 @@ public class DefaultExpressionService
     @Override
     public Set<DataElementCategoryOptionCombo> getOptionCombosInExpression( String expression )
     {
-        return getIdObjectsInExpression( OPTION_COMBO_OPERAND_PATTERN, expression, 
+        return getIdObjectsInExpression( CATEGORY_OPTION_COMBO_OPERAND_PATTERN, expression, 
             ( m  ) -> categoryService.getDataElementCategoryOptionCombo( m.group( GROUP_CATEGORORY_OPTION_COMBO ) ) );
     }
 
@@ -434,14 +435,18 @@ public class DefaultExpressionService
             while ( matcher.find() )
             {
                 String dataElementUid = StringUtils.trimToNull( matcher.group( GROUP_DATA_ELEMENT ) );
-                String optionComboUid = StringUtils.trimToNull( matcher.group( GROUP_CATEGORORY_OPTION_COMBO ) );
+                String categoryOptionComboUid = StringUtils.trimToNull( matcher.group( GROUP_CATEGORORY_OPTION_COMBO ) );
+                String attrOptionComboUid = StringUtils.trimToNull( matcher.group( GROUP_ATTRIBUTE_OPTION_COMBO ) );
 
                 DataElement dataElement = dataElementService.getDataElement( dataElementUid );
 
-                DataElementCategoryOptionCombo optionCombo = optionComboUid == null ? null :
-                    categoryService.getDataElementCategoryOptionCombo( optionComboUid );
+                DataElementCategoryOptionCombo categoryOptionCombo = categoryOptionComboUid == null ? null :
+                    categoryService.getDataElementCategoryOptionCombo( categoryOptionComboUid );
+                
+                DataElementCategoryOptionCombo attrOptionCombo = attrOptionComboUid == null ? null :
+                    categoryService.getDataElementCategoryOptionCombo( attrOptionComboUid );
 
-                operandsInExpression.add ( new DataElementOperand( dataElement, optionCombo ) );
+                operandsInExpression.add( new DataElementOperand( dataElement, categoryOptionCombo, attrOptionCombo ) );
             }
         }
 

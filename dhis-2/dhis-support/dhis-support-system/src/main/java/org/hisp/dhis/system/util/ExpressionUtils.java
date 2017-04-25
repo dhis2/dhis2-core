@@ -29,6 +29,7 @@ package org.hisp.dhis.system.util;
  */
 
 import static org.hisp.dhis.expression.ExpressionService.WILDCARD_EXPRESSION;
+import static org.hisp.dhis.expression.ExpressionService.GROUP_KEY;
 import static org.hisp.dhis.expression.ExpressionService.GROUP_ID;
 
 /**
@@ -46,6 +47,6 @@ public class ExpressionUtils
      */
     public static String normalizeExpression( String expression )
     {
-        return expression.replaceAll( WILDCARD_EXPRESSION, "${" + GROUP_ID + "}" );
+        return expression.replaceAll( WILDCARD_EXPRESSION, "${" + GROUP_KEY + "}{${" + GROUP_ID + "}}" );
     }
 }

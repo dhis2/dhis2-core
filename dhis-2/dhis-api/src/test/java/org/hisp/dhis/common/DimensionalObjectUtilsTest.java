@@ -64,7 +64,11 @@ public class DimensionalObjectUtilsTest
     public void testIsCompositeDimensionObject()
     {
         assertTrue( DimensionalObjectUtils.isCompositeDimensionalObject( "d4HjsAHkj42.G142kJ2k3Gj" ) );
+        assertTrue( DimensionalObjectUtils.isCompositeDimensionalObject( "d4HjsAHkj42.G142kJ2k3Gj.BoaSg2GopVn" ) );
+        assertTrue( DimensionalObjectUtils.isCompositeDimensionalObject( "d4HjsAHkj42.*.BoaSg2GopVn" ) );
+        assertTrue( DimensionalObjectUtils.isCompositeDimensionalObject( "d4HjsAHkj42.G142kJ2k3Gj.*" ) );
         assertTrue( DimensionalObjectUtils.isCompositeDimensionalObject( "d4HjsAHkj42.*" ) );
+        assertTrue( DimensionalObjectUtils.isCompositeDimensionalObject( "d4HjsAHkj42.*.*" ) );
         assertTrue( DimensionalObjectUtils.isCompositeDimensionalObject( "codeA.codeB" ) );
         
         assertFalse( DimensionalObjectUtils.isCompositeDimensionalObject( "d4HjsAHkj42" ) );

@@ -336,13 +336,14 @@ public class DefaultDimensionService
         {
             String id0 = splitSafe( dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 0 );
             String id1 = splitSafe( dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 1 );
+            String id2 = splitSafe( dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 2 );
 
             DataElementOperand operand = null;
             ReportingRate reportingRate = null;
             ProgramDataElementDimensionItem programDataElement = null;
             ProgramTrackedEntityAttributeDimensionItem programAttribute = null;
             
-            if ( ( operand = getDataElementOperand( idScheme, id0, id1 ) ) != null )
+            if ( ( operand = getDataElementOperand( idScheme, id0, id1, id2 ) ) != null )
             {
                 return operand;
             }
@@ -386,17 +387,18 @@ public class DefaultDimensionService
      * @param dataElementId the data element identifier.
      * @param categoryOptionComboId the category option combo identifier.
      */
-    private DataElementOperand getDataElementOperand( IdScheme idScheme, String dataElementId, String categoryOptionComboId )
+    private DataElementOperand getDataElementOperand( IdScheme idScheme, String dataElementId, String categoryOptionComboId, String attributeOptionComboId )
     {
         DataElement dataElement = idObjectManager.getObject( DataElement.class, idScheme, dataElementId );
         DataElementCategoryOptionCombo categoryOptionCombo = idObjectManager.getObject( DataElementCategoryOptionCombo.class, idScheme, categoryOptionComboId );
-        
+        DataElementCategoryOptionCombo attributeOptionCombo = idObjectManager.getObject( DataElementCategoryOptionCombo.class, idScheme, attributeOptionComboId );
+                
         if ( dataElement == null || ( categoryOptionCombo == null && !SYMBOL_WILDCARD.equals( categoryOptionComboId ) ) )
         {
             return null;
         }
         
-        return new DataElementOperand( dataElement, categoryOptionCombo );
+        return new DataElementOperand( dataElement, categoryOptionCombo, attributeOptionCombo );
     }
     
     /**
