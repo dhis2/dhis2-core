@@ -63,6 +63,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.jep.CustomFunctions;
 import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.system.util.ExpressionUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.validation.ValidationRule;
 import org.springframework.transaction.annotation.Transactional;
@@ -215,15 +216,14 @@ public class DefaultExpressionService
         Map<? extends DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
         Map<String, Integer> orgUnitCountMap )
     {
-        if ( indicator == null || indicator.getExplodedNumeratorFallback() == null
-            || indicator.getExplodedDenominatorFallback() == null )
+        if ( indicator == null || indicator.getNumerator() == null || indicator.getDenominator() == null )
         {
             return null;
         }
 
         Integer days = period != null ? period.getDaysInPeriod() : null;
 
-        final String denominatorExpression = generateExpression( indicator.getExplodedDenominatorFallback(), valueMap,
+        final String denominatorExpression = generateExpression( indicator.getDenominator(), valueMap,
             constantMap, orgUnitCountMap, days, NEVER_SKIP );
 
         if ( denominatorExpression == null )
@@ -235,7 +235,7 @@ public class DefaultExpressionService
 
         if ( !isEqual( denominatorValue, 0d ) )
         {
-            final String numeratorExpression = generateExpression( indicator.getExplodedNumeratorFallback(), valueMap,
+            final String numeratorExpression = generateExpression( indicator.getNumerator(), valueMap,
                 constantMap, orgUnitCountMap, days, NEVER_SKIP );
 
             if ( numeratorExpression == null )
@@ -279,7 +279,7 @@ public class DefaultExpressionService
 
             if ( simpleMatch.matches() )
             {
-                return getSimpleExpressionValue( expression, simpleMatch, valueMap );
+                return getSimpleExpressionValue( simpleMatch, valueMap );
             }
         }
 
@@ -290,8 +290,7 @@ public class DefaultExpressionService
         return expressionString != null ? calculateExpression( expressionString ) : null;
     }
 
-    private Double getSimpleExpressionValue( Expression expression, Matcher expressionMatch,
-        Map<? extends DimensionalItemObject, Double> valueMap )
+    private Double getSimpleExpressionValue( Matcher expressionMatch, Map<? extends DimensionalItemObject, Double> valueMap )
     {
         String elementId = expressionMatch.group( GROUP_DATA_ELEMENT );
         String comboId = StringUtils.trimToNull( expressionMatch.group( GROUP_CATEGORORY_OPTION_COMBO ) );
@@ -816,40 +815,6 @@ public class DefaultExpressionService
 
     @Override
     @Transactional
-    public String explodeExpression( String expression )
-    {
-        if ( expression == null || expression.isEmpty() )
-        {
-            return null;
-        }
-
-        StringBuffer sb = new StringBuffer();
-        Matcher matcher = OPERAND_PATTERN.matcher( expression );
-
-        while ( matcher.find() )
-        {
-            if ( operandIsTotal( matcher ) )
-            {
-                final StringBuilder replace = new StringBuilder( PAR_OPEN );
-
-                final DataElement dataElement = idObjectManager.getNoAcl( DataElement.class, matcher.group( GROUP_DATA_ELEMENT ) );
-
-                for ( DataElementCategoryOptionCombo categoryOptionCombo : dataElement.getCategoryOptionCombos() )
-                {
-                    replace.append( EXP_OPEN ).append( dataElement.getUid() ).append( SEPARATOR ).
-                        append( categoryOptionCombo.getUid() ).append( EXP_CLOSE ).append( "+" );
-                }
-
-                replace.deleteCharAt( replace.length() - 1 ).append( PAR_CLOSE );
-                matcher.appendReplacement( sb, Matcher.quoteReplacement( replace.toString() ) );
-            }
-        }
-
-        return TextUtils.appendTail( matcher, sb );
-    }
-
-    @Override
-    @Transactional
     public void substituteExpressions( Collection<Indicator> indicators, Integer days )
     {
         if ( indicators != null && !indicators.isEmpty() )
@@ -945,6 +910,18 @@ public class DefaultExpressionService
         return generateExpression( expression, valueMap, constantMap, orgUnitCountMap, days, missingValueStrategy, null );
     }
 
+    /**
+     * Generates an expression based on the given data maps.
+     * 
+     * @param expression the expression.
+     * @param valueMap the value map.
+     * @param constantMap the constant map.
+     * @param orgUnitCountMap the organisation unit count map.
+     * @param days the number of days.
+     * @param missingValueStrategy the missing value strategy.
+     * @param aggregateMap the aggregate map.
+     * @return an expression.
+     */
     private String generateExpression( String expression, Map<? extends DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
         MissingValueStrategy missingValueStrategy, 
@@ -954,6 +931,8 @@ public class DefaultExpressionService
         {
             return null;
         }
+        
+        expression = ExpressionUtils.normalizeExpression( expression );
 
         Map<String, Double> dimensionItemValueMap = valueMap.entrySet().stream().
             filter( e -> e.getValue() != null ).
@@ -1114,11 +1093,18 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-
+    
+    /**
+     * Indicates whether the given matcher is based on a {@link DataElementOperand}
+     * which represents a data element total.
+     * 
+     * @param matcher the matcher.
+     * @return true if matcher is based on total.
+     */
     private boolean operandIsTotal( Matcher matcher )
     {
         String coc = StringUtils.trimToEmpty( matcher.group( GROUP_CATEGORORY_OPTION_COMBO ) );
         
         return coc.isEmpty() || coc.equals( SYMBOL_WILDCARD );
-    }
+    }    
 }

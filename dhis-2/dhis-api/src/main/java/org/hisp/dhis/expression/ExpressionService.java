@@ -81,6 +81,7 @@ public interface ExpressionService
     String CONSTANT_EXPRESSION = "C\\{(?<id>[a-zA-Z]\\w{10})\\}";
     String OU_GROUP_EXPRESSION = "OUG\\{(?<id>[a-zA-Z]\\w{10})\\}";
     String DAYS_EXPRESSION = "\\[days\\]";
+    String WILDCARD_EXPRESSION = "(?<id>[a-zA-Z]\\w{10})(\\.\\*)";
 
     /**
      * Variable pattern. Contains the named groups {@code key}, {@code id}, {@code id1} and {@code id2}.  
@@ -117,6 +118,11 @@ public interface ExpressionService
      */
     Pattern DAYS_PATTERN = Pattern.compile( DAYS_EXPRESSION );
 
+    /**
+     * Wild card pattern. Contains the named groups {@code id}.
+     */
+    Pattern WILDCARD_PATTERN = Pattern.compile( WILDCARD_EXPRESSION );
+    
     String GROUP_KEY = "key";
     String GROUP_ID = "id";
     String GROUP_ID1 = "id1";
@@ -354,15 +360,6 @@ public interface ExpressionService
      * @param validationRules the collection of validation rules.
      */
     void explodeValidationRuleExpressions( Collection<ValidationRule> validationRules );
-
-    /**
-     * Replaces references to data element totals with references to all
-     * category option combos in the category combo for that data element.
-     *
-     * @param expression the expression to explode.
-     * @return the exploded expression string.
-     */
-    String explodeExpression( String expression );
 
     /**
      * Substitutes potential constant and days in the numerator and denominator

@@ -33,7 +33,6 @@ import java.util.regex.Matcher;
 import org.junit.Test;
 
 import static org.hisp.dhis.expression.ExpressionService.*;
-import static org.hisp.dhis.expression.ExpressionService.VARIABLE_PATTERN;
 import static org.hisp.dhis.expression.ExpressionService.GROUP_KEY;
 import static org.hisp.dhis.expression.ExpressionService.GROUP_ID;
 import static org.hisp.dhis.expression.ExpressionService.GROUP_ID1;
@@ -62,7 +61,7 @@ public class ExpressionPatternTest
         assertEquals( "kXGiFZ0msNV", matcher.group( GROUP_CATEGORORY_OPTION_COMBO ) );
 
         matcher = OPERAND_PATTERN.matcher( "#{PuRblkMqsKu.*}" );
-        assertTrue( matcher.find() );        
+        assertTrue( matcher.find() );
         assertEquals( "PuRblkMqsKu", matcher.group( GROUP_DATA_ELEMENT ) );
         assertEquals( SYMBOL_WILDCARD, matcher.group( GROUP_CATEGORORY_OPTION_COMBO ) );
 
@@ -74,11 +73,11 @@ public class ExpressionPatternTest
 
         matcher = OPERAND_PATTERN.matcher( "#{1nvalidUid.kXGiFZ0msNV}" );
         assertFalse( matcher.find() );
-        
+
         matcher = OPERAND_PATTERN.matcher( "#{PuRblkMqsKu.1nvalidUid}" );
         assertFalse( matcher.find() );
     }
-    
+
     @Test
     public void testVariablePattern()
     {
@@ -117,30 +116,44 @@ public class ExpressionPatternTest
         assertEquals( "ZGugB5Dfi9n", matcher.group( GROUP_ID1 ) );
         assertEquals( "Xz9PckXF7Qu", matcher.group( GROUP_ID2 ) );
     }
-    
+
+    @Test
+    public void testWildcardPattern()
+    {
+        Matcher matcher = WILDCARD_PATTERN.matcher( "#{PuRblkMqsKu.*}" );
+        assertTrue( matcher.find() );
+        assertEquals( "PuRblkMqsKu", matcher.group( GROUP_ID ) );
+
+        matcher = WILDCARD_PATTERN.matcher( "#{PuRblkMqsKu.kXGiFZ0msNV}" );
+        assertFalse( matcher.find() );
+        
+        matcher = WILDCARD_PATTERN.matcher( "#{PuRblkMqsKu}" );
+        assertFalse( matcher.find() );
+    }
+
     @Test
     public void testDataElementTotalPattern()
     {
         Matcher matcher = DATA_ELEMENT_TOTAL_PATTERN.matcher( "#{PuRblkMqsKu}" );
         assertTrue( matcher.find() );
-        assertEquals( "PuRblkMqsKu", matcher.group( GROUP_ID ) );        
+        assertEquals( "PuRblkMqsKu", matcher.group( GROUP_ID ) );
     }
-    
+
     @Test
     public void testOptionComboOperandPattern()
     {
         Matcher matcher = OPTION_COMBO_OPERAND_PATTERN.matcher( "#{ZGugB5Dfi9n.Xz9PckXF7Qu}" );
         assertTrue( matcher.find() );
         assertEquals( "ZGugB5Dfi9n", matcher.group( GROUP_DATA_ELEMENT ) );
-        assertEquals( "Xz9PckXF7Qu", matcher.group( GROUP_CATEGORORY_OPTION_COMBO ) );        
+        assertEquals( "Xz9PckXF7Qu", matcher.group( GROUP_CATEGORORY_OPTION_COMBO ) );
     }
-    
+
     @Test
     public void testConstantPattern()
     {
         Matcher matcher = CONSTANT_PATTERN.matcher( "C{Jn6Xa61vnic}" );
         assertTrue( matcher.find() );
-        assertEquals( "Jn6Xa61vnic", matcher.group( GROUP_ID ) ); 
+        assertEquals( "Jn6Xa61vnic", matcher.group( GROUP_ID ) );
     }
 
     @Test
@@ -148,6 +161,6 @@ public class ExpressionPatternTest
     {
         Matcher matcher = OU_GROUP_PATTERN.matcher( "OUG{a92JkBJm4BY}" );
         assertTrue( matcher.find() );
-        assertEquals( "a92JkBJm4BY", matcher.group( GROUP_ID ) ); 
+        assertEquals( "a92JkBJm4BY", matcher.group( GROUP_ID ) );
     }
 }
