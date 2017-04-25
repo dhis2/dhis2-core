@@ -63,6 +63,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.jep.CustomFunctions;
 import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.system.util.ExpressionUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.validation.ValidationRule;
 import org.springframework.transaction.annotation.Transactional;
@@ -930,6 +931,8 @@ public class DefaultExpressionService
         {
             return null;
         }
+        
+        expression = ExpressionUtils.normalizeExpression( expression );
 
         Map<String, Double> dimensionItemValueMap = valueMap.entrySet().stream().
             filter( e -> e.getValue() != null ).
@@ -1090,30 +1093,18 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-
+    
     /**
      * Indicates whether the given matcher is based on a {@link DataElementOperand}
      * which represents a data element total.
      * 
      * @param matcher the matcher.
+     * @return true if matcher is based on total.
      */
     private boolean operandIsTotal( Matcher matcher )
     {
         String coc = StringUtils.trimToEmpty( matcher.group( GROUP_CATEGORORY_OPTION_COMBO ) );
         
         return coc.isEmpty() || coc.equals( SYMBOL_WILDCARD );
-    }
-    
-    /**
-     * Normalizes the given expression. Ensures that data element operands which
-     * contains wild cards and represents a data element total is rewritten in order
-     * to remove the wild cards.
-     * 
-     * @param expression the expression to normalize.
-     */
-    private String normalizeExpression( String expression )
-    {
-        //TODO handle wildcard totals
-        return expression;
-    }
+    }    
 }
