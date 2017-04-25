@@ -1114,6 +1114,10 @@ table.small td {
     font-size: 10px;
 }
 
+.ns-tree .x-grid-table {
+	width: 100%!important;
+}
+
 	/* Selected row background */
 .ns-tree .x-grid-row-selected .x-grid-cell,
 .ns-tree .x-grid-row-selected .x-grid-rowwrap-div {
