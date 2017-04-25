@@ -162,13 +162,13 @@ public interface ExpressionService
     List<Expression> getAllExpressions();
 
     /**
-     * Generates the calculated value for the given parameters based on the values
-     * in the given maps.
+     * Generates the calculated value for the given parameters based on the
+     * values in the given maps.
      *
-     * @param indicator       the indicator for which to calculate the value.
-     * @param period          the period for which to calculate the value.
-     * @param valueMap        the map of data values.
-     * @param constantMap     the map of constants.
+     * @param indicator the indicator for which to calculate the value.
+     * @param period the period for which to calculate the value.
+     * @param valueMap the map of data values.
+     * @param constantMap the map of constants.
      * @param orgUnitCountMap the map of organisation unit counts.
      * @return the calculated value as a double.
      */
@@ -176,13 +176,13 @@ public interface ExpressionService
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap );
 
     /**
-     * Generates the calculated value for the given parameters based on the values
-     * in the given maps.
+     * Generates the calculated value for the given parameters based on the
+     * values in the given maps.
      *
-     * @param indicator       the indicator for which to calculate the value.
-     * @param period          the period for which to calculate the value.
-     * @param valueMap        the map of data values.
-     * @param constantMap     the map of constants.
+     * @param indicator the indicator for which to calculate the value.
+     * @param period the period for which to calculate the value.
+     * @param valueMap the map of data values.
+     * @param constantMap the map of constants.
      * @param orgUnitCountMap the map of organisation unit counts.
      * @return the calculated value as a double.
      */
@@ -191,35 +191,38 @@ public interface ExpressionService
         Map<String, Integer> orgUnitCountMap );
 
     /**
-     * Generates the calculated value for the given expression base on the values
-     * supplied in the value map, constant map and days.
+     * Generates the calculated value for the given expression base on the
+     * values supplied in the value map, constant map and days.
      *
-     * @param expression      the expression which holds the formula for the calculation.
-     * @param valueMap        the mapping between data element operands and values to
-     *                        use in the calculation.
-     * @param constantMap     the mapping between the constant uid and value to use
-     *                        in the calculation.
-     * @param orgUnitCountMap the mapping between organisation unit group uid and
-     *                        count of organisation units to use in the calculation.
-     * @param days            the number of days to use in the calculation.
+     * @param expression the expression which holds the formula for the
+     *        calculation.
+     * @param valueMap the mapping between data element operands and values to
+     *        use in the calculation.
+     * @param constantMap the mapping between the constant uid and value to use
+     *        in the calculation.
+     * @param orgUnitCountMap the mapping between organisation unit group uid
+     *        and count of organisation units to use in the calculation.
+     * @param days the number of days to use in the calculation.
      * @return the calculated value as a double.
      */
     Double getExpressionValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days );
 
     /**
-     * Generates the calculated value for the given expression base on the values
-     * supplied in the value map, constant map and days.
+     * Generates the calculated value for the given expression base on the
+     * values supplied in the value map, constant map and days.
      *
-     * @param expression      the expression which holds the formula for the calculation.
-     * @param valueMap        the mapping between data element operands and values to
-     *                        use in the calculation.
-     * @param constantMap     the mapping between the constant uid and value to use
-     *                        in the calculation.
-     * @param orgUnitCountMap the mapping between organisation unit group uid and
-     *                        count of organisation units to use in the calculation.
-     * @param days            the number of days to use in the calculation.
-     * @param a               map of subexpression strings to List(s) of aggregated samples for the expression
+     * @param expression the expression which holds the formula for the
+     *        calculation.
+     * @param valueMap the mapping between data element operands and values to
+     *        use in the calculation.
+     * @param constantMap the mapping between the constant uid and value to use
+     *        in the calculation.
+     * @param orgUnitCountMap the mapping between organisation unit group uid
+     *        and count of organisation units to use in the calculation.
+     * @param days the number of days to use in the calculation.
+     * @param a map of subexpression strings to List(s) of aggregated samples
+     *        for the expression
      * @return the calculated value as a double.
      */
     Double getExpressionValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
@@ -227,8 +230,8 @@ public interface ExpressionService
         ListMap<String, Double> aggregateMap );
 
     /**
-     * Returns all data elements included in the given expression string. Returns
-     * an empty set if the given expression is null.
+     * Returns all data elements included in the given expression string.
+     * Returns an empty set if the given expression is null.
      *
      * @param expression the expression string.
      * @return a set of data elements included in the expression string.
@@ -246,11 +249,12 @@ public interface ExpressionService
     Set<DataElementCategoryOptionCombo> getOptionCombosInExpression( String expression );
 
     /**
-     * Returns all OrganisationUnitGroups in the given expression string. Returns
-     * an set list if the given indicators are null or empty.
+     * Returns all OrganisationUnitGroups in the given expression string.
+     * Returns an set list if the given indicators are null or empty.
      *
      * @param expression the expression string.
-     * @return a Set of OrganisationUnitGroups included in the expression string.
+     * @return a Set of OrganisationUnitGroups included in the expression
+     *         string.
      */
     Set<OrganisationUnitGroup> getOrganisationUnitGroupsInExpression( String expression );
 
@@ -267,9 +271,10 @@ public interface ExpressionService
     Set<DataElementOperand> getOperandsInExpression( String expression );
 
     /**
-     * Returns all aggregates included in an expression string. An aggregate has the
-     * AGGREGATE_FUNCTION(expr)  where expr is a well-formed sub-expression.  This
-     * returns the empty set if the given expression is null or there are no aggregates.
+     * Returns all aggregates included in an expression string. An aggregate has
+     * the AGGREGATE_FUNCTION(expr) where expr is a well-formed sub-expression.
+     * This returns the empty set if the given expression is null or there are
+     * no aggregates.
      *
      * @param expression The expression string.
      * @return A Set of Expression strings.
@@ -277,7 +282,8 @@ public interface ExpressionService
     Set<String> getAggregatesInExpression( String expression );
 
     /**
-     * Returns all dimensional item objects which are present in the given expression.
+     * Returns all dimensional item objects which are present in the given
+     * expression.
      *
      * @param expression the expression.
      * @return a set of dimensional item objects.
@@ -285,14 +291,15 @@ public interface ExpressionService
     Set<DimensionalItemObject> getDimensionalItemObjectsInExpression( String expression );
 
     /**
-     * Returns all dimensional item objects of the given dimension item types  which 
-     * are present in the given expression.
+     * Returns all dimensional item objects of the given dimension item types
+     * which are present in the given expression.
      *
      * @param expression the expression.
      * @param dimensionItemTypes the dimension item types.
      * @return a set of dimensional item objects.
      */
-    Set<DimensionalItemObject> getDimensionalItemObjectsInExpression( String expression, Set<DimensionItemType> dimensionItemTypes );
+    Set<DimensionalItemObject> getDimensionalItemObjectsInExpression( String expression,
+        Set<DimensionItemType> dimensionItemTypes );
 
     /**
      * Returns all dimensional item objects which are present in numerator and
@@ -323,24 +330,26 @@ public interface ExpressionService
     ExpressionValidationOutcome expressionIsValid( String formula );
 
     /**
-     * Creates an expression string containing DataElement names and the names of
-     * the CategoryOptions in the CategoryOptionCombo from a string consisting
-     * of identifiers.
+     * Creates an expression string containing DataElement names and the names
+     * of the CategoryOptions in the CategoryOptionCombo from a string
+     * consisting of identifiers.
      *
      * @param expression The expression string.
-     * @return An expression string containing DataElement names and the names of
-     * the CategoryOptions in the CategoryOptionCombo.
-     * @throws IllegalArgumentException if data element id or category option combo
-     *                                  id are not numeric or data element or category option combo do not exist.
+     * @return An expression string containing DataElement names and the names
+     *         of the CategoryOptions in the CategoryOptionCombo.
+     * @throws IllegalArgumentException if data element id or category option
+     *         combo id are not numeric or data element or category option combo
+     *         do not exist.
      */
     String getExpressionDescription( String expression );
 
     /**
      * Populates the explodedExpression property on the Expression object of all
      * validation rules in the given collection. This method uses
-     * explodeExpression( String ) internally to generate the exploded expressions.
-     * Replaces references to data element totals with references to all
-     * category option combos in the category combo for that data element.
+     * explodeExpression( String ) internally to generate the exploded
+     * expressions. Replaces references to data element totals with references
+     * to all category option combos in the category combo for that data
+     * element.
      *
      * @param validationRules the collection of validation rules.
      */
@@ -362,21 +371,22 @@ public interface ExpressionService
     void substituteExpressions( Collection<Indicator> indicators, Integer days );
 
     /**
-     * Generates an expression where the Operand identifiers, consisting of
-     * data element id and category option combo id, are replaced
-     * by the aggregated value for the relevant combination of data element,
-     * period, and source.
+     * Generates an expression where the Operand identifiers, consisting of data
+     * element id and category option combo id, are replaced by the aggregated
+     * value for the relevant combination of data element, period, and source.
      *
-     * @param formula              formula to parse.
-     * @param valueMap             the mapping between data element operands and values to
-     *                             use in the calculation.
-     * @param constantMap          the mapping between the constant uid and value to use
-     *                             in the calculation.
-     * @param orgUnitCountMap      the mapping between organisation unit group uid and
-     *                             count of organisation units to use in the calculation.
-     * @param days                 the number of days to use in the calculation.
-     * @param missingValueStrategy the strategy to use when data values are missing
-     *                             when calculating the expression. Strategy defaults to NEVER_SKIP if null.
+     * @param expression expression to parse.
+     * @param valueMap the mapping between data element operands and values to
+     *        use in the calculation.
+     * @param constantMap the mapping between the constant identifier and value
+     *        to use in the calculation.
+     * @param orgUnitCountMap the mapping between organisation unit group
+     *        identifier and count of organisation units to use in the
+     *        calculation.
+     * @param days the number of days to use in the calculation.
+     * @param missingValueStrategy the strategy to use when data values are
+     *        missing when calculating the expression. Strategy defaults to
+     *        NEVER_SKIP if null.
      */
     String generateExpression( String expression, Map<? extends DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,

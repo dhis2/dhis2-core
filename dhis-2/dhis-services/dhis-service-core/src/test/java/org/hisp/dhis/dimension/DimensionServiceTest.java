@@ -36,10 +36,14 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.hisp.dhis.common.DimensionalObjectUtils.*;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -50,6 +54,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Test;
@@ -65,6 +71,8 @@ public class DimensionServiceTest
 {
     private DataElement deA;
     private DataElement deB;
+    
+    private DataElementCategoryOptionCombo cocA;
     
     private DataSet dsA;
     
@@ -105,6 +113,9 @@ public class DimensionServiceTest
     private DataSetService dataSetService;
     
     @Autowired
+    private DataElementCategoryService categoryService;
+    
+    @Autowired
     private IdentifiableObjectManager idObjectManager;
     
     @Autowired
@@ -118,6 +129,8 @@ public class DimensionServiceTest
         
         dataElementService.addDataElement( deA );
         dataElementService.addDataElement( deB );
+        
+        cocA = categoryService.getDefaultDataElementCategoryOptionCombo();
         
         dsA = createDataSet( 'A' );
         
@@ -274,13 +287,36 @@ public class DimensionServiceTest
         String idC = prA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + atA.getUid();
         String idD = dsA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + ReportingRateMetric.REPORTING_RATE.name();
         String idE = dsA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + "UNKNOWN_METRIC";
+        String idF = deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + cocA.getUid();
+        String idG = deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + SYMBOL_WILDCARD;
+        String idH = deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + "UNKNOWN_SYMBOL";
+        
+        ProgramDataElementDimensionItem pdeA = new ProgramDataElementDimensionItem( prA, deA );
+        ProgramTrackedEntityAttributeDimensionItem ptaA = new ProgramTrackedEntityAttributeDimensionItem( prA, atA );
+        ReportingRate rrA = new ReportingRate( dsA, ReportingRateMetric.REPORTING_RATE );
+        DataElementOperand deoA = new DataElementOperand( deA, cocA );
+        DataElementOperand deoB = new DataElementOperand( deA, null );
         
         assertNotNull( dimensionService.getDataDimensionalItemObject( idA ) );
+        assertEquals( deA, dimensionService.getDataDimensionalItemObject( idA ) );
+        
         assertNotNull( dimensionService.getDataDimensionalItemObject( idB ) );
+        assertEquals( pdeA, dimensionService.getDataDimensionalItemObject( idB ) );
+        
         assertNotNull( dimensionService.getDataDimensionalItemObject( idC ) );
+        assertEquals( ptaA, dimensionService.getDataDimensionalItemObject( idC ) );
+        
         assertNotNull( dimensionService.getDataDimensionalItemObject( idD ) );
+        assertEquals( rrA, dimensionService.getDataDimensionalItemObject( idD ) );
+        
         assertNull( dimensionService.getDataDimensionalItemObject( idE ) );
         
-        assertEquals( deA, dimensionService.getDataDimensionalItemObject( idA ) );
+        assertNotNull( dimensionService.getDataDimensionalItemObject( idF ) );
+        assertEquals( deoA, dimensionService.getDataDimensionalItemObject( idF ) );
+        
+        assertNotNull( dimensionService.getDataDimensionalItemObject( idG ) );
+        assertEquals( deoB, dimensionService.getDataDimensionalItemObject( idG ) );
+
+        assertNull( dimensionService.getDataDimensionalItemObject( idH ) );        
     }
 }

@@ -270,7 +270,7 @@ public class ExpressionServiceTest
         expressionJ = "#{" + opA.getDimensionItem() + "}+#{" + opB.getDimensionItem() + "}";
         expressionK = "1.5*AVG("+expressionJ+")";
         expressionL = "AVG("+expressionJ+")+1.5*STDDEV("+expressionJ+")";
-        expressionM = "#{" + deA.getUid() + SEPARATOR + SYMBOL_WILDCARD + "} - #{" + deB.getUid() + SEPARATOR + coc.getUid() + "}";
+        expressionM = "#{" + deA.getUid() + SEPARATOR + SYMBOL_WILDCARD + "}-#{" + deB.getUid() + SEPARATOR + coc.getUid() + "}";
 
         descriptionA = "Expression A";
         descriptionB = "Expression B";
@@ -464,6 +464,7 @@ public class ExpressionServiceTest
         assertTrue( expressionService.expressionIsValid( expressionH ).isValid() );
         assertTrue( expressionService.expressionIsValid( expressionK ).isValid() );
         assertTrue( expressionService.expressionIsValid( expressionL ).isValid() );
+        assertTrue( expressionService.expressionIsValid( expressionM ).isValid() );
 
         expressionA = "#{nonExisting" + SEPARATOR + coc.getUid() + "} + 12";
 
@@ -513,6 +514,10 @@ public class ExpressionServiceTest
         description = expressionService.getExpressionDescription( expressionH );
         
         assertEquals( "DataElementA*OrganisationUnitGroupA", description );
+        
+        description = expressionService.getExpressionDescription( expressionM );
+
+        assertEquals( "DataElementA-DataElementB", description );        
     }
     
     @Test
