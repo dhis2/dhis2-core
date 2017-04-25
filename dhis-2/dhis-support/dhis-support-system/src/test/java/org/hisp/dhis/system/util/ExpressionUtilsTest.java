@@ -44,6 +44,4 @@ public class ExpressionUtilsTest
         assertEquals( "#{PuRblkMqsKu.kXGiFZ0msNV}", ExpressionUtils.normalizeExpression( "#{PuRblkMqsKu.kXGiFZ0msNV}" ) );
         assertEquals( "#{PuRblkMqsKu.kXGiFZ0msNV} + #{ZGugB5Dfi9n}", ExpressionUtils.normalizeExpression( "#{PuRblkMqsKu.kXGiFZ0msNV} + #{ZGugB5Dfi9n.*}" ) );
     }
-    
-
 }

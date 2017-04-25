@@ -56,7 +56,6 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DataDimensionItemType;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -69,7 +68,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.ConstantService;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.expression.ExpressionService;
@@ -1104,7 +1102,7 @@ public class DefaultAnalyticsService
     {
         List<DimensionalItemObject> items = Lists.newArrayList( expressionService.getDimensionalItemObjectsInIndicators( indicators ) );
 
-        items = replaceOperandTotalsWithDataElements( items );
+        items = DimensionalObjectUtils.replaceOperandTotalsWithDataElements( items );
         
         DimensionalObject dimension = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, DISPLAY_NAME_DATA_X, items );
 
@@ -1119,28 +1117,6 @@ public class DefaultAnalyticsService
         return grid.getAsMap( grid.getWidth() - 1, DimensionalObject.DIMENSION_SEP );
     }
     
-    /**
-     * Replaces total {@link DataElementOperand} items with {@link DataElement} items
-     * in the given list of items.
-     * 
-     * @param items the list of items.
-     * @return a list of dimensional item objects.
-     */
-    private List<DimensionalItemObject> replaceOperandTotalsWithDataElements( List<DimensionalItemObject> items )
-    {
-        for ( int i = 0; i < items.size(); i++ )
-        {
-            DimensionalItemObject item = items.get( i );
-            
-            if ( DimensionItemType.DATA_ELEMENT_OPERAND.equals( item.getDimensionItemType() ) && ((DataElementOperand) item).isTotal() )
-            {
-                items.set( i, ((DataElementOperand) item).getDataElement() );
-            }
-        }
-        
-        return items;
-    }
-
     /**
      * Gets the number of available cores. Uses explicit number from system
      * setting if available. Detects number of cores from current server runtime

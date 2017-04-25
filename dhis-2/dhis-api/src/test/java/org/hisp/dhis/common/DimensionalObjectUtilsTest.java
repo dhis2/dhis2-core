@@ -202,4 +202,38 @@ public class DimensionalObjectUtilsTest
         assertEquals( "P123456789A", DimensionalObjectUtils.getSecondIdentifer( "A123456789A.P123456789A" ) );
         assertNull( DimensionalObjectUtils.getSecondIdentifer( "A123456789A" ) );
     }
+    
+    @Test
+    public void testReplaceOperandTotalsWithDataElements()
+    {
+        DataElement deA = new DataElement( "NameA" );
+        DataElement deB = new DataElement( "NameB" );
+        deA.setAutoFields();
+        deB.setAutoFields();
+        
+        DataElementCategoryOptionCombo cocA = new DataElementCategoryOptionCombo();
+        cocA.setAutoFields();
+
+        DataElementOperand opA = new DataElementOperand( deA );
+        DataElementOperand opB = new DataElementOperand( deA, cocA );
+        DataElementOperand opC = new DataElementOperand( deB, cocA );
+        
+        List<DimensionalItemObject> items = Lists.newArrayList( deB, opA, opB, opC );
+
+        assertEquals( 4, items.size() );
+        assertTrue( items.contains( deB ) );
+        assertTrue( items.contains( opA ) );
+        assertTrue( items.contains( opB ) );
+        assertTrue( items.contains( opC ) );
+        assertFalse( items.contains( deA ) );
+        
+        items = DimensionalObjectUtils.replaceOperandTotalsWithDataElements( items );
+
+        assertEquals( 4, items.size() );
+        assertTrue( items.contains( deB ) );
+        assertFalse( items.contains( opA ) );
+        assertTrue( items.contains( opB ) );
+        assertTrue( items.contains( opC ) );
+        assertTrue( items.contains( deA ) );
+    }
 }
