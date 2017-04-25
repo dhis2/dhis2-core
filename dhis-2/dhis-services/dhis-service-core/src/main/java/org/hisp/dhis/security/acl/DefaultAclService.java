@@ -152,7 +152,7 @@ public class DefaultAclService implements AclService
                 return true;
             }
         }
-        else if ( schema.isImplicitPrivateAuthority() )
+        else if ( schema.isImplicitPrivateAuthority() && checkSharingAccess( user, object ) )
         {
             return true;
         }
@@ -192,7 +192,7 @@ public class DefaultAclService implements AclService
                 return true;
             }
         }
-        else if ( schema.isImplicitPrivateAuthority() && checkUser( user, object ) )
+        else if ( schema.isImplicitPrivateAuthority() && checkUser( user, object ) && checkSharingAccess( user, object ) )
         {
             return true;
         }

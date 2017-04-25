@@ -644,4 +644,40 @@ public class AclServiceTest
 
         assertTrue( aclService.canUpdate( user1, dataElement ) );
     }
+
+    @Test
+    public void testBlockDashboardPublic()
+    {
+        User user1 = createUser( "user1" );
+        manager.save( user1 );
+
+        Dashboard dashboard = new Dashboard( "Dashboard" );
+        dashboard.setPublicAccess( AccessStringHelper.DEFAULT );
+        dashboard.setUser( user1 );
+
+        aclService.canWrite( user1, dashboard );
+        manager.save( dashboard );
+
+        dashboard.setPublicAccess( AccessStringHelper.READ_WRITE );
+        assertFalse( aclService.canUpdate( user1, dashboard ) );
+        manager.update( dashboard );
+    }
+
+    @Test
+    public void testAllowDashboardPublic()
+    {
+        User user1 = createUser( "user1", "F_DASHBOARD_PUBLIC_ADD" );
+        manager.save( user1 );
+
+        Dashboard dashboard = new Dashboard( "Dashboard" );
+        dashboard.setPublicAccess( AccessStringHelper.DEFAULT );
+        dashboard.setUser( user1 );
+
+        aclService.canWrite( user1, dashboard );
+        manager.save( dashboard );
+
+        dashboard.setPublicAccess( AccessStringHelper.READ_WRITE );
+        assertTrue( aclService.canUpdate( user1, dashboard ) );
+        manager.update( dashboard );
+    }
 }
