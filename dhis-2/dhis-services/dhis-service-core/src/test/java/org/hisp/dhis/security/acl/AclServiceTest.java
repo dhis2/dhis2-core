@@ -539,17 +539,20 @@ public class AclServiceTest
         manager.update( dataElement );
 
         assertTrue( aclService.canRead( user1, dataElement ) );
+        assertTrue( aclService.canWrite( user1, dataElement ) );
         assertTrue( aclService.canUpdate( user1, dataElement ) );
         assertFalse( aclService.canDelete( user1, dataElement ) );
         assertTrue( aclService.canManage( user1, dataElement ) );
 
         Access access = aclService.getAccess( dataElement, user2 );
         assertTrue( access.isRead() );
+        assertFalse( access.isWrite() );
         assertFalse( access.isUpdate() );
         assertFalse( access.isDelete() );
         assertFalse( access.isManage() );
 
         assertTrue( aclService.canRead( user2, dataElement ) );
+        assertFalse( aclService.canWrite( user2, dataElement ) );
         assertFalse( aclService.canUpdate( user2, dataElement ) );
         assertFalse( aclService.canDelete( user2, dataElement ) );
         assertFalse( aclService.canManage( user2, dataElement ) );
@@ -584,11 +587,13 @@ public class AclServiceTest
 
         Access access = aclService.getAccess( dataElement, user2 );
         assertTrue( access.isRead() );
+        assertTrue( access.isWrite() );
         assertTrue( access.isUpdate() );
         assertFalse( access.isDelete() );
         assertTrue( access.isManage() );
 
         assertTrue( aclService.canRead( user2, dataElement ) );
+        assertTrue( aclService.canWrite( user2, dataElement ) );
         assertTrue( aclService.canUpdate( user2, dataElement ) );
         assertFalse( aclService.canDelete( user2, dataElement ) );
         assertTrue( aclService.canManage( user2, dataElement ) );
