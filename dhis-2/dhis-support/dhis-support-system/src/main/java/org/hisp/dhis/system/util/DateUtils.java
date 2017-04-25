@@ -45,6 +45,7 @@ import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 import org.springframework.util.StringUtils;
 
+import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -706,5 +707,27 @@ public class DateUtils
         }
 
         return Duration.of( amount, chronoUnit );
+    }
+    
+    /**
+     * Converts the given {@link Date} to a {@link Timestamp}.
+     *  
+     * @param date the date to convert.
+     * @return a time stamp.
+     */
+    public static Timestamp asTimestamp( Date date )
+    {
+        return new Timestamp( date.getTime() );
+    }
+
+    /**
+     * Converts the given {@link Date} to a {@link java.sql.Date}.
+     *  
+     * @param date the date to convert.
+     * @return a date.
+     */
+    public static java.sql.Date asSqlDate( Date date )
+    {
+        return new java.sql.Date( date.getTime() );
     }
 }
