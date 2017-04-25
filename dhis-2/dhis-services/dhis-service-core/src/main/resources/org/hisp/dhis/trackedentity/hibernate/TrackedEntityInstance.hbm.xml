@@ -14,6 +14,8 @@
 
     <property name="inactive" column="inactive" />
 
+    <property name="deleted" column="deleted" />
+
     <set name="trackedEntityAttributeValues" inverse="true">
       <key column="trackedentityinstanceid" />
       <one-to-many class="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue" />

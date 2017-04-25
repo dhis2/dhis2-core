@@ -65,6 +65,8 @@ public class TrackedEntityInstance
 
     private Boolean inactive = false;
 
+    private Boolean deleted = false;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -168,6 +170,18 @@ public class TrackedEntityInstance
     public void setInactive( Boolean inactive )
     {
         this.inactive = inactive;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( localName = "deleted", namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getDeleted()
+    {
+        return deleted;
+    }
+
+    public void setDeleted( Boolean deleted )
+    {
+        this.deleted = deleted;
     }
 
     @Override
