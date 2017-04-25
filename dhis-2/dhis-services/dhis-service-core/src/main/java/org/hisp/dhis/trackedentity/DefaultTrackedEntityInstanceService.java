@@ -585,7 +585,23 @@ public class DefaultTrackedEntityInstanceService
     public void deleteTrackedEntityInstance( TrackedEntityInstance instance )
     {
         attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
-        trackedEntityInstanceStore.delete( instance );
+        deleteTrackedEntityInstance( instance, false );
+
+    }
+
+    @Override
+    public void deleteTrackedEntityInstance( TrackedEntityInstance instance, boolean forceDelete )
+    {
+        if ( forceDelete )
+        {
+            trackedEntityInstanceStore.delete( instance );
+        }
+        else
+        {
+            instance.setDeleted( true );
+            trackedEntityInstanceStore.update( instance );
+        }
+
     }
 
     @Override

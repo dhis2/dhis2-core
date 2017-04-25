@@ -181,11 +181,20 @@ public interface TrackedEntityInstanceService
     int addTrackedEntityInstance( TrackedEntityInstance entityInstance );
 
     /**
-     * Deletes a {@link TrackedEntityInstance}.
+     * Soft deletes a {@link TrackedEntityInstance}.
      *
      * @param entityInstance the TrackedEntityInstance to delete.
      */
     void deleteTrackedEntityInstance( TrackedEntityInstance entityInstance );
+
+    /**
+     * Deletes a {@link TrackedEntityInstance}. Depending on forceDelete, the TEI will either be
+     * soft deleted (false) or hard deleted (true)
+     *
+     * @param instance to be deleted
+     * @param forceDelete hard or soft delete
+     */
+    void deleteTrackedEntityInstance( TrackedEntityInstance instance, boolean forceDelete );
 
     /**
      * Updates a {@link TrackedEntityInstance}.
