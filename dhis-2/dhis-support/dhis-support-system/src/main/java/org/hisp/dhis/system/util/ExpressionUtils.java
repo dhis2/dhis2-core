@@ -1,7 +1,7 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.system.util;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,59 +28,24 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import static org.hisp.dhis.expression.ExpressionService.WILDCARD_EXPRESSION;
+import static org.hisp.dhis.expression.ExpressionService.GROUP_ID;
 
 /**
  * @author Lars Helge Overland
  */
-public class RegexUtils
+public class ExpressionUtils
 {
     /**
-     * Return the matches in the given input based on the given pattern and group number.
+     * Normalizes the given expression. Ensures that data element operands which
+     * contains wild cards and represents a data element total are rewritten in order
+     * to remove the wild cards.
      * 
-     * @param pattern the pattern.
-     * @param input the input.
-     * @param group the group, can be null.
-     * @return a set of matches.
+     * @param expression the expression to normalize.
+     * @return the normalized expression.
      */
-    public static Set<String> getMatches( Pattern pattern, String input, Integer group )
+    public static String normalizeExpression( String expression )
     {
-        group = group != null ? group : 0;
-        
-        Set<String> set = new HashSet<>();
-        
-        Matcher matcher = pattern.matcher( input );
-        
-        while ( matcher.find() )
-        {
-            set.add( matcher.group( group ) );
-        }
-        
-        return set;
-    }
-    
-    /**
-     * Return the matches in the given input based on the given pattern and group name.
-     * 
-     * @param pattern the pattern.
-     * @param input the input.
-     * @param groupName the group name, not null.
-     * @return a set of matches.
-     */
-    public static Set<String> getMatches( Pattern pattern, String input, String groupName )
-    {
-        Set<String> set = new HashSet<>();
-        
-        Matcher matcher = pattern.matcher( input );
-        
-        while ( matcher.find() )
-        {
-            set.add( matcher.group( groupName ) );
-        }
-        
-        return set;
+        return expression.replaceAll( WILDCARD_EXPRESSION, "${" + GROUP_ID + "}" );
     }
 }

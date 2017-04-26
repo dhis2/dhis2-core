@@ -458,6 +458,8 @@ public class DefaultAnalyticsService
         }
     }
 
+    // TODO handle * in separate queries in order to aggregate, handle as individual cases
+    
     /**
      * Adds data element operand values to the given grid based on the given data
      * query parameters.
@@ -1100,6 +1102,8 @@ public class DefaultAnalyticsService
     {
         List<DimensionalItemObject> items = Lists.newArrayList( expressionService.getDimensionalItemObjectsInIndicators( indicators ) );
 
+        items = DimensionalObjectUtils.replaceOperandTotalsWithDataElements( items );
+        
         DimensionalObject dimension = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, DISPLAY_NAME_DATA_X, items );
 
         DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )
@@ -1112,7 +1116,7 @@ public class DefaultAnalyticsService
 
         return grid.getAsMap( grid.getWidth() - 1, DimensionalObject.DIMENSION_SEP );
     }
-
+    
     /**
      * Gets the number of available cores. Uses explicit number from system
      * setting if available. Detects number of cores from current server runtime

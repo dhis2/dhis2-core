@@ -733,9 +733,18 @@ public class DefaultDataElementCategoryService
 
         for ( DataElement dataElement : dataElements )
         {
-            for ( DataElementCategoryCombo categoryCombo : dataElement.getCategoryCombos() )
+            Set<DataElementCategoryCombo> categoryCombos = dataElement.getCategoryCombos();
+            
+            boolean anyIsDefault = categoryCombos.stream().anyMatch( cc -> cc.isDefault() );
+            
+            if ( includeTotals && !anyIsDefault )
             {
-                operands.addAll( getOperands( dataElement, categoryCombo, includeTotals ) );
+                operands.add( new DataElementOperand( dataElement ) );
+            }
+            
+            for ( DataElementCategoryCombo categoryCombo : categoryCombos )
+            {
+                operands.addAll( getOperands( dataElement, categoryCombo ) );
             }
         }
 
@@ -748,29 +757,27 @@ public class DefaultDataElementCategoryService
         List<DataElementOperand> operands = Lists.newArrayList();
                 
         for ( DataSetElement element : dataSet.getDataSetElements() )
-        {            
-            operands.addAll( getOperands( element.getDataElement(), element.getResolvedCategoryCombo(), includeTotals ) );
+        {
+            DataElementCategoryCombo categoryCombo = element.getResolvedCategoryCombo();
+            
+            if ( includeTotals && !categoryCombo.isDefault() )
+            {
+                operands.add( new DataElementOperand( element.getDataElement() ) );
+            }
+            
+            operands.addAll( getOperands( element.getDataElement(), element.getResolvedCategoryCombo() ) );
         }
         
         return operands;
     }
 
-    private List<DataElementOperand> getOperands( DataElement dataElement, DataElementCategoryCombo categoryCombo, boolean includeTotals )
+    private List<DataElementOperand> getOperands( DataElement dataElement, DataElementCategoryCombo categoryCombo )
     {
         List<DataElementOperand> operands = Lists.newArrayList();
         
-        if ( !categoryCombo.isDefault() && includeTotals )
-        {
-            DataElementOperand operand = new DataElementOperand( dataElement );
-
-            operands.add( operand );
-        }
-
         for ( DataElementCategoryOptionCombo categoryOptionCombo : categoryCombo.getSortedOptionCombos() )
         {
-            DataElementOperand operand = new DataElementOperand( dataElement, categoryOptionCombo );
-
-            operands.add( operand );
+            operands.add( new DataElementOperand( dataElement, categoryOptionCombo ) );
         }
         
         return operands;

@@ -31,6 +31,7 @@ package org.hisp.dhis.common;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,6 +48,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.comparator.ObjectStringValueComparator;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 
 import com.google.common.collect.Maps;
@@ -68,7 +70,7 @@ public class DimensionalObjectUtils
      * Matching data element operand, program data element, program attribute,
      * data set reporting rate metric.
      */
-    private static final Pattern COMPOSITE_DIM_OBJECT_PATTERN = Pattern.compile( "([a-zA-Z]\\w{10})\\.(\\w{5,30})" );
+    private static final Pattern COMPOSITE_DIM_OBJECT_PATTERN = Pattern.compile( "(?<id1>\\w+)\\.(?<id2>\\w+|\\*)" );
     
     public static List<DimensionalObject> getCopies( List<DimensionalObject> dimensions )
     {
@@ -381,6 +383,17 @@ public class DimensionalObjectUtils
     }
 
     /**
+     * Indicates whether the given identifier is a wildcard.
+     * 
+     * @param identifier the identifier.
+     * @return true if the given identifier is a wildcard, false if not.
+     */
+    public static boolean isWildCard( String identifier )
+    {
+        return SYMBOL_WILDCARD.equals( identifier );
+    }
+    
+    /**
      * Returns a list of DimensionalItemObjects.
      *
      * @param objects the DimensionalItemObjects to include in the list.
@@ -569,5 +582,27 @@ public class DimensionalObjectUtils
     public static String getDimensionItem( String uid, ReportingRateMetric metric )
     {
         return uid + COMPOSITE_DIM_OBJECT_PLAIN_SEP + metric.name();
+    }
+    
+    /**
+     * Replaces total {@link DataElementOperand} items with {@link DataElement} items
+     * in the given list of items.
+     * 
+     * @param items the list of items.
+     * @return a list of dimensional item objects.
+     */
+    public static List<DimensionalItemObject> replaceOperandTotalsWithDataElements( List<DimensionalItemObject> items )
+    {
+        for ( int i = 0; i < items.size(); i++ )
+        {
+            DimensionalItemObject item = items.get( i );
+            
+            if ( DimensionItemType.DATA_ELEMENT_OPERAND.equals( item.getDimensionItemType() ) && ((DataElementOperand) item).isTotal() )
+            {
+                items.set( i, ((DataElementOperand) item).getDataElement() );
+            }
+        }
+        
+        return items;
     }
 }

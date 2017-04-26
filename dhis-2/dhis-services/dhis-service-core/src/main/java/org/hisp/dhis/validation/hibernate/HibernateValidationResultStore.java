@@ -41,6 +41,7 @@ public class HibernateValidationResultStore
     implements ValidationResultStore
 {
     @Override
+    @SuppressWarnings("unchecked")
     public List<ValidationResult> getAllUnreportedValidationResults()
     {
         return getQuery( "from ValidationResult where notificationSent is false" ).list();
