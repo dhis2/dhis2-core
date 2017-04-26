@@ -182,7 +182,7 @@ public class DefaultEventDataQueryService
                 String dimensionId = getDimensionFromParam( dim );
                 List<String> items = getDimensionItemsFromParam( dim );
                 DimensionalObject dimObj = dataQueryService.getDimension( dimensionId, 
-                    items, relativePeriodDate, userOrgUnits, format, true, idScheme );
+                    items, relativePeriodDate, userOrgUnits, format, true, false, idScheme );
 
                 if ( dimObj != null )
                 {                    
@@ -202,7 +202,7 @@ public class DefaultEventDataQueryService
                 String dimensionId = getDimensionFromParam( dim );
                 List<String> items = getDimensionItemsFromParam( dim );
                 DimensionalObject dimObj = dataQueryService.getDimension( dimensionId, 
-                    items, relativePeriodDate, userOrgUnits, format, true, idScheme );
+                    items, relativePeriodDate, userOrgUnits, format, true, false, idScheme );
 
                 if ( dimObj != null )
                 {
@@ -269,7 +269,7 @@ public class DefaultEventDataQueryService
         for ( DimensionalObject dimension : ListUtils.union( object.getColumns(), object.getRows() ) )
         {
             DimensionalObject dimObj = dataQueryService.getDimension( dimension.getDimension(),
-                getDimensionalItemIds( dimension.getItems() ), date, null, format, true, idScheme );
+                getDimensionalItemIds( dimension.getItems() ), date, null, format, true, false, idScheme );
 
             if ( dimObj != null )
             {
@@ -284,7 +284,7 @@ public class DefaultEventDataQueryService
         for ( DimensionalObject filter : object.getFilters() )
         {
             DimensionalObject dimObj = dataQueryService.getDimension( filter.getDimension(),
-                getDimensionalItemIds( filter.getItems() ), date, null, format, true, idScheme );
+                getDimensionalItemIds( filter.getItems() ), date, null, format, true, false, idScheme );
 
             if ( dimObj != null )
             {
