@@ -46,7 +46,6 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
@@ -55,12 +54,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -241,8 +235,12 @@ public class HibernateTrackedEntityInstanceStore
                 hql += hlp.whereAnd() + "pi.incidentDate < '" + getMediumDateString( params.getProgramIncidentEndDate() ) + "'";
             }
 
+            hql += " and pi.deleted is false";
+
             hql += ")";
         }
+
+        hql += hlp.whereAnd() + "tei.deleted is false";
 
         return hql;
     }
@@ -476,6 +474,8 @@ public class HibernateTrackedEntityInstanceStore
                 sql += getEventStatusWhereClause( params );
             }
 
+            sql += "and pi.deleted is false";
+
             sql += ") ";
         }
 
@@ -506,6 +506,8 @@ public class HibernateTrackedEntityInstanceStore
 
             sql = removeLastAnd( sql ) + ") ";
         }
+
+        sql += hlp.whereAnd() + "tei.deleted is false";
 
         return sql;
     }
@@ -596,6 +598,8 @@ public class HibernateTrackedEntityInstanceStore
                 + EventStatus.SKIPPED.name() + "' ";
         }
 
+        sql += "and psi.deleted is false ";
+
         return sql;
     }
 
@@ -651,10 +655,9 @@ public class HibernateTrackedEntityInstanceStore
     @Override
     public boolean exists( String uid )
     {
-        Integer result = jdbcTemplate.queryForObject( "select count(*) from trackedentityinstance where uid=?", Integer.class, uid );
+        Integer result = jdbcTemplate.queryForObject( "select count(*) from trackedentityinstance where uid=? and deleted is false", Integer.class, uid );
         return result != null && result > 0;
     }
-
 
     @Override
     protected void preProcessDetachedCriteria( DetachedCriteria criteria )
