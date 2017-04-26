@@ -34,7 +34,6 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -56,8 +55,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
-import com.google.common.collect.Sets;
-
 /**
  * Class responsible for retrieving raw data from the
  * analytics tables.
@@ -69,7 +66,6 @@ public class JdbcRawAnalyticsManager
 {
     private static final Log log = LogFactory.getLog( JdbcRawAnalyticsManager.class );
     
-    private static final Set<String> DIMS_IGNORE_CRITERIA = Sets.newHashSet( DimensionalObject.PERIOD_DIM_ID );
     private static final String DIM_NAME_OU = "ou.path";
     
     @Resource( name = "readOnlyJdbcTemplate" )
@@ -142,7 +138,7 @@ public class JdbcRawAnalyticsManager
         
         for ( DimensionalObject dim : params.getDimensions() )
         {
-            if ( !dim.getItems().isEmpty() && !dim.isFixed() && !DIMS_IGNORE_CRITERIA.contains( dim.getDimension() ) )
+            if ( !dim.getItems().isEmpty() && !dim.isFixed() )
             {
                 String col = statementBuilder.columnQuote( dim.getDimensionName() );
 
