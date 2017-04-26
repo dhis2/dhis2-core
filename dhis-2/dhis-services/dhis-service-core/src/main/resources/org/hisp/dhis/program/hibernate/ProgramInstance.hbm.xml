@@ -31,6 +31,8 @@
     <property name="longitude" />
 
     <property name="latitude" />
+
+    <property name="deleted" column="deleted" />
     
     <property name="status" length="50">
       <type name="org.hibernate.type.EnumType">

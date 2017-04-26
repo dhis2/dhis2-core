@@ -240,7 +240,7 @@ public class HibernateTrackedEntityInstanceStore
             hql += ")";
         }
 
-        hql += hlp.whereAnd() + "tei.deleted is false";
+        hql += hlp.whereAnd() + " tei.deleted is false ";
 
         return hql;
     }
@@ -507,7 +507,7 @@ public class HibernateTrackedEntityInstanceStore
             sql = removeLastAnd( sql ) + ") ";
         }
 
-        sql += hlp.whereAnd() + "tei.deleted is false";
+        sql += hlp.whereAnd() + " tei.deleted is false ";
 
         return sql;
     }

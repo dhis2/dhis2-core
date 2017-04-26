@@ -131,13 +131,13 @@ public class TrackedEntityInstanceServiceTest
 
         entityInstanceService.deleteTrackedEntityInstance( entityInstanceA1 );
 
-        assertTrue( entityInstanceService.getTrackedEntityInstance( idA ).getDeleted() );
-        assertFalse( entityInstanceService.getTrackedEntityInstance( idB ).getDeleted() );
+        assertTrue( entityInstanceService.getTrackedEntityInstance( idA ).isDeleted() );
+        assertFalse( entityInstanceService.getTrackedEntityInstance( idB ).isDeleted() );
 
         entityInstanceService.deleteTrackedEntityInstance( entityInstanceB1 );
 
-        assertTrue( entityInstanceService.getTrackedEntityInstance( idA ).getDeleted() );
-        assertTrue( entityInstanceService.getTrackedEntityInstance( idB ).getDeleted() );
+        assertTrue( entityInstanceService.getTrackedEntityInstance( idA ).isDeleted() );
+        assertTrue( entityInstanceService.getTrackedEntityInstance( idB ).isDeleted() );
     }
 
     @Test
