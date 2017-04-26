@@ -33,6 +33,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
+import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -45,6 +46,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
@@ -651,5 +653,19 @@ public class HibernateTrackedEntityInstanceStore
     {
         Integer result = jdbcTemplate.queryForObject( "select count(*) from trackedentityinstance where uid=?", Integer.class, uid );
         return result != null && result > 0;
+    }
+
+
+    @Override
+    protected void preProcessDetachedCriteria( DetachedCriteria criteria )
+    {
+        // Filter out soft deleted values
+        criteria.add( Restrictions.eq( "deleted", false ) );
+    }
+
+    @Override
+    protected TrackedEntityInstance postProcessObject( TrackedEntityInstance trackedEntityInstance )
+    {
+        return trackedEntityInstance.isDeleted() ? null : trackedEntityInstance;
     }
 }

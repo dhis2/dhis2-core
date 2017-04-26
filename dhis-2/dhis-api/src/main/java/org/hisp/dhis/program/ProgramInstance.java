@@ -431,7 +431,7 @@ public class ProgramInstance
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getDeleted()
+    public Boolean isDeleted()
     {
         return deleted;
     }

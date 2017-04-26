@@ -174,7 +174,7 @@ public class TrackedEntityInstance
 
     @JsonProperty
     @JacksonXmlProperty( localName = "deleted", namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getDeleted()
+    public Boolean isDeleted()
     {
         return deleted;
     }
