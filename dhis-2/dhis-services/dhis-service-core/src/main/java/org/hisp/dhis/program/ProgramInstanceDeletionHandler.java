@@ -66,7 +66,7 @@ public class ProgramInstanceDeletionHandler
     {
         for ( ProgramInstance programInstance : trackedEntityInstance.getProgramInstances() )
         {
-            programInstanceService.deleteProgramInstance( programInstance, true );
+            programInstanceService.deleteProgramInstance( programInstance, false );
         }
     }   
 
