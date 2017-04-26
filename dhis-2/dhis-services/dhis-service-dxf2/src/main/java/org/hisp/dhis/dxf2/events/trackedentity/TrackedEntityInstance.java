@@ -63,6 +63,8 @@ public class TrackedEntityInstance
 
     private Boolean inactive;
 
+    private Boolean deleted = false;
+
     public TrackedEntityInstance()
     {
     }
@@ -190,6 +192,18 @@ public class TrackedEntityInstance
     public void setInactive( Boolean inactive )
     {
         this.inactive = inactive;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( localName = "deleted", namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean isDeleted()
+    {
+        return deleted;
+    }
+
+    public void setDeleted( Boolean deleted )
+    {
+        this.deleted = deleted;
     }
 
     @Override
