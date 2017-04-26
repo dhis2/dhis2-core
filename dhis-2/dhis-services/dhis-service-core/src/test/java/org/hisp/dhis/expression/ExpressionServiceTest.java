@@ -290,30 +290,6 @@ public class ExpressionServiceTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testExplodeExpressionA()
-    {
-        categoryService.generateOptionCombos( categoryCombo );
-
-        String actual = expressionService.explodeExpression( expressionC );
-
-        Set<DataElementCategoryOptionCombo> categoryOptionCombos = categoryCombo.getOptionCombos();
-
-        assertTrue( actual.contains( "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "}" ) );
-
-        for ( DataElementCategoryOptionCombo categoryOptionCombo : categoryOptionCombos )
-        {
-            assertTrue( actual.contains( "#{" + deE.getUid() + SEPARATOR + categoryOptionCombo.getUid() + "}" ) );
-        }
-    }
-
-    @Test
-    public void testExplodeExpressionB()
-    {
-        assertEquals( "1", expressionService.explodeExpression( "1" ) );
-        assertEquals( "2+6/4", expressionService.explodeExpression( "2+6/4" ) );
-    }
-
-    @Test
     public void testGetDimensionalItemObjectsInExpression()
     {
         Set<DimensionalItemObject> items = expressionService.getDimensionalItemObjectsInExpression( expressionI );
