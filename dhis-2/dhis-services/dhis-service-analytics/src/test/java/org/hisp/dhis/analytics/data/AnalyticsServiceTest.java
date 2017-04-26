@@ -32,15 +32,17 @@ import com.csvreader.CsvReader;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
@@ -51,11 +53,12 @@ import org.hisp.dhis.organisationunit.*;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -79,7 +82,6 @@ import static org.junit.Assert.*;
  * 
  * @author Henning Haakonsen
  */
-@Category( IntegrationTest.class )
 public class AnalyticsServiceTest
     extends DhisTest
 {
@@ -117,6 +119,12 @@ public class AnalyticsServiceTest
 
     @Autowired
     private IndicatorService indicatorService;
+
+    @Autowired
+    private DataSetService dataSetService;
+
+    @Resource( name = "org.hisp.dhis.reporttable.ReportTableStore" )
+    private GenericIdentifiableObjectStore<ReportTable> reportTableStore;
 
     // Database (value, data element, period)
     // --------------------------------------------------------------------
@@ -208,8 +216,6 @@ public class AnalyticsServiceTest
         organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroupC );
         organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroupD );
 
-
-
         OrganisationUnitGroupSet organisationUnitGroupSetA = createOrganisationUnitGroupSet( 'A' );
         organisationUnitGroupSetA.setUid( "a234567setA" );
         OrganisationUnitGroupSet organisationUnitGroupSetB = createOrganisationUnitGroupSet( 'B' );
@@ -223,6 +229,22 @@ public class AnalyticsServiceTest
 
         organisationUnitGroupService.addOrganisationUnitGroupSet( organisationUnitGroupSetA );
         organisationUnitGroupService.addOrganisationUnitGroupSet( organisationUnitGroupSetB );
+
+        DataSet dataSetA = createDataSet( 'A' );
+        dataSetA.setUid( "a23datasetA" );
+
+        dataSetA.addDataSetElement( deA );
+        dataSetA.addDataSetElement( deB );
+
+        dataSetService.addDataSet( dataSetA );
+
+        ReportingRate reportingRateA = new ReportingRate( dataSetA );
+
+        ReportTable reportTableA = new ReportTable( "Assualt",
+            new ArrayList<>(), new ArrayList<>(), Lists.newArrayList( reportingRateA ), Lists.newArrayList( peJan, peFeb ), Lists.newArrayList( ouC, ouD ),
+            false, false, true, null, null, "jan_feb_2017" );
+
+        reportTableStore.save( reportTableA );
 
 
         // Read data values from CSV file
@@ -414,6 +436,12 @@ public class AnalyticsServiceTest
             .withPeriod( y2017_mar )
             .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
+        DataQueryParams reRate_2017_params = DataQueryParams.newBuilder()
+            .withReportingRates( Lists.newArrayList( reportingRateA ) )
+            .withPeriod( y2017 )
+            .withAggregationType( AggregationType.SUM )
+            .withOutputFormat( OutputFormat.ANALYTICS ).build();
+
         dataQueryParams.put( "ou_2017", ou_2017_params );
         dataQueryParams.put( "ou_2017_01", ou_2017_01_params );
         dataQueryParams.put( "ouB_2017_02", ouB_2017_02_params );
@@ -434,6 +462,7 @@ public class AnalyticsServiceTest
         dataQueryParams.put( "ouB_2017_02_10_2017_06_20", ouB_2017_02_10_2017_06_20_params );
         dataQueryParams.put( "ouGroupSetA_2017", ouGroupSetA_2017_params );
         dataQueryParams.put( "ouGroupSetB_2017_03", ouGroupSetB_2017_03_params );
+        dataQueryParams.put( "reRate_2017", reRate_2017_params );
 
 
         analyticalObjectHashMap.put( "deC_ouB_2017_03", deC_ouB_2017_03_analytical );
@@ -518,6 +547,9 @@ public class AnalyticsServiceTest
         ouGroupSetB_2017_03_keyValue.put( "a2345groupC-201703", 26.0 );
         ouGroupSetB_2017_03_keyValue.put( "a2345groupD-201703", 1.0 );
 
+        Map<String, Double> reRate_2017_keyValue = new HashMap<>();
+        reRate_2017_keyValue.put( "00", 0.0 );
+
         results.put( "ou_2017", ou_2017_keyValue );
         results.put( "ou_2017_01", ou_2017_01_keyValue );
         results.put( "ouB_2017_02", ouB_2017_02_keyValue );
@@ -539,6 +571,7 @@ public class AnalyticsServiceTest
         results.put( "ouB_2017_02_10_2017_06_20", ouB_2017_02_10_2017_06_20_keyValue );
         results.put( "ouGroupSetA_2017", ouGroupSetA_2017_keyValue );
         results.put( "ouGroupSetB_2017_03", ouGroupSetB_2017_03_keyValue );
+        results.put( "reRate_2017", reRate_2017_keyValue );
     }
 
     @Override
@@ -578,6 +611,7 @@ public class AnalyticsServiceTest
         }
     }
 
+    @Ignore
     @Test
     public void testGridAggregation()
     {
@@ -593,6 +627,7 @@ public class AnalyticsServiceTest
         }
     }
 
+    @Ignore
     @Test
     public void testSetAggregation()
     {
