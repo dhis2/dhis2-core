@@ -30,6 +30,7 @@ package org.hisp.dhis.validation;
 
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.context.ApplicationContext;
 
 import java.util.Collection;
@@ -61,15 +62,12 @@ public class Validator
         int threadPoolSize = getThreadPoolSize( context );
         ExecutorService executor = Executors.newFixedThreadPool( threadPoolSize );
 
-        for ( OrganisationUnitExtended sourceX : context.getSourceXs() )
+        for ( OrganisationUnit orgUnit : context.getOrgUnits() )
         {
-            if ( sourceX.getToBeValidated() )
-            {
-                ValidationTask task = (ValidationTask) applicationContext.getBean( DataValidationTask.NAME );
-                task.init( sourceX, context );
-                
-                executor.execute( task );
-            }
+            ValidationTask task = (ValidationTask) applicationContext.getBean( DataValidationTask.NAME );
+            task.init( orgUnit, context );
+
+            executor.execute( task );
         }
 
         executor.shutdown();
