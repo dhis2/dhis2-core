@@ -96,15 +96,18 @@ public interface DataQueryService
     /**
      * Creates a list of DimensionalObject from the given set of dimension params.
      *
-     * @param dimensionParams the dimension URL params.
+     * @param dimensionParams the dimension URL parameter.
      * @param relativePeriodDate the date to use as basis for relative periods.
-     * @param userOrgUnit the user organisation unit param, overrides current
+     * @param userOrgUnit the user organisation unit parameter, overrides current
      *        user, can be null.
      * @param format the i18n format.
+     * @param allowAllPeriodItems whether to allow all period items, meaning specifying the
+     *        period dimension with no period items.
      * @param inputIdScheme the identifier scheme to interpret dimension and filters.
      * @return a list of DimensionalObject.
      */
-    List<DimensionalObject> getDimensionalObjects( Set<String> dimensionParams, Date relativePeriodDate, String userOrgUnit, I18nFormat format, IdScheme inputIdScheme );
+    List<DimensionalObject> getDimensionalObjects( Set<String> dimensionParams, Date relativePeriodDate, 
+        String userOrgUnit, I18nFormat format, boolean allowAllPeriodItems, IdScheme inputIdScheme );
 
     /**
      * Returns a persisted DimensionalObject generated from the given  dimension
@@ -123,12 +126,14 @@ public interface DataQueryService
      *        user, can be null.
      * @param format the I18nFormat, can be null.
      * @param allowNull return null if no dimension was found.
+     * @param allowAllPeriodItems whether to allow all period items, meaning specifying the
+     *        period dimension with no period items.
      * @param inputIdScheme the identifier scheme to interpret dimension and filters.
      * @throws IllegalQueryException if no dimensions was found.
      * @return list of DimensionalObjects.
      */
     DimensionalObject getDimension( String dimension, List<String> items, Date relativePeriodDate,
-        List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull, IdScheme inputIdScheme );
+        List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull, boolean allowAllPeriodItems, IdScheme inputIdScheme );
 
     /**
      * Returns a list of user organisation units, looking first at the given user
