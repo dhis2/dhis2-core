@@ -37,14 +37,13 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.RegexUtils;
+import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -64,7 +63,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.jep.CustomFunctions;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
-import org.hisp.dhis.validation.ValidationRule;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
@@ -273,17 +271,17 @@ public class DefaultExpressionService
     {
         //TODO this needs to be rewritten
         
-        if ( aggregateMap == null )
-        {
-            Matcher simpleMatch = OPERAND_PATTERN.matcher( expression.getExpression() );
+//        if ( aggregateMap == null )
+//        {
+//            Matcher simpleMatch = OPERAND_PATTERN.matcher( expression.getExpression() );
+//
+//            if ( simpleMatch.matches() )
+//            {
+//                return getSimpleExpressionValue( expression, simpleMatch, valueMap );
+//            }
+//        }
 
-            if ( simpleMatch.matches() )
-            {
-                return getSimpleExpressionValue( expression, simpleMatch, valueMap );
-            }
-        }
-
-        String expressionString = generateExpression( expression.getExplodedExpressionFallback(), 
+        String expressionString = generateExpression( expression.getExpression(),
             valueMap, constantMap, orgUnitCountMap, days, expression.getMissingValueStrategy(), 
             aggregateMap );
 
@@ -378,7 +376,7 @@ public class DefaultExpressionService
     public Set<DataElementCategoryOptionCombo> getOptionCombosInExpression( String expression )
     {
         return getIdObjectsInExpression( OPTION_COMBO_OPERAND_PATTERN, expression, 
-            ( m  ) -> categoryService.getDataElementCategoryOptionCombo( m.group( 2 ) ) );
+            ( m ) -> categoryService.getDataElementCategoryOptionCombo( m.group( 2 ) ) );
     }
 
     @Override
@@ -489,6 +487,46 @@ public class DefaultExpressionService
     }
 
     @Override
+    public Set<String> getDataElementIdsInExpression( String expression )
+    {
+        Set<String> dataElementIds = new HashSet<>();
+
+        if ( expression == null || expression.isEmpty() )
+        {
+            return dataElementIds;
+        }
+
+        Matcher matcher = OPERAND_PATTERN.matcher( expression );
+
+        while ( matcher.find() )
+        {
+            dataElementIds.add( matcher.group( 1 ) );
+        }
+
+        return dataElementIds;
+    }
+
+    @Override
+    public SetMap<Class<? extends DimensionalItemObject>, String> getDimensionalItemIdsInExpression( String expression )
+    {
+        SetMap<Class<? extends DimensionalItemObject>, String> dimensionItemIdentifiers = new SetMap<>();
+
+        if ( expression == null || expression.isEmpty() )
+        {
+            return dimensionItemIdentifiers;
+        }
+
+        Matcher matcher = VARIABLE_PATTERN.matcher( expression );
+
+        while ( matcher.find() )
+        {
+            dimensionItemIdentifiers.putValue( VARIABLE_TYPES.get( matcher.group( 1 ) ), matcher.group( 2 ) );
+        }
+
+        return dimensionItemIdentifiers;
+    }
+
+    @Override
     public Set<DimensionalItemObject> getDimensionalItemObjectsInExpression( String expression )
     {
         Set<DimensionalItemObject> dimensionItems = Sets.newHashSet();
@@ -513,14 +551,6 @@ public class DefaultExpressionService
         }
 
         return dimensionItems;
-    }
-
-    @Override
-    public Set<DimensionalItemObject> getDimensionalItemObjectsInExpression( String expression, Set<DimensionItemType> dimensionItemTypes )
-    {
-        Set<DimensionalItemObject> objects = getDimensionalItemObjectsInExpression( expression );
-        
-        return objects.stream().filter( o -> dimensionItemTypes.contains( o.getDimensionItemType() ) ).collect( Collectors.toSet() );
     }
 
     @Override
@@ -737,82 +767,6 @@ public class DefaultExpressionService
         expression = TextUtils.appendTail( matcher, sb );
 
         return expression;
-    }
-
-    @Override
-    @Transactional
-    public void explodeValidationRuleExpressions( Collection<ValidationRule> validationRules )
-    {
-        if ( validationRules != null && !validationRules.isEmpty() )
-        {
-            Set<String> dataElementTotals = new HashSet<>();
-
-            for ( ValidationRule rule : validationRules )
-            {
-                if ( rule.getLeftSide().getExpression() != null )
-                {
-                    dataElementTotals.addAll(
-                        RegexUtils.getMatches( DATA_ELEMENT_TOTAL_PATTERN, rule.getLeftSide().getExpression(), 1 ) );
-                }
-
-                if ( rule.getRightSide().getExpression() != null )
-                {
-                    dataElementTotals.addAll(
-                        RegexUtils.getMatches( DATA_ELEMENT_TOTAL_PATTERN, rule.getRightSide().getExpression(), 1 ) );
-                }
-            }
-
-            if ( !dataElementTotals.isEmpty() )
-            {
-                final ListMap<String, String> dataElementMap = dataElementService
-                    .getDataElementCategoryOptionComboMap( dataElementTotals );
-
-                if ( !dataElementMap.isEmpty() )
-                {
-                    for ( ValidationRule rule : validationRules )
-                    {
-                        rule.getLeftSide().setExplodedExpression(
-                            explodeExpression( rule.getLeftSide().getExplodedExpressionFallback(), dataElementMap ) );
-                        rule.getRightSide().setExplodedExpression(
-                            explodeExpression( rule.getRightSide().getExplodedExpressionFallback(), dataElementMap ) );
-                    }
-                }
-            }
-        }
-    }
-
-    private String explodeExpression( String expression, ListMap<String, String> dataElementOptionComboMap )
-    {
-        if ( expression == null || expression.isEmpty() )
-        {
-            return null;
-        }
-
-        StringBuffer sb = new StringBuffer();
-        Matcher matcher = OPERAND_PATTERN.matcher( expression );
-
-        while ( matcher.find() )
-        {
-            if ( operandIsTotal( matcher ) )
-            {
-                final StringBuilder replace = new StringBuilder( PAR_OPEN );
-
-                String de = matcher.group( 1 );
-
-                List<String> cocs = dataElementOptionComboMap.get( de );
-
-                for ( String coc : cocs )
-                {
-                    replace.append( EXP_OPEN ).append( de ).append( SEPARATOR ).
-                        append( coc ).append( EXP_CLOSE ).append( "+" );
-                }
-
-                replace.deleteCharAt( replace.length() - 1 ).append( PAR_CLOSE );
-                matcher.appendReplacement( sb, Matcher.quoteReplacement( replace.toString() ) );
-            }
-        }
-
-        return TextUtils.appendTail( matcher, sb );
     }
 
     @Override

@@ -28,9 +28,11 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -38,7 +40,9 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.validation.ValidationRule;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 
 import java.util.Collection;
 import java.util.List;
@@ -90,6 +94,13 @@ public interface ExpressionService
     Pattern CONSTANT_PATTERN = Pattern.compile( CONSTANT_EXPRESSION );
     Pattern OU_GROUP_PATTERN = Pattern.compile( OU_GROUP_EXPRESSION );
     Pattern DAYS_PATTERN = Pattern.compile( DAYS_EXPRESSION );
+
+    static final Map<String, Class<? extends DimensionalItemObject>> VARIABLE_TYPES = ImmutableMap.of(
+        "#", DataElementOperand.class,
+        "D", ProgramDataElementDimensionItem.class,
+        "A", ProgramTrackedEntityAttributeDimensionItem.class,
+        "I", ProgramIndicator.class
+    );
 
     /**
      * Adds a new Expression to the database.
@@ -245,22 +256,28 @@ public interface ExpressionService
     Set<String> getAggregatesInExpression( String expression );
 
     /**
+     * Returns identifiers of all data elements which are present in the expression.
+     * @param expression the expression.
+     * @return set of data element identifiers.
+     */
+    Set<String> getDataElementIdsInExpression( String expression );
+
+    /**
+     * Returns identifiers of all dimensional item objects which are present
+     * in the given expression.
+     *
+     * @param expression the expression.
+     * @return sets of dimensional item identifiers, mapped by class.
+     */
+    SetMap<Class<? extends DimensionalItemObject>, String> getDimensionalItemIdsInExpression( String expression );
+
+    /**
      * Returns all dimensional item objects which are present in the given expression.
      *
      * @param expression the expression.
      * @return a set of dimensional item objects.
      */
     Set<DimensionalItemObject> getDimensionalItemObjectsInExpression( String expression );
-
-    /**
-     * Returns all dimensional item objects of the given dimension item types  which 
-     * are present in the given expression.
-     *
-     * @param expression the expression.
-     * @param dimensionItemTypes the dimension item types.
-     * @return a set of dimensional item objects.
-     */
-    Set<DimensionalItemObject> getDimensionalItemObjectsInExpression( String expression, Set<DimensionItemType> dimensionItemTypes );
 
     /**
      * Returns all dimensional item objects which are present in numerator and
@@ -302,17 +319,6 @@ public interface ExpressionService
      *                                  id are not numeric or data element or category option combo do not exist.
      */
     String getExpressionDescription( String expression );
-
-    /**
-     * Populates the explodedExpression property on the Expression object of all
-     * validation rules in the given collection. This method uses
-     * explodeExpression( String ) internally to generate the exploded expressions.
-     * Replaces references to data element totals with references to all
-     * category option combos in the category combo for that data element.
-     *
-     * @param validationRules the collection of validation rules.
-     */
-    void explodeValidationRuleExpressions( Collection<ValidationRule> validationRules );
 
     /**
      * Replaces references to data element totals with references to all

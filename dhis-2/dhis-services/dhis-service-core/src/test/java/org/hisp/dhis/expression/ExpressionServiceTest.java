@@ -43,9 +43,9 @@ import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -311,26 +311,38 @@ public class ExpressionServiceTest
     }
 
     @Test
-    public void testGetDimensionalItemObjectsInExpression()
+    public void testGetDataElementIdsInExpression()
     {
-        Set<DimensionalItemObject> items = expressionService.getDimensionalItemObjectsInExpression( expressionI );
-                
-        assertEquals( 5, items.size() );
-        assertTrue( items.contains( opA ) );
-        assertTrue( items.contains( deB ) );
-        assertTrue( items.contains( piA ) );
+        Set<String> ids = expressionService.getDataElementIdsInExpression( expressionC );
+
+        assertEquals( 2, ids.size() );
+        assertTrue( ids.contains( deA.getUid() ) );
+        assertTrue( ids.contains( deE.getUid() ) );
     }
 
     @Test
-    public void testGetDimensionalItemObjectsOfTypeInExpression()
+    public void testGetDimensionalItemIdsInExpression()
     {
-        Set<DimensionItemType> itemTypes = Sets.newHashSet( DimensionItemType.DATA_ELEMENT_OPERAND, DimensionItemType.PROGRAM_INDICATOR );
-        
-        Set<DimensionalItemObject> items = expressionService.getDimensionalItemObjectsInExpression( expressionI, itemTypes );
-        
-        assertEquals( 2, items.size() );
-        assertTrue( items.contains( opA ) );
-        assertTrue( items.contains( piA ) );
+        SetMap<Class<? extends DimensionalItemObject>, String> idMap = expressionService.getDimensionalItemIdsInExpression( expressionI );
+
+        assertEquals( 4, idMap.size() );
+        assertTrue( idMap.containsKey( DataElementOperand.class ) );
+        assertTrue( idMap.containsKey( ProgramDataElementDimensionItem.class ) );
+        assertTrue( idMap.containsKey( ProgramTrackedEntityAttributeDimensionItem.class ) );
+        assertTrue( idMap.containsKey( ProgramIndicator.class ) );
+
+        assertEquals( 2, idMap.get( DataElementOperand.class ).size() );
+        assertTrue( idMap.get( DataElementOperand.class ).contains( opA.getDimensionItem() ) );
+        assertTrue( idMap.get( DataElementOperand.class ).contains( deB.getDimensionItem() ) );
+
+        assertEquals( 1, idMap.get( ProgramDataElementDimensionItem.class ).size() );
+        assertTrue( idMap.get( ProgramDataElementDimensionItem.class ).contains( pdeA.getDimensionItem() ) );
+
+        assertEquals( 1, idMap.get( ProgramTrackedEntityAttributeDimensionItem.class ).size() );
+        assertTrue( idMap.get( ProgramTrackedEntityAttributeDimensionItem.class ).contains( pteaA.getDimensionItem() ) );
+
+        assertEquals( 1, idMap.get( ProgramIndicator.class ).size() );
+        assertTrue( idMap.get( ProgramIndicator.class ).contains( piA.getDimensionItem() ) );
     }
 
     @Test

@@ -59,13 +59,13 @@ public class PeriodTypeExtended
 
     private Set<Period> periods = new HashSet<>();
 
-    private Set<ValidationRule> rules = new HashSet<>();
+    private Set<ValidationRuleExtended> ruleXs = new HashSet<>();
 
     private Set<DataElement> dataElements = new HashSet<>();
 
     private Set<PeriodType> allowedPeriodTypes = new HashSet<>();
 
-    private Map<OrganisationUnit, Set<DataElement>> sourceDataElements = new HashMap<>();
+    private Map<OrganisationUnit, Set<DataElement>> orgUnitDataElements = new HashMap<>();
 
     public PeriodTypeExtended( PeriodType periodType )
     {
@@ -77,10 +77,10 @@ public class PeriodTypeExtended
         return new ToStringBuilder( this, ToStringStyle.SHORT_PREFIX_STYLE )
             .append( "periodType", periodType )
             .append( "periods", periods )
-            .append( "rules", rules.toArray() )
+            .append( "rules", ruleXs.toArray() )
             .append( "dataElements", dataElements )
             .append( "allowedPeriodTypes", allowedPeriodTypes )
-            .append( "sourceDataElements", sourceDataElements.size() ).toString();
+            .append( "orgUnitDataElements", orgUnitDataElements.size() ).toString();
     }
 
     // -------------------------------------------------------------------------
@@ -102,14 +102,14 @@ public class PeriodTypeExtended
         this.periods = periods;
     }
 
-    public Set<ValidationRule> getRules()
+    public Set<ValidationRuleExtended> getRuleXs()
     {
-        return rules;
+        return ruleXs;
     }
 
-    public void setRules( Set<ValidationRule> rules )
+    public void setRules( Set<ValidationRuleExtended> ruleXs )
     {
-        this.rules = rules;
+        this.ruleXs = ruleXs;
     }
 
     public Set<DataElement> getDataElements()
@@ -132,13 +132,13 @@ public class PeriodTypeExtended
         this.allowedPeriodTypes = allowedPeriodTypes;
     }
 
-    public Map<OrganisationUnit, Set<DataElement>> getSourceDataElements()
+    public Map<OrganisationUnit, Set<DataElement>> getOrgUnitDataElements()
     {
-        return sourceDataElements;
+        return orgUnitDataElements;
     }
 
-    public void setSourceDataElements( Map<OrganisationUnit, Set<DataElement>> sourceDataElements )
+    public void setOrgUnitDataElements( Map<OrganisationUnit, Set<DataElement>> orgUnitDataElements )
     {
-        this.sourceDataElements = sourceDataElements;
+        this.orgUnitDataElements = orgUnitDataElements;
     }
 }

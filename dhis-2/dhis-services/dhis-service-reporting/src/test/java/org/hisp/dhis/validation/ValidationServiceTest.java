@@ -133,7 +133,7 @@ public class ValidationServiceTest
     private OrganisationUnit sourceF;
     private OrganisationUnit sourceG;
 
-    private Set<OrganisationUnit> sourcesA = new HashSet<>();
+    private List<OrganisationUnit> sourcesA = new ArrayList<>();
 
     private Set<OrganisationUnit> allSources = new HashSet<>();
 
