@@ -972,7 +972,7 @@ $.extend(dhis2.period.FinancialBaseGenerator.prototype, {
       var period = {};
       period['startDate'] = startDate.formatDate(this.format);
       period['endDate'] = endDate.formatDate(this.format);
-      period['name'] = getMonthTranslation( startDate.formatDate("MM") ) + ' ' + year + ' - ' + getMonthTranslation( endDate.formatDate("MM") ) + ' ' + year;      
+      period['name'] = getMonthTranslation( startDate.formatDate("MM") ) + ' ' + startDate.year() + ' - ' + getMonthTranslation( endDate.formatDate("MM") ) + ' ' + endDate.year();
       period['id'] = 'Financial' + this.monthShortName + '_' + period['startDate'];
       period['iso'] = startDate.formatDate("yyyy") + this.monthShortName;
 
