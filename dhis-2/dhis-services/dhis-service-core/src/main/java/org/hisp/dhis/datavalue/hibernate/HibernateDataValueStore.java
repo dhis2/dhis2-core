@@ -495,14 +495,15 @@ public class HibernateDataValueStore
     }
 
     @Override
-    public MapMap<String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo( Collection<DataElement> dataElements, Date date,
+    public MapMap<String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
+        SetMap<String, DataElementOperand> dataElementOperandsToGet, Date date,
         OrganisationUnit source, Collection<PeriodType> periodTypes, DataElementCategoryOptionCombo attributeCombo,
         Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints,
         MapMap<String, DataElementOperand, Date> lastUpdatedMap )
     {
         MapMap<String, DimensionalItemObject, Double> map = new MapMap<>();
 
-        if ( dataElements.isEmpty() || periodTypes.isEmpty()
+        if ( dataElementOperandsToGet.isEmpty() || periodTypes.isEmpty()
             || ( cogDimensionConstraints != null && cogDimensionConstraints.isEmpty() )
             || ( coDimensionConstraints != null && coDimensionConstraints.isEmpty() ) )
         {
@@ -530,7 +531,7 @@ public class HibernateDataValueStore
             "inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
             "inner join categoryoptioncombo aoc on dv.attributeoptioncomboid = aoc.categoryoptioncomboid " +
             "inner join period p on p.periodid = dv.periodid " + joinCo + joinCog +
-            "where dv.dataelementid in (" + TextUtils.getCommaDelimitedString( getIdentifiers( dataElements ) ) + ") " +
+            "where de.uid in (" + TextUtils.getQuotedCommaDelimitedString( dataElementOperandsToGet.keySet() ) + ") " +
             "and dv.sourceid = " + source.getId() + " " +
             "and p.startdate <= '" + DateUtils.getMediumDateString( date ) + "' " +
             "and p.enddate >= '" + DateUtils.getMediumDateString( date ) + "' " +
@@ -555,23 +556,53 @@ public class HibernateDataValueStore
 
             if ( value != null )
             {
-                DataElementOperand dataElementOperand = DataElementOperand.instance( dataElement, categoryOptionCombo );
+                Set<DataElementOperand> deos = dataElementOperandsToGet.get( dataElement );
 
-                Long existingPeriodInterval = checkForDuplicates.getValue( attributeOptionCombo, dataElementOperand );
-
-                if ( existingPeriodInterval != null && existingPeriodInterval < periodInterval )
-                {                    
-                    continue; // Do not overwrite the previous value if for a shorter interval
-                }
-                
-                map.putEntry( attributeOptionCombo, dataElementOperand, value );
-
-                if ( lastUpdatedMap != null )
+                for ( DataElementOperand deo : deos )
                 {
-                    lastUpdatedMap.putEntry( attributeOptionCombo, dataElementOperand, lastUpdated );
-                }
+                    if ( deo.getCategoryOptionCombo() == null || deo.getCategoryOptionCombo().getUid() == categoryOptionCombo )
+                    {
+                        Double existingValue = map.getValue(attributeOptionCombo, deo);
 
-                checkForDuplicates.putEntry( attributeOptionCombo, dataElementOperand, periodInterval );
+                        Long existingPeriodInterval = checkForDuplicates.getValue( attributeOptionCombo, deo );
+
+                        if ( existingPeriodInterval != null )
+                        {
+                            if ( existingPeriodInterval < periodInterval )
+                            {
+                                continue; // Do not overwrite the previous value if for a shorter interval
+                            }
+                            else if ( existingPeriodInterval > periodInterval )
+                            {
+                                existingValue = null; // Overwrite previous value if for a longer interval
+
+                                if ( lastUpdatedMap != null )
+                                {
+                                    lastUpdatedMap.putEntry( attributeOptionCombo, deo, lastUpdated );
+                                }
+                            }
+                        }
+
+                        if ( existingValue != null )
+                        {
+                            value += existingValue;
+                        }
+
+                        map.putEntry( attributeOptionCombo, deo, value );
+
+                        if ( lastUpdatedMap != null && lastUpdated != null )
+                        {
+                            Date existingLastUpdated = lastUpdatedMap.getValue( attributeOptionCombo, deo );
+
+                            if ( existingLastUpdated == null || lastUpdated.after( existingLastUpdated ) )
+                            {
+                                lastUpdatedMap.putEntry( attributeOptionCombo, deo, lastUpdated );
+                            }
+                        }
+
+                        checkForDuplicates.putEntry( attributeOptionCombo, deo, periodInterval );
+                    }
+                }
             }
         }
 

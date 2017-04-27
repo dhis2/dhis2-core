@@ -1,7 +1,7 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.system.util;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,67 +28,22 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.function.Function;
+import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public class SetMap<T, V>
-    extends HashMap<T, Set<V>>
+public class ExpressionUtilsTest
 {
-    public SetMap()
+    @Test
+    public void testNormalizeExpression()
     {
-        super();
-    }
-    
-    public SetMap( SetMap<T, V> setMap )
-    {
-        super( setMap );
-    }    
-
-    public Set<V> putValue( T key, V value )
-    {
-        Set<V> set = this.get( key );
-        set = set == null ? new HashSet<>() : set;
-        set.add( value );
-        return super.put( key, set );
-    }
-
-    public Set<V> putValues( T key, Set<V> values )
-    {
-        Set<V> set = this.get( key );
-        set = set == null ? new HashSet<>() : set;
-        set.addAll( values );
-        return super.put( key, set );
-    }
-
-    public void putValues( SetMap<T, V> setMap )
-    {
-        setMap.forEach( ( k, v ) -> putValues( k, v ) );
-    }
-
-    /**
-     * Produces a SetMap based on the given set of values. The key for
-     * each entry is produced by applying the given keyMapper function.
-     * 
-     * @param values the values of the map.
-     * @param keyMapper the function producing the key for each entry.
-     * @return a SetMap.
-     */
-    public static <T, V> SetMap<T, V> getSetMap( Set<V> values, Function<V, T> keyMapper )
-    {
-        SetMap<T, V> map = new SetMap<>();
-
-        for ( V value : values )
-        {
-            T key = keyMapper.apply( value );
-
-            map.putValue( key, value );
-        }
-
-        return map;
+        assertEquals( "#{PuRblkMqsKu}", ExpressionUtils.normalizeExpression( "#{PuRblkMqsKu.*}" ) );
+        assertEquals( "#{PuRblkMqsKu}", ExpressionUtils.normalizeExpression( "#{PuRblkMqsKu.*.*}" ) );
+        assertEquals( "#{PuRblkMqsKu.*.BoaSg2GopVn}", ExpressionUtils.normalizeExpression( "#{PuRblkMqsKu.*.BoaSg2GopVn}" ) );
+        assertEquals( "#{PuRblkMqsKu.kXGiFZ0msNV}", ExpressionUtils.normalizeExpression( "#{PuRblkMqsKu.kXGiFZ0msNV}" ) );
+        assertEquals( "#{PuRblkMqsKu.kXGiFZ0msNV} + #{ZGugB5Dfi9n}", ExpressionUtils.normalizeExpression( "#{PuRblkMqsKu.kXGiFZ0msNV} + #{ZGugB5Dfi9n.*}" ) );
     }
 }

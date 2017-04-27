@@ -43,6 +43,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -112,5 +113,13 @@ public class DataStatisticsController
     public @ResponseBody FavoriteStatistics getFavoriteStatistics( @PathVariable( "uid" ) String uid )
     {
         return dataStatisticsService.getFavoriteStatistics( uid );
+    }
+    
+    @PreAuthorize( "hasRole('ALL')" )
+    @ResponseStatus( HttpStatus.CREATED )
+    @PostMapping( "/snapshot" )
+    public void saveSnapshot()
+    {
+        dataStatisticsService.saveDataStatisticsSnapshot();
     }
 }

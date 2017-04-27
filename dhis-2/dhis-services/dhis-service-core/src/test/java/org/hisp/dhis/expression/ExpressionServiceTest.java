@@ -44,9 +44,9 @@ import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -290,50 +290,38 @@ public class ExpressionServiceTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testExplodeExpressionA()
+    public void testGetDataElementIdsInExpression()
     {
-        categoryService.generateOptionCombos( categoryCombo );
+        Set<String> ids = expressionService.getDataElementIdsInExpression( expressionC );
 
-        String actual = expressionService.explodeExpression( expressionC );
-
-        Set<DataElementCategoryOptionCombo> categoryOptionCombos = categoryCombo.getOptionCombos();
-
-        assertTrue( actual.contains( "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "}" ) );
-
-        for ( DataElementCategoryOptionCombo categoryOptionCombo : categoryOptionCombos )
-        {
-            assertTrue( actual.contains( "#{" + deE.getUid() + SEPARATOR + categoryOptionCombo.getUid() + "}" ) );
-        }
+        assertEquals( 2, ids.size() );
+        assertTrue( ids.contains( deA.getUid() ) );
+        assertTrue( ids.contains( deE.getUid() ) );
     }
 
     @Test
-    public void testExplodeExpressionB()
+    public void testGetDimensionalItemIdsInExpression()
     {
-        assertEquals( "1", expressionService.explodeExpression( "1" ) );
-        assertEquals( "2+6/4", expressionService.explodeExpression( "2+6/4" ) );
-    }
+        SetMap<Class<? extends DimensionalItemObject>, String> idMap = expressionService.getDimensionalItemIdsInExpression( expressionI );
 
-    @Test
-    public void testGetDimensionalItemObjectsInExpression()
-    {
-        Set<DimensionalItemObject> items = expressionService.getDimensionalItemObjectsInExpression( expressionI );
-                
-        assertEquals( 5, items.size() );
-        assertTrue( items.contains( opA ) );
-        assertTrue( items.contains( deB ) );
-        assertTrue( items.contains( piA ) );
-    }
+        assertEquals( 4, idMap.size() );
+        assertTrue( idMap.containsKey( DataElementOperand.class ) );
+        assertTrue( idMap.containsKey( ProgramDataElementDimensionItem.class ) );
+        assertTrue( idMap.containsKey( ProgramTrackedEntityAttributeDimensionItem.class ) );
+        assertTrue( idMap.containsKey( ProgramIndicator.class ) );
 
-    @Test
-    public void testGetDimensionalItemObjectsOfTypeInExpression()
-    {
-        Set<DimensionItemType> itemTypes = Sets.newHashSet( DimensionItemType.DATA_ELEMENT_OPERAND, DimensionItemType.PROGRAM_INDICATOR );
-        
-        Set<DimensionalItemObject> items = expressionService.getDimensionalItemObjectsInExpression( expressionI, itemTypes );
-        
-        assertEquals( 2, items.size() );
-        assertTrue( items.contains( opA ) );
-        assertTrue( items.contains( piA ) );
+        assertEquals( 2, idMap.get( DataElementOperand.class ).size() );
+        assertTrue( idMap.get( DataElementOperand.class ).contains( opA.getDimensionItem() ) );
+        assertTrue( idMap.get( DataElementOperand.class ).contains( deB.getDimensionItem() ) );
+
+        assertEquals( 1, idMap.get( ProgramDataElementDimensionItem.class ).size() );
+        assertTrue( idMap.get( ProgramDataElementDimensionItem.class ).contains( pdeA.getDimensionItem() ) );
+
+        assertEquals( 1, idMap.get( ProgramTrackedEntityAttributeDimensionItem.class ).size() );
+        assertTrue( idMap.get( ProgramTrackedEntityAttributeDimensionItem.class ).contains( pteaA.getDimensionItem() ) );
+
+        assertEquals( 1, idMap.get( ProgramIndicator.class ).size() );
+        assertTrue( idMap.get( ProgramIndicator.class ).contains( piA.getDimensionItem() ) );
     }
 
     @Test

@@ -68,6 +68,8 @@ public class DataElementOperand
     private DataElement dataElement;
 
     private DataElementCategoryOptionCombo categoryOptionCombo;
+    
+    private DataElementCategoryOptionCombo attributeOptionCombo;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -87,6 +89,13 @@ public class DataElementOperand
     {
         this.dataElement = dataElement;
         this.categoryOptionCombo = categoryOptionCombo;
+    }
+
+    public DataElementOperand( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo )
+    {
+        this.dataElement = dataElement;
+        this.categoryOptionCombo = categoryOptionCombo;
+        this.attributeOptionCombo = attributeOptionCombo;
     }
 
     // -------------------------------------------------------------------------
@@ -220,6 +229,17 @@ public class DataElementOperand
         
         return new DataElementOperand( de, coc );
     }
+    
+    /**
+     * Indicates whether this operand specifies a data element only
+     * with no option combinations.
+     * 
+     * @return true if operand specifies a data element only.
+     */
+    public boolean isTotal()
+    {
+        return categoryOptionCombo == null;
+    }
 
     // -------------------------------------------------------------------------
     // Getters & setters
@@ -251,12 +271,21 @@ public class DataElementOperand
         this.categoryOptionCombo = categoryOptionCombo;
     }
 
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DataElementCategoryOptionCombo getAttributeOptionCombo()
+    {
+        return attributeOptionCombo;
+    }
+
+    public void setAttributeOptionCombo( DataElementCategoryOptionCombo attributeOptionCombo )
+    {
+        this.attributeOptionCombo = attributeOptionCombo;
+    }
+
     // -------------------------------------------------------------------------
-    // hashCode, equals, toString, compareTo
-    //
-    // Note that hashCode, equals and compareTo are based on getDimensionItem()
-    // They compare dataElements and (if present) caregoryOptionCombos regardless
-    // of whether the objects are complete or only their UIDs are present.
+    // toString, mergeWith
     // -------------------------------------------------------------------------
 
     @Override
@@ -268,72 +297,8 @@ public class DataElementOperand
             "\"uid\":\"" + uid + "\", " +
             "\"dataElement\":" + dataElement + ", " +
             "\"categoryOptionCombo\":" + categoryOptionCombo +
+            "\"attributeOptionCombo\":" + attributeOptionCombo +
             '}';
-    }
-
-    @Override
-    public int hashCode()
-    {
-        final int prime = 31;
-        int result = 1;
-
-        result = prime * result + ( getDimensionItem() == null ? 0 : getDimensionItem().hashCode() );
-
-        return result;
-    }
-
-    @Override
-    public boolean equals( Object object )
-    {
-        if ( this == object )
-        {
-            return true;
-        }
-
-        if ( object == null )
-        {
-            return false;
-        }
-
-        if ( !getClass().isAssignableFrom( object.getClass() ) )
-        {
-            return false;
-        }
-
-        DataElementOperand other = (DataElementOperand) object;
-
-        String thisItem = this.getDimensionItem();
-        String otherItem = other.getDimensionItem();
-
-        if ( thisItem == null )
-        {
-            if ( otherItem != null )
-            {
-                return false;
-            }
-        }
-        else if ( !thisItem.equals( otherItem ) )
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public int compareTo( IdentifiableObject object )
-    {
-        DataElementOperand other = (DataElementOperand) object;
-
-        String thisItem = this.getDimensionItem();
-        String otherItem = other.getDimensionItem();
-
-        if ( thisItem == null )
-        {
-            return otherItem == null ? 0 : 1;
-        }
-
-        return otherItem == null ? -1 : thisItem.compareTo( otherItem );
     }
 
     @Override
@@ -349,11 +314,13 @@ public class DataElementOperand
             {
                 dataElement = dataElementOperand.getDataElement();
                 categoryOptionCombo = dataElementOperand.getCategoryOptionCombo();
+                attributeOptionCombo = dataElementOperand.getAttributeOptionCombo();
             }
             else if ( mergeMode.isMerge() )
             {
                 dataElement = dataElementOperand.getDataElement() != null ? dataElementOperand.getDataElement() : dataElement;
                 categoryOptionCombo = dataElementOperand.getCategoryOptionCombo() != null ? dataElementOperand.getCategoryOptionCombo() : categoryOptionCombo;
+                attributeOptionCombo = dataElementOperand.getAttributeOptionCombo() != null ? dataElementOperand.getAttributeOptionCombo() : attributeOptionCombo;
             }
         }
     }
