@@ -28,8 +28,6 @@ package org.hisp.dhis.dataelement.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.ValueType;
@@ -48,8 +46,6 @@ public class HibernateDataElementStore
     extends HibernateIdentifiableObjectStore<DataElement>
     implements DataElementStore
 {
-    private static final Log log = LogFactory.getLog( HibernateDataElementStore.class );
-
     // -------------------------------------------------------------------------
     // DataElement
     // -------------------------------------------------------------------------

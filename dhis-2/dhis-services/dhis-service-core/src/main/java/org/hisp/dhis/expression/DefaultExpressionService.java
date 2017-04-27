@@ -72,7 +72,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.expression.Expression.*;
 import static org.hisp.dhis.expression.MissingValueStrategy.*;
 import static org.hisp.dhis.system.util.MathUtils.*;
 
@@ -943,22 +942,4 @@ public class DefaultExpressionService
 
         return TextUtils.appendTail( matcher, sb );
     }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-    
-    /**
-     * Indicates whether the given matcher is based on a {@link DataElementOperand}
-     * which represents a data element total.
-     * 
-     * @param matcher the matcher.
-     * @return true if matcher is based on total.
-     */
-    private boolean operandIsTotal( Matcher matcher )
-    {
-        String coc = StringUtils.trimToEmpty( matcher.group( GROUP_CATEGORORY_OPTION_COMBO ) );
-        
-        return coc.isEmpty() || coc.equals( SYMBOL_WILDCARD );
-    }    
 }
