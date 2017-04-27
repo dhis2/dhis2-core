@@ -734,10 +734,11 @@ public class AnalyticsServiceTest
         for ( Map.Entry<String, Object> entry : aggregatedDataValueMapping.entrySet() )
         {
             String key = entry.getKey();
-            Double value = (Double) entry.getValue();
+            Double expected = keyValue.get( key );
+            Double actual = (Double) entry.getValue();
 
             assertNotNull( "Did not find '" + key + "' in provided results", keyValue.get( key ) );
-            assertEquals( "Value for key:'" + key + "' not matching value: '" + value + "'", value, keyValue.get( key ) );
+            assertEquals( "Value for key:'" + key + "' not matching expected value: '" + expected + "'", expected, actual );
         }
     }
 
@@ -765,11 +766,11 @@ public class AnalyticsServiceTest
 
             assertNotNull( "Did not find '" + key + "' in provided results", keyValue.get( key.toString() ) );
 
-            Double value = keyValue.get( key.toString() );
+            Double expected = keyValue.get( key.toString() );
+            Double actual = (Double) aggregatedDataValueGrid.getValue( i, numberOfDimensions );
 
             assertNotNull( aggregatedDataValueGrid.getRow( i ) );
-            assertEquals( "'" + aggregatedDataValueGrid.getValue( i, 0 ) + "' --", value,
-                aggregatedDataValueGrid.getValue( i, numberOfDimensions ) );
+            assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected, actual );
         }
     }
 
