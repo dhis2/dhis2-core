@@ -28,7 +28,6 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -96,12 +95,6 @@ public class Expression
     private MissingValueStrategy missingValueStrategy = MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
 
     // -------------------------------------------------------------------------
-    // Transient properties
-    // -------------------------------------------------------------------------
-
-    private transient String explodedExpression;
-
-    // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
 
@@ -135,18 +128,6 @@ public class Expression
         this.expression = expression;
         this.description = description;
         this.missingValueStrategy = missingValueStrategy;
-    }
-
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
-
-    /**
-     * Returns exploded expression, if null returns expression.
-     */
-    public String getExplodedExpressionFallback()
-    {
-        return explodedExpression != null ? explodedExpression : expression;
     }
 
     // -------------------------------------------------------------------------
@@ -218,7 +199,6 @@ public class Expression
             "\"class\":\"" + getClass() + "\", " +
             "\"id\":\"" + id + "\", " +
             "\"expression\":\"" + expression + "\", " +
-            "\"explodedExpression\":\"" + explodedExpression + "\", " +
             "\"description\":\"" + description + "\" " +
             "}";
     }
@@ -311,17 +291,6 @@ public class Expression
     public void setMissingValueStrategy( MissingValueStrategy missingValueStrategy )
     {
         this.missingValueStrategy = missingValueStrategy;
-    }
-
-    @JsonIgnore
-    public String getExplodedExpression()
-    {
-        return explodedExpression;
-    }
-
-    public void setExplodedExpression( String explodedExpression )
-    {
-        this.explodedExpression = explodedExpression;
     }
 
     public void mergeWith( Expression other )

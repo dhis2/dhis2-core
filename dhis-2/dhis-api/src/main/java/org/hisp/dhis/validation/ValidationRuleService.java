@@ -118,15 +118,6 @@ public interface ValidationRuleService
     Set<DataElement> getDataElements( ValidationRule validationRule );
 
     /**
-     * Get dimensional item objects part of the left side and right side expressions 
-     * of the given validation rule.
-     * 
-     * @param validationRule the validation rule.
-     * @return a set of data elements.
-     */
-    Set<DimensionalItemObject> getDimensionalItemObjects( ValidationRule validationRule, Set<DimensionItemType> dimensionItemTypes );
-
-    /**
      * Returns all validation-type rules which have specified data elements
      * assigned to them.
      *

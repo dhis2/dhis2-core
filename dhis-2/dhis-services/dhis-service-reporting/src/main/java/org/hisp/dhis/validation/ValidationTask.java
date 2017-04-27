@@ -28,8 +28,10 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+
 public interface ValidationTask
     extends Runnable
 {
-    void init( OrganisationUnitExtended sourceX, ValidationRunContext context );
+    void init( OrganisationUnit orgUnit, ValidationRunContext context );
 }
