@@ -290,12 +290,18 @@ public class DimensionServiceTest
         String idF = deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + cocA.getUid();
         String idG = deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + SYMBOL_WILDCARD;
         String idH = deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + "UNKNOWN_SYMBOL";
+        String idI = deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + cocA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + cocA.getUid();
+        String idJ = deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + cocA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + SYMBOL_WILDCARD;
+        String idK = deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + SYMBOL_WILDCARD + COMPOSITE_DIM_OBJECT_PLAIN_SEP + cocA.getUid();
         
         ProgramDataElementDimensionItem pdeA = new ProgramDataElementDimensionItem( prA, deA );
         ProgramTrackedEntityAttributeDimensionItem ptaA = new ProgramTrackedEntityAttributeDimensionItem( prA, atA );
         ReportingRate rrA = new ReportingRate( dsA, ReportingRateMetric.REPORTING_RATE );
         DataElementOperand deoA = new DataElementOperand( deA, cocA );
         DataElementOperand deoB = new DataElementOperand( deA, null );
+        DataElementOperand deoC = new DataElementOperand( deA, cocA, cocA );
+        DataElementOperand deoD = new DataElementOperand( deA, cocA, null );
+        DataElementOperand deoE = new DataElementOperand( deA, null, cocA );
         
         assertNotNull( dimensionService.getDataDimensionalItemObject( idA ) );
         assertEquals( deA, dimensionService.getDataDimensionalItemObject( idA ) );
@@ -317,6 +323,15 @@ public class DimensionServiceTest
         assertNotNull( dimensionService.getDataDimensionalItemObject( idG ) );
         assertEquals( deoB, dimensionService.getDataDimensionalItemObject( idG ) );
 
-        assertNull( dimensionService.getDataDimensionalItemObject( idH ) );        
+        assertNull( dimensionService.getDataDimensionalItemObject( idH ) );
+
+        assertNotNull( dimensionService.getDataDimensionalItemObject( idI ) );
+        assertEquals( deoC, dimensionService.getDataDimensionalItemObject( idI ) );
+
+        assertNotNull( dimensionService.getDataDimensionalItemObject( idJ ) );
+        assertEquals( deoD, dimensionService.getDataDimensionalItemObject( idJ ) );
+
+        assertNotNull( dimensionService.getDataDimensionalItemObject( idK ) );
+        assertEquals( deoE, dimensionService.getDataDimensionalItemObject( idK ) );
     }
 }
