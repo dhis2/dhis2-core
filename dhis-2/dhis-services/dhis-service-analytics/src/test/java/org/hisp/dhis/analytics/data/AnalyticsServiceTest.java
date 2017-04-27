@@ -782,10 +782,11 @@ public class AnalyticsServiceTest
         for ( Map.Entry<String, Object> entry : aggregatedDataValueMapping.entrySet() )
         {
             String key = entry.getKey();
-            Double value = (Double) entry.getValue();
+            Double expected = keyValue.get( key );
+            Double actual = (Double) entry.getValue();
 
             assertNotNull( "Did not find '" + key + "' in provided results", keyValue.get( key ) );
-            assertEquals( "Value for key: '" + key + "' not matching value: '" + value + "' --> ", keyValue.get( key ), value );
+            assertEquals( "Value for key:'" + key + "' not matching expected value: '" + expected + "'", expected, actual );
         }
     }
 
@@ -813,10 +814,11 @@ public class AnalyticsServiceTest
 
             assertNotNull( "Did not find '" + key + "' in provided results", keyValue.get( key.toString() ) );
 
-            Double value = keyValue.get( key.toString() );
+            Double expected = keyValue.get( key.toString() );
+            Double actual = (Double) aggregatedDataValueGrid.getValue( i, numberOfDimensions );
 
             assertNotNull( aggregatedDataValueGrid.getRow( i ) );
-            assertEquals( "Value for key: '" + key + "' not matching value: '" + aggregatedDataValueGrid.getValue( i, 0 ) + "' --> ", aggregatedDataValueGrid.getValue( i, numberOfDimensions ), value);
+            assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected, actual );
         }
     }
 
@@ -834,8 +836,10 @@ public class AnalyticsServiceTest
             String key = dataValue.getDataElement() + "-" + dataValue.getOrgUnit() + "-" + dataValue.getPeriod();
 
             assertNotNull( keyValue.get( key ) );
-            Double value = Double.parseDouble( dataValue.getValue() );
-            assertEquals( "Value for key: '" + key + "' not matching value: '" + value + "' --> ", keyValue.get( key ), value );
+            Double actual = Double.parseDouble( dataValue.getValue() );
+            Double expected = keyValue.get( key );
+
+            assertEquals( "Value for key: '" + key + "' not matching value: '" + actual + "'", expected, actual );
         }
     }
 }
