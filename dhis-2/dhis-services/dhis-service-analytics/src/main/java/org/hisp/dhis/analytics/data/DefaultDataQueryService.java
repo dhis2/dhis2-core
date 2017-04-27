@@ -104,17 +104,15 @@ public class DefaultDataQueryService
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
 
         inputIdScheme = ObjectUtils.firstNonNull( inputIdScheme, IdScheme.UID );
-        
-        boolean allowAllPeriodItems = startDate != null && endDate != null;
 
         if ( dimensionParams != null && !dimensionParams.isEmpty() )
         {
-            params.addDimensions( getDimensionalObjects( dimensionParams, relativePeriodDate, userOrgUnit, format, allowAllPeriodItems, inputIdScheme ) );
+            params.addDimensions( getDimensionalObjects( dimensionParams, relativePeriodDate, userOrgUnit, format, inputIdScheme ) );
         }
 
         if ( filterParams != null && !filterParams.isEmpty() )
         {
-            params.addFilters( getDimensionalObjects( filterParams, relativePeriodDate, userOrgUnit, format, allowAllPeriodItems, inputIdScheme ) );
+            params.addFilters( getDimensionalObjects( filterParams, relativePeriodDate, userOrgUnit, format, inputIdScheme ) );
         }
 
         if ( measureCriteria != null && !measureCriteria.isEmpty() )
@@ -167,25 +165,24 @@ public class DefaultDataQueryService
 
         for ( DimensionalObject column : object.getColumns() )
         {
-            params.addDimension( getDimension( column.getDimension(), getDimensionalItemIds( column.getItems() ), date, userOrgUnits, format, false, false, idScheme ) );
+            params.addDimension( getDimension( column.getDimension(), getDimensionalItemIds( column.getItems() ), date, userOrgUnits, format, false, idScheme ) );
         }
 
         for ( DimensionalObject row : object.getRows() )
         {
-            params.addDimension( getDimension( row.getDimension(), getDimensionalItemIds( row.getItems() ), date, userOrgUnits, format, false, false, idScheme ) );
+            params.addDimension( getDimension( row.getDimension(), getDimensionalItemIds( row.getItems() ), date, userOrgUnits, format, false, idScheme ) );
         }
 
         for ( DimensionalObject filter : object.getFilters() )
         {
-            params.addFilter( getDimension( filter.getDimension(), getDimensionalItemIds( filter.getItems() ), date, userOrgUnits, format, false, false, idScheme ) );
+            params.addFilter( getDimension( filter.getDimension(), getDimensionalItemIds( filter.getItems() ), date, userOrgUnits, format, false, idScheme ) );
         }
         
         return params.build();
     }
 
     @Override
-    public List<DimensionalObject> getDimensionalObjects( Set<String> dimensionParams, Date relativePeriodDate, String userOrgUnit, 
-        I18nFormat format, boolean allowAllPeriodItems, IdScheme inputIdScheme )
+    public List<DimensionalObject> getDimensionalObjects( Set<String> dimensionParams, Date relativePeriodDate, String userOrgUnit, I18nFormat format, IdScheme inputIdScheme )
     {
         List<DimensionalObject> list = new ArrayList<>();
 
@@ -200,7 +197,7 @@ public class DefaultDataQueryService
 
                 if ( dimension != null && items != null )
                 {
-                    list.add( getDimension( dimension, items, relativePeriodDate, userOrgUnits, format, false, allowAllPeriodItems, inputIdScheme ) );
+                    list.add( getDimension( dimension, items, relativePeriodDate, userOrgUnits, format, false, inputIdScheme ) );
                 }
             }
         }
@@ -212,7 +209,7 @@ public class DefaultDataQueryService
 
     @Override
     public DimensionalObject getDimension( String dimension, List<String> items, Date relativePeriodDate,
-        List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull, boolean allowAllPeriodItems, IdScheme inputIdScheme )
+        List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull, IdScheme inputIdScheme )
     {
         final boolean allItems = items.isEmpty();
 
@@ -330,7 +327,7 @@ public class DefaultDataQueryService
 
             periods = periods.stream().distinct().collect( Collectors.toList() ); // Remove duplicates
 
-            if ( periods.isEmpty() && !allowAllPeriodItems )
+            if ( periods.isEmpty() )
             {
                 throw new IllegalQueryException( "Dimension pe is present in query without any valid dimension options" );
             }
