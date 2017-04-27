@@ -611,7 +611,6 @@ public class AnalyticsServiceTest
 
             aggregatedDataValueMapping = analyticsService.getAggregatedDataValueMapping( params );
 
-            System.out.println("agg: " + aggregatedDataValueMapping + ", key: " + key);
             assertDataValueMapping( aggregatedDataValueMapping, results.get( key ) );
         }
 
@@ -785,7 +784,7 @@ public class AnalyticsServiceTest
             Double expected = keyValue.get( key );
             Double actual = (Double) entry.getValue();
 
-            assertNotNull( "Did not find '" + key + "' in provided results", keyValue.get( key ) );
+            assertNotNull( "Did not find '" + key + "' in provided results", expected );
             assertEquals( "Value for key:'" + key + "' not matching expected value: '" + expected + "'", expected, actual );
         }
     }
@@ -812,11 +811,10 @@ public class AnalyticsServiceTest
                     key.append( "-" );
             }
 
-            assertNotNull( "Did not find '" + key + "' in provided results", keyValue.get( key.toString() ) );
-
             Double expected = keyValue.get( key.toString() );
             Double actual = (Double) aggregatedDataValueGrid.getValue( i, numberOfDimensions );
 
+            assertNotNull( "Did not find '" + key + "' in provided results", expected );
             assertNotNull( aggregatedDataValueGrid.getRow( i ) );
             assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected, actual );
         }
