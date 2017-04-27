@@ -737,7 +737,7 @@ public class AnalyticsServiceTest
             Double value = (Double) entry.getValue();
 
             assertNotNull( "Did not find '" + key + "' in provided results", keyValue.get( key ) );
-            assertEquals( "'" + key + "' --", value, keyValue.get( key ) );
+            assertEquals( "Value for key:'" + key + "' not matching value: '" + value + "'", value, keyValue.get( key ) );
         }
     }
 
