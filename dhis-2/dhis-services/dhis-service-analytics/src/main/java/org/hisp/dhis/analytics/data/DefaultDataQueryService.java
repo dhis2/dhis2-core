@@ -105,7 +105,7 @@ public class DefaultDataQueryService
 
         inputIdScheme = ObjectUtils.firstNonNull( inputIdScheme, IdScheme.UID );
         
-        boolean allowAllPeriodItems = startDate != null && endDate != null;
+        boolean allowAllPeriodItems = false;
 
         if ( dimensionParams != null && !dimensionParams.isEmpty() )
         {
