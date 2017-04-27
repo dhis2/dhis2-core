@@ -1,8 +1,5 @@
 package org.hisp.dhis.validation;
 
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DimensionalItemObject;
-
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.

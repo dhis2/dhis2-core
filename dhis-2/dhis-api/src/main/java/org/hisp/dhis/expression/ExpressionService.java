@@ -29,7 +29,6 @@ package org.hisp.dhis.expression;
  */
 
 import com.google.common.collect.ImmutableMap;
-import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.SetMap;
