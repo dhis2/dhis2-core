@@ -34,13 +34,15 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.common.AnalyticalObject;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
@@ -58,14 +60,10 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -123,8 +121,11 @@ public class AnalyticsServiceTest
     @Autowired
     private DataSetService dataSetService;
 
-    @Resource( name = "org.hisp.dhis.reporttable.ReportTableStore" )
-    private GenericIdentifiableObjectStore<ReportTable> reportTableStore;
+    @Autowired
+    private CompleteDataSetRegistrationService completeDataSetRegistrationService;
+
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
 
     // Database (value, data element, period)
     // --------------------------------------------------------------------
@@ -189,6 +190,12 @@ public class AnalyticsServiceTest
         organisationUnitService.addOrganisationUnit( ouD );
         organisationUnitService.addOrganisationUnit( ouE );
 
+        idObjectManager.save( ouA );
+        idObjectManager.save( ouB );
+        idObjectManager.save( ouC );
+        idObjectManager.save( ouD );
+        idObjectManager.save( ouE );
+
         OrganisationUnitGroup organisationUnitGroupA = createOrganisationUnitGroup( 'A' );
         organisationUnitGroupA.setUid( "a2345groupA" );
         organisationUnitGroupA.addOrganisationUnit( ouA );
@@ -231,25 +238,27 @@ public class AnalyticsServiceTest
         organisationUnitGroupService.addOrganisationUnitGroupSet( organisationUnitGroupSetB );
 
         DataSet dataSetA = createDataSet( 'A' );
-        dataSetA.setUid( "a23datasetA" );
+        dataSetA.setUid( "a23dataSetA" );
 
         dataSetA.addDataSetElement( deA );
         dataSetA.addDataSetElement( deB );
 
+        DataSet dataSetB = createDataSet( 'B' );
+        dataSetB.setUid( "a23dataSetB" );
+
+        dataSetB.addDataSetElement( deC );
+        dataSetB.addDataSetElement( deD );
+
         dataSetService.addDataSet( dataSetA );
+        dataSetService.addDataSet( dataSetB );
 
-        ReportingRate reportingRateA = new ReportingRate( dataSetA );
-
-        ReportTable reportTableA = new ReportTable( "Assualt",
-            new ArrayList<>(), new ArrayList<>(), Lists.newArrayList( reportingRateA ), Lists.newArrayList( peJan, peFeb ), Lists.newArrayList( ouC, ouD ),
-            false, false, true, null, null, "jan_feb_2017" );
-
-        reportTableStore.save( reportTableA );
-
-
-        // Read data values from CSV file
+        // Read data values from CSV files
         // --------------------------------------------------------------------
-        readInputFile( "csv/dataValues.csv" );
+        ArrayList<String[]> dataValueLines = readInputFile( "csv/dataValues.csv" );
+        parseDataValues( dataValueLines );
+
+        ArrayList<String[]> dataSetRegistrationLines = readInputFile( "csv/dataSetRegistrations.csv" );
+        //parseDataSetRegistrations( dataSetRegistrationLines );
 
         // Make indicators
         // --------------------------------------------------------------------
@@ -436,8 +445,13 @@ public class AnalyticsServiceTest
             .withPeriod( y2017_mar )
             .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
+
+        ReportingRate reportingRateA = new ReportingRate( dataSetA );
+        ReportingRate reportingRateB = new ReportingRate( dataSetB );
+
         DataQueryParams reRate_2017_params = DataQueryParams.newBuilder()
-            .withReportingRates( Lists.newArrayList( reportingRateA ) )
+            .withOrganisationUnit( ouA )
+            .withReportingRates( Lists.newArrayList( reportingRateA, reportingRateB) )
             .withPeriod( y2017 )
             .withAggregationType( AggregationType.SUM )
             .withOutputFormat( OutputFormat.ANALYTICS ).build();
@@ -452,10 +466,10 @@ public class AnalyticsServiceTest
         dataQueryParams.put( "ouA_2017_01_03", ouA_2017_01_03_params );
         dataQueryParams.put( "ouB_2017_Q01", ouB_2017_Q01_params );
         dataQueryParams.put( "ouC_2017_Q01", ouC_2017_Q01_params );
-        dataQueryParams.put( "inA_2017", inA_2017_params );
-        dataQueryParams.put( "inB_deB_deC_2017_Q01", inB_deB_deC_2017_Q01_params );
-        dataQueryParams.put( "inC_deB_deC_2017_Q01", inC_deB_deC_2017_Q01_params );
-        dataQueryParams.put( "inD_deA_deB_deC_2017_Q01", inD_deA_deB_deC_2017_Q01_params );
+        //dataQueryParams.put( "inA_2017", inA_2017_params );
+        //dataQueryParams.put( "inB_deB_deC_2017_Q01", inB_deB_deC_2017_Q01_params );
+        //dataQueryParams.put( "inC_deB_deC_2017_Q01", inC_deB_deC_2017_Q01_params );
+        //dataQueryParams.put( "inD_deA_deB_deC_2017_Q01", inD_deA_deB_deC_2017_Q01_params );
         dataQueryParams.put( "deA_ouB_ouC_2017_02", deA_ouB_ouC_2017_02_params );
         dataQueryParams.put( "deA_deB_deD_ouC_ouE_2017_04", deA_deB_deD_ouC_ouE_2017_04_params );
         dataQueryParams.put( "ouB_2017_01_01_2017_02_20", ouB_2017_01_01_2017_02_20_params );
@@ -467,7 +481,7 @@ public class AnalyticsServiceTest
 
         analyticalObjectHashMap.put( "deC_ouB_2017_03", deC_ouB_2017_03_analytical );
         analyticalObjectHashMap.put( "deA_ouA_2017_Q01", deA_ouA_2017_Q01_analytical );
-        analyticalObjectHashMap.put( "inC_deB_deC_2017_Q01", inC_deB_deC_2017_Q01_analytical );
+        //analyticalObjectHashMap.put( "inC_deB_deC_2017_Q01", inC_deB_deC_2017_Q01_analytical );
 
         // Set results
         // --------------------------------------------------------------------
@@ -597,6 +611,7 @@ public class AnalyticsServiceTest
 
             aggregatedDataValueMapping = analyticsService.getAggregatedDataValueMapping( params );
 
+            System.out.println("agg: " + aggregatedDataValueMapping + ", key: " + key);
             assertDataValueMapping( aggregatedDataValueMapping, results.get( key ) );
         }
 
@@ -654,7 +669,7 @@ public class AnalyticsServiceTest
      *
      * @param inputFile points to file in class path
      */
-    public void readInputFile( String inputFile )
+    public ArrayList<String[]> readInputFile( String inputFile )
         throws IOException
     {
         InputStream input = new ClassPathResource( inputFile ).getInputStream();
@@ -663,30 +678,63 @@ public class AnalyticsServiceTest
         CsvReader reader = new CsvReader( input, Charset.forName( "UTF-8" ) );
 
         reader.readRecord(); // Ignore first row
+        ArrayList<String[]> lines = new ArrayList<>();
         while ( reader.readRecord() )
         {
             String[] values = reader.getValues();
-            parse( values );
+            lines.add( values );
         }
 
-        assertEquals( "Import of data failed, number of imports are wrong", 
-            dataValueService.getAllDataValues().size(), 24 );
+        return lines;
     }
 
     /**
      * Adds data value based on input from vales
      *
-     * @param values the array of property values.
+     * @param lines the arraylist of arrays of property values.
      */
-    private void parse( String[] values )
+    private void parseDataValues( ArrayList<String[]> lines )
     {
-        DataElement dataElement = dataElementService.getDataElement( values[0] );
-        Period period = periodService.getPeriod( values[1] );
-        OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( values[2] );
+        for( String[] line : lines)
+        {
+            DataElement dataElement = dataElementService.getDataElement( line[0] );
+            Period period = periodService.getPeriod( line[1] );
+            OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( line[2] );
 
-        DataValue dataValue = new DataValue( dataElement, period, organisationUnit, ocDef, ocDef );
-        dataValue.setValue( values[3] );
-        dataValueService.addDataValue( dataValue );
+            DataValue dataValue = new DataValue( dataElement, period, organisationUnit, ocDef, ocDef );
+            dataValue.setValue( line[3] );
+            dataValueService.addDataValue( dataValue );
+        }
+
+        assertEquals( "Import of data values failed, number of imports are wrong",
+            dataValueService.getAllDataValues().size(), 24 );
+    }
+
+    private Date now = new Date();
+
+    /**
+     * Adds data set registrations based on input from vales
+     *
+     * @param lines the arraylist of arrays of property values.
+     */
+    private void parseDataSetRegistrations( ArrayList<String[]> lines )
+    {
+        String storedBy = "johndoe";
+
+        for( String[] line : lines)
+        {
+            DataSet dataSet = dataSetService.getDataSet( line[0] );
+            Period period = periodService.getPeriod( line[1] );
+            OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( line[2] );
+
+
+            CompleteDataSetRegistration completeDataSetRegistration = new CompleteDataSetRegistration( dataSet, period, organisationUnit, ocDef, now,
+                storedBy );
+            completeDataSetRegistrationService.saveCompleteDataSetRegistration( completeDataSetRegistration );
+        }
+
+        assertEquals( "Import of data set registrations failed, number of imports are wrong",
+            completeDataSetRegistrationService.getAllCompleteDataSetRegistrations().size(), 12 );
     }
 
     /**
@@ -737,7 +785,7 @@ public class AnalyticsServiceTest
             Double value = (Double) entry.getValue();
 
             assertNotNull( "Did not find '" + key + "' in provided results", keyValue.get( key ) );
-            assertEquals( "Value for key:'" + key + "' not matching value: '" + value + "'", value, keyValue.get( key ) );
+            assertEquals( "Value for key: '" + key + "' not matching value: '" + value + "' --> ", keyValue.get( key ), value );
         }
     }
 
@@ -768,8 +816,7 @@ public class AnalyticsServiceTest
             Double value = keyValue.get( key.toString() );
 
             assertNotNull( aggregatedDataValueGrid.getRow( i ) );
-            assertEquals( "'" + aggregatedDataValueGrid.getValue( i, 0 ) + "' --", value,
-                aggregatedDataValueGrid.getValue( i, numberOfDimensions ) );
+            assertEquals( "Value for key: '" + key + "' not matching value: '" + aggregatedDataValueGrid.getValue( i, 0 ) + "' --> ", aggregatedDataValueGrid.getValue( i, numberOfDimensions ), value);
         }
     }
 
@@ -788,7 +835,7 @@ public class AnalyticsServiceTest
 
             assertNotNull( keyValue.get( key ) );
             Double value = Double.parseDouble( dataValue.getValue() );
-            assertEquals( value, keyValue.get( key ) );
+            assertEquals( "Value for key: '" + key + "' not matching value: '" + value + "' --> ", keyValue.get( key ), value );
         }
     }
 }

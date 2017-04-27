@@ -165,6 +165,8 @@ public class DefaultAnalyticsService
 
         queryPlanner.validate( params );
 
+        //System.out.println("PARAMS: " + params.toString());
+
         return getAggregatedDataValueGridInternal( params );
     }
 
@@ -180,7 +182,7 @@ public class DefaultAnalyticsService
 
     @Override
     public Grid getRawDataValues( DataQueryParams params )
-    {        
+    {
         securityManager.decideAccess( params );
 
         params = securityManager.withDataApprovalConstraints( params );
@@ -1103,7 +1105,7 @@ public class DefaultAnalyticsService
         List<DimensionalItemObject> items = Lists.newArrayList( expressionService.getDimensionalItemObjectsInIndicators( indicators ) );
 
         items = DimensionalObjectUtils.replaceOperandTotalsWithDataElements( items );
-        
+
         DimensionalObject dimension = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, DISPLAY_NAME_DATA_X, items );
 
         DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )
