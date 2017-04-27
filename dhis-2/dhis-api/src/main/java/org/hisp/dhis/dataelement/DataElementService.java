@@ -28,13 +28,11 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.period.PeriodType;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Defines service functionality for DataElements and DataElementGroups.
@@ -159,15 +157,6 @@ public interface DataElementService
      * @return all DataElements which have the given aggregation level assigned.
      */
     List<DataElement> getDataElementsByAggregationLevel( int aggregationLevel );
-
-    /**
-     * Returns a mapping of data element uid and associated category option combo
-     * uids.
-     *
-     * @param dataElementUids the uids of the data elements to include in the map.
-     * @return a ListMap.
-     */
-    ListMap<String, String> getDataElementCategoryOptionComboMap( Set<String> dataElementUids );
 
     // -------------------------------------------------------------------------
     // DataElementGroup

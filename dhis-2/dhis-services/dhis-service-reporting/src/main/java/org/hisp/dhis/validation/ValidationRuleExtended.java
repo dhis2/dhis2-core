@@ -28,9 +28,14 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.HashSet;
 import java.util.Set;
 
-import org.hisp.dhis.period.PeriodType;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
 
 /**
  * Holds information for each validation rule that is needed during a validation
@@ -49,12 +54,24 @@ public class ValidationRuleExtended
 {
     private ValidationRule rule;
 
-    private Set<PeriodType> allowedPastPeriodTypes;
+    private Set<DimensionalItemObject> dimensionalItemObjects = new HashSet<>();
 
-    public ValidationRuleExtended( ValidationRule rule, Set<PeriodType> allowedPastPeriodTypes )
+    private Set<DataElementOperand> dataElementOperands = new HashSet<>();
+
+    private Set<DataElement> dataElements = new HashSet<>();
+
+    public ValidationRuleExtended( ValidationRule rule )
     {
         this.rule = rule;
-        this.allowedPastPeriodTypes = allowedPastPeriodTypes;
+    }
+
+    public String toString()
+    {
+        return new ToStringBuilder( this, ToStringStyle.SHORT_PREFIX_STYLE )
+            .append( "rule", rule )
+            .append( "dimensionalItemObjects", dimensionalItemObjects )
+            .append( "dataElementOperands", dataElementOperands )
+            .append( "dataElements", dataElements ).toString();
     }
 
     // -------------------------------------------------------------------------
@@ -66,8 +83,33 @@ public class ValidationRuleExtended
         return rule;
     }
 
-    public Set<PeriodType> getAllowedPastPeriodTypes()
+    public Set<DimensionalItemObject> getDimensionalItemObjects()
     {
-        return allowedPastPeriodTypes;
+        return dimensionalItemObjects;
+    }
+
+    public void setDimensionalItemObjects( Set<DimensionalItemObject> dimensionalItemObjects )
+    {
+        this.dimensionalItemObjects = dimensionalItemObjects;
+    }
+
+    public Set<DataElementOperand> getDataElementOperands()
+    {
+        return dataElementOperands;
+    }
+
+    public void setDataElementOperands( Set<DataElementOperand> dataElementOperands )
+    {
+        this.dataElementOperands = dataElementOperands;
+    }
+
+    public Set<DataElement> getDataElements()
+    {
+        return dataElements;
+    }
+
+    public void setDataElements( Set<DataElement> dataElements )
+    {
+        this.dataElements = dataElements;
     }
 }

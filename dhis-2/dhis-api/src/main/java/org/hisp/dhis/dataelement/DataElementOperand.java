@@ -285,11 +285,7 @@ public class DataElementOperand
     }
 
     // -------------------------------------------------------------------------
-    // hashCode, equals, toString, compareTo
-    //
-    // Note that hashCode, equals and compareTo are based on getDimensionItem()
-    // They compare dataElements and (if present) caregoryOptionCombos regardless
-    // of whether the objects are complete or only their UIDs are present.
+    // toString, mergeWith
     // -------------------------------------------------------------------------
 
     @Override
@@ -303,71 +299,6 @@ public class DataElementOperand
             "\"categoryOptionCombo\":" + categoryOptionCombo +
             "\"attributeOptionCombo\":" + attributeOptionCombo +
             '}';
-    }
-
-    @Override
-    public int hashCode()
-    {
-        final int prime = 31;
-        int result = 1;
-
-        result = prime * result + ( getDimensionItem() == null ? 0 : getDimensionItem().hashCode() );
-
-        return result;
-    }
-
-    @Override
-    public boolean equals( Object object )
-    {
-        if ( this == object )
-        {
-            return true;
-        }
-
-        if ( object == null )
-        {
-            return false;
-        }
-
-        if ( !getClass().isAssignableFrom( object.getClass() ) )
-        {
-            return false;
-        }
-
-        DataElementOperand other = (DataElementOperand) object;
-
-        String thisItem = this.getDimensionItem();
-        String otherItem = other.getDimensionItem();
-
-        if ( thisItem == null )
-        {
-            if ( otherItem != null )
-            {
-                return false;
-            }
-        }
-        else if ( !thisItem.equals( otherItem ) )
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public int compareTo( IdentifiableObject object )
-    {
-        DataElementOperand other = (DataElementOperand) object;
-
-        String thisItem = this.getDimensionItem();
-        String otherItem = other.getDimensionItem();
-
-        if ( thisItem == null )
-        {
-            return otherItem == null ? 0 : 1;
-        }
-
-        return otherItem == null ? -1 : thisItem.compareTo( otherItem );
     }
 
     @Override
