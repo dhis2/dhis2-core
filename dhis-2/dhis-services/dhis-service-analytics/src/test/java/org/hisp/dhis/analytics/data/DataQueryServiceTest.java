@@ -527,7 +527,7 @@ public class DataQueryServiceTest
         filterParams.add( "ou:" + ouA.getUid() + ";" + ouB.getUid() + ";" + ouC.getUid() + ";" + ouD.getUid() + ";" + ouE.getUid() );
         
         DataQueryParams params = dataQueryService.getFromUrl( dimensionParams, filterParams, null, null, null,
-            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, null );
+            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, false, null );
         
         assertEquals( 4, params.getDataElements().size() );
         assertEquals( 3, params.getPeriods().size() );
@@ -545,7 +545,7 @@ public class DataQueryServiceTest
         filterParams.add( "ou:" + ouA.getUid() );
         
         DataQueryParams params = dataQueryService.getFromUrl( dimensionParams, filterParams, null, null, null,
-            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, null );
+            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, false, null );
         
         assertEquals( 4, params.getDataElements().size() );
         assertEquals( 1, params.getFilterOrganisationUnits().size() );
@@ -561,7 +561,7 @@ public class DataQueryServiceTest
         filterParams.add( "ou:" + ouA.getDimensionItem() );
         
         DataQueryParams params = dataQueryService.getFromUrl( dimensionParams, filterParams, null, null, null,
-            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, null );
+            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, false, null );
         
         assertEquals( 2, params.getDataElements().size() );
         assertEquals( 2, params.getProgramDataElements().size() );
@@ -578,7 +578,7 @@ public class DataQueryServiceTest
         filterParams.add( "ou:" + ouA.getDimensionItem() );
         
         DataQueryParams params = dataQueryService.getFromUrl( dimensionParams, filterParams, null, null, null,
-            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, null );
+            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, false, null );
         
         assertEquals( 2, params.getDataElements().size() );
         assertEquals( 2, params.getProgramAttributes().size() );
@@ -595,7 +595,7 @@ public class DataQueryServiceTest
         filterParams.add( "ou:" + ouA.getCode() );
 
         DataQueryParams params = dataQueryService.getFromUrl( dimensionParams, filterParams, null, null, null,
-            false, false, false, false, false, false, false, false, false, null, null, IdScheme.CODE, false, null, null, null, null );
+            false, false, false, false, false, false, false, false, false, null, null, IdScheme.CODE, false, null, null, null, false, null );
 
         assertEquals( 2, params.getDataElements().size() );
         assertEquals( 2, params.getProgramAttributes().size() );
@@ -614,7 +614,7 @@ public class DataQueryServiceTest
         filterParams.add( "ou:" + ouA.getDimensionItem() + ";" + ouB.getDimensionItem() + ";" + ouC.getDimensionItem() );
         
         DataQueryParams params = dataQueryService.getFromUrl( dimensionParams, filterParams, null, null, null,
-            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, null );
+            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, false, null );
         
         assertEquals( 3, params.getDataElements().size() );
         assertEquals( 2, params.getPeriods().size() );
@@ -633,7 +633,7 @@ public class DataQueryServiceTest
         filterParams.add( "ou:" + ouA.getDimensionItem() + ";" + ouB.getDimensionItem() );
 
         DataQueryParams params = dataQueryService.getFromUrl( dimensionParams, filterParams, null, null, null,
-            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, null );
+            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, false, null );
         
         assertEquals( 4, params.getDataElements().size() );
         assertEquals( 12, params.getPeriods().size() );
@@ -649,7 +649,7 @@ public class DataQueryServiceTest
         dimensionParams.add( "pe:2011;2012" );
         
         DataQueryParams params = dataQueryService.getFromUrl( dimensionParams, null, null, null, null,
-            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, null );
+            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, false, null );
         
         assertEquals( 1, params.getOrganisationUnits().size() );  
         assertEquals( 2, params.getDataElements().size() );
@@ -665,7 +665,7 @@ public class DataQueryServiceTest
         dimensionParams.add( "pe:2011;2012" );
         
         DataQueryParams params = dataQueryService.getFromUrl( dimensionParams, null, null, null, null,
-            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, null );
+            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, false, null );
         
         assertEquals( 3, params.getOrganisationUnits().size() );  
         assertEquals( 2, params.getDataElements().size() );
@@ -681,7 +681,7 @@ public class DataQueryServiceTest
         dimensionParams.add( "pe:2011;2012" );
         
         DataQueryParams params = dataQueryService.getFromUrl( dimensionParams, null, null, null, null,
-            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, null );
+            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, false, null );
         
         assertEquals( 2, params.getOrganisationUnits().size() );  
         assertEquals( 2, params.getDataElements().size() );
@@ -696,7 +696,7 @@ public class DataQueryServiceTest
         dimensionParams.add( "pe:2012,2012S1,2012S2" );
         
         dataQueryService.getFromUrl( dimensionParams, null, null, null, null,
-            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, null );
+            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, false, null );
     }
     
     @Test( expected = IllegalQueryException.class )
@@ -707,7 +707,7 @@ public class DataQueryServiceTest
         dimensionParams.add( "pe" );
 
         dataQueryService.getFromUrl( dimensionParams, null, null, null, null,
-            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, null );
+            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, false, null );
     }
 
     @Test( expected = IllegalQueryException.class )
@@ -718,7 +718,7 @@ public class DataQueryServiceTest
         dimensionParams.add( "ou" );
         
         dataQueryService.getFromUrl( dimensionParams, null, null, null, null,
-            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, null );
+            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, false, null );
     }
 
     @Test( expected = IllegalQueryException.class )
@@ -729,7 +729,7 @@ public class DataQueryServiceTest
         dimensionParams.add( "yebo:2012,2012S1,2012S2" );
         
         dataQueryService.getFromUrl( dimensionParams, null, null, null, null,
-            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, null );
+            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, false, null );
     }
 
     @Test
@@ -743,7 +743,7 @@ public class DataQueryServiceTest
         filterParams.add( "ou:" + ouA.getUid() );
         
         DataQueryParams params = dataQueryService.getFromUrl( dimensionParams, filterParams, null, null, null,
-            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, null );
+            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, false, null );
         
         List<DimensionalItemObject> periods = params.getPeriods();
         
@@ -753,6 +753,19 @@ public class DataQueryServiceTest
         assertEquals( "2012S2", periods.get( 2 ).getUid() );        
     }
 
+    @Test
+    public void testGetFromUrlNoPeriodsAllowAllPeriods()
+    {
+        Set<String> dimensionParams = new HashSet<>();
+        dimensionParams.add( "dx:" + deA.getUid() + ";" + deB.getUid() + ";" + deC.getUid() + ";" + deD.getUid() );
+        dimensionParams.add( "pe" );
+        
+        DataQueryParams params = dataQueryService.getFromUrl( dimensionParams, null, null, null, null,
+            false, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, true, null );
+        
+        assertEquals( 0, params.getPeriods().size() );
+    }
+    
     @Test
     public void testGetFromAnalyticalObjectA()
     {
