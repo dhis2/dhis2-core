@@ -207,7 +207,7 @@ public class DefaultValidationService
 
         clock.logTime( "Initialized scheduled validation run." );
 
-        Collection<ValidationResult> validationResults = startValidationAnalysis( context );
+        startValidationAnalysis( context );
 
         clock.logTime( "Finished scheduled validation run." );
     }
