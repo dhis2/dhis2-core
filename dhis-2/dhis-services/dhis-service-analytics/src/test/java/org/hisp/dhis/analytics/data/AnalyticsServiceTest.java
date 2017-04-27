@@ -625,7 +625,6 @@ public class AnalyticsServiceTest
         }
     }
 
-    @Ignore
     @Test
     public void testGridAggregation()
     {
@@ -641,7 +640,6 @@ public class AnalyticsServiceTest
         }
     }
 
-    @Ignore
     @Test
     public void testSetAggregation()
     {
