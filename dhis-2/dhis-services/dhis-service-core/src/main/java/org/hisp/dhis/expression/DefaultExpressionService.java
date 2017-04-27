@@ -30,24 +30,19 @@ package org.hisp.dhis.expression;
 
 import com.google.common.collect.Sets;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.RegexUtils;
+import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
@@ -65,7 +60,6 @@ import org.hisp.dhis.system.jep.CustomFunctions;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ExpressionUtils;
 import org.hisp.dhis.system.util.MathUtils;
-import org.hisp.dhis.validation.ValidationRule;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
@@ -73,16 +67,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.expression.Expression.*;
 import static org.hisp.dhis.expression.MissingValueStrategy.*;
 import static org.hisp.dhis.system.util.MathUtils.*;
-import static org.hisp.dhis.dataelement.DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
 /**
  * The expression is a string describing a formula containing data element ids
@@ -97,12 +88,6 @@ public class DefaultExpressionService
 {
     private static final Log log = LogFactory.getLog( DefaultExpressionService.class );
 
-    private Cache<String, String> CACHE_CATEGORY_OPTION_COMBO_NAME_UID = Caffeine.newBuilder()
-        .expireAfterAccess( 1, TimeUnit.DAYS )
-        .initialCapacity( 1 )
-        .maximumSize( SystemUtils.isTestRun() ? 0 : 100 )
-        .build();
-    
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -271,99 +256,11 @@ public class DefaultExpressionService
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
         ListMap<String, Double> aggregateMap )
     {
-        //TODO this needs to be rewritten
-        
-        if ( aggregateMap == null )
-        {
-            Matcher simpleMatch = OPERAND_PATTERN.matcher( expression.getExpression() );
-
-            if ( simpleMatch.matches() )
-            {
-                return getSimpleExpressionValue( simpleMatch, valueMap );
-            }
-        }
-
-        String expressionString = generateExpression( expression.getExplodedExpressionFallback(), 
-            valueMap, constantMap, orgUnitCountMap, days, expression.getMissingValueStrategy(), 
+        String expressionString = generateExpression( expression.getExpression(),
+            valueMap, constantMap, orgUnitCountMap, days, expression.getMissingValueStrategy(),
             aggregateMap );
 
         return expressionString != null ? calculateExpression( expressionString ) : null;
-    }
-
-    private Double getSimpleExpressionValue( Matcher expressionMatch, Map<? extends DimensionalItemObject, Double> valueMap )
-    {
-        String elementId = expressionMatch.group( GROUP_DATA_ELEMENT );
-        String comboId = StringUtils.trimToNull( expressionMatch.group( GROUP_CATEGORORY_OPTION_COMBO ) );
-        DataElement dataElement = dataElementService.getDataElement( elementId );
-        
-        //TODO this needs to be rewritten
-        
-        String defaultOptionComboUid = CACHE_CATEGORY_OPTION_COMBO_NAME_UID.get( DEFAULT_CATEGORY_COMBO_NAME, 
-            name -> categoryService.getDefaultDataElementCategoryOptionCombo().getUid() );
-        
-        if ( comboId == null || comboId.equals( defaultOptionComboUid ) )
-        {
-            Double value = valueMap.get( dataElement );
-            
-            if ( value != null )
-            {
-                return value;
-            }
-        }
-
-        if ( comboId == null )
-        {
-            DataElementOperand deo = new DataElementOperand( dataElement );
-
-            if ( valueMap.containsKey( deo ) )
-            {
-                return valueMap.get( deo );
-            }
-
-            Double sum = null;
-            final Set<DataElementCategoryOptionCombo> optionCombos = dataElement.getCategoryOptionCombos();
-
-            for ( DataElementCategoryOptionCombo optionCombo : optionCombos )
-            {
-                deo = DataElementOperand.instance( elementId, optionCombo.getUid() );
-                Double value = valueMap.get( deo );
-
-                if ( value != null )
-                {
-                    if ( sum == null )
-                    {
-                        sum = 0.0;
-                    }
-                    
-                    sum = sum + value;
-                }
-            }
-            
-            return sum;
-        }
-        else
-        {
-            DataElementOperand deo = DataElementOperand.instance( elementId, comboId );
-
-            return getDeoValueFromValueMap( valueMap, deo );
-        }
-    }
-
-    private Double getDeoValueFromValueMap( Map<? extends DimensionalItemObject, Double> valueMap, DataElementOperand match )
-    {
-        for ( DimensionalItemObject d : valueMap.keySet() )
-        {
-            if ( d instanceof DataElementOperand )
-            {
-                DataElementOperand deo = (DataElementOperand) d;
-
-                if ( deo.equals( match ) )
-                {
-                    return valueMap.get( deo );
-                }
-            }
-        }
-        return null;
     }
 
     @Override
@@ -377,7 +274,7 @@ public class DefaultExpressionService
     public Set<DataElementCategoryOptionCombo> getOptionCombosInExpression( String expression )
     {
         return getIdObjectsInExpression( OPTION_COMBO_OPERAND_PATTERN, expression, 
-            ( m  ) -> categoryService.getDataElementCategoryOptionCombo( m.group( GROUP_CATEGORORY_OPTION_COMBO ) ) );
+            ( m ) -> categoryService.getDataElementCategoryOptionCombo( m.group( GROUP_CATEGORORY_OPTION_COMBO ) ) );
     }
 
     @Override
@@ -487,6 +384,46 @@ public class DefaultExpressionService
     }
 
     @Override
+    public Set<String> getDataElementIdsInExpression( String expression )
+    {
+        Set<String> dataElementIds = new HashSet<>();
+
+        if ( expression == null || expression.isEmpty() )
+        {
+            return dataElementIds;
+        }
+
+        Matcher matcher = OPERAND_PATTERN.matcher( expression );
+
+        while ( matcher.find() )
+        {
+            dataElementIds.add( matcher.group( 1 ) );
+        }
+
+        return dataElementIds;
+    }
+
+    @Override
+    public SetMap<Class<? extends DimensionalItemObject>, String> getDimensionalItemIdsInExpression( String expression )
+    {
+        SetMap<Class<? extends DimensionalItemObject>, String> dimensionItemIdentifiers = new SetMap<>();
+
+        if ( expression == null || expression.isEmpty() )
+        {
+            return dimensionItemIdentifiers;
+        }
+
+        Matcher matcher = VARIABLE_PATTERN.matcher( expression );
+
+        while ( matcher.find() )
+        {
+            dimensionItemIdentifiers.putValue( VARIABLE_TYPES.get( matcher.group( 1 ) ), matcher.group( 2 ) );
+        }
+
+        return dimensionItemIdentifiers;
+    }
+
+    @Override
     public Set<DimensionalItemObject> getDimensionalItemObjectsInExpression( String expression )
     {
         Set<DimensionalItemObject> dimensionItems = Sets.newHashSet();
@@ -511,14 +448,6 @@ public class DefaultExpressionService
         }
 
         return dimensionItems;
-    }
-
-    @Override
-    public Set<DimensionalItemObject> getDimensionalItemObjectsInExpression( String expression, Set<DimensionItemType> dimensionItemTypes )
-    {
-        Set<DimensionalItemObject> objects = getDimensionalItemObjectsInExpression( expression );
-        
-        return objects.stream().filter( o -> dimensionItemTypes.contains( o.getDimensionItemType() ) ).collect( Collectors.toSet() );
     }
 
     @Override
@@ -735,82 +664,6 @@ public class DefaultExpressionService
         expression = TextUtils.appendTail( matcher, sb );
 
         return expression;
-    }
-
-    @Override
-    @Transactional
-    public void explodeValidationRuleExpressions( Collection<ValidationRule> validationRules )
-    {
-        if ( validationRules != null && !validationRules.isEmpty() )
-        {
-            Set<String> dataElementTotals = new HashSet<>();
-
-            for ( ValidationRule rule : validationRules )
-            {
-                if ( rule.getLeftSide().getExpression() != null )
-                {
-                    dataElementTotals.addAll(
-                        RegexUtils.getMatches( DATA_ELEMENT_TOTAL_PATTERN, rule.getLeftSide().getExpression(), GROUP_ID ) );
-                }
-
-                if ( rule.getRightSide().getExpression() != null )
-                {
-                    dataElementTotals.addAll(
-                        RegexUtils.getMatches( DATA_ELEMENT_TOTAL_PATTERN, rule.getRightSide().getExpression(), GROUP_ID ) );
-                }
-            }
-
-            if ( !dataElementTotals.isEmpty() )
-            {
-                final ListMap<String, String> dataElementMap = dataElementService
-                    .getDataElementCategoryOptionComboMap( dataElementTotals );
-
-                if ( !dataElementMap.isEmpty() )
-                {
-                    for ( ValidationRule rule : validationRules )
-                    {
-                        rule.getLeftSide().setExplodedExpression(
-                            explodeExpression( rule.getLeftSide().getExplodedExpressionFallback(), dataElementMap ) );
-                        rule.getRightSide().setExplodedExpression(
-                            explodeExpression( rule.getRightSide().getExplodedExpressionFallback(), dataElementMap ) );
-                    }
-                }
-            }
-        }
-    }
-
-    private String explodeExpression( String expression, ListMap<String, String> dataElementOptionComboMap )
-    {
-        if ( expression == null || expression.isEmpty() )
-        {
-            return null;
-        }
-
-        StringBuffer sb = new StringBuffer();
-        Matcher matcher = OPERAND_PATTERN.matcher( expression );
-
-        while ( matcher.find() )
-        {
-            if ( operandIsTotal( matcher ) )
-            {
-                final StringBuilder replace = new StringBuilder( PAR_OPEN );
-
-                String de = matcher.group( GROUP_DATA_ELEMENT );
-
-                List<String> cocs = dataElementOptionComboMap.get( de );
-
-                for ( String coc : cocs )
-                {
-                    replace.append( EXP_OPEN ).append( de ).append( SEPARATOR ).
-                        append( coc ).append( EXP_CLOSE ).append( "+" );
-                }
-
-                replace.deleteCharAt( replace.length() - 1 ).append( PAR_CLOSE );
-                matcher.appendReplacement( sb, Matcher.quoteReplacement( replace.toString() ) );
-            }
-        }
-
-        return TextUtils.appendTail( matcher, sb );
     }
 
     @Override
@@ -1089,22 +942,4 @@ public class DefaultExpressionService
 
         return TextUtils.appendTail( matcher, sb );
     }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-    
-    /**
-     * Indicates whether the given matcher is based on a {@link DataElementOperand}
-     * which represents a data element total.
-     * 
-     * @param matcher the matcher.
-     * @return true if matcher is based on total.
-     */
-    private boolean operandIsTotal( Matcher matcher )
-    {
-        String coc = StringUtils.trimToEmpty( matcher.group( GROUP_CATEGORORY_OPTION_COMBO ) );
-        
-        return coc.isEmpty() || coc.equals( SYMBOL_WILDCARD );
-    }    
 }
