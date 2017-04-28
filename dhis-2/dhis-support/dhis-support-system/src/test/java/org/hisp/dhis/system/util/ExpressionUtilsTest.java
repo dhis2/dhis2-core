@@ -42,6 +42,8 @@ public class ExpressionUtilsTest
     {
         assertEquals( "#{PuRblkMqsKu}", ExpressionUtils.normalizeExpression( "#{PuRblkMqsKu.*}" ) );
         assertEquals( "#{PuRblkMqsKu}", ExpressionUtils.normalizeExpression( "#{PuRblkMqsKu.*.*}" ) );
+        assertEquals( "#{PuRblkMqsKu.kXGiFZ0msNV}", ExpressionUtils.normalizeExpression( "#{PuRblkMqsKu.kXGiFZ0msNV.*}" ) );
+        
         assertEquals( "#{PuRblkMqsKu.*.BoaSg2GopVn}", ExpressionUtils.normalizeExpression( "#{PuRblkMqsKu.*.BoaSg2GopVn}" ) );
         assertEquals( "#{PuRblkMqsKu.kXGiFZ0msNV}", ExpressionUtils.normalizeExpression( "#{PuRblkMqsKu.kXGiFZ0msNV}" ) );
         assertEquals( "#{PuRblkMqsKu.kXGiFZ0msNV} + #{ZGugB5Dfi9n}", ExpressionUtils.normalizeExpression( "#{PuRblkMqsKu.kXGiFZ0msNV} + #{ZGugB5Dfi9n.*}" ) );

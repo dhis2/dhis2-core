@@ -84,7 +84,7 @@ public interface ExpressionService
     String CONSTANT_EXPRESSION = "C\\{(?<id>[a-zA-Z]\\w{10})\\}";
     String OU_GROUP_EXPRESSION = "OUG\\{(?<id>[a-zA-Z]\\w{10})\\}";
     String DAYS_EXPRESSION = "\\[days\\]";
-    String WILDCARD_EXPRESSION = "(?<key>#)\\{(?<id>[a-zA-Z]\\w{10})(\\.\\*){1,2}\\}";
+    String WILDCARD_EXPRESSION = "(?<key>#)\\{(?<id>(\\w|\\.)+)(\\.\\*){1,2}\\}";
 
     /**
      * Variable pattern. Contains the named groups {@code key}, {@code id}, {@code id1} and {@code id2}.  
