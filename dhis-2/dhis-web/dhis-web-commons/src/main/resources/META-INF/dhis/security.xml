@@ -96,7 +96,7 @@
   -->
 
   <sec:http access-decision-manager-ref="accessDecisionManager" realm="DHIS2" disable-url-rewriting="true" use-expressions="true"
-    authentication-manager-ref="authenticationManager">
+    authentication-manager-ref="authenticationManager" auto-config="false">
     <sec:openid-login user-service-ref="userDetailsService" default-target-url="/" always-use-default-target="false"
       authentication-failure-handler-ref="securityExceptionTranslationHandler"
       login-processing-url="/dhis-web-commons-security/openid.action"
@@ -118,7 +118,6 @@
 
     <sec:csrf disabled="true" />
 
-    <sec:http-basic />
     <sec:logout logout-url="/dhis-web-commons-security/logout.action" logout-success-url="/" />
     <sec:intercept-url pattern="/dhis-web-commons/i18nJavaScript.action" access="permitAll()" />
     <sec:intercept-url pattern="/dhis-web-commons/security/**" access="permitAll()" />
@@ -153,7 +152,12 @@
     <sec:custom-filter ref="automaticAccessFilter" before="LOGOUT_FILTER" />
     <sec:custom-filter ref="corsFilter" before="BASIC_AUTH_FILTER" />
     <sec:custom-filter ref="customAuthenticationFilter" before="FORM_LOGIN_FILTER" />
+    <sec:custom-filter ref="customBasicAuthenticationFilter" position="BASIC_AUTH_FILTER"/>
   </sec:http>
+
+  <bean id="customBasicAuthenticationFilter" class="org.hisp.dhis.security.CustomBasicAuthenticationFilter">
+    <constructor-arg ref="authenticationManager" />
+  </bean>
 
   <bean id="securityExceptionTranslationHandler"
     class="org.hisp.dhis.security.CustomExceptionMappingAuthenticationFailureHandler">
