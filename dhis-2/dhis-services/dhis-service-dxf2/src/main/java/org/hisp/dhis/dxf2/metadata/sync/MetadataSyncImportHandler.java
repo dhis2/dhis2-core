@@ -99,7 +99,8 @@ public class MetadataSyncImportHandler
         catch ( Exception e )
         {
             String message = "Exception occurred while trying to import the metadata. " + e.getMessage();
-            log.error( message, e );
+            log.error( message,e );
+            throw new MetadataSyncServiceException( message,e );
         }
         
         boolean addNewVersion = handleImportReport( importReport, version );

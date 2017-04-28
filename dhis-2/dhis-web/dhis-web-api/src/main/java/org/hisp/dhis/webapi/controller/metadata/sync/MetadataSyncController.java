@@ -34,17 +34,22 @@ import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.exception.RemoteServerUnavailableException;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Controller for the automated sync of the metadata
@@ -64,9 +69,12 @@ public class MetadataSyncController
     @Autowired
     private MetadataSyncService metadataSyncService;
 
+    @Autowired
+    private WebMessageService webMessageService;
+
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_MANAGE')" )
     @GetMapping
-    public MetadataSyncSummary metadataSync() throws MetadataSyncException, DhisVersionMismatchException, BadRequestException
+    public void metadataSync(HttpServletRequest request, HttpServletResponse response) throws MetadataSyncException, DhisVersionMismatchException, BadRequestException
     {
         MetadataSyncParams syncParams;
         MetadataSyncSummary metadataSyncSummary;
@@ -94,6 +102,8 @@ public class MetadataSyncController
                 if( isSyncRequired )
                 {
                     metadataSyncSummary = metadataSyncService.doMetadataSync( syncParams );
+                    webMessageService.send( WebMessageUtils.metadataSynchronizationReport( metadataSyncSummary ),response,request);
+
                 }
                 else
                 {
@@ -110,6 +120,6 @@ public class MetadataSyncController
             }
         }
 
-        return metadataSyncSummary;
+        //return metadataSyncSummary;
     }
 }

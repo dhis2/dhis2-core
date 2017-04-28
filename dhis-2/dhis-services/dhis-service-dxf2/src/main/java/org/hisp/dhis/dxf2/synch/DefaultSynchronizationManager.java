@@ -297,7 +297,7 @@ public class DefaultSynchronizationManager
 
         int lastUpdatedEventsCount = eventService.getAnonymousEventValuesCountLastUpdatedAfter( lastSuccessTime );
 
-        log.info( "Event Values: " + lastUpdatedEventsCount + " since last synch success: " + lastSuccessTime );
+        log.info( "Event Count: " + lastUpdatedEventsCount + " since last synch success: " + lastSuccessTime );
 
         if ( lastUpdatedEventsCount == 0 )
         {
