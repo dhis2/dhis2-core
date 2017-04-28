@@ -68,6 +68,8 @@ public class DataElementOperand
     private DataElement dataElement;
 
     private DataElementCategoryOptionCombo categoryOptionCombo;
+    
+    private DataElementCategoryOptionCombo attributeOptionCombo;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -87,6 +89,13 @@ public class DataElementOperand
     {
         this.dataElement = dataElement;
         this.categoryOptionCombo = categoryOptionCombo;
+    }
+
+    public DataElementOperand( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo )
+    {
+        this.dataElement = dataElement;
+        this.categoryOptionCombo = categoryOptionCombo;
+        this.attributeOptionCombo = attributeOptionCombo;
     }
 
     // -------------------------------------------------------------------------
@@ -262,6 +271,19 @@ public class DataElementOperand
         this.categoryOptionCombo = categoryOptionCombo;
     }
 
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DataElementCategoryOptionCombo getAttributeOptionCombo()
+    {
+        return attributeOptionCombo;
+    }
+
+    public void setAttributeOptionCombo( DataElementCategoryOptionCombo attributeOptionCombo )
+    {
+        this.attributeOptionCombo = attributeOptionCombo;
+    }
+
     // -------------------------------------------------------------------------
     // toString, mergeWith
     // -------------------------------------------------------------------------
@@ -275,6 +297,7 @@ public class DataElementOperand
             "\"uid\":\"" + uid + "\", " +
             "\"dataElement\":" + dataElement + ", " +
             "\"categoryOptionCombo\":" + categoryOptionCombo +
+            "\"attributeOptionCombo\":" + attributeOptionCombo +
             '}';
     }
 
@@ -291,11 +314,13 @@ public class DataElementOperand
             {
                 dataElement = dataElementOperand.getDataElement();
                 categoryOptionCombo = dataElementOperand.getCategoryOptionCombo();
+                attributeOptionCombo = dataElementOperand.getAttributeOptionCombo();
             }
             else if ( mergeMode.isMerge() )
             {
                 dataElement = dataElementOperand.getDataElement() != null ? dataElementOperand.getDataElement() : dataElement;
                 categoryOptionCombo = dataElementOperand.getCategoryOptionCombo() != null ? dataElementOperand.getCategoryOptionCombo() : categoryOptionCombo;
+                attributeOptionCombo = dataElementOperand.getAttributeOptionCombo() != null ? dataElementOperand.getAttributeOptionCombo() : attributeOptionCombo;
             }
         }
     }

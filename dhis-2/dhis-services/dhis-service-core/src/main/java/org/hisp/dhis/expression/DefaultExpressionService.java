@@ -273,7 +273,7 @@ public class DefaultExpressionService
     @Override
     public Set<DataElementCategoryOptionCombo> getOptionCombosInExpression( String expression )
     {
-        return getIdObjectsInExpression( OPTION_COMBO_OPERAND_PATTERN, expression, 
+        return getIdObjectsInExpression( CATEGORY_OPTION_COMBO_OPERAND_PATTERN, expression, 
             ( m ) -> categoryService.getDataElementCategoryOptionCombo( m.group( GROUP_CATEGORORY_OPTION_COMBO ) ) );
     }
 

@@ -403,7 +403,7 @@ public class JdbcAnalyticsManager
                 "(coenddate >= '" + getMediumDateString( params.getEndDate() ) + "' or coenddate is null)) ";
         }
 
-        if ( params.hasStartEndDate() )
+        if ( !params.isRestrictByOrgUnitOpeningClosedDate() && !params.isRestrictByCategoryOptionStartEndDate() && params.hasStartEndDate() )
         {
             sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "pestartdate" ) + "  >= '" + getMediumDateString( params.getStartDate() ) + "' ";
             sql += "and " + statementBuilder.columnQuote( "peenddate" ) + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
