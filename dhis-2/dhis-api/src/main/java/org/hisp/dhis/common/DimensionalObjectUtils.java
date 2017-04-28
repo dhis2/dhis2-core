@@ -52,7 +52,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -502,33 +501,31 @@ public class DimensionalObjectUtils
      */
     public static Set<DimensionalItemObject> getDataElements( Collection<DataElementOperand> operands )
     {
-        Set<DimensionalItemObject> set = Sets.newHashSet();
-        
-        for ( DataElementOperand operand : operands )
-        {
-            set.add( operand.getDataElement() );
-        }
-        
-        return set;
+        return operands.stream().map( DataElementOperand::getDataElement ).collect( Collectors.toSet() );
     }
     
     /**
-     * Gets a set of unique category option combos based on the given collection
+     * Gets a set of unique category option combinations based on the given collection
      * of operands.
      * 
      * @param operands the collection of operands.
-     * @return a set of category option combos.
+     * @return a set of category option combinations.
      */
     public static Set<DimensionalItemObject> getCategoryOptionCombos( Collection<DataElementOperand> operands )
     {
-        Set<DimensionalItemObject> set = Sets.newHashSet();
-        
-        for ( DataElementOperand operand : operands )
-        {
-            set.add( operand.getCategoryOptionCombo() );
-        }
-        
-        return set;
+        return operands.stream().map( DataElementOperand::getCategoryOptionCombo ).collect( Collectors.toSet() );
+    }
+
+    /**
+     * Gets a set of unique attribute option combinations based on the given collection
+     * of operands.
+     * 
+     * @param operands the collection of operands.
+     * @return a set of category option combinations.
+     */
+    public static Set<DimensionalItemObject> getAttributeOptionCombos( Collection<DataElementOperand> operands )
+    {
+        return operands.stream().map( DataElementOperand::getAttributeOptionCombo ).collect( Collectors.toSet() );
     }
 
     /**
