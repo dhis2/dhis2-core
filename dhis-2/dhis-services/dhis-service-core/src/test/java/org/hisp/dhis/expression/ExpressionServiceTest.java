@@ -280,7 +280,7 @@ public class ExpressionServiceTest
         expressionK = "1.5*AVG(" + expressionJ + ")";
         expressionL = "AVG("+expressionJ+")+1.5*STDDEV("+expressionJ+")";
         expressionM = "#{" + deA.getUid() + SEPARATOR + SYMBOL_WILDCARD + "}-#{" + deB.getUid() + SEPARATOR + coc.getUid() + "}";
-        expressionN = "#{" + deA.getUid() + SEPARATOR + cocA.getUid() + SEPARATOR + cocB.getUid() + "}-#{" + deB.getUid() + "}";
+        expressionN = "#{" + deA.getUid() + SEPARATOR + cocA.getUid() + SEPARATOR + cocB.getUid() + "}-#{" + deB.getUid() + SEPARATOR + cocA.getUid() + "}";
 
         descriptionA = "Expression A";
         descriptionB = "Expression B";
@@ -525,6 +525,8 @@ public class ExpressionServiceTest
         Map<DataElementOperand, Double> valueMap = new HashMap<>();
         valueMap.put( new DataElementOperand( deA, coc ), 12d );
         valueMap.put( new DataElementOperand( deB, coc ), 34d );
+        valueMap.put( new DataElementOperand( deA, cocA, cocB ), 26d );
+        valueMap.put( new DataElementOperand( deB, cocA ), 16d );
         
         Map<String, Double> constantMap = new HashMap<>();
         constantMap.put( constantA.getUid(), 2.0 );
@@ -536,6 +538,7 @@ public class ExpressionServiceTest
         assertEquals( "12.0+5", expressionService.generateExpression( expressionD, valueMap, constantMap, null, 5, null ) );
         assertEquals( "12.0*2.0", expressionService.generateExpression( expressionE, valueMap, constantMap, null, null, null ) );
         assertEquals( "12.0*3", expressionService.generateExpression( expressionH, valueMap, constantMap, orgUnitCountMap, null, null ) );
+        assertEquals( "26.0-16.0", expressionService.generateExpression( expressionN, valueMap, constantMap, orgUnitCountMap, null, null ) );
     }
 
     @Test
@@ -557,10 +560,13 @@ public class ExpressionServiceTest
         Expression expD = new Expression( expressionD, null );
         Expression expE = new Expression( expressionE, null );
         Expression expH = new Expression( expressionH, null );
+        Expression expN = new Expression( expressionN, null );
         
         Map<DataElementOperand, Double> valueMap = new HashMap<>();
         valueMap.put( new DataElementOperand( deA, coc ), 12d );
         valueMap.put( new DataElementOperand( deB, coc ), 34d );
+        valueMap.put( new DataElementOperand( deA, cocA, cocB ), 26d );
+        valueMap.put( new DataElementOperand( deB, cocA ), 16d );
         
         Map<String, Double> constantMap = new HashMap<>();
         constantMap.put( constantA.getUid(), 2.0 );
@@ -572,37 +578,53 @@ public class ExpressionServiceTest
         assertEquals( 17d, expressionService.getExpressionValue( expD, valueMap, constantMap, null, 5 ), DELTA );
         assertEquals( 24d, expressionService.getExpressionValue( expE, valueMap, constantMap, null, null ), DELTA );
         assertEquals( 36d, expressionService.getExpressionValue( expH, valueMap, constantMap, orgUnitCountMap, null ), DELTA );
+        assertEquals( 10d, expressionService.getExpressionValue( expN, valueMap, constantMap, orgUnitCountMap, null ), DELTA );
     }
     
     @Test
     public void testGetIndicatorValue()
     {
         IndicatorType indicatorType = new IndicatorType( "A", 100, false );
+        
         Indicator indicatorA = createIndicator( 'A', indicatorType );
         indicatorA.setNumerator( expressionE );
         indicatorA.setDenominator( expressionF );
+        
+        Indicator indicatorB = createIndicator( 'B', indicatorType );
+        indicatorB.setNumerator( expressionN );
+        indicatorB.setDenominator( expressionF );
 
         Map<DataElementOperand, Double> valueMap = new HashMap<>();
         valueMap.put( new DataElementOperand( deA, coc ), 12d );
         valueMap.put( new DataElementOperand( deB, coc ), 34d );
+        valueMap.put( new DataElementOperand( deA, cocA, cocB ), 46d );
+        valueMap.put( new DataElementOperand( deB, cocA ), 10d );
         
         Map<String, Double> constantMap = new HashMap<>();
         constantMap.put( constantA.getUid(), 2.0 );
         
-        assertEquals( 200d, expressionService.getIndicatorValue( indicatorA, period, valueMap, constantMap, null ), DELTA );        
+        assertEquals( 200d, expressionService.getIndicatorValue( indicatorA, period, valueMap, constantMap, null ), DELTA );
+        assertEquals( 300d, expressionService.getIndicatorValue( indicatorB, period, valueMap, constantMap, null ), DELTA );
     }
 
     @Test
     public void testGetIndicatorValueObject()
     {
         IndicatorType indicatorType = new IndicatorType( "A", 100, false );
+        
         Indicator indicatorA = createIndicator( 'A', indicatorType );
         indicatorA.setNumerator( expressionE );
         indicatorA.setDenominator( expressionF );
 
+        Indicator indicatorB = createIndicator( 'B', indicatorType );
+        indicatorB.setNumerator( expressionN );
+        indicatorB.setDenominator( expressionF );
+
         Map<DataElementOperand, Double> valueMap = new HashMap<>();
         valueMap.put( new DataElementOperand( deA, coc ), 12d );
         valueMap.put( new DataElementOperand( deB, coc ), 34d );
+        valueMap.put( new DataElementOperand( deA, cocA, cocB ), 46d );
+        valueMap.put( new DataElementOperand( deB, cocA ), 10d );
         
         Map<String, Double> constantMap = new HashMap<>();
         constantMap.put( constantA.getUid(), 2.0 );
@@ -613,6 +635,13 @@ public class ExpressionServiceTest
         assertEquals( 12d, value.getDenominatorValue(), DELTA );
         assertEquals( 100, value.getFactor() );
         assertEquals( 200d, value.getValue(), DELTA );
+        
+        value = expressionService.getIndicatorValueObject( indicatorB, period, valueMap, constantMap, null );
+
+        assertEquals( 36d, value.getNumeratorValue(), DELTA );
+        assertEquals( 12d, value.getDenominatorValue(), DELTA );
+        assertEquals( 100, value.getFactor() );
+        assertEquals( 300d, value.getValue(), DELTA );
     }
     
     // -------------------------------------------------------------------------
