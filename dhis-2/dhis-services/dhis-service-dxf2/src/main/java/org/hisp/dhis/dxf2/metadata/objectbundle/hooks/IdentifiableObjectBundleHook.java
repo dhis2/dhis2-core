@@ -67,8 +67,10 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
         handleAttributeValues( object, bundle, schema );
     }
 
-    private void handleAttributeValues( Session session, IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
+    private void handleAttributeValues( IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
     {
+        Session session = sessionFactory.getCurrentSession();
+
         if ( !schema.havePersistedProperty( "attributeValues" ) ) return;
 
         Iterator<AttributeValue> iterator = identifiableObject.getAttributeValues().iterator();
