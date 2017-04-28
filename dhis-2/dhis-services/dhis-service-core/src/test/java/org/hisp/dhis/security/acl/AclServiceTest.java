@@ -55,7 +55,6 @@ import static org.junit.Assert.*;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-
 public class AclServiceTest
     extends DhisSpringTest
 {
@@ -614,6 +613,25 @@ public class AclServiceTest
 
         dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
         assertFalse( aclService.canUpdate( user1, dataElement ) );
+    }
+
+    @Test
+    public void testAllowSuperuserMakePublic()
+    {
+        User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
+        User user2 = createUser( "user2", "ALL" );
+        manager.save( user1 );
+        manager.save( user2 );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
+        dataElement.setUser( user1 );
+
+        assertTrue( aclService.canWrite( user1, dataElement ) );
+        manager.save( dataElement );
+
+        dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
+        assertTrue( aclService.canUpdate( user2, dataElement ) );
     }
 
     @Test
