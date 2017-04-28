@@ -168,12 +168,16 @@ public class DefaultSqlViewService
     @Override
     public String createViewTable( SqlView sqlView )
     {
+        validateSqlView( sqlView, null, null );
+        
         return sqlViewStore.createViewTable( sqlView );
     }
     
     @Override
     public Grid getSqlViewGrid( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables, List<String> filters, List<String> fields  )
     {
+        validateSqlView( sqlView, criteria, variables );
+        
         Grid grid = new ListGrid();
         grid.setTitle( sqlView.getName() );
         grid.setSubtitle( sqlView.getDescription() );
@@ -295,7 +299,7 @@ public class DefaultSqlViewService
 
         return sql;
     }
-
+    
     @Override
     public void validateSqlView( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables )
         throws IllegalQueryException
