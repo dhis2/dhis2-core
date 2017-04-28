@@ -616,7 +616,7 @@ public class AclServiceTest
     }
 
     @Test
-    public void testAllowSuperuserMakePublic()
+    public void testAllowSuperuserMakePublic1()
     {
         User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
         User user2 = createUser( "user2", "ALL" );
@@ -632,6 +632,29 @@ public class AclServiceTest
 
         dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
         assertTrue( aclService.canUpdate( user2, dataElement ) );
+    }
+
+    @Test
+    public void testAllowSuperuserMakePublic2()
+    {
+        User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
+        User user2 = createUser( "user2", "ALL" );
+        manager.save( user1 );
+        manager.save( user2 );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
+        dataElement.setUser( user1 );
+
+        assertTrue( aclService.canWrite( user1, dataElement ) );
+        manager.save( dataElement, user1 );
+
+        dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
+        assertTrue( aclService.canUpdate( user2, dataElement ) );
+        manager.save( dataElement, user2 );
+
+        assertFalse( aclService.canWrite( user1, dataElement ) );
+        manager.save( dataElement, user1 );
     }
 
     @Test
