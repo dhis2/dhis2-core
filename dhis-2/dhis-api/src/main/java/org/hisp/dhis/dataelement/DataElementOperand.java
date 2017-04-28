@@ -358,4 +358,56 @@ public class DataElementOperand
             }
         }
     }
+
+    // -------------------------------------------------------------------------
+    // Option combination type
+    // -------------------------------------------------------------------------
+
+    public enum TotalType
+    {
+        COC_ONLY( true, false ), AOC_ONLY( false, true ), COC_AND_AOC( true, true ), NONE( false, false );
+        
+        private boolean coc;
+        private boolean aoc;
+        
+        TotalType()
+        {
+        }
+        
+        TotalType( boolean coc, boolean aoc )
+        {
+            this.coc = coc;
+            this.aoc = aoc;
+        }
+        
+        public boolean isCategoryOptionCombo()
+        {
+            return coc;
+        }
+        
+        public boolean isAttributeOptionCombo()
+        {
+            return aoc;
+        }
+    }
+    
+    public TotalType getTotalType()
+    {
+        if ( categoryOptionCombo == null && attributeOptionCombo == null )
+        {
+            return TotalType.COC_AND_AOC;
+        }
+        else if ( categoryOptionCombo == null )
+        {
+            return TotalType.COC_ONLY;
+        }
+        else if ( attributeOptionCombo == null )
+        {
+            return TotalType.AOC_ONLY;
+        }
+        else
+        {
+            return TotalType.NONE;
+        }
+    }
 }

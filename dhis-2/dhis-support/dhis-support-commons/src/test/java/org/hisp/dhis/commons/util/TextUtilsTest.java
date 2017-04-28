@@ -130,5 +130,14 @@ public class TextUtilsTest
         assertNull( TextUtils.splitSafe( "red-green-blue", "-", 3 ) );
         assertNull( TextUtils.splitSafe( "red-green-blue", "-", -2 ) );
         assertNull( TextUtils.splitSafe( "red-green-blue-", "-", 3 ) );        
-    }    
+    }
+
+    @Test
+    public void testReplaceFirst()
+    {
+        assertEquals( "green;red;blue,orange", TextUtils.replaceFirst( "green,red,blue,orange", ",", ";", 2 ) );
+        assertEquals( "green.red.blue-orange", TextUtils.replaceFirst( "green-red-blue-orange", "-", ".", 2 ) );
+        assertEquals( "llland", TextUtils.replaceFirst( "lalaland", "a", "", 2 ) );
+        assertEquals( "mamamand", TextUtils.replaceFirst( "lalaland", "la", "ma", 3 ) );
+    }
 }

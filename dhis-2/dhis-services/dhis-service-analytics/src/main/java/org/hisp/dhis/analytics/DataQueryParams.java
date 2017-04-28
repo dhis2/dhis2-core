@@ -96,7 +96,7 @@ public class DataQueryParams
     public static final String DISPLAY_NAME_LATITUDE = "Latitude";
 
     public static final int DX_INDEX = 0;
-    public static final int CO_INDEX = 1;
+    private static final int COC_INDEX = 1; // TODO AOC_INDEX
 
     public static final ImmutableSet<Class<? extends IdentifiableObject>> DYNAMIC_DIM_CLASSES = ImmutableSet.of( 
         OrganisationUnitGroupSet.class, DataElementGroupSet.class, CategoryOptionGroupSet.class, DataElementCategory.class );
@@ -1121,7 +1121,7 @@ public class DataQueryParams
         }
         else if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension.getDimension() ) )
         {
-            int index = !dimensions.isEmpty() && DATA_X_DIM_ID.equals( dimensions.get( 0 ).getDimension() ) ? CO_INDEX : DX_INDEX;
+            int index = !dimensions.isEmpty() && DATA_X_DIM_ID.equals( dimensions.get( 0 ).getDimension() ) ? COC_INDEX : DX_INDEX;
             
             dimensions.add( index, dimension );
         }

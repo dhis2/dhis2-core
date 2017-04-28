@@ -513,7 +513,10 @@ public class DimensionalObjectUtils
      */
     public static Set<DimensionalItemObject> getCategoryOptionCombos( Collection<DataElementOperand> operands )
     {
-        return operands.stream().map( DataElementOperand::getCategoryOptionCombo ).collect( Collectors.toSet() );
+        return operands.stream()
+            .filter( o -> o.getCategoryOptionCombo() != null )
+            .map( DataElementOperand::getCategoryOptionCombo )
+            .collect( Collectors.toSet() );
     }
 
     /**
@@ -525,7 +528,10 @@ public class DimensionalObjectUtils
      */
     public static Set<DimensionalItemObject> getAttributeOptionCombos( Collection<DataElementOperand> operands )
     {
-        return operands.stream().map( DataElementOperand::getAttributeOptionCombo ).collect( Collectors.toSet() );
+        return operands.stream()
+            .filter( o -> o.getAttributeOptionCombo() != null )
+            .map( DataElementOperand::getAttributeOptionCombo )
+            .collect( Collectors.toSet() );
     }
 
     /**
