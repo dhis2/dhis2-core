@@ -447,6 +447,8 @@ public class TableAlteror
         executeSql( "update eventchart set hidetitle = false where hidetitle is null" );
         executeSql( "update eventchart set hidesubtitle = false where hidesubtitle is null" );
         executeSql( "update eventchart set hidenadata = false where hidenadata is null" );
+        executeSql( "update eventchart set percentstackedvalues = false where percentstackedvalues is null" );
+        executeSql( "update eventchart set cumulativevalues = false where cumulativevalues is null" );
         executeSql( "update reporttable set showdimensionlabels = false where showdimensionlabels is null" );
         executeSql( "update eventreport set showdimensionlabels = false where showdimensionlabels is null" );
         executeSql( "update reporttable set skiprounding = false where skiprounding is null" );
