@@ -254,7 +254,7 @@ public class DataElementOperand
      */
     public boolean isTotal()
     {
-        return categoryOptionCombo == null;
+        return categoryOptionCombo == null && attributeOptionCombo == null;
     }
     
     /**
