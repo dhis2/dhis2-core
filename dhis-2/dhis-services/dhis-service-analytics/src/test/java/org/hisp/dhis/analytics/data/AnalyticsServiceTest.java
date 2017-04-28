@@ -243,12 +243,14 @@ public class AnalyticsServiceTest
 
         dataSetA.addDataSetElement( deA );
         dataSetA.addDataSetElement( deB );
+        dataSetA.addOrganisationUnit( ouA );
 
         DataSet dataSetB = createDataSet( 'B' );
         dataSetB.setUid( "a23dataSetB" );
 
         dataSetB.addDataSetElement( deC );
         dataSetB.addDataSetElement( deD );
+        dataSetB.addOrganisationUnit( ouC );
 
         dataSetService.addDataSet( dataSetA );
         dataSetService.addDataSet( dataSetB );
@@ -259,7 +261,7 @@ public class AnalyticsServiceTest
         parseDataValues( dataValueLines );
 
         ArrayList<String[]> dataSetRegistrationLines = readInputFile( "csv/dataSetRegistrations.csv" );
-        //parseDataSetRegistrations( dataSetRegistrationLines );
+        parseDataSetRegistrations( dataSetRegistrationLines );
 
         // Make indicators
         // --------------------------------------------------------------------
@@ -458,8 +460,7 @@ public class AnalyticsServiceTest
         ReportingRate reportingRateB = new ReportingRate( dataSetB );
 
         DataQueryParams reRate_2017_params = DataQueryParams.newBuilder()
-            .withOrganisationUnit( ouA )
-            .withReportingRates( Lists.newArrayList( reportingRateA, reportingRateB ) )
+            .withReportingRates( Lists.newArrayList( reportingRateA ) )
             .withPeriod( y2017 )
             .withAggregationType( AggregationType.SUM )
             .withOutputFormat( OutputFormat.ANALYTICS ).build();
