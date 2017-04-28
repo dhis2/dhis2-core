@@ -122,7 +122,7 @@ function validateInvite() {
 	var action = $('#accountAction').val();
 	
 	if ( "invite" == action ) {
-		var url = 'validateInvite.action?email=' + $('#inviteEmail').val();
+		var url = 'validateInvite.action?email=' + htmlEncode($('#inviteEmail').val());
 		var options = $('#urSelected').val();
 		$.each(options, function(inx,val) {
 			url += '&urSelected=' + val;
