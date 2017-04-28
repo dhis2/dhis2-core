@@ -76,14 +76,30 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
     {
         if ( !schema.havePersistedProperty( "attributeValues" ) ) return;
 
-        for ( AttributeValue attributeValue : identifiableObject.getAttributeValues() )
+        Iterator<AttributeValue> iterator = identifiableObject.getAttributeValues().iterator();
+
+        while ( iterator.hasNext() )
         {
+            AttributeValue attributeValue = iterator.next();
+
             // if value null or empty, just skip it
-            if ( StringUtils.isEmpty( attributeValue.getValue() ) ) continue;
+            if ( StringUtils.isEmpty( attributeValue.getValue() ) )
+            {
+                iterator.remove();
+                continue;
+            }
 
             Attribute attribute = bundle.getPreheat().get( bundle.getPreheatIdentifier(), attributeValue.getAttribute() );
+
+            if ( attribute == null )
+            {
+                iterator.remove();
+                continue;
+            }
+
             attributeValue.setAttribute( attribute );
             session.save( attributeValue );
+            session.flush();
         }
     }
 
