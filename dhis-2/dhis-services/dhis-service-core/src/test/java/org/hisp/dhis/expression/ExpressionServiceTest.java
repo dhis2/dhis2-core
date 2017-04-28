@@ -74,6 +74,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -138,6 +139,8 @@ public class ExpressionServiceTest
     private OrganisationUnit unitC;
 
     private DataElementCategoryOptionCombo coc;
+    private DataElementCategoryOptionCombo cocA;
+    private DataElementCategoryOptionCombo cocB;
     
     private Constant constantA;
     
@@ -156,13 +159,12 @@ public class ExpressionServiceTest
     private String expressionJ;
     private String expressionL;
     private String expressionM;
+    private String expressionN;
 
     private String descriptionA;
     private String descriptionB;
     
     private Set<DataElement> dataElements = new HashSet<>();
-
-    private Set<DataElementCategoryOptionCombo> optionCombos = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -198,7 +200,14 @@ public class ExpressionServiceTest
         categoryCombo.getCategories().add( categoryB );
 
         categoryService.addDataElementCategoryCombo( categoryCombo );
-
+        
+        categoryService.generateOptionCombos( categoryCombo );
+        
+        List<DataElementCategoryOptionCombo> optionCombos = Lists.newArrayList( categoryCombo.getOptionCombos() );
+        
+        cocA = optionCombos.get( 0 );
+        cocB = optionCombos.get( 1 );
+        
         deA = createDataElement( 'A' );
         deB = createDataElement( 'B' );
         deC = createDataElement( 'C' );
@@ -268,9 +277,10 @@ public class ExpressionServiceTest
         expressionI = "#{" + opA.getDimensionItem() + "}*" + "#{" + deB.getDimensionItem() + "}+" + "C{" + constantA.getUid() + "}+5-" +
             "D{" + pdeA.getDimensionItem() + "}+" + "A{" + pteaA.getDimensionItem() + "}-10+" + "I{" + piA.getDimensionItem() + "}";
         expressionJ = "#{" + opA.getDimensionItem() + "}+#{" + opB.getDimensionItem() + "}";
-        expressionK = "1.5*AVG("+expressionJ+")";
+        expressionK = "1.5*AVG(" + expressionJ + ")";
         expressionL = "AVG("+expressionJ+")+1.5*STDDEV("+expressionJ+")";
         expressionM = "#{" + deA.getUid() + SEPARATOR + SYMBOL_WILDCARD + "}-#{" + deB.getUid() + SEPARATOR + coc.getUid() + "}";
+        expressionN = "#{" + deA.getUid() + SEPARATOR + cocA.getUid() + SEPARATOR + cocB.getUid() + "}-#{" + deB.getUid() + "}";
 
         descriptionA = "Expression A";
         descriptionB = "Expression B";
@@ -412,7 +422,7 @@ public class ExpressionServiceTest
     }
 
     @Test
-    public void testCustomFunctions()
+    public void testCalculateExpressionWithCustomFunctions()
     {
         assertEquals( 5.0, calculateExpression( "COUNT([1,2,3,4,5])" ) );
         assertEquals( 15.0, calculateExpression( "VSUM([1,2,3,4,5])" ) );
@@ -453,35 +463,36 @@ public class ExpressionServiceTest
         assertTrue( expressionService.expressionIsValid( expressionK ).isValid() );
         assertTrue( expressionService.expressionIsValid( expressionL ).isValid() );
         assertTrue( expressionService.expressionIsValid( expressionM ).isValid() );
+        assertTrue( expressionService.expressionIsValid( expressionN ).isValid() );
 
-        expressionA = "#{nonExisting" + SEPARATOR + coc.getUid() + "} + 12";
+        String expression = "#{nonExisting" + SEPARATOR + coc.getUid() + "} + 12";
 
-        assertEquals( ExpressionValidationOutcome.DIMENSIONAL_ITEM_OBJECT_DOES_NOT_EXIST, expressionService.expressionIsValid( expressionA ) );
+        assertEquals( ExpressionValidationOutcome.DIMENSIONAL_ITEM_OBJECT_DOES_NOT_EXIST, expressionService.expressionIsValid( expression ) );
 
-        expressionA = "#{" + deA.getUid() + SEPARATOR + "999} + 12";
+        expression = "#{" + deA.getUid() + SEPARATOR + "999} + 12";
 
         assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, expressionService
-            .expressionIsValid( expressionA ) );
+            .expressionIsValid( expression ) );
 
-        expressionA = "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "} + ( 12";
+        expression = "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "} + ( 12";
 
-        assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, expressionService.expressionIsValid( expressionA ) );
+        assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, expressionService.expressionIsValid( expression ) );
 
-        expressionA = "12 x 4";
+        expression = "12 x 4";
 
-        assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, expressionService.expressionIsValid( expressionA ) );
+        assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, expressionService.expressionIsValid( expression ) );
         
-        expressionA=expressionK.replace(")", "");
+        expression = "1.5*AVG(" + expressionJ;
 
-        assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, expressionService.expressionIsValid( expressionA ) );
+        assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, expressionService.expressionIsValid( expression ) );
         
-        expressionA = "12 + C{nonExisting}";
+        expression = "12 + C{nonExisting}";
 
-        assertEquals( ExpressionValidationOutcome.CONSTANT_DOES_NOT_EXIST, expressionService.expressionIsValid( expressionA ) );
+        assertEquals( ExpressionValidationOutcome.CONSTANT_DOES_NOT_EXIST, expressionService.expressionIsValid( expression ) );
         
-        expressionA = "12 + OUG{nonExisting}";
+        expression = "12 + OUG{nonExisting}";
         
-        assertEquals( ExpressionValidationOutcome.ORG_UNIT_GROUP_DOES_NOT_EXIST, expressionService.expressionIsValid( expressionA ) );
+        assertEquals( ExpressionValidationOutcome.ORG_UNIT_GROUP_DOES_NOT_EXIST, expressionService.expressionIsValid( expression ) );
     }
 
     @Test
@@ -505,15 +516,15 @@ public class ExpressionServiceTest
         
         description = expressionService.getExpressionDescription( expressionM );
 
-        assertEquals( "DataElementA-DataElementB", description );        
+        assertEquals( "DataElementA-DataElementB", description );     
     }
     
     @Test
-    public void testGenerateExpressionMap()
+    public void testGenerateExpressionWithMap()
     {
         Map<DataElementOperand, Double> valueMap = new HashMap<>();
-        valueMap.put( DataElementOperand.instance( deA.getUid(), coc.getUid() ), 12d );
-        valueMap.put( DataElementOperand.instance( deB.getUid(), coc.getUid() ), 34d );
+        valueMap.put( new DataElementOperand( deA, coc ), 12d );
+        valueMap.put( new DataElementOperand( deB, coc ), 34d );
         
         Map<String, Double> constantMap = new HashMap<>();
         constantMap.put( constantA.getUid(), 2.0 );
@@ -528,7 +539,7 @@ public class ExpressionServiceTest
     }
 
     @Test
-    public void testGenerateExpressionMapNullIfNoValues()
+    public void testGenerateExpressionWithMapNullIfNoValues()
     {
         Map<DataElementOperand, Double> valueMap = new HashMap<>();
         
@@ -548,8 +559,8 @@ public class ExpressionServiceTest
         Expression expH = new Expression( expressionH, null );
         
         Map<DataElementOperand, Double> valueMap = new HashMap<>();
-        valueMap.put( DataElementOperand.instance( deA.getUid(), coc.getUid() ), 12d );
-        valueMap.put( DataElementOperand.instance( deB.getUid(), coc.getUid() ), 34d );
+        valueMap.put( new DataElementOperand( deA, coc ), 12d );
+        valueMap.put( new DataElementOperand( deB, coc ), 34d );
         
         Map<String, Double> constantMap = new HashMap<>();
         constantMap.put( constantA.getUid(), 2.0 );
@@ -572,8 +583,8 @@ public class ExpressionServiceTest
         indicatorA.setDenominator( expressionF );
 
         Map<DataElementOperand, Double> valueMap = new HashMap<>();
-        valueMap.put( DataElementOperand.instance( deA.getUid(), coc.getUid() ), 12d );
-        valueMap.put( DataElementOperand.instance( deB.getUid(), coc.getUid() ), 34d );
+        valueMap.put( new DataElementOperand( deA, coc ), 12d );
+        valueMap.put( new DataElementOperand( deB, coc ), 34d );
         
         Map<String, Double> constantMap = new HashMap<>();
         constantMap.put( constantA.getUid(), 2.0 );
@@ -590,8 +601,8 @@ public class ExpressionServiceTest
         indicatorA.setDenominator( expressionF );
 
         Map<DataElementOperand, Double> valueMap = new HashMap<>();
-        valueMap.put( DataElementOperand.instance( deA.getUid(), coc.getUid() ), 12d );
-        valueMap.put( DataElementOperand.instance( deB.getUid(), coc.getUid() ), 34d );
+        valueMap.put( new DataElementOperand( deA, coc ), 12d );
+        valueMap.put( new DataElementOperand( deB, coc ), 34d );
         
         Map<String, Double> constantMap = new HashMap<>();
         constantMap.put( constantA.getUid(), 2.0 );
