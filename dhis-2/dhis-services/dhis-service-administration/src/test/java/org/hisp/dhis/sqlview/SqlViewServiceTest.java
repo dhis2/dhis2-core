@@ -257,7 +257,7 @@ public class SqlViewServiceTest
         
         sqlViewService.saveSqlView( sqlView );
         
-        sqlViewService.getSqlViewGrid( sqlView, null, null, null, null );
+        sqlViewService.getSqlViewGrid( sqlView, null, null );
     }
     
     @Test
