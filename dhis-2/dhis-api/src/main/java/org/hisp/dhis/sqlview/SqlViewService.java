@@ -42,9 +42,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 public interface SqlViewService
 {
     String ID = SqlViewService.class.getName();
-
     String SELECT_EXPRESSION = "^(?i)\\s*(select|with)\\s+.+";
-
     Pattern SELECT_PATTERN = Pattern.compile( SELECT_EXPRESSION, Pattern.DOTALL );
     
     // -------------------------------------------------------------------------
@@ -81,12 +79,20 @@ public interface SqlViewService
 
     boolean viewTableExists( String viewTableName );
 
+    /**
+     * Creates the SQL view in the database. Checks if the SQL query is valid.
+     * 
+     * @param sqlView the SQL view.
+     * @return null if the view was created successfully, a non-null error message
+     *         if the operation failed.
+    * @throws {@link IllegalQueryException} if the SQL query is invalid.
+     */
     String createViewTable( SqlView sqlView );
 
     void dropViewTable( SqlView sqlView );
     
     /**
-    * Returns the SQL view as a grid.
+    * Returns the SQL view as a grid. Checks if the SQL query is valid.
     * 
     * @param sqlView the SQL view to render.
     * @param criteria the criteria on the format key:value, will be applied as
@@ -94,6 +100,7 @@ public interface SqlViewService
     * @param variables the variables on the format key:value, will be substituted
     *        with variables inside the SQL view.
     * @return a grid.
+    * @throws {@link IllegalQueryException} if the SQL query is invalid.
     */
     Grid getSqlViewGrid( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables );
 

@@ -64,6 +64,10 @@ public class SqlViewController
     @Autowired
     private ContextUtils contextUtils;
 
+    // -------------------------------------------------------------------------
+    // Get
+    // -------------------------------------------------------------------------
+
     @RequestMapping( value = "/{uid}/data", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
     public @ResponseBody Grid getViewJson( @PathVariable( "uid" ) String uid,
         @RequestParam( required = false ) Set<String> criteria, @RequestParam( required = false ) Set<String> var,
@@ -200,6 +204,10 @@ public class SqlViewController
 
         GridUtils.toPdf( grid, response.getOutputStream() );
     }
+
+    // -------------------------------------------------------------------------
+    // Post
+    // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}/execute", method = RequestMethod.POST )
     public void executeView( @PathVariable( "uid" ) String uid, @RequestParam( required = false ) Set<String> var,
