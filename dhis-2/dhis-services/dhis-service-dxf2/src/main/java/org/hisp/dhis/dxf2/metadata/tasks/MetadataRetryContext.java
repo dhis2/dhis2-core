@@ -35,6 +35,7 @@ import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.metadata.version.MetadataVersion;
+import org.springframework.core.AttributeAccessor;
 import org.springframework.retry.RetryContext;
 
 import java.util.List;
@@ -51,6 +52,7 @@ public class MetadataRetryContext
     private static final Log log = LogFactory.getLog( MetadataRetryContext.class );
 
     private RetryContext retryContext;
+    private String[] AttributeAccessor;
 
     public RetryContext getRetryContext()
     {
@@ -61,6 +63,17 @@ public class MetadataRetryContext
     {
         this.retryContext = retryContext;
         log.info( "Now trying. Current count: " + (retryContext.getRetryCount() + 1) );
+    }
+
+    public void resetRetryContextStepKeys(){
+        log.info( "Reset retry context." );
+        String[] names = retryContext.attributeNames();
+        if(names!=null && names.length!=0){
+            for(String name: names){
+                log.info( "Removing key'" +name+"'" );
+                retryContext.removeAttribute( name );
+            }
+        }
     }
 
     public void updateRetryContext( String stepKey,

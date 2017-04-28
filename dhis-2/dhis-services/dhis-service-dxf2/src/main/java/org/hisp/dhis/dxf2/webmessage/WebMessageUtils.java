@@ -1,8 +1,8 @@
 package org.hisp.dhis.dxf2.webmessage;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
- *  All rights reserved.
+ * Copyright (c) 2004-2017, University of Oslo
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,11 +28,13 @@ package org.hisp.dhis.dxf2.webmessage;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.dxf2.webmessage.responses.MetadataSyncWebMessageResponse;
 import org.hisp.dhis.dxf2.common.Status;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ImportReportWebMessageResponse;
@@ -306,6 +308,24 @@ public final class WebMessageUtils
         {
             webMessage.setStatus( Status.ERROR );
             webMessage.setHttpStatus( HttpStatus.BAD_REQUEST );
+        }
+
+        return webMessage;
+    }
+
+    public static WebMessage metadataSynchronizationReport( MetadataSyncSummary mdSyncSummary )
+    {
+        WebMessage webMessage = new WebMessage();
+        webMessage.setResponse( new MetadataSyncWebMessageResponse( mdSyncSummary ) );
+        ImportReport importReport = mdSyncSummary.getImportReport();
+
+        webMessage.setStatus( importReport.getStatus() );
+
+        if ( webMessage.getStatus() != Status.OK )
+        {
+            webMessage.setMessage( "One more more errors occurred, please see full details in import report." );
+            webMessage.setStatus( Status.WARNING );
+            webMessage.setHttpStatus( HttpStatus.CONFLICT );
         }
 
         return webMessage;
