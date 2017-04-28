@@ -28,11 +28,13 @@ package org.hisp.dhis.dxf2.webmessage;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.dxf2.webmessage.responses.MetadataSyncWebMessageResponse;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ImportReportWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ObjectReportWebMessageResponse;
@@ -41,6 +43,7 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.springframework.http.HttpStatus;
+
 
 import java.util.List;
 
@@ -305,6 +308,24 @@ public final class WebMessageUtils
         {
             webMessage.setStatus( Status.ERROR );
             webMessage.setHttpStatus( HttpStatus.BAD_REQUEST );
+        }
+
+        return webMessage;
+    }
+
+    public static WebMessage metadataSynchronizationReport( MetadataSyncSummary mdSyncSummary )
+    {
+        WebMessage webMessage = new WebMessage();
+        webMessage.setResponse( new MetadataSyncWebMessageResponse( mdSyncSummary ) );
+        ImportReport importReport = mdSyncSummary.getImportReport();
+
+        webMessage.setStatus( importReport.getStatus() );
+
+        if ( webMessage.getStatus() != Status.OK )
+        {
+            webMessage.setMessage( "One more more errors occurred, please see full details in import report." );
+            webMessage.setStatus( Status.WARNING );
+            webMessage.setHttpStatus( HttpStatus.CONFLICT );
         }
 
         return webMessage;

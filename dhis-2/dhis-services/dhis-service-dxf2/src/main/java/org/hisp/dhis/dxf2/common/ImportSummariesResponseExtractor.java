@@ -31,6 +31,8 @@ package org.hisp.dhis.dxf2.common;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
@@ -47,18 +49,25 @@ import java.io.StringWriter;
 public class ImportSummariesResponseExtractor
     implements ResponseExtractor<ImportSummaries>
 {
+    private static final Log log = LogFactory.getLog( ImportSummariesResponseExtractor.class );
     @Override
     public ImportSummaries extractData( ClientHttpResponse response ) throws IOException
     {
         HttpStatus status = response.getStatusCode();
+        InputStream stream = response.getBody();
 
         if ( !(HttpStatus.CREATED.equals( status ) || HttpStatus.OK.equals( status )) )
         {
-            throw new HttpServerErrorException( status, "Event sync failed on remote server" );
+            String message = "Event sync failed on remote server.";
+            if(stream!=null){
+                String body = IOUtils.toString(stream, "UTF-8");
+                log.error(message + " The following is the response: "+ body );
+            }
+
+            throw new HttpServerErrorException( status, message );
         }
 
         ImportSummaries summary = null;
-        InputStream stream = response.getBody();
 
         if ( stream != null )
         {
