@@ -365,19 +365,21 @@ public class DataElementOperand
 
     public enum TotalType
     {
-        COC_ONLY( true, false ), AOC_ONLY( false, true ), COC_AND_AOC( true, true ), NONE( false, false );
+        COC_ONLY( true, false, 1 ), AOC_ONLY( false, true, 1 ), COC_AND_AOC( true, true, 2 ), NONE( false, false, 0 );
         
         private boolean coc;
         private boolean aoc;
+        private int propertyCount;
         
         TotalType()
         {
         }
         
-        TotalType( boolean coc, boolean aoc )
+        TotalType( boolean coc, boolean aoc, int propertyCount )
         {
             this.coc = coc;
             this.aoc = aoc;
+            this.propertyCount = propertyCount;
         }
         
         public boolean isCategoryOptionCombo()
@@ -388,6 +390,11 @@ public class DataElementOperand
         public boolean isAttributeOptionCombo()
         {
             return aoc;
+        }
+        
+        public int getPropertyCount()
+        {
+            return propertyCount;
         }
     }
     

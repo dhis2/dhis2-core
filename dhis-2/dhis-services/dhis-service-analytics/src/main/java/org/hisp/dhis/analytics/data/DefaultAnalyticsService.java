@@ -512,7 +512,7 @@ public class DefaultAnalyticsService
 
         Map<String, Object> aggregatedDataMap = getAggregatedDataValueMapObjectTyped( operandParams );
 
-        aggregatedDataMap = AnalyticsUtils.convertDxToOperand( aggregatedDataMap );
+        aggregatedDataMap = AnalyticsUtils.convertDxToOperand( aggregatedDataMap, totalType.getPropertyCount() );
 
         for ( Map.Entry<String, Object> entry : aggregatedDataMap.entrySet() )
         {
