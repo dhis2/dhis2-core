@@ -12,6 +12,10 @@
     </id>
     &identifiableProperties;
 
+    <property name="createdAtClient" type="timestamp" not-null="true" />
+
+    <property name="lastUpdatedAtAtClient" type="timestamp" not-null="true" />
+
     <property name="inactive" column="inactive" />
 
     <set name="trackedEntityAttributeValues" inverse="true">
