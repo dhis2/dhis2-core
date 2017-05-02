@@ -132,13 +132,21 @@ public class DefaultMaintenanceService
     @Override
     public int deleteSoftDeletedProgramInstances()
     {
-        return maintenanceStore.deleteSoftDeletedProgramInstances();
+        int result = maintenanceStore.deleteSoftDeletedProgramInstances();
+
+        log.info( "Permanently deleted soft deleted enrollments: " + result );
+
+        return result;
     }
 
     @Override
     public int deleteSoftDeletedTrackedEntityInstances()
     {
-        return maintenanceStore.deleteSoftDeletedTrackedEntityInstances();
+        int result = maintenanceStore.deleteSoftDeletedTrackedEntityInstances();
+
+        log.info( "Permanently deleted soft deleted tracked entity instances: " + result );
+
+        return result;
     }
 
     @Override

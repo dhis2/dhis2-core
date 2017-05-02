@@ -176,7 +176,7 @@ public class TrackedEntityInstanceController
 
         TrackedEntityInstanceQueryParams queryParams = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate, trackedEntity,
-            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, getOrderParams( order ) );
+            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, includeDeleted, getOrderParams( order ) );
 
         if ( trackedEntityInstance == null )
         {
@@ -270,7 +270,7 @@ public class TrackedEntityInstanceController
         Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
         TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate, trackedEntity,
-            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, getOrderParams( order ) );
+            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, includeDeleted, getOrderParams( order ) );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
         return instanceService.getTrackedEntityInstancesGrid( params );
@@ -312,7 +312,7 @@ public class TrackedEntityInstanceController
         Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
         TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate, trackedEntity,
-            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, getOrderParams( order ) );
+            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, includeDeleted, getOrderParams( order ) );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.NO_CACHE );
         Grid grid = instanceService.getTrackedEntityInstancesGrid( params );
@@ -355,7 +355,7 @@ public class TrackedEntityInstanceController
         Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
         TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate, trackedEntity,
-            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, getOrderParams( order ) );
+            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, includeDeleted, getOrderParams( order ) );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.NO_CACHE );
         Grid grid = instanceService.getTrackedEntityInstancesGrid( params );
@@ -398,7 +398,7 @@ public class TrackedEntityInstanceController
         Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
         TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate, trackedEntity,
-            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, getOrderParams( order ) );
+            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, includeDeleted, getOrderParams( order ) );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE );
         Grid grid = instanceService.getTrackedEntityInstancesGrid( params );

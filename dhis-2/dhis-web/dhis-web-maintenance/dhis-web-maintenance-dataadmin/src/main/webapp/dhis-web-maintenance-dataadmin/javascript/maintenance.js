@@ -15,7 +15,7 @@ function performMaintenance() {
     var clearApplicationCache = $("#clearApplicationCache").is(":checked");
     var reloadApps = $("#reloadApps").is(":checked");
 
-    if ( clearAnalytics || analyzeAnalytics || zeroValues || softDeletedValues || softDeletedEvents || prunePeriods || removeExpiredInvitations ||
+    if ( clearAnalytics || analyzeAnalytics || zeroValues || softDeletedValues || softDeletedEvents || softDeletedEnrollments || softDeletedTrackedEntityInstances || prunePeriods || removeExpiredInvitations ||
         dropSqlViews || createSqlViews || updateCategoryOptionCombos || updateOrganisationUnitPaths || clearApplicationCache || reloadApps ) {
 
         setHeaderWaitMessage(i18n_performing_maintenance);

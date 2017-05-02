@@ -171,7 +171,7 @@ public class MaintenanceController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteSoftDeletedProgramInstances()
     {
-        maintenanceService.deleteSoftDeletedProgramStageInstances();
+        maintenanceService.deleteSoftDeletedProgramInstances();
     }
 
     @RequestMapping( value = "/softDeletedTrackedEntityInstanceRemoval", method = { RequestMethod.PUT, RequestMethod.POST } )
@@ -179,7 +179,7 @@ public class MaintenanceController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteSoftDeletedTrackedEntityInstances()
     {
-        maintenanceService.deleteSoftDeletedProgramStageInstances();
+        maintenanceService.deleteSoftDeletedTrackedEntityInstances();
     }
 
     @RequestMapping( value = "/sqlViewsCreate", method = { RequestMethod.PUT, RequestMethod.POST } )
@@ -334,7 +334,7 @@ public class MaintenanceController
 
         if ( softDeletedEnrollmentRemoval )
         {
-            deleteSoftDeletedProgramStageInstances();
+            deleteSoftDeletedProgramInstances();
         }
 
         if ( softDeletedTrackedEntityInstanceRemoval )

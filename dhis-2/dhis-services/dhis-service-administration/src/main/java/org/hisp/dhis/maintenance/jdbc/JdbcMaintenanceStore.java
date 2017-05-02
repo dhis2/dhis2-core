@@ -98,7 +98,7 @@ public class JdbcMaintenanceStore
     public int deleteSoftDeletedTrackedEntityInstances()
     {
         String sql =
-            "delete from trackedentityintance " +
+            "delete from trackedentityinstance " +
                 "where deleted is true";
 
         return jdbcTemplate.update( sql );

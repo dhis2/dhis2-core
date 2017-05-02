@@ -61,6 +61,7 @@ public class TrackedEntityInstanceQueryParams
     public static final String TRACKED_ENTITY_ATTRIBUTE_ID = "teattribute";
     public static final String TRACKED_ENTITY_ATTRIBUTE_VALUE_ID = "tevalue";
     public static final String INACTIVE_ID = "inactive";
+    public static final String DELETED = "deleted";
 
     public static final String META_DATA_NAMES_KEY = "names";
     public static final String PAGER_META_KEY = "pager";

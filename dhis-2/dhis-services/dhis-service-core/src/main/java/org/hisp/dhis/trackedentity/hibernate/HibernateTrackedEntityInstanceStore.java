@@ -261,6 +261,7 @@ public class HibernateTrackedEntityInstanceStore
                 "ou.uid as " + ORG_UNIT_ID + ", " +
                 "ou.name as " + ORG_UNIT_NAME + ", " +
                 "te.uid as " + TRACKED_ENTITY_ID + ", " +
+                ( params.isIncludeDeleted() ? "tei.deleted as " + DELETED + ", " : "" ) +
                 "tei.inactive as " + INACTIVE_ID + ", ";
 
         for ( QueryItem item : params.getAttributes() )
@@ -299,6 +300,8 @@ public class HibernateTrackedEntityInstanceStore
         // Query
         // ---------------------------------------------------------------------
 
+        log.info( "Query: "+ sql );
+
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
         log.debug( "Tracked entity instance query SQL: " + sql );
@@ -316,6 +319,11 @@ public class HibernateTrackedEntityInstanceStore
             map.put( ORG_UNIT_NAME, rowSet.getString( ORG_UNIT_NAME ) );
             map.put( TRACKED_ENTITY_ID, rowSet.getString( TRACKED_ENTITY_ID ) );
             map.put( INACTIVE_ID, rowSet.getString( INACTIVE_ID ) );
+
+            if ( params.isIncludeDeleted() )
+            {
+                map.put( DELETED, rowSet.getString( DELETED ) );
+            }
 
             for ( QueryItem item : params.getAttributes() )
             {
