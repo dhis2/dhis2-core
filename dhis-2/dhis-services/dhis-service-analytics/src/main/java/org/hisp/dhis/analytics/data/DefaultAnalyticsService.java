@@ -573,7 +573,7 @@ public class DefaultAnalyticsService
 
                 Double target = entry.getValue();
                 Double actual = dataMap.get( entry.getKey() );
-                
+
                 if ( target != null && ( actual != null || metric == EXPECTED_REPORTS ) )
                 {
                     // ---------------------------------------------------------
