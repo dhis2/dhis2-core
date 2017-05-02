@@ -107,6 +107,12 @@ public class H2StatementBuilder
     }
 
     @Override
+    public String getDaysBetweenDates( String fromColumn, String toColumn )
+    {
+        return ("DATEDIFF('DAY', " + toColumn + ", " + fromColumn + ")");
+    }
+
+    @Override
     public String getNumberOfColumnsInPrimaryKey( String table )
     {
         return "select 0 as c"; //TODO fix
