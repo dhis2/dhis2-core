@@ -186,6 +186,11 @@ public class TrackedEntityInstanceQueryParams
     private boolean skipPaging;
 
     /**
+     * Indicates whether to include soft-deleted elements
+     */
+    private boolean includeDeleted;
+
+    /**
      * TEI order params
      */
     private List<String> orders;
@@ -871,6 +876,16 @@ public class TrackedEntityInstanceQueryParams
     {
         this.skipPaging = skipPaging;
         return this;
+    }
+
+    public boolean isIncludeDeleted()
+    {
+        return includeDeleted;
+    }
+
+    public TrackedEntityInstanceQueryParams setIncludeDeleted( boolean includeDeleted )
+    {
+        this.includeDeleted = includeDeleted;
     }
 
     public User getUser()

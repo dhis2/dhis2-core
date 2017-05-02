@@ -156,6 +156,7 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
         @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) String order ) throws Exception
     {
         programEnrollmentStartDate = ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
@@ -259,6 +260,7 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
         @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) String order,
         Model model,
         HttpServletResponse response ) throws Exception
@@ -301,6 +303,7 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
         @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) String order,
         HttpServletResponse response ) throws Exception
     {
@@ -343,6 +346,7 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
         @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) String order,
         HttpServletResponse response ) throws Exception
     {
@@ -385,6 +389,7 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
         @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) String order,
         HttpServletResponse response ) throws Exception
     {

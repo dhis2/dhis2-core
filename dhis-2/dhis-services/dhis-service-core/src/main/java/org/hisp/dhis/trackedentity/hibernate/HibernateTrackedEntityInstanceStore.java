@@ -474,7 +474,10 @@ public class HibernateTrackedEntityInstanceStore
                 sql += getEventStatusWhereClause( params );
             }
 
-            sql += "and pi.deleted is false";
+            if ( !params.isIncludeDeleted() )
+            {
+                sql += " and pi.deleted is false ";
+            }
 
             sql += ") ";
         }
@@ -507,7 +510,10 @@ public class HibernateTrackedEntityInstanceStore
             sql = removeLastAnd( sql ) + ") ";
         }
 
-        sql += hlp.whereAnd() + " tei.deleted is false ";
+        if ( !params.isIncludeDeleted() )
+        {
+            sql += hlp.whereAnd() + " tei.deleted is false ";
+        }
 
         return sql;
     }
