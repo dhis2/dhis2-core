@@ -1,5 +1,7 @@
 package org.hisp.dhis.system.grid;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -89,6 +91,12 @@ public class ListGrid
     private Map<String, Object> metaData;
 
     /**
+     * A Map which can hold internal arbitrary meta data. Will not be
+     * serialized.
+     */
+    private Map<String, Object> internalMetaData;
+
+    /**
      * A two dimensional List which simulates a grid where the first list
      * represents rows and the second represents columns.
      */
@@ -116,6 +124,7 @@ public class ListGrid
     {
         this.headers = new ArrayList<>();
         this.metaData = new HashMap<>();
+        this.internalMetaData = new HashMap<>();
         this.grid = new ArrayList<>();
     }
 
@@ -126,6 +135,7 @@ public class ListGrid
     {
         this.headers = new ArrayList<>();
         this.metaData = metaData;
+        this.internalMetaData = new HashMap<>();
         this.grid = new ArrayList<>();
     }
 
@@ -274,6 +284,20 @@ public class ListGrid
     public Grid addMetaData( String key, Object value )
     {
         this.metaData.put( key, value );
+        return this;
+    }
+
+    @Override
+    @JsonIgnore
+    public Map<String, Object> getInternalMetaData()
+    {
+        return internalMetaData;
+    }
+
+    @Override
+    public Grid setInternalMetaData( Map<String, Object> internalMetaData )
+    {
+        this.internalMetaData = internalMetaData;
         return this;
     }
 
@@ -550,6 +574,12 @@ public class ListGrid
         return metaData != null && metaData.containsKey( key );
     }
 
+    @Override
+    public boolean hasInternalMetaDataKey( String key )
+    {
+        return internalMetaData != null && internalMetaData.containsKey( key );
+    }
+    
     @Override
     public Grid limitGrid( int limit )
     {

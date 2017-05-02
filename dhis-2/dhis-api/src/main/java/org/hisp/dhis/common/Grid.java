@@ -96,6 +96,16 @@ public interface Grid
     Grid addMetaData( String key, Object value );
 
     /**
+     * Returns a map of internal meta-data.
+     */
+    Map<String, Object> getInternalMetaData();
+
+    /**
+     * Sets a map of internal meta-data.
+     */
+    Grid setInternalMetaData( Map<String, Object> internalMetaData );
+    
+    /**
      * Returns all visible headers, ie. headers which are not hidden.
      */
     List<GridHeader> getVisibleHeaders();
@@ -294,6 +304,13 @@ public interface Grid
      * @param key the meta data key.
      */
     boolean hasMetaDataKey( String key );
+
+    /**
+     * Indicates whether the internal meta data exists and contains the given key.
+     *
+     * @param key the internal meta data key.
+     */
+    boolean hasInternalMetaDataKey( String key );
 
     /**
      * Limits the grid from top by the given argument number.

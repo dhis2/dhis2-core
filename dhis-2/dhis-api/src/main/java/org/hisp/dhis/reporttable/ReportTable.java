@@ -384,8 +384,8 @@ public class ReportTable
         gridColumns = new CombinationGenerator<>( tableColumns.toArray( IRT2D ) ).getCombinations();
         gridRows = new CombinationGenerator<>( tableRows.toArray( IRT2D ) ).getCombinations();
 
-        addIfEmpty( gridColumns );
-        addIfEmpty( gridRows );
+        addListIfEmpty( gridColumns );
+        addListIfEmpty( gridRows );
 
         gridTitle = IdentifiableObjectUtils.join( filterItems );
     }
@@ -519,7 +519,7 @@ public class ReportTable
     /**
      * Adds an empty list of DimensionalItemObjects to the given list if empty.
      */
-    public static void addIfEmpty( List<List<DimensionalItemObject>> list )
+    public static void addListIfEmpty( List<List<DimensionalItemObject>> list )
     {
         if ( list != null && list.size() == 0 )
         {
@@ -673,12 +673,21 @@ public class ReportTable
         // Show hierarchy option
         // ---------------------------------------------------------------------
 
-        if ( showHierarchy && rowDimensions.contains( ORGUNIT_DIM_ID ) && grid.hasMetaDataKey( AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY.getKey() ) )
+        if ( showHierarchy && rowDimensions.contains( ORGUNIT_DIM_ID ) && grid.hasInternalMetaDataKey( AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS.getKey() ) )
         {
-            int ouIdIndex = (rowDimensions.indexOf( ORGUNIT_DIM_ID ) * 4); // Org unit name position
+            int ouIdIndex = rowDimensions.indexOf( ORGUNIT_DIM_ID ) * 4;
+            
+            Map<String, List<OrganisationUnit>> ancestorMap = (Map<String, List<OrganisationUnit>>) grid.getInternalMetaData().get( AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS );
+            
+            
+            // create "inject columns" grid method, inject values for ancestors based on org unit uid
+            
+            /*
+            int ouIdIndex = (rowDimensions.indexOf( ORGUNIT_DIM_ID ) * 4);
             int ouNameIndex = ouIdIndex + 1;
             Map<Object, Object> hierarchyNameMap = (Map<Object, Object>) grid.getMetaData().get( AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY.getKey() );
             grid.substituteMetaData( ouIdIndex, ouNameIndex, hierarchyNameMap );
+            */
         }
 
         return grid;

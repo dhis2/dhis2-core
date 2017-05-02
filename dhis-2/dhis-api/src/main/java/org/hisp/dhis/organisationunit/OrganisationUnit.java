@@ -641,7 +641,7 @@ public class OrganisationUnit
         Collections.reverse( units );
         return units;
     }
-
+    
     /**
      * Returns the list of ancestor organisation unit UIDs up to any of the given roots
      * for this organisation unit. Does not include itself. The list is ordered by
@@ -820,7 +820,7 @@ public class OrganisationUnit
 
         return map;
     }
-
+    
     /**
      * Indicates whether this organisation unit is associated with the given
      * data element through its data set associations.

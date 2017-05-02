@@ -773,8 +773,12 @@ public abstract class BaseAnalyticalObject
     }
 
     /**
-     * Generates an identifier based on the given lists of NameableObjects. Uses
-     * the UIDs for each NameableObject, sorts them and writes them out as a key.
+     * Generates an identifier based on the given lists of {@link NameableObject}. Uses
+     * the identifiers for each nameable object, sorts them and writes them out as a key.
+     * 
+     * @param column list of dimension items representing a column.
+     * @param row list of dimension items representing a row.
+     * @return an identifier representing a column item and a row item.
      */
     public static String getIdentifier( List<DimensionalItemObject> column, List<DimensionalItemObject> row )
     {
