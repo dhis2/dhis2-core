@@ -515,7 +515,7 @@ public class DefaultAnalyticsService
         
         if ( totalType.isAttributeOptionCombo() )
         {
-            builder.addDimension( new BaseDimensionalObject( ATTRIBUTEOPTIONCOMBO_DIM_ID, DimensionType.CATEGORY_OPTION_COMBO, attributeOptionCobos ) );
+            builder.addDimension( new BaseDimensionalObject( ATTRIBUTEOPTIONCOMBO_DIM_ID, DimensionType.ATTRIBUTE_OPTION_COMBO, attributeOptionCobos ) );
         }
         
         DataQueryParams operandParams = builder.build();
