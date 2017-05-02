@@ -458,8 +458,6 @@ public class DefaultAnalyticsService
             }
         }
     }
-
-    // TODO handle * in separate queries in order to aggregate, handle as individual cases
     
     /**
      * Adds data element operand values to the given grid based on the given data
@@ -483,10 +481,22 @@ public class DefaultAnalyticsService
         }
     }
     
+    /**
+     * Adds data element operand values to the given grid.
+     * 
+     * @param params the {@link DataQueryParams}.
+     * @param grid the grid.
+     * @param totalType the operand {@link DataElementOperand.TotalType}.
+     */
     private void addDataElementOperandValues( DataQueryParams params, Grid grid, DataElementOperand.TotalType totalType )
     {        
         List<DataElementOperand> operands = asTypedList( params.getDataElementOperands() );
         operands = operands.stream().filter( o -> totalType.equals( o.getTotalType() ) ).collect( Collectors.toList() );
+        
+        if ( operands.isEmpty() )
+        {
+            return;
+        }
         
         List<DimensionalItemObject> dataElements = Lists.newArrayList( DimensionalObjectUtils.getDataElements( operands ) );
         List<DimensionalItemObject> categoryOptionCombos = Lists.newArrayList( DimensionalObjectUtils.getCategoryOptionCombos( operands ) );
@@ -511,9 +521,9 @@ public class DefaultAnalyticsService
         DataQueryParams operandParams = builder.build();
 
         Map<String, Object> aggregatedDataMap = getAggregatedDataValueMapObjectTyped( operandParams );
-
+        
         aggregatedDataMap = AnalyticsUtils.convertDxToOperand( aggregatedDataMap, totalType.getPropertyCount() );
-
+        
         for ( Map.Entry<String, Object> entry : aggregatedDataMap.entrySet() )
         {
             Object value = AnalyticsUtils.getRoundedValueObject( operandParams, entry.getValue() );

@@ -139,5 +139,6 @@ public class TextUtilsTest
         assertEquals( "green.red.blue-orange", TextUtils.replaceFirst( "green-red-blue-orange", "-", ".", 2 ) );
         assertEquals( "llland", TextUtils.replaceFirst( "lalaland", "a", "", 2 ) );
         assertEquals( "mamamand", TextUtils.replaceFirst( "lalaland", "la", "ma", 3 ) );
+        assertEquals( "lalaland", TextUtils.replaceFirst( "lalaland", "la", "ma", 0 ) );
     }
 }

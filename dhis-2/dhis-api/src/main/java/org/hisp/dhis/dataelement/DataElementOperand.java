@@ -400,15 +400,15 @@ public class DataElementOperand
     
     public TotalType getTotalType()
     {
-        if ( categoryOptionCombo == null && attributeOptionCombo == null )
+        if ( categoryOptionCombo != null && attributeOptionCombo != null )
         {
             return TotalType.COC_AND_AOC;
         }
-        else if ( categoryOptionCombo == null )
+        else if ( categoryOptionCombo != null )
         {
             return TotalType.COC_ONLY;
         }
-        else if ( attributeOptionCombo == null )
+        else if ( attributeOptionCombo != null )
         {
             return TotalType.AOC_ONLY;
         }
