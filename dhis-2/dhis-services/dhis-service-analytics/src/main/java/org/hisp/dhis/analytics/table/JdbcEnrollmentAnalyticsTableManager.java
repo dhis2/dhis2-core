@@ -131,7 +131,9 @@ public class JdbcEnrollmentAnalyticsTableManager
             "left join _dateperiodstructure dps on " + piEnrollmentDate + "=dps.dateperiod " +
             "where pr.programid=" + table.getProgram().getId() + " " + 
             "and pi.organisationunitid is not null " +
-            "and pi.incidentdate is not null";
+            "and pi.incidentdate is not null " +
+            "and pi.deleted is false " +
+            "and tei.deleted is false ";
 
         populateAndLog( sql, tableName );
     }

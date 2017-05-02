@@ -150,7 +150,9 @@ public class JdbcEventAnalyticsTableManager
             "and pr.programid=" + table.getProgram().getId() + " " + 
             "and psi.organisationunitid is not null " +
             "and psi.executiondate is not null " +
-            "and psi.deleted is false";
+            "and psi.deleted is false " +
+            "and pi.deleted is false " +
+            "and tei.deleted is false ";
 
         populateAndLog( sql, tableName );
     }
