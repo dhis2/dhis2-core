@@ -55,6 +55,10 @@ import java.util.Set;
 public class ProgramInstance
     extends BaseIdentifiableObject
 {
+    private Date createdAtClient;
+
+    private Date lastUpdatedAtAtClient;
+
     private ProgramStatus status = ProgramStatus.ACTIVE;
 
     private OrganisationUnit organisationUnit;
@@ -97,6 +101,19 @@ public class ProgramInstance
         this.incidentDate = incidentDate;
         this.entityInstance = entityInstance;
         this.program = program;
+    }
+
+    @Override
+    public void setAutoFields()
+    {
+        super.setAutoFields();
+
+        if ( createdAtClient == null )
+        {
+            createdAtClient = created;
+        }
+
+        lastUpdatedAtAtClient = lastUpdated;
     }
 
     // -------------------------------------------------------------------------
@@ -254,6 +271,30 @@ public class ProgramInstance
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getCreatedAtClient()
+    {
+        return createdAtClient;
+    }
+
+    public void setCreatedAtClient( Date createdAtClient )
+    {
+        this.createdAtClient = createdAtClient;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getLastUpdatedAtAtClient()
+    {
+        return lastUpdatedAtAtClient;
+    }
+
+    public void setLastUpdatedAtAtClient( Date lastUpdatedAtAtClient )
+    {
+        this.lastUpdatedAtAtClient = lastUpdatedAtAtClient;
+    }
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )

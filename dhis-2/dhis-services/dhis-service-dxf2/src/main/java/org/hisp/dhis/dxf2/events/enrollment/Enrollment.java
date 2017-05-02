@@ -50,9 +50,13 @@ public class Enrollment
 {
     private String enrollment;
 
-    private Date created;
+    private String created;
 
-    private Date lastUpdated;
+    private String lastUpdated;
+
+    private String createdAtClient;
+
+    private String lastUpdatedAtClient;
 
     private String trackedEntity;
 
@@ -102,26 +106,48 @@ public class Enrollment
 
     @JsonProperty( required = true )
     @JacksonXmlProperty( isAttribute = true )
-    public Date getCreated()
+    public String getCreated()
     {
         return created;
     }
 
-    public void setCreated( Date created )
+    public void setCreated( String created )
     {
-        this.created = created;
     }
 
     @JsonProperty( required = true )
     @JacksonXmlProperty( isAttribute = true )
-    public Date getLastUpdated()
+    public String getLastUpdated()
     {
         return lastUpdated;
     }
 
-    public void setLastUpdated( Date lastUpdated )
+    public void setLastUpdated( String lastUpdated )
     {
-        this.lastUpdated = lastUpdated;
+    }
+
+    @JsonProperty( required = true )
+    @JacksonXmlProperty( isAttribute = true )
+    public String getCreatedAtClient()
+    {
+        return createdAtClient;
+    }
+
+    public void setCreatedAtClient( String createdAtClient )
+    {
+        this.createdAtClient = createdAtClient;
+    }
+
+    @JsonProperty( required = true )
+    @JacksonXmlProperty( isAttribute = true )
+    public String getLastUpdatedAtClient()
+    {
+        return lastUpdatedAtClient;
+    }
+
+    public void setLastUpdatedAtClient( String lastUpdatedAtClient )
+    {
+        this.lastUpdatedAtClient = lastUpdatedAtClient;
     }
 
     @JsonProperty( required = true )

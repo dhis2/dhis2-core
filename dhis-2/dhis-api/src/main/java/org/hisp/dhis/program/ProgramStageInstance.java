@@ -48,6 +48,10 @@ import java.util.Set;
 public class ProgramStageInstance
     extends BaseIdentifiableObject
 {
+    private Date createdAtClient;
+
+    private Date lastUpdatedAtAtClient;
+
     private ProgramInstance programInstance;
 
     private ProgramStage programStage;
@@ -96,9 +100,42 @@ public class ProgramStageInstance
         this.deleted = false;
     }
 
+    @Override
+    public void setAutoFields()
+    {
+        super.setAutoFields();
+
+        if ( createdAtClient == null )
+        {
+            createdAtClient = created;
+        }
+
+        lastUpdatedAtAtClient = lastUpdated;
+    }
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
+
+    public Date getCreatedAtClient()
+    {
+        return createdAtClient;
+    }
+
+    public void setCreatedAtClient( Date createdAtClient )
+    {
+        this.createdAtClient = createdAtClient;
+    }
+
+    public Date getLastUpdatedAtAtClient()
+    {
+        return lastUpdatedAtAtClient;
+    }
+
+    public void setLastUpdatedAtAtClient( Date lastUpdatedAtAtClient )
+    {
+        this.lastUpdatedAtAtClient = lastUpdatedAtAtClient;
+    }
 
     public ProgramInstance getProgramInstance()
     {
