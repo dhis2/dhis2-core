@@ -415,7 +415,7 @@ public class DefaultValidationService
                 ruleX.setDimensionalItemObjects( ruleDimensionItemObjects );
 
                 Set<DataElementOperand> ruleDataElementOperands = ruleDimensionItemObjects.stream()
-                    .filter( o -> o.getDimensionItemType() == DimensionItemType.DATA_ELEMENT_OPERAND )
+                    .filter( o -> o != null && o.getDimensionItemType() == DimensionItemType.DATA_ELEMENT_OPERAND )
                     .map( o -> (DataElementOperand) o )
                     .collect( Collectors.toSet() );
 
