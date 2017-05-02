@@ -4,6 +4,8 @@ function performMaintenance() {
     var zeroValues = $("#zeroValues").is(":checked");
     var softDeletedValues = $("#softDeletedValues").is(":checked");
     var softDeletedEvents = $("#softDeletedEvents").is(":checked");
+    var softDeletedEnrollments = $("#softDeletedEnrollments").is(":checked");
+    var softDeletedTrackedEntityInstances = $("#softDeletedTrackedEntityInstances").is(":checked");
     var prunePeriods = $("#prunePeriods").is(":checked");
     var removeExpiredInvitations = $("#removeExpiredInvitations").is(":checked");
     var dropSqlViews = $("#dropSqlViews").is(":checked");
@@ -23,6 +25,8 @@ function performMaintenance() {
             "&zeroDataValueRemoval=" + zeroValues +
             "&softDeletedDataValueRemoval=" + softDeletedValues +
             "&softDeletedEventRemoval=" + softDeletedEvents +
+            "&softDeletedEnrollmentRemoval=" + softDeletedEnrollments +
+            "&softDeletedTrackedEntityInstanceRemoval=" + softDeletedTrackedEntityInstances +
             "&periodPruning=" + prunePeriods +
             "&expiredInvitationsClear=" + removeExpiredInvitations +
             "&sqlViewsDrop=" + dropSqlViews +

@@ -32,6 +32,16 @@
 </p>
 
 <p>
+    <input type="checkbox" id="softDeletedEnrollments"/>
+    <label for="softDeletedEnrollments">$i18n.getString( "remove_soft_deleted_enrollments" )</label>
+</p>
+
+<p>
+    <input type="checkbox" id="softDeletedTrackedEntityInstances"/>
+    <label for="softDeletedTrackedEntityInstances">$i18n.getString( "remove_soft_deleted_trackedentityinstances" )</label>
+</p>
+
+<p>
 	<input type="checkbox" id="prunePeriods"/>
 	<label for="prunePeriods">$i18n.getString( "prune_periods" )</label>
 </p>

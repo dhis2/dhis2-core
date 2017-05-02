@@ -130,6 +130,18 @@ public class DefaultMaintenanceService
     }
 
     @Override
+    public int deleteSoftDeletedProgramInstances()
+    {
+        return maintenanceStore.deleteSoftDeletedProgramInstances();
+    }
+
+    @Override
+    public int deleteSoftDeletedTrackedEntityInstances()
+    {
+        return maintenanceStore.deleteSoftDeletedTrackedEntityInstances();
+    }
+
+    @Override
     public void prunePeriods()
     {
         for ( Period period : periodService.getAllPeriods() )

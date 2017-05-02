@@ -886,6 +886,8 @@ public class TrackedEntityInstanceQueryParams
     public TrackedEntityInstanceQueryParams setIncludeDeleted( boolean includeDeleted )
     {
         this.includeDeleted = includeDeleted;
+
+        return this;
     }
 
     public User getUser()
