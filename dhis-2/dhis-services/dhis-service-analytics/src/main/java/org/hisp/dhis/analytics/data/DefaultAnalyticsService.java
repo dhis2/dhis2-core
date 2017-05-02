@@ -95,6 +95,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.hisp.dhis.analytics.DataQueryParams.*;
 import static org.hisp.dhis.common.DataDimensionItemType.*;
@@ -457,8 +458,6 @@ public class DefaultAnalyticsService
             }
         }
     }
-
-    // TODO handle * in separate queries in order to aggregate, handle as individual cases
     
     /**
      * Adds data element operand values to the given grid based on the given data
@@ -474,38 +473,68 @@ public class DefaultAnalyticsService
             DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )
                 .retainDataDimension( DataDimensionItemType.DATA_ELEMENT_OPERAND )
                 .withIncludeNumDen( false ).build();
-
-            // -----------------------------------------------------------------
-            // Replace operands with data element and option combo dimensions
-            // -----------------------------------------------------------------
-
-            List<DataElementOperand> operands = asTypedList( dataSourceParams.getDataElementOperands() );
-            List<DimensionalItemObject> dataElements = Lists.newArrayList( DimensionalObjectUtils.getDataElements( operands ) );
-            List<DimensionalItemObject> categoryOptionCombos = Lists.newArrayList( DimensionalObjectUtils.getCategoryOptionCombos( operands ) );
-
-            //TODO check if data was dim or filter
-
-            DataQueryParams operandParams = DataQueryParams.newBuilder( dataSourceParams )
-                .removeDimension( DATA_X_DIM_ID )
-                .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, dataElements ) )
-                .addDimension( new BaseDimensionalObject( CATEGORYOPTIONCOMBO_DIM_ID, DimensionType.CATEGORY_OPTION_COMBO, categoryOptionCombos ) ).build();
-
-            Map<String, Object> aggregatedDataMap = getAggregatedDataValueMapObjectTyped( operandParams );
-
-            aggregatedDataMap = AnalyticsUtils.convertDxToOperand( aggregatedDataMap );
-
-            for ( Map.Entry<String, Object> entry : aggregatedDataMap.entrySet() )
+            
+            for ( DataElementOperand.TotalType type : DataElementOperand.TotalType.values() )
             {
-                Object value = AnalyticsUtils.getRoundedValueObject( operandParams, entry.getValue() );
+                addDataElementOperandValues( dataSourceParams, grid, type );
+            }            
+        }
+    }
+    
+    /**
+     * Adds data element operand values to the given grid.
+     * 
+     * @param params the {@link DataQueryParams}.
+     * @param grid the grid.
+     * @param totalType the operand {@link DataElementOperand.TotalType}.
+     */
+    private void addDataElementOperandValues( DataQueryParams params, Grid grid, DataElementOperand.TotalType totalType )
+    {        
+        List<DataElementOperand> operands = asTypedList( params.getDataElementOperands() );
+        operands = operands.stream().filter( o -> totalType.equals( o.getTotalType() ) ).collect( Collectors.toList() );
+        
+        if ( operands.isEmpty() )
+        {
+            return;
+        }
+        
+        List<DimensionalItemObject> dataElements = Lists.newArrayList( DimensionalObjectUtils.getDataElements( operands ) );
+        List<DimensionalItemObject> categoryOptionCombos = Lists.newArrayList( DimensionalObjectUtils.getCategoryOptionCombos( operands ) );
+        List<DimensionalItemObject> attributeOptionCobos = Lists.newArrayList( DimensionalObjectUtils.getAttributeOptionCombos( operands ) );
 
-                grid.addRow()
-                    .addValues( entry.getKey().split( DIMENSION_SEP ) )
-                    .addValue( value );
+        //TODO check if data was dim or filter
 
-                if ( params.isIncludeNumDen() )
-                {
-                    grid.addNullValues( 3 );
-                }
+        DataQueryParams.Builder builder = DataQueryParams.newBuilder( params )
+            .removeDimension( DATA_X_DIM_ID )
+            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, dataElements ) );
+        
+        if ( totalType.isCategoryOptionCombo() )
+        {
+            builder.addDimension( new BaseDimensionalObject( CATEGORYOPTIONCOMBO_DIM_ID, DimensionType.CATEGORY_OPTION_COMBO, categoryOptionCombos ) );
+        }
+        
+        if ( totalType.isAttributeOptionCombo() )
+        {
+            builder.addDimension( new BaseDimensionalObject( ATTRIBUTEOPTIONCOMBO_DIM_ID, DimensionType.ATTRIBUTE_OPTION_COMBO, attributeOptionCobos ) );
+        }
+        
+        DataQueryParams operandParams = builder.build();
+
+        Map<String, Object> aggregatedDataMap = getAggregatedDataValueMapObjectTyped( operandParams );
+        
+        aggregatedDataMap = AnalyticsUtils.convertDxToOperand( aggregatedDataMap, totalType.getPropertyCount() );
+        
+        for ( Map.Entry<String, Object> entry : aggregatedDataMap.entrySet() )
+        {
+            Object value = AnalyticsUtils.getRoundedValueObject( operandParams, entry.getValue() );
+
+            grid.addRow()
+                .addValues( entry.getKey().split( DIMENSION_SEP ) )
+                .addValue( value );
+
+            if ( params.isIncludeNumDen() )
+            {
+                grid.addNullValues( 3 );
             }
         }
     }

@@ -218,16 +218,18 @@ public class AnalyticsUtils
      * i.e. "deuid-cocuid" to "deuid.cocuid".
      * 
      * @param valueMap the value map to convert.
+     * @param propertyCount the number of properties to collapse into operand key.
      * @return a value map.
      */
-    public static <T> Map<String, T> convertDxToOperand( Map<String, T> valueMap )
+    public static <T> Map<String, T> convertDxToOperand( Map<String, T> valueMap, int propertyCount )
     {
         Map<String, T> map = Maps.newHashMap();
         
         for ( Entry<String, T> entry : valueMap.entrySet() )
         {
-            map.put( entry.getKey().replaceFirst( DimensionalObject.DIMENSION_SEP, 
-                DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP ), entry.getValue() );
+            map.put( TextUtils.replaceFirst( 
+                entry.getKey(), DimensionalObject.DIMENSION_SEP, DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP, propertyCount ), 
+                entry.getValue() );
         }
         
         return map;

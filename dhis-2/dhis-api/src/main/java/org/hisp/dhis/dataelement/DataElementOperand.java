@@ -254,7 +254,7 @@ public class DataElementOperand
      */
     public boolean isTotal()
     {
-        return categoryOptionCombo == null;
+        return categoryOptionCombo == null && attributeOptionCombo == null;
     }
     
     /**
@@ -356,6 +356,68 @@ public class DataElementOperand
                 categoryOptionCombo = dataElementOperand.getCategoryOptionCombo() != null ? dataElementOperand.getCategoryOptionCombo() : categoryOptionCombo;
                 attributeOptionCombo = dataElementOperand.getAttributeOptionCombo() != null ? dataElementOperand.getAttributeOptionCombo() : attributeOptionCombo;
             }
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Option combination type
+    // -------------------------------------------------------------------------
+
+    public enum TotalType
+    {
+        COC_ONLY( true, false, 1 ), 
+        AOC_ONLY( false, true, 1 ), 
+        COC_AND_AOC( true, true, 2 ), 
+        NONE( false, false, 0 );
+        
+        private boolean coc;
+        private boolean aoc;
+        private int propertyCount;
+        
+        TotalType()
+        {
+        }
+        
+        TotalType( boolean coc, boolean aoc, int propertyCount )
+        {
+            this.coc = coc;
+            this.aoc = aoc;
+            this.propertyCount = propertyCount;
+        }
+        
+        public boolean isCategoryOptionCombo()
+        {
+            return coc;
+        }
+        
+        public boolean isAttributeOptionCombo()
+        {
+            return aoc;
+        }
+        
+        public int getPropertyCount()
+        {
+            return propertyCount;
+        }
+    }
+    
+    public TotalType getTotalType()
+    {
+        if ( categoryOptionCombo != null && attributeOptionCombo != null )
+        {
+            return TotalType.COC_AND_AOC;
+        }
+        else if ( categoryOptionCombo != null )
+        {
+            return TotalType.COC_ONLY;
+        }
+        else if ( attributeOptionCombo != null )
+        {
+            return TotalType.AOC_ONLY;
+        }
+        else
+        {
+            return TotalType.NONE;
         }
     }
 }
