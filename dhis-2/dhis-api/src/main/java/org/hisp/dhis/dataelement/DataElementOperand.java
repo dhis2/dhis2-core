@@ -365,7 +365,10 @@ public class DataElementOperand
 
     public enum TotalType
     {
-        COC_ONLY( true, false, 1 ), AOC_ONLY( false, true, 1 ), COC_AND_AOC( true, true, 2 ), NONE( false, false, 0 );
+        COC_ONLY( true, false, 1 ), 
+        AOC_ONLY( false, true, 1 ), 
+        COC_AND_AOC( true, true, 2 ), 
+        NONE( false, false, 0 );
         
         private boolean coc;
         private boolean aoc;
