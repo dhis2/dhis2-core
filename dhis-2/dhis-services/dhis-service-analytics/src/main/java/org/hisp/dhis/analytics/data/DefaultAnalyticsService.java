@@ -181,7 +181,7 @@ public class DefaultAnalyticsService
 
     @Override
     public Grid getRawDataValues( DataQueryParams params )
-    {        
+    {
         securityManager.decideAccess( params );
 
         params = securityManager.withDataApprovalConstraints( params );
@@ -602,7 +602,7 @@ public class DefaultAnalyticsService
 
                 Double target = entry.getValue();
                 Double actual = dataMap.get( entry.getKey() );
-                
+
                 if ( target != null && ( actual != null || metric == EXPECTED_REPORTS ) )
                 {
                     // ---------------------------------------------------------
@@ -1132,7 +1132,7 @@ public class DefaultAnalyticsService
         List<DimensionalItemObject> items = Lists.newArrayList( expressionService.getDimensionalItemObjectsInIndicators( indicators ) );
 
         items = DimensionalObjectUtils.replaceOperandTotalsWithDataElements( items );
-        
+
         DimensionalObject dimension = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, DISPLAY_NAME_DATA_X, items );
 
         DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )

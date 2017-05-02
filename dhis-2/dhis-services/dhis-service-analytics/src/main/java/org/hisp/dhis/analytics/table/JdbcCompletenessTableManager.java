@@ -28,14 +28,8 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
@@ -47,8 +41,9 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Future;
 
 /**
  * @author Lars Helge Overland
@@ -138,7 +133,7 @@ public class JdbcCompletenessTableManager
         }
         
         insert += "value) ";
-        
+
         String select = "select ";
         
         for ( AnalyticsTableColumn col : columns )
@@ -148,7 +143,7 @@ public class JdbcCompletenessTableManager
         
         select = select.replace( "organisationunitid", "sourceid" ); // Legacy fix
         
-        select += 
+        select +=
             "cdr.date as value " +
             "from completedatasetregistration cdr " +
             "inner join dataset ds on cdr.datasetid=ds.datasetid " +
