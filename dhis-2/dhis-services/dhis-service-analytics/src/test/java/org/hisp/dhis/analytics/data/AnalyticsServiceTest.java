@@ -48,7 +48,6 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.dbms.HibernateDbmsManager;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
@@ -57,7 +56,6 @@ import org.hisp.dhis.organisationunit.*;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.reporttable.ReportTable;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -629,7 +627,7 @@ public class AnalyticsServiceTest
     {
         analyticsTableGenerator.dropTables();
     }
-    
+
     @Test
     public void testMappingAggregation()
     {
@@ -656,7 +654,6 @@ public class AnalyticsServiceTest
     }
 
     @Test
-    @Ignore
     public void testGridAggregation()
     {
         Grid aggregatedDataValueGrid;
@@ -672,7 +669,6 @@ public class AnalyticsServiceTest
     }
 
     @Test
-    @Ignore
     public void testSetAggregation()
     {
         // Params: Sum for all org units for 2017
