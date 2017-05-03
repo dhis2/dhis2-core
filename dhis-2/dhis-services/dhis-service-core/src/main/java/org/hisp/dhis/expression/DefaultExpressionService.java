@@ -233,7 +233,7 @@ public class DefaultExpressionService
             final double annualizationFactor = period != null ?
                 DateUtils.getAnnualizationFactor( indicator, period.getStartDate(), period.getEndDate() ) : 1d;
             final int factor = indicator.getIndicatorType().getFactor();
-            
+
             return new IndicatorValue()
                 .setNumeratorValue( numeratorValue )
                 .setDenominatorValue( denominatorValue )

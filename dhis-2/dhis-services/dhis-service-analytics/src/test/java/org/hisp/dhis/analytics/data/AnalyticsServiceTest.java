@@ -153,6 +153,9 @@ public class AnalyticsServiceTest
     {
         // Set up meta data for data values
         // --------------------------------------------------------------------
+        ReportingRate reportingRateA;
+        ReportingRate reportingRateB;
+
         ocDef = categoryService.getDefaultDataElementCategoryOptionCombo();
         ocDef.setUid( "o1234578def" );
         categoryService.updateDataElementCategoryOptionCombo( ocDef );
@@ -302,10 +305,19 @@ public class AnalyticsServiceTest
         indicatorD.setNumerator( expressionD );
         indicatorD.setDenominator( "#{" + deB.getUid() + "." + ocDef.getUid() + "}" );
 
+        Indicator indicatorE = createIndicator( 'E', indicatorType_1 );
+        reportingRateA = new ReportingRate( dataSetA );
+        reportingRateB = new ReportingRate( dataSetB );
+
+        String expressionE = "#{" + deA.getUid() + "." + ocDef.getUid() + "}" + "*(R{" + reportingRateB.getUid() + ".REPORTING_RATE} / 100)";
+        indicatorE.setNumerator( expressionE );
+        indicatorE.setDenominator( "1" );
+
         indicatorService.addIndicator( indicatorA );
         indicatorService.addIndicator( indicatorB );
         indicatorService.addIndicator( indicatorC );
         indicatorService.addIndicator( indicatorD );
+        indicatorService.addIndicator( indicatorE );
 
         // Generate analytics tables
         // --------------------------------------------------------------------
@@ -413,6 +425,11 @@ public class AnalyticsServiceTest
             .withIndicators( Lists.newArrayList( indicatorD ) ).withAggregationType( AggregationType.SUM )
             .withPeriod( quarter ).withOutputFormat( OutputFormat.ANALYTICS ).build();
 
+        // indicator E (deA * reporting rate B) / 100 - 2017 Q1
+        DataQueryParams inE_deA_reRateA_2017_Q01_params = DataQueryParams.newBuilder().withOrganisationUnit( ouD )
+            .withIndicators( Lists.newArrayList( indicatorE ) ).withAggregationType( AggregationType.SUM )
+            .withPeriod( quarter ).withOutputFormat( OutputFormat.ANALYTICS ).build();
+
         // Max value - org unit B and C - data element A - 2017 Feb
         DataQueryParams deA_ouB_ouC_2017_02_params = DataQueryParams.newBuilder()
             .withFilterOrganisationUnits( Lists.newArrayList( ouB, ouC ) ).withDataElements( Lists.newArrayList( deA ) )
@@ -461,8 +478,6 @@ public class AnalyticsServiceTest
             .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         // Reportingrate for dataSet A - Q1 2017
-        ReportingRate reportingRateA = new ReportingRate( dataSetA );
-
         DataQueryParams reRate_2017_Q01_ouC_params = DataQueryParams.newBuilder()
             .withOrganisationUnit( ouC )
             .withReportingRates( Lists.newArrayList( reportingRateA ) )
@@ -471,8 +486,6 @@ public class AnalyticsServiceTest
             .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         // Reportingrate for dataSet B - Q1 2017
-        ReportingRate reportingRateB = new ReportingRate( dataSetB );
-
         DataQueryParams reRate_2017_Q01_ouD_params = DataQueryParams.newBuilder()
             .withOrganisationUnit( ouD )
             .withReportingRates( Lists.newArrayList( reportingRateB ) )
@@ -494,6 +507,7 @@ public class AnalyticsServiceTest
         dataQueryParams.put( "inB_deB_deC_2017_Q01", inB_deB_deC_2017_Q01_params );
         dataQueryParams.put( "inC_deB_deC_2017_Q01", inC_deB_deC_2017_Q01_params );
         dataQueryParams.put( "inD_deA_deB_deC_2017_Q01", inD_deA_deB_deC_2017_Q01_params );
+        dataQueryParams.put( "inE_deA_reRateA_2017_Q01", inE_deA_reRateA_2017_Q01_params );
         dataQueryParams.put( "deA_ouB_ouC_2017_02", deA_ouB_ouC_2017_02_params );
         dataQueryParams.put( "deA_deB_deD_ouC_ouE_2017_04", deA_deB_deD_ouC_ouE_2017_04_params );
         dataQueryParams.put( "ouB_2017_01_01_2017_02_20", ouB_2017_01_01_2017_02_20_params );
@@ -562,6 +576,9 @@ public class AnalyticsServiceTest
         Map<String, Double> inD_deA_deB_deC_2017_Q01_keyValue = new HashMap<>();
         inD_deA_deB_deC_2017_Q01_keyValue.put( "inabcdefghD-2017Q1", 29.8 );
 
+        Map<String, Double> inE_deA_reRateA_2017_Q01_keyValue = new HashMap<>();
+        inE_deA_reRateA_2017_Q01_keyValue.put( "inabcdefghE-ouabcdefghD-2017Q1", 99.6 );
+
         Map<String, Double> deA_ouB_ouC_2017_02_keyValue = new HashMap<>();
         deA_ouB_ouC_2017_02_keyValue.put( "deabcdefghA-201702", 233.0 );
 
@@ -605,6 +622,7 @@ public class AnalyticsServiceTest
         results.put( "inB_deB_deC_2017_Q01", inB_deB_deC_2017_Q01_keyValue );
         results.put( "inC_deB_deC_2017_Q01", inC_deB_deC_2017_Q01_keyValue );
         results.put( "inD_deA_deB_deC_2017_Q01", inD_deA_deB_deC_2017_Q01_keyValue );
+        results.put( "inE_deA_reRateA_2017_Q01", inE_deA_reRateA_2017_Q01_keyValue );
         results.put( "deA_ouB_ouC_2017_02", deA_ouB_ouC_2017_02_keyValue );
         results.put( "deA_deB_deD_ouC_ouE_2017_04", deA_deB_deD_ouC_ouE_2017_04_keyValue );
         results.put( "deA_deB_2017_Q01", deA_deB_2017_Q01_keyValue );
