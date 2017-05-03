@@ -29,7 +29,7 @@ package org.hisp.dhis.hibernate.encryption.type;
  */
 
 import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.ParameterizedType;
 import org.hibernate.usertype.UserType;
 import org.hisp.dhis.hibernate.encryption.HibernateEncryptorRegistry;
@@ -96,8 +96,8 @@ public class EncryptedStringUserType
         return x.hashCode();
     }
 
-    @Override
-    public Object nullSafeGet( ResultSet rs, String[] names, SessionImplementor session, Object owner )
+       @Override
+    public Object nullSafeGet( ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner )
         throws HibernateException, SQLException
     {
         ensureEncryptorInit();
@@ -108,7 +108,7 @@ public class EncryptedStringUserType
     }
 
     @Override
-    public void nullSafeSet( PreparedStatement st, Object value, int index, SessionImplementor session )
+    public void nullSafeSet( PreparedStatement st, Object value, int index, SharedSessionContractImplementor session )
         throws HibernateException, SQLException
     {
         ensureEncryptorInit();
