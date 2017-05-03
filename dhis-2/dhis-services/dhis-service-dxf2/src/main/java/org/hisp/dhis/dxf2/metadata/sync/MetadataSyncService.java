@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.metadata.sync;
  */
 
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
-import org.hisp.dhis.metadata.version.MetadataVersion;
 
 import java.util.List;
 import java.util.Map;
