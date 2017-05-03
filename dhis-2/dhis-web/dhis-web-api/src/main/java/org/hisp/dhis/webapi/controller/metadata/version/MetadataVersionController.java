@@ -39,6 +39,7 @@ import org.hisp.dhis.schema.descriptors.MetadataVersionSchemaDescriptor;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
+import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -223,7 +224,7 @@ public class MetadataVersionController
     //Creates version in versioning table, exports the metadata and saves the snapshot in datastore
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_MANAGE')" )
     @RequestMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT + "/create", method = RequestMethod.POST, produces = ContextUtils.CONTENT_TYPE_JSON )
-    public @ResponseBody MetadataVersion createSystemVersion( @RequestParam( value = "type" ) VersionType versionType ) throws MetadataVersionException
+    public @ResponseBody MetadataVersion createSystemVersion( @RequestParam( value = "type" ) VersionType versionType ) throws MetadataVersionException, BadRequestException
     {
         MetadataVersion versionToReturn = null;
         boolean enabled = isMetadataVersioningEnabled();
@@ -232,7 +233,7 @@ public class MetadataVersionController
         {
             if ( !enabled )
             {
-                throw new MetadataVersionException( "Metadata versioning is not enabled for this instance." );
+                throw new BadRequestException( "Metadata versioning is not enabled for this instance." );
             }
 
             synchronized ( versionService )
