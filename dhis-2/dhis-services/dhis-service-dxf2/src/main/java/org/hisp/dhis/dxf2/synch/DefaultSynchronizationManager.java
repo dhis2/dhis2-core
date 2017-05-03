@@ -358,6 +358,12 @@ public class DefaultSynchronizationManager
     }
 
     @Override
+    public Date getLastEventSynchSuccess()
+    {
+        return (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_EVENT_DATA_SYNC );
+    }
+
+    @Override
     public ImportReport executeMetadataPull( String url )
     {
         User user = currentUserService.getCurrentUser();
