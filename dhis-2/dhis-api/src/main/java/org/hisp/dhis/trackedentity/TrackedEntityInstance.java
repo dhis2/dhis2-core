@@ -56,7 +56,7 @@ public class TrackedEntityInstance
 
     private Date createdAtClient;
 
-    private Date lastUpdatedAtAtClient;
+    private Date lastUpdatedAtClient;
 
     private Set<TrackedEntityAttributeValue> trackedEntityAttributeValues = new HashSet<>();
 
@@ -88,7 +88,7 @@ public class TrackedEntityInstance
             createdAtClient = created;
         }
 
-        lastUpdatedAtAtClient = lastUpdated;
+        lastUpdatedAtClient = lastUpdated;
     }
 
     // -------------------------------------------------------------------------
@@ -125,14 +125,14 @@ public class TrackedEntityInstance
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getLastUpdatedAtAtClient()
+    public Date getLastUpdatedAtClient()
     {
-        return lastUpdatedAtAtClient;
+        return lastUpdatedAtClient;
     }
 
-    public void setLastUpdatedAtAtClient( Date lastUpdatedAtAtClient )
+    public void setLastUpdatedAtClient( Date lastUpdatedAtClient )
     {
-        this.lastUpdatedAtAtClient = lastUpdatedAtAtClient;
+        this.lastUpdatedAtClient = lastUpdatedAtClient;
     }
 
     @JsonProperty
@@ -228,7 +228,7 @@ public class TrackedEntityInstance
                 trackedEntity = trackedEntityInstance.getTrackedEntity();
                 representative = trackedEntityInstance.getRepresentative();
                 createdAtClient = trackedEntityInstance.getCreatedAtClient();
-                lastUpdatedAtAtClient = trackedEntityInstance.getLastUpdatedAtAtClient();
+                lastUpdatedAtClient = trackedEntityInstance.getLastUpdatedAtClient();
             }
             else if ( mergeMode.isMerge() )
             {

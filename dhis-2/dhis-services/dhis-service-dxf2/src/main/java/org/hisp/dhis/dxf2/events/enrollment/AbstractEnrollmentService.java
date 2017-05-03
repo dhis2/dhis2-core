@@ -224,7 +224,7 @@ public abstract class AbstractEnrollmentService
         enrollment.setCreated( DateUtils.getIso8601NoTz( programInstance.getCreated() ) );
         enrollment.setCreatedAtClient( DateUtils.getIso8601NoTz( programInstance.getCreatedAtClient() ) );
         enrollment.setLastUpdated( DateUtils.getIso8601NoTz( programInstance.getLastUpdated() ) );
-        enrollment.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programInstance.getLastUpdatedAtAtClient() ) );
+        enrollment.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programInstance.getLastUpdatedAtClient() ) );
         enrollment.setProgram( programInstance.getProgram().getUid() );
         enrollment.setStatus( EnrollmentStatus.fromProgramStatus( programInstance.getStatus() ) );
         enrollment.setEnrollmentDate( programInstance.getEnrollmentDate() );
@@ -868,7 +868,7 @@ public abstract class AbstractEnrollmentService
 
         if ( lastUpdatedAtClient != null )
         {
-            programInstance.setLastUpdatedAtAtClient( DateUtils.parseDate( lastUpdatedAtClient ) );
+            programInstance.setLastUpdatedAtClient( DateUtils.parseDate( lastUpdatedAtClient ) );
         }
     }
 }

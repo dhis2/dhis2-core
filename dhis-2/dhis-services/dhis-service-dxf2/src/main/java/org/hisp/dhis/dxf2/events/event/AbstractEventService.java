@@ -1099,7 +1099,7 @@ public abstract class AbstractEventService
         event.setCreated( DateUtils.getIso8601NoTz( programStageInstance.getCreated() ) );
         event.setCreatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getCreatedAtClient() ) );
         event.setLastUpdated( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdated() ) );
-        event.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdatedAtAtClient() ) );
+        event.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdatedAtClient() ) );
 
         UserCredentials userCredentials = currentUserService.getCurrentUser().getUserCredentials();
 
@@ -1733,7 +1733,7 @@ public abstract class AbstractEventService
 
         if ( lastUpdatedAtClient != null )
         {
-            programStageInstance.setLastUpdatedAtAtClient( DateUtils.parseDate( lastUpdatedAtClient ) );
+            programStageInstance.setLastUpdatedAtClient( DateUtils.parseDate( lastUpdatedAtClient ) );
         }
     }
 }

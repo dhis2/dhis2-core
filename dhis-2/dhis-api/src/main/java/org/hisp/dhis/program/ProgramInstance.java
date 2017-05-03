@@ -57,7 +57,7 @@ public class ProgramInstance
 {
     private Date createdAtClient;
 
-    private Date lastUpdatedAtAtClient;
+    private Date lastUpdatedAtClient;
 
     private ProgramStatus status = ProgramStatus.ACTIVE;
 
@@ -113,7 +113,7 @@ public class ProgramInstance
             createdAtClient = created;
         }
 
-        lastUpdatedAtAtClient = lastUpdated;
+        lastUpdatedAtClient = lastUpdated;
     }
 
     // -------------------------------------------------------------------------
@@ -286,14 +286,14 @@ public class ProgramInstance
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getLastUpdatedAtAtClient()
+    public Date getLastUpdatedAtClient()
     {
-        return lastUpdatedAtAtClient;
+        return lastUpdatedAtClient;
     }
 
-    public void setLastUpdatedAtAtClient( Date lastUpdatedAtAtClient )
+    public void setLastUpdatedAtClient( Date lastUpdatedAtClient )
     {
-        this.lastUpdatedAtAtClient = lastUpdatedAtAtClient;
+        this.lastUpdatedAtClient = lastUpdatedAtClient;
     }
 
     @JsonProperty

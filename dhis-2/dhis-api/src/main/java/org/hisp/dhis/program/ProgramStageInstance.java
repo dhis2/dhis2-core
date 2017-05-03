@@ -50,7 +50,7 @@ public class ProgramStageInstance
 {
     private Date createdAtClient;
 
-    private Date lastUpdatedAtAtClient;
+    private Date lastUpdatedAtClient;
 
     private ProgramInstance programInstance;
 
@@ -110,7 +110,7 @@ public class ProgramStageInstance
             createdAtClient = created;
         }
 
-        lastUpdatedAtAtClient = lastUpdated;
+        lastUpdatedAtClient = lastUpdated;
     }
 
     // -------------------------------------------------------------------------
@@ -127,14 +127,14 @@ public class ProgramStageInstance
         this.createdAtClient = createdAtClient;
     }
 
-    public Date getLastUpdatedAtAtClient()
+    public Date getLastUpdatedAtClient()
     {
-        return lastUpdatedAtAtClient;
+        return lastUpdatedAtClient;
     }
 
-    public void setLastUpdatedAtAtClient( Date lastUpdatedAtAtClient )
+    public void setLastUpdatedAtClient( Date lastUpdatedAtClient )
     {
-        this.lastUpdatedAtAtClient = lastUpdatedAtAtClient;
+        this.lastUpdatedAtClient = lastUpdatedAtClient;
     }
 
     public ProgramInstance getProgramInstance()

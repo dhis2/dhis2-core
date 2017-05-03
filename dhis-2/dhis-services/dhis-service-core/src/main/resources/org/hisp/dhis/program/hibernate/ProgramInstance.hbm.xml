@@ -18,9 +18,9 @@
 
     <property name="lastUpdated" type="timestamp" not-null="true" />
 
-    <property name="createdAtClient" type="timestamp" not-null="true" />
+    <property name="createdAtClient" type="timestamp" />
 
-    <property name="lastUpdatedAtAtClient" type="timestamp" not-null="true" />
+    <property name="lastUpdatedAtClient" type="timestamp" />
 
     <property name="incidentDate" column="incidentDate" />
 

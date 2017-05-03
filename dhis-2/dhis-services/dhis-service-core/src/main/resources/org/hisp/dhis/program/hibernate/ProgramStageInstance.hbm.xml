@@ -18,9 +18,9 @@
 
     <property name="lastUpdated" type="timestamp" not-null="true" />
 
-    <property name="createdAtClient" type="timestamp" not-null="true" />
+    <property name="createdAtClient" type="timestamp" />
 
-    <property name="lastUpdatedAtAtClient" type="timestamp" not-null="true" />
+    <property name="lastUpdatedAtClient" type="timestamp" />
 
     <many-to-one name="programInstance" class="org.hisp.dhis.program.ProgramInstance"
       column="programinstanceid" not-null="true" foreign-key="fk_programstageinstance_programinstanceid" index="programstageinstance_programinstanceid" />
