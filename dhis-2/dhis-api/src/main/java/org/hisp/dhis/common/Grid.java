@@ -277,6 +277,19 @@ public interface Grid
      * @param columnValue the value to populate the grid column with.
      */
     Grid addAndPopulateColumns( int columns, Object columnValue );
+    
+    /**
+     * Adds and populates the given number of columns before the given reference
+     * column index. The given value map is to populate each row, where they key
+     * is matched against the values in the reference column, and the list of values
+     * is used to populate the row values left to right. Where there is no match,
+     * null values are inserted.
+     * 
+     * @param referenceColumnIndex the reference column index.
+     * @param valueMap the map of values to list of values.
+     * @param newColumns the number of new columns to add.
+     */
+    Grid addAndPopulateColumnsBefore( int referenceColumnIndex, Map<Object, List<Object>> valueMap, int newColumns );
 
     /**
      * Removes the header and column at the given index.

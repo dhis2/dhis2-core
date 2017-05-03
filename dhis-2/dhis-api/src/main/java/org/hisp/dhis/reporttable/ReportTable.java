@@ -63,6 +63,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.user.User;
+import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -679,6 +680,9 @@ public class ReportTable
             
             Map<String, List<OrganisationUnit>> ancestorMap = (Map<String, List<OrganisationUnit>>) grid.getInternalMetaData().get( AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS );
             
+            Assert.notNull( ancestorMap, "Ancestor map cannot be null when show hierarchy is enabled" );
+            
+            grid.addAndPopulateColumnsBefore( ouIdIndex, null, 0 );
             
             // create "inject columns" grid method, inject values for ancestors based on org unit uid
             

@@ -41,12 +41,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.ValueType;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.api.client.util.Maps;
 import com.google.common.collect.Lists;
 
 /**
@@ -373,6 +375,77 @@ public class GridTest
         {
             assertEquals( 91, val );
         }
+    }
+    
+    @Test
+    public void testAddAndPopulateColumnsBeforeA()
+    {
+        assertEquals( 3, gridA.getWidth() );
+        
+        Map<Object, List<Object>> valueMap = Maps.newHashMap();
+        valueMap.put( 12, Lists.newArrayList( 101, 102, 103 ) );
+        valueMap.put( 22, Lists.newArrayList( 201, 202, 203 ) );
+        valueMap.put( 32, Lists.newArrayList( 301, 302, 303 ) );
+        
+        gridA.addAndPopulateColumnsBefore( 1, valueMap, 3 );
+        
+        assertEquals( 6, gridA.getWidth() );
+
+        assertEquals( 11, gridA.getValue( 0, 0 ) );
+        assertEquals( 101, gridA.getValue( 0, 1 ) );
+        assertEquals( 102, gridA.getValue( 0, 2 ) );
+        assertEquals( 103, gridA.getValue( 0, 3 ) );
+        assertEquals( 12, gridA.getValue( 0, 4 ) );
+        assertEquals( 13, gridA.getValue( 0, 5 ) );
+        
+        assertEquals( 21, gridA.getValue( 1, 0 ) );
+        assertEquals( 201, gridA.getValue( 1, 1 ) );
+        assertEquals( 202, gridA.getValue( 1, 2 ) );
+        assertEquals( 203, gridA.getValue( 1, 3 ) );
+        assertEquals( 22, gridA.getValue( 1, 4 ) );
+        assertEquals( 23, gridA.getValue( 1, 5 ) );
+
+        assertEquals( 31, gridA.getValue( 2, 0 ) );
+        assertEquals( 301, gridA.getValue( 2, 1 ) );
+        assertEquals( 302, gridA.getValue( 2, 2 ) );
+        assertEquals( 303, gridA.getValue( 2, 3 ) );
+        assertEquals( 32, gridA.getValue( 2, 4 ) );
+        assertEquals( 33, gridA.getValue( 2, 5 ) );
+    }
+
+    @Test
+    public void testAddAndPopulateColumnsBeforeB()
+    {
+        assertEquals( 3, gridA.getWidth() );
+        
+        Map<Object, List<Object>> valueMap = Maps.newHashMap();
+        valueMap.put( 22, Lists.newArrayList( 201, 202, 203 ) );
+        valueMap.put( 32, Lists.newArrayList( 301, 302 ) );
+        
+        gridA.addAndPopulateColumnsBefore( 1, valueMap, 3 );
+        
+        assertEquals( 6, gridA.getWidth() );
+
+        assertEquals( 11, gridA.getValue( 0, 0 ) );
+        assertEquals( null, gridA.getValue( 0, 1 ) );
+        assertEquals( null, gridA.getValue( 0, 2 ) );
+        assertEquals( null, gridA.getValue( 0, 3 ) );
+        assertEquals( 12, gridA.getValue( 0, 4 ) );
+        assertEquals( 13, gridA.getValue( 0, 5 ) );
+        
+        assertEquals( 21, gridA.getValue( 1, 0 ) );
+        assertEquals( 201, gridA.getValue( 1, 1 ) );
+        assertEquals( 202, gridA.getValue( 1, 2 ) );
+        assertEquals( 203, gridA.getValue( 1, 3 ) );
+        assertEquals( 22, gridA.getValue( 1, 4 ) );
+        assertEquals( 23, gridA.getValue( 1, 5 ) );
+
+        assertEquals( 31, gridA.getValue( 2, 0 ) );
+        assertEquals( 301, gridA.getValue( 2, 1 ) );
+        assertEquals( 302, gridA.getValue( 2, 2 ) );
+        assertEquals( null, gridA.getValue( 2, 3 ) );
+        assertEquals( 32, gridA.getValue( 2, 4 ) );
+        assertEquals( 33, gridA.getValue( 2, 5 ) );
     }
     
     @Test

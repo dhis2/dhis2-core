@@ -32,9 +32,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.google.common.collect.Iterables;
+
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.common.Grid;
@@ -522,6 +525,29 @@ public class ListGrid
             addAndPopulateColumn( columnValue );
         }
 
+        return this;
+    }
+
+    @Override
+    public Grid addAndPopulateColumnsBefore( int referenceColumnIndex, Map<Object, List<Object>> valueMap, int newColumns )
+    {
+        Validate.inclusiveBetween( 0, getWidth() - 1, referenceColumnIndex );
+        Validate.notNull( valueMap );        
+        verifyGridState();
+                
+        for ( List<Object> row : grid )
+        {
+            Object refVal = row.get( referenceColumnIndex );
+            List<Object> list = valueMap.get( refVal );
+            
+            for ( int i = 0; i < newColumns; i++ )
+            {                
+                Object value = list == null ? null : Iterables.get( list, i, null );
+                int index = referenceColumnIndex + i;
+                row.add( index, value );
+            }
+        }
+        
         return this;
     }
 
