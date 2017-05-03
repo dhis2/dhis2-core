@@ -46,6 +46,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -135,6 +136,12 @@ public class MetadataSyncPreProcessor
         {
             importSummary = synchronizationManager.executeAnonymousEventPush();
             handleEventImportSummary( importSummary, context );
+        }
+        catch(HttpClientErrorException ex)
+        {
+            log.error("HTTP response: " + ((HttpClientErrorException)ex).getResponseBodyAsString());
+            log.error( "Exception happened while trying to do event data push " + ex.getMessage(), ex );
+            throw ex;
         }
         catch ( Exception ex )
         {
