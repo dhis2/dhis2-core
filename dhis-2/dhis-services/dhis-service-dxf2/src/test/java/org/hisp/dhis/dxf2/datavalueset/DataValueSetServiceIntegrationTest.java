@@ -140,42 +140,6 @@ public class DataValueSetServiceIntegrationTest
     // -------------------------------------------------------------------------
 
     /**
-     * Import 3 data values, then delete 3 data values.
-     */
-    @Test
-    public void testImportDeleteValuesXml()
-        throws Exception
-    {
-        assertEquals( 0, dataValueService.getAllDataValues().size() );
-        
-        in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
-
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
-        
-        assertEquals( 3, summary.getImportCount().getImported() );
-        assertEquals( 0, summary.getImportCount().getUpdated() );
-        assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        
-        assertEquals( 3, dataValueService.getAllDataValues().size() );
-        
-        // Delete values
-
-        in = new ClassPathResource( "datavalueset/dataValueSetADeleted.xml" ).getInputStream();
-
-        summary = dataValueSetService.saveDataValueSet( in );
-        
-        assertEquals( 0, summary.getImportCount().getImported() );
-        assertEquals( 0, summary.getImportCount().getUpdated() );
-        assertEquals( 3, summary.getImportCount().getDeleted() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        
-        assertEquals( 0, dataValueService.getAllDataValues().size() );
-    }
-    
-    /**
      * Import 12 data values.
      */
     @Test
