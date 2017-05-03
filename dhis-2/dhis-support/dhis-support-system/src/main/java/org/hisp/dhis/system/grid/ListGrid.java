@@ -529,7 +529,7 @@ public class ListGrid
     }
 
     @Override
-    public Grid addAndPopulateColumnsBefore( int referenceColumnIndex, Map<Object, List<Object>> valueMap, int newColumns )
+    public Grid addAndPopulateColumnsBefore( int referenceColumnIndex, Map<Object, List<?>> valueMap, int newColumns )
     {
         Validate.inclusiveBetween( 0, getWidth() - 1, referenceColumnIndex );
         Validate.notNull( valueMap );        
@@ -538,7 +538,7 @@ public class ListGrid
         for ( List<Object> row : grid )
         {
             Object refVal = row.get( referenceColumnIndex );
-            List<Object> list = valueMap.get( refVal );
+            List<? extends Object> list = valueMap.get( refVal );
             
             for ( int i = 0; i < newColumns; i++ )
             {                

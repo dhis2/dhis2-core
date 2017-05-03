@@ -641,6 +641,35 @@ public class OrganisationUnit
         Collections.reverse( units );
         return units;
     }
+
+    /**
+     * Returns the list of ancestor organisation unit names up to any of the given 
+     * roots for this organisation unit. Does not include itself. The list is ordered
+     * by root first.
+     *
+     * @param roots the root organisation units, if null using real roots.
+     */
+    public List<String> getAncestorNames( Collection<OrganisationUnit> roots )
+    {
+        List<String> units = new ArrayList<>();
+
+        OrganisationUnit unit = parent;
+
+        while ( unit != null )
+        {
+            units.add( unit.getDisplayName() );
+
+            if ( roots != null && roots.contains( unit ) )
+            {
+                break;
+            }
+
+            unit = unit.getParent();
+        }
+
+        Collections.reverse( units );
+        return units;
+    }
     
     /**
      * Returns the list of ancestor organisation unit UIDs up to any of the given roots

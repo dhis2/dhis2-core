@@ -783,8 +783,8 @@ public class DefaultAnalyticsService
 
             if ( params.isShowHierarchy() )
             {
-                Map<String, List<OrganisationUnit>> ancestorMap = organisationUnits
-                    .stream().collect( Collectors.toMap( OrganisationUnit::getUid, ou -> ou.getAncestors( roots ) ) );
+                Map<Object, List<?>> ancestorMap = organisationUnits
+                    .stream().collect( Collectors.toMap( OrganisationUnit::getUid, ou -> ou.getAncestorNames( roots ) ) );
                 
                 internalMetaData.put( AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS.getKey(), ancestorMap );
                 

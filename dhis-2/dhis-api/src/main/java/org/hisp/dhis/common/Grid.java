@@ -289,7 +289,7 @@ public interface Grid
      * @param valueMap the map of values to list of values.
      * @param newColumns the number of new columns to add.
      */
-    Grid addAndPopulateColumnsBefore( int referenceColumnIndex, Map<Object, List<Object>> valueMap, int newColumns );
+    Grid addAndPopulateColumnsBefore( int referenceColumnIndex, Map<Object, List<?>> valueMap, int newColumns );
 
     /**
      * Removes the header and column at the given index.

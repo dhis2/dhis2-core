@@ -678,11 +678,11 @@ public class ReportTable
         {
             int ouIdIndex = rowDimensions.indexOf( ORGUNIT_DIM_ID ) * 4;
             
-            Map<String, List<OrganisationUnit>> ancestorMap = (Map<String, List<OrganisationUnit>>) grid.getInternalMetaData().get( AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS );
+            Map<Object, List<?>> ancestorMap = (Map<Object, List<?>>) grid.getInternalMetaData().get( AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS );
             
             Assert.notNull( ancestorMap, "Ancestor map cannot be null when show hierarchy is enabled" );
             
-            grid.addAndPopulateColumnsBefore( ouIdIndex, null, 0 );
+            grid.addAndPopulateColumnsBefore( ouIdIndex, ancestorMap, 0 );
             
             // create "inject columns" grid method, inject values for ancestors based on org unit uid
             
