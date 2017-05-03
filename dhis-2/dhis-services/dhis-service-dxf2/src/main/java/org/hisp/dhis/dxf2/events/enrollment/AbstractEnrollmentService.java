@@ -65,6 +65,7 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
+import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -220,8 +221,10 @@ public abstract class AbstractEnrollmentService
             }
         }
 
-        enrollment.setCreated( programInstance.getCreated() );
-        enrollment.setLastUpdated( programInstance.getLastUpdated() );
+        enrollment.setCreated( DateUtils.getIso8601NoTz( programInstance.getCreated() ) );
+        enrollment.setCreatedAtClient( DateUtils.getIso8601NoTz( programInstance.getCreatedAtClient() ) );
+        enrollment.setLastUpdated( DateUtils.getIso8601NoTz( programInstance.getLastUpdated() ) );
+        enrollment.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programInstance.getLastUpdatedAtClient() ) );
         enrollment.setProgram( programInstance.getProgram().getUid() );
         enrollment.setStatus( EnrollmentStatus.fromProgramStatus( programInstance.getStatus() ) );
         enrollment.setEnrollmentDate( programInstance.getEnrollmentDate() );
@@ -392,7 +395,9 @@ public abstract class AbstractEnrollmentService
         }
 
         updateAttributeValues( enrollment, importOptions );
+        updateDateFields( enrollment, programInstance );
         programInstance.setFollowup( enrollment.getFollowup() );
+
         programInstanceService.updateProgramInstance( programInstance );
 
         saveTrackedEntityComment( programInstance, enrollment );
@@ -520,6 +525,8 @@ public abstract class AbstractEnrollmentService
         }
 
         updateAttributeValues( enrollment, importOptions );
+        updateDateFields( enrollment, programInstance );
+
         programInstanceService.updateProgramInstance( programInstance );
 
         saveTrackedEntityComment( programInstance, enrollment );
@@ -844,5 +851,24 @@ public abstract class AbstractEnrollmentService
         trackedEntityAttributeCache.clear();
 
         dbmsManager.clearSession();
+    }
+
+    private void updateDateFields( Enrollment enrollment, ProgramInstance programInstance )
+    {
+        programInstance.setAutoFields();
+
+        Date createdAtClient = DateUtils.parseDate( enrollment.getCreatedAtClient() );
+
+        if ( createdAtClient != null )
+        {
+            programInstance.setCreatedAtClient( createdAtClient );
+        }
+
+        String lastUpdatedAtClient = enrollment.getLastUpdatedAtClient();
+
+        if ( lastUpdatedAtClient != null )
+        {
+            programInstance.setLastUpdatedAtClient( DateUtils.parseDate( lastUpdatedAtClient ) );
+        }
     }
 }
