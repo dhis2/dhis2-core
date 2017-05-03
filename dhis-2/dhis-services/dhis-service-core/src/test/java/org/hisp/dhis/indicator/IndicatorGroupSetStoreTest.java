@@ -53,4 +53,10 @@ public class IndicatorGroupSetStoreTest
     {
         return "org.hisp.dhis.indicator.IndicatorGroupSetStore";
     }
+
+    @Override
+    protected int getObjectId( IndicatorGroupSet object )
+    {
+        return object.getId();
+    }
 }

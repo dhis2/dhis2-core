@@ -40,6 +40,7 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
@@ -52,7 +53,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "indicator", namespace = DxfNamespaces.DXF_2_0 )
 public class Indicator
-    extends BaseDataDimensionalItemObject
+    extends BaseDataDimensionalItemObject implements MetadataObject
 {
     private boolean annualized;
 
@@ -132,16 +133,6 @@ public class Indicator
     public void removeAllAttributeValues()
     {
         attributeValues.clear();
-    }
-
-    public String getExplodedNumeratorFallback()
-    {
-        return explodedNumerator != null ? explodedNumerator : numerator;
-    }
-
-    public String getExplodedDenominatorFallback()
-    {
-        return explodedDenominator != null ? explodedDenominator : denominator;
     }
 
     public boolean hasDecimals()

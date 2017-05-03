@@ -39,6 +39,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.InterpretableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
@@ -60,7 +61,7 @@ import java.util.List;
  */
 @JacksonXmlRootElement( localName = "dashboardItem", namespace = DxfNamespaces.DXF_2_0 )
 public class DashboardItem
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     public static final int MAX_CONTENT = 8;
 
@@ -187,7 +188,7 @@ public class DashboardItem
     public int getInterpretationCount()
     {
         InterpretableObject object = getEmbeddedItem();
-        
+
         return object != null ? object.getInterpretations().size() : 0;
     }
 
@@ -196,11 +197,11 @@ public class DashboardItem
     public int getInterpretationLikeCount()
     {
         InterpretableObject object = getEmbeddedItem();
-        
+
         return object != null ? object.getInterpretations().
-            stream().mapToInt( Interpretation::getLikes ).sum() : 0;        
+            stream().mapToInt( Interpretation::getLikes ).sum() : 0;
     }
-    
+
     /**
      * Returns a list of the actual item objects if this dashboard item
      * represents a list of objects and not an embedded item.

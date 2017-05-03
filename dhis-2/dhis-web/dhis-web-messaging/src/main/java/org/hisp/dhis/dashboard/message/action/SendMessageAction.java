@@ -28,9 +28,7 @@ package org.hisp.dhis.dashboard.message.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashSet;
-import java.util.Set;
-
+import com.opensymphony.xwork2.Action;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -42,7 +40,8 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.opensymphony.xwork2.Action;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -145,7 +144,7 @@ public class SendMessageAction
             }
         }
         
-        messageService.sendMessage( subject, text, metaData, users );
+        messageService.sendPrivateMessage( subject, text, metaData, users );
 
         return SUCCESS;
     }

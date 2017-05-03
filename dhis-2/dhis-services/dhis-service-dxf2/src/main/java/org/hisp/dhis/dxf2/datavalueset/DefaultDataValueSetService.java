@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2.datavalueset;
  */
 
 import com.csvreader.CsvReader;
-import org.amplecode.staxwax.factory.XMLFactory;
+import org.hisp.staxwax.factory.XMLFactory;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -869,8 +869,9 @@ public class DefaultDataValueSetService
                 continue;
             }
 
-            if ( dataValue.getValue() == null && dataValue.getComment() == null )
+            if ( dataValue.isNullValue() && !dataValue.isDeletedValue() )
             {
+                summary.getConflicts().add( new ImportConflict( "Value", "Data value or comment not specified for data element: " + dataElement.getUid() ) );
                 continue;
             }
 
@@ -1170,7 +1171,7 @@ public class DefaultDataValueSetService
         int ignores = totalCount - importCount - updateCount - deleteCount;
 
         summary.setImportCount( new ImportCount( importCount, updateCount, ignores, deleteCount ) );
-        summary.setStatus( ImportStatus.SUCCESS );
+        summary.setStatus( summary.getConflicts().isEmpty() ? ImportStatus.SUCCESS : ImportStatus.WARNING );
         summary.setDescription( "Import process completed successfully" );
 
         clock.logTime( "Data value import done, total: " + totalCount + ", import: " + importCount + ", update: " + updateCount + ", delete: " + deleteCount );

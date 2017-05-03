@@ -371,4 +371,11 @@ public interface UserService
     void canIssueFilter( Collection<UserAuthorityGroup> userRoles );
 
     List<ErrorReport> validateUser( User user, User currentUser );
+
+    /**
+     * Returns list of users whose credentials are expiring with in few days.
+     *
+     * @return list of users whose credentials are expiring with in few days.
+     */
+    List<User> getExpiringUsers();
 }

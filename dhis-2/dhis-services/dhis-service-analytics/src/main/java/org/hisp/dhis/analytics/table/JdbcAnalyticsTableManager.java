@@ -48,6 +48,7 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -86,6 +87,15 @@ public class JdbcAnalyticsTableManager
     public AnalyticsTableType getAnalyticsTableType()
     {
         return AnalyticsTableType.DATA_VALUE;
+    }
+
+    @Override
+    @Transactional
+    public List<AnalyticsTable> getTables( Date earliest )
+    {
+        log.info( "Get tables using earliest: " + earliest );
+
+        return getTables( getDataYears( earliest ) );
     }
     
     @Override
@@ -358,11 +368,13 @@ public class JdbcAnalyticsTableManager
         AnalyticsTableColumn de = new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "de.uid" );
         AnalyticsTableColumn co = new AnalyticsTableColumn( quote( "co" ), "character(11) not null", "co.uid" );
         AnalyticsTableColumn ao = new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" );
+        AnalyticsTableColumn startDate = new AnalyticsTableColumn( quote( "pestartdate" ), "timestamp", "pe.startdate" );
+        AnalyticsTableColumn endDate = new AnalyticsTableColumn( quote( "peenddate" ),"timestamp", "pe.enddate" );
         AnalyticsTableColumn pe = new AnalyticsTableColumn( quote( "pe" ), "character varying(15) not null", "ps.iso" );
         AnalyticsTableColumn ou = new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" );
         AnalyticsTableColumn level = new AnalyticsTableColumn( quote( "level" ), "integer", "ous.level" );
 
-        columns.addAll( Lists.newArrayList( de, co, ao, pe, ou, level ) );
+        columns.addAll( Lists.newArrayList( de, co, ao, startDate, endDate, pe, ou, level ) );
 
         if ( isApprovalEnabled( table ) )
         {
@@ -380,8 +392,7 @@ public class JdbcAnalyticsTableManager
         return filterDimensionColumns( columns );
     }
 
-    @Override
-    public List<Integer> getDataYears( Date earliest )
+    private List<Integer> getDataYears( Date earliest )
     {
         String sql =
             "select distinct(extract(year from pe.startdate)) " +

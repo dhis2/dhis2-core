@@ -31,6 +31,8 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultStore;
 
+import java.util.List;
+
 /**
  * @author Stian Sandvold
  */
@@ -38,4 +40,10 @@ public class HibernateValidationResultStore
     extends HibernateGenericStore<ValidationResult>
     implements ValidationResultStore
 {
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<ValidationResult> getAllUnreportedValidationResults()
+    {
+        return getQuery( "from ValidationResult where notificationSent is false" ).list();
+    }
 }

@@ -51,7 +51,13 @@ public class H2StatementBuilder
     {
         return null;
     }
-    
+
+    @Override
+    public String getAnalyze( String table )
+    {
+        return null;
+    }
+
     @Override
     public String getTableOptions( boolean autoVacuum )
     {
@@ -98,6 +104,12 @@ public class H2StatementBuilder
     public String getAddDate( String dateField, int days )
     {
         return "DATEADD('DAY'," + days + "," + dateField + ")";
+    }
+
+    @Override
+    public String getDaysBetweenDates( String fromColumn, String toColumn )
+    {
+        return ("DATEDIFF('DAY', " + toColumn + ", " + fromColumn + ")");
     }
 
     @Override

@@ -39,6 +39,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.render.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.render.ParseDateStdDeserializer;
 import org.hisp.dhis.render.WriteDateStdSerializer;
@@ -228,7 +229,9 @@ public class JacksonEventService extends AbstractEventService
                 }
                 else
                 {
-                    if ( !programStageInstanceService.programStageInstanceExists( event.getEvent() ) )
+                    ProgramStageInstance programStageInstance = manager.getObject( ProgramStageInstance.class, importOptions.getIdSchemes().getProgramStageInstanceIdScheme(), event.getEvent() );
+
+                    if( programStageInstance == null )
                     {
                         create.add( event );
                     }

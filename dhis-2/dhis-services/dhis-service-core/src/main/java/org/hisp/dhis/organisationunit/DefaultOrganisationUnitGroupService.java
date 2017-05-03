@@ -78,7 +78,9 @@ public class DefaultOrganisationUnitGroupService
     @Override
     public int addOrganisationUnitGroup( OrganisationUnitGroup organisationUnitGroup )
     {
-        return organisationUnitGroupStore.save( organisationUnitGroup );
+        organisationUnitGroupStore.save( organisationUnitGroup );
+
+        return organisationUnitGroup.getId();
     }
 
     @Override
@@ -180,7 +182,9 @@ public class DefaultOrganisationUnitGroupService
     @Override
     public int addOrganisationUnitGroupSet( OrganisationUnitGroupSet organisationUnitGroupSet )
     {
-        return organisationUnitGroupSetStore.save( organisationUnitGroupSet );
+        organisationUnitGroupSetStore.save( organisationUnitGroupSet );
+
+        return organisationUnitGroupSet.getId();
     }
 
     @Override

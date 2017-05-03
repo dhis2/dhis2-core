@@ -39,6 +39,4 @@ public class HibernateExternalMapLayerStore
     extends HibernateIdentifiableObjectStore<ExternalMapLayer>
     implements ExternalMapLayerStore
 {
-
-
 }

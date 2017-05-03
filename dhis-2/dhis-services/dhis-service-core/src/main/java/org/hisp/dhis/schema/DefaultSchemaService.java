@@ -31,13 +31,13 @@ package org.hisp.dhis.schema;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.schema.descriptors.*;
 import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.oauth2.OAuth2Client;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,9 +47,7 @@ import org.springframework.core.OrderComparator;
 import org.springframework.util.StringUtils;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -62,10 +60,6 @@ import static java.util.stream.Collectors.toSet;
 public class DefaultSchemaService
     implements SchemaService
 {
-    private static final ImmutableMap<Class<?>, String> BEAUTIFY_OVERRIDE = ImmutableMap.<Class<?>, String>builder()
-        .put( OAuth2Client.class, "OAuth2 Client" )
-        .build();
-
     private ImmutableList<SchemaDescriptor> descriptors = new ImmutableList.Builder<SchemaDescriptor>().
         add( new MetadataVersionSchemaDescriptor() ).
         add( new AttributeSchemaDescriptor() ).
@@ -115,16 +109,17 @@ public class DefaultSchemaService
         add( new OrganisationUnitLevelSchemaDescriptor() ).
         add( new OrganisationUnitSchemaDescriptor() ).
         add( new PredictorSchemaDescriptor() ).
+        add( new ProgramDataElementDimensionItemSchemaDescriptor() ).
         add( new ProgramIndicatorSchemaDescriptor() ).
         add( new ProgramRuleActionSchemaDescriptor() ).
         add( new ProgramRuleSchemaDescriptor() ).
         add( new ProgramRuleVariableSchemaDescriptor() ).
         add( new ProgramSchemaDescriptor() ).
-        add( new ProgramDataElementSchemaDescriptor() ).
         add( new ProgramStageDataElementSchemaDescriptor() ).
         add( new ProgramStageSchemaDescriptor() ).
         add( new ProgramStageSectionSchemaDescriptor() ).
         add( new ProgramTrackedEntityAttributeSchemaDescriptor() ).
+        add( new ProgramTrackedEntityAttributeDimensionItemSchemaDescriptor() ).
         add( new ProgramNotificationTemplateSchemaDescriptor() ).
         add( new RelationshipTypeSchemaDescriptor() ).
         add( new ReportSchemaDescriptor() ).
@@ -170,9 +165,14 @@ public class DefaultSchemaService
     @Autowired
     private SessionFactory sessionFactory;
 
+    @Autowired
+    private I18nManager i18nManager;
+
     @EventListener
     public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )
     {
+        I18n i18n = i18nManager.getI18n();
+
         for ( SchemaDescriptor descriptor : descriptors )
         {
             Schema schema = descriptor.getSchema();
@@ -182,7 +182,7 @@ public class DefaultSchemaService
                 schema.setPersisted( true );
             }
 
-            schema.setDisplayName( beautify( schema ) );
+            schema.setDisplayName( i18n.getString( "schema_class_" + schema.getKlass().getName() ) );
 
             if ( schema.getProperties().isEmpty() )
             {
@@ -194,6 +194,11 @@ public class DefaultSchemaService
             pluralSchemaMap.put( schema.getPlural(), schema );
 
             updateSelf( schema );
+
+            schema.getPersistedProperties();
+            schema.getNonPersistedProperties();
+            schema.getReadableProperties();
+            schema.getEmbeddedObjectProperties();
         }
     }
 
@@ -235,14 +240,15 @@ public class DefaultSchemaService
             return schema;
         }
 
+        I18n i18n = i18nManager.getI18n();
+
         klass = propertyIntrospectorService.getConcreteClass( ReflectionUtils.getRealClass( klass ) );
 
         String name = getName( klass );
 
         schema = new Schema( klass, name, name + "s" );
-        schema.setDisplayName( beautify( schema ) );
+        schema.setDisplayName( i18n.getString( "schema_class_" + schema.getKlass().getName() ) );
         schema.setPropertyMap( new HashMap<>( propertyIntrospectorService.getPropertiesMap( schema.getKlass() ) ) );
-        schema.setMetadata( false );
 
         updateSelf( schema );
 
@@ -288,7 +294,7 @@ public class DefaultSchemaService
     public List<Schema> getSortedSchemas()
     {
         List<Schema> schemas = Lists.newArrayList( classSchemaMap.values() );
-        Collections.sort( schemas, OrderComparator.INSTANCE );
+        schemas.sort( OrderComparator.INSTANCE );
 
         return schemas;
     }
@@ -298,19 +304,8 @@ public class DefaultSchemaService
     {
         List<Schema> schemas = getSchemas();
 
-        Iterator<Schema> iterator = schemas.iterator();
-
-        while ( iterator.hasNext() )
-        {
-            Schema schema = iterator.next();
-
-            if ( !schema.isMetadata() )
-            {
-                iterator.remove();
-            }
-        }
-
-        Collections.sort( schemas, OrderComparator.INSTANCE );
+        schemas.removeIf( schema -> !schema.isMetadata() );
+        schemas.sort( OrderComparator.INSTANCE );
 
         return schemas;
     }
@@ -335,16 +330,5 @@ public class DefaultSchemaService
 
             schema.getPropertyMap().remove( "__self__" );
         }
-    }
-
-    private String beautify( Schema schema )
-    {
-        if ( BEAUTIFY_OVERRIDE.containsKey( schema.getKlass() ) )
-        {
-            return BEAUTIFY_OVERRIDE.get( schema.getKlass() );
-        }
-
-        String[] camelCaseWords = org.apache.commons.lang3.StringUtils.capitalize( schema.getPlural() ).split( "(?=[A-Z])" );
-        return org.apache.commons.lang3.StringUtils.join( camelCaseWords, " " ).trim();
     }
 }

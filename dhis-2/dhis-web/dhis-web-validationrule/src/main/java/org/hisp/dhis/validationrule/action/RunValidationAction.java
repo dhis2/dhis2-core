@@ -28,11 +28,7 @@ package org.hisp.dhis.validationrule.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
+import com.opensymphony.xwork2.Action;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -47,7 +43,10 @@ import org.hisp.dhis.validation.ValidationRuleService;
 import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.comparator.ValidationResultComparator;
 
-import com.opensymphony.xwork2.Action;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Margrethe Store
@@ -193,7 +192,7 @@ public class RunValidationAction
     {
         organisationUnit = organisationUnitService.getOrganisationUnit( organisationUnitId );
 
-        Collection<OrganisationUnit> organisationUnits = organisationUnitService.getOrganisationUnitWithChildren( organisationUnit.getId() );
+        List<OrganisationUnit> organisationUnits = organisationUnitService.getOrganisationUnitWithChildren( organisationUnit.getId() );
 
         ValidationRuleGroup group = validationRuleGroupId == -1 ? null : validationRuleService.getValidationRuleGroup( validationRuleGroupId );
 
@@ -201,7 +200,7 @@ public class RunValidationAction
 
         log.info( "Validating data for " + ( group == null ? "all rules" : "group: " + group.getName() ) );
 
-        validationResults = new ArrayList<>( validationService.validate( format.parseDate( startDate ), format.parseDate( endDate ),
+        validationResults = new ArrayList<>( validationService.startInteractiveValidationAnalysis( format.parseDate( startDate ), format.parseDate( endDate ),
                 organisationUnits, attributeOptionCombo, group, sendNotifications, format ) );
 
         maxExceeded = validationResults.size() > ValidationService.MAX_INTERACTIVE_ALERTS;

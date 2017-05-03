@@ -32,20 +32,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.LinkObject;
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.MergeMode;
-import org.hisp.dhis.expression.ExpressionService;
-
-import java.util.regex.Matcher;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 
 /**
  * This object can act both as a hydrated persisted object and as a wrapper
@@ -59,32 +56,21 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_P
  */
 @JacksonXmlRootElement( localName = "dataElementOperand", namespace = DxfNamespaces.DXF_2_0 )
 public class DataElementOperand
-    extends BaseDimensionalItemObject implements LinkObject
+    extends BaseDimensionalItemObject implements EmbeddedObject
 {
     public static final String SEPARATOR = COMPOSITE_DIM_OBJECT_PLAIN_SEP;
-    public static final String NAME_TOTAL = "(Total)";
 
     private static final String SPACE = " ";
 
     // -------------------------------------------------------------------------
-    // Persisted properties
+    // Properties
     // -------------------------------------------------------------------------
 
     private DataElement dataElement;
 
     private DataElementCategoryOptionCombo categoryOptionCombo;
-
-    // -------------------------------------------------------------------------
-    // Transient properties
-    // -------------------------------------------------------------------------
-
-    private String dataElementId;
-
-    private String optionComboId;
-
-    private String operandId;
-
-    private String operandName;
+    
+    private DataElementCategoryOptionCombo attributeOptionCombo;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -106,11 +92,11 @@ public class DataElementOperand
         this.categoryOptionCombo = categoryOptionCombo;
     }
 
-    public DataElementOperand( String dataElementId, String optionComboId )
+    public DataElementOperand( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo )
     {
-        this.dataElementId = dataElementId;
-        this.optionComboId = optionComboId;
-        this.operandId = dataElementId + SEPARATOR + optionComboId;
+        this.dataElement = dataElement;
+        this.categoryOptionCombo = categoryOptionCombo;
+        this.attributeOptionCombo = attributeOptionCombo;
     }
 
     // -------------------------------------------------------------------------
@@ -120,18 +106,7 @@ public class DataElementOperand
     @Override
     public String getDimensionItem()
     {
-        String item = null;
-
-        if ( dataElement != null )
-        {
-            item = dataElement.getUid() + (categoryOptionCombo != null ? (SEPARATOR + categoryOptionCombo.getUid()) : StringUtils.EMPTY);
-        }
-        else if ( dataElementId != null )
-        {
-            item = dataElementId + (optionComboId != null ? (SEPARATOR + optionComboId) : StringUtils.EMPTY);
-        }
-
-        return item;
+        return getDimensionItem( IdScheme.UID );
     }
 
     @Override
@@ -141,7 +116,21 @@ public class DataElementOperand
 
         if ( dataElement != null )
         {
-            item = dataElement.getPropertyValue( idScheme ) + (categoryOptionCombo != null ? (SEPARATOR + categoryOptionCombo.getPropertyValue( idScheme )) : StringUtils.EMPTY);
+            item = dataElement.getPropertyValue( idScheme );
+
+            if ( categoryOptionCombo != null )
+            {
+                item += SEPARATOR + categoryOptionCombo.getPropertyValue( idScheme );
+            }
+            else if ( attributeOptionCombo != null )
+            {
+                item += SEPARATOR + SYMBOL_WILDCARD;
+            }
+            
+            if ( attributeOptionCombo != null )
+            {
+                item += SEPARATOR + attributeOptionCombo.getPropertyValue( idScheme );
+            }
         }
 
         return item;
@@ -154,8 +143,26 @@ public class DataElementOperand
     }
 
     // -------------------------------------------------------------------------
-    // Logic
+    // IdentifiableObject
     // -------------------------------------------------------------------------
+
+    @Override
+    public String getUid()
+    {
+        String uid = null;
+
+        if ( dataElement != null )
+        {
+            uid = dataElement.getUid();
+        }
+
+        if ( categoryOptionCombo != null && !categoryOptionCombo.isDefault() )
+        {
+            uid += SEPARATOR + categoryOptionCombo.getUid();
+        }
+
+        return uid;
+    }
 
     @Override
     public String getName()
@@ -172,9 +179,18 @@ public class DataElementOperand
             name = dataElement.getName();
         }
 
-        if ( categoryOptionCombo != null && !categoryOptionCombo.isDefault() )
+        if ( hasNonDefaultCategoryOptionCombo() )
         {
             name += SPACE + categoryOptionCombo.getName();
+        }
+        else if ( hasNonDefaultAttributeOptionCombo() )
+        {
+            name += SPACE + SYMBOL_WILDCARD;
+        }
+        
+        if ( hasNonDefaultAttributeOptionCombo() )
+        {
+            name += SPACE + attributeOptionCombo.getName();
         }
 
         return name;
@@ -190,91 +206,73 @@ public class DataElementOperand
             shortName = dataElement.getShortName();
         }
 
-        if ( categoryOptionCombo != null )
+        if ( hasNonDefaultCategoryOptionCombo() )
         {
-            shortName += SPACE + categoryOptionCombo.getName();
+            shortName += SPACE + categoryOptionCombo.getShortName();
+        }
+        else if ( hasNonDefaultAttributeOptionCombo() )
+        {
+            name += SPACE + SYMBOL_WILDCARD;
+        }
+        
+        if ( hasNonDefaultAttributeOptionCombo() )
+        {
+            name += SPACE + attributeOptionCombo.getName();
         }
 
         return shortName;
     }
-
+    
     /**
-     * Returns a pretty-print name based on the given data element and category
-     * option combo.
-     *
-     * @param dataElement         the data element.
-     * @param categoryOptionCombo the category option combo.
-     * @return the name.
+     * Creates a {@link DataElementOperand} instance from the given identifiers.
+     * 
+     * @param dataElementUid the data element identifier.
+     * @param categoryOptionComboUid the category option combo identifier.
+     * @return a data element operand instance. 
      */
-    public static String getPrettyName( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo )
+    public static DataElementOperand instance( String dataElementUid, String categoryOptionComboUid )
     {
-        if ( dataElement == null ) // Invalid
-        {
-            return null;
-        }
-
-        if ( categoryOptionCombo == null ) // Total
-        {
-            return dataElement.getDisplayName() + SPACE + NAME_TOTAL;
-        }
-
-        return categoryOptionCombo.isDefault() ? dataElement.getDisplayName() : dataElement.getDisplayName() + SPACE + categoryOptionCombo.getName();
-    }
-
-    /**
-     * Updates all transient properties.
-     *
-     * @param dataElement
-     * @param categoryOptionCombo
-     */
-    public void updateProperties( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo )
-    {
-        this.dataElementId = dataElement.getUid();
-        this.optionComboId = categoryOptionCombo.getUid();
-        this.operandId = dataElementId + SEPARATOR + optionComboId;
-        this.operandName = getPrettyName( dataElement, categoryOptionCombo );
-        this.legendSets = dataElement.getLegendSets();
-        this.aggregationType = dataElement.getAggregationType();
-
-        this.uid = dataElementId + SEPARATOR + optionComboId;
-        this.name = getPrettyName( dataElement, categoryOptionCombo );
-    }
-
-    /**
-     * Updates all transient properties.
-     *
-     * @param dataElement
-     */
-    public void updateProperties( DataElement dataElement )
-    {
-        this.dataElementId = dataElement.getUid();
-        this.operandId = String.valueOf( dataElementId );
-        this.operandName = getPrettyName( dataElement, null );
-        this.legendSets = dataElement.getLegendSets();
-        this.aggregationType = dataElement.getAggregationType();
-
-        this.uid = dataElementId;
-        this.name = getPrettyName( dataElement, null );
-    }
-
-    /**
-     * Generates a DataElementOperand based on the given formula. The formula
-     * needs to be on the form "#{<dataelementid>.<categoryoptioncomboid>}".
-     *
-     * @param expression the formula.
-     * @return a DataElementOperand.
-     */
-    public static DataElementOperand getOperand( String expression )
-        throws NumberFormatException
-    {
-        Matcher matcher = ExpressionService.OPERAND_PATTERN.matcher( expression );
-        matcher.find();
-        String dataElement = StringUtils.trimToNull( matcher.group( 1 ) );
-        String categoryOptionCombo = StringUtils.trimToNull( matcher.group( 2 ) );
-
-        final DataElementOperand operand = new DataElementOperand( dataElement, categoryOptionCombo );
+        DataElement de = new DataElement();
+        de.setUid( dataElementUid );
         
-        return operand;
+        DataElementCategoryOptionCombo coc = null;
+        
+        if ( categoryOptionComboUid != null )
+        {
+            coc = new DataElementCategoryOptionCombo();
+            coc.setUid( categoryOptionComboUid );
+        }
+        
+        return new DataElementOperand( de, coc );
+    }
+    
+    /**
+     * Indicates whether this operand specifies a data element only
+     * with no option combinations.
+     * 
+     * @return true if operand specifies a data element only.
+     */
+    public boolean isTotal()
+    {
+        return categoryOptionCombo == null && attributeOptionCombo == null;
+    }
+    
+    /**
+     * Indicates whether a category option combination exists which is different
+     * from default.
+     */
+    public boolean hasNonDefaultCategoryOptionCombo()
+    {
+        return categoryOptionCombo != null && !categoryOptionCombo.isDefault();
+    }
+
+    /**
+     * Indicates whether an attribute option combination exists which is different
+     * from default.
+     */
+    public boolean hasNonDefaultAttributeOptionCombo()
+    {
+        return attributeOptionCombo != null && !attributeOptionCombo.isDefault();
     }
 
     // -------------------------------------------------------------------------
@@ -308,55 +306,20 @@ public class DataElementOperand
     }
 
     @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDataElementId()
+    public DataElementCategoryOptionCombo getAttributeOptionCombo()
     {
-        return dataElementId;
+        return attributeOptionCombo;
     }
 
-    public void setDataElementId( String dataElementId )
+    public void setAttributeOptionCombo( DataElementCategoryOptionCombo attributeOptionCombo )
     {
-        this.dataElementId = dataElementId;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getOptionComboId()
-    {
-        return optionComboId;
-    }
-
-    public void setOptionComboId( String optionComboId )
-    {
-        this.optionComboId = optionComboId;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getOperandId()
-    {
-        return operandId;
-    }
-
-    public void setOperandId( String operandId )
-    {
-        this.operandId = operandId;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getOperandName()
-    {
-        return operandName;
-    }
-
-    public void setOperandName( String operandName )
-    {
-        this.operandName = operandName;
+        this.attributeOptionCombo = attributeOptionCombo;
     }
 
     // -------------------------------------------------------------------------
-    // hashCode, equals, toString, compareTo
+    // toString, mergeWith
     // -------------------------------------------------------------------------
 
     @Override
@@ -367,125 +330,9 @@ public class DataElementOperand
             "\"id\":\"" + id + "\", " +
             "\"uid\":\"" + uid + "\", " +
             "\"dataElement\":" + dataElement + ", " +
-            "\"categoryOptionCombo\":" + categoryOptionCombo + ", " +
-            "\"dataElementId\":\"" + dataElementId + "\", " +
-            "\"optionComboId\":\"" + optionComboId + "\", " +
-            "\"operandId\":\"" + operandId + "\", " +
-            "\"operandName\":\"" + operandName + "\", " +
+            "\"categoryOptionCombo\":" + categoryOptionCombo +
+            "\"attributeOptionCombo\":" + attributeOptionCombo +
             '}';
-    }
-
-    @Override
-    public int hashCode()
-    {
-        final int prime = 31;
-        int result = 1;
-
-        if ( dataElement != null && categoryOptionCombo != null )
-        {
-            updateProperties( dataElement, categoryOptionCombo );
-        }
-
-        result = prime * result + ((dataElement == null) ? 0 : dataElement.hashCode());
-        result = prime * result + ((categoryOptionCombo == null) ? 0 : categoryOptionCombo.hashCodeIdentifiableObject());
-        result = prime * result + ((dataElementId == null) ? 0 : dataElementId.hashCode());
-        result = prime * result + ((optionComboId == null) ? 0 : optionComboId.hashCode());
-
-        return result;
-    }
-
-    @Override
-    public boolean equals( Object object )
-    {
-        if ( this == object )
-        {
-            return true;
-        }
-
-        if ( object == null )
-        {
-            return false;
-        }
-
-        if ( !getClass().isAssignableFrom( object.getClass() ) )
-        {
-            return false;
-        }
-
-        if ( dataElement != null && categoryOptionCombo != null )
-        {
-            updateProperties( dataElement, categoryOptionCombo );
-        }
-
-        DataElementOperand other = (DataElementOperand) object;
-
-        if ( other.getDataElement() != null && other.getCategoryOptionCombo() != null )
-        {
-            other.updateProperties( other.getDataElement(), other.getCategoryOptionCombo() );
-        }
-
-        if ( dataElement == null )
-        {
-            if ( other.dataElement != null )
-            {
-                return false;
-            }
-        }
-        else if ( !dataElement.equals( other.dataElement ) )
-        {
-            return false;
-        }
-
-        if ( categoryOptionCombo == null )
-        {
-            if ( other.categoryOptionCombo != null )
-            {
-                return false;
-            }
-        }
-        else if ( !categoryOptionCombo.equalsIdentifiableObject( other.categoryOptionCombo ) )
-        {
-            return false;
-        }
-
-        if ( dataElementId == null )
-        {
-            if ( other.dataElementId != null )
-            {
-                return false;
-            }
-        }
-        else if ( !dataElementId.equals( other.dataElementId ) )
-        {
-            return false;
-        }
-
-        if ( optionComboId == null )
-        {
-            if ( other.optionComboId != null )
-            {
-                return false;
-            }
-        }
-        else if ( !optionComboId.equals( other.optionComboId ) )
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public int compareTo( IdentifiableObject object )
-    {
-        DataElementOperand other = (DataElementOperand) object;
-
-        if ( this.dataElementId.compareTo( other.dataElementId ) != 0 )
-        {
-            return this.dataElementId.compareTo( other.dataElementId );
-        }
-
-        return this.optionComboId.compareTo( other.optionComboId );
     }
 
     @Override
@@ -501,12 +348,76 @@ public class DataElementOperand
             {
                 dataElement = dataElementOperand.getDataElement();
                 categoryOptionCombo = dataElementOperand.getCategoryOptionCombo();
+                attributeOptionCombo = dataElementOperand.getAttributeOptionCombo();
             }
             else if ( mergeMode.isMerge() )
             {
                 dataElement = dataElementOperand.getDataElement() != null ? dataElementOperand.getDataElement() : dataElement;
                 categoryOptionCombo = dataElementOperand.getCategoryOptionCombo() != null ? dataElementOperand.getCategoryOptionCombo() : categoryOptionCombo;
+                attributeOptionCombo = dataElementOperand.getAttributeOptionCombo() != null ? dataElementOperand.getAttributeOptionCombo() : attributeOptionCombo;
             }
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Option combination type
+    // -------------------------------------------------------------------------
+
+    public enum TotalType
+    {
+        COC_ONLY( true, false, 1 ), 
+        AOC_ONLY( false, true, 1 ), 
+        COC_AND_AOC( true, true, 2 ), 
+        NONE( false, false, 0 );
+        
+        private boolean coc;
+        private boolean aoc;
+        private int propertyCount;
+        
+        TotalType()
+        {
+        }
+        
+        TotalType( boolean coc, boolean aoc, int propertyCount )
+        {
+            this.coc = coc;
+            this.aoc = aoc;
+            this.propertyCount = propertyCount;
+        }
+        
+        public boolean isCategoryOptionCombo()
+        {
+            return coc;
+        }
+        
+        public boolean isAttributeOptionCombo()
+        {
+            return aoc;
+        }
+        
+        public int getPropertyCount()
+        {
+            return propertyCount;
+        }
+    }
+    
+    public TotalType getTotalType()
+    {
+        if ( categoryOptionCombo != null && attributeOptionCombo != null )
+        {
+            return TotalType.COC_AND_AOC;
+        }
+        else if ( categoryOptionCombo != null )
+        {
+            return TotalType.COC_ONLY;
+        }
+        else if ( attributeOptionCombo != null )
+        {
+            return TotalType.AOC_ONLY;
+        }
+        else
+        {
+            return TotalType.NONE;
         }
     }
 }

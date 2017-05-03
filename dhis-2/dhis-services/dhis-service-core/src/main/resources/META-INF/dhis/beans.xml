@@ -83,12 +83,6 @@
 
   <!-- Store definitions -->
 
-  <bean id="org.hisp.dhis.dataset.DataInputPeriodStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
-    <property name="clazz" value="org.hisp.dhis.dataset.DataInputPeriod" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="cacheable" value="true" />
-  </bean>
-
   <bean id="org.hisp.dhis.report.ReportStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
     <property name="clazz" value="org.hisp.dhis.report.Report" />
     <property name="sessionFactory" ref="sessionFactory" />
@@ -222,12 +216,6 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
     <property name="transientIdentifiableProperties" value="true" />
-  </bean>
-
-  <bean id="org.hisp.dhis.dataset.DataSetElementStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
-    <property name="clazz" value="org.hisp.dhis.dataset.DataSetElement" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="cacheable" value="true" />
   </bean>
 
   <bean id="org.hisp.dhis.dataset.DataSetStore" class="org.hisp.dhis.dataset.hibernate.HibernateDataSetStore">
@@ -417,6 +405,22 @@
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
+  <bean id="org.hisp.dhis.user.PasswordValidationService" class="org.hisp.dhis.user.DefaultPasswordValidationService" />
+
+  <bean id="org.hisp.dhis.user.PasswordHistoryValidationRule" class="org.hisp.dhis.user.PasswordHistoryValidationRule" />
+
+  <bean id="org.hisp.dhis.user.PasswordLengthValidationRule" class="org.hisp.dhis.user.PasswordLengthValidationRule" />
+
+  <bean id="org.hisp.dhis.user.DigitPatternValidationRule" class="org.hisp.dhis.user.DigitPatternValidationRule" />
+
+  <bean id="org.hisp.dhis.user.UpperCasePatternValidationRule" class="org.hisp.dhis.user.UpperCasePatternValidationRule" />
+
+  <bean id="org.hisp.dhis.user.SpecialCharacterValidationRule" class="org.hisp.dhis.user.SpecialCharacterValidationRule" />
+
+  <bean id="org.hisp.dhis.user.PasswordDictionaryValidationRule" class="org.hisp.dhis.user.PasswordDictionaryValidationRule" />
+
+  <bean id="org.hisp.dhis.user.UserParameterValidationRule" class="org.hisp.dhis.user.UserParameterValidationRule" />
+
   <bean id="org.hisp.dhis.validation.ValidationCriteriaStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
     <property name="clazz" value="org.hisp.dhis.validation.ValidationCriteria" />
     <property name="sessionFactory" ref="sessionFactory" />
@@ -440,6 +444,8 @@
     <property name="clazz" value="org.hisp.dhis.constant.Constant" />
     <property name="cacheable" value="true" />
   </bean>
+
+  <bean id="org.hisp.dhis.deletedobject.DeletedObjectStore" class="org.hisp.dhis.deletedobject.hibernate.HibernateDeletedObjectStore" />
 
   <bean id="org.hisp.dhis.version.VersionStore" class="org.hisp.dhis.version.hibernate.HibernateVersionStore">
     <property name="sessionFactory" ref="sessionFactory" />
@@ -511,13 +517,6 @@
     class="org.hisp.dhis.mapping.hibernate.HibernateExternalMapLayerStore">
     <property name="clazz" value="org.hisp.dhis.mapping.ExternalMapLayer" />
     <property name="sessionFactory" ref="sessionFactory" />
-  </bean>
-
-  <bean id="org.hisp.dhis.legend.LegendStore"
-    class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
-    <property name="clazz" value="org.hisp.dhis.legend.Legend" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="cacheable" value="true" />
   </bean>
 
   <bean id="org.hisp.dhis.legend.LegendSetStore"
@@ -616,13 +615,6 @@
   <bean id="org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramTrackedEntityAttributeGroupStore">
     <property name="clazz" value="org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="cacheable" value="true" />
-  </bean>
-
-  <bean id="org.hisp.dhis.program.ProgramDataElementStore"
-    class="org.hisp.dhis.program.hibernate.HibernateProgramDataElementStore">
-    <property name="clazz" value="org.hisp.dhis.program.ProgramDataElement" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
@@ -817,12 +809,6 @@
     <property name="externalFileResourceStore" ref="org.hisp.dhis.fileresource.ExternalFileResourceStore" />
   </bean>
 
-  <bean id="org.hisp.dhis.dataelement.DataElementOperandService" class="org.hisp.dhis.dataelement.DefaultDataElementOperandService">
-    <property name="dataElementOperandStore" ref="org.hisp.dhis.dataelement.DataElementOperandStore" />
-    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
-  </bean>
-
   <bean id="org.hisp.dhis.datavalue.DataValueService" class="org.hisp.dhis.datavalue.DefaultDataValueService">
     <property name="dataValueStore" ref="org.hisp.dhis.datavalue.DataValueStore" />
     <property name="dataValueAuditService" ref="org.hisp.dhis.datavalue.DataValueAuditService" />
@@ -877,7 +863,6 @@
   <bean id="org.hisp.dhis.dataset.DataSetService" class="org.hisp.dhis.dataset.DefaultDataSetService">
     <property name="dataSetStore" ref="org.hisp.dhis.dataset.DataSetStore" />
     <property name="lockExceptionStore" ref="org.hisp.dhis.dataset.LockExceptionStore" />
-    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="dataApprovalService" ref="org.hisp.dhis.dataapproval.DataApprovalService" />
   </bean>
@@ -925,6 +910,7 @@
     class="org.hisp.dhis.validation.notification.DefaultValidationNotificationService">
     <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
     <property name="notificationMessageRenderer" ref="validationNotificationMessageRenderer" />
+    <property name="validationResultService" ref="org.hisp.dhis.validation.ValidationResultService" />
   </bean>
 
   <bean id="org.hisp.dhis.dataelement.DataElementCategoryService" class="org.hisp.dhis.dataelement.DefaultDataElementCategoryService">
@@ -1054,6 +1040,8 @@
     <property name="constantStore" ref="org.hisp.dhis.constant.ConstantStore" />
   </bean>
 
+  <bean id="org.hisp.dhis.deletedobject.DeletedObjectService" class="org.hisp.dhis.deletedobject.DefaultDeletedObjectService" />
+
   <bean id="org.hisp.dhis.version.VersionService" class="org.hisp.dhis.version.DefaultVersionService">
     <property name="versionStore" ref="org.hisp.dhis.version.VersionStore" />
   </bean>
@@ -1077,8 +1065,7 @@
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
   </bean>
 
-  <bean id="org.hisp.dhis.legend.LegendService" class="org.hisp.dhis.legend.DefaultLegendService">
-    <property name="legendStore" ref="org.hisp.dhis.legend.LegendStore" />
+  <bean id="org.hisp.dhis.legend.LegendService" class="org.hisp.dhis.legend.DefaultLegendSetService">
     <property name="legendSetStore" ref="org.hisp.dhis.legend.LegendSetStore" />
   </bean>
 
@@ -1100,7 +1087,7 @@
         <value>africare</value>
         <value>akros</value>
         <value>algeria</value>
-	    <value>angola</value>
+        <value>angola</value>
         <value>armenia</value>
         <value>bangladesh</value>
         <value>benin</value>
@@ -1116,6 +1103,7 @@
         <value>colombia</value>
         <value>congo_brazzaville</value>
         <value>congo_kinshasa</value>
+        <value>cordaid</value>
         <value>demoland</value>
         <value>denmark</value>
         <value>ecowas</value>
@@ -1171,12 +1159,15 @@
         <value>pepfar</value>
         <value>peru</value>
         <value>psi</value>
+        <value>puntland</value>
         <value>rwanda</value>
         <value>save_the_children</value>
         <value>senegal</value>
         <value>sierra_leone</value>
         <value>sierra_leone_coat_of_arms</value>
         <value>solomon_islands</value>
+        <value>somalia</value>
+        <value>somaliland</value>
         <value>south_africa</value>
         <value>south_africa_department_of_health</value>
         <value>south_sudan</value>
@@ -1308,7 +1299,6 @@
     <property name="programStageInstanceService" ref="org.hisp.dhis.program.ProgramStageInstanceService" />
     <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
     <property name="dataValueService" ref="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService" />
-    <property name="programStageDataElementService" ref="org.hisp.dhis.program.ProgramStageDataElementService" />
   </bean>
 
   <bean id="org.hisp.dhis.program.ProgramExpressionService" class="org.hisp.dhis.program.DefaultProgramExpressionService">
@@ -1381,8 +1371,6 @@
     <property name="programStore" ref="org.hisp.dhis.program.ProgramStore" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
-    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="programDataElementStore" ref="org.hisp.dhis.program.ProgramDataElementStore" />
   </bean>
 
   <bean id="org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupService"
@@ -1528,7 +1516,12 @@
   <!-- Scheduled task for scheduled program notifications -->
 
   <bean id="scheduledProgramNotificationsTask"
-    class="org.hisp.dhis.program.notification.ProgramNotificationTask" scope="prototype" />
+        class="org.hisp.dhis.program.notification.ProgramNotificationTask" scope="prototype" />
+
+  <!-- Scheduled task for validation result notifications -->
+
+  <bean id="validationResultNotificationTask"
+        class="org.hisp.dhis.validation.notification.ValidationResultNotificationTask" scope="prototype" />
 
   <!-- Startup routine definitions -->
 
@@ -1760,7 +1753,7 @@
     class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDeletionHandler" />
 
   <bean id="org.hisp.dhis.user.UserCredentialsDeletionHandler" class="org.hisp.dhis.user.UserCredentialsDeletionHandler" />
-  
+
   <bean id="org.hisp.dhis.user.UserDeletionHandler" class="org.hisp.dhis.user.UserDeletionHandler" />
 
   <bean id="org.hisp.dhis.user.UserGroupDeletionHandler" class="org.hisp.dhis.user.UserGroupDeletionHandler">
@@ -1809,6 +1802,10 @@
   <bean id="org.hisp.dhis.program.ProgramInstanceDeletionHandler"
     class="org.hisp.dhis.program.ProgramInstanceDeletionHandler">
     <property name="programInstanceService" ref="org.hisp.dhis.program.ProgramInstanceService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramIndicatorGroupDeletionHandler"
+    class="org.hisp.dhis.program.ProgramIndicatorGroupDeletionHandler">
   </bean>
 
   <bean id="org.hisp.dhis.relationship.RelationshipDeletionHandler"
@@ -1913,8 +1910,8 @@
       <aop:before pointcut="execution( * org.hisp.dhis.user.UserGroupService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.option.OptionService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.attribute.AttributeService.delete*(..) )" method="intercept" />
-      <aop:before pointcut="execution( * org.hisp.dhis.legend.LegendService.deleteLegend(..) )" method="intercept" />
-      <aop:before pointcut="execution( * org.hisp.dhis.legend.LegendService.deleteLegendSet(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.legend.LegendSetService.deleteLegend(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.legend.LegendSetService.deleteLegendSet(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.mapping.MappingService.deleteMapView(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.mapping.MappingService.deleteMap(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.i18n.I18nLocaleService.delete*(..) )" method="intercept" />

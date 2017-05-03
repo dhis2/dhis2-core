@@ -28,7 +28,6 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -85,16 +84,15 @@ public class Expression
     private String description;
 
     /**
+     * This expression should be given sliding window based data
+     */
+    private Boolean slidingWindow = false;
+
+    /**
      * Indicates whether the expression should evaluate to null if all or any
      * data values are missing in the expression.
      */
     private MissingValueStrategy missingValueStrategy = MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
-
-    // -------------------------------------------------------------------------
-    // Transient properties
-    // -------------------------------------------------------------------------
-
-    private transient String explodedExpression;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -130,18 +128,6 @@ public class Expression
         this.expression = expression;
         this.description = description;
         this.missingValueStrategy = missingValueStrategy;
-    }
-
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
-
-    /**
-     * Returns exploded expression, if null returns expression.
-     */
-    public String getExplodedExpressionFallback()
-    {
-        return explodedExpression != null ? explodedExpression : expression;
     }
 
     // -------------------------------------------------------------------------
@@ -213,7 +199,6 @@ public class Expression
             "\"class\":\"" + getClass() + "\", " +
             "\"id\":\"" + id + "\", " +
             "\"expression\":\"" + expression + "\", " +
-            "\"explodedExpression\":\"" + explodedExpression + "\", " +
             "\"description\":\"" + description + "\" " +
             "}";
     }
@@ -308,17 +293,6 @@ public class Expression
         this.missingValueStrategy = missingValueStrategy;
     }
 
-    @JsonIgnore
-    public String getExplodedExpression()
-    {
-        return explodedExpression;
-    }
-
-    public void setExplodedExpression( String explodedExpression )
-    {
-        this.explodedExpression = explodedExpression;
-    }
-
     public void mergeWith( Expression other )
     {
         Validate.notNull( other );
@@ -326,5 +300,17 @@ public class Expression
         expression = other.getExpression() == null ? expression : other.getExpression();
         description = other.getDescription() == null ? description : other.getDescription();
         missingValueStrategy = other.getMissingValueStrategy() == null ? missingValueStrategy : other.getMissingValueStrategy();
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getSlidingWindow()
+    {
+        return slidingWindow;
+    }
+
+    public void setSlidingWindow( Boolean slidingWindow )
+    {
+        this.slidingWindow = slidingWindow;
     }
 }

@@ -48,7 +48,6 @@ public class AttributeValueSchemaDescriptor implements SchemaDescriptor
     public Schema getSchema()
     {
         Schema schema = new Schema( AttributeValue.class, SINGULAR, PLURAL );
-        schema.setMetadata( false );
         schema.setOrder( Ordered.HIGHEST_PRECEDENCE );
 
         return schema;

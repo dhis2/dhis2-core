@@ -50,10 +50,7 @@ import org.hisp.dhis.schema.annotation.Property.Access;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.springframework.util.StringUtils;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Nguyen Hong Duc
@@ -112,6 +109,11 @@ public class UserCredentials
      * Category dimensions to constrain data analytics aggregation.
      */
     private Set<DataElementCategory> catDimensionConstraints = new HashSet<>();
+
+    /**
+     * Retaining password history so user cannot pick one of the previous 24 passwords
+     */
+    private List<String> previousPasswords = new ArrayList<>();
 
     /**
      * Date of the user's last login.
@@ -617,6 +619,16 @@ public class UserCredentials
         this.cogsDimensionConstraints = cogsDimensionConstraints;
     }
 
+    public List<String> getPreviousPasswords()
+    {
+        return previousPasswords;
+    }
+
+    public void setPreviousPasswords( List<String> previousPasswords )
+    {
+        this.previousPasswords = previousPasswords;
+    }
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getUsername()
@@ -772,6 +784,9 @@ public class UserCredentials
 
             cogsDimensionConstraints.clear();
             cogsDimensionConstraints.addAll( userCredentials.getCogsDimensionConstraints() );
+
+            previousPasswords.clear();
+            previousPasswords.addAll( userCredentials.getPreviousPasswords() );
         }
     }
 

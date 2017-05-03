@@ -29,6 +29,8 @@ package org.hisp.dhis.datavalue;
  */
 
 import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.common.MapMapMap;
+import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
@@ -144,40 +146,24 @@ public interface DataValueStore
         Collection<DataElement> dataElements, DataElementCategoryOptionCombo attributeOptionCombo );
     
     /**
-     * Returns all DataValues for a given DataElement, DataElementCategoryOptionCombo,
-     * collection of Periods, and collection of Sources. The values returned by this
-     * function are not persisted and are typically fetched outside of the hibernation
-     * layer. If categoryOptionCombo is null, all categoryOptionCombo values are returned.
+     * Returns values for a collection of DataElementOperands, where each operand
+     * may include a specific CategoryOptionCombo, or may speicify a null COC if
+     * all CategoryOptionCombos are to be summed.
      *
-     * @param dataElement the DataElements of the DataValues.
-     * @param categoryOptionCombo the DataElementCategoryOptionCombo of the DataValues.
-     * @param periods the Periods of the DataValues.
-     * @param sources the Sources of the DataValues.
-     * @return a collection of all DataValues which match the given DataElement,
-     *         Periods, and Sources.
-     */
-    List<DeflatedDataValue> getDeflatedDataValues( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo,
-        Collection<Period> periods, Collection<OrganisationUnit> sources );
-
-    /**
-     * Returns all DataValues for a given DataElement, DataElementCategoryOptionCombo,
-     * collection of Periods, and collection of Sources.
-     * This also returns DataValues for the children (in the orgunit hierarchy) of the
-     * designated sources.
-     * The values returned by this function are not persisted and are typically fetched
-     * outside of the hibernation layer. If categoryOptionCombo is null, all categoryOptionCombo
-     * values are returned.
+     * Returns values within the periods specified, for the organisation unit
+     * specified or any of the organisation unit's descendants.
      *
-     * @param dataElement the DataElements of the DataValues.
-     * @param categoryOptionCombo the DataElementCategoryOptionCombo of the DataValues.
+     * Returns the values mapped by period, then attribute option combo UID,
+     * then DimensionalItemObject (containing the DataElementOperand.)
+     *
+     * @param dataElementOperands the DataElementOperands.
      * @param periods the Periods of the DataValues.
-     * @param source the root of the OrganisationUnit tree to include
-     * @return a collection of all DataValues which match the given DataElement,
-     *         Periods, and Sources.
+     * @param orgUnit the root of the OrganisationUnit tree to include.
+     * @return the map of values
      */
-    List<DeflatedDataValue> sumRecursiveDeflatedDataValues(
-        DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo,
-        Collection<Period> periods, OrganisationUnit source );
+    MapMapMap<Period, String, DimensionalItemObject, Double> getDataElementOperandValues(
+        Collection<DataElementOperand> dataElementOperands, Collection<Period> periods,
+        OrganisationUnit orgUnit );
 
     /**
      * Gets the number of DataValues which have been updated between the given 
@@ -186,9 +172,10 @@ public interface DataValueStore
      * 
      * @param startDate the start date to compare against data value last updated.
      * @param endDate the end date to compare against data value last updated.
+     * @param includeDeleted whether to include deleted data values.
      * @return the number of DataValues.
      */
-    int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate );
+    int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted );
 
     /**
      * Returns a map of values for each attribute option combo found.
@@ -196,8 +183,8 @@ public interface DataValueStore
      * In the (unlikely) event that the same dataElement/optionCombo is found in
      * more than one period for the same organisationUnit, date, and attribute
      * combo, the value is returned from the period with the shortest duration.
-     * 
-     * @param dataElements collection of DataElements to fetch for
+     *
+     * @param dataElementOperandsToGet DataElementOperands to fetch
      * @param date date which must be present in the period
      * @param source OrganisationUnit for which to fetch the values
      * @param periodTypes allowable period types in which to find the data
@@ -205,7 +192,8 @@ public interface DataValueStore
      * @param lastUpdatedMap map in which to return the lastUpdated date for each value
      * @return map of values by attribute option combo UID, then DataElementOperand
      */
-    MapMap<String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo( Collection<DataElement> dataElements, Date date,
+    MapMap<String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
+        SetMap<String, DataElementOperand> dataElementOperandsToGet, Date date,
         OrganisationUnit source, Collection<PeriodType> periodTypes, DataElementCategoryOptionCombo attributeCombo,
         Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints,
         MapMap<String, DataElementOperand, Date> lastUpdatedMap );

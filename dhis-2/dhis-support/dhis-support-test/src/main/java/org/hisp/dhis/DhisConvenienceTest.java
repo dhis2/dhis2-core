@@ -77,6 +77,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
@@ -826,7 +827,6 @@ public abstract class DhisConvenienceTest
         unit.setShortName( "OrganisationUnitShort" + uniqueCharacter );
         unit.setCode( "OrganisationUnitCode" + uniqueCharacter );
         unit.setOpeningDate( date );
-        unit.setClosedDate( date );
         unit.setComment( "Comment" + uniqueCharacter );
 
         return unit;
@@ -859,7 +859,6 @@ public abstract class DhisConvenienceTest
         unit.setShortName( name );
         unit.setCode( name );
         unit.setOpeningDate( date );
-        unit.setClosedDate( date );
         unit.setComment( "Comment " + name );
 
         return unit;
@@ -1120,10 +1119,10 @@ public abstract class DhisConvenienceTest
     /**
      * Creates a Predictor
      *
-     * @param writes                the data element where the predictor stores its predictions
+     * @param output                the data element where the predictor stores its predictions
      * @param combo                 the category option combo (or null) under which the predictors are stored
      * @param uniqueCharacter       A unique character to identify the object.
-     * @param expr                  The right side expression.
+     * @param generator             The right side expression.
      * @param skipTest              The skiptest expression
      * @param periodType            The period-type.
      * @param organisationUnitLevel The unit level of organisations to be
@@ -1132,23 +1131,23 @@ public abstract class DhisConvenienceTest
      * @param annualSampleCount     How many years of past periods to sample.
      * @param sequentialSkipCount   How many periods in the current year to skip
      */
-    public static Predictor createPredictor( DataElement writes, DataElementCategoryOptionCombo combo,
-        String uniqueCharacter, Expression expr,
-        Expression skipTest, PeriodType periodType, OrganisationUnitLevel organisationUnitLevel, int sequentialSampleCount,
+    public static Predictor createPredictor( DataElement output, DataElementCategoryOptionCombo combo,
+        String uniqueCharacter, Expression generator, Expression skipTest, PeriodType periodType,
+        OrganisationUnitLevel organisationUnitLevel, int sequentialSampleCount,
         int sequentialSkipCount, int annualSampleCount )
     {
         Predictor predictor = new Predictor();
-        Set<OrganisationUnitLevel> orglevels = Sets.newHashSet( organisationUnitLevel );
+        Set<OrganisationUnitLevel> orgUnitlevels = Sets.newHashSet( organisationUnitLevel );
         predictor.setAutoFields();
 
-        predictor.setOutput( writes );
+        predictor.setOutput( output );
         predictor.setOutputCombo( combo );
         predictor.setName( "Predictor" + uniqueCharacter );
         predictor.setDescription( "Description" + uniqueCharacter );
-        predictor.setGenerator( expr );
+        predictor.setGenerator( generator );
         predictor.setSampleSkipTest( skipTest );
         predictor.setPeriodType( periodType );
-        predictor.setOrganisationUnitLevels( orglevels );
+        predictor.setOrganisationUnitLevels( orgUnitlevels );
         predictor.setSequentialSampleCount( sequentialSampleCount );
         predictor.setAnnualSampleCount( annualSampleCount );
         predictor.setSequentialSkipCount( sequentialSkipCount );
@@ -1287,6 +1286,7 @@ public abstract class DhisConvenienceTest
         program.setAutoFields();
 
         program.setName( "Program" + uniqueCharacter );
+        program.setCode( "ProgramCode" + uniqueCharacter );
         program.setShortName( "ProgramShort" + uniqueCharacter );
         program.setDescription( "Description" + uniqueCharacter );
         program.setEnrollmentDateLabel( "DateOfEnrollmentDescription" );
@@ -1527,6 +1527,7 @@ public abstract class DhisConvenienceTest
         attribute.setAutoFields();
 
         attribute.setName( "Attribute" + uniqueChar );
+        attribute.setCode( "AttributeCode" + uniqueChar );
         attribute.setDescription( "Attribute" + uniqueChar );
         attribute.setValueType( ValueType.TEXT );
         attribute.setAggregationType( AggregationType.NONE );
@@ -1540,7 +1541,6 @@ public abstract class DhisConvenienceTest
         attribute.setAutoFields();
 
         attribute.setName( "Attribute" + uniqueChar );
-        attribute.setDescription( "Attribute" + uniqueChar );
 
         return attribute;
     }
@@ -1555,6 +1555,7 @@ public abstract class DhisConvenienceTest
         attribute.setAutoFields();
 
         attribute.setName( "Attribute" + uniqueChar );
+        attribute.setCode( "AttributeCode" + uniqueChar );
         attribute.setDescription( "Attribute" + uniqueChar );
         attribute.setValueType( valueType );
         attribute.setAggregationType( AggregationType.NONE );
@@ -1568,6 +1569,7 @@ public abstract class DhisConvenienceTest
         attributeGroup.setAutoFields();
 
         attributeGroup.setName( "ProgramTrackedEntityAttributeGroup" + uniqueChar );
+        attributeGroup.setCode( "ProgramTrackedEntityAttributeGroupCode" + uniqueChar );
         attributeGroup.setDescription( "ProgramTrackedEntityAttributeGroup" + uniqueChar );
         attributes.forEach( attributeGroup::addAttribute );
         attributeGroup.setUniqunessType( UniqunessType.NONE );
@@ -2013,6 +2015,23 @@ public abstract class DhisConvenienceTest
         sw.flush();
 
         return sw.toString();
+    }
+
+    protected ProgramDataElementDimensionItem createProgramDataElement( char name )
+    {
+        Program pr = new Program();
+
+        pr.setUid( "P123456789" + name );
+
+        pr.setCode( "PCode" + name );
+
+        DataElement de = new DataElement( "Name" + name );
+
+        de.setUid( "D123456789" + name );
+
+        de.setCode( "DCode" + name );
+
+        return new ProgramDataElementDimensionItem( pr, de );
     }
 
 }

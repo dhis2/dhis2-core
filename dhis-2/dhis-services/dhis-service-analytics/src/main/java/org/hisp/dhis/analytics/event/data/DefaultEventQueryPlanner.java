@@ -166,7 +166,7 @@ public class DefaultEventQueryPlanner
         
         if ( violation != null )
         {
-            log.warn( "Event analytics validation failed: " + violation );
+            log.warn( String.format( "Event analytics validation failed: %s", violation ) );
             
             throw new IllegalQueryException( violation );
         }
@@ -237,6 +237,13 @@ public class DefaultEventQueryPlanner
     // Supportive methods
     // -------------------------------------------------------------------------
 
+    /**
+     * Group by partition.
+     * 
+     * @param params the event query parameters.
+     * @param validPartitions the set of valid partitions.
+     * @return a list of {@link EventQueryParams}.
+     */
     private List<EventQueryParams> groupByPartition( EventQueryParams params, Set<String> validPartitions )
     {
         String tableSuffix = PartitionUtils.SEP + params.getProgram().getUid();
@@ -288,6 +295,9 @@ public class DefaultEventQueryPlanner
     /**
      * Group by items if query items are to be collapsed in order to aggregate
      * each item individually.
+     * 
+     * @param params the event query parameters.
+     * @return a list of {@link EventQueryParams}.
      */
     private List<EventQueryParams> groupByQueryItems( EventQueryParams params )
     {

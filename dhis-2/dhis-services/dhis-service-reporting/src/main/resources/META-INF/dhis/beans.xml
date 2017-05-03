@@ -27,6 +27,8 @@
 
   <bean id="dataStatisticsTask" class="org.hisp.dhis.datastatistics.DataStatisticsTask" scope="prototype" />
 
+  <bean id="credentialsExpiryAlertTask" class="org.hisp.dhis.credentials.CredentialsExpiryAlertTask" scope="prototype"/>
+
   <!-- ReportTable -->
 
   <bean id="org.hisp.dhis.reporttable.ReportTableService" class="org.hisp.dhis.reporttable.impl.DefaultReportTableService">
@@ -152,7 +154,11 @@
 
   <!-- Validation -->
 
-  <bean id="org.hisp.dhis.validation.ValidationService" class="org.hisp.dhis.validation.DefaultValidationService" />
+  <bean id="org.hisp.dhis.validation.ValidationService" class="org.hisp.dhis.validation.DefaultValidationService" >
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validation.ValidationRunContext" class="org.hisp.dhis.validation.ValidationRunContext" scope="prototype" />
 
   <bean id="validationTask" class="org.hisp.dhis.validation.DataValidationTask" scope="prototype" />
 
@@ -175,6 +181,8 @@
         <entry key="metadataSyncTask" value-ref="metadataSyncTask" />
         <entry key="sendScheduledMessageTaskNow" value-ref="sendScheduledMessageTaskNow" />
         <entry key="scheduledProgramNotificationsTask" value-ref="scheduledProgramNotificationsTask" />
+        <entry key="validationResultNotificationTask" value-ref="validationResultNotificationTask" />
+        <entry key="credentialsExpiryAlertTask" value-ref="credentialsExpiryAlertTask" />
       </map>
     </property>
   </bean>

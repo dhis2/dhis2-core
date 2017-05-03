@@ -85,6 +85,11 @@ public class ValidationResult
      */
     private int dayInPeriod;
 
+    /**
+     * Indicated whether this ValidationResult has generated a notification for users or not.
+     */
+    private Boolean notificationSent = false;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------     
@@ -425,5 +430,15 @@ public class ValidationResult
     public void setDayInPeriod( int dayInPeriod )
     {
         this.dayInPeriod = dayInPeriod;
+    }
+
+    public Boolean getNotificationSent()
+    {
+        return notificationSent;
+    }
+
+    public void setNotificationSent( Boolean notificationSent )
+    {
+        this.notificationSent = notificationSent;
     }
 }

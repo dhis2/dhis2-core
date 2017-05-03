@@ -1,53 +1,5 @@
 package org.hisp.dhis.dxf2.events.enrollment;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
-import org.hisp.dhis.commons.collection.CachingMap;
-import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.Coordinate;
-import org.hisp.dhis.dxf2.events.event.Note;
-import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
-import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -74,7 +26,63 @@ import java.util.Set;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
+import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.event.Coordinate;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.EventService;
+import org.hisp.dhis.dxf2.events.event.Note;
+import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.dxf2.importsummary.ImportConflict;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceQueryParams;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
+import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -84,6 +92,9 @@ public abstract class AbstractEnrollmentService
 {
     @Autowired
     protected ProgramInstanceService programInstanceService;
+
+    @Autowired
+    protected ProgramStageInstanceService programStageInstanceService;
 
     @Autowired
     protected ProgramService programService;
@@ -117,6 +128,9 @@ public abstract class AbstractEnrollmentService
 
     @Autowired
     protected DbmsManager dbmsManager;
+
+    @Autowired
+    protected EventService eventService;
 
     private CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
@@ -156,6 +170,12 @@ public abstract class AbstractEnrollmentService
 
     @Override
     public Enrollment getEnrollment( ProgramInstance programInstance )
+    {
+        return getEnrollment( programInstance, TrackedEntityInstanceParams.FALSE );
+    }
+
+    @Override
+    public Enrollment getEnrollment( ProgramInstance programInstance, TrackedEntityInstanceParams params )
     {
         Enrollment enrollment = new Enrollment();
 
@@ -201,8 +221,10 @@ public abstract class AbstractEnrollmentService
             }
         }
 
-        enrollment.setCreated( programInstance.getCreated() );
-        enrollment.setLastUpdated( programInstance.getLastUpdated() );
+        enrollment.setCreated( DateUtils.getIso8601NoTz( programInstance.getCreated() ) );
+        enrollment.setCreatedAtClient( DateUtils.getIso8601NoTz( programInstance.getCreatedAtClient() ) );
+        enrollment.setLastUpdated( DateUtils.getIso8601NoTz( programInstance.getLastUpdated() ) );
+        enrollment.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programInstance.getLastUpdatedAtClient() ) );
         enrollment.setProgram( programInstance.getProgram().getUid() );
         enrollment.setStatus( EnrollmentStatus.fromProgramStatus( programInstance.getStatus() ) );
         enrollment.setEnrollmentDate( programInstance.getEnrollmentDate() );
@@ -226,6 +248,14 @@ public abstract class AbstractEnrollmentService
             }
 
             enrollment.getNotes().add( note );
+        }
+
+        if ( params.isIncludeEvents() )
+        {
+            for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
+            {
+                enrollment.getEvents().add( eventService.getEvent( programStageInstance ) );
+            }
         }
 
         return enrollment;
@@ -365,13 +395,18 @@ public abstract class AbstractEnrollmentService
         }
 
         updateAttributeValues( enrollment, importOptions );
+        updateDateFields( enrollment, programInstance );
         programInstance.setFollowup( enrollment.getFollowup() );
+
         programInstanceService.updateProgramInstance( programInstance );
 
         saveTrackedEntityComment( programInstance, enrollment );
 
         importSummary.setReference( programInstance.getUid() );
         importSummary.getImportCount().incrementImported();
+
+        importOptions.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        importSummary.setEvents( handleEvents( enrollment, programInstance, importOptions ) );
 
         return importSummary;
     }
@@ -490,12 +525,17 @@ public abstract class AbstractEnrollmentService
         }
 
         updateAttributeValues( enrollment, importOptions );
+        updateDateFields( enrollment, programInstance );
+
         programInstanceService.updateProgramInstance( programInstance );
 
         saveTrackedEntityComment( programInstance, enrollment );
 
         importSummary.setReference( enrollment.getEnrollment() );
         importSummary.getImportCount().incrementUpdated();
+
+        importOptions.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        importSummary.setEvents( handleEvents( enrollment, programInstance, importOptions ) );
 
         return importSummary;
     }
@@ -588,6 +628,33 @@ public abstract class AbstractEnrollmentService
     // -------------------------------------------------------------------------
     // HELPERS
     // -------------------------------------------------------------------------
+
+    private ImportSummaries handleEvents( Enrollment enrollment, ProgramInstance programInstance, ImportOptions importOptions )
+    {
+        List<Event> create = new ArrayList<>();
+        List<Event> update = new ArrayList<>();
+
+        for ( Event event : enrollment.getEvents() )
+        {
+            event.setEnrollment( enrollment.getEnrollment() );
+            event.setProgram( programInstance.getProgram().getUid() );
+
+            if ( !programStageInstanceService.programStageInstanceExists( event.getEvent() ) )
+            {
+                create.add( event );
+            }
+            else
+            {
+                update.add( event );
+            }
+        }
+
+        ImportSummaries importSummaries = new ImportSummaries();
+        importSummaries.addImportSummaries( eventService.addEvents( create, importOptions ) );
+        importSummaries.addImportSummaries( eventService.updateEvents( update, false ) );
+
+        return importSummaries;
+    }
 
     private List<ImportConflict> checkAttributes( Enrollment enrollment, ImportOptions importOptions )
     {
@@ -784,5 +851,24 @@ public abstract class AbstractEnrollmentService
         trackedEntityAttributeCache.clear();
 
         dbmsManager.clearSession();
+    }
+
+    private void updateDateFields( Enrollment enrollment, ProgramInstance programInstance )
+    {
+        programInstance.setAutoFields();
+
+        Date createdAtClient = DateUtils.parseDate( enrollment.getCreatedAtClient() );
+
+        if ( createdAtClient != null )
+        {
+            programInstance.setCreatedAtClient( createdAtClient );
+        }
+
+        String lastUpdatedAtClient = enrollment.getLastUpdatedAtClient();
+
+        if ( lastUpdatedAtClient != null )
+        {
+            programInstance.setLastUpdatedAtClient( DateUtils.parseDate( lastUpdatedAtClient ) );
+        }
     }
 }

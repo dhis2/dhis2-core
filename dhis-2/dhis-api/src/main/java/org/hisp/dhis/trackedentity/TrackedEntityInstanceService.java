@@ -124,34 +124,34 @@ public interface TrackedEntityInstanceService
     /**
      * Returns a TrackedEntityInstanceQueryParams based on the given input.
      *
-     * @param query                             the query string.
-     * @param attribute                         the set of attributes.
-     * @param filter                            the set of filters.
-     * @param ou                                the set of organisation unit identifiers.
-     * @param ouMode                            the OrganisationUnitSelectionMode.
-     * @param program                           the Program identifier.
-     * @param programStatus                     the ProgramStatus in the given program.
-     * @param followUp                          indicates follow up status in the given Program.
-     * @param programEnrollmentStartDate        the start date for enrollment in the given
-     *                                          Program.
-     * @param programEnrollmentEndDate          the end date for enrollment in the given Program.
-     * @param programIncidentStartDate          the start date for incident in the given Program.
-     * @param programIncidentEndDate            the end date for enrollment in the given Program.
-     * @param trackedEntity                     the TrackedEntity uid.
-     * @param eventStatus                       the event status for the given Program.
-     * @param eventStartDate                    the event start date for the given Program.
-     * @param eventEndDate                      the event end date for the given Program.
-     * @param skipMeta                          indicates whether to include meta data in the response.
-     * @param page                              the page number.
-     * @param pageSize                          the page size.
-     * @param totalPages                        indicates whether to include the total number of pages.
-     * @param skipPaging                        whether to skip paging.
+     * @param query                      the query string.
+     * @param attribute                  the set of attributes.
+     * @param filter                     the set of filters.
+     * @param ou                         the set of organisation unit identifiers.
+     * @param ouMode                     the OrganisationUnitSelectionMode.
+     * @param program                    the Program identifier.
+     * @param programStatus              the ProgramStatus in the given program.
+     * @param followUp                   indicates follow up status in the given Program.
+     * @param programEnrollmentStartDate the start date for enrollment in the given
+     *                                   Program.
+     * @param programEnrollmentEndDate   the end date for enrollment in the given Program.
+     * @param programIncidentStartDate   the start date for incident in the given Program.
+     * @param programIncidentEndDate     the end date for enrollment in the given Program.
+     * @param trackedEntity              the TrackedEntity uid.
+     * @param eventStatus                the event status for the given Program.
+     * @param eventStartDate             the event start date for the given Program.
+     * @param eventEndDate               the event end date for the given Program.
+     * @param skipMeta                   indicates whether to include meta data in the response.
+     * @param page                       the page number.
+     * @param pageSize                   the page size.
+     * @param totalPages                 indicates whether to include the total number of pages.
+     * @param skipPaging                 whether to skip paging.
      * @return a TrackedEntityInstanceQueryParams.
      */
     TrackedEntityInstanceQueryParams getFromUrl( String query, Set<String> attribute, Set<String> filter,
         Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
-        Boolean followUp, Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate, Date programIncidentEndDate, String trackedEntity, EventStatus eventStatus,
-        Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, List<String> orders);
+        Boolean followUp, Date lastUpdatedStart, Date lastUpdatedEndDate, Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate, Date programIncidentEndDate, String trackedEntity, EventStatus eventStatus,
+        Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, List<String> orders );
 
     /**
      * Decides whether current user is authorized to perform the given query.

@@ -29,7 +29,6 @@ package org.hisp.dhis.dataelement;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -73,9 +72,12 @@ public class DataElementStoreTest
         DataElement dataElementB = createDataElement( 'B' );
         DataElement dataElementC = createDataElement( 'C' );
 
-        int idA = dataElementStore.save( dataElementA );
-        int idB = dataElementStore.save( dataElementB );
-        int idC = dataElementStore.save( dataElementC );
+        dataElementStore.save( dataElementA );
+        int idA = dataElementA.getId();
+        dataElementStore.save( dataElementB );
+        int idB = dataElementB.getId();
+        dataElementStore.save( dataElementC );
+        int idC = dataElementC.getId();
 
         dataElementA = dataElementStore.get( idA );
         assertNotNull( dataElementA );
@@ -97,7 +99,8 @@ public class DataElementStoreTest
     public void testUpdateDataElement()
     {
         DataElement dataElementA = createDataElement( 'A' );
-        int idA = dataElementStore.save( dataElementA );
+        dataElementStore.save( dataElementA );
+        int idA = dataElementA.getId();
         dataElementA = dataElementStore.get( idA );
         assertEquals( ValueType.INTEGER, dataElementA.getValueType() );
 
@@ -116,12 +119,16 @@ public class DataElementStoreTest
         DataElement dataElementC = createDataElement( 'C' );
         DataElement dataElementD = createDataElement( 'D' );
 
-        int idA = dataElementStore.save( dataElementA );
-        int idB = dataElementStore.save( dataElementB );
-        int idC = dataElementStore.save( dataElementC );
-        int idD = dataElementStore.save( dataElementD );
+        dataElementStore.save( dataElementA );
+        int idA = dataElementA.getId();
+        dataElementStore.save( dataElementB );
+        int idB = dataElementB.getId();
+        dataElementStore.save( dataElementC );
+        int idC = dataElementC.getId();
+        dataElementStore.save( dataElementD );
+        int idD = dataElementD.getId();
 
-        assertNotNull( dataElementStore.get( idA ) );
+            assertNotNull( dataElementStore.get( idA ) );
         assertNotNull( dataElementStore.get( idB ) );
         assertNotNull( dataElementStore.get( idC ) );
         assertNotNull( dataElementStore.get( idD ) );
@@ -161,8 +168,10 @@ public class DataElementStoreTest
     {
         DataElement dataElementA = createDataElement( 'A' );
         DataElement dataElementB = createDataElement( 'B' );
-        int idA = dataElementStore.save( dataElementA );
-        int idB = dataElementStore.save( dataElementB );
+        dataElementStore.save( dataElementA );
+        int idA = dataElementA.getId();
+        dataElementStore.save( dataElementB );
+        int idB = dataElementB.getId();
 
         dataElementA = dataElementStore.getByName( "DataElementA" );
         assertNotNull( dataElementA );
@@ -183,8 +192,10 @@ public class DataElementStoreTest
     {
         DataElement dataElementA = createDataElement( 'A' );
         DataElement dataElementB = createDataElement( 'B' );
-        int idA = dataElementStore.save( dataElementA );
-        int idB = dataElementStore.save( dataElementB );
+        dataElementStore.save( dataElementA );
+        int idA = dataElementA.getId();
+        dataElementStore.save( dataElementB );
+        int idB = dataElementB.getId();
 
         dataElementA = dataElementStore.getByShortName( "DataElementShortA" );
         assertNotNull( dataElementA );
@@ -228,61 +239,6 @@ public class DataElementStoreTest
     }
 
     @Test
-    public void testGetAggregateableDataElements()
-    {
-        assertEquals( 0, dataElementStore.getAggregateableDataElements().size() );
-
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        DataElement dataElementC = createDataElement( 'C' );
-        DataElement dataElementD = createDataElement( 'D' );
-
-        dataElementA.setValueType( ValueType.INTEGER );
-        dataElementB.setValueType( ValueType.BOOLEAN );
-        dataElementC.setValueType( ValueType.TEXT );
-        dataElementD.setValueType( ValueType.INTEGER );
-
-        dataElementStore.save( dataElementA );
-        dataElementStore.save( dataElementB );
-        dataElementStore.save( dataElementC );
-        dataElementStore.save( dataElementD );
-
-        List<DataElement> dataElementsRef = new ArrayList<>();
-        dataElementsRef.add( dataElementA );
-        dataElementsRef.add( dataElementB );
-        dataElementsRef.add( dataElementD );
-
-        List<DataElement> dataElements = dataElementStore.getAggregateableDataElements();
-        assertNotNull( dataElements );
-        assertEquals( dataElementsRef.size(), dataElements.size() );
-        assertTrue( dataElements.containsAll( dataElementsRef ) );
-    }
-
-    @Test
-    public void testGetDataElementsByAggregationType()
-    {
-        assertEquals( 0, dataElementStore.getDataElementsByAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT ).size() );
-        assertEquals( 0, dataElementStore.getDataElementsByAggregationType( AggregationType.SUM ).size() );
-
-        DataElement dataElementA = createDataElement( 'A' );
-        dataElementA.setAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT );
-        DataElement dataElementB = createDataElement( 'B' );
-        dataElementB.setAggregationType( AggregationType.SUM );
-        DataElement dataElementC = createDataElement( 'C' );
-        dataElementC.setAggregationType( AggregationType.SUM );
-        DataElement dataElementD = createDataElement( 'D' );
-        dataElementD.setAggregationType( AggregationType.SUM );
-
-        dataElementStore.save( dataElementA );
-        dataElementStore.save( dataElementB );
-        dataElementStore.save( dataElementC );
-        dataElementStore.save( dataElementD );
-
-        assertEquals( 1, dataElementStore.getDataElementsByAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT ).size() );
-        assertEquals( 3, dataElementStore.getDataElementsByAggregationType( AggregationType.SUM ).size() );
-    }
-
-    @Test
     public void testGetDataElementsByDomainType()
     {
         assertEquals( 0, dataElementStore.getDataElementsByDomainType( DataElementDomain.AGGREGATE ).size() );
@@ -314,7 +270,8 @@ public class DataElementStoreTest
         DataElement dataElementA = createDataElement( 'A' );
         dataElementA.setAggregationLevels( aggregationLevels );
 
-        int idA = dataElementStore.save( dataElementA );
+        dataElementStore.save( dataElementA );
+        int idA = dataElementA.getId();
 
         assertNotNull( dataElementStore.get( idA ).getAggregationLevels() );
         assertEquals( 2, dataElementStore.get( idA ).getAggregationLevels().size() );

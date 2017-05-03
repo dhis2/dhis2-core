@@ -29,6 +29,7 @@ package org.hisp.dhis.system.util;
  */
 
 import com.google.common.collect.ImmutableMap;
+import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.period.Period;
@@ -44,6 +45,7 @@ import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 import org.springframework.util.StringUtils;
 
+import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -456,7 +458,9 @@ public class DateUtils
         return yearString + "-" + monthString + "-" + dayString;
     }
 
-    private static final String DEFAULT_DATE_REGEX = "\\b\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])\\b";
+    private static final String DEFAULT_DATE_REGEX = "\\b(?<year>\\d{4})-(?<month>0[1-9]|1[0-2])-(?<day>0[1-9]|[1-2][0-9]|3[0-2])\\b";
+
+    private static final Pattern DEFAULT_DATE_REGEX_PATTERN = Pattern.compile( DEFAULT_DATE_REGEX );
 
     /**
      * This method checks whether the String inDate is a valid date following
@@ -467,7 +471,33 @@ public class DateUtils
      */
     public static boolean dateIsValid( String dateString )
     {
-        return dateString.matches( DEFAULT_DATE_REGEX );
+        return dateIsValid( PeriodType.getCalendar(), dateString );
+    }
+
+    /**
+     * This method checks whether the String inDate is a valid date following
+     * the format "yyyy-MM-dd".
+     *
+     * @param calendar   Calendar to be used
+     * @param dateString the string to be checked.
+     * @return true/false depending on whether the string is a date according to the format "yyyy-MM-dd".
+     */
+    public static boolean dateIsValid( org.hisp.dhis.calendar.Calendar calendar, String dateString )
+    {
+        Matcher matcher = DEFAULT_DATE_REGEX_PATTERN.matcher( dateString );
+
+        if ( !matcher.matches() )
+        {
+            return false;
+        }
+
+        DateTimeUnit dateTime = new DateTimeUnit(
+            Integer.valueOf( matcher.group( "year" ) ),
+            Integer.valueOf( matcher.group( "month" ) ),
+            Integer.valueOf( matcher.group( "day" ) )
+        );
+
+        return calendar.isValid( dateTime );
     }
 
     /**
@@ -627,7 +657,7 @@ public class DateUtils
 
         return Date.from( instant );
     }
-    
+
     /**
      * Return the current date minus the duration specified by the given string.
      *
@@ -677,5 +707,27 @@ public class DateUtils
         }
 
         return Duration.of( amount, chronoUnit );
+    }
+    
+    /**
+     * Converts the given {@link Date} to a {@link Timestamp}.
+     *  
+     * @param date the date to convert.
+     * @return a time stamp.
+     */
+    public static Timestamp asTimestamp( Date date )
+    {
+        return new Timestamp( date.getTime() );
+    }
+
+    /**
+     * Converts the given {@link Date} to a {@link java.sql.Date}.
+     *  
+     * @param date the date to convert.
+     * @return a date.
+     */
+    public static java.sql.Date asSqlDate( Date date )
+    {
+        return new java.sql.Date( date.getTime() );
     }
 }

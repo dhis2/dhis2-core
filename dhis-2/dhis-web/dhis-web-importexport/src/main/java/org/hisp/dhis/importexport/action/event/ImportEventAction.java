@@ -120,6 +120,13 @@ public class ImportEventAction
         this.orgUnitIdScheme = orgUnitIdScheme;
     }
 
+    private IdentifiableProperty eventIdScheme = IdentifiableProperty.UID;
+
+    public void setEventIdScheme( IdentifiableProperty eventIdScheme )
+    {
+        this.eventIdScheme = eventIdScheme;
+    }
+
     private boolean skipFirst;
 
     public void setSkipFirst( boolean skipFirst )
@@ -144,6 +151,7 @@ public class ImportEventAction
         ImportOptions importOptions = new ImportOptions()
             .setDryRun( dryRun )
             .setOrgUnitIdScheme( orgUnitIdScheme.toString() )
+            .setEventIdScheme( eventIdScheme.toString() )
             .setFilename( uploadFileName );
 
         if ( FORMAT_CSV.equals( payloadFormat ) )

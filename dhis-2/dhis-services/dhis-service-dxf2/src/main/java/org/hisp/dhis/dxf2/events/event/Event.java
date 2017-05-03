@@ -47,6 +47,8 @@ import java.util.List;
 public class Event
     extends BaseLinkableObject
 {
+    private String uid;
+
     private String event;
 
     private EventStatus status = EventStatus.ACTIVE;
@@ -85,8 +87,12 @@ public class Event
 
     private String lastUpdated;
 
+    private String createdAtClient;
+
+    private String lastUpdatedAtClient;
+
     private String attributeOptionCombo;
-    
+
     private String attributeCategoryOptions;
 
     private String completedBy;
@@ -95,6 +101,16 @@ public class Event
 
     public Event()
     {
+    }
+
+    public String getUid()
+    {
+        return uid;
+    }
+
+    public void setUid( String uid )
+    {
+        this.uid = uid;
     }
 
     @JsonProperty( required = true )
@@ -300,7 +316,6 @@ public class Event
 
     public void setCreated( String created )
     {
-        this.created = created;
     }
 
     @JsonProperty
@@ -312,8 +327,31 @@ public class Event
 
     public void setLastUpdated( String lastUpdated )
     {
-        this.lastUpdated = lastUpdated;
-    }    
+    }
+
+    @JsonProperty( required = true )
+    @JacksonXmlProperty( isAttribute = true )
+    public String getCreatedAtClient()
+    {
+        return createdAtClient;
+    }
+
+    public void setCreatedAtClient( String createdAtClient )
+    {
+        this.createdAtClient = createdAtClient;
+    }
+
+    @JsonProperty( required = true )
+    @JacksonXmlProperty( isAttribute = true )
+    public String getLastUpdatedAtClient()
+    {
+        return lastUpdatedAtClient;
+    }
+
+    public void setLastUpdatedAtClient( String lastUpdatedAtClient )
+    {
+        this.lastUpdatedAtClient = lastUpdatedAtClient;
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

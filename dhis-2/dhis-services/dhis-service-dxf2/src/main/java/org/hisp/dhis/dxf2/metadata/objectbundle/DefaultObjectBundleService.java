@@ -37,7 +37,10 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.deletedobject.DeletedObjectQuery;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.MergeParams;
 import org.hisp.dhis.dxf2.metadata.MergeService;
@@ -95,6 +98,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
     @Autowired
     private MergeService mergeService;
 
+    @Autowired
+    private DeletedObjectService deletedObjectService;
+
     @Autowired( required = false )
     private List<ObjectBundleHook> objectBundleHooks = new ArrayList<>();
 
@@ -139,6 +145,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
             List<IdentifiableObject> nonPersistedObjects = bundle.getObjects( klass, false );
             List<IdentifiableObject> persistedObjects = bundle.getObjects( klass, true );
 
+            objectBundleHooks.forEach( hook -> hook.preTypeImport( klass, nonPersistedObjects, bundle ) );
+
             if ( bundle.getImportMode().isCreateAndUpdate() )
             {
                 TypeReport typeReport = new TypeReport( klass );
@@ -159,6 +167,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
             {
                 typeReports.put( klass, handleDeletes( session, klass, persistedObjects, bundle ) );
             }
+
+            objectBundleHooks.forEach( hook -> hook.postTypeImport( klass, persistedObjects, bundle ) );
 
             if ( FlushMode.AUTO == bundle.getFlushMode() ) session.flush();
         }
@@ -212,6 +222,11 @@ public class DefaultObjectBundleService implements ObjectBundleService
             preheatService.connectReferences( object, bundle.getPreheat(), bundle.getPreheatIdentifier() );
 
             session.save( object );
+
+            if ( MetadataObject.class.isInstance( object ) )
+            {
+                deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
+            }
 
             bundle.getPreheat().replace( bundle.getPreheatIdentifier(), object );
 
@@ -274,6 +289,11 @@ public class DefaultObjectBundleService implements ObjectBundleService
             }
 
             session.update( persistedObject );
+
+            if ( MetadataObject.class.isInstance( object ) )
+            {
+                deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
+            }
 
             objectBundleHooks.forEach( hook -> hook.postUpdate( persistedObject, bundle ) );
 

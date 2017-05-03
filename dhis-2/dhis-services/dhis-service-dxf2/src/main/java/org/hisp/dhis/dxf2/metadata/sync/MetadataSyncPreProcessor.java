@@ -133,7 +133,7 @@ public class MetadataSyncPreProcessor
 
         try
         {
-            importSummary = synchronizationManager.executeAnonymousEventPush();
+            importSummary = synchronizationManager.executeEventPush();
             handleEventImportSummary( importSummary, context );
         }
         catch ( Exception ex )

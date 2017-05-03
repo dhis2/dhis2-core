@@ -38,6 +38,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
@@ -65,7 +66,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "dataApprovalWorkflow", namespace = DxfNamespaces.DXF_2_0 )
 public class DataApprovalWorkflow
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     /**
      * The period type for approving data with this workflow.
@@ -81,7 +82,7 @@ public class DataApprovalWorkflow
      * The data approval levels used in this workflow.
      */
     private Set<DataApprovalLevel> levels = new HashSet<>();
-    
+
     /**
      * The data sets part of this workflow. Inverse side.
      */

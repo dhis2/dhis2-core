@@ -35,10 +35,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Stian Sandvold
  */
+@Transactional
 public class DefaultValidationResultService
     implements ValidationResultService
 {
@@ -49,7 +51,6 @@ public class DefaultValidationResultService
     private BatchHandlerFactory batchHandlerFactory;
 
     @Override
-    @Transactional
     public void saveValidationResults( Collection<ValidationResult> validationResults )
     {
         BatchHandler<ValidationResult> validationResultBatchHandler = batchHandlerFactory
@@ -72,8 +73,20 @@ public class DefaultValidationResultService
     }
 
     @Override
+    public List<ValidationResult> getAllUnReportedValidationResults()
+    {
+        return validationResultStore.getAllUnreportedValidationResults();
+    }
+
+    @Override
     public void deleteValidationResult( ValidationResult validationResult )
     {
         validationResultStore.delete( validationResult );
+    }
+
+    @Override
+    public void updateValidationResults( Set<ValidationResult> validationResults )
+    {
+        validationResults.forEach( vr -> validationResultStore.update( vr ) );
     }
 }

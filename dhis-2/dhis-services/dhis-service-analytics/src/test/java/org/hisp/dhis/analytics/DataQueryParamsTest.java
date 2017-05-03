@@ -96,6 +96,39 @@ public class DataQueryParamsTest
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
     }
+
+    @Test
+    public void addDimension()
+    {
+        DimensionalObject doA = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList() );
+        DimensionalObject doB = new BaseDimensionalObject( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID, DimensionType.CATEGORY_OPTION_COMBO, Lists.newArrayList() );
+        DimensionalObject doC = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList() );
+        DimensionalObject doD = new BaseDimensionalObject( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID, DimensionType.ATTRIBUTE_OPTION_COMBO, Lists.newArrayList() );
+        DimensionalObject doE = new BaseDimensionalObject( "WpDi1seZU0Z", DimensionType.DATA_ELEMENT_GROUP_SET, Lists.newArrayList() );
+        DimensionalObject doF = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList() );
+        DimensionalObject doG = new BaseDimensionalObject( "Cz3WQznvrCM", DimensionType.ORGANISATION_UNIT_GROUP_SET, Lists.newArrayList() );
+        
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( doA )
+            .addDimension( doB )
+            .addDimension( doC )
+            .addDimension( doD )
+            .addDimension( doE )
+            .addDimension( doF )
+            .addDimension( doG )
+            .build();
+        
+        List<DimensionalObject> dimensions = params.getDimensions();
+        
+        assertEquals( 7, dimensions.size() );
+        assertEquals( doF, dimensions.get( 0 ) );
+        assertEquals( doB, dimensions.get( 1 ) );
+        assertEquals( doD, dimensions.get( 2 ) );
+        assertEquals( doA, dimensions.get( 3 ) );
+        assertEquals( doC, dimensions.get( 4 ) );
+        assertEquals( doE, dimensions.get( 5 ) );
+        assertEquals( doG, dimensions.get( 6 ) );        
+    }
     
     @Test
     public void testSetGetDataElementsReportingRates()
@@ -334,6 +367,5 @@ public class DataQueryParamsTest
         assertEquals( today.getTime(), dqp1.getLatestEndDate() );
         assertEquals( q1_2016.getEndDate(), dqp2.getLatestEndDate() );
         assertEquals( q2_2016.getEndDate(), dqp3.getLatestEndDate() );
-
     }
 }

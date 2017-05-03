@@ -25,7 +25,9 @@
     <property name="lastQuarter" />
     <property name="thisSixMonth" />
     <property name="lastSixMonth" />
+    <property name="weeksThisYear" />
     <property name="monthsThisYear" />
+    <property name="biMonthsThisYear" />
     <property name="quartersThisYear" />
     <property name="thisYear" />
     

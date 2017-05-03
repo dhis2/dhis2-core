@@ -95,6 +95,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.hisp.dhis.analytics.DataQueryParams.*;
 import static org.hisp.dhis.common.DataDimensionItemType.*;
@@ -177,9 +178,10 @@ public class DefaultAnalyticsService
             getAggregatedDataValuesTableLayout( params, columns, rows ) :
             getAggregatedDataValues( params );
     }
-    
+
+    @Override
     public Grid getRawDataValues( DataQueryParams params )
-    {        
+    {
         securityManager.decideAccess( params );
 
         params = securityManager.withDataApprovalConstraints( params );
@@ -237,7 +239,7 @@ public class DefaultAnalyticsService
     /**
      * Returns a grid with aggregated data.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @return a grid with aggregated data.
      */
     private Grid getAggregatedDataValueGridInternal( DataQueryParams params )
@@ -288,7 +290,8 @@ public class DefaultAnalyticsService
      * handled query. If the query has a single indicator as item for the data
      * filter, the filter is set as a dimension and removed as a filter.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
+     * @return a {@link DataQueryParams}.
      */
     private DataQueryParams preHandleQuery( DataQueryParams params )
     {
@@ -296,12 +299,10 @@ public class DefaultAnalyticsService
         {
             DimensionalObject dx = params.getFilter( DATA_X_DIM_ID );
 
-            DataQueryParams query = DataQueryParams.newBuilder( params )
+            return DataQueryParams.newBuilder( params )
                 .addDimension( dx )
                 .removeFilter( DATA_X_DIM_ID )
                 .addProcessingHint( ProcessingHint.SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM ).build();
-
-            return query;
         }
 
         return params;
@@ -312,8 +313,8 @@ public class DefaultAnalyticsService
      * indicator as data filter item, the column at the data dimension index is
      * removed.
      *
-     * @param params the data query parameters.
-     * @param grid   the grid.
+     * @param params the {@link DataQueryParams}.
+     * @param grid the grid.
      */
     private void postHandleGrid( DataQueryParams params, Grid grid )
     {
@@ -325,6 +326,9 @@ public class DefaultAnalyticsService
 
     /**
      * Adds headers to the given grid based on the given data query parameters.
+     * 
+     * @param params the {@link DataQueryParams}.
+     * @return the grid.
      */
     private void addHeaders( DataQueryParams params, Grid grid )
     {
@@ -350,8 +354,8 @@ public class DefaultAnalyticsService
      * Adds indicator values to the given grid based on the given data query
      * parameters.
      *
-     * @param params the data query parameters.
-     * @param grid   the grid.
+     * @param params the {@link DataQueryParams}.
+     * @param grid the grid.
      */
     private void addIndicatorValues( DataQueryParams params, Grid grid )
     {
@@ -426,8 +430,8 @@ public class DefaultAnalyticsService
      * Adds data element values to the given grid based on the given data query
      * parameters.
      *
-     * @param params the data query parameters.
-     * @param grid   the grid.
+     * @param params the {@link DataQueryParams}.
+     * @param grid the grid.
      */
     private void addDataElementValues( DataQueryParams params, Grid grid )
     {
@@ -454,13 +458,13 @@ public class DefaultAnalyticsService
             }
         }
     }
-
+    
     /**
      * Adds data element operand values to the given grid based on the given data
      * query parameters.
      *
-     * @param params the data query parameters.
-     * @param grid   the grid.
+     * @param params the {@link DataQueryParams}.
+     * @param grid the grid.
      */
     private void addDataElementOperandValues( DataQueryParams params, Grid grid )
     {
@@ -469,38 +473,68 @@ public class DefaultAnalyticsService
             DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )
                 .retainDataDimension( DataDimensionItemType.DATA_ELEMENT_OPERAND )
                 .withIncludeNumDen( false ).build();
-
-            // -----------------------------------------------------------------
-            // Replace operands with data element and option combo dimensions
-            // -----------------------------------------------------------------
-
-            List<DataElementOperand> operands = asTypedList( dataSourceParams.getDataElementOperands() );
-            List<DimensionalItemObject> dataElements = Lists.newArrayList( DimensionalObjectUtils.getDataElements( operands ) );
-            List<DimensionalItemObject> categoryOptionCombos = Lists.newArrayList( DimensionalObjectUtils.getCategoryOptionCombos( operands ) );
-
-            //TODO check if data was dim or filter
-
-            DataQueryParams operandParams = DataQueryParams.newBuilder( dataSourceParams )
-                .removeDimension( DATA_X_DIM_ID )
-                .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, dataElements ) )
-                .addDimension( new BaseDimensionalObject( CATEGORYOPTIONCOMBO_DIM_ID, DimensionType.CATEGORY_OPTION_COMBO, categoryOptionCombos ) ).build();
-
-            Map<String, Object> aggregatedDataMap = getAggregatedDataValueMapObjectTyped( operandParams );
-
-            aggregatedDataMap = AnalyticsUtils.convertDxToOperand( aggregatedDataMap );
-
-            for ( Map.Entry<String, Object> entry : aggregatedDataMap.entrySet() )
+            
+            for ( DataElementOperand.TotalType type : DataElementOperand.TotalType.values() )
             {
-                Object value = AnalyticsUtils.getRoundedValueObject( operandParams, entry.getValue() );
+                addDataElementOperandValues( dataSourceParams, grid, type );
+            }            
+        }
+    }
+    
+    /**
+     * Adds data element operand values to the given grid.
+     * 
+     * @param params the {@link DataQueryParams}.
+     * @param grid the grid.
+     * @param totalType the operand {@link DataElementOperand.TotalType}.
+     */
+    private void addDataElementOperandValues( DataQueryParams params, Grid grid, DataElementOperand.TotalType totalType )
+    {        
+        List<DataElementOperand> operands = asTypedList( params.getDataElementOperands() );
+        operands = operands.stream().filter( o -> totalType.equals( o.getTotalType() ) ).collect( Collectors.toList() );
+        
+        if ( operands.isEmpty() )
+        {
+            return;
+        }
+        
+        List<DimensionalItemObject> dataElements = Lists.newArrayList( DimensionalObjectUtils.getDataElements( operands ) );
+        List<DimensionalItemObject> categoryOptionCombos = Lists.newArrayList( DimensionalObjectUtils.getCategoryOptionCombos( operands ) );
+        List<DimensionalItemObject> attributeOptionCobos = Lists.newArrayList( DimensionalObjectUtils.getAttributeOptionCombos( operands ) );
 
-                grid.addRow()
-                    .addValues( entry.getKey().split( DIMENSION_SEP ) )
-                    .addValue( value );
+        //TODO check if data was dim or filter
 
-                if ( params.isIncludeNumDen() )
-                {
-                    grid.addNullValues( 3 );
-                }
+        DataQueryParams.Builder builder = DataQueryParams.newBuilder( params )
+            .removeDimension( DATA_X_DIM_ID )
+            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, dataElements ) );
+        
+        if ( totalType.isCategoryOptionCombo() )
+        {
+            builder.addDimension( new BaseDimensionalObject( CATEGORYOPTIONCOMBO_DIM_ID, DimensionType.CATEGORY_OPTION_COMBO, categoryOptionCombos ) );
+        }
+        
+        if ( totalType.isAttributeOptionCombo() )
+        {
+            builder.addDimension( new BaseDimensionalObject( ATTRIBUTEOPTIONCOMBO_DIM_ID, DimensionType.ATTRIBUTE_OPTION_COMBO, attributeOptionCobos ) );
+        }
+        
+        DataQueryParams operandParams = builder.build();
+
+        Map<String, Object> aggregatedDataMap = getAggregatedDataValueMapObjectTyped( operandParams );
+        
+        aggregatedDataMap = AnalyticsUtils.convertDxToOperand( aggregatedDataMap, totalType.getPropertyCount() );
+        
+        for ( Map.Entry<String, Object> entry : aggregatedDataMap.entrySet() )
+        {
+            Object value = AnalyticsUtils.getRoundedValueObject( operandParams, entry.getValue() );
+
+            grid.addRow()
+                .addValues( entry.getKey().split( DIMENSION_SEP ) )
+                .addValue( value );
+
+            if ( params.isIncludeNumDen() )
+            {
+                grid.addNullValues( 3 );
             }
         }
     }
@@ -509,8 +543,8 @@ public class DefaultAnalyticsService
      * Adds reporting rates to the given grid based on the given data query
      * parameters.
      *
-     * @param params the data query parameters.
-     * @param grid   the grid.
+     * @param params the {@link DataQueryParams}.
+     * @param grid the grid.
      */
     private void addReportingRates( DataQueryParams params, Grid grid )
     {
@@ -533,10 +567,9 @@ public class DefaultAnalyticsService
      * Adds reporting rates to the given grid based on the given data query
      * parameters and reporting rate metric.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @param grid the grid.
      * @param metric the reporting rate metric.
-     * @param includeNumDen whether to include numerator and denominator.
      */
     private void addReportingRates( DataQueryParams params, Grid grid, ReportingRateMetric metric )
     {
@@ -569,7 +602,7 @@ public class DefaultAnalyticsService
 
                 Double target = entry.getValue();
                 Double actual = dataMap.get( entry.getKey() );
-                
+
                 if ( target != null && ( actual != null || metric == EXPECTED_REPORTS ) )
                 {
                     // ---------------------------------------------------------
@@ -621,8 +654,8 @@ public class DefaultAnalyticsService
      * Adds program data element values to the given grid based on the given data
      * query parameters.
      *
-     * @param params the data query parameters.
-     * @param grid   the grid.
+     * @param params the {@link DataQueryParams}.
+     * @param grid the grid.
      */
     private void addProgramDataElementAttributeIndicatorValues( DataQueryParams params, Grid grid )
     {
@@ -645,8 +678,8 @@ public class DefaultAnalyticsService
      * data query parameters. This assumes that no fixed dimensions are part of
      * the query.
      *
-     * @param params the data query parameters.
-     * @param grid   the grid.
+     * @param params the {@link DataQueryParams}.
+     * @param grid the grid.
      */
     private void addDynamicDimensionValues( DataQueryParams params, Grid grid )
     {
@@ -675,8 +708,8 @@ public class DefaultAnalyticsService
      * Adds meta data values to the given grid based on the given data query
      * parameters.
      *
-     * @param params the data query parameters.
-     * @param grid   the grid.
+     * @param params the {@link DataQueryParams}.
+     * @param grid the grid.
      */
     private void addMetaData( DataQueryParams params, Grid grid )
     {
@@ -761,8 +794,8 @@ public class DefaultAnalyticsService
      * Prepares the given grid to be converted to a data value set, given
      * that the output format is of type DATA_VALUE_SET.
      * 
-     * @param params the data query parameters.
-     * @param grid   the grid.
+     * @param params the {@link DataQueryParams}.
+     * @param grid the grid.
      */
     private void handleDataValueSet( DataQueryParams params, Grid grid )
     {
@@ -776,8 +809,8 @@ public class DefaultAnalyticsService
      * Substitutes the meta data of the grid with the identifier scheme meta data
      * property indicated in the query.
      *
-     * @param params the data query parameters.
-     * @param grid   the grid.
+     * @param params the {@link DataQueryParams}.
+     * @param grid the grid.
      */
     private void applyIdScheme( DataQueryParams params, Grid grid )
     {
@@ -797,9 +830,9 @@ public class DefaultAnalyticsService
     /**
      * Returns a Grid with aggregated data in table layout.
      *
-     * @param params  the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @param columns the column dimensions.
-     * @param rows    the row dimensions.
+     * @param rows the row dimensions.
      * @return a Grid with aggregated data in table layout.
      */
     private Grid getAggregatedDataValuesTableLayout( DataQueryParams params, List<String> columns, List<String> rows )
@@ -865,9 +898,9 @@ public class DefaultAnalyticsService
      * Generates a mapping of permutations keys (organisation unit id or null)
      * and mappings of organisation unit group and counts.
      *
-     * @param params     the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @param indicators the indicators for which formulas to scan for organisation
-     *                   unit groups.
+     *        unit groups.
      * @return a map of maps.
      */
     private Map<String, Map<String, Integer>> getOrgUnitTargetMap( DataQueryParams params, Collection<Indicator> indicators )
@@ -894,7 +927,7 @@ public class DefaultAnalyticsService
      * a dimension key and the aggregated value. The dimension key is a
      * concatenation of the identifiers of the dimension items separated by "-".
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @return a mapping between a dimension key and the aggregated value.
      */
     private Map<String, Double> getAggregatedDataValueMap( DataQueryParams params )
@@ -907,7 +940,7 @@ public class DefaultAnalyticsService
      * a dimension key and the aggregated value. The dimension key is a
      * concatenation of the identifiers of the dimension items separated by "-".
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @return a mapping between a dimension key and the aggregated value.
      */
     private Map<String, Object> getAggregatedDataValueMapObjectTyped( DataQueryParams params )
@@ -920,7 +953,7 @@ public class DefaultAnalyticsService
      * a dimension key and the aggregated value. The dimension key is a
      * concatenation of the identifiers of the dimension items separated by "-".
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @return a mapping between a dimension key and the aggregated value.
      */
     private Map<String, Double> getAggregatedCompletenessValueMap( DataQueryParams params )
@@ -932,9 +965,9 @@ public class DefaultAnalyticsService
      * Generates a mapping between the the data set dimension key and the count
      * of expected data sets to report.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @return a mapping between the the data set dimension key and the count of
-     * expected data sets to report.
+     *         expected data sets to report.
      */
     private Map<String, Double> getAggregatedCompletenessTargetMap( DataQueryParams params )
     {
@@ -945,13 +978,13 @@ public class DefaultAnalyticsService
     }
 
     /**
-     * Generates a mapping between the the org unit dimension key and the count
-     * of org units inside the subtree of the given organisation units and
+     * Generates a mapping between the the organisation unit dimension key and the 
+     * count of organisation units inside the subtree of the given organisation units and
      * members of the given organisation unit groups.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @return a mapping between the the data set dimension key and the count of
-     * expected data sets to report.
+     *         expected data sets to report.
      */
     private Map<String, Double> getAggregatedOrganisationUnitTargetMap( DataQueryParams params )
     {
@@ -963,10 +996,10 @@ public class DefaultAnalyticsService
      * dimension key is a concatenation of the identifiers of the dimension items
      * separated by "-".
      *
-     * @param params        the data query parameters.
-     * @param tableName     the table name to use for the query.
+     * @param params the {@link DataQueryParams}.
+     * @param tableName the table name to use for the query.
      * @param queryGroupers the list of additional query groupers to use for
-     *                      query planning, use empty list for none.
+     *        query planning, use empty list for none.
      * @return a mapping between a dimension key and aggregated values.
      */
     private Map<String, Object> getAggregatedValueMap( DataQueryParams params, String tableName, List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers )
@@ -1028,7 +1061,7 @@ public class DefaultAnalyticsService
     /**
      * Returns headers, raw data and meta data as a grid.
      * 
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @return a grid.
      */
     private Grid getRawDataGrid( DataQueryParams params )
@@ -1049,7 +1082,7 @@ public class DefaultAnalyticsService
     /**
      * Adds raw data to the grid for the given data query parameters.
      * 
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @param grid the grid.
      */
     private void addRawData( DataQueryParams params, Grid grid )
@@ -1073,7 +1106,7 @@ public class DefaultAnalyticsService
      * Returns a mapping of permutation keys and mappings of data element operands
      * and values based on the given query.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      */
     private Map<String, Map<DimensionalItemObject, Double>> getPermutationDimensionItemValueMap( DataQueryParams params )
     {
@@ -1090,13 +1123,15 @@ public class DefaultAnalyticsService
      * numerators and denominators are used as dimensional item for the aggregated
      * values being retrieved.
      *
-     * @param params     the query.
+     * @param params the {@link DataQueryParams}.
      * @param indicators the list of indicators.
      * @return a dimensional items to aggregate values map.
      */
     private Map<String, Double> getAggregatedDataValueMap( DataQueryParams params, List<Indicator> indicators )
     {
         List<DimensionalItemObject> items = Lists.newArrayList( expressionService.getDimensionalItemObjectsInIndicators( indicators ) );
+
+        items = DimensionalObjectUtils.replaceOperandTotalsWithDataElements( items );
 
         DimensionalObject dimension = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, DISPLAY_NAME_DATA_X, items );
 
@@ -1110,7 +1145,7 @@ public class DefaultAnalyticsService
 
         return grid.getAsMap( grid.getWidth() - 1, DimensionalObject.DIMENSION_SEP );
     }
-
+    
     /**
      * Gets the number of available cores. Uses explicit number from system
      * setting if available. Detects number of cores from current server runtime

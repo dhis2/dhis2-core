@@ -59,7 +59,7 @@
       <artifactId>jackson-dataformat-csv</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.amplecode</groupId>
+      <groupId>org.hisp</groupId>
       <artifactId>staxwax</artifactId>
     </dependency>
     <dependency>

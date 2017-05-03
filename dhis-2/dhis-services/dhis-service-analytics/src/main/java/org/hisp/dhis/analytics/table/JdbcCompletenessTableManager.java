@@ -28,14 +28,8 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
@@ -45,9 +39,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Future;
 
 /**
  * @author Lars Helge Overland
@@ -59,6 +55,15 @@ public class JdbcCompletenessTableManager
     public AnalyticsTableType getAnalyticsTableType()
     {
         return AnalyticsTableType.COMPLETENESS;
+    }
+
+    @Override
+    @Transactional
+    public List<AnalyticsTable> getTables( Date earliest )
+    {
+        log.info( "Get tables using earliest: " + earliest );
+
+        return getTables( getDataYears( earliest ) );
     }
     
     @Override
@@ -128,7 +133,7 @@ public class JdbcCompletenessTableManager
         }
         
         insert += "value) ";
-        
+
         String select = "select ";
         
         for ( AnalyticsTableColumn col : columns )
@@ -138,7 +143,7 @@ public class JdbcCompletenessTableManager
         
         select = select.replace( "organisationunitid", "sourceid" ); // Legacy fix
         
-        select += 
+        select +=
             "cdr.date as value " +
             "from completedatasetregistration cdr " +
             "inner join dataset ds on cdr.datasetid=ds.datasetid " +
@@ -212,8 +217,7 @@ public class JdbcCompletenessTableManager
         return filterDimensionColumns( columns );
     }
 
-    @Override
-    public List<Integer> getDataYears( Date earliest )
+    private List<Integer> getDataYears( Date earliest )
     {
         String sql = 
             "select distinct(extract(year from pe.startdate)) " +

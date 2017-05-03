@@ -45,10 +45,9 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.User;
 import org.springframework.util.Assert;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import javax.annotation.Nullable;
 
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE_INT_DISAGGREGATION;
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE_SUM_INT_DISAGGREGATION;
@@ -97,7 +96,6 @@ public class DataQueryParams
     public static final String DISPLAY_NAME_LATITUDE = "Latitude";
 
     public static final int DX_INDEX = 0;
-    public static final int CO_INDEX = 1;
 
     public static final ImmutableSet<Class<? extends IdentifiableObject>> DYNAMIC_DIM_CLASSES = ImmutableSet.of( 
         OrganisationUnitGroupSet.class, DataElementGroupSet.class, CategoryOptionGroupSet.class, DataElementCategory.class );
@@ -362,6 +360,8 @@ public class DataQueryParams
         params.aggregationType = this.aggregationType;
         params.measureCriteria = this.measureCriteria;
         params.preAggregateMeasureCriteria = this.preAggregateMeasureCriteria;
+        params.startDate = this.startDate;
+        params.endDate = this.endDate;
         params.skipMeta = this.skipMeta;
         params.skipData = this.skipData;
         params.skipHeaders = this.skipHeaders;
@@ -670,9 +670,7 @@ public class DataQueryParams
         
         CombinationGenerator<DimensionItem> generator = new CombinationGenerator<>( dimensionOptions.toArray( DIM_OPT_2D_ARR ) );
         
-        List<List<DimensionItem>> permutations = generator.getCombinations();
-        
-        return permutations;
+        return generator.getCombinations();
     }
 
     /**
@@ -1111,25 +1109,15 @@ public class DataQueryParams
     }
     
     /**
-     * Adds the given dimension to the dimensions of this query. If the dimension
-     * is a data dimension it will be added to the beginning of the list of dimensions.
+     * Adds the given dimension to the dimensions of this query. The dimensions will 
+     * be ordered according to the order property value of the {@link DimensionType}
+     * of the dimension.
      */
     protected void addDimension( DimensionalObject dimension )
     {
-        if ( DATA_X_DIM_ID.equals( dimension.getDimension() ) )
-        {
-            dimensions.add( DX_INDEX, dimension );
-        }
-        else if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension.getDimension() ) )
-        {
-            int index = !dimensions.isEmpty() && DATA_X_DIM_ID.equals( dimensions.get( 0 ).getDimension() ) ? CO_INDEX : DX_INDEX;
-            
-            dimensions.add( index, dimension );
-        }
-        else
-        {
-            dimensions.add( dimension );
-        }
+        dimensions.add( dimension );
+        
+        Collections.sort( dimensions, ( o1, o2 ) -> o1.getDimensionType().getOrder() - o2.getDimensionType().getOrder() );
     }
     
     /**
@@ -1226,7 +1214,7 @@ public class DataQueryParams
     private DataQueryParams pruneToDimensionType( DimensionType type )
     {
         Iterator<DimensionalObject> dimensionIter = dimensions.iterator();
-        
+
         while ( dimensionIter.hasNext() )
         {
             if ( !dimensionIter.next().getDimensionType().equals( type ) )
@@ -1381,9 +1369,7 @@ public class DataQueryParams
     /**
      * Creates a mapping of permutation keys and mappings of data element operands
      * and values based on the given mapping of dimension option keys and 
-     * aggregated values. The data element dimension will be at index 0 and the
-     * category option combo dimension will be at index 1, if category option
-     * combinations is enabled.
+     * aggregated values. The data element dimension will be at index 0.
      * 
      * @param aggregatedDataMap the aggregated data map.
      * @return a mapping of permutation keys and mappings of data element operands

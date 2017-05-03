@@ -46,7 +46,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElement;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -78,8 +78,8 @@ public class AnalyticsUtilsTest
         
         DataElement deA = createDataElement( 'A', new DataElementCategoryCombo() );
         DataElement deB = createDataElement( 'B', new DataElementCategoryCombo() );
-        ProgramDataElement pdeA = new ProgramDataElement( prA, deA );
-        ProgramDataElement pdeB = new ProgramDataElement( prA, deB );
+        ProgramDataElementDimensionItem pdeA = new ProgramDataElementDimensionItem( prA, deA );
+        ProgramDataElementDimensionItem pdeB = new ProgramDataElementDimensionItem( prA, deB );
         ProgramIndicator piA = createProgramIndicator( 'A', prA, null, null );
         
         List<DimensionalItemObject> list = Lists.newArrayList( deA, deB, pdeA, pdeB, piA );
@@ -98,8 +98,8 @@ public class AnalyticsUtilsTest
         map.put( "YkRvCLedQa4-h1dJ9W4dWor-Zrd4DAf8M99", 11d );
         map.put( "PcfRp1HETO8-zqXKIEycBck-KBJBZopYMPV", 12d );
         
-        Map<String, Double> convertedMap = AnalyticsUtils.convertDxToOperand( map );
-        
+        Map<String, Double> convertedMap = AnalyticsUtils.convertDxToOperand( map, 1 );
+                
         assertTrue( convertedMap.containsKey( "GauDLAiXPKT.kC1OT9Q1n1j-R9U8q7X1aJG" ) );
         assertTrue( convertedMap.containsKey( "YkRvCLedQa4.h1dJ9W4dWor-Zrd4DAf8M99" ) );
         assertTrue( convertedMap.containsKey( "PcfRp1HETO8.zqXKIEycBck-KBJBZopYMPV" ) );
@@ -162,7 +162,7 @@ public class AnalyticsUtilsTest
         Indicator inA = createIndicator( 'A', null );
         DataSet dsA = createDataSet( 'A' );
 
-        DimensionalObject dx = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( deA, inA, dsA ) );
+        DimensionalObject dx = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, DimensionalObjectUtils.getList( deA, inA, dsA ) );
         
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( dx )
@@ -186,7 +186,7 @@ public class AnalyticsUtilsTest
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         OrganisationUnit ouB = createOrganisationUnit( 'B' );
         
-        DimensionalObject dx = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( deA, inA, dsA ) );
+        DimensionalObject dx = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, DimensionalObjectUtils.getList( deA, inA, dsA ) );
         DimensionalObject ou = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA, ouB ) );
         
         DataQueryParams params = DataQueryParams.newBuilder()

@@ -47,7 +47,10 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.deletedobject.DeletedObjectQuery;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
@@ -95,6 +98,9 @@ public class HibernateGenericStore<T>
 
     @Autowired
     protected SchemaService schemaService;
+
+    @Autowired
+    protected DeletedObjectService deletedObjectService;
 
     /**
      * Allows injection (e.g. by a unit test)
@@ -386,25 +392,25 @@ public class HibernateGenericStore<T>
     // -------------------------------------------------------------------------
 
     @Override
-    public int save( T object )
+    public void save( T object )
     {
-        return save( object, currentUserService.getCurrentUser(), true );
+        save( object, currentUserService.getCurrentUser(), true );
     }
 
     @Override
-    public int save( T object, User user )
+    public void save( T object, User user )
     {
-        return save( object, user, true );
+        save( object, user, true );
     }
 
     @Override
-    public int save( T object, boolean clearSharing )
+    public void save( T object, boolean clearSharing )
     {
-        return save( object, currentUserService.getCurrentUser(), clearSharing );
+        save( object, currentUserService.getCurrentUser(), clearSharing );
     }
 
     @Override
-    public int save( T object, User user, boolean clearSharing )
+    public void save( T object, User user, boolean clearSharing )
     {
         String username = user != null ? user.getUsername() : "system-process";
 
@@ -412,6 +418,7 @@ public class HibernateGenericStore<T>
         {
             BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
             identifiableObject.setAutoFields();
+            identifiableObject.setLastUpdatedBy( user );
 
             if ( clearSharing )
             {
@@ -461,7 +468,12 @@ public class HibernateGenericStore<T>
         }
 
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_CREATE );
-        return (Integer) getSession().save( object );
+        getSession().save( object );
+
+        if ( MetadataObject.class.isInstance( object ) )
+        {
+            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( (IdentifiableObject) object ) );
+        }
     }
 
     private boolean checkPublicAccess( User user, IdentifiableObject identifiableObject )
@@ -486,6 +498,7 @@ public class HibernateGenericStore<T>
         {
             BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
             identifiableObject.setAutoFields();
+            identifiableObject.setLastUpdatedBy( user );
 
             if ( identifiableObject.getUser() == null )
             {
@@ -504,6 +517,11 @@ public class HibernateGenericStore<T>
         if ( object != null )
         {
             getSession().update( object );
+        }
+
+        if ( MetadataObject.class.isInstance( object ) )
+        {
+            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( (IdentifiableObject) object ) );
         }
     }
 

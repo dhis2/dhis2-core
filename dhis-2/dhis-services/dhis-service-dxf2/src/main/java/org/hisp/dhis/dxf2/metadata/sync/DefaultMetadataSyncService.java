@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Performs the metadata sync related tasks in service layer
+ * Performs the meta data sync related tasks in service layer.
  *
  * @author vanyas
  */
@@ -153,7 +153,7 @@ public class DefaultMetadataSyncService
 
         metadataVersionSnapshot = getMetadataVersionSnapshotFromRemote( version );
 
-        if ( !(metadataVersionService.isMetadataPassingIntegrity( version, metadataVersionSnapshot )) )
+        if ( !(metadataVersionService.isMetadataPassingIntegrity( version, metadataVersionSnapshot ) ) )
         {
             throw new MetadataSyncServiceException( "Metadata snapshot is corrupted. Not saving it locally" );
         }

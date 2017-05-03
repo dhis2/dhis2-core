@@ -28,8 +28,6 @@ package org.hisp.dhis.indicator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -55,8 +53,6 @@ public interface IndicatorService
     Indicator getIndicator( String uid );
 
     List<Indicator> getAllIndicators();
-
-    List<Indicator> getIndicatorsByUid( Collection<String> uids );
 
     List<Indicator> getIndicatorsWithGroupSets();
 
@@ -109,8 +105,6 @@ public interface IndicatorService
     IndicatorGroupSet getIndicatorGroupSet( int id );
 
     IndicatorGroupSet getIndicatorGroupSet( String uid );
-
-    List<IndicatorGroupSet> getIndicatorGroupSetByName( String name );
 
     List<IndicatorGroupSet> getAllIndicatorGroupSets();
 }

@@ -41,6 +41,7 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.RegexUtils;
 
 import java.util.HashSet;
@@ -52,7 +53,7 @@ import java.util.regex.Pattern;
  */
 @JacksonXmlRootElement( localName = "programIndicator", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramIndicator
-    extends BaseDataDimensionalItemObject
+    extends BaseDataDimensionalItemObject implements MetadataObject
 {
     public static final String DB_SEPARATOR_ID = "_";
 
@@ -76,6 +77,8 @@ public class ProgramIndicator
     public static final String VAR_ENROLLMENT_COUNT = "enrollment_count";
     public static final String VAR_TEI_COUNT = "tei_count";
     public static final String VAR_COMPLETED_DATE = "completed_date";
+    public static final String VAR_PROGRAM_STAGE_NAME = "program_stage_name";
+    public static final String VAR_PROGRAM_STAGE_ID = "program_stage_id";
 
     public static final String EXPRESSION_PREFIX_REGEXP = KEY_DATAELEMENT + "|" + KEY_ATTRIBUTE + "|" + KEY_PROGRAM_VARIABLE + "|" + KEY_CONSTANT;
     public static final String EXPRESSION_REGEXP = "(" + EXPRESSION_PREFIX_REGEXP + ")\\{([\\w\\_]+)" + SEPARATOR_ID + "?(\\w*)\\}";
@@ -89,8 +92,8 @@ public class ProgramIndicator
     public static final String EQUALSEMPTY = " *== *'' *";
     public static final String EQUALSZERO = " *== *0 *";
     public static final String EXPRESSION_EQUALSZEROOREMPTY_REGEX = EXPRESSION_REGEXP + "(" + EQUALSEMPTY + "|" + EQUALSZERO + ")?";
-    
-    
+
+
     public static final Pattern EXPRESSION_PATTERN = Pattern.compile( EXPRESSION_REGEXP );
     public static final Pattern EXPRESSION_EQUALSZEROOREMPTY_PATTERN = Pattern.compile( EXPRESSION_EQUALSZEROOREMPTY_REGEX );
     public static final Pattern SQL_FUNC_PATTERN = Pattern.compile( SQL_FUNC_REGEXP );
@@ -99,11 +102,13 @@ public class ProgramIndicator
     public static final Pattern ATTRIBUTE_PATTERN = Pattern.compile( ATTRIBUTE_REGEX );
     public static final Pattern VARIABLE_PATTERN = Pattern.compile( VARIABLE_REGEX );
     public static final Pattern VALUECOUNT_PATTERN = Pattern.compile( VALUECOUNT_REGEX );
-    
+
     public static final String VALID = "valid";
     public static final String EXPRESSION_NOT_VALID = "expression_not_valid";
     public static final String INVALID_IDENTIFIERS_IN_EXPRESSION = "invalid_identifiers_in_expression";
     public static final String FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE = "filter_not_evaluating_to_true_or_false";
+    public static final String UNKNOWN_VARIABLE = "unknown_variable";
+    
 
     private Program program;
 

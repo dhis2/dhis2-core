@@ -238,7 +238,7 @@ public class MessageConversationController
 
         String metaData = MessageService.META_USER_AGENT + request.getHeader( ContextUtils.HEADER_USER_AGENT );
 
-        int id = messageService.sendMessage( messageConversation.getSubject(), messageConversation.getText(), metaData,
+        int id = messageService.sendPrivateMessage( messageConversation.getSubject(), messageConversation.getText(), metaData,
             messageConversation.getUsers() );
 
         org.hisp.dhis.message.MessageConversation conversation = messageService.getMessageConversation( id );
@@ -292,7 +292,7 @@ public class MessageConversationController
     {
         String metaData = MessageService.META_USER_AGENT + request.getHeader( ContextUtils.HEADER_USER_AGENT );
 
-        messageService.sendFeedback( subject, body, metaData );
+        messageService.sendTicketMessage( subject, body, metaData );
 
         webMessageService.send( WebMessageUtils.created( "Feedback created" ), response, request );
     }

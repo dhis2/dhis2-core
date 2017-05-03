@@ -62,6 +62,8 @@ public interface IdentifiableObject
 
     Date getLastUpdated();
 
+    User getLastUpdatedBy();
+
     Set<AttributeValue> getAttributeValues();
 
     Set<ObjectTranslation> getTranslations();

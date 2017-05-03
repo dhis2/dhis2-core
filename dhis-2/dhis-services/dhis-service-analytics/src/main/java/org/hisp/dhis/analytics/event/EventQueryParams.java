@@ -61,7 +61,13 @@ import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import com.google.common.collect.ImmutableMap;
@@ -272,7 +278,7 @@ public class EventQueryParams
 
         for ( DimensionalItemObject object : dataQueryParams.getProgramDataElements() )
         {
-            ProgramDataElement element = (ProgramDataElement) object;
+            ProgramDataElementDimensionItem element = (ProgramDataElementDimensionItem) object;
             DataElement dataElement = element.getDataElement(); 
             QueryItem item = new QueryItem( dataElement, ( dataElement.getLegendSets().isEmpty() ? null : dataElement.getLegendSets().get( 0 ) ), dataElement.getValueType(), dataElement.getAggregationType(), dataElement.getOptionSet() );
             item.setProgram( element.getProgram() );
@@ -281,7 +287,7 @@ public class EventQueryParams
 
         for ( DimensionalItemObject object : dataQueryParams.getProgramAttributes() )
         {
-            ProgramTrackedEntityAttribute element = (ProgramTrackedEntityAttribute) object;
+            ProgramTrackedEntityAttributeDimensionItem element = (ProgramTrackedEntityAttributeDimensionItem) object;
             TrackedEntityAttribute attribute = element.getAttribute();
             QueryItem item = new QueryItem( attribute, ( attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get( 0 ) ), attribute.getValueType(), attribute.getAggregationType(), attribute.getOptionSet() );
             item.setProgram( element.getProgram() );
@@ -290,7 +296,7 @@ public class EventQueryParams
 
         for ( DimensionalItemObject object : dataQueryParams.getFilterProgramDataElements() )
         {
-            ProgramDataElement element = (ProgramDataElement) object;
+            ProgramDataElementDimensionItem element = (ProgramDataElementDimensionItem) object;
             DataElement dataElement = element.getDataElement(); 
             QueryItem item = new QueryItem( dataElement, ( dataElement.getLegendSets().isEmpty() ? null : dataElement.getLegendSets().get( 0 ) ), dataElement.getValueType(), dataElement.getAggregationType(), dataElement.getOptionSet() );
             item.setProgram( element.getProgram() );
@@ -299,7 +305,7 @@ public class EventQueryParams
 
         for ( DimensionalItemObject object : dataQueryParams.getFilterProgramAttributes() )
         {
-            ProgramTrackedEntityAttribute element = (ProgramTrackedEntityAttribute) object;
+            ProgramTrackedEntityAttributeDimensionItem element = (ProgramTrackedEntityAttributeDimensionItem) object;
             TrackedEntityAttribute attribute = element.getAttribute();
             QueryItem item = new QueryItem( attribute, ( attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get( 0 ) ), attribute.getValueType(), attribute.getAggregationType(), attribute.getOptionSet() );
             builder.addItemFilter( item );

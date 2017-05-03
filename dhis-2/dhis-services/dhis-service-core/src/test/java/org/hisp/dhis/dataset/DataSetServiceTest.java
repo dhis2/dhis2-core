@@ -29,8 +29,12 @@ package org.hisp.dhis.dataset;
  */
 
 import org.hisp.dhis.DhisTest;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.hisp.dhis.dataapproval.*;
+import org.hisp.dhis.dataapproval.DataApproval;
+import org.hisp.dhis.dataapproval.DataApprovalLevel;
+import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.dataapproval.DataApprovalService;
+import org.hisp.dhis.dataapproval.DataApprovalStore;
+import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -45,7 +49,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -59,7 +62,7 @@ import static org.junit.Assert.*;
 
 /**
  * TODO Test delete with data set elements
- * 
+ *
  * @author Lars Helge Overland
  */
 public class DataSetServiceTest
@@ -78,20 +81,20 @@ public class DataSetServiceTest
     private OrganisationUnit unitD;
     private OrganisationUnit unitE;
     private OrganisationUnit unitF;
-    
+
     private DataElementCategoryOptionCombo attributeOptionCombo;
 
     private CurrentUserService mockCurrentUserService;
 
     @Autowired
     private DataSetService dataSetService;
-    
+
     @Autowired
     private DataElementService dataElementService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
-    
+
     @Autowired
     private PeriodService periodService;
 
@@ -106,27 +109,22 @@ public class DataSetServiceTest
 
     @Autowired
     private DataApprovalStore approvalStore;
-    
+
     @Autowired
     private DataApprovalService dataApprovalService;
 
     @Autowired
     private DataApprovalLevelService levelService;
-    
-    private GenericIdentifiableObjectStore<DataSetElement> dataSetElementStore;
-    
+
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public void setUpTest()
         throws Exception
     {
         userService = _userService;
-        
-        dataSetElementStore = (GenericIdentifiableObjectStore<DataSetElement>) getBean( "org.hisp.dhis.dataset.DataSetElementStore" );
 
         periodType = new MonthlyPeriodType();
 
@@ -135,17 +133,17 @@ public class DataSetServiceTest
 
         dataElementA = createDataElement( 'A' );
         dataElementB = createDataElement( 'B' );
-        
+
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
-        
+
         unitA = createOrganisationUnit( 'A' );
         unitB = createOrganisationUnit( 'B' );
         unitC = createOrganisationUnit( 'C' );
         unitD = createOrganisationUnit( 'D' );
         unitE = createOrganisationUnit( 'E' );
         unitF = createOrganisationUnit( 'F' );
-        
+
         organisationUnitService.addOrganisationUnit( unitA );
         organisationUnitService.addOrganisationUnit( unitB );
         organisationUnitService.addOrganisationUnit( unitC );
@@ -193,7 +191,7 @@ public class DataSetServiceTest
 
     private void approveData( DataSet dataSet, Period period, OrganisationUnit unit )
     {
-        DataApprovalLevel level = new DataApprovalLevel ("Level A", unit.getLevel(), null );
+        DataApprovalLevel level = new DataApprovalLevel( "Level A", unit.getLevel(), null );
         levelService.addDataApprovalLevel( level );
 
         DataApprovalWorkflow workflow = new DataApprovalWorkflow( "Workflow A", period.getPeriodType(), newHashSet( level ) );
@@ -216,7 +214,7 @@ public class DataSetServiceTest
     {
         DataSet dataSetA = createDataSet( 'A', periodType );
         DataSet dataSetB = createDataSet( 'B', periodType );
-        
+
         dataSetA.addDataSetElement( dataElementA );
         dataSetA.addDataSetElement( dataElementB );
 
@@ -240,7 +238,7 @@ public class DataSetServiceTest
 
         dataSet.addDataSetElement( dataElementA );
         dataSet.addDataSetElement( dataElementB );
-        
+
         int id = dataSetService.addDataSet( dataSet );
 
         dataSet = dataSetService.getDataSet( id );
@@ -292,29 +290,35 @@ public class DataSetServiceTest
 
         dataSetService.addDataSet( dataSet );
 
-        List<DataSetElement> dataSetElements = dataSetElementStore.getAll();
-        
+        dataSet = dataSetService.getDataSet( dataSet.getId() );
+        assertNotNull( dataSet );
+        List<DataSetElement> dataSetElements = new ArrayList<>( dataSet.getDataSetElements() );
+
         assertEquals( 2, dataSet.getDataSetElements().size() );
         assertEquals( 2, dataSetElements.size() );
 
         // Remove data element A
-        
+
         dataSet.removeDataSetElement( dataElementA );
-        
+
         dataSetService.updateDataSet( dataSet );
-        
-        dataSetElements = dataSetElementStore.getAll();
+
+        dataSet = dataSetService.getDataSet( dataSet.getId() );
+        assertNotNull( dataSet );
+        dataSetElements = new ArrayList<>( dataSet.getDataSetElements() );
 
         assertEquals( 1, dataSet.getDataSetElements().size() );
         assertEquals( 1, dataSetElements.size() );
 
         // Remove data element B
-        
+
         dataSet.removeDataSetElement( dataElementB );
 
         dataSetService.updateDataSet( dataSet );
-        
-        dataSetElements = dataSetElementStore.getAll();
+
+        dataSet = dataSetService.getDataSet( dataSet.getId() );
+        assertNotNull( dataSet );
+        dataSetElements = new ArrayList<>( dataSet.getDataSetElements() );
 
         assertEquals( 0, dataSet.getDataSetElements().size() );
         assertEquals( 0, dataSetElements.size() );
@@ -330,46 +334,17 @@ public class DataSetServiceTest
 
         int ds = dataSetService.addDataSet( dataSet );
 
-        List<DataSetElement> dataSetElements = dataSetElementStore.getAll();
-        
+        dataSet = dataSetService.getDataSet( dataSet.getId() );
+        assertNotNull( dataSet );
+        List<DataSetElement> dataSetElements = new ArrayList<>( dataSet.getDataSetElements() );
+
         assertEquals( dataSet, dataSetService.getDataSet( ds ) );
         assertEquals( 2, dataSet.getDataSetElements().size() );
         assertEquals( 2, dataSetElements.size() );
-        
+
         dataSetService.deleteDataSet( dataSet );
-        
-        dataSetElements = dataSetElementStore.getAll();
-        
+
         assertNull( dataSetService.getDataSet( ds ) );
-        assertEquals( 0, dataSetElements.size() );
-    }
-    
-    @Test
-    public void testGetDataSetByName()
-    {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        DataSet dataSetB = createDataSet( 'B', periodType );
-
-        int idA = dataSetService.addDataSet( dataSetA );
-        int idB = dataSetService.addDataSet( dataSetB );
-
-        assertEquals( dataSetService.getDataSetByName( "DataSetA" ).get( 0 ).getId(), idA );
-        assertEquals( dataSetService.getDataSetByName( "DataSetB" ).get( 0 ).getId(), idB );
-        assertTrue( dataSetService.getDataSetByName( "DataSetC" ).isEmpty() );
-    }
-
-    @Test
-    public void testGetDataSetByShortName()
-    {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        DataSet dataSetB = createDataSet( 'B', periodType );
-
-        int idA = dataSetService.addDataSet( dataSetA );
-        int idB = dataSetService.addDataSet( dataSetB );
-
-        assertEquals( dataSetService.getDataSetByShortName( "DataSetShortA" ).get( 0 ).getId(), idA );
-        assertEquals( dataSetService.getDataSetByShortName( "DataSetShortB" ).get( 0 ).getId(), idB );
-        assertTrue( dataSetService.getDataSetByShortName( "DataSetShortC" ).isEmpty() );
     }
 
     @Test
@@ -384,45 +359,6 @@ public class DataSetServiceTest
         List<DataSet> dataSets = dataSetService.getAllDataSets();
 
         assertEquals( dataSets.size(), 2 );
-        assertTrue( dataSets.contains( dataSetA ) );
-        assertTrue( dataSets.contains( dataSetB ) );
-    }
-
-    @Test
-    @Ignore
-    public void testGetDataSetsBySources()
-    {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        DataSet dataSetB = createDataSet( 'B', periodType );
-        DataSet dataSetC = createDataSet( 'C', periodType );
-        DataSet dataSetD = createDataSet( 'D', periodType );
-        dataSetA.getSources().add( unitA );
-        dataSetA.getSources().add( unitB );
-        dataSetB.getSources().add( unitA );
-        dataSetC.getSources().add( unitB );
-
-        dataSetService.addDataSet( dataSetA );
-        dataSetService.addDataSet( dataSetB );
-        dataSetService.addDataSet( dataSetC );
-        dataSetService.addDataSet( dataSetD );
-
-        List<OrganisationUnit> sources = new ArrayList<>();
-        sources.add( unitA );
-        sources.add( unitB );
-
-        List<DataSet> dataSets = dataSetService.getDataSetsBySources( sources );
-
-        assertEquals( 3, dataSets.size() );
-        assertTrue( dataSets.contains( dataSetA ) );
-        assertTrue( dataSets.contains( dataSetB ) );
-        assertTrue( dataSets.contains( dataSetC ) );
-
-        sources = new ArrayList<>();
-        sources.add( unitA );
-
-        dataSets = dataSetService.getDataSetsBySources( sources );
-
-        assertEquals( 2, dataSets.size() );
         assertTrue( dataSets.contains( dataSetA ) );
         assertTrue( dataSets.contains( dataSetB ) );
     }

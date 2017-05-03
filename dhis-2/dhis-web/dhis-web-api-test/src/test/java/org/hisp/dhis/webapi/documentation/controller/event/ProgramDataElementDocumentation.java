@@ -31,14 +31,14 @@
 
 package org.hisp.dhis.webapi.documentation.controller.event;
 
-import org.hisp.dhis.program.ProgramDataElement;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.webapi.documentation.controller.AbstractWebApiTest;
 
 /**
  * @author Viet Nguyen <viet@dhis.org>
  */
 public class ProgramDataElementDocumentation
-    extends AbstractWebApiTest<ProgramDataElement>
+    extends AbstractWebApiTest<ProgramDataElementDimensionItem>
 {
     @Override
     public void testCreate()
@@ -57,6 +57,11 @@ public class ProgramDataElementDocumentation
 
     @Override
     public void testDeleteByIdOk()
+    {
+    }
+
+    @Override
+    public void testGetAll()
     {
     }
 }
