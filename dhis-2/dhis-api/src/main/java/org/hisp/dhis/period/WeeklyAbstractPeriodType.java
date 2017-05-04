@@ -54,13 +54,17 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
 
     protected final int frequencyOrder;
 
-    protected WeeklyAbstractPeriodType( String name, int startOfWeek, String isoFormat, String isoDuration, int frequencyOrder )
+    protected final String weekPrefix;
+
+    protected WeeklyAbstractPeriodType( String name, int startOfWeek, String isoFormat, String isoDuration,
+        int frequencyOrder, String weekPrefix )
     {
         this.name = name;
         this.startOfWeek = startOfWeek;
         this.isoFormat = isoFormat;
         this.isoDuration = isoDuration;
         this.frequencyOrder = frequencyOrder;
+        this.weekPrefix = weekPrefix;
     }
 
     @Override
@@ -175,7 +179,7 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
             dateTimeUnit.setYear( dateTimeUnit.getYear() + 1 );
         }
 
-        return String.format( "%dW%d", dateTimeUnit.getYear(), week );
+        return String.format( "%d%s%d", dateTimeUnit.getYear(), weekPrefix, week );
     }
 
     @Override

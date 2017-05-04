@@ -117,6 +117,10 @@ public abstract class PeriodType
         {
             add( new DailyPeriodType() );
             add( new WeeklyPeriodType() );
+            add( new WeeklyWednesdayPeriodType() );
+            add( new WeeklyThursdayPeriodType() );
+            add( new WeeklySaturdayPeriodType() );
+            add( new WeeklySundayPeriodType() );
             add( new MonthlyPeriodType() );
             add( new BiMonthlyPeriodType() );
             add( new QuarterlyPeriodType() );
@@ -541,35 +545,35 @@ public abstract class PeriodType
 
     /**
      * Returns the next period determined by the given number of periods.
-     * 
-     * @param period the Period to base the next Period on.
+     *
+     * @param period  the Period to base the next Period on.
      * @param periods the number of periods into the future.
      * @return the next period.
      */
     public Period getNextPeriod( Period period, int periods )
     {
         Period nextPeriod = period;
-        
+
         if ( periods > 0 )
         {
             org.hisp.dhis.calendar.Calendar calendar = getCalendar();
-                    
+
             for ( int i = 0; i < periods; i++ )
             {
                 nextPeriod = getNextPeriod( nextPeriod, calendar );
             }
         }
-        
+
         return nextPeriod;
     }
-    
+
     /**
      * Returns a Period which is the next of the given Period. Only valid
      * Periods are returned. If the given Period is of different PeriodType than
      * the executing PeriodType, or the given Period is invalid, the returned
      * Period might overlap the given Period.
      *
-     * @param period the Period to base the next Period on.
+     * @param period   the Period to base the next Period on.
      * @param calendar the Calendar to use.
      * @return a Period which is the next of the given Period.
      */
@@ -592,7 +596,7 @@ public abstract class PeriodType
     /**
      * Returns the previous period determined by the given number of periods.
      *
-     * @param period the Period to base the previous Period on.
+     * @param period  the Period to base the previous Period on.
      * @param periods the number of periods into the past.
      * @return the previous period.
      */
@@ -627,7 +631,7 @@ public abstract class PeriodType
     /**
      * Returns the period at the same time of year going back a number of years.
      *
-     * @param period the Period to base the previous Period on.
+     * @param period    the Period to base the previous Period on.
      * @param yearCount how many years to go back.
      * @return the past year period.
      */

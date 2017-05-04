@@ -43,6 +43,6 @@ public class WeeklySaturdayPeriodType
 
     public WeeklySaturdayPeriodType()
     {
-        super( NAME, 6, "yyyySatWn", "P7D", 7 );
+        super( NAME, 6, "yyyySatWn", "P7D", 7, "SatW" );
     }
 }
