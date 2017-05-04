@@ -38,6 +38,10 @@ import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.SixMonthlyAprilPeriodType;
 import org.hisp.dhis.period.SixMonthlyPeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
+import org.hisp.dhis.period.WeeklySaturdayPeriodType;
+import org.hisp.dhis.period.WeeklySundayPeriodType;
+import org.hisp.dhis.period.WeeklyThursdayPeriodType;
+import org.hisp.dhis.period.WeeklyWednesdayPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 
 /**
@@ -47,6 +51,10 @@ public enum DateUnitType
 {
     DAILY( DailyPeriodType.NAME, "\\b(\\d{4})(\\d{2})(\\d{2})\\b" ),
     WEEKLY( WeeklyPeriodType.NAME, "\\b(\\d{4})W(\\d[\\d]?)\\b" ),
+    WEEKLY_WEDNESDAY( WeeklyWednesdayPeriodType.NAME, "\\b(\\d{4})WedW(\\d[\\d]?)\\b" ),
+    WEEKLY_THURSDAY( WeeklyThursdayPeriodType.NAME, "\\b(\\d{4})ThuW(\\d[\\d]?)\\b" ),
+    WEEKLY_SATURDAY( WeeklySaturdayPeriodType.NAME, "\\b(\\d{4})SatW(\\d[\\d]?)\\b" ),
+    WEEKLY_SUNDAY( WeeklySundayPeriodType.NAME, "\\b(\\d{4})SunW(\\d[\\d]?)\\b" ),
     MONTHLY( MonthlyPeriodType.NAME, "\\b(\\d{4})[-]?(\\d{2})\\b" ),
     BI_MONTHLY( BiMonthlyPeriodType.NAME, "\\b(\\d{4})(\\d{2})B\\b" ),
     QUARTERLY( QuarterlyPeriodType.NAME, "\\b(\\d{4})Q(\\d)\\b" ),

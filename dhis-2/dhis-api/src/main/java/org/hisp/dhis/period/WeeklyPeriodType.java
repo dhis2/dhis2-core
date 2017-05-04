@@ -28,15 +28,6 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.calendar.DateInterval;
-import org.hisp.dhis.calendar.DateIntervalType;
-import org.hisp.dhis.calendar.DateTimeUnit;
-
-import java.util.Date;
-import java.util.List;
-
 /**
  * PeriodType for weekly Periods. A valid weekly Period has startDate set to
  * monday and endDate set to sunday the same week, assuming monday is the first
@@ -51,114 +42,6 @@ public class WeeklyPeriodType
 
     public WeeklyPeriodType()
     {
-        super( NAME, "yyyyWn", "P7D", 7 );
-    }
-
-    // -------------------------------------------------------------------------
-    // PeriodType functionality
-    // -------------------------------------------------------------------------
-
-    @Override
-    public Period createPeriod( DateTimeUnit dateTimeUnit, Calendar calendar )
-    {
-        DateTimeUnit start = new DateTimeUnit( dateTimeUnit );
-        start = calendar.minusDays( dateTimeUnit, calendar.weekday( start ) - 1 );
-
-        DateTimeUnit end = new DateTimeUnit( start );
-        end = calendar.plusDays( end, calendar.daysInWeek() - 1 );
-
-        return toIsoPeriod( start, end, calendar );
-    }
-
-    @Override
-    public Period getNextPeriod( Period period, Calendar calendar )
-    {
-        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( period.getStartDate(), calendar );
-        dateTimeUnit = calendar.plusWeeks( dateTimeUnit, 1 );
-
-        return createPeriod( dateTimeUnit, calendar );
-    }
-
-    @Override
-    public Period getPreviousPeriod( Period period, Calendar calendar )
-    {
-        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( period.getStartDate(), calendar );
-        dateTimeUnit = calendar.minusWeeks( dateTimeUnit, 1 );
-
-        return createPeriod( dateTimeUnit, calendar );
-    }
-
-    /**
-     * Generates weekly Periods for the whole year in which the given Period's
-     * startDate exists.
-     */
-    @Override
-    public List<Period> generatePeriods( DateTimeUnit dateTimeUnit )
-    {
-        Calendar calendar = getCalendar();
-
-        List<Period> periods = Lists.newArrayList();
-
-        // rewind to start of week
-        dateTimeUnit = calendar.minusDays( dateTimeUnit, calendar.weekday( dateTimeUnit ) - 1 );
-
-        for ( int i = 0; i < calendar.weeksInYear( dateTimeUnit.getYear() ); i++ )
-        {
-            DateInterval interval = calendar.toInterval( dateTimeUnit, DateIntervalType.ISO8601_WEEK );
-            periods.add( new Period( this, interval.getFrom().toJdkDate(), interval.getTo().toJdkDate() ) );
-
-            dateTimeUnit = calendar.plusWeeks( dateTimeUnit, 1 );
-        }
-
-        return periods;
-    }
-
-    /**
-     * Generates the last 52 weeks where the last one is the week which the
-     * given date is inside.
-     */
-    @Override
-    public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit )
-    {
-        Calendar calendar = getCalendar();
-
-        List<Period> periods = Lists.newArrayList();
-        dateTimeUnit = calendar.minusDays( dateTimeUnit, calendar.weekday( dateTimeUnit ) - 1 );
-        dateTimeUnit = calendar.minusDays( dateTimeUnit, 357 );
-
-        for ( int i = 0; i < 52; i++ )
-        {
-            periods.add( createPeriod( dateTimeUnit, calendar ) );
-            dateTimeUnit = calendar.plusWeeks( dateTimeUnit, 1 );
-        }
-
-        return periods;
-    }
-
-    @Override
-    public String getIsoDate( DateTimeUnit dateTimeUnit, Calendar calendar )
-    {
-        int week = calendar.week( dateTimeUnit );
-
-        if ( week == 1 && dateTimeUnit.getMonth() == calendar.monthsInYear() )
-        {
-            dateTimeUnit.setYear( dateTimeUnit.getYear() + 1 );
-        }
-
-        return String.format( "%dW%d", dateTimeUnit.getYear(), week );
-    }
-
-    @Override
-    public Date getRewindedDate( Date date, Integer rewindedPeriods )
-    {
-        Calendar cal = getCalendar();
-
-        date = date != null ? date : new Date();
-        rewindedPeriods = rewindedPeriods != null ? rewindedPeriods : 1;
-
-        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( date );
-        dateTimeUnit = cal.minusWeeks( dateTimeUnit, rewindedPeriods );
-
-        return cal.toIso( dateTimeUnit ).toJdkDate();
+        super( NAME, 1, "yyyyWn", "P7D", 7 );
     }
 }
