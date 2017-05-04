@@ -784,11 +784,9 @@ public class DefaultAnalyticsService
             if ( params.isShowHierarchy() )
             {
                 Map<Object, List<?>> ancestorMap = organisationUnits
-                    .stream().collect( Collectors.toMap( OrganisationUnit::getUid, ou -> ou.getAncestorNames( roots ) ) );
+                    .stream().collect( Collectors.toMap( OrganisationUnit::getUid, ou -> ou.getAncestorNames( roots, true ) ) );
                 
                 internalMetaData.put( AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS.getKey(), ancestorMap );
-                
-                //metaData.put( AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
             }
 
             grid.setMetaData( ImmutableMap.copyOf( metaData ) );

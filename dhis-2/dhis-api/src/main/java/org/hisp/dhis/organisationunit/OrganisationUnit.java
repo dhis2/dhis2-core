@@ -642,14 +642,19 @@ public class OrganisationUnit
 
     /**
      * Returns the list of ancestor organisation unit names up to any of the given 
-     * roots for this organisation unit. Does not include itself. The list is ordered
-     * by root first.
+     * roots for this organisation unit. The list is ordered by root first.
      *
      * @param roots the root organisation units, if null using real roots.
      */
-    public List<String> getAncestorNames( Collection<OrganisationUnit> roots )
+    public List<String> getAncestorNames( Collection<OrganisationUnit> roots, boolean includeThis )
     {
         List<String> units = new ArrayList<>();
+        
+        if ( includeThis )
+        {
+            units.add( getDisplayName() );
+        }
+        
         OrganisationUnit unit = parent;
 
         while ( unit != null )

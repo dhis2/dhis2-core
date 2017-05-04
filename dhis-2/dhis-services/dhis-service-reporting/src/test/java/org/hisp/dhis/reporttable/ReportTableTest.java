@@ -341,9 +341,9 @@ public class ReportTableTest
         reportTable.init( null, null, null, null, null, i18nFormat );
         
         Map<Object, List<?>> ancestorMap = new HashMap<>();
-        ancestorMap.put( unitB.getUid(), unitB.getAncestorNames( null ) );
-        ancestorMap.put( unitC.getUid(), unitC.getAncestorNames( null ) );
-                
+        ancestorMap.put( unitB.getUid(), unitB.getAncestorNames( null, true ) );
+        ancestorMap.put( unitC.getUid(), unitC.getAncestorNames( null, true ) );
+        
         Map<String, Object> metaData = new HashMap<>();
         
         Map<String, Object> internalMetaData = new HashMap<>();
@@ -363,19 +363,21 @@ public class ReportTableTest
         
         Grid grid = reportTable.getGrid( new ListGrid( metaData, internalMetaData ), valueMap, property, false );
         
-        assertEquals( 9, grid.getWidth() );
-        assertEquals( 9, grid.getHeaders().size() );
+        assertEquals( 10, grid.getWidth() );
+        assertEquals( 10, grid.getHeaders().size() );
         assertEquals( 2, grid.getHeight() );
         
         assertEquals( unitA.getDisplayName(), grid.getValue( 0, 0 ) );
-        assertEquals( unitB.getUid(), grid.getValue( 0, 1 ) );
-        assertEquals( unitB.getDisplayProperty( property ), grid.getValue( 0, 2 ) );
-        assertEquals( unitB.getCode(), grid.getValue( 0, 3 ) );
+        assertEquals( unitB.getDisplayName(), grid.getValue( 0, 1 ) );
+        assertEquals( unitB.getUid(), grid.getValue( 0, 2 ) );
+        assertEquals( unitB.getDisplayProperty( property ), grid.getValue( 0, 3 ) );
+        assertEquals( unitB.getCode(), grid.getValue( 0, 4 ) );
 
         assertEquals( unitA.getDisplayName(), grid.getValue( 1, 0 ) );
-        assertEquals( unitC.getUid(), grid.getValue( 1, 1 ) );
-        assertEquals( unitC.getDisplayProperty( property ), grid.getValue( 1, 2 ) );
-        assertEquals( unitC.getCode(), grid.getValue( 1, 3 ) );
+        assertEquals( unitC.getDisplayName(), grid.getValue( 1, 1 ) );
+        assertEquals( unitC.getUid(), grid.getValue( 1, 2 ) );
+        assertEquals( unitC.getDisplayProperty( property ), grid.getValue( 1, 3 ) );
+        assertEquals( unitC.getCode(), grid.getValue( 1, 4 ) );
     }
     
     @Test
