@@ -117,10 +117,12 @@ public abstract class PeriodType
         {
             add( new DailyPeriodType() );
             add( new WeeklyPeriodType() );
+            /*
             add( new WeeklyWednesdayPeriodType() );
             add( new WeeklyThursdayPeriodType() );
             add( new WeeklySaturdayPeriodType() );
             add( new WeeklySundayPeriodType() );
+            */
             add( new MonthlyPeriodType() );
             add( new BiMonthlyPeriodType() );
             add( new QuarterlyPeriodType() );
