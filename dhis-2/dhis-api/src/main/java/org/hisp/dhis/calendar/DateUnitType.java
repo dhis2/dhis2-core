@@ -85,11 +85,11 @@ public enum DateUnitType
         this.pattern = pattern;
     }
 
-    public static DateUnitType find( String format )
+    public static DateUnitType find( String pattern )
     {
         for ( DateUnitType type : DateUnitType.values() )
         {
-            if ( format.matches( type.pattern ) )
+            if ( pattern.matches( type.pattern ) )
             {
                 return type;
             }
