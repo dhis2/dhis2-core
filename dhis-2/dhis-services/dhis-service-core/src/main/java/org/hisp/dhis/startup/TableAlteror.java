@@ -130,6 +130,14 @@ public class TableAlteror
         executeSql( "DROP TABLE datadictionarydataelements" );
         executeSql( "DROP TABLE datadictionary" );
         executeSql( "DROP TABLE caseaggregationcondition" );
+        executeSql( "DROP TABLE trackedentitytabularreportusergroupaccesses" );
+        executeSql( "DROP TABLE trackedentitytabularreport_filters" );
+        executeSql( "DROP TABLE trackedentitytabularreport_dimensions" );
+        executeSql( "DROP TABLE trackedentitytabularreport" );
+        executeSql( "DROP TABLE trackedentityaggregatereportusergroupaccesses" );
+        executeSql( "DROP TABLE trackedentityaggregatereport_filters" );
+        executeSql( "DROP TABLE trackedentityaggregatereport_dimension" );
+        executeSql( "DROP TABLE trackedentityaggregatereport" );
         executeSql( "ALTER TABLE categoryoptioncombo drop column userid" );
         executeSql( "ALTER TABLE categoryoptioncombo drop column publicaccess" );
         executeSql( "ALTER TABLE categoryoptioncombo alter column name type text" );
