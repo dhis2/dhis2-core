@@ -105,10 +105,9 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
 import static org.hisp.dhis.common.ReportingRateMetric.*;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 import static org.hisp.dhis.period.PeriodType.getPeriodTypeFromIsoString;
 import static org.hisp.dhis.reporttable.ReportTable.IRT2D;
-import static org.hisp.dhis.reporttable.ReportTable.addIfEmpty;
+import static org.hisp.dhis.reporttable.ReportTable.addListIfEmpty;
 
 /**
  * @author Lars Helge Overland
@@ -716,6 +715,7 @@ public class DefaultAnalyticsService
         if ( !params.isSkipMeta() )
         {
             Map<String, Object> metaData = new HashMap<>();
+            Map<String, Object> internalMetaData = new HashMap<>();
 
             // -----------------------------------------------------------------
             // Items / names element
@@ -783,10 +783,14 @@ public class DefaultAnalyticsService
 
             if ( params.isShowHierarchy() )
             {
-                metaData.put( AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
+                Map<Object, List<?>> ancestorMap = organisationUnits
+                    .stream().collect( Collectors.toMap( OrganisationUnit::getUid, ou -> ou.getAncestorNames( roots, true ) ) );
+                
+                internalMetaData.put( AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS.getKey(), ancestorMap );
             }
 
             grid.setMetaData( ImmutableMap.copyOf( metaData ) );
+            grid.setInternalMetaData( ImmutableMap.copyOf( internalMetaData ) );
         }
     }
 
@@ -856,10 +860,7 @@ public class DefaultAnalyticsService
             for ( String dimension : columns )
             {
                 reportTable.getColumnDimensions().add( dimension );
-
-                List<DimensionalItemObject> items = params.getDimensionArrayExplodeCoc( dimension );
-
-                tableColumns.add( items.toArray( new DimensionalItemObject[0] ) );
+                tableColumns.add( params.getDimensionItemArrayExplodeCoc( dimension ) );
             }
         }
 
@@ -868,26 +869,24 @@ public class DefaultAnalyticsService
             for ( String dimension : rows )
             {
                 reportTable.getRowDimensions().add( dimension );
-
-                List<DimensionalItemObject> items = params.getDimensionArrayExplodeCoc( dimension );
-
-                tableRows.add( items.toArray( new DimensionalItemObject[0] ) );
+                tableRows.add( params.getDimensionItemArrayExplodeCoc( dimension ) );
             }
         }
 
-        reportTable.setGridColumns( new CombinationGenerator<>( tableColumns.toArray( IRT2D ) ).getCombinations() )
-            .setGridRows( new CombinationGenerator<>( tableRows.toArray( IRT2D ) ).getCombinations() )
-            .setGridTitle( IdentifiableObjectUtils.join( params.getFilterItems() ) );
+        reportTable
+            .setGridTitle( IdentifiableObjectUtils.join( params.getFilterItems() ) )
+            .setGridColumns( new CombinationGenerator<>( tableColumns.toArray( IRT2D ) ).getCombinations() )
+            .setGridRows( new CombinationGenerator<>( tableRows.toArray( IRT2D ) ).getCombinations() );
 
-        addIfEmpty( reportTable.getGridColumns() );
-        addIfEmpty( reportTable.getGridRows() );
+        addListIfEmpty( reportTable.getGridColumns() );
+        addListIfEmpty( reportTable.getGridRows() );
         
         reportTable.setHideEmptyRows( params.isHideEmptyRows() );
         reportTable.setShowHierarchy( params.isShowHierarchy() );
 
         Map<String, Object> valueMap = AnalyticsUtils.getAggregatedDataValueMapping( grid );
 
-        return reportTable.getGrid( new ListGrid( grid.getMetaData() ), valueMap, params.getDisplayProperty(), false );
+        return reportTable.getGrid( new ListGrid( grid.getMetaData(), grid.getInternalMetaData() ), valueMap, params.getDisplayProperty(), false );
     }
 
     // -------------------------------------------------------------------------
