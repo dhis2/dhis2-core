@@ -852,6 +852,12 @@ div#selectionTree
   text-decoration: none;
 }
 
+#interpretationPopup #newInterpretation {
+  display: block;
+  color: #3162C5;
+  margin-top: 5px;
+}
+
 #interpretationContainer{
   margin-bottom: 8px;
   margin-top: 10px;
