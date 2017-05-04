@@ -593,7 +593,6 @@ public class OrganisationUnit
     public List<OrganisationUnit> getAncestors()
     {
         List<OrganisationUnit> units = new ArrayList<>();
-
         Set<OrganisationUnit> visitedUnits = new HashSet<>();
 
         OrganisationUnit unit = parent;
@@ -623,7 +622,6 @@ public class OrganisationUnit
     public List<OrganisationUnit> getAncestors( Collection<OrganisationUnit> roots )
     {
         List<OrganisationUnit> units = new ArrayList<>();
-
         OrganisationUnit unit = parent;
 
         while ( unit != null )
@@ -652,7 +650,6 @@ public class OrganisationUnit
     public List<String> getAncestorNames( Collection<OrganisationUnit> roots )
     {
         List<String> units = new ArrayList<>();
-
         OrganisationUnit unit = parent;
 
         while ( unit != null )

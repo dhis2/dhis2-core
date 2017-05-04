@@ -538,7 +538,6 @@ public class ReportTable
      * @param paramColumns    whether to include report parameter columns.
      * @return a grid.
      */
-    @SuppressWarnings( "unchecked" )
     public Grid getGrid( Grid grid, Map<String, Object> valueMap, DisplayProperty displayProperty, boolean paramColumns )
     {
         valueMap = new HashMap<>( valueMap );
@@ -676,22 +675,9 @@ public class ReportTable
 
         if ( showHierarchy && rowDimensions.contains( ORGUNIT_DIM_ID ) && grid.hasInternalMetaDataKey( AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS.getKey() ) )
         {
-            int ouIdIndex = rowDimensions.indexOf( ORGUNIT_DIM_ID ) * 4;
+            int ouIdColumnIndex = rowDimensions.indexOf( ORGUNIT_DIM_ID ) * 4;
             
-            Map<Object, List<?>> ancestorMap = (Map<Object, List<?>>) grid.getInternalMetaData().get( AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS );
-            
-            Assert.notNull( ancestorMap, "Ancestor map cannot be null when show hierarchy is enabled" );
-            
-            grid.addAndPopulateColumnsBefore( ouIdIndex, ancestorMap, 0 );
-            
-            // create "inject columns" grid method, inject values for ancestors based on org unit uid
-            
-            /*
-            int ouIdIndex = (rowDimensions.indexOf( ORGUNIT_DIM_ID ) * 4);
-            int ouNameIndex = ouIdIndex + 1;
-            Map<Object, Object> hierarchyNameMap = (Map<Object, Object>) grid.getMetaData().get( AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY.getKey() );
-            grid.substituteMetaData( ouIdIndex, ouNameIndex, hierarchyNameMap );
-            */
+            addHierarchyColumns( grid, ouIdColumnIndex );            
         }
 
         return grid;
@@ -701,6 +687,21 @@ public class ReportTable
     // Supportive methods
     // -------------------------------------------------------------------------
 
+    /**
+     * Adds grid columns for each organisation unit level.
+     */
+    @SuppressWarnings( "unchecked" )
+    private void addHierarchyColumns( Grid grid, int ouIdColumnIndex )
+    {   
+        Map<Object, List<?>> ancestorMap = (Map<Object, List<?>>) grid.getInternalMetaData().get( AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS );
+        
+        int newColumns = ancestorMap.values().stream().mapToInt( List::size ).max().orElseGet( () -> 0 );
+        
+        Assert.notNull( ancestorMap, "Ancestor map cannot be null when show hierarchy is enabled" );
+        
+        grid.addAndPopulateColumnsBefore( ouIdColumnIndex, ancestorMap, newColumns );
+    }
+    
     /**
      * Returns the number of empty lists among the argument lists.
      */

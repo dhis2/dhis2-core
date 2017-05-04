@@ -532,7 +532,7 @@ public class ListGrid
     public Grid addAndPopulateColumnsBefore( int referenceColumnIndex, Map<Object, List<?>> valueMap, int newColumns )
     {
         Validate.inclusiveBetween( 0, getWidth() - 1, referenceColumnIndex );
-        Validate.notNull( valueMap );        
+        Validate.notNull( valueMap );
         verifyGridState();
                 
         for ( List<Object> row : grid )
