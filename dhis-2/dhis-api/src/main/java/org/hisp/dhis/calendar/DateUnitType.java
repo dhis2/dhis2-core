@@ -65,31 +65,31 @@ public enum DateUnitType
     FINANCIAL_JULY( FinancialJulyPeriodType.NAME, "\\b(\\d{4})July\\b" ),
     FINANCIAL_OCTOBER( FinancialOctoberPeriodType.NAME, "\\b(\\d{4})Oct\\b" );
 
-    private final String type;
+    private final String name;
 
-    private final String format;
+    private final String pattern;
 
-    public String getType()
+    public String getName()
     {
-        return type;
+        return name;
     }
 
-    public String getFormat()
+    public String getPattern()
     {
-        return format;
+        return pattern;
     }
 
-    DateUnitType( String type, String format )
+    DateUnitType( String name, String pattern )
     {
-        this.type = type;
-        this.format = format;
+        this.name = name;
+        this.pattern = pattern;
     }
 
     public static DateUnitType find( String format )
     {
         for ( DateUnitType type : DateUnitType.values() )
         {
-            if ( format.matches( type.format ) )
+            if ( format.matches( type.pattern ) )
             {
                 return type;
             }

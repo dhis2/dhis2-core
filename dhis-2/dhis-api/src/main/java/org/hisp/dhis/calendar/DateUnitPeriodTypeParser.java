@@ -83,12 +83,12 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser
             return null;
         }
 
-        if ( compileCache.get( dateUnitType.getType() ) == null )
+        if ( compileCache.get( dateUnitType.getName() ) == null )
         {
             try
             {
-                Pattern pattern = Pattern.compile( dateUnitType.getFormat() );
-                compileCache.put( dateUnitType.getType(), pattern );
+                Pattern pattern = Pattern.compile( dateUnitType.getPattern() );
+                compileCache.put( dateUnitType.getName(), pattern );
             }
             catch ( PatternSyntaxException ex )
             {
@@ -96,7 +96,7 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser
             }
         }
 
-        Pattern pattern = compileCache.get( dateUnitType.getType() );
+        Pattern pattern = compileCache.get( dateUnitType.getName() );
         Matcher matcher = pattern.matcher( period );
         boolean match = matcher.find();
 
@@ -122,7 +122,7 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser
             int year = Integer.parseInt( matcher.group( 1 ) );
             int week = Integer.parseInt( matcher.group( 2 ) );
 
-            WeeklyAbstractPeriodType periodType = (WeeklyAbstractPeriodType) PeriodType.getByNameIgnoreCase( dateUnitType.getType() );
+            WeeklyAbstractPeriodType periodType = (WeeklyAbstractPeriodType) PeriodType.getByNameIgnoreCase( dateUnitType.getName() );
 
             if ( periodType == null || week < 1 || week > calendar.weeksInYear( year ) )
             {
