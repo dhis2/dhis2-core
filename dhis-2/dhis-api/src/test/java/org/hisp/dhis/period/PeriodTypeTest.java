@@ -38,7 +38,7 @@ public class PeriodTypeTest
     public void testGetByIndex()
     {
         assertNull( PeriodType.getByIndex( -1 ) );
-        assertEquals( new YearlyPeriodType(), PeriodType.getByIndex( 8 ) );
+        assertEquals( new YearlyPeriodType(), PeriodType.getByIndex( 12 ) );
         assertNull( PeriodType.getByIndex( 999 ) );
     }
 
