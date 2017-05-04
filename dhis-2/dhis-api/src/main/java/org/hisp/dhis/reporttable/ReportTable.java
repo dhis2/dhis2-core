@@ -532,13 +532,13 @@ public class ReportTable
      * Generates a grid for this report table based on the given aggregate value
      * map.
      *
-     * @param grid            the grid, should be empty and not null.
-     * @param valueMap        the mapping of identifiers to aggregate values.
+     * @param grid the grid, should be empty and not null.
+     * @param valueMap the mapping of identifiers to aggregate values.
      * @param displayProperty the display property to use for meta data.
-     * @param paramColumns    whether to include report parameter columns.
+     * @param reportParamColumns whether to include report parameter columns.
      * @return a grid.
      */
-    public Grid getGrid( Grid grid, Map<String, Object> valueMap, DisplayProperty displayProperty, boolean paramColumns )
+    public Grid getGrid( Grid grid, Map<String, Object> valueMap, DisplayProperty displayProperty, boolean reportParamColumns )
     {
         valueMap = new HashMap<>( valueMap );
 
@@ -576,7 +576,7 @@ public class ReportTable
             grid.addHeader( new GridHeader( name + " description", col + "description", ValueType.TEXT, String.class.getName(), true, true ) );
         }
 
-        if ( paramColumns )
+        if ( reportParamColumns )
         {
             grid.addHeader( new GridHeader( "Reporting month", REPORTING_MONTH_COLUMN_NAME,
                 ValueType.TEXT, String.class.getName(), true, true ) );
@@ -615,7 +615,7 @@ public class ReportTable
                 grid.addValue( object.getDisplayDescription() );
             }
 
-            if ( paramColumns )
+            if ( reportParamColumns )
             {
                 grid.addValue( reportingPeriodName );
                 grid.addValue( getParentOrganisationUnitName() );
@@ -699,6 +699,7 @@ public class ReportTable
         
         Assert.notNull( ancestorMap, "Ancestor map cannot be null when show hierarchy is enabled" );
         
+        grid.addEmptyHeaders( newColumns );
         grid.addAndPopulateColumnsBefore( ouIdColumnIndex, ancestorMap, newColumns );
     }
     
