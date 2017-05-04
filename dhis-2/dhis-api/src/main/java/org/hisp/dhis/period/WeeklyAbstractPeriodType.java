@@ -202,7 +202,7 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
         }
         else if ( weekday < startOfWeek )
         {
-            dateTimeUnit = calendar.minusDays( dateTimeUnit, (startOfWeek + weekday) + 1 );
+            dateTimeUnit = calendar.minusDays( dateTimeUnit, weekday + (frequencyOrder - startOfWeek) );
         }
 
         return dateTimeUnit;
