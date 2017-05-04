@@ -111,6 +111,58 @@ public class GridTest
     }
     
     @Test
+    public void testAddHeaders()
+    {
+        Grid grid = new ListGrid();
+        
+        GridHeader headerA = new GridHeader( "DataElementA", "Data element A" );
+        GridHeader headerB = new GridHeader( "DataElementB", "Data element B" );
+        GridHeader headerC = new GridHeader( "DataElementC", "Data element C" );
+        
+        grid.addHeader( headerA );
+        grid.addHeader( headerB );
+        
+        assertEquals( 2, grid.getHeaders().size() );
+        assertEquals( headerA, grid.getHeaders().get( 0 ) );
+        assertEquals( headerB, grid.getHeaders().get( 1 ) );
+        
+        grid.addHeader( 1, headerC );
+
+        assertEquals( 3, grid.getHeaders().size() );
+        assertEquals( headerA, grid.getHeaders().get( 0 ) );
+        assertEquals( headerC, grid.getHeaders().get( 1 ) );
+        assertEquals( headerB, grid.getHeaders().get( 2 ) );
+    }
+    
+    @Test
+    public void testAddHeaderList()
+    {
+        Grid grid = new ListGrid();
+        
+        GridHeader headerA = new GridHeader( "DataElementA", "Data element A" );
+        GridHeader headerB = new GridHeader( "DataElementB", "Data element B" );
+        GridHeader headerC = new GridHeader( "DataElementC", "Data element C" );
+        GridHeader headerD = new GridHeader( "DataElementC", "Data element D" );
+        GridHeader headerE = new GridHeader( "DataElementC", "Data element E" );
+        
+        grid.addHeader( headerA );
+        grid.addHeader( headerB );
+
+        assertEquals( 2, grid.getHeaders().size() );
+        
+        List<GridHeader> headers = Lists.newArrayList( headerC, headerD, headerE );
+        
+        grid.addHeaders( 1, headers );
+
+        assertEquals( 5, grid.getHeaders().size() );
+        assertEquals( headerA, grid.getHeaders().get( 0 ) );
+        assertEquals( headerC, grid.getHeaders().get( 1 ) );
+        assertEquals( headerD, grid.getHeaders().get( 2 ) );
+        assertEquals( headerE, grid.getHeaders().get( 3 ) );
+        assertEquals( headerB, grid.getHeaders().get( 4 ) );        
+    }
+    
+    @Test
     public void testSubstituteMetaData()
     {
         Map<Object, Object> metaData = new HashMap<>();
@@ -329,51 +381,6 @@ public class GridTest
         assertTrue( row2.contains( 24 ) );
         assertTrue( row2.contains( 22 ) );
         assertTrue( row2.contains( 23 ) );
-    }
-    
-    @Test
-    public void testAddAndPopulateColumn()
-    {
-        assertEquals( 3, gridA.getWidth() );
-        
-        gridA.addAndPopulateColumn( 81 );
-        
-        assertEquals( 4, gridA.getWidth() );
-        
-        List<Object> col = gridA.getColumn( 3 );
-        
-        assertEquals( 4, col.size() );
-        
-        for ( Object val : col )
-        {
-            assertEquals( 81, val );
-        }        
-    }
-
-    @Test
-    public void testAddAndPopulateColumns()
-    {
-        assertEquals( 3, gridA.getWidth() );
-        
-        gridA.addAndPopulateColumns( 2, 91 );
-        
-        assertEquals( 5, gridA.getWidth() );
-        
-        List<Object> col3 = gridA.getColumn( 3 );
-        List<Object> col4 = gridA.getColumn( 4 );
-        
-        assertEquals( 4, col3.size() );
-        assertEquals( 4, col4.size() );
-        
-        for ( Object val : col3 )
-        {
-            assertEquals( 91, val );
-        }
-
-        for ( Object val : col4 )
-        {
-            assertEquals( 91, val );
-        }
     }
     
     @Test

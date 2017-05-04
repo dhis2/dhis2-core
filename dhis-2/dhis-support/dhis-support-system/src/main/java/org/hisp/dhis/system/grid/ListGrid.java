@@ -133,12 +133,13 @@ public class ListGrid
 
     /**
      * @param metaData meta data.
+     * @param internalMetaData internal meta data.
      */
-    public ListGrid( Map<String, Object> metaData )
+    public ListGrid( Map<String, Object> metaData, Map<String, Object> internalMetaData )
     {
         this.headers = new ArrayList<>();
         this.metaData = metaData;
-        this.internalMetaData = new HashMap<>();
+        this.internalMetaData = internalMetaData;
         this.grid = new ArrayList<>();
     }
 
@@ -208,6 +209,24 @@ public class ListGrid
 
         updateColumnIndexMap();
 
+        return this;
+    }
+    
+    @Override
+    public Grid addHeaders( int headerIndex, List<GridHeader> gridHeaders )
+    {
+        if ( gridHeaders == null || gridHeaders.isEmpty() )
+        {
+            return this;
+        }
+        
+        for ( int i = gridHeaders.size() - 1; i >= 0; i-- )
+        {
+            headers.add( headerIndex, gridHeaders.get( i ) );
+        }
+        
+        updateColumnIndexMap();
+        
         return this;
     }
 
@@ -497,32 +516,6 @@ public class ListGrid
         for ( int i = 0; i < grid.size(); i++ )
         {
             grid.get( currentRowIndex++ ).add( columnIndex, columnValues.get( currentColumnIndex++ ) );
-        }
-
-        return this;
-    }
-
-    @Override
-    public Grid addAndPopulateColumn( Object columnValue )
-    {
-        verifyGridState();
-
-        for ( int i = 0; i < getHeight(); i++ )
-        {
-            grid.get( i ).add( columnValue );
-        }
-
-        return this;
-    }
-
-    @Override
-    public Grid addAndPopulateColumns( int columns, Object columnValue )
-    {
-        verifyGridState();
-
-        for ( int i = 0; i < columns; i++ )
-        {
-            addAndPopulateColumn( columnValue );
         }
 
         return this;

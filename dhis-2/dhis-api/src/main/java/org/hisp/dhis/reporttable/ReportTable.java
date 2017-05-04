@@ -693,13 +693,25 @@ public class ReportTable
     @SuppressWarnings( "unchecked" )
     private void addHierarchyColumns( Grid grid, int ouIdColumnIndex )
     {   
-        Map<Object, List<?>> ancestorMap = (Map<Object, List<?>>) grid.getInternalMetaData().get( AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS );
+        Map<Object, List<?>> ancestorMap = (Map<Object, List<?>>) grid.getInternalMetaData().get( AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS.getKey() );
+
+        Assert.notEmpty( ancestorMap, "Ancestor map cannot be null or empty when show hierarchy is enabled" );
         
         int newColumns = ancestorMap.values().stream().mapToInt( List::size ).max().orElseGet( () -> 0 );
         
-        Assert.notNull( ancestorMap, "Ancestor map cannot be null when show hierarchy is enabled" );
+        List<GridHeader> headers = new ArrayList<>();
         
-        grid.addEmptyHeaders( newColumns );
+        for ( int i = 0; i < newColumns; i++ )
+        {
+            int level = i + 1;
+            
+            String name = String.format( "Org unit level %d", level );
+            String column = String.format( "orgunitlevel%d", level );
+            
+            headers.add( new GridHeader( name, column, ValueType.TEXT, String.class.getName(), false, true ) );
+        }
+        
+        grid.addHeaders( ouIdColumnIndex, headers );
         grid.addAndPopulateColumnsBefore( ouIdColumnIndex, ancestorMap, newColumns );
     }
     

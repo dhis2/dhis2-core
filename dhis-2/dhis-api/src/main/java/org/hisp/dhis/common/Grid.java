@@ -118,19 +118,27 @@ public interface Grid
     int getIndexOfHeader( String name );
 
     /**
-     * Adds a header value.
+     * Adds a header.
      *
      * @param header the grid header.
      */
     Grid addHeader( GridHeader header );
-
+    
     /**
      * Adds a header value at the given column index.
      *
-     * @param columnIndex the column index to insert the grid header at.
-     * @param header      the grid header.
+     * @param headerIndex the index to insert the grid header at.
+     * @param header the grid header.
      */
-    Grid addHeader( int columnIndex, GridHeader header );
+    Grid addHeader( int headerIndex, GridHeader header );
+
+    /**
+     * Adds a list of headers.
+     * 
+     * @param headerIndex the index to insert the first grid header at.
+     * @param headers list of headers.
+     */
+    Grid addHeaders( int headerIndex, List<GridHeader> headers );
 
     /**
      * Adds a number of empty values to the Grid.
@@ -262,22 +270,6 @@ public interface Grid
      */
     Grid addColumn( int columnIndex, List<Object> columnValues );
 
-    /**
-     * Adds a new column at the end of the grid and populates it with the given
-     * value.
-     *
-     * @param columnValue the value to populate the grid column with.
-     */
-    Grid addAndPopulateColumn( Object columnValue );
-
-    /**
-     * Adds the given number of columns at the end of the grid and populates
-     * them with the given value.
-     *
-     * @param columnValue the value to populate the grid column with.
-     */
-    Grid addAndPopulateColumns( int columns, Object columnValue );
-    
     /**
      * Adds and populates the given number of columns before the given reference
      * column index. The given value map is to populate each row, where they key
