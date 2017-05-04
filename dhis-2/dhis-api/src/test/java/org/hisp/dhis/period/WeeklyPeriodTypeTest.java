@@ -28,22 +28,18 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.GregorianCalendar;
 import java.util.List;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 /**
  * @author Bob Jolliffe
- * @version $Id$
  */
 public class WeeklyPeriodTypeTest
 {
@@ -56,20 +52,19 @@ public class WeeklyPeriodTypeTest
     }
 
     @Test
-    @Ignore
     public void testGeneratePeriods()
     {
         DateTime testDate = new DateTime();
-        
+
         WeeklyPeriodType wpt = new WeeklyPeriodType();
 
         for ( int year = 1990; year < 2020; year++ )
         {
             for ( int day = -7; day < 7; day++ )
-            { 
-                testDate = new DateTime( year, 1, 1, 0, 0); // 1st day of year
+            {
+                testDate = new DateTime( year, 1, 1, 0, 0 ); // 1st day of year
                 testDate = testDate.minusDays( day );
-                
+
                 Period p1 = wpt.createPeriod( testDate.toDate() );
                 List<Period> generatedPeriods = wpt.generatePeriods( p1 );
                 assertTrue( "Period " + p1 + " in generated set", generatedPeriods.contains( p1 ) );
@@ -79,27 +74,27 @@ public class WeeklyPeriodTypeTest
 
     @Test
     public void testCreatePeriod()
-    {   
+    {
         DateTime testDate = new DateTime( 2009, 4, 27, 0, 0 );
         WeeklyPeriodType wpt = new WeeklyPeriodType();
         Period p = wpt.createPeriod( testDate.toDate() );
-        
+
         DateTime startDate = new DateTime( 2009, 4, 27, 0, 0 );
         DateTime endDate = new DateTime( 2009, 5, 3, 0, 0 );
 
-        assertFalse( "start date after given date", startDate.isAfter(  p.getStartDate().getTime() ) );
+        assertFalse( "start date after given date", startDate.isAfter( p.getStartDate().getTime() ) );
         assertFalse( "end date before given date", endDate.isAfter( p.getEndDate().getTime() ) );
-        
 
-      assertTrue( startDate.getDayOfWeek() == DateTimeConstants.MONDAY );
-      assertTrue( endDate.getDayOfWeek() == DateTimeConstants.SUNDAY  );
+
+        assertTrue( startDate.getDayOfWeek() == DateTimeConstants.MONDAY );
+        assertTrue( endDate.getDayOfWeek() == DateTimeConstants.SUNDAY );
     }
 
     @Test
     public void isoDates()
     {
         DateTime testDate = new DateTime( 2008, 12, 29, 0, 0 );
-        
+
         Period period = periodType.createPeriod( "2009W1" );
         assertEquals( testDate.toDate(), period.getStartDate() );
 
@@ -116,7 +111,7 @@ public class WeeklyPeriodTypeTest
     public void getIsoDate()
     {
         DateTime testDate = new DateTime( 2011, 1, 3, 0, 0 );
-        
+
         Period p = periodType.createPeriod( testDate.toDate() );
         assertEquals( "2011W1", p.getIsoDate() );
 
@@ -169,18 +164,18 @@ public class WeeklyPeriodTypeTest
 
     @Test
     public void testGetIsoDate()
-    {        
-        DateTime testDate = new DateTime(2012, 12, 31, 0, 0);
+    {
+        DateTime testDate = new DateTime( 2012, 12, 31, 0, 0 );
 
         assertEquals( "2013W1", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
-        testDate = new DateTime(2012, 12, 30, 0, 0);
+        testDate = new DateTime( 2012, 12, 30, 0, 0 );
         assertEquals( "2012W52", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
-        testDate = new DateTime(2009, 12, 29, 0, 0);
+        testDate = new DateTime( 2009, 12, 29, 0, 0 );
         assertEquals( "2009W53", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
-        testDate = new DateTime(2010, 1, 4, 0, 0);
+        testDate = new DateTime( 2010, 1, 4, 0, 0 );
         assertEquals( "2010W1", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
     }
 }

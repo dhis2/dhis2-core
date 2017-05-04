@@ -43,36 +43,20 @@ import java.util.List;
  * day and sunday is the last day of the week.
  *
  * @author Torgeir Lorange Ostby
- * @version $Id: WeeklyPeriodType.java 2976 2007-03-03 22:50:19Z torgeilo $
  */
 public class WeeklyPeriodType
-    extends CalendarPeriodType
+    extends WeeklyAbstractPeriodType
 {
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = 6466760375688564528L;
-
-    private static final String ISO_FORMAT = "yyyyWn";
-
-    private static final String ISO8601_DURATION = "P7D";
-
-    /**
-     * The name of the WeeklyPeriodType, which is "Weekly".
-     */
     public static final String NAME = "Weekly";
 
-    public static final int FREQUENCY_ORDER = 7;
+    public WeeklyPeriodType()
+    {
+        super( NAME, "yyyyWn", "P7D", 7 );
+    }
 
     // -------------------------------------------------------------------------
     // PeriodType functionality
     // -------------------------------------------------------------------------
-
-    @Override
-    public String getName()
-    {
-        return NAME;
-    }
 
     @Override
     public Period createPeriod( DateTimeUnit dateTimeUnit, Calendar calendar )
@@ -85,16 +69,6 @@ public class WeeklyPeriodType
 
         return toIsoPeriod( start, end, calendar );
     }
-
-    @Override
-    public int getFrequencyOrder()
-    {
-        return FREQUENCY_ORDER;
-    }
-
-    // -------------------------------------------------------------------------
-    // CalendarPeriodType functionality
-    // -------------------------------------------------------------------------
 
     @Override
     public Period getNextPeriod( Period period, Calendar calendar )
@@ -161,10 +135,6 @@ public class WeeklyPeriodType
         return periods;
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
     @Override
     public String getIsoDate( DateTimeUnit dateTimeUnit, Calendar calendar )
     {
@@ -177,22 +147,6 @@ public class WeeklyPeriodType
 
         return String.format( "%dW%d", dateTimeUnit.getYear(), week );
     }
-
-    /**
-     * n refers to week number, can be [1-53].
-     */
-    @Override
-    public String getIsoFormat()
-    {
-        return ISO_FORMAT;
-    }
-
-    @Override
-    public String getIso8601Duration()
-    {
-        return ISO8601_DURATION;
-    }
-
 
     @Override
     public Date getRewindedDate( Date date, Integer rewindedPeriods )
