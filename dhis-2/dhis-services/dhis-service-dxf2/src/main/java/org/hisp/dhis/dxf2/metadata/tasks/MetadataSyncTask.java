@@ -96,7 +96,6 @@ public class MetadataSyncTask
             retryTemplate.execute( retryContext ->
                 {
                     metadataRetryContext.setRetryContext( retryContext );
-                    metadataRetryContext.resetRetryContextStepKeys();
                     clearFailedVersionSettings();
                     runSyncTask( metadataRetryContext );
                     return null;

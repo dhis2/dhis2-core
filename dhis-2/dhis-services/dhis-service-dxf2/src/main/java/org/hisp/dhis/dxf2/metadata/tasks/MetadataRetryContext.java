@@ -64,17 +64,6 @@ public class MetadataRetryContext
         log.info( "Now trying. Current count: " + (retryContext.getRetryCount() + 1) );
     }
 
-    public void resetRetryContextStepKeys(){
-        log.info( "Reset retry context." );
-        String[] names = retryContext.attributeNames();
-        if(names!=null && names.length!=0){
-            for(String name: names){
-                log.info( "Removing key'" +name+"'" );
-                retryContext.removeAttribute( name );
-            }
-        }
-    }
-
     public void updateRetryContext( String stepKey,
         String message, MetadataVersion version )
     {
