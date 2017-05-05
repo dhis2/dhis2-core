@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.period;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,63 +26,23 @@ package org.hisp.dhis.common;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.legend.LegendSet;
-
-import java.util.List;
-
 /**
-* @author Lars Helge Overland
-*/
-public interface DimensionalItemObject
-    extends NameableObject
+ * PeriodType for weekly Periods. A valid weekly Period has startDate set to
+ * saturday and endDate set to friday the same week, assuming saturday is the first
+ * day and friday is the last day of the week.
+ *
+ * @author Torgeir Lorange Ostby
+ */
+public class WeeklySaturdayPeriodType
+    extends WeeklyAbstractPeriodType
 {
-    /**
-     * Gets the dimension item identifier.
-     */
-    String getDimensionItem();
-    
-    /**
-     * Gets the dimension item identifier based on the given
-     * identifier scheme.
-     * 
-     * @param idScheme the identifier scheme.
-     */
-    String getDimensionItem( IdScheme idScheme );
-    
-    /**
-     * Gets the dimension type of this dimension item.
-     */
-    DimensionItemType getDimensionItemType();
+    public static final String NAME = "WeeklySaturday";
 
-    /**
-     * Gets the legend sets.
-     */
-    List<LegendSet> getLegendSets();
-
-    /**
-     * Gets the first legend set in the legend set list. This
-     * field is derived from {@link DimensionalObject#getLegendSet()} and
-     * is not persisted.
-     * 
-     * Will be removed from serialization in 2.28.
-     */
-    LegendSet getLegendSet();
-
-    /**
-     * Indicates whether this dimension has a legend set.
-     */
-    boolean hasLegendSet();
-    
-    /**
-     * Gets the aggregation type.
-     */
-    AggregationType getAggregationType();
-    
-    /**
-     * Indicates whether this dimension has an aggregation type.
-     */
-    boolean hasAggregationType();
+    public WeeklySaturdayPeriodType()
+    {
+        super( NAME, 6, "yyyySatWn", "P7D", 7, "SatW" );
+    }
 }

@@ -28,6 +28,8 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -117,6 +119,10 @@ public abstract class PeriodType
         {
             add( new DailyPeriodType() );
             add( new WeeklyPeriodType() );
+            add( new WeeklyWednesdayPeriodType() );
+            add( new WeeklyThursdayPeriodType() );
+            add( new WeeklySaturdayPeriodType() );
+            add( new WeeklySundayPeriodType() );
             add( new MonthlyPeriodType() );
             add( new BiMonthlyPeriodType() );
             add( new QuarterlyPeriodType() );
@@ -218,6 +224,8 @@ public abstract class PeriodType
      *
      * @return a unique name for the PeriodType. E.g. "Monthly".
      */
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public abstract String getName();
 
     /**
@@ -283,6 +291,8 @@ public abstract class PeriodType
         return toIsoPeriod( dateTimeUnit, dateTimeUnit );
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public abstract String getIso8601Duration();
 
     public abstract Period createPeriod( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar );
@@ -293,6 +303,8 @@ public abstract class PeriodType
      *
      * @return the frequency order.
      */
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public abstract int getFrequencyOrder();
 
     /**
@@ -383,7 +395,7 @@ public abstract class PeriodType
     public static PeriodType getPeriodTypeFromIsoString( String isoPeriod )
     {
         DateUnitType dateUnitType = DateUnitType.find( isoPeriod );
-        return dateUnitType != null ? PERIOD_TYPE_MAP.get( dateUnitType.getType() ) : null;
+        return dateUnitType != null ? PERIOD_TYPE_MAP.get( dateUnitType.getName() ) : null;
     }
 
     /**
@@ -519,6 +531,8 @@ public abstract class PeriodType
      *
      * @return the iso8601 format.
      */
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public abstract String getIsoFormat();
 
     // -------------------------------------------------------------------------
@@ -541,35 +555,35 @@ public abstract class PeriodType
 
     /**
      * Returns the next period determined by the given number of periods.
-     * 
-     * @param period the Period to base the next Period on.
+     *
+     * @param period  the Period to base the next Period on.
      * @param periods the number of periods into the future.
      * @return the next period.
      */
     public Period getNextPeriod( Period period, int periods )
     {
         Period nextPeriod = period;
-        
+
         if ( periods > 0 )
         {
             org.hisp.dhis.calendar.Calendar calendar = getCalendar();
-                    
+
             for ( int i = 0; i < periods; i++ )
             {
                 nextPeriod = getNextPeriod( nextPeriod, calendar );
             }
         }
-        
+
         return nextPeriod;
     }
-    
+
     /**
      * Returns a Period which is the next of the given Period. Only valid
      * Periods are returned. If the given Period is of different PeriodType than
      * the executing PeriodType, or the given Period is invalid, the returned
      * Period might overlap the given Period.
      *
-     * @param period the Period to base the next Period on.
+     * @param period   the Period to base the next Period on.
      * @param calendar the Calendar to use.
      * @return a Period which is the next of the given Period.
      */
@@ -592,7 +606,7 @@ public abstract class PeriodType
     /**
      * Returns the previous period determined by the given number of periods.
      *
-     * @param period the Period to base the previous Period on.
+     * @param period  the Period to base the previous Period on.
      * @param periods the number of periods into the past.
      * @return the previous period.
      */
@@ -627,7 +641,7 @@ public abstract class PeriodType
     /**
      * Returns the period at the same time of year going back a number of years.
      *
-     * @param period the Period to base the previous Period on.
+     * @param period    the Period to base the previous Period on.
      * @param yearCount how many years to go back.
      * @return the past year period.
      */

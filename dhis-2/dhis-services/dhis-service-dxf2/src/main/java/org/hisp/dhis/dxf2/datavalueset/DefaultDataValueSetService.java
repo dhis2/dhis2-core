@@ -1171,7 +1171,7 @@ public class DefaultDataValueSetService
         int ignores = totalCount - importCount - updateCount - deleteCount;
 
         summary.setImportCount( new ImportCount( importCount, updateCount, ignores, deleteCount ) );
-        summary.setStatus( ImportStatus.SUCCESS );
+        summary.setStatus( summary.getConflicts().isEmpty() ? ImportStatus.SUCCESS : ImportStatus.WARNING );
         summary.setDescription( "Import process completed successfully" );
 
         clock.logTime( "Data value import done, total: " + totalCount + ", import: " + importCount + ", update: " + updateCount + ", delete: " + deleteCount );

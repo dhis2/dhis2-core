@@ -517,7 +517,7 @@ public class DataValueSetServiceTest
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
         assertEquals( 1, summary.getImportCount().getIgnored() ); // Header row
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertEquals( ImportStatus.WARNING, summary.getStatus() );
 
         assertImportDataValues( summary );
     }
@@ -643,7 +643,7 @@ public class DataValueSetServiceTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
 
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertEquals( ImportStatus.WARNING, summary.getStatus() );
         assertEquals( summary.getConflicts().toString(), 2, summary.getConflicts().size() );
 
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
@@ -683,7 +683,7 @@ public class DataValueSetServiceTest
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
         assertEquals( 3, summary.getImportCount().getIgnored() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertEquals( ImportStatus.WARNING, summary.getStatus() );
 
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
 
@@ -706,7 +706,7 @@ public class DataValueSetServiceTest
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
         assertEquals( 2, summary.getImportCount().getIgnored() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertEquals( ImportStatus.WARNING, summary.getStatus() );
     }
 
     @Test
@@ -724,7 +724,7 @@ public class DataValueSetServiceTest
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
         assertEquals( 1, summary.getImportCount().getIgnored() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertEquals( ImportStatus.WARNING, summary.getStatus() );
     }
 
     @Test
@@ -742,7 +742,7 @@ public class DataValueSetServiceTest
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
         assertEquals( 1, summary.getImportCount().getIgnored() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertEquals( ImportStatus.WARNING, summary.getStatus() );
     }
 
     @Test
@@ -760,7 +760,7 @@ public class DataValueSetServiceTest
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
         assertEquals( 2, summary.getImportCount().getIgnored() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertEquals( ImportStatus.WARNING, summary.getStatus() );
     }
 
     @Test
@@ -778,7 +778,7 @@ public class DataValueSetServiceTest
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
         assertEquals( 2, summary.getImportCount().getIgnored() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertEquals( ImportStatus.WARNING, summary.getStatus() );
     }
 
     @Test
@@ -796,7 +796,7 @@ public class DataValueSetServiceTest
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
         assertEquals( 1, summary.getImportCount().getIgnored() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertEquals( ImportStatus.WARNING, summary.getStatus() );
     }
 
     @Test
@@ -809,7 +809,7 @@ public class DataValueSetServiceTest
 
         assertEquals( summary.getConflicts().toString(), 1, summary.getConflicts().size() );
         assertEquals( 2, summary.getImportCount().getImported() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertEquals( ImportStatus.WARNING, summary.getStatus() );
     }
 
     @Test
@@ -830,7 +830,7 @@ public class DataValueSetServiceTest
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
         assertEquals( 2, summary.getImportCount().getIgnored() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertEquals( ImportStatus.WARNING, summary.getStatus() );
 
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
 
@@ -856,7 +856,7 @@ public class DataValueSetServiceTest
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
         assertEquals( 1, summary.getImportCount().getIgnored() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertEquals( ImportStatus.WARNING, summary.getStatus() );
 
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
 
@@ -901,7 +901,7 @@ public class DataValueSetServiceTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
 
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertEquals( ImportStatus.WARNING, summary.getStatus() );
         assertEquals( 2, summary.getImportCount().getIgnored() );
         assertEquals( 1, summary.getImportCount().getImported() );
         assertEquals( summary.getConflicts().toString(), 2, summary.getConflicts().size() );
@@ -952,7 +952,7 @@ public class DataValueSetServiceTest
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
         assertEquals( 3, summary.getImportCount().getIgnored() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertEquals( ImportStatus.WARNING, summary.getStatus() );
 
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
 
