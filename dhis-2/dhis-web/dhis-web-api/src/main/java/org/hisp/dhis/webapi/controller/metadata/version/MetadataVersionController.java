@@ -84,7 +84,8 @@ public class MetadataVersionController
 
     //Gets the version by versionName or latest system version
     @RequestMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT, method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
-    public @ResponseBody MetadataVersion getMetaDataVersion( @RequestParam( value = "versionName", required = false ) String versionName ) throws MetadataVersionException
+    public @ResponseBody MetadataVersion getMetaDataVersion( @RequestParam( value = "versionName", required = false ) String versionName )
+        throws MetadataVersionException, BadRequestException
     {
         MetadataVersion versionToReturn = null;
         boolean enabled = isMetadataVersioningEnabled();
@@ -93,7 +94,7 @@ public class MetadataVersionController
         {
             if ( !enabled )
             {
-                throw new MetadataVersionException( "Metadata versioning is not enabled for this instance." );
+                throw new BadRequestException( "Metadata versioning is not enabled for this instance." );
             }
 
             if ( StringUtils.isNotEmpty( versionName ) )
@@ -129,7 +130,7 @@ public class MetadataVersionController
     //Gets the list of all versions in between the passed version name and latest system version
     @RequestMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT + "/history", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
     public @ResponseBody RootNode getMetaDataVersionHistory( @RequestParam( value = "baseline", required = false ) String versionName )
-        throws MetadataVersionException, NoContext
+        throws MetadataVersionException, BadRequestException
     {
         List<MetadataVersion> allVersionsInBetween = new ArrayList<>();
         boolean enabled = isMetadataVersioningEnabled();
@@ -139,7 +140,7 @@ public class MetadataVersionController
 
             if ( !enabled )
             {
-                throw new MetadataVersionException( "Metadata versioning is not enabled for this instance." );
+                throw new BadRequestException( "Metadata versioning is not enabled for this instance." );
             }
 
             Date startDate;
@@ -199,7 +200,7 @@ public class MetadataVersionController
 
     //Gets the list of all versions
     @RequestMapping( value = "/metadata/versions", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
-    public @ResponseBody RootNode getAllVersion() throws MetadataVersionException
+    public @ResponseBody RootNode getAllVersion() throws MetadataVersionException,BadRequestException
     {
         boolean enabled = isMetadataVersioningEnabled();
 
@@ -207,7 +208,7 @@ public class MetadataVersionController
         {
             if ( !enabled )
             {
-                throw new MetadataVersionException( "Metadata versioning is not enabled for this instance." );
+                throw new BadRequestException( "Metadata versioning is not enabled for this instance." );
             }
 
             List<MetadataVersion> allVersions = versionService.getAllVersions();
@@ -253,7 +254,7 @@ public class MetadataVersionController
     //endpoint to download metadata
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_MANAGE')" )
     @RequestMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT + "/{versionName}/data", method = RequestMethod.GET, produces = "application/json" )
-    public @ResponseBody String downloadVersion( @PathVariable( "versionName" ) String versionName ) throws MetadataVersionException
+    public @ResponseBody String downloadVersion( @PathVariable( "versionName" ) String versionName ) throws MetadataVersionException, BadRequestException
     {
         boolean enabled = isMetadataVersioningEnabled();
 
@@ -261,7 +262,7 @@ public class MetadataVersionController
         {
             if ( !enabled )
             {
-                throw new MetadataVersionException( "Metadata versioning is not enabled for this instance." );
+                throw new BadRequestException( "Metadata versioning is not enabled for this instance." );
             }
 
             String versionData = versionService.getVersionData( versionName );
@@ -281,7 +282,8 @@ public class MetadataVersionController
     //endpoint to download metadata in gzip format
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_MANAGE')" )
     @RequestMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT + "/{versionName}/data.gz", method = RequestMethod.GET, produces = "*/*" )
-    public void downloadGZipVersion( @PathVariable( "versionName" ) String versionName, HttpServletResponse response ) throws MetadataVersionException, IOException
+    public void downloadGZipVersion( @PathVariable( "versionName" ) String versionName, HttpServletResponse response )
+        throws MetadataVersionException, IOException, BadRequestException
     {
         boolean enabled = isMetadataVersioningEnabled();
 
@@ -289,7 +291,7 @@ public class MetadataVersionController
         {
             if ( !enabled )
             {
-                throw new MetadataVersionException( "Metadata versioning is not enabled for this instance." );
+                throw new BadRequestException( "Metadata versioning is not enabled for this instance." );
             }
 
             contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_GZIP, CacheStrategy.NO_CACHE, "metadata.json.gz", true );
