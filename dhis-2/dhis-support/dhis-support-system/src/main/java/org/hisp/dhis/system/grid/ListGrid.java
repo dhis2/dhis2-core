@@ -531,7 +531,7 @@ public class ListGrid
         for ( List<Object> row : grid )
         {
             Object refVal = row.get( referenceColumnIndex );
-            List<? extends Object> list = valueMap.get( refVal );
+            List<?> list = valueMap.get( refVal );
             
             for ( int i = 0; i < newColumns; i++ )
             {                
