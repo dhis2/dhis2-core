@@ -836,11 +836,11 @@ public class DataQueryParams
     }
     
     /**
-     * Retrieves the options for the given dimension identifier. If the co 
-     * dimension is specified, all category option combos for the first data 
+     * Retrieves the options for the given dimension identifier. If the "co"
+     * dimension is specified, all category option combinations for the first data 
      * element is returned. Returns an empty array if the dimension is not present.
      */
-    public List<DimensionalItemObject> getDimensionArrayExplodeCoc( String dimension )
+    public DimensionalItemObject[] getDimensionItemArrayExplodeCoc( String dimension )
     {
         List<DimensionalItemObject> items = new ArrayList<>();
         
@@ -868,7 +868,7 @@ public class DataQueryParams
             items.addAll( getDimensionOptions( dimension ) );
         }
         
-        return items;
+        return items.toArray( new DimensionalItemObject[0] );
     }
     
     /**

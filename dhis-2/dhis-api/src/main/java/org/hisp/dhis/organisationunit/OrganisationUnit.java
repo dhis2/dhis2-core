@@ -593,7 +593,6 @@ public class OrganisationUnit
     public List<OrganisationUnit> getAncestors()
     {
         List<OrganisationUnit> units = new ArrayList<>();
-
         Set<OrganisationUnit> visitedUnits = new HashSet<>();
 
         OrganisationUnit unit = parent;
@@ -623,7 +622,6 @@ public class OrganisationUnit
     public List<OrganisationUnit> getAncestors( Collection<OrganisationUnit> roots )
     {
         List<OrganisationUnit> units = new ArrayList<>();
-
         OrganisationUnit unit = parent;
 
         while ( unit != null )
@@ -642,6 +640,39 @@ public class OrganisationUnit
         return units;
     }
 
+    /**
+     * Returns the list of ancestor organisation unit names up to any of the given 
+     * roots for this organisation unit. The list is ordered by root first.
+     *
+     * @param roots the root organisation units, if null using real roots.
+     */
+    public List<String> getAncestorNames( Collection<OrganisationUnit> roots, boolean includeThis )
+    {
+        List<String> units = new ArrayList<>();
+        
+        if ( includeThis )
+        {
+            units.add( getDisplayName() );
+        }
+        
+        OrganisationUnit unit = parent;
+
+        while ( unit != null )
+        {
+            units.add( unit.getDisplayName() );
+
+            if ( roots != null && roots.contains( unit ) )
+            {
+                break;
+            }
+
+            unit = unit.getParent();
+        }
+
+        Collections.reverse( units );
+        return units;
+    }
+    
     /**
      * Returns the list of ancestor organisation unit UIDs up to any of the given roots
      * for this organisation unit. Does not include itself. The list is ordered by
@@ -820,7 +851,7 @@ public class OrganisationUnit
 
         return map;
     }
-
+    
     /**
      * Indicates whether this organisation unit is associated with the given
      * data element through its data set associations.

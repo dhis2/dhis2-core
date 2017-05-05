@@ -260,7 +260,7 @@ public class AnalyticsUtils
 
     /**
      * Generates a mapping where the key represents the dimensional item identifiers
-     * concatenated by DimensionalObject.DIMENSION_SEP and the value is
+     * concatenated by {@link DimensionalObject#DIMENSION_SEP} and the value is
      * the corresponding aggregated data value based on the given grid. Assumes 
      * that the value column is the last column in the grid. 
      *
