@@ -30,12 +30,14 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.google.common.collect.Lists;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,6 +50,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping( value = "/periodTypes" )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V27 } )
 public class PeriodTypeController
 {
     private final PeriodService periodService;
