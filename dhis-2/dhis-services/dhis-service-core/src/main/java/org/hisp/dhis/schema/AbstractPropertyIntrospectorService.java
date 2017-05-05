@@ -30,13 +30,15 @@ package org.hisp.dhis.schema;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import org.hibernate.MappingException;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.mapping.Column;
 import org.hibernate.mapping.PersistentClass;
-import org.hibernate.metadata.ClassMetadata;
+import org.hibernate.metamodel.spi.MetamodelImplementor;
 import org.hibernate.persister.collection.CollectionPersister;
+import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.Joinable;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.CustomType;
@@ -137,7 +139,9 @@ public abstract class AbstractPropertyIntrospectorService
         Map<String, List<String>> joinTableToRoles = new HashMap<>();
 
         SessionFactoryImplementor sessionFactoryImplementor = (SessionFactoryImplementor) sessionFactory;
-        Iterator<?> collectionIterator = sessionFactory.getAllCollectionMetadata().values().iterator();
+        MetamodelImplementor metamodelImplementor = (MetamodelImplementor) sessionFactory.getMetamodel();
+
+        Iterator<?> collectionIterator = metamodelImplementor.collectionPersisters().values().iterator();
 
         while ( collectionIterator.hasNext() )
         {
@@ -195,11 +199,15 @@ public abstract class AbstractPropertyIntrospectorService
     protected Map<String, Property> getPropertiesFromHibernate( Class<?> klass )
     {
         updateJoinTables();
-        ClassMetadata classMetadata = sessionFactory.getClassMetadata( klass );
+        MetamodelImplementor metamodelImplementor = (MetamodelImplementor) sessionFactory.getMetamodel();
 
-        // is class persisted with hibernate
-        if ( classMetadata == null )
+        try
         {
+            EntityPersister classMetadata = metamodelImplementor.entityPersister( klass );
+        }
+        catch ( MappingException e )
+        {
+            // class is not persisted with hibernate
             return new HashMap<>();
         }
 

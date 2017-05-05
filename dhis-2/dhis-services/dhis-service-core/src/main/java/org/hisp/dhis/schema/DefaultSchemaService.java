@@ -33,7 +33,10 @@ import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.hibernate.MappingException;
 import org.hibernate.SessionFactory;
+import org.hibernate.metamodel.spi.MetamodelImplementor;
+import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.schema.descriptors.*;
@@ -177,9 +180,16 @@ public class DefaultSchemaService
         {
             Schema schema = descriptor.getSchema();
 
-            if ( sessionFactory.getClassMetadata( schema.getKlass() ) != null )
+            MetamodelImplementor metamodelImplementor = (MetamodelImplementor) sessionFactory.getMetamodel();
+
+            try
             {
+                EntityPersister entityPersister = metamodelImplementor.entityPersister( schema.getKlass() );
                 schema.setPersisted( true );
+            }
+            catch ( MappingException e )
+            {
+                schema.setPersisted( false );
             }
 
             schema.setDisplayName( i18n.getString( "schema_class_" + schema.getKlass().getName() ) );
