@@ -47,6 +47,7 @@ import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.dxf2.webmessage.DefaultWebMessageJacksonService;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
@@ -327,18 +328,41 @@ public class DefaultSynchronizationManager
         };
 
         ResponseExtractor<ImportSummaries> responseExtractor = new ImportSummariesResponseExtractor();
-        ImportSummaries summaries = restTemplate.execute( url, HttpMethod.POST, requestCallback, responseExtractor );
+        ImportSummaries summaries = null;
+        try
+        {
+            summaries = restTemplate.execute( url, HttpMethod.POST, requestCallback, responseExtractor );
+        }
+        catch ( HttpClientErrorException ex )
+        {
+            String responseBody = ex.getResponseBodyAsString();
+            summaries = DefaultWebMessageJacksonService.fromWebMessageResponse( responseBody, ImportSummaries.class );
+        }
+        catch (HttpServerErrorException ex)
+        {
+            String responseBody = ex.getResponseBodyAsString();
+            log.error( "Internal error happened during event data push: " + responseBody , ex);
+            throw ex;
+        }
+        catch (ResourceAccessException ex)
+        {
+            log.error("Exception during event data push: "+ ex.getMessage(), ex);
+            throw ex;
+        }
 
         log.info( "Event synch summary: " + summaries );
         boolean isError = false;
 
-        for ( ImportSummary summary : summaries.getImportSummaries() )
-        {
-            if ( ImportStatus.ERROR.equals( summary.getStatus() ) || ImportStatus.WARNING.equals( summary.getStatus() ) )
+        if(summaries!=null){
+
+            for ( ImportSummary summary : summaries.getImportSummaries() )
             {
-                isError = true;
-                log.debug( "Sync failed: " + summaries );
-                break;
+                if ( ImportStatus.ERROR.equals( summary.getStatus() ) || ImportStatus.WARNING.equals( summary.getStatus() ) )
+                {
+                    isError = true;
+                    log.debug( "Sync failed: " + summaries );
+                    break;
+                }
             }
         }
 
