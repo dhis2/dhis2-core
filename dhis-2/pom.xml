@@ -791,7 +791,7 @@
       <dependency>
         <groupId>com.github.mihaicostin</groupId>
         <artifactId>hibernate-l2-memcached</artifactId>
-        <version>5.0.1.0</version>
+        <version>5.1.5.0</version>
       </dependency>
       <!-- javassist in use by hibernate - make sure versions are kept in sync  -->
       <dependency>
