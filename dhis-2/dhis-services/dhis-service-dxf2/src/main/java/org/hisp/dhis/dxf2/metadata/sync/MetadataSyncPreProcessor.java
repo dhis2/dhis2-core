@@ -48,6 +48,7 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -136,12 +137,6 @@ public class MetadataSyncPreProcessor
         {
             importSummary = synchronizationManager.executeEventPush();
             handleEventImportSummary( importSummary, context );
-        }
-        catch(HttpClientErrorException ex)
-        {
-            log.error("HTTP response: " + ((HttpClientErrorException)ex).getResponseBodyAsString());
-            log.error( "Exception happened while trying to do event data push " + ex.getMessage(), ex );
-            throw ex;
         }
         catch ( Exception ex )
         {
@@ -262,7 +257,7 @@ public class MetadataSyncPreProcessor
         {
             ImportStatus status = importSummary.getStatus();
 
-            if ( ImportStatus.ERROR.equals( status ) )
+            if ( ImportStatus.ERROR.equals( status ) || ImportStatus.WARNING.equals( status ) )
             {
                 log.error( "Import Summary description: " + importSummary.getDescription() );
                 context.updateRetryContext( MetadataSyncTask.DATA_PUSH_SUMMARY, importSummary.getDescription(), null, null );
