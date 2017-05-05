@@ -43,6 +43,7 @@ import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
+import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.WebMessageService;
@@ -81,7 +82,7 @@ public class MetadataSyncController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_MANAGE')" )
     @GetMapping
     public ResponseEntity<? extends WebMessageResponse> metadataSync(HttpServletRequest request, HttpServletResponse response)
-        throws MetadataSyncException, DhisVersionMismatchException, BadRequestException,MetadataImportConflictException
+        throws MetadataSyncException, BadRequestException, MetadataImportConflictException, OperationNotAllowedException
     {
         MetadataSyncParams syncParams;
         MetadataSyncSummary metadataSyncSummary = null;
@@ -110,19 +111,13 @@ public class MetadataSyncController
                 {
                     metadataSyncSummary = metadataSyncService.doMetadataSync( syncParams );
                     validateSyncSummaryResponse(metadataSyncSummary);
-                    //webMessageService.send( WebMessageUtils.metadataSynchronizationReport( metadataSyncSummary ),response,request);
-
                 }
                 else
                 {
-                   // return new ResponseEntity<MetadataSyncSummary>( metadataSyncSummary,  )
-                    throw new MetadataSyncServiceException( "Version already exists in system and hence not starting the sync." );
+                    throw new MetadataImportConflictException( "Version already exists in system and hence not starting the sync." );
                 }
             }
-            catch (MetadataImportConflictException validationException)
-            {
-                return new ResponseEntity<MetadataSyncSummary> (metadataSyncSummary, HttpStatus.CONFLICT);
-            }
+
             catch (MetadataSyncImportException importerException)
             {
                 throw new MetadataSyncException( "Runtime exception occurred while doing import: " + importerException.getMessage() );
@@ -133,7 +128,7 @@ public class MetadataSyncController
             }
             catch ( DhisVersionMismatchException versionMismatchException )
             {
-                throw new DhisVersionMismatchException( "Exception occurred while doing metadata sync: " + versionMismatchException.getMessage() );
+                throw new OperationNotAllowedException( "Exception occurred while doing metadata sync: " + versionMismatchException.getMessage() );
             }
         }
 
@@ -144,7 +139,7 @@ public class MetadataSyncController
     {
         ImportReport importReport = metadataSyncSummary.getImportReport();
         if(importReport.getStatus() != Status.OK){
-            throw new MetadataImportConflictException( "Referential Validation exception. Check Import Report " );
+            throw new MetadataImportConflictException( metadataSyncSummary );
         }
     }
 }
