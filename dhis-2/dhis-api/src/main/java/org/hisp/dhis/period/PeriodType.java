@@ -299,8 +299,6 @@ public abstract class PeriodType
      *
      * @return the frequency order.
      */
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public abstract int getFrequencyOrder();
 
     /**
