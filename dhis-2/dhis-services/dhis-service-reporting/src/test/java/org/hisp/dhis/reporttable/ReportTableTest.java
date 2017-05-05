@@ -29,19 +29,25 @@ package org.hisp.dhis.reporttable;
  */
 
 import static org.hisp.dhis.reporttable.ReportTable.getColumnName;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
@@ -58,7 +64,10 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriods;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.Test;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -100,6 +109,7 @@ public class ReportTableTest
     
     private OrganisationUnit unitA;
     private OrganisationUnit unitB;
+    private OrganisationUnit unitC;
     
     private OrganisationUnitGroupSet groupSet;
     
@@ -194,10 +204,14 @@ public class ReportTableTest
         periodD = rp.get( 1 );
 
         unitA = createOrganisationUnit( 'A' );
-        unitB = createOrganisationUnit( 'B' );
+        unitB = createOrganisationUnit( 'B', unitA );
+        unitC = createOrganisationUnit( 'C', unitA );
         
         unitA.setId( 'A' );
         unitB.setId( 'B' );
+        unitC.setId( 'C' );
+        unitA.getChildren().add( unitB );
+        unitA.getChildren().add( unitC );
         
         units.add( unitA );
         units.add( unitB );
@@ -258,6 +272,112 @@ public class ReportTableTest
         
         assertNotNull( getColumnName( a3 ) );
         assertEquals( "organisationunitgroupshorta_indicatorshorta", getColumnName( a3 ) );
+    }
+    
+    @Test    
+    public void testGetGrid()
+    {
+        ReportTable reportTable = new ReportTable( "Grid table",
+            dataElements, new ArrayList<>(), new ArrayList<>(), periods, Lists.newArrayList( unitB, unitC ),
+            true, true, false, null, null, null );
+
+        reportTable.init( null, null, null, null, null, i18nFormat );
+
+        List<String> columnDims = reportTable.getColumnDimensions();
+        List<String> rowDims = reportTable.getRowDimensions();
+        
+        assertEquals( 2, columnDims.size() );        
+        assertEquals( 1, rowDims.size() );
+
+        assertTrue( columnDims.contains( DimensionalObject.DATA_X_DIM_ID ) );
+        assertTrue( columnDims.contains( DimensionalObject.PERIOD_DIM_ID ) );
+        assertTrue( rowDims.contains( DimensionalObject.ORGUNIT_DIM_ID ) );
+                
+        Map<String, Object> valueMap = new HashMap<>();
+        valueMap.put( dataElementA.getDimensionItem() + DIMENSION_SEP + periodA.getDimensionItem() + DIMENSION_SEP + unitB.getDimensionItem(), 11 );
+        valueMap.put( dataElementA.getDimensionItem() + DIMENSION_SEP + periodA.getDimensionItem() + DIMENSION_SEP + unitC.getDimensionItem(), 21 );
+        valueMap.put( dataElementA.getDimensionItem() + DIMENSION_SEP + periodB.getDimensionItem() + DIMENSION_SEP + unitB.getDimensionItem(), 12 );
+        valueMap.put( dataElementA.getDimensionItem() + DIMENSION_SEP + periodB.getDimensionItem() + DIMENSION_SEP + unitC.getDimensionItem(), 22 );
+        valueMap.put( dataElementB.getDimensionItem() + DIMENSION_SEP + periodA.getDimensionItem() + DIMENSION_SEP + unitB.getDimensionItem(), 13 );
+        valueMap.put( dataElementB.getDimensionItem() + DIMENSION_SEP + periodA.getDimensionItem() + DIMENSION_SEP + unitC.getDimensionItem(), 23 );
+        valueMap.put( dataElementB.getDimensionItem() + DIMENSION_SEP + periodB.getDimensionItem() + DIMENSION_SEP + unitB.getDimensionItem(), 14 );
+        valueMap.put( dataElementB.getDimensionItem() + DIMENSION_SEP + periodB.getDimensionItem() + DIMENSION_SEP + unitC.getDimensionItem(), 24 );
+        
+        DisplayProperty property = DisplayProperty.NAME;
+        
+        Grid grid = reportTable.getGrid( new ListGrid(), valueMap, property, false );
+        
+        assertEquals( 8, grid.getWidth() );
+        assertEquals( 8, grid.getHeaders().size() );
+        assertEquals( 2, grid.getHeight() );
+        
+        assertEquals( unitB.getUid(), grid.getValue( 0, 0 ) );
+        assertEquals( unitB.getDisplayProperty( property ), grid.getValue( 0, 1 ) );
+        assertEquals( unitB.getCode(), grid.getValue( 0, 2 ) );
+        assertEquals( unitB.getDescription(), grid.getValue( 0, 3 ) );
+        assertEquals( 11, grid.getValue( 0, 4 ) );
+        assertEquals( 12, grid.getValue( 0, 5 ) );
+        assertEquals( 13, grid.getValue( 0, 6 ) );
+        assertEquals( 14, grid.getValue( 0, 7 ) );
+        
+        assertEquals( unitC.getUid(), grid.getValue( 1, 0 ) );
+        assertEquals( unitC.getDisplayProperty( property ), grid.getValue( 1, 1 ) );
+        assertEquals( unitC.getCode(), grid.getValue( 1, 2 ) );
+        assertEquals( unitC.getDescription(), grid.getValue( 1, 3 ) );
+        assertEquals( 21, grid.getValue( 1, 4 ) );
+        assertEquals( 22, grid.getValue( 1, 5 ) );
+        assertEquals( 23, grid.getValue( 1, 6 ) );
+        assertEquals( 24, grid.getValue( 1, 7 ) );
+    }
+
+    @Test
+    public void testGetGridShowHierarchy()
+    {
+        ReportTable reportTable = new ReportTable( "Grid table",
+            dataElements, new ArrayList<>(), new ArrayList<>(), periods, Lists.newArrayList( unitB, unitC ),
+            true, true, false, null, null, null );
+        
+        reportTable.setShowHierarchy( true );
+        reportTable.init( null, null, null, null, null, i18nFormat );
+        
+        Map<Object, List<?>> ancestorMap = new HashMap<>();
+        ancestorMap.put( unitB.getUid(), unitB.getAncestorNames( null, true ) );
+        ancestorMap.put( unitC.getUid(), unitC.getAncestorNames( null, true ) );
+        
+        Map<String, Object> metaData = new HashMap<>();
+        
+        Map<String, Object> internalMetaData = new HashMap<>();
+        internalMetaData.put( AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS.getKey(), ancestorMap );
+        
+        Map<String, Object> valueMap = new HashMap<>();
+        valueMap.put( dataElementA.getDimensionItem() + DIMENSION_SEP + periodA.getDimensionItem() + DIMENSION_SEP + unitB.getDimensionItem(), 11 );
+        valueMap.put( dataElementA.getDimensionItem() + DIMENSION_SEP + periodA.getDimensionItem() + DIMENSION_SEP + unitC.getDimensionItem(), 21 );
+        valueMap.put( dataElementA.getDimensionItem() + DIMENSION_SEP + periodB.getDimensionItem() + DIMENSION_SEP + unitB.getDimensionItem(), 12 );
+        valueMap.put( dataElementA.getDimensionItem() + DIMENSION_SEP + periodB.getDimensionItem() + DIMENSION_SEP + unitC.getDimensionItem(), 22 );
+        valueMap.put( dataElementB.getDimensionItem() + DIMENSION_SEP + periodA.getDimensionItem() + DIMENSION_SEP + unitB.getDimensionItem(), 13 );
+        valueMap.put( dataElementB.getDimensionItem() + DIMENSION_SEP + periodA.getDimensionItem() + DIMENSION_SEP + unitC.getDimensionItem(), 23 );
+        valueMap.put( dataElementB.getDimensionItem() + DIMENSION_SEP + periodB.getDimensionItem() + DIMENSION_SEP + unitB.getDimensionItem(), 14 );
+        valueMap.put( dataElementB.getDimensionItem() + DIMENSION_SEP + periodB.getDimensionItem() + DIMENSION_SEP + unitC.getDimensionItem(), 24 );
+        
+        DisplayProperty property = DisplayProperty.NAME;
+        
+        Grid grid = reportTable.getGrid( new ListGrid( metaData, internalMetaData ), valueMap, property, false );
+        
+        assertEquals( 10, grid.getWidth() );
+        assertEquals( 10, grid.getHeaders().size() );
+        assertEquals( 2, grid.getHeight() );
+        
+        assertEquals( unitA.getDisplayName(), grid.getValue( 0, 0 ) );
+        assertEquals( unitB.getDisplayName(), grid.getValue( 0, 1 ) );
+        assertEquals( unitB.getUid(), grid.getValue( 0, 2 ) );
+        assertEquals( unitB.getDisplayProperty( property ), grid.getValue( 0, 3 ) );
+        assertEquals( unitB.getCode(), grid.getValue( 0, 4 ) );
+
+        assertEquals( unitA.getDisplayName(), grid.getValue( 1, 0 ) );
+        assertEquals( unitC.getDisplayName(), grid.getValue( 1, 1 ) );
+        assertEquals( unitC.getUid(), grid.getValue( 1, 2 ) );
+        assertEquals( unitC.getDisplayProperty( property ), grid.getValue( 1, 3 ) );
+        assertEquals( unitC.getCode(), grid.getValue( 1, 4 ) );
     }
     
     @Test
