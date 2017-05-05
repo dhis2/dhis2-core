@@ -224,8 +224,6 @@ public abstract class PeriodType
      *
      * @return a unique name for the PeriodType. E.g. "Monthly".
      */
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public abstract String getName();
 
     /**
@@ -291,8 +289,6 @@ public abstract class PeriodType
         return toIsoPeriod( dateTimeUnit, dateTimeUnit );
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public abstract String getIso8601Duration();
 
     public abstract Period createPeriod( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar );
@@ -531,8 +527,6 @@ public abstract class PeriodType
      *
      * @return the iso8601 format.
      */
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public abstract String getIsoFormat();
 
     // -------------------------------------------------------------------------
