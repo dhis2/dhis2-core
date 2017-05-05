@@ -35,7 +35,6 @@ import org.hisp.dhis.common.*;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.*;
-import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -98,9 +97,6 @@ public class ExpressionServiceTest
 
     @Autowired
     private PeriodService periodService;
-
-    @Autowired
-    private CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
     private DataElementCategoryOption categoryOptionA;
     private DataElementCategoryOption categoryOptionB;
