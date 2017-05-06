@@ -71,7 +71,15 @@ public class DefaultHibernateConfigurationProvider
     private static final String PROP_EHCACHE_PEER_LISTENER_PORT = "ehcache.peer.listener.port";
     private static final String FORMAT_CLUSTER_INSTANCE_HOSTNAME = "cluster.instance%d.hostname";
     private static final String FORMAT_CLUSTER_INSTANCE_CACHE_PORT = "cluster.instance%d.cache.port";
-    private static final String FILENAME_EHCACHE_REPLICATION = "/ehcache-replication.xml";
+    private static final String FILENAME_EHCACHE_REPLICATION = "/ehcache-replication.xml";    
+    private static final String PROP_CACHE_REGION_FACTORY_CLASS = "hibernate.cache.region.factory_class";
+
+    private static final String PROP_MEMCACHED_CONNECTION_FACTORY = "hibernate.memcached.connectionFactory";
+    private static final String PROP_MEMCACHED_OPERATION_TIMEOUT = "hibernate.memcached.operationTimeout";
+    private static final String PROP_MEMCACHED_HASH_ALGORITHM = "hibernate.memcached.hashAlgorithm";
+    private static final String PROP_MEMCACHED_SERVERS = "hibernate.memcached.servers";
+    private static final String PROP_MEMCACHED_CACHE_TIME_SECONDS = "hibernate.memcached.cacheTimeSeconds";
+    
     
     private static final int MAX_CLUSTER_INSTANCES = 5;
 
@@ -177,6 +185,17 @@ public class DefaultHibernateConfigurationProvider
             {
                 log.info( "Could not read external configuration from file system" );
             }
+        }
+
+        // ---------------------------------------------------------------------
+        // Second-level cache
+        // ---------------------------------------------------------------------
+        
+        if ( configurationProvider.isMemcachedCacheProviderEnabled() )
+        {
+            setMemcachedCacheProvider( configuration );
+            
+            log.info( "Memcached set as cache provider, using server: " + configuration.getProperty( "hibernate.memcached.servers" ) );
         }
         
         // ---------------------------------------------------------------------
@@ -293,6 +312,22 @@ public class DefaultHibernateConfigurationProvider
         {
             inputStream.close();
         }
+    }
+    
+    /**
+     * Sets Hibernate configuration for using {@code memcached} as second-level 
+     * cache provider.
+     * 
+     * @param config the Hibernate configuration object.
+     */
+    private void setMemcachedCacheProvider( Configuration config )
+    {
+        config.setProperty( PROP_CACHE_REGION_FACTORY_CLASS, "com.mc.hibernate.memcached.MemcachedRegionFactory" );
+        config.setProperty( PROP_MEMCACHED_CONNECTION_FACTORY, "KetamaConnectionFactory" );
+        config.setProperty( PROP_MEMCACHED_OPERATION_TIMEOUT, "5000" );
+        config.setProperty( PROP_MEMCACHED_HASH_ALGORITHM, "HashAlgorithm.FNV1_64_HASH" );
+        config.setProperty( PROP_MEMCACHED_SERVERS, configurationProvider.getProperty( ConfigurationKey.CACHE_SERVERS ) );
+        config.setProperty( PROP_MEMCACHED_CACHE_TIME_SECONDS, configurationProvider.getProperty( ConfigurationKey.CACHE_TIME ) );
     }
     
     /**
