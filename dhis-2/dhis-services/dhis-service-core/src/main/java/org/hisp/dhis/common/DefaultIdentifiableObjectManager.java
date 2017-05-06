@@ -175,6 +175,12 @@ public class DefaultIdentifiableObjectManager
             session.save( translation );
             persistedObject.getTranslations().add( translation );
         } );
+
+        BaseIdentifiableObject translatedObject = (BaseIdentifiableObject) persistedObject;
+        translatedObject.setLastUpdated( new Date() );
+        translatedObject.setLastUpdatedBy( currentUserService.getCurrentUser() );
+
+        session.update( translatedObject );
     }
 
     @Override
