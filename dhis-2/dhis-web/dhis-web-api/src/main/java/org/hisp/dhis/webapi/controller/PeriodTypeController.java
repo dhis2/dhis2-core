@@ -36,14 +36,15 @@ import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.webdomain.PeriodTypeDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -68,7 +69,8 @@ public class PeriodTypeController
     public RootNode getPeriodTypes()
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-        List<PeriodType> periodTypes = periodService.getAllPeriodTypes();
+        List<PeriodTypeDTO> periodTypes = periodService.getAllPeriodTypes().stream().map( PeriodTypeDTO::new )
+            .collect( Collectors.toList() );
 
         if ( fields.isEmpty() )
         {
@@ -76,7 +78,7 @@ public class PeriodTypeController
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.filter( PeriodType.class, periodTypes, fields ) );
+        rootNode.addChild( fieldFilterService.filter( PeriodTypeDTO.class, periodTypes, fields ) );
 
         return rootNode;
     }

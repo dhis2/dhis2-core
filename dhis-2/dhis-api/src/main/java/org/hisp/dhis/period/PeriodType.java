@@ -28,8 +28,6 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -224,8 +222,6 @@ public abstract class PeriodType
      *
      * @return a unique name for the PeriodType. E.g. "Monthly".
      */
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public abstract String getName();
 
     /**
@@ -291,8 +287,6 @@ public abstract class PeriodType
         return toIsoPeriod( dateTimeUnit, dateTimeUnit );
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public abstract String getIso8601Duration();
 
     public abstract Period createPeriod( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar );
@@ -303,8 +297,6 @@ public abstract class PeriodType
      *
      * @return the frequency order.
      */
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public abstract int getFrequencyOrder();
 
     /**
@@ -531,8 +523,6 @@ public abstract class PeriodType
      *
      * @return the iso8601 format.
      */
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public abstract String getIsoFormat();
 
     // -------------------------------------------------------------------------
