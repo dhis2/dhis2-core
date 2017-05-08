@@ -209,6 +209,10 @@ dhis2.period.PeriodGenerator = function(calendar, format) {
 
   this.registerGenerator( dhis2.period.DailyGenerator );
   this.registerGenerator( dhis2.period.WeeklyGenerator );
+  this.registerGenerator( dhis2.period.WeeklyWednesdayGenerator );
+  this.registerGenerator( dhis2.period.WeeklyThursdayGenerator );
+  this.registerGenerator( dhis2.period.WeeklySaturdayGenerator );
+  this.registerGenerator( dhis2.period.WeeklySundayGenerator );
   this.registerGenerator( dhis2.period.MonthlyGenerator );
   this.registerGenerator( dhis2.period.BiMonthlyGenerator );
   this.registerGenerator( dhis2.period.QuarterlyGenerator );
@@ -326,6 +330,34 @@ dhis2.period.PeriodGenerator.prototype.daily = function(offset) {
  */
 dhis2.period.PeriodGenerator.prototype.weekly = function(offset) {
   return this.get( 'Weekly' ).generatePeriods( offset );
+};
+
+/**
+ * Convenience method to get Weekly Wednesday generator
+ */
+dhis2.period.PeriodGenerator.prototype.weeklyWednesday = function(offset) {
+  return this.get( 'WeeklyWednesday' ).generatePeriods( offset );
+};
+
+/**
+ * Convenience method to get Weekly Thursday generator
+ */
+dhis2.period.PeriodGenerator.prototype.weeklyThursday = function(offset) {
+  return this.get( 'WeeklyThursday' ).generatePeriods( offset );
+};
+
+/**
+ * Convenience method to get Weekly Saturday generator
+ */
+dhis2.period.PeriodGenerator.prototype.weeklySaturday = function(offset) {
+  return this.get( 'WeeklySaturday' ).generatePeriods( offset );
+};
+
+/**
+ * Convenience method to get Weekly Sunday generator
+ */
+dhis2.period.PeriodGenerator.prototype.weeklySaturday = function(offset) {
+  return this.get( 'WeeklySunday' ).generatePeriods( offset );
 };
 
 /**
@@ -602,7 +634,13 @@ $.extend( dhis2.period.WeeklyGenerator.prototype, {
     var periods = [];
 
     var startDate = this.calendar.newDate( year, 1, 4 ); // first ISO week of the year always contains 4th January
-    startDate.add( -(startDate.dayOfWeek() - 1), 'd' ); // rewind to start of week, might cross year boundary
+    var weekday = startDate.dayOfWeek();
+
+    if ( weekday > 1 ) {
+      startDate.add( -(weekday - 1), 'd' );
+    } else if ( weekday < 1 ) {
+      startDate.add( -(weekday + (7 - 1)), 'd' );
+    }
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
@@ -617,6 +655,254 @@ $.extend( dhis2.period.WeeklyGenerator.prototype, {
       period['name'] = 'W' + week + ' - ' + period['startDate'] + ' - ' + period['endDate'];
       period['id'] = 'Weekly_' + period['startDate'];
       period['iso'] = year + 'W' + week;
+
+      period['_startDate'] = this.calendar.newDate( startDate );
+      period['_endDate'] = this.calendar.newDate( endDate );
+
+      periods.push( period );
+
+      startDate.add( 1, 'w' );
+
+      if ( startDate.weekOfYear() === 1 && week > 50 ) {
+        break;
+      }
+    }
+
+    return periods;
+  },
+  $todayPlusPeriods: function(n) {
+    return this.calendar.today().add( n, 'w' );
+  }
+} );
+
+/**
+ * Implementation of dhis2.period.BaseGenerator that generates Weekly Wednesday periods
+ *
+ * @param {$.calendars.baseCalendar} calendar Calendar to use, this must come from $.calendars.instance(chronology).
+ * @param {String} format Date format to use for formatting, will default to ISO 8601
+ * @constructor
+ * @augments dhis2.period.BaseGenerator
+ * @see dhis2.period.BaseGenerator
+ */
+dhis2.period.WeeklyWednesdayGenerator = function(calendar, format) {
+  dhis2.period.BaseGenerator.call( this, 'WeeklyWednesday', calendar, format );
+};
+
+dhis2.period.WeeklyWednesdayGenerator.prototype = Object.create( dhis2.period.BaseGenerator.prototype );
+
+$.extend( dhis2.period.WeeklyWednesdayGenerator.prototype, {
+  $generate: function(offset) {
+    var year = offset + this.calendar.today().year();
+    var periods = [];
+
+    var startDate = this.calendar.newDate( year, 1, 4 ); // first ISO week of the year always contains 4th January
+    var weekday = startDate.dayOfWeek();
+
+    if ( weekday > 1 ) {
+      startDate.add( -(weekday - 3), 'd' );
+    } else if ( weekday < 1 ) {
+      startDate.add( -(weekday + (7 - 3)), 'd' );
+    }
+
+    // no reliable way to figure out number of weeks in a year (can differ in different calendars)
+    // goes up to 200, but break when week is back to 1
+    for ( var week = 1; week < 200; week++ ) {
+      var period = {};
+      period['startDate'] = startDate.formatDate( this.format );
+
+      // not very elegant, but seems to be best way to get week end, adds a week, then minus 1 day
+      var endDate = this.calendar.newDate( startDate ).add( 1, 'w' ).add( -1, 'd' );
+
+      period['endDate'] = endDate.formatDate( this.format );
+      period['name'] = 'WedW' + week + ' - ' + period['startDate'] + ' - ' + period['endDate'];
+      period['id'] = 'WeeklyWednesday_' + period['startDate'];
+      period['iso'] = year + 'WedW' + week;
+
+      period['_startDate'] = this.calendar.newDate( startDate );
+      period['_endDate'] = this.calendar.newDate( endDate );
+
+      periods.push( period );
+
+      startDate.add( 1, 'w' );
+
+      if ( startDate.weekOfYear() === 1 && week > 50 ) {
+        break;
+      }
+    }
+
+    return periods;
+  },
+  $todayPlusPeriods: function(n) {
+    return this.calendar.today().add( n, 'w' );
+  }
+} );
+
+/**
+ * Implementation of dhis2.period.BaseGenerator that generates Weekly Thursday periods
+ *
+ * @param {$.calendars.baseCalendar} calendar Calendar to use, this must come from $.calendars.instance(chronology).
+ * @param {String} format Date format to use for formatting, will default to ISO 8601
+ * @constructor
+ * @augments dhis2.period.BaseGenerator
+ * @see dhis2.period.BaseGenerator
+ */
+dhis2.period.WeeklyThursdayGenerator = function(calendar, format) {
+  dhis2.period.BaseGenerator.call( this, 'WeeklyThursday', calendar, format );
+};
+
+dhis2.period.WeeklyThursdayGenerator.prototype = Object.create( dhis2.period.BaseGenerator.prototype );
+
+$.extend( dhis2.period.WeeklyThursdayGenerator.prototype, {
+  $generate: function(offset) {
+    var year = offset + this.calendar.today().year();
+    var periods = [];
+
+    var startDate = this.calendar.newDate( year, 1, 4 ); // first ISO week of the year always contains 4th January
+    var weekday = startDate.dayOfWeek();
+
+    if ( weekday > 1 ) {
+      startDate.add( -(weekday - 4), 'd' );
+    } else if ( weekday < 1 ) {
+      startDate.add( -(weekday + (7 - 4)), 'd' );
+    }
+
+    // no reliable way to figure out number of weeks in a year (can differ in different calendars)
+    // goes up to 200, but break when week is back to 1
+    for ( var week = 1; week < 200; week++ ) {
+      var period = {};
+      period['startDate'] = startDate.formatDate( this.format );
+
+      // not very elegant, but seems to be best way to get week end, adds a week, then minus 1 day
+      var endDate = this.calendar.newDate( startDate ).add( 1, 'w' ).add( -1, 'd' );
+
+      period['endDate'] = endDate.formatDate( this.format );
+      period['name'] = 'ThuW' + week + ' - ' + period['startDate'] + ' - ' + period['endDate'];
+      period['id'] = 'WeeklyThursday_' + period['startDate'];
+      period['iso'] = year + 'ThuW' + week;
+
+      period['_startDate'] = this.calendar.newDate( startDate );
+      period['_endDate'] = this.calendar.newDate( endDate );
+
+      periods.push( period );
+
+      startDate.add( 1, 'w' );
+
+      if ( startDate.weekOfYear() === 1 && week > 50 ) {
+        break;
+      }
+    }
+
+    return periods;
+  },
+  $todayPlusPeriods: function(n) {
+    return this.calendar.today().add( n, 'w' );
+  }
+} );
+
+/**
+ * Implementation of dhis2.period.BaseGenerator that generates Weekly Saturday periods
+ *
+ * @param {$.calendars.baseCalendar} calendar Calendar to use, this must come from $.calendars.instance(chronology).
+ * @param {String} format Date format to use for formatting, will default to ISO 8601
+ * @constructor
+ * @augments dhis2.period.BaseGenerator
+ * @see dhis2.period.BaseGenerator
+ */
+dhis2.period.WeeklySaturdayGenerator = function(calendar, format) {
+  dhis2.period.BaseGenerator.call( this, 'WeeklySaturday', calendar, format );
+};
+
+dhis2.period.WeeklySaturdayGenerator.prototype = Object.create( dhis2.period.BaseGenerator.prototype );
+
+$.extend( dhis2.period.WeeklySaturdayGenerator.prototype, {
+  $generate: function(offset) {
+    var year = offset + this.calendar.today().year();
+    var periods = [];
+
+    var startDate = this.calendar.newDate( year, 1, 4 ); // first ISO week of the year always contains 4th January
+    var weekday = startDate.dayOfWeek();
+
+    if ( weekday > 1 ) {
+      startDate.add( -(weekday - 6), 'd' );
+    } else if ( weekday < 1 ) {
+      startDate.add( -(weekday + (7 - 6)), 'd' );
+    }
+
+    // no reliable way to figure out number of weeks in a year (can differ in different calendars)
+    // goes up to 200, but break when week is back to 1
+    for ( var week = 1; week < 200; week++ ) {
+      var period = {};
+      period['startDate'] = startDate.formatDate( this.format );
+
+      // not very elegant, but seems to be best way to get week end, adds a week, then minus 1 day
+      var endDate = this.calendar.newDate( startDate ).add( 1, 'w' ).add( -1, 'd' );
+
+      period['endDate'] = endDate.formatDate( this.format );
+      period['name'] = 'SatW' + week + ' - ' + period['startDate'] + ' - ' + period['endDate'];
+      period['id'] = 'WeeklySaturday_' + period['startDate'];
+      period['iso'] = year + 'SatW' + week;
+
+      period['_startDate'] = this.calendar.newDate( startDate );
+      period['_endDate'] = this.calendar.newDate( endDate );
+
+      periods.push( period );
+
+      startDate.add( 1, 'w' );
+
+      if ( startDate.weekOfYear() === 1 && week > 50 ) {
+        break;
+      }
+    }
+
+    return periods;
+  },
+  $todayPlusPeriods: function(n) {
+    return this.calendar.today().add( n, 'w' );
+  }
+} );
+
+/**
+ * Implementation of dhis2.period.BaseGenerator that generates Weekly Sunday periods
+ *
+ * @param {$.calendars.baseCalendar} calendar Calendar to use, this must come from $.calendars.instance(chronology).
+ * @param {String} format Date format to use for formatting, will default to ISO 8601
+ * @constructor
+ * @augments dhis2.period.BaseGenerator
+ * @see dhis2.period.BaseGenerator
+ */
+dhis2.period.WeeklySundayGenerator = function(calendar, format) {
+  dhis2.period.BaseGenerator.call( this, 'WeeklySunday', calendar, format );
+};
+
+dhis2.period.WeeklySundayGenerator.prototype = Object.create( dhis2.period.BaseGenerator.prototype );
+
+$.extend( dhis2.period.WeeklySundayGenerator.prototype, {
+  $generate: function(offset) {
+    var year = offset + this.calendar.today().year();
+    var periods = [];
+
+    var startDate = this.calendar.newDate( year, 1, 4 ); // first ISO week of the year always contains 4th January
+    var weekday = startDate.dayOfWeek();
+
+    if ( weekday > 1 ) {
+      startDate.add( -(weekday - 7), 'd' );
+    } else if ( weekday < 1 ) {
+      startDate.add( -(weekday + (7 - 7)), 'd' );
+    }
+
+    // no reliable way to figure out number of weeks in a year (can differ in different calendars)
+    // goes up to 200, but break when week is back to 1
+    for ( var week = 1; week < 200; week++ ) {
+      var period = {};
+      period['startDate'] = startDate.formatDate( this.format );
+
+      // not very elegant, but seems to be best way to get week end, adds a week, then minus 1 day
+      var endDate = this.calendar.newDate( startDate ).add( 1, 'w' ).add( -1, 'd' );
+
+      period['endDate'] = endDate.formatDate( this.format );
+      period['name'] = 'SunW' + week + ' - ' + period['startDate'] + ' - ' + period['endDate'];
+      period['id'] = 'WeeklySunday_' + period['startDate'];
+      period['iso'] = year + 'SunW' + week;
 
       period['_startDate'] = this.calendar.newDate( startDate );
       period['_endDate'] = this.calendar.newDate( endDate );
