@@ -244,23 +244,38 @@ public class DefaultSynchronizationManager
 
         log.info( "Remote server POST URL: " + instance.getUrl() );
 
-        final RequestCallback requestCallback = new RequestCallback()
+        final RequestCallback requestCallback = request ->
         {
-            @Override
-            public void doWithRequest( ClientHttpRequest request )
-                throws IOException
-            {
-                request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
-                request.getHeaders().add( HEADER_AUTHORIZATION, CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
+            request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
+            request.getHeaders().add( HEADER_AUTHORIZATION, CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
 
-                dataValueSetService.writeDataValueSetJson( lastSuccessTime, request.getBody(), new IdSchemes() );
-            }
+            dataValueSetService.writeDataValueSetJson( lastSuccessTime, request.getBody(), new IdSchemes() );
         };
 
         ResponseExtractor<ImportSummary> responseExtractor = new ImportSummaryResponseExtractor();
+        ImportSummary summary = null;
+        try
+        {
+            summary = restTemplate
+                .execute( instance.getUrl(), HttpMethod.POST, requestCallback, responseExtractor );
+        }
 
-        ImportSummary summary = restTemplate
-            .execute( instance.getUrl(), HttpMethod.POST, requestCallback, responseExtractor );
+         catch ( HttpClientErrorException ex )
+        {
+            String responseBody = ex.getResponseBodyAsString();
+            summary = DefaultWebMessageJacksonService.fromWebMessageResponse( responseBody, ImportSummary.class );
+        }
+        catch (HttpServerErrorException ex)
+        {
+            String responseBody = ex.getResponseBodyAsString();
+            log.error( "Internal error happened during event data push: " + responseBody , ex);
+            throw ex;
+        }
+        catch (ResourceAccessException ex)
+        {
+            log.error("Exception during event data push: "+ ex.getMessage(), ex);
+            throw ex;
+        }
 
         log.info( "Synch summary: " + summary );
 
