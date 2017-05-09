@@ -77,14 +77,14 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
         
     }
 
-    private void upgradeOrgUnitGrupSetDimensions( String analyticalObject, Class<? extends AnalyticalObject> clazz )
+    private void upgradeOrgUnitGrupSetDimensions( String favoriteTableName, Class<? extends AnalyticalObject> clazz )
     {
         String groupSetSqlFormat = 
             "select distinct d.%sid, gsm.orgunitgroupsetid " +
             "from %s_orgunitgroups d " +
             "inner join orgunitgroupsetmembers gsm on d.orgunitgroupid=gsm.orgunitgroupid";
 
-        String groupSetSql = String.format( groupSetSqlFormat, analyticalObject, analyticalObject );
+        String groupSetSql = String.format( groupSetSqlFormat, favoriteTableName, favoriteTableName );
         
         String groupSqlFormat =
             "select d.orgunitgroupid " +
@@ -103,7 +103,7 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
             
             AnalyticalObject ao = idObjectManager.get( clazz, aoId );
             
-            String groupSql = String.format( groupSqlFormat, analyticalObject, analyticalObject, aoId, gsId );
+            String groupSql = String.format( groupSqlFormat, favoriteTableName, favoriteTableName, aoId, gsId );
             
             SqlRowSet groupRs = jdbcTemplate.queryForRowSet( groupSql );
 
@@ -130,10 +130,10 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
             log.info( String.format( "Added org unit group set dimension: %s with groups: %d for favorite: %s", groupSet.getUid(), groups.size(), ao.getUid() ) );
         }
         
-        String dropSql = String.format( "drop table %s_orgunitgroups", analyticalObject );
+        String dropSql = String.format( "drop table %s_orgunitgroups", favoriteTableName );
         
         jdbcTemplate.update( dropSql );
         
-        log.info( String.format( "Org unit update done for %s, dropped table %s_orgunitgroups", analyticalObject, analyticalObject ) );
+        log.info( String.format( "Org unit update done for %s, dropped table %s_orgunitgroups", favoriteTableName, favoriteTableName ) );
     }
 }

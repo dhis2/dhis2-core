@@ -610,4 +610,30 @@ public class TextUtils
         
         return appendTail( matcher, sb );
     }
+    
+    /**
+     * Replaces all occurrences of the given symbols with the
+     * given replacements in the given string. Note that the replacement
+     * will match the symbol as is, i.e. no regular expression matching.
+     * 
+     * @param string the string to replace.
+     * @param symbolReplacementPairs the pairs of symbols and replacements.
+     * @return the replaced string.
+     */
+    public static String replace( String string, String... symbolReplacementPairs )
+    {
+        List<String> pairs = Arrays.asList( symbolReplacementPairs );
+        
+        String replaced = string;
+        
+        for ( int i = 0; i < pairs.size(); i+=2 )
+        {
+            String symbol = Pattern.quote( pairs.get(i ) );
+            String replacement = pairs.get( i + 1 );
+            
+            replaced = replaced.replaceAll( symbol, replacement );
+        }
+        
+        return replaced;
+    }
 }
