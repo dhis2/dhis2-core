@@ -710,14 +710,7 @@ public abstract class BaseAnalyticalObject
 
     private List<String> getCategoryDims()
     {
-        List<String> categoryDims = new ArrayList<>();
-
-        for ( CategoryDimension dim : categoryDimensions )
-        {
-            categoryDims.add( dim.getDimension().getDimension() );
-        }
-
-        return categoryDims;
+        return categoryDimensions.stream().map( cd -> cd.getDimension().getDimension() ).collect( Collectors.toList() );
     }
 
     private void setPeriodNames( List<Period> periods, boolean dynamicNames, I18nFormat format )
@@ -804,22 +797,11 @@ public abstract class BaseAnalyticalObject
      */
     public Map<String, String> getMetaData()
     {
-        Map<String, String> meta = new HashMap<>();
-
-        for ( DataElementGroup group : dataElementGroups )
-        {
-            meta.put( group.getGroupSet().getUid(), group.getGroupSet().getName() );
-        }
-
-        for ( OrganisationUnitGroup group : organisationUnitGroups )
-        {
-            meta.put( group.getGroupSet().getUid(), group.getGroupSet().getName() );
-        }
-
-        for ( CategoryDimension category : categoryDimensions )
-        {
-            meta.put( category.getDimension().getUid(), category.getDimension().getName() );
-        }
+        final Map<String, String> meta = new HashMap<>();
+        
+        dataElementGroups.forEach( group -> meta.put( group.getGroupSet().getUid(), group.getGroupSet().getName() ) );
+        organisationUnitGroups.forEach( group -> meta.put( group.getGroupSet().getUid(), group.getGroupSet().getName() ) );
+        categoryDimensions.forEach( category -> meta.put( category.getDimension().getUid(), category.getDimension().getName() ) );
 
         return meta;
     }
