@@ -131,7 +131,7 @@ public abstract class AbstractEventService
         EVENT_LAST_UPDATED_ID, EVENT_STORED_BY_ID, EVENT_COMPLETED_BY_ID, EVENT_COMPLETED_DATE_ID,
         EVENT_EXECUTION_DATE_ID, EVENT_DUE_DATE_ID, EVENT_ORG_UNIT_ID, EVENT_ORG_UNIT_NAME, EVENT_STATUS_ID,
         EVENT_LONGITUDE_ID, EVENT_LATITUDE_ID, EVENT_PROGRAM_STAGE_ID, EVENT_PROGRAM_ID,
-        EVENT_ATTRIBUTE_OPTION_COMBO_ID );
+        EVENT_ATTRIBUTE_OPTION_COMBO_ID, EVENT_DELETED );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -349,7 +349,7 @@ public abstract class AbstractEventService
                 programStageInstance = programStageInstanceService.getProgramStageInstance( programInstance,
                     programStage );
 
-                if ( programStageInstance != null )
+                if ( programStageInstance != null && !programStageInstance.getUid().equals( event.getEvent() ) )
                 {
                     return new ImportSummary( ImportStatus.ERROR,
                         "Program stage is not repeatable and an event already exists" ).incrementIgnored();
@@ -1439,6 +1439,7 @@ public abstract class AbstractEventService
         programStageInstance.setExecutionDate( executionDate );
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setAttributeOptionCombo( coc );
+        programStageInstance.setDeleted( event.getDeleted() );
 
         if ( programStage.getCaptureCoordinates() )
         {
