@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionalEmbeddedObject;
 import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -45,6 +46,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "dataElementGroupSetDimension", namespace = DxfNamespaces.DXF_2_0 )
 public class DataElementGroupSetDimension
+    implements DimensionalEmbeddedObject
 {
     private int id;
     

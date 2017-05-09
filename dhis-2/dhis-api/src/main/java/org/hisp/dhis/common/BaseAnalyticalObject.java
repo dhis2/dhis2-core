@@ -72,6 +72,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -359,15 +360,6 @@ public abstract class BaseAnalyticalObject
 
         DimensionType type = null;
 
-        List<String> dataElementGroupSetDims = dataElementGroupSetDimensions
-            .stream().map( d -> d.getDimension().getDimension() ).collect( Collectors.toList() );
-        List<String> orgUnitGroupSetDims = organisationUnitGroupSetDimensions
-            .stream().map( d -> d.getDimension().getDimension() ).collect( Collectors.toList() );
-        List<String> categoryDims = categoryDimensions
-            .stream().map( d -> d.getDimension().getDimension() ).collect( Collectors.toList() );
-        List<String> categoryOptionGroupSetDims = categoryOptionGroupSetDimensions
-            .stream().map( d -> d.getDimension().getDimension() ).collect( Collectors.toList()  );
-        
         if ( DATA_X_DIM_ID.equals( dimension ) )
         {
             items.addAll( getDataDimensionNameableObjects() );
@@ -425,36 +417,40 @@ public abstract class BaseAnalyticalObject
 
             type = DimensionType.CATEGORY_OPTION_COMBO;
         }
-        else if ( dataElementGroupSetDims.contains( dimension ) )
-        {
-            DataElementGroupSetDimension dim = dataElementGroupSetDimensions.get( dataElementGroupSetDims.indexOf( dimension ) );
-            items.addAll( dim.getItems() );
-            type = DimensionType.DATA_ELEMENT_GROUP_SET;
-        }
-        else if ( orgUnitGroupSetDims.contains( dimension ) )
-        {
-            OrganisationUnitGroupSetDimension dim = organisationUnitGroupSetDimensions.get( orgUnitGroupSetDims.indexOf( dimension ) );
-            items.addAll( dim.getItems() );
-            type = DimensionType.ORGANISATION_UNIT_GROUP_SET;
-        }
-        else if ( categoryDims.contains( dimension ) )
-        {
-            CategoryDimension dim = categoryDimensions.get( categoryDims.indexOf( dimension ) );
-            items.addAll( dim.getItems() );
-            type = DimensionType.CATEGORY;
-        }
-        else if ( categoryOptionGroupSetDims.contains( dimension ) )
-        {
-            CategoryOptionGroupSetDimension dim = categoryOptionGroupSetDimensions.get( categoryOptionGroupSetDims.indexOf( dimension ) );
-            items.addAll( dim.getItems() );
-            type = DimensionType.CATEGORY_OPTION_GROUP_SET;
-        }
         else if ( STATIC_DIMS.contains( dimension ) )
         {
             type = DimensionType.STATIC;
         }
         else
         {
+            // Embedded dimensions
+            
+            Optional<DimensionalObject> object = Optional.empty();
+            
+            if ( ( object = getDimensionFromEmbeddedObjects( dimension, DimensionType.DATA_ELEMENT_GROUP_SET, dataElementGroupSetDimensions ) ).isPresent() )
+            {
+                items.addAll( object.get().getItems() );
+                type = DimensionType.DATA_ELEMENT_GROUP_SET;
+            }
+
+            if ( ( object = getDimensionFromEmbeddedObjects( dimension, DimensionType.ORGANISATION_UNIT_GROUP_SET, organisationUnitGroupSetDimensions ) ).isPresent() )
+            {
+                items.addAll( object.get().getItems() );
+                type = DimensionType.ORGANISATION_UNIT_GROUP_SET;
+            }
+
+            if ( ( object = getDimensionFromEmbeddedObjects( dimension, DimensionType.CATEGORY, categoryDimensions ) ).isPresent() )
+            {
+                items.addAll( object.get().getItems() );
+                type = DimensionType.CATEGORY;
+            }
+
+            if ( ( object = getDimensionFromEmbeddedObjects( dimension, DimensionType.CATEGORY_OPTION_GROUP_SET, categoryOptionGroupSetDimensions ) ).isPresent() )
+            {
+                items.addAll( object.get().getItems() );
+                type = DimensionType.CATEGORY_OPTION_GROUP_SET;
+            }
+            
             // Tracked entity attribute
 
             Map<String, TrackedEntityAttributeDimension> attributes = Maps.uniqueIndex( attributeDimensions, TrackedEntityAttributeDimension::getUid );
@@ -510,15 +506,6 @@ public abstract class BaseAnalyticalObject
      */
     protected DimensionalObject getDimensionalObject( String dimension )
     {
-        List<String> dataElementGroupSetDims = dataElementGroupSetDimensions
-            .stream().map( d -> d.getDimension().getDimension() ).collect( Collectors.toList() );
-        List<String> orgUnitGroupSetDims = organisationUnitGroupSetDimensions
-            .stream().map( d -> d.getDimension().getDimension() ).collect( Collectors.toList() );
-        List<String> categoryDims = categoryDimensions
-            .stream().map( d -> d.getDimension().getDimension() ).collect( Collectors.toList() );
-        List<String> categoryOptionGroupSetDims = categoryOptionGroupSetDimensions
-            .stream().map( d -> d.getDimension().getDimension() ).collect( Collectors.toList() );
-
         if ( DATA_X_DIM_ID.equals( dimension ) )
         {
             return new BaseDimensionalObject( dimension, DimensionType.DATA_X, getDataDimensionNameableObjects() );
@@ -588,30 +575,6 @@ public abstract class BaseAnalyticalObject
         {
             return new BaseDimensionalObject( dimension, DimensionType.CATEGORY_OPTION_COMBO, new ArrayList<>() );
         }
-        else if ( dataElementGroupSetDims.contains( dimension ) )
-        {
-            DataElementGroupSetDimension dim = dataElementGroupSetDimensions.get( dataElementGroupSetDims.indexOf( dimension ) );
-            
-            return new BaseDimensionalObject( dimension, DimensionType.DATA_ELEMENT_GROUP_SET, dim.getItems() );
-        }
-        else if ( orgUnitGroupSetDims.contains( dimension ) )
-        {
-            OrganisationUnitGroupSetDimension dim = organisationUnitGroupSetDimensions.get( orgUnitGroupSetDims.indexOf( dimension ) );
-            
-            return new BaseDimensionalObject( dimension, DimensionType.ORGANISATION_UNIT_GROUP_SET, dim.getItems() );
-        }
-        else if ( categoryDims.contains( dimension ) )
-        {
-            CategoryDimension dim = categoryDimensions.get( categoryDims.indexOf( dimension ) );
-
-            return new BaseDimensionalObject( dimension, DimensionType.CATEGORY, dim.getItems() );
-        }
-        else if ( categoryOptionGroupSetDims.contains( dimension ) )
-        {
-            CategoryOptionGroupSetDimension dim = categoryOptionGroupSetDimensions.get( categoryOptionGroupSetDims.indexOf( dimension ) );
-            
-            return new BaseDimensionalObject( dimension, DimensionType.CATEGORY_OPTION_GROUP_SET, dim.getItems() );
-        }
         else if ( DATA_COLLAPSED_DIM_ID.contains( dimension ) )
         {
             return new BaseDimensionalObject( dimension, DimensionType.DATA_COLLAPSED, new ArrayList<>() );
@@ -622,6 +585,30 @@ public abstract class BaseAnalyticalObject
         }
         else
         {
+            // Embedded dimensions
+            
+            Optional<DimensionalObject> object = Optional.empty();
+            
+            if ( ( object = getDimensionFromEmbeddedObjects( dimension, DimensionType.DATA_ELEMENT_GROUP_SET, dataElementGroupSetDimensions ) ).isPresent() )
+            {
+                return object.get();
+            }
+            
+            if ( ( object = getDimensionFromEmbeddedObjects( dimension, DimensionType.ORGANISATION_UNIT_GROUP_SET, organisationUnitGroupSetDimensions ) ).isPresent() )
+            {
+                return object.get();
+            }
+
+            if ( ( object = getDimensionFromEmbeddedObjects( dimension, DimensionType.CATEGORY, categoryDimensions ) ).isPresent() )
+            {
+                return object.get();
+            }
+            
+            if ( ( object = getDimensionFromEmbeddedObjects( dimension, DimensionType.CATEGORY_OPTION_GROUP_SET, categoryOptionGroupSetDimensions ) ).isPresent() )
+            {
+                return object.get();
+            }
+            
             // Tracked entity attribute
 
             Map<String, TrackedEntityAttributeDimension> attributes = Maps.uniqueIndex( attributeDimensions, TrackedEntityAttributeDimension::getUid );
@@ -657,6 +644,29 @@ public abstract class BaseAnalyticalObject
         }
 
         throw new IllegalArgumentException( "Not a valid dimension: " + dimension );
+    }
+    
+    /**
+     * Searches for a {@link DimensionalObject} with the given dimension identifier
+     * in the given list of {@link DimensionalEmbeddedObject} items.
+     * 
+     * @param dimension the dimension identifier.
+     * @param dimensionType the dimension type.
+     * @param embeddedObjects the list of embedded dimension objects.
+     * @return a {@link DimensionalObject} optional, or an empty optional if not found.
+     */
+    private <T extends DimensionalEmbeddedObject> Optional<DimensionalObject> getDimensionFromEmbeddedObjects( String dimension, DimensionType dimensionType, List<T> embeddedObjects )
+    {
+        Map<String, T> dimensions = Maps.uniqueIndex( embeddedObjects, d -> d.getDimension().getDimension() );
+        
+        if ( dimensions.containsKey( dimension ) )
+        {
+            DimensionalEmbeddedObject object = dimensions.get( dimension );
+            
+            return Optional.of( new BaseDimensionalObject( dimension, dimensionType, null, object.getDimension().getDisplayName(), object.getItems() ) );
+        }
+        
+        return Optional.empty();
     }
     
     private void setPeriodNames( List<Period> periods, boolean dynamicNames, I18nFormat format )

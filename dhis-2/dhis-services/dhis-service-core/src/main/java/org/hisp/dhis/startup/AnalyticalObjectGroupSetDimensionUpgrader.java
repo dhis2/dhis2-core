@@ -76,11 +76,7 @@ public class AnalyticalObjectGroupSetDimensionUpgrader
         }
         
     }
-    
-    /**
-     * @param analyticalObject the analytical object table name.
-     * @param clazz the analytical object class.
-     */
+
     private void upgradeOrgUnitGrupSetDimensions( String analyticalObject, Class<? extends AnalyticalObject> clazz )
     {
         String groupSetSqlFormat = 
@@ -110,9 +106,9 @@ public class AnalyticalObjectGroupSetDimensionUpgrader
             
             String groupSql = String.format( groupSqlFormat, analyticalObject, analyticalObject, aoId, gsId );
             
-            List<OrganisationUnitGroup> groups = new ArrayList<>();
-            
             SqlRowSet groupRs = jdbcTemplate.queryForRowSet( groupSql );
+
+            List<OrganisationUnitGroup> groups = new ArrayList<>();
             
             while ( groupRs.next() )
             {
@@ -131,6 +127,12 @@ public class AnalyticalObjectGroupSetDimensionUpgrader
             idObjectManager.update( ao );
             
             log.info( String.format( "Added org unit group set dimension: %s with groups: %d for favorite: %s", groupSet.getUid(), groups.size(), ao.getUid() ) );
-        }        
+        }
+        
+        String dropSql = String.format( "drop table %s_orgunitgroups", analyticalObject );
+        
+        jdbcTemplate.update( dropSql );
+        
+        log.info( String.format( "Org unit update done for %s, dropped table %s_orgunitgroups", analyticalObject, analyticalObject ) );
     }
 }
