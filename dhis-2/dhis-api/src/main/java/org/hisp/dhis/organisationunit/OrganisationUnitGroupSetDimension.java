@@ -33,7 +33,6 @@ import java.util.List;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dataelement.DataElementGroup;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -51,7 +50,7 @@ public class OrganisationUnitGroupSetDimension
     
     private OrganisationUnitGroupSet dimension;
     
-    private List<DataElementGroup> items = new ArrayList<>();
+    private List<OrganisationUnitGroup> items = new ArrayList<>();
 
     public int getId()
     {
@@ -79,12 +78,12 @@ public class OrganisationUnitGroupSetDimension
     @JsonProperty( "organisationUnitGroups" )
     @JacksonXmlElementWrapper( localName = "organisationUnitGroups", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "organisationUnitGroup", namespace = DxfNamespaces.DXF_2_0 )
-    public List<DataElementGroup> getItems()
+    public List<OrganisationUnitGroup> getItems()
     {
         return items;
     }
 
-    public void setItems( List<DataElementGroup> items )
+    public void setItems( List<OrganisationUnitGroup> items )
     {
         this.items = items;
     }

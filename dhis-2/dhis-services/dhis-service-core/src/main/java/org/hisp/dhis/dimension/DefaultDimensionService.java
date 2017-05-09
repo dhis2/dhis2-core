@@ -37,6 +37,7 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.period.*;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
@@ -550,18 +551,24 @@ public class DefaultDimensionService
                     CategoryDimension categoryDimension = new CategoryDimension();
                     categoryDimension.setDimension( idObjectManager.get( DataElementCategory.class, dimensionId ) );
                     categoryDimension.getItems().addAll( idObjectManager.getByUidOrdered( DataElementCategoryOption.class, uids ) );
-
+                    
                     object.getCategoryDimensions().add( categoryDimension );
                 }
                 else if ( DATA_ELEMENT_GROUP_SET.equals( type ) )
                 {
-                    DataElementGroupSetDimension dataElementGroupSetDimension = new DataElementGroupSetDimension();
-                    dataElementGroupSetDimension.setDimension( idObjectManager.get( DataElementGroupSet.class, dimensionId ) );
-                    dataElementGroupSetDimension.getItems().addAll( idObjectManager.getByUidOrdered( DataElementGroup.class, uids ) );
+                    DataElementGroupSetDimension groupSetDimension = new DataElementGroupSetDimension();
+                    groupSetDimension.setDimension( idObjectManager.get( DataElementGroupSet.class, dimensionId ) );
+                    groupSetDimension.getItems().addAll( idObjectManager.getByUidOrdered( DataElementGroup.class, uids ) );  
+                    
+                    object.getDataElementGroupSetDimensions().add( groupSetDimension );
                 }
                 else if ( ORGANISATION_UNIT_GROUP_SET.equals( type ) )
                 {
-                    object.getOrganisationUnitGroups().addAll( idObjectManager.getByUidOrdered( OrganisationUnitGroup.class, uids ) );
+                    OrganisationUnitGroupSetDimension groupSetDimension = new OrganisationUnitGroupSetDimension();
+                    groupSetDimension.setDimension( idObjectManager.get( OrganisationUnitGroupSet.class, dimensionId ) );
+                    groupSetDimension.getItems().addAll( idObjectManager.getByUidOrdered( OrganisationUnitGroup.class, uids ) );
+                    
+                    object.getOrganisationUnitGroupSetDimensions().add( groupSetDimension );
                 }
                 else if ( CATEGORY_OPTION_GROUP_SET.equals( type ) )
                 {
