@@ -32,7 +32,11 @@ import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.*;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.EventService;
+import org.hisp.dhis.dxf2.events.event.Events;
+import org.hisp.dhis.dxf2.events.event.ImportEventTask;
+import org.hisp.dhis.dxf2.events.event.ImportEventsTask;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.scheduling.TaskCategory;
 import org.hisp.dhis.scheduling.TaskId;
@@ -162,7 +166,6 @@ public class ImportEventAction
             if ( FORMAT_JSON.equals( payloadFormat ) )
             {
                 events = eventService.getEventsJson( in );
-                events.forEach( event -> System.out.println("Events: " + event) );
             }
             else
             {
