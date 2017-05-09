@@ -42,6 +42,7 @@ import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.MergeMode;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 
 /**
  * This object can act both as a hydrated persisted object and as a wrapper
@@ -105,19 +106,7 @@ public class DataElementOperand
     @Override
     public String getDimensionItem()
     {
-        String item = null;
-
-        if ( dataElement != null )
-        {
-            item = dataElement.getUid();
-
-            if ( categoryOptionCombo != null )
-            {
-                item += SEPARATOR + categoryOptionCombo.getUid();
-            }
-        }
-
-        return item;
+        return getDimensionItem( IdScheme.UID );
     }
 
     @Override
@@ -133,6 +122,15 @@ public class DataElementOperand
             {
                 item += SEPARATOR + categoryOptionCombo.getPropertyValue( idScheme );
             }
+            else if ( attributeOptionCombo != null )
+            {
+                item += SEPARATOR + SYMBOL_WILDCARD;
+            }
+            
+            if ( attributeOptionCombo != null )
+            {
+                item += SEPARATOR + attributeOptionCombo.getPropertyValue( idScheme );
+            }
         }
 
         return item;
@@ -145,7 +143,7 @@ public class DataElementOperand
     }
 
     // -------------------------------------------------------------------------
-    // Logic
+    // IdentifiableObject
     // -------------------------------------------------------------------------
 
     @Override
@@ -181,9 +179,18 @@ public class DataElementOperand
             name = dataElement.getName();
         }
 
-        if ( categoryOptionCombo != null && !categoryOptionCombo.isDefault() )
+        if ( hasNonDefaultCategoryOptionCombo() )
         {
             name += SPACE + categoryOptionCombo.getName();
+        }
+        else if ( hasNonDefaultAttributeOptionCombo() )
+        {
+            name += SPACE + SYMBOL_WILDCARD;
+        }
+        
+        if ( hasNonDefaultAttributeOptionCombo() )
+        {
+            name += SPACE + attributeOptionCombo.getName();
         }
 
         return name;
@@ -199,9 +206,18 @@ public class DataElementOperand
             shortName = dataElement.getShortName();
         }
 
-        if ( categoryOptionCombo != null )
+        if ( hasNonDefaultCategoryOptionCombo() )
         {
-            shortName += SPACE + categoryOptionCombo.getName();
+            shortName += SPACE + categoryOptionCombo.getShortName();
+        }
+        else if ( hasNonDefaultAttributeOptionCombo() )
+        {
+            name += SPACE + SYMBOL_WILDCARD;
+        }
+        
+        if ( hasNonDefaultAttributeOptionCombo() )
+        {
+            name += SPACE + attributeOptionCombo.getName();
         }
 
         return shortName;
@@ -238,7 +254,25 @@ public class DataElementOperand
      */
     public boolean isTotal()
     {
-        return categoryOptionCombo == null;
+        return categoryOptionCombo == null && attributeOptionCombo == null;
+    }
+    
+    /**
+     * Indicates whether a category option combination exists which is different
+     * from default.
+     */
+    public boolean hasNonDefaultCategoryOptionCombo()
+    {
+        return categoryOptionCombo != null && !categoryOptionCombo.isDefault();
+    }
+
+    /**
+     * Indicates whether an attribute option combination exists which is different
+     * from default.
+     */
+    public boolean hasNonDefaultAttributeOptionCombo()
+    {
+        return attributeOptionCombo != null && !attributeOptionCombo.isDefault();
     }
 
     // -------------------------------------------------------------------------
@@ -322,6 +356,68 @@ public class DataElementOperand
                 categoryOptionCombo = dataElementOperand.getCategoryOptionCombo() != null ? dataElementOperand.getCategoryOptionCombo() : categoryOptionCombo;
                 attributeOptionCombo = dataElementOperand.getAttributeOptionCombo() != null ? dataElementOperand.getAttributeOptionCombo() : attributeOptionCombo;
             }
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Option combination type
+    // -------------------------------------------------------------------------
+
+    public enum TotalType
+    {
+        COC_ONLY( true, false, 1 ), 
+        AOC_ONLY( false, true, 1 ), 
+        COC_AND_AOC( true, true, 2 ), 
+        NONE( false, false, 0 );
+        
+        private boolean coc;
+        private boolean aoc;
+        private int propertyCount;
+        
+        TotalType()
+        {
+        }
+        
+        TotalType( boolean coc, boolean aoc, int propertyCount )
+        {
+            this.coc = coc;
+            this.aoc = aoc;
+            this.propertyCount = propertyCount;
+        }
+        
+        public boolean isCategoryOptionCombo()
+        {
+            return coc;
+        }
+        
+        public boolean isAttributeOptionCombo()
+        {
+            return aoc;
+        }
+        
+        public int getPropertyCount()
+        {
+            return propertyCount;
+        }
+    }
+    
+    public TotalType getTotalType()
+    {
+        if ( categoryOptionCombo != null && attributeOptionCombo != null )
+        {
+            return TotalType.COC_AND_AOC;
+        }
+        else if ( categoryOptionCombo != null )
+        {
+            return TotalType.COC_ONLY;
+        }
+        else if ( attributeOptionCombo != null )
+        {
+            return TotalType.AOC_ONLY;
+        }
+        else
+        {
+            return TotalType.NONE;
         }
     }
 }

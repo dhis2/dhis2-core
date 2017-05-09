@@ -303,7 +303,7 @@ public class DataElementCategoryOptionCombo
 
         return earliestEndDate;
     }
-
+    
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------

@@ -142,7 +142,6 @@ public class JdbcAnalyticsManager
             catch ( BadSqlGrammarException ex )
             {
                 log.info( "Query failed, likely because the requested analytics table does not exist", ex );
-
                 return new AsyncResult<>( new HashMap<String, Object>() );
             }
 
@@ -392,15 +391,15 @@ public class JdbcAnalyticsManager
         if ( params.isRestrictByOrgUnitOpeningClosedDate() && params.hasStartEndDate() )
         {
             sql += sqlHelper.whereAnd() + " (" +
-                "(ouopeningdate <= '" + getMediumDateString( params.getStartDate() ) + "' or ouopeningdate is null) and " +
-                "(oucloseddate >= '" + getMediumDateString( params.getEndDate() ) + "' or oucloseddate is null)) ";
+                "(" + statementBuilder.columnQuote( "ouopeningdate") + " <= '" + getMediumDateString( params.getStartDate() ) + "' or " + statementBuilder.columnQuote( "ouopeningdate" ) + " is null) and " +
+                "(" + statementBuilder.columnQuote( "oucloseddate" ) + " >= '" + getMediumDateString( params.getEndDate() ) + "' or " + statementBuilder.columnQuote( "oucloseddate" ) + " is null)) ";
         }
         
         if ( params.isRestrictByCategoryOptionStartEndDate() && params.hasStartEndDate() )
         {
             sql += sqlHelper.whereAnd() + " (" +
-                "(costartdate <= '" + getMediumDateString( params.getStartDate() ) + "' or costartdate is null) and " +
-                "(coenddate >= '" + getMediumDateString( params.getEndDate() ) + "' or coenddate is null)) ";
+                "(" + statementBuilder.columnQuote( "costartdate" ) + " <= '" + getMediumDateString( params.getStartDate() ) + "' or " + statementBuilder.columnQuote( "costartdate" ) + " is null) and " +
+                "(" + statementBuilder.columnQuote( "coenddate" ) + " >= '" + getMediumDateString( params.getEndDate() ) + "' or " + statementBuilder.columnQuote( "coenddate" ) +  " is null)) ";
         }
 
         if ( !params.isRestrictByOrgUnitOpeningClosedDate() && !params.isRestrictByCategoryOptionStartEndDate() && params.hasStartEndDate() )

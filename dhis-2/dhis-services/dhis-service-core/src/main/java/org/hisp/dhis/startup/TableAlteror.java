@@ -130,6 +130,14 @@ public class TableAlteror
         executeSql( "DROP TABLE datadictionarydataelements" );
         executeSql( "DROP TABLE datadictionary" );
         executeSql( "DROP TABLE caseaggregationcondition" );
+        executeSql( "DROP TABLE trackedentitytabularreportusergroupaccesses" );
+        executeSql( "DROP TABLE trackedentitytabularreport_filters" );
+        executeSql( "DROP TABLE trackedentitytabularreport_dimensions" );
+        executeSql( "DROP TABLE trackedentitytabularreport" );
+        executeSql( "DROP TABLE trackedentityaggregatereportusergroupaccesses" );
+        executeSql( "DROP TABLE trackedentityaggregatereport_filters" );
+        executeSql( "DROP TABLE trackedentityaggregatereport_dimension" );
+        executeSql( "DROP TABLE trackedentityaggregatereport" );
         executeSql( "ALTER TABLE categoryoptioncombo drop column userid" );
         executeSql( "ALTER TABLE categoryoptioncombo drop column publicaccess" );
         executeSql( "ALTER TABLE categoryoptioncombo alter column name type text" );
@@ -773,6 +781,7 @@ public class TableAlteror
         executeSql( "ALTER TABLE dataelementgroupset ALTER COLUMN datadimension SET NOT NULL" );
         executeSql( "UPDATE orgunitgroupset SET datadimension=true WHERE datadimension IS NULL" );
         executeSql( "ALTER TABLE orgunitgroupset ALTER COLUMN datadimension SET NOT NULL" );
+        executeSql( "ALTER TABLE validationnotificationtemplate ALTER COLUMN sendstrategy SET NOT NULL" );
 
         // set attribute defaults
         executeSql( "UPDATE attribute SET dataelementattribute=false WHERE dataelementattribute IS NULL" );

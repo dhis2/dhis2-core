@@ -371,7 +371,7 @@ public class DefaultSqlViewService
         
         if ( violation != null )
         {
-            log.warn( "Validation failed: " + violation );
+            log.warn( String.format( "Validation failed for SQL view '%s': %s", sqlView.getUid(), violation ) );
             
             throw new IllegalQueryException( violation );
         }

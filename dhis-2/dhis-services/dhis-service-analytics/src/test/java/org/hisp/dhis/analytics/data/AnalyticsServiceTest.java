@@ -36,11 +36,16 @@ import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
@@ -59,10 +64,7 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -118,6 +120,15 @@ public class AnalyticsServiceTest
     @Autowired
     private IndicatorService indicatorService;
 
+    @Autowired
+    private DataSetService dataSetService;
+
+    @Autowired
+    private CompleteDataSetRegistrationService completeDataSetRegistrationService;
+
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
+
     // Database (value, data element, period)
     // --------------------------------------------------------------------
     //
@@ -135,16 +146,18 @@ public class AnalyticsServiceTest
     // 32, deD, peJan
     //
     // --------------------------------------------------------------------
-    
+
     @Override
     public void setUpTest()
         throws IOException
     {
         // Set up meta data for data values
         // --------------------------------------------------------------------
+        ReportingRate reportingRateA;
+        ReportingRate reportingRateB;
+
         ocDef = categoryService.getDefaultDataElementCategoryOptionCombo();
-        ocDef.setCode( "OC_DEF_CODE" );
-        ocDef.setUid( "OC_DEF_UID" );
+        ocDef.setUid( "o1234578def" );
         categoryService.updateDataElementCategoryOptionCombo( ocDef );
 
         Period peJan = createPeriod( "2017-01" );
@@ -169,9 +182,17 @@ public class AnalyticsServiceTest
         dataElementService.addDataElement( deD );
 
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
+
         OrganisationUnit ouB = createOrganisationUnit( 'B' );
+
         OrganisationUnit ouC = createOrganisationUnit( 'C' );
+        ouC.setOpeningDate( getDate( 2016, 4, 10 ) );
+        ouC.setClosedDate( null );
+
         OrganisationUnit ouD = createOrganisationUnit( 'D' );
+        ouD.setOpeningDate( getDate( 2016, 12, 10 ) );
+        ouD.setClosedDate( null );
+
         OrganisationUnit ouE = createOrganisationUnit( 'E' );
         configureHierarchy( ouA, ouB, ouC, ouD, ouE );
 
@@ -180,6 +201,12 @@ public class AnalyticsServiceTest
         organisationUnitService.addOrganisationUnit( ouC );
         organisationUnitService.addOrganisationUnit( ouD );
         organisationUnitService.addOrganisationUnit( ouE );
+
+        idObjectManager.save( ouA );
+        idObjectManager.save( ouB );
+        idObjectManager.save( ouC );
+        idObjectManager.save( ouD );
+        idObjectManager.save( ouE );
 
         OrganisationUnitGroup organisationUnitGroupA = createOrganisationUnitGroup( 'A' );
         organisationUnitGroupA.setUid( "a2345groupA" );
@@ -208,8 +235,6 @@ public class AnalyticsServiceTest
         organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroupC );
         organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroupD );
 
-
-
         OrganisationUnitGroupSet organisationUnitGroupSetA = createOrganisationUnitGroupSet( 'A' );
         organisationUnitGroupSetA.setUid( "a234567setA" );
         OrganisationUnitGroupSet organisationUnitGroupSetB = createOrganisationUnitGroupSet( 'B' );
@@ -224,10 +249,27 @@ public class AnalyticsServiceTest
         organisationUnitGroupService.addOrganisationUnitGroupSet( organisationUnitGroupSetA );
         organisationUnitGroupService.addOrganisationUnitGroupSet( organisationUnitGroupSetB );
 
+        DataSet dataSetA = createDataSet( 'A' );
+        dataSetA.setUid( "a23dataSetA" );
 
-        // Read data values from CSV file
+        dataSetA.addOrganisationUnit( ouD );
+        dataSetA.addOrganisationUnit( ouC );
+
+        DataSet dataSetB = createDataSet( 'B' );
+        dataSetB.setUid( "a23dataSetB" );
+
+        dataSetB.addOrganisationUnit( ouD );
+
+        dataSetService.addDataSet( dataSetA );
+        dataSetService.addDataSet( dataSetB );
+
+        // Read data values from CSV files
         // --------------------------------------------------------------------
-        readInputFile( "csv/dataValues.csv" );
+        ArrayList<String[]> dataValueLines = readInputFile( "csv/dataValues.csv" );
+        parseDataValues( dataValueLines );
+
+        ArrayList<String[]> dataSetRegistrationLines = readInputFile( "csv/dataSetRegistrations.csv" );
+        parseDataSetRegistrations( dataSetRegistrationLines );
 
         // Make indicators
         // --------------------------------------------------------------------
@@ -238,33 +280,54 @@ public class AnalyticsServiceTest
 
         // deA
         Indicator indicatorA = createIndicator( 'A', indicatorType_1 );
-        String expressionA = "#{" + deA.getUid() + ".OC_DEF_UID" + "}";
+        String expressionA = "#{" + deA.getUid() + "." + ocDef.getUid() + "}";
         indicatorA.setNumerator( expressionA );
         indicatorA.setDenominator( "1" );
 
         // deB + deC
         Indicator indicatorB = createIndicator( 'B', indicatorType_1 );
-        String expressionB = "#{" + deB.getUid() + ".OC_DEF_UID" + "}" + "+#{" + deC.getUid() + ".OC_DEF_UID" + "}";
+        String expressionB =
+            "#{" + deB.getUid() + "." + ocDef.getUid() + "}" + "+#{" + deC.getUid() + "." + ocDef.getUid() + "}";
         indicatorB.setNumerator( expressionB );
         indicatorB.setDenominator( "1" );
 
         // (deB * deC) / 100
         Indicator indicatorC = createIndicator( 'C', indicatorType_1 );
-        String expressionC = "#{" + deB.getUid() + ".OC_DEF_UID" + "}" + "*#{" + deC.getUid() + ".OC_DEF_UID" + "}";
+        String expressionC =
+            "#{" + deB.getUid() + "." + ocDef.getUid() + "}" + "*#{" + deC.getUid() + "." + ocDef.getUid() + "}";
 
         indicatorC.setNumerator( expressionC );
         indicatorC.setDenominator( "100" );
 
         // (deA * deC) / deB
         Indicator indicatorD = createIndicator( 'D', indicatorType_1 );
-        String expressionD = "#{" + deA.getUid() + ".OC_DEF_UID" + "}" + "*#{" + deC.getUid() + ".OC_DEF_UID" + "}";
+        String expressionD =
+            "#{" + deA.getUid() + "." + ocDef.getUid() + "}" + "*#{" + deC.getUid() + "." + ocDef.getUid() + "}";
         indicatorD.setNumerator( expressionD );
-        indicatorD.setDenominator( "#{" + deB.getUid() + ".OC_DEF_UID}" );
+        indicatorD.setDenominator( "#{" + deB.getUid() + "." + ocDef.getUid() + "}" );
+
+        // deA * reporting rate B
+        Indicator indicatorE = createIndicator( 'E', indicatorType_1 );
+        reportingRateA = new ReportingRate( dataSetA );
+        reportingRateB = new ReportingRate( dataSetB );
+
+        String expressionE = "#{" + deA.getUid() + "." + ocDef.getUid() + "}" + "*(R{" + reportingRateB.getUid() + ".REPORTING_RATE} / 100)";
+        indicatorE.setNumerator( expressionE );
+        indicatorE.setDenominator( "1" );
+
+        // deA * reporting rate A
+        Indicator indicatorF = createIndicator( 'F', indicatorType_1 );
+
+        String expressionF = "#{" + deA.getUid() + "." + ocDef.getUid() + "}" + "*(R{" + reportingRateA.getUid() + ".REPORTING_RATE} / 100)";
+        indicatorF.setNumerator( expressionF );
+        indicatorF.setDenominator( "1" );
 
         indicatorService.addIndicator( indicatorA );
         indicatorService.addIndicator( indicatorB );
         indicatorService.addIndicator( indicatorC );
         indicatorService.addIndicator( indicatorD );
+        indicatorService.addIndicator( indicatorE );
+        indicatorService.addIndicator( indicatorF );
 
         // Generate analytics tables
         // --------------------------------------------------------------------
@@ -309,7 +372,8 @@ public class AnalyticsServiceTest
             .withPeriod( y2017_mar ).withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         AnalyticalObject deC_ouB_2017_03_analytical = new ReportTable( "deC_ouB_2017_03", dataElements1,
-            param_indicators, param_reportingRates, Lists.newArrayList( y2017_mar ), Lists.newArrayList( ouB ), false, true, true, null, null, null );
+            param_indicators, param_reportingRates, Lists.newArrayList( y2017_mar ), Lists.newArrayList( ouB ), false,
+            true, true, null, null, null );
 
         // org unit A - data element A - Q1 2017
         List<DataElement> dataElements2 = new ArrayList<>();
@@ -320,7 +384,8 @@ public class AnalyticsServiceTest
             .withPeriod( quarter ).withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         AnalyticalObject deA_ouA_2017_Q01_analytical = new ReportTable( "deA_ouA_2017_Q01", dataElements2,
-            param_indicators, param_reportingRates, Lists.newArrayList( quarter ), Lists.newArrayList( ouA ), false, true, true, null, null, null );
+            param_indicators, param_reportingRates, Lists.newArrayList( quarter ), Lists.newArrayList( ouA ), false,
+            true, true, null, null, null );
 
         // org units B and C - feb 2017
         DataQueryParams ouB_ouC_2017_02_params = DataQueryParams.newBuilder()
@@ -343,12 +408,14 @@ public class AnalyticsServiceTest
             .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         // indicator A - 2017
-        DataQueryParams inA_2017_params = DataQueryParams.newBuilder().withIndicators( Lists.newArrayList( indicatorA ) )
+        DataQueryParams inA_2017_params = DataQueryParams.newBuilder()
+            .withIndicators( Lists.newArrayList( indicatorA ) )
             .withAggregationType( AggregationType.SUM ).withPeriod( y2017 )
             .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         // indicator B (deB + deC) - 2017 Q1
-        DataQueryParams inB_deB_deC_2017_Q01_params = DataQueryParams.newBuilder().withIndicators( Lists.newArrayList( indicatorB ) )
+        DataQueryParams inB_deB_deC_2017_Q01_params = DataQueryParams.newBuilder()
+            .withIndicators( Lists.newArrayList( indicatorB ) )
             .withAggregationType( AggregationType.SUM ).withPeriod( quarter )
             .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
@@ -359,24 +426,35 @@ public class AnalyticsServiceTest
             .withAggregationType( AggregationType.SUM ).withPeriod( quarter )
             .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
-        AnalyticalObject inC_deB_deC_2017_Q01_analytical = new ReportTable( "deA_ouA_2017_Q01", Lists.newArrayList( ),
-            param_indicators3, param_reportingRates, Lists.newArrayList( quarter ), Lists.newArrayList( ouA ), true, true, true, null, null, null );
+        AnalyticalObject inC_deB_deC_2017_Q01_analytical = new ReportTable( "deA_ouA_2017_Q01", Lists.newArrayList(),
+            param_indicators3, param_reportingRates, Lists.newArrayList( quarter ), Lists.newArrayList( ouA ), true,
+            true, true, null, null, null );
 
         // indicator D (deA * deC)/deB - 2017 Q1
         DataQueryParams inD_deA_deB_deC_2017_Q01_params = DataQueryParams.newBuilder()
-            .withIndicators( Lists.newArrayList( indicatorD) ).withAggregationType( AggregationType.SUM )
+            .withIndicators( Lists.newArrayList( indicatorD ) ).withAggregationType( AggregationType.SUM )
+            .withPeriod( quarter ).withOutputFormat( OutputFormat.ANALYTICS ).build();
+
+        // indicator E (deA * reporting rate B) / 100 - 2017 Q1
+        DataQueryParams inE_deA_reRateA_2017_Q01_params = DataQueryParams.newBuilder().withOrganisationUnit( ouD )
+            .withIndicators( Lists.newArrayList( indicatorE ) ).withAggregationType( AggregationType.SUM )
+            .withPeriod( quarter ).withOutputFormat( OutputFormat.ANALYTICS ).build();
+
+        // indicator E (deA * reporting rate A) / 100 - 2017 Q1
+        DataQueryParams inF_deA_reRateB_2017_Q01_params = DataQueryParams.newBuilder().withOrganisationUnit( ouD )
+            .withIndicators( Lists.newArrayList( indicatorF ) ).withAggregationType( AggregationType.SUM )
             .withPeriod( quarter ).withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         // Max value - org unit B and C - data element A - 2017 Feb
         DataQueryParams deA_ouB_ouC_2017_02_params = DataQueryParams.newBuilder()
-            .withFilterOrganisationUnits( Lists.newArrayList( ouB, ouC) ).withDataElements( Lists.newArrayList( deA ) )
+            .withFilterOrganisationUnits( Lists.newArrayList( ouB, ouC ) ).withDataElements( Lists.newArrayList( deA ) )
             .withAggregationType( AggregationType.MAX ).withPeriod( peFeb )
             .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         // Average value - org unit C and E - data element A, B and D - 2017 April
         DataQueryParams deA_deB_deD_ouC_ouE_2017_04_params = DataQueryParams.newBuilder()
-            .withFilterOrganisationUnits( Lists.newArrayList( ouC, ouE) )
-            .withDataElements( Lists.newArrayList( deA, deB, deD) )
+            .withFilterOrganisationUnits( Lists.newArrayList( ouC, ouE ) )
+            .withDataElements( Lists.newArrayList( deA, deB, deD ) )
             .withAggregationType( AggregationType.AVERAGE )
             .withOutputFormat( OutputFormat.ANALYTICS )
             .withPeriod( peApril ).withOutputFormat( OutputFormat.ANALYTICS ).build();
@@ -414,6 +492,22 @@ public class AnalyticsServiceTest
             .withPeriod( y2017_mar )
             .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
+        // Reportingrate for dataSet A - Q1 2017
+        DataQueryParams reRate_2017_Q01_ouC_params = DataQueryParams.newBuilder()
+            .withOrganisationUnit( ouC )
+            .withReportingRates( Lists.newArrayList( reportingRateA ) )
+            .withPeriod( quarter )
+            .withAggregationType( AggregationType.SUM )
+            .withOutputFormat( OutputFormat.ANALYTICS ).build();
+
+        // Reportingrate for dataSet B - Q1 2017
+        DataQueryParams reRate_2017_Q01_ouD_params = DataQueryParams.newBuilder()
+            .withOrganisationUnit( ouD )
+            .withReportingRates( Lists.newArrayList( reportingRateB ) )
+            .withPeriod( quarter )
+            .withAggregationType( AggregationType.SUM )
+            .withOutputFormat( OutputFormat.ANALYTICS ).build();
+
         dataQueryParams.put( "ou_2017", ou_2017_params );
         dataQueryParams.put( "ou_2017_01", ou_2017_01_params );
         dataQueryParams.put( "ouB_2017_02", ouB_2017_02_params );
@@ -428,13 +522,16 @@ public class AnalyticsServiceTest
         dataQueryParams.put( "inB_deB_deC_2017_Q01", inB_deB_deC_2017_Q01_params );
         dataQueryParams.put( "inC_deB_deC_2017_Q01", inC_deB_deC_2017_Q01_params );
         dataQueryParams.put( "inD_deA_deB_deC_2017_Q01", inD_deA_deB_deC_2017_Q01_params );
+        dataQueryParams.put( "inE_deA_reRateA_2017_Q01", inE_deA_reRateA_2017_Q01_params );
+        dataQueryParams.put( "inF_deA_reRateB_2017_Q01", inF_deA_reRateB_2017_Q01_params );
         dataQueryParams.put( "deA_ouB_ouC_2017_02", deA_ouB_ouC_2017_02_params );
         dataQueryParams.put( "deA_deB_deD_ouC_ouE_2017_04", deA_deB_deD_ouC_ouE_2017_04_params );
         dataQueryParams.put( "ouB_2017_01_01_2017_02_20", ouB_2017_01_01_2017_02_20_params );
         dataQueryParams.put( "ouB_2017_02_10_2017_06_20", ouB_2017_02_10_2017_06_20_params );
         dataQueryParams.put( "ouGroupSetA_2017", ouGroupSetA_2017_params );
         dataQueryParams.put( "ouGroupSetB_2017_03", ouGroupSetB_2017_03_params );
-
+        dataQueryParams.put( "reRate_2017_Q01_ouC", reRate_2017_Q01_ouC_params );
+        dataQueryParams.put( "reRate_2017_Q01_ouD", reRate_2017_Q01_ouD_params );
 
         analyticalObjectHashMap.put( "deC_ouB_2017_03", deC_ouB_2017_03_analytical );
         analyticalObjectHashMap.put( "deA_ouA_2017_Q01", deA_ouA_2017_Q01_analytical );
@@ -495,6 +592,12 @@ public class AnalyticsServiceTest
         Map<String, Double> inD_deA_deB_deC_2017_Q01_keyValue = new HashMap<>();
         inD_deA_deB_deC_2017_Q01_keyValue.put( "inabcdefghD-2017Q1", 29.8 );
 
+        Map<String, Double> inE_deA_reRateA_2017_Q01_keyValue = new HashMap<>();
+        inE_deA_reRateA_2017_Q01_keyValue.put( "inabcdefghE-ouabcdefghD-2017Q1", 99.6 );
+
+        Map<String, Double> inF_deA_reRateB_2017_Q01_keyValue = new HashMap<>();
+        inF_deA_reRateB_2017_Q01_keyValue.put( "inabcdefghF-ouabcdefghD-2017Q1" , 199.4 );
+
         Map<String, Double> deA_ouB_ouC_2017_02_keyValue = new HashMap<>();
         deA_ouB_ouC_2017_02_keyValue.put( "deabcdefghA-201702", 233.0 );
 
@@ -518,6 +621,12 @@ public class AnalyticsServiceTest
         ouGroupSetB_2017_03_keyValue.put( "a2345groupC-201703", 26.0 );
         ouGroupSetB_2017_03_keyValue.put( "a2345groupD-201703", 1.0 );
 
+        Map<String, Double> reRate_2017_Q01_ouC_keyValue = new HashMap<>();
+        reRate_2017_Q01_ouC_keyValue.put( "a23dataSetA.REPORTING_RATE-ouabcdefghC-2017Q1", 100.0 );
+
+        Map<String, Double> reRate_2017_Q01_ouD_keyValue = new HashMap<>();
+        reRate_2017_Q01_ouD_keyValue.put( "a23dataSetB.REPORTING_RATE-ouabcdefghD-2017Q1", 33.3 );
+
         results.put( "ou_2017", ou_2017_keyValue );
         results.put( "ou_2017_01", ou_2017_01_keyValue );
         results.put( "ouB_2017_02", ouB_2017_02_keyValue );
@@ -532,6 +641,8 @@ public class AnalyticsServiceTest
         results.put( "inB_deB_deC_2017_Q01", inB_deB_deC_2017_Q01_keyValue );
         results.put( "inC_deB_deC_2017_Q01", inC_deB_deC_2017_Q01_keyValue );
         results.put( "inD_deA_deB_deC_2017_Q01", inD_deA_deB_deC_2017_Q01_keyValue );
+        results.put( "inE_deA_reRateA_2017_Q01", inE_deA_reRateA_2017_Q01_keyValue );
+        results.put( "inF_deA_reRateB_2017_Q01", inF_deA_reRateB_2017_Q01_keyValue );
         results.put( "deA_ouB_ouC_2017_02", deA_ouB_ouC_2017_02_keyValue );
         results.put( "deA_deB_deD_ouC_ouE_2017_04", deA_deB_deD_ouC_ouE_2017_04_keyValue );
         results.put( "deA_deB_2017_Q01", deA_deB_2017_Q01_keyValue );
@@ -539,6 +650,8 @@ public class AnalyticsServiceTest
         results.put( "ouB_2017_02_10_2017_06_20", ouB_2017_02_10_2017_06_20_keyValue );
         results.put( "ouGroupSetA_2017", ouGroupSetA_2017_keyValue );
         results.put( "ouGroupSetB_2017_03", ouGroupSetB_2017_03_keyValue );
+        results.put( "reRate_2017_Q01_ouC", reRate_2017_Q01_ouC_keyValue );
+        results.put( "reRate_2017_Q01_ouD", reRate_2017_Q01_ouD_keyValue );
     }
 
     @Override
@@ -619,7 +732,7 @@ public class AnalyticsServiceTest
      *
      * @param inputFile points to file in class path
      */
-    public void readInputFile( String inputFile )
+    public ArrayList<String[]> readInputFile( String inputFile )
         throws IOException
     {
         InputStream input = new ClassPathResource( inputFile ).getInputStream();
@@ -628,30 +741,63 @@ public class AnalyticsServiceTest
         CsvReader reader = new CsvReader( input, Charset.forName( "UTF-8" ) );
 
         reader.readRecord(); // Ignore first row
+        ArrayList<String[]> lines = new ArrayList<>();
         while ( reader.readRecord() )
         {
             String[] values = reader.getValues();
-            parse( values );
+            lines.add( values );
         }
 
-        assertEquals( "Import of data failed, number of imports are wrong", 
-            dataValueService.getAllDataValues().size(), 24 );
+        return lines;
     }
 
     /**
      * Adds data value based on input from vales
      *
-     * @param values the array of property values.
+     * @param lines the arraylist of arrays of property values.
      */
-    private void parse( String[] values )
+    private void parseDataValues( ArrayList<String[]> lines )
     {
-        DataElement dataElement = dataElementService.getDataElement( values[0] );
-        Period period = periodService.getPeriod( values[1] );
-        OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( values[2] );
+        for( String[] line : lines)
+        {
+            DataElement dataElement = dataElementService.getDataElement( line[0] );
+            Period period = periodService.getPeriod( line[1] );
+            OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( line[2] );
 
-        DataValue dataValue = new DataValue( dataElement, period, organisationUnit, ocDef, ocDef );
-        dataValue.setValue( values[3] );
-        dataValueService.addDataValue( dataValue );
+            DataValue dataValue = new DataValue( dataElement, period, organisationUnit, ocDef, ocDef );
+            dataValue.setValue( line[3] );
+            dataValueService.addDataValue( dataValue );
+        }
+
+        assertEquals( "Import of data values failed, number of imports are wrong",
+            dataValueService.getAllDataValues().size(), 24 );
+    }
+
+
+    /**
+     * Adds data set registrations based on input from vales
+     *
+     * @param lines the arraylist of arrays of property values.
+     */
+    private void parseDataSetRegistrations( ArrayList<String[]> lines )
+    {
+        String storedBy = "johndoe";
+        Date now = new Date();
+
+        for ( String[] line : lines )
+        {
+            DataSet dataSet = dataSetService.getDataSet( line[0] );
+            Period period = periodService.getPeriod( line[1] );
+            OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( line[2] );
+
+            CompleteDataSetRegistration completeDataSetRegistration = new CompleteDataSetRegistration( dataSet, period,
+                organisationUnit, ocDef, now,
+                storedBy );
+            completeDataSetRegistrationService.saveCompleteDataSetRegistration( completeDataSetRegistration );
+        }
+
+        assertEquals( "Import of data set registrations failed, number of imports are wrong",
+            completeDataSetRegistrationService.getAllCompleteDataSetRegistrations().size(), 15 );
     }
 
     /**
@@ -699,10 +845,12 @@ public class AnalyticsServiceTest
         for ( Map.Entry<String, Object> entry : aggregatedDataValueMapping.entrySet() )
         {
             String key = entry.getKey();
-            Double value = (Double) entry.getValue();
+            Double expected = keyValue.get( key );
+            Double actual = (Double) entry.getValue();
 
-            assertNotNull( "Did not find '" + key + "' in provided results", keyValue.get( key ) );
-            assertEquals( "'" + key + "' --", value, keyValue.get( key ) );
+            assertNotNull( "Did not find '" + key + "' in provided results", expected );
+            assertEquals( "Value for key:'" + key + "' not matching expected value: '" + expected + "'", expected,
+                actual );
         }
     }
 
@@ -728,13 +876,13 @@ public class AnalyticsServiceTest
                     key.append( "-" );
             }
 
-            assertNotNull( "Did not find '" + key + "' in provided results", keyValue.get( key.toString() ) );
+            Double expected = keyValue.get( key.toString() );
+            Double actual = (Double) aggregatedDataValueGrid.getValue( i, numberOfDimensions );
 
-            Double value = keyValue.get( key.toString() );
-
+            assertNotNull( "Did not find '" + key + "' in provided results", expected );
             assertNotNull( aggregatedDataValueGrid.getRow( i ) );
-            assertEquals( "'" + aggregatedDataValueGrid.getValue( i, 0 ) + "' --", value,
-                aggregatedDataValueGrid.getValue( i, numberOfDimensions ) );
+            assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected,
+                actual );
         }
     }
 
@@ -743,7 +891,7 @@ public class AnalyticsServiceTest
      * aggregatedDataValueSet. Also test for null values.
      *
      * @param aggregatedDataValueSet aggregated values
-     * @param keyValue expected results
+     * @param keyValue               expected results
      */
     private void assertDataValueSet( DataValueSet aggregatedDataValueSet, Map<String, Double> keyValue )
     {
@@ -752,8 +900,11 @@ public class AnalyticsServiceTest
             String key = dataValue.getDataElement() + "-" + dataValue.getOrgUnit() + "-" + dataValue.getPeriod();
 
             assertNotNull( keyValue.get( key ) );
-            Double value = Double.parseDouble( dataValue.getValue() );
-            assertEquals( value, keyValue.get( key ) );
+            Double actual = Double.parseDouble( dataValue.getValue() );
+            Double expected = keyValue.get( key );
+
+            assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected,
+                actual );
         }
     }
 }

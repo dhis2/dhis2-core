@@ -98,8 +98,8 @@ public class AnalyticsUtilsTest
         map.put( "YkRvCLedQa4-h1dJ9W4dWor-Zrd4DAf8M99", 11d );
         map.put( "PcfRp1HETO8-zqXKIEycBck-KBJBZopYMPV", 12d );
         
-        Map<String, Double> convertedMap = AnalyticsUtils.convertDxToOperand( map );
-        
+        Map<String, Double> convertedMap = AnalyticsUtils.convertDxToOperand( map, 1 );
+                
         assertTrue( convertedMap.containsKey( "GauDLAiXPKT.kC1OT9Q1n1j-R9U8q7X1aJG" ) );
         assertTrue( convertedMap.containsKey( "YkRvCLedQa4.h1dJ9W4dWor-Zrd4DAf8M99" ) );
         assertTrue( convertedMap.containsKey( "PcfRp1HETO8.zqXKIEycBck-KBJBZopYMPV" ) );

@@ -62,6 +62,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -168,8 +169,10 @@ public abstract class AbstractTrackedEntityInstanceService
         trackedEntityInstance.setTrackedEntityInstance( entityInstance.getUid() );
         trackedEntityInstance.setOrgUnit( entityInstance.getOrganisationUnit().getUid() );
         trackedEntityInstance.setTrackedEntity( entityInstance.getTrackedEntity().getUid() );
-        trackedEntityInstance.setCreated( entityInstance.getCreated().toString() );
-        trackedEntityInstance.setLastUpdated( DateUtils.getLongGmtDateString( entityInstance.getLastUpdated() ) );
+        trackedEntityInstance.setCreated( DateUtils.getIso8601NoTz( entityInstance.getCreated() ) );
+        trackedEntityInstance.setCreatedAtClient( DateUtils.getIso8601NoTz( entityInstance.getLastUpdatedAtClient() ) );
+        trackedEntityInstance.setLastUpdated( DateUtils.getIso8601NoTz( entityInstance.getLastUpdated() ) );
+        trackedEntityInstance.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( entityInstance.getLastUpdatedAtClient() ) );
         trackedEntityInstance.setInactive( entityInstance.isInactive() );
 
         if ( params.isIncludeRelationships() )
@@ -213,8 +216,8 @@ public abstract class AbstractTrackedEntityInstanceService
         {
             Attribute attribute = new Attribute();
 
-            attribute.setCreated( DateUtils.getLongGmtDateString( attributeValue.getCreated() ) );
-            attribute.setLastUpdated( DateUtils.getLongGmtDateString( attributeValue.getLastUpdated() ) );
+            attribute.setCreated( DateUtils.getIso8601NoTz( attributeValue.getCreated() ) );
+            attribute.setLastUpdated( DateUtils.getIso8601NoTz( attributeValue.getLastUpdated() ) );
             attribute.setDisplayName( attributeValue.getAttribute().getDisplayName() );
             attribute.setAttribute( attributeValue.getAttribute().getUid() );
             attribute.setValueType( attributeValue.getAttribute().getValueType() );
@@ -328,6 +331,8 @@ public abstract class AbstractTrackedEntityInstanceService
 
         updateRelationships( trackedEntityInstance, entityInstance );
         updateAttributeValues( trackedEntityInstance, entityInstance );
+        updateDateFields( trackedEntityInstance, entityInstance );
+
         teiService.updateTrackedEntityInstance( entityInstance );
 
         importSummary.setReference( entityInstance.getUid() );
@@ -420,6 +425,8 @@ public abstract class AbstractTrackedEntityInstanceService
 
         updateRelationships( trackedEntityInstance, entityInstance );
         updateAttributeValues( trackedEntityInstance, entityInstance );
+        updateDateFields( trackedEntityInstance, entityInstance );
+
         teiService.updateTrackedEntityInstance( entityInstance );
 
         importSummary.setStatus( ImportStatus.SUCCESS );
@@ -706,5 +713,24 @@ public abstract class AbstractTrackedEntityInstanceService
         trackedEntityAttributeCache.clear();
 
         dbmsManager.clearSession();
+    }
+
+    private void updateDateFields( TrackedEntityInstance trackedEntityInstance, org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance )
+    {
+        entityInstance.setAutoFields();
+
+        Date createdAtClient = DateUtils.parseDate( trackedEntityInstance.getCreatedAtClient() );
+
+        if ( createdAtClient != null )
+        {
+            entityInstance.setCreatedAtClient( createdAtClient );
+        }
+
+        String lastUpdatedAtClient = trackedEntityInstance.getLastUpdatedAtClient();
+
+        if ( lastUpdatedAtClient != null )
+        {
+            entityInstance.setLastUpdatedAtClient( DateUtils.parseDate( lastUpdatedAtClient ) );
+        }
     }
 }

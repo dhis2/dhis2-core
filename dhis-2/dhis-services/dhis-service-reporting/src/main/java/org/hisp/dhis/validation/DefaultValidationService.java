@@ -415,7 +415,7 @@ public class DefaultValidationService
                 ruleX.setDimensionalItemObjects( ruleDimensionItemObjects );
 
                 Set<DataElementOperand> ruleDataElementOperands = ruleDimensionItemObjects.stream()
-                    .filter( o -> o.getDimensionItemType() == DimensionItemType.DATA_ELEMENT_OPERAND )
+                    .filter( o -> o != null && o.getDimensionItemType() == DimensionItemType.DATA_ELEMENT_OPERAND )
                     .map( o -> (DataElementOperand) o )
                     .collect( Collectors.toSet() );
 
@@ -536,7 +536,8 @@ public class DefaultValidationService
      * @param dimClass Class of dimensional object
      * @param idClasses Component class(es) of identifiable objects
      */
-    private void getIdentifiableObjectIds( SetMap<Class<? extends IdentifiableObject>, String> idsToGet,
+    @SafeVarargs
+    private final void getIdentifiableObjectIds( SetMap<Class<? extends IdentifiableObject>, String> idsToGet,
         SetMap<Class<? extends DimensionalItemObject>, String> expressionIdMap,
         Class<? extends DimensionalItemObject> dimClass,
         Class<? extends IdentifiableObject>... idClasses )

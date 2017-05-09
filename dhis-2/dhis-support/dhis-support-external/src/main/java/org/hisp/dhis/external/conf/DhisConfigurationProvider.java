@@ -117,6 +117,13 @@ public interface DhisConfigurationProvider
     boolean isClusterEnabled();
     
     /**
+     * Indicates whether {@code memcached} is enabled as cache provider.
+     * 
+     * @return true if {@code memcached} is enabled as cache provider.
+     */
+    boolean isMemcachedCacheProviderEnabled();
+    
+    /**
      * Indicates whether LDAP authentication is configured.
      * 
      * @return true if LDAP authentication is configured.
