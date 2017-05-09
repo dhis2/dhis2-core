@@ -80,16 +80,16 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
 
     private void upgradeGrupSetDimensions( String favorite, String dimension, String item, Class<? extends AnalyticalObject> clazz )
     {
-        String groupSetSqlFormat = 
+        String groupSetSqlPattern = 
             "select distinct d.{favorite}id, gsm.{dimension}id " +
             "from {favorite}_{item}s d " +
             "inner join {dimension}members gsm on d.{item}id=gsm.{item}id";
 
-        String groupSetSql = TextUtils.replace( groupSetSqlFormat, "{favorite}", favorite, "{dimension}", dimension, "{item}", item );
+        String groupSetSql = TextUtils.replace( groupSetSqlPattern, "{favorite}", favorite, "{dimension}", dimension, "{item}", item );
         
         log.info( String.format( "Dimension SQL: %s", groupSetSql ) );
         
-        String groupSqlFormat =
+        String groupSqlPattern =
             "select d.{item}id " +
             "from {favorite}_{item}s d " +
             "inner join {dimension}members gsm on d.{item}id=gsm.{item}id " +
@@ -106,7 +106,7 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
             
             AnalyticalObject analyticalObject = idObjectManager.get( clazz, favoriteId );
             
-            String groupSql = TextUtils.replace( groupSqlFormat, "{favorite}", favorite, "{dimension}", dimension, 
+            String groupSql = TextUtils.replace( groupSqlPattern, "{favorite}", favorite, "{dimension}", dimension, 
                 "{item}", item, "{favoriteId}", String.valueOf( favoriteId ), "{dimensionId}", String.valueOf( dimensionId ) );
             
             SqlRowSet groupRs = jdbcTemplate.queryForRowSet( groupSql );
@@ -120,7 +120,7 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
                 OrganisationUnitGroup group = idObjectManager.get( OrganisationUnitGroup.class, gId );                
                 groups.add( group );
             }
-
+            
             OrganisationUnitGroupSet groupSet = idObjectManager.get( OrganisationUnitGroupSet.class, dimensionId );
             
             OrganisationUnitGroupSetDimension dim = new OrganisationUnitGroupSetDimension();
@@ -131,13 +131,14 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
             
             idObjectManager.update( analyticalObject );
             
-            log.info( String.format( "Added org unit group set dimension: %s with groups: %d for favorite: %s", groupSet.getUid(), groups.size(), analyticalObject.getUid() ) );
+            log.info( String.format( "Added %s group set dimension: %s with groups: %d for favorite: %s", 
+                favorite, groupSet.getUid(), groups.size(), analyticalObject.getUid() ) );
         }
         
-        String dropSql = String.format( "drop table %s_orgunitgroups", favorite );
+        String dropSql = TextUtils.replace( "drop table {favorite}_{item}s", "{favorite}", favorite, "{item}", item );
         
         jdbcTemplate.update( dropSql );
         
-        log.info( String.format( "Org unit update done for %s", favorite ) );
+        log.info( String.format( "Dropped link table, update done for %s", favorite ) );
     }
 }
