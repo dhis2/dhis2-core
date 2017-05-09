@@ -572,7 +572,11 @@ public class DefaultDimensionService
                 }
                 else if ( CATEGORY_OPTION_GROUP_SET.equals( type ) )
                 {
-                    object.getCategoryOptionGroups().addAll( idObjectManager.getByUidOrdered( CategoryOptionGroup.class, uids ) );
+                    CategoryOptionGroupSetDimension groupSetDimension = new CategoryOptionGroupSetDimension();
+                    groupSetDimension.setDimension( idObjectManager.get( CategoryOptionGroupSet.class, dimensionId ) );
+                    groupSetDimension.getItems().addAll( idObjectManager.getByUidOrdered( CategoryOptionGroup.class, uids ) );
+                    
+                    object.getCategoryOptionGroupSetDimensions().add( groupSetDimension );
                 }
                 else if ( PROGRAM_ATTRIBUTE.equals( type ) )
                 {

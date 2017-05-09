@@ -119,14 +119,14 @@
         foreign-key="fk_chart_dimensions_ogunitgroupsetdimensionid" />
     </list>
 
-    <list name="categoryOptionGroups" table="chart_categoryoptiongroups">
+    <list name="categoryOptionGroupSetDimensions" table="chart_categoryoptiongroupsetdimensions" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="chartid" foreign-key="fk_chart_categoryoptiongroups_chartid" />
-      <list-index column="sort_order" base="0" />
-      <many-to-many column="categoryoptiongroupid" class="org.hisp.dhis.dataelement.CategoryOptionGroup"
-        foreign-key="fk_chart_categoryoptiongroups_categoryoptiongroupid" />
+      <key column="chart" foreign-key="fk_chart_catoptiongroupsetdimensions_chartid" />
+      <list-index column="sort_order" />
+      <many-to-many column="categoryoptiongroupsetdimensionid" class="org.hisp.dhis.dataelement.CategoryOptionGroupSetDimension"
+        foreign-key="fk_chart_dimensions_catoptiongroupsetdimensionid" />
     </list>
-
+    
     <list name="organisationUnitLevels" table="chart_orgunitlevels">
       <cache usage="read-write" />
       <key column="chartid" foreign-key="fk_chart_orgunitlevels_chartid" />

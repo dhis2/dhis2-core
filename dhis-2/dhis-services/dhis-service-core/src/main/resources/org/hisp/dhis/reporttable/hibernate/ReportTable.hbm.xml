@@ -71,15 +71,15 @@
       <key column="reporttableid" foreign-key="fk_reporttable_orgunitgroupsetdimensions_reporttableid" />
       <list-index column="sort_order" />
       <many-to-many column="orgunitgroupsetdimensionid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension"
-        foreign-key="fk_reporttable_dimensions_ogunitgroupsetdimensionid" />
+        foreign-key="fk_reporttable_dimensions_orgunitgroupsetdimensionid" />
     </list>
 
-    <list name="categoryOptionGroups" table="reporttable_categoryoptiongroups">
+    <list name="categoryOptionGroupSetDimensions" table="reporttable_categoryoptiongroupsetdimensions" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="reporttableid" foreign-key="fk_reporttable_categoryoptiongroups_reporttableid" />
-      <list-index column="sort_order" base="0" />
-      <many-to-many column="categoryoptiongroupid" class="org.hisp.dhis.dataelement.CategoryOptionGroup"
-        foreign-key="fk_reporttable_categoryoptiongroups_categoryoptiongroupid" />
+      <key column="reporttableid" foreign-key="fk_reporttable_catoptiongroupsetdimensions_reporttableid" />
+      <list-index column="sort_order" />
+      <many-to-many column="categoryoptiongroupsetdimensionid" class="org.hisp.dhis.dataelement.CategoryOptionGroupSetDimension"
+        foreign-key="fk_reporttable_dimensions_catoptiongroupsetdimensionid" />
     </list>
 
     <list name="organisationUnitLevels" table="reporttable_orgunitlevels">

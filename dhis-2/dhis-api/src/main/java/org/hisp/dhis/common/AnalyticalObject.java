@@ -28,7 +28,6 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -60,8 +59,6 @@ public interface AnalyticalObject
     
     List<OrganisationUnit> getOrganisationUnits();
     
-    List<CategoryOptionGroup> getCategoryOptionGroups();
-        
     boolean addDataDimensionItem( DimensionalItemObject object );
     
     boolean removeDataDimensionItem( DimensionalItemObject object );

@@ -42,7 +42,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.dataelement.CategoryDimension;
-import org.hisp.dhis.dataelement.CategoryOptionGroup;
+import org.hisp.dhis.dataelement.CategoryOptionGroupSetDimension;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
@@ -117,8 +117,8 @@ public abstract class BaseAnalyticalObject
 
     protected List<CategoryDimension> categoryDimensions = new ArrayList<>();
 
-    protected List<CategoryOptionGroup> categoryOptionGroups = new ArrayList<>();
-
+    protected List<CategoryOptionGroupSetDimension> categoryOptionGroupSetDimensions = new ArrayList<>();
+    
     protected List<TrackedEntityAttributeDimension> attributeDimensions = new ArrayList<>();
 
     protected List<TrackedEntityDataElementDimension> dataElementDimensions = new ArrayList<>();
@@ -349,12 +349,15 @@ public abstract class BaseAnalyticalObject
 
         DimensionType type = null;
 
-        List<String> categoryDims = getCategoryDims();
         List<String> dataElementGroupSetDims = dataElementGroupSetDimensions
             .stream().map( d -> d.getDimension().getDimension() ).collect( Collectors.toList() );
         List<String> orgUnitGroupSetDims = organisationUnitGroupSetDimensions
             .stream().map( d -> d.getDimension().getDimension() ).collect( Collectors.toList() );
-
+        List<String> categoryDims = categoryDimensions
+            .stream().map( d -> d.getDimension().getDimension() ).collect( Collectors.toList() );
+        List<String> categoryOptionGroupSetDims = categoryOptionGroupSetDimensions
+            .stream().map( d -> d.getDimension().getDimension() ).collect( Collectors.toList()  );
+        
         if ( DATA_X_DIM_ID.equals( dimension ) )
         {
             items.addAll( getDataDimensionNameableObjects() );
@@ -412,12 +415,6 @@ public abstract class BaseAnalyticalObject
 
             type = DimensionType.CATEGORY_OPTION_COMBO;
         }
-        else if ( categoryDims.contains( dimension ) )
-        {
-            CategoryDimension dim = categoryDimensions.get( categoryDims.indexOf( dimension ) );
-            items.addAll( dim.getItems() );
-            type = DimensionType.CATEGORY;
-        }
         else if ( dataElementGroupSetDims.contains( dimension ) )
         {
             DataElementGroupSetDimension dim = dataElementGroupSetDimensions.get( dataElementGroupSetDims.indexOf( dimension ) );
@@ -430,31 +427,24 @@ public abstract class BaseAnalyticalObject
             items.addAll( dim.getItems() );
             type = DimensionType.ORGANISATION_UNIT_GROUP_SET;
         }
+        else if ( categoryDims.contains( dimension ) )
+        {
+            CategoryDimension dim = categoryDimensions.get( categoryDims.indexOf( dimension ) );
+            items.addAll( dim.getItems() );
+            type = DimensionType.CATEGORY;
+        }
+        else if ( categoryOptionGroupSetDims.contains( dimension ) )
+        {
+            CategoryOptionGroupSetDimension dim = categoryOptionGroupSetDimensions.get( categoryOptionGroupSetDims.indexOf( dimension ) );
+            items.addAll( dim.getItems() );
+            type = DimensionType.CATEGORY_OPTION_GROUP_SET;
+        }
         else if ( STATIC_DIMS.contains( dimension ) )
         {
             type = DimensionType.STATIC;
         }
         else
         {
-            // Category option group set
-
-            ListMap<String, DimensionalItemObject> coGroupMap = new ListMap<>();
-
-            for ( CategoryOptionGroup group : categoryOptionGroups )
-            {
-                if ( group.getGroupSet() != null )
-                {
-                    coGroupMap.putValue( group.getGroupSet().getUid(), group );
-                }
-            }
-
-            if ( coGroupMap.containsKey( dimension ) )
-            {
-                items.addAll( coGroupMap.get( dimension ) );
-
-                type = DimensionType.CATEGORY_OPTION_GROUP_SET;
-            }
-
             // Tracked entity attribute
 
             Map<String, TrackedEntityAttributeDimension> attributes = Maps.uniqueIndex( attributeDimensions, TrackedEntityAttributeDimension::getUid );
@@ -510,10 +500,13 @@ public abstract class BaseAnalyticalObject
      */
     protected DimensionalObject getDimensionalObject( String dimension )
     {
-        List<String> categoryDims = getCategoryDims();
         List<String> dataElementGroupSetDims = dataElementGroupSetDimensions
             .stream().map( d -> d.getDimension().getDimension() ).collect( Collectors.toList() );
         List<String> orgUnitGroupSetDims = organisationUnitGroupSetDimensions
+            .stream().map( d -> d.getDimension().getDimension() ).collect( Collectors.toList() );
+        List<String> categoryDims = categoryDimensions
+            .stream().map( d -> d.getDimension().getDimension() ).collect( Collectors.toList() );
+        List<String> categoryOptionGroupSetDims = categoryOptionGroupSetDimensions
             .stream().map( d -> d.getDimension().getDimension() ).collect( Collectors.toList() );
 
         if ( DATA_X_DIM_ID.equals( dimension ) )
@@ -585,12 +578,6 @@ public abstract class BaseAnalyticalObject
         {
             return new BaseDimensionalObject( dimension, DimensionType.CATEGORY_OPTION_COMBO, new ArrayList<>() );
         }
-        else if ( categoryDims.contains( dimension ) )
-        {
-            CategoryDimension dim = categoryDimensions.get( categoryDims.indexOf( dimension ) );
-
-            return new BaseDimensionalObject( dimension, DimensionType.CATEGORY, dim.getItems() );
-        }
         else if ( dataElementGroupSetDims.contains( dimension ) )
         {
             DataElementGroupSetDimension dim = dataElementGroupSetDimensions.get( dataElementGroupSetDims.indexOf( dimension ) );
@@ -603,6 +590,18 @@ public abstract class BaseAnalyticalObject
             
             return new BaseDimensionalObject( dimension, DimensionType.ORGANISATION_UNIT_GROUP_SET, dim.getItems() );
         }
+        else if ( categoryDims.contains( dimension ) )
+        {
+            CategoryDimension dim = categoryDimensions.get( categoryDims.indexOf( dimension ) );
+
+            return new BaseDimensionalObject( dimension, DimensionType.CATEGORY, dim.getItems() );
+        }
+        else if ( categoryOptionGroupSetDims.contains( dimension ) )
+        {
+            CategoryOptionGroupSetDimension dim = categoryOptionGroupSetDimensions.get( categoryOptionGroupSetDims.indexOf( dimension ) );
+            
+            return new BaseDimensionalObject( dimension, DimensionType.CATEGORY_OPTION_GROUP_SET, dim.getItems() );
+        }
         else if ( DATA_COLLAPSED_DIM_ID.contains( dimension ) )
         {
             return new BaseDimensionalObject( dimension, DimensionType.DATA_COLLAPSED, new ArrayList<>() );
@@ -613,23 +612,6 @@ public abstract class BaseAnalyticalObject
         }
         else
         {
-            // Category option group set
-
-            ListMap<String, DimensionalItemObject> coGroupMap = new ListMap<>();
-
-            for ( CategoryOptionGroup group : categoryOptionGroups )
-            {
-                if ( group.getGroupSet() != null )
-                {
-                    coGroupMap.putValue( group.getGroupSet().getUid(), group );
-                }
-            }
-
-            if ( coGroupMap.containsKey( dimension ) )
-            {
-                return new BaseDimensionalObject( dimension, DimensionType.CATEGORY_OPTION_GROUP_SET, coGroupMap.get( dimension ) );
-            }
-
             // Tracked entity attribute
 
             Map<String, TrackedEntityAttributeDimension> attributes = Maps.uniqueIndex( attributeDimensions, TrackedEntityAttributeDimension::getUid );
@@ -665,11 +647,6 @@ public abstract class BaseAnalyticalObject
         }
 
         throw new IllegalArgumentException( "Not a valid dimension: " + dimension );
-    }
-
-    private List<String> getCategoryDims()
-    {
-        return categoryDimensions.stream().map( cd -> cd.getDimension().getDimension() ).collect( Collectors.toList() );
     }
     
     private void setPeriodNames( List<Period> periods, boolean dynamicNames, I18nFormat format )
@@ -779,7 +756,7 @@ public abstract class BaseAnalyticalObject
         organisationUnitGroupSetDimensions.clear();
         organisationUnitLevels.clear();
         categoryDimensions.clear();
-        categoryOptionGroups.clear();
+        categoryOptionGroupSetDimensions.clear();
         attributeDimensions.clear();
         dataElementDimensions.clear();
         programIndicatorDimensions.clear();
@@ -825,7 +802,7 @@ public abstract class BaseAnalyticalObject
             organisationUnitGroupSetDimensions.addAll( object.getOrganisationUnitGroupSetDimensions() );
             organisationUnitLevels.addAll( object.getOrganisationUnitLevels() );
             categoryDimensions.addAll( object.getCategoryDimensions() );
-            categoryOptionGroups.addAll( object.getCategoryOptionGroups() );
+            categoryOptionGroupSetDimensions.addAll( object.getCategoryOptionGroupSetDimensions() );
             attributeDimensions.addAll( object.getAttributeDimensions() );
             dataElementDimensions.addAll( object.getDataElementDimensions() );
             programIndicatorDimensions.addAll( object.getProgramIndicatorDimensions() );
@@ -951,16 +928,16 @@ public abstract class BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "categoryOptionGroups", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "categoryOptionGroup", namespace = DxfNamespaces.DXF_2_0 )
-    public List<CategoryOptionGroup> getCategoryOptionGroups()
+    @JacksonXmlElementWrapper( localName = "categoryOptionGroupSetDimensions", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "categoryOptionGroupSetDimension", namespace = DxfNamespaces.DXF_2_0 )
+    public List<CategoryOptionGroupSetDimension> getCategoryOptionGroupSetDimensions()
     {
-        return categoryOptionGroups;
+        return categoryOptionGroupSetDimensions;
     }
 
-    public void setCategoryOptionGroups( List<CategoryOptionGroup> categoryOptionGroups )
+    public void setCategoryOptionGroupSetDimensions( List<CategoryOptionGroupSetDimension> categoryOptionGroupSetDimensions )
     {
-        this.categoryOptionGroups = categoryOptionGroups;
+        this.categoryOptionGroupSetDimensions = categoryOptionGroupSetDimensions;
     }
 
     @JsonProperty
