@@ -108,7 +108,7 @@ public class MetadataSyncPreProcessor
             log.error( "Exception happened while trying to do data push " + ex.getMessage(), ex );
             if ( ex instanceof MetadataSyncServiceException )
             {
-                throw ex;
+                throw (MetadataSyncServiceException)ex;
             }
             context.updateRetryContext( MetadataSyncTask.DATA_PUSH_SUMMARY, ex.getMessage(), null, null );
             throw new MetadataSyncServiceException( ex.getMessage(), ex );
@@ -144,7 +144,7 @@ public class MetadataSyncPreProcessor
 
             if ( ex instanceof MetadataSyncServiceException )
             {
-                throw ex;
+                throw (MetadataSyncServiceException)ex;
             }
 
             context.updateRetryContext( MetadataSyncTask.EVENT_PUSH_SUMMARY, ex.getMessage(), null, null );

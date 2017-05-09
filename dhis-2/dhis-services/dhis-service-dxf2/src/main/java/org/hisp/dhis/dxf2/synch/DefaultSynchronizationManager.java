@@ -48,6 +48,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.DefaultWebMessageJacksonService;
+import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
@@ -195,7 +196,7 @@ public class DefaultSynchronizationManager
     }
 
     @Override
-    public ImportSummary executeDataPush()
+    public ImportSummary executeDataPush() throws WebMessageParseException
     {
         AvailabilityStatus availability = isRemoteServerAvailable();
 
@@ -220,7 +221,7 @@ public class DefaultSynchronizationManager
      * @param instance the remote system instance.
      * @return an ImportSummary.
      */
-    private ImportSummary executeDataPush( SystemInstance instance )
+    private ImportSummary executeDataPush( SystemInstance instance ) throws WebMessageParseException
     {
         // ---------------------------------------------------------------------
         // Set time for last success to start of process to make data saved
@@ -293,7 +294,7 @@ public class DefaultSynchronizationManager
     }
 
     @Override
-    public ImportSummaries executeEventPush()
+    public ImportSummaries executeEventPush() throws WebMessageParseException
     {
         AvailabilityStatus availability = isRemoteServerAvailable();
 
