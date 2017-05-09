@@ -273,6 +273,16 @@ public abstract class BaseAnalyticalObject
     }
 
     /**
+     * Adds a {@link DataElementGroupSetDimension}.
+     * 
+     * @param dimension the dimension to add.
+     */
+    public void addDataElementGroupSetDimension( DataElementGroupSetDimension dimension )
+    {
+        dataElementGroupSetDimensions.add( dimension );
+    }
+    
+    /**
      * Adds an {@link OrganisationUnitGroupSetDimension}.
      * 
      * @param dimension the dimension to add.
@@ -280,6 +290,16 @@ public abstract class BaseAnalyticalObject
     public void addOrganisationUnitGroupSetDimension( OrganisationUnitGroupSetDimension dimension )
     {
         organisationUnitGroupSetDimensions.add( dimension );
+    }
+
+    /**
+     * Adds a {@link CategoryOptionGroupSetDimension}.
+     * 
+     * @param dimension the dimension to add.
+     */
+    public void addCategoryOptionGroupSetDimension( CategoryOptionGroupSetDimension dimension )
+    {
+        categoryOptionGroupSetDimensions.add( dimension );
     }
     
     @Override

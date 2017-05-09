@@ -30,13 +30,21 @@ package org.hisp.dhis.startup;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
+import org.hisp.dhis.dataelement.CategoryOptionGroupSetDimension;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -48,6 +56,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
+/**
+* @author Lars Helge Overland
+*/
 public class AnalyticalObjectEmbeddedDimensionUpgrader
     extends TransactionContextStartupRoutine
 {
@@ -62,13 +73,34 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
 
     @Override
     public void executeInTransaction()
-    {
+    {        
+        BiConsumer<BaseDimensionalEmbeddedObject, AnalyticalObject> dataElementGroupSetConsumer = ( embeddedDimension, analyticalObject ) -> {
+            DataElementGroupSetDimension dimension = new DataElementGroupSetDimension();
+            dimension.setDimension( (DataElementGroupSet) embeddedDimension.getDimension() );
+            dimension.setItems( DimensionalObjectUtils.asTypedList( embeddedDimension.getItems() ) );
+            analyticalObject.addDataElementGroupSetDimension( dimension );
+        };
+        
+        BiConsumer<BaseDimensionalEmbeddedObject, AnalyticalObject> orgUnitGroupSetConsumer = ( embeddedDimension, analyticalObject ) -> {
+            OrganisationUnitGroupSetDimension dimension = new OrganisationUnitGroupSetDimension();
+            dimension.setDimension( (OrganisationUnitGroupSet) embeddedDimension.getDimension() );
+            dimension.setItems( DimensionalObjectUtils.asTypedList( embeddedDimension.getItems() ) );
+            analyticalObject.addOrganisationUnitGroupSetDimension( dimension );
+        };
+        
+        BiConsumer<BaseDimensionalEmbeddedObject, AnalyticalObject> categoryOptionGroupSetConsumer = ( embeddedDimension, analyticalObject ) -> {
+            CategoryOptionGroupSetDimension dimension = new CategoryOptionGroupSetDimension();
+            dimension.setDimension( (CategoryOptionGroupSet) embeddedDimension.getDimension() );
+            dimension.setItems( DimensionalObjectUtils.asTypedList( embeddedDimension.getItems() ) );
+            analyticalObject.addCategoryOptionGroupSetDimension( dimension );
+        };
+        
         try
         {
-            upgradeGrupSetDimensions( "reporttable", "orgunitgroupset", "orgunitgroup", ReportTable.class );
-            upgradeGrupSetDimensions( "chart", "orgunitgroupset", "orgunitgroup", Chart.class );
-            upgradeGrupSetDimensions( "eventreport", "orgunitgroupset", "orgunitgroup", EventReport.class );
-            upgradeGrupSetDimensions( "eventchart", "orgunitgroupset", "orgunitgroup", EventChart.class );
+            upgradeGrupSetDimensions( "reporttable", "orgunitgroupset", "orgunitgroup", ReportTable.class, OrganisationUnitGroupSet.class, OrganisationUnitGroup.class, orgUnitGroupSetConsumer );
+            upgradeGrupSetDimensions( "chart", "orgunitgroupset", "orgunitgroup", Chart.class, OrganisationUnitGroupSet.class, OrganisationUnitGroup.class, orgUnitGroupSetConsumer  );
+            upgradeGrupSetDimensions( "eventreport", "orgunitgroupset", "orgunitgroup", EventReport.class, OrganisationUnitGroupSet.class, OrganisationUnitGroup.class, orgUnitGroupSetConsumer );
+            upgradeGrupSetDimensions( "eventchart", "orgunitgroupset", "orgunitgroup", EventChart.class, OrganisationUnitGroupSet.class, OrganisationUnitGroup.class, orgUnitGroupSetConsumer );
         }
         catch ( Exception ex )
         {
@@ -78,7 +110,10 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
         
     }
 
-    private void upgradeGrupSetDimensions( String favorite, String dimension, String item, Class<? extends AnalyticalObject> clazz )
+    @SuppressWarnings("unchecked")
+    private void upgradeGrupSetDimensions( String favorite, String dimension, String item, 
+        Class<? extends AnalyticalObject> clazz, Class<? extends DimensionalObject> dimensionClass, Class<? extends DimensionalItemObject> itemClass,
+        BiConsumer<BaseDimensionalEmbeddedObject, AnalyticalObject> consumer )
     {
         String groupSetSqlPattern = 
             "select distinct d.{favorite}id, gsm.{dimension}id " +
@@ -111,23 +146,20 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
             
             SqlRowSet groupRs = jdbcTemplate.queryForRowSet( groupSql );
 
-            List<OrganisationUnitGroup> groups = new ArrayList<>();
+            List<Integer> groupIds = new ArrayList<>();
             
             while ( groupRs.next() )
             {
-                int gId = groupRs.getInt( 1 );
-                
-                OrganisationUnitGroup group = idObjectManager.get( OrganisationUnitGroup.class, gId );                
-                groups.add( group );
-            }
+                groupIds.add( groupRs.getInt( 1 ) );
+            }            
+
+            List<DimensionalItemObject> groups = (List<DimensionalItemObject>) idObjectManager.getById( itemClass, groupIds );
             
-            OrganisationUnitGroupSet groupSet = idObjectManager.get( OrganisationUnitGroupSet.class, dimensionId );
+            DimensionalObject groupSet = idObjectManager.get( OrganisationUnitGroupSet.class, dimensionId );
             
-            OrganisationUnitGroupSetDimension dim = new OrganisationUnitGroupSetDimension();
-            dim.setDimension( groupSet );
-            dim.setItems( groups );
+            BaseDimensionalEmbeddedObject embeddedDim = new BaseDimensionalEmbeddedObject( groupSet, groups );
             
-            analyticalObject.addOrganisationUnitGroupSetDimension( dim );
+            consumer.accept( embeddedDim, analyticalObject );
             
             idObjectManager.update( analyticalObject );
             
@@ -140,5 +172,27 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
         jdbcTemplate.update( dropSql );
         
         log.info( String.format( "Dropped link table, update done for %s", favorite ) );
+    }
+    
+    class BaseDimensionalEmbeddedObject
+    {
+        private DimensionalObject dimension;
+        private List<DimensionalItemObject> items = new ArrayList<>();
+        
+        public BaseDimensionalEmbeddedObject( DimensionalObject dimension, List<DimensionalItemObject> items )
+        {
+            this.dimension = dimension;
+            this.items = items;
+        }
+
+        public DimensionalObject getDimension()
+        {
+            return dimension;
+        }
+
+        public List<DimensionalItemObject> getItems()
+        {
+            return items;
+        }
     }
 }

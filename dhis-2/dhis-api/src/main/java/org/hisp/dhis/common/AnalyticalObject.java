@@ -1,5 +1,8 @@
 package org.hisp.dhis.common;
 
+import org.hisp.dhis.dataelement.CategoryOptionGroupSetDimension;
+import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -64,7 +67,11 @@ public interface AnalyticalObject
     
     boolean removeDataDimensionItem( DimensionalItemObject object );
     
+    void addDataElementGroupSetDimension( DataElementGroupSetDimension dimension );
+    
     void addOrganisationUnitGroupSetDimension( OrganisationUnitGroupSetDimension dimension );
+    
+    void addCategoryOptionGroupSetDimension( CategoryOptionGroupSetDimension dimension );
     
     String getTitle();
     
