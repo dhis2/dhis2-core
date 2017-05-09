@@ -626,7 +626,7 @@ public class TextUtils
         
         String replaced = string;
         
-        for ( int i = 0; i < pairs.size(); i+=2 )
+        for ( int i = 0; i < pairs.size(); i += 2 )
         {
             String symbol = Pattern.quote( pairs.get(i ) );
             String replacement = pairs.get( i + 1 );
