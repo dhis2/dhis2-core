@@ -102,12 +102,13 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
             int gsId = groupSetRs.getInt( 2 );
             
             AnalyticalObject ao = idObjectManager.get( clazz, aoId );
-            OrganisationUnitGroupSet groupSet = idObjectManager.get( OrganisationUnitGroupSet.class, gsId );
             
             String groupSql = String.format( groupSqlFormat, analyticalObject, analyticalObject, aoId, gsId );
             
             SqlRowSet groupRs = jdbcTemplate.queryForRowSet( groupSql );
 
+            OrganisationUnitGroupSet groupSet = idObjectManager.get( OrganisationUnitGroupSet.class, gsId );
+            
             List<OrganisationUnitGroup> groups = new ArrayList<>();
             
             while ( groupRs.next() )
