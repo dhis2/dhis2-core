@@ -60,6 +60,7 @@ import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -229,7 +230,7 @@ public class JdbcEventAnalyticsManager
         List<String> fixedCols = Lists.newArrayList( "psi", "ps", "executiondate", "longitude", "latitude", "ouname", "oucode" );
         
         List<String> selectCols = ListUtils.distinctUnion( fixedCols, getSelectColumns( params ) );
-        
+
         String sql = "select " + StringUtils.join( selectCols, "," ) + " ";
 
         // ---------------------------------------------------------------------
@@ -245,19 +246,20 @@ public class JdbcEventAnalyticsManager
         if ( params.isSorting() )
         {
             sql += "order by ";
-        
+
             for ( String item : params.getAsc() )
             {
                 sql += statementBuilder.columnQuote( item ) + " asc,";
             }
-            
+
             for  ( String item : params.getDesc() )
             {
                 sql += statementBuilder.columnQuote( item ) + " desc,";
             }
-            
+
             sql = removeLastComma( sql ) + " ";
         }
+
         
         // ---------------------------------------------------------------------
         // Paging
@@ -602,9 +604,26 @@ public class JdbcEventAnalyticsManager
     private String getFromWhereMultiplePartitionsClause( EventQueryParams params, List<String> fixedColumns )
     {
         List<String> cols = ListUtils.distinctUnion( fixedColumns, getAggregateColumns( params ), getPartitionSelectColumns( params ) );
+
+        HashSet<String> fixedColumnsHashSet = new HashSet<>( fixedColumns );
+        HashSet<String> sortingStrings = new HashSet<>();
+
+        if ( params.isSorting() )
+        {
+            for ( String item : params.getAsc() )
+            {
+                if ( !fixedColumnsHashSet.contains( item ) ) sortingStrings.add( "\"" + item + "\"" );
+            }
+
+            for  ( String item : params.getDesc() )
+            {
+                if ( !fixedColumnsHashSet.contains( item ) ) sortingStrings.add( "\"" + item + "\"" );
+            }
+        }
         
         String selectCols = StringUtils.join( cols, "," );
-        
+        if ( !sortingStrings.isEmpty() ) selectCols += ", " + StringUtils.join( sortingStrings, "," );
+
         String sql = "from (";
         
         for ( String partition : params.getPartitions().getPartitions() )
