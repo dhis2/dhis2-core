@@ -41,9 +41,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
+import org.hisp.dhis.dataelement.CategoryDimension;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryDimension;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -114,7 +114,7 @@ public abstract class BaseAnalyticalObject
 
     protected List<Integer> organisationUnitLevels = new ArrayList<>();
 
-    protected List<DataElementCategoryDimension> categoryDimensions = new ArrayList<>();
+    protected List<CategoryDimension> categoryDimensions = new ArrayList<>();
 
     protected List<CategoryOptionGroup> categoryOptionGroups = new ArrayList<>();
 
@@ -409,7 +409,7 @@ public abstract class BaseAnalyticalObject
         }
         else if ( categoryDims.contains( dimension ) )
         {
-            DataElementCategoryDimension categoryDimension = categoryDimensions.get( categoryDims.indexOf( dimension ) );
+            CategoryDimension categoryDimension = categoryDimensions.get( categoryDims.indexOf( dimension ) );
 
             items.addAll( categoryDimension.getItems() );
 
@@ -606,7 +606,7 @@ public abstract class BaseAnalyticalObject
         }
         else if ( categoryDims.contains( dimension ) )
         {
-            DataElementCategoryDimension categoryDimension = categoryDimensions.get( categoryDims.indexOf( dimension ) );
+            CategoryDimension categoryDimension = categoryDimensions.get( categoryDims.indexOf( dimension ) );
 
             return new BaseDimensionalObject( dimension, DimensionType.CATEGORY, categoryDimension.getItems() );
         }
@@ -712,7 +712,7 @@ public abstract class BaseAnalyticalObject
     {
         List<String> categoryDims = new ArrayList<>();
 
-        for ( DataElementCategoryDimension dim : categoryDimensions )
+        for ( CategoryDimension dim : categoryDimensions )
         {
             categoryDims.add( dim.getDimension().getDimension() );
         }
@@ -816,7 +816,7 @@ public abstract class BaseAnalyticalObject
             meta.put( group.getGroupSet().getUid(), group.getGroupSet().getName() );
         }
 
-        for ( DataElementCategoryDimension category : categoryDimensions )
+        for ( CategoryDimension category : categoryDimensions )
         {
             meta.put( category.getDimension().getUid(), category.getDimension().getName() );
         }
@@ -998,12 +998,12 @@ public abstract class BaseAnalyticalObject
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "categoryDimensions", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "categoryDimension", namespace = DxfNamespaces.DXF_2_0 )
-    public List<DataElementCategoryDimension> getCategoryDimensions()
+    public List<CategoryDimension> getCategoryDimensions()
     {
         return categoryDimensions;
     }
 
-    public void setCategoryDimensions( List<DataElementCategoryDimension> categoryDimensions )
+    public void setCategoryDimensions( List<CategoryDimension> categoryDimensions )
     {
         this.categoryDimensions = categoryDimensions;
     }
