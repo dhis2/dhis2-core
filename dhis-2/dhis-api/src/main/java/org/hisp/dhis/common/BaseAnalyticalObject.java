@@ -271,6 +271,16 @@ public abstract class BaseAnalyticalObject
         return false;
     }
 
+    /**
+     * Adds an {@link OrganisationUnitGroupSetDimension}.
+     * 
+     * @param dimension the dimension to add.
+     */
+    public void addOrganisationUnitGroupSetDimension( OrganisationUnitGroupSetDimension dimension )
+    {
+        organisationUnitGroupSetDimensions.add( dimension );
+    }
+    
     @Override
     public void clearTransientState()
     {

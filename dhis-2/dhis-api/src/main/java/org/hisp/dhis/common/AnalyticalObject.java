@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
  */
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.period.Period;
 
 import java.util.Date;
@@ -62,6 +63,8 @@ public interface AnalyticalObject
     boolean addDataDimensionItem( DimensionalItemObject object );
     
     boolean removeDataDimensionItem( DimensionalItemObject object );
+    
+    void addOrganisationUnitGroupSetDimension( OrganisationUnitGroupSetDimension dimension );
     
     String getTitle();
     
