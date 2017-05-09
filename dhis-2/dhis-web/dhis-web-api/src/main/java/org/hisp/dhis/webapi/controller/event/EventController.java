@@ -209,6 +209,7 @@ public class EventController
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) Date dueDateStart,
         @RequestParam( required = false ) Date dueDateEnd,
+        @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) Date lastUpdatedStartDate,
         @RequestParam( required = false ) Date lastUpdatedEndDate,
         @RequestParam( required = false ) EventStatus status,
@@ -245,6 +246,8 @@ public class EventController
         }
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+
+        lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
@@ -584,7 +587,7 @@ public class EventController
     {
         importOptions.setImportStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-        importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(),  contextService.getParameterValuesMap() ));
+        importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
 
         if ( !importOptions.isAsync() )
         {
@@ -630,7 +633,7 @@ public class EventController
     {
         importOptions.setImportStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-        importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(),  contextService.getParameterValuesMap() ));
+        importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
 
         if ( !importOptions.isAsync() )
         {
@@ -890,16 +893,16 @@ public class EventController
     private IdSchemes getIdSchemesFromParameters( IdSchemes idSchemes, Map<String, List<String>> params )
     {
 
-        String idScheme  = getParamValue( params, "idScheme" );
+        String idScheme = getParamValue( params, "idScheme" );
 
-        if( idScheme != null )
+        if ( idScheme != null )
         {
             idSchemes.setIdScheme( idScheme );
         }
 
         String programStageInstanceIdScheme = getParamValue( params, "programStageInstanceIdScheme" );
 
-        if( programStageInstanceIdScheme != null )
+        if ( programStageInstanceIdScheme != null )
         {
             idSchemes.setProgramStageInstanceIdScheme( programStageInstanceIdScheme );
         }
@@ -907,9 +910,9 @@ public class EventController
         return idSchemes;
     }
 
-    private String getParamValue(  Map<String, List<String>> params, String key )
+    private String getParamValue( Map<String, List<String>> params, String key )
     {
-        return  params.get( key ) != null ? params.get( key ).get( 0 ) : null;
+        return params.get( key ) != null ? params.get( key ).get( 0 ) : null;
     }
 
 }
