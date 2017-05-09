@@ -488,7 +488,8 @@ dhis2.period.PeriodGenerator.prototype.getPeriodForTheDate = function(date, type
   } else if ( type === 'SixMonthlyApril' ) {
     offset = month < 4 ? -1 : 0;
   } else if ( (type === 'SixMonthly') || (type === 'Quarterly') || (type === 'BiMonthly') || (type === 'Monthly')
-    || (type === 'Weekly') || (type === 'Daily') ) {
+    || (type === 'Weekly') || (type === 'WeeklyWednesday') || (type === 'WeeklyThursday') || (type === 'WeeklySaturday') || (type === 'WeeklySunday')
+    || (type === 'Daily') ) {
     offset = 0;
   } else {
     return periodWithDate;
