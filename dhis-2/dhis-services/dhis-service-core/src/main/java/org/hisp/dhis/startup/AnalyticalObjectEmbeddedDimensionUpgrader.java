@@ -36,6 +36,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -64,10 +65,10 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
     {
         try
         {
-            upgradeOrgUnitGrupSetDimensions( "reporttable", ReportTable.class );
-            upgradeOrgUnitGrupSetDimensions( "chart", Chart.class );
-            upgradeOrgUnitGrupSetDimensions( "eventreport", EventReport.class );
-            upgradeOrgUnitGrupSetDimensions( "eventchart", EventChart.class );
+            upgradeGrupSetDimensions( "reporttable", "orgunitgroupset", "orgunitgroup", ReportTable.class );
+            upgradeGrupSetDimensions( "chart", "orgunitgroupset", "orgunitgroup", Chart.class );
+            upgradeGrupSetDimensions( "eventreport", "orgunitgroupset", "orgunitgroup", EventReport.class );
+            upgradeGrupSetDimensions( "eventchart", "orgunitgroupset", "orgunitgroup", EventChart.class );
         }
         catch ( Exception ex )
         {
@@ -77,38 +78,39 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
         
     }
 
-    private void upgradeOrgUnitGrupSetDimensions( String favoriteTableName, Class<? extends AnalyticalObject> clazz )
+    private void upgradeGrupSetDimensions( String favorite, String dimension, String item, Class<? extends AnalyticalObject> clazz )
     {
         String groupSetSqlFormat = 
-            "select distinct d.%sid, gsm.orgunitgroupsetid " +
-            "from %s_orgunitgroups d " +
-            "inner join orgunitgroupsetmembers gsm on d.orgunitgroupid=gsm.orgunitgroupid";
+            "select distinct d.{favorite}id, gsm.{dimension}id " +
+            "from {favorite}_{item}s d " +
+            "inner join {dimension}members gsm on d.{item}id=gsm.{item}id";
 
-        String groupSetSql = String.format( groupSetSqlFormat, favoriteTableName, favoriteTableName );
+        String groupSetSql = TextUtils.replace( groupSetSqlFormat, "{favorite}", favorite, "{dimension}", dimension, "{item}", item );
+        
+        log.info( String.format( "Dimension SQL: %s", groupSetSql ) );
         
         String groupSqlFormat =
-            "select d.orgunitgroupid " +
-            "from %s_orgunitgroups d " +
-            "inner join orgunitgroupsetmembers gsm on d.orgunitgroupid=gsm.orgunitgroupid " +
-            "where d.%sid=%d " +
-            "and gsm.orgunitgroupsetid=%d " +
-            "order by d.sort_order ";
+            "select d.{item}id " +
+            "from {favorite}_{item}s d " +
+            "inner join {dimension}members gsm on d.{item}id=gsm.{item}id " +
+            "where d.{favorite}id={favoriteId} " +
+            "and gsm.{dimension}id={dimensionId} " +
+            "order by d.sort_order";
         
         SqlRowSet groupSetRs = jdbcTemplate.queryForRowSet( groupSetSql );
         
         while ( groupSetRs.next() )
         {
-            int aoId = groupSetRs.getInt( 1 );
-            int gsId = groupSetRs.getInt( 2 );
+            int favoriteId = groupSetRs.getInt( 1 );
+            int dimensionId = groupSetRs.getInt( 2 );
             
-            AnalyticalObject ao = idObjectManager.get( clazz, aoId );
+            AnalyticalObject analyticalObject = idObjectManager.get( clazz, favoriteId );
             
-            String groupSql = String.format( groupSqlFormat, favoriteTableName, favoriteTableName, aoId, gsId );
+            String groupSql = TextUtils.replace( groupSqlFormat, "{favorite}", favorite, "{dimension}", dimension, 
+                "{item}", item, "{favoriteId}", String.valueOf( favoriteId ), "{dimensionId}", String.valueOf( dimensionId ) );
             
             SqlRowSet groupRs = jdbcTemplate.queryForRowSet( groupSql );
 
-            OrganisationUnitGroupSet groupSet = idObjectManager.get( OrganisationUnitGroupSet.class, gsId );
-            
             List<OrganisationUnitGroup> groups = new ArrayList<>();
             
             while ( groupRs.next() )
@@ -118,22 +120,24 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
                 OrganisationUnitGroup group = idObjectManager.get( OrganisationUnitGroup.class, gId );                
                 groups.add( group );
             }
+
+            OrganisationUnitGroupSet groupSet = idObjectManager.get( OrganisationUnitGroupSet.class, dimensionId );
             
-            OrganisationUnitGroupSetDimension dimension = new OrganisationUnitGroupSetDimension();
-            dimension.setDimension( groupSet );
-            dimension.setItems( groups );
+            OrganisationUnitGroupSetDimension dim = new OrganisationUnitGroupSetDimension();
+            dim.setDimension( groupSet );
+            dim.setItems( groups );
             
-            ao.addOrganisationUnitGroupSetDimension( dimension );
+            analyticalObject.addOrganisationUnitGroupSetDimension( dim );
             
-            idObjectManager.update( ao );
+            idObjectManager.update( analyticalObject );
             
-            log.info( String.format( "Added org unit group set dimension: %s with groups: %d for favorite: %s", groupSet.getUid(), groups.size(), ao.getUid() ) );
+            log.info( String.format( "Added org unit group set dimension: %s with groups: %d for favorite: %s", groupSet.getUid(), groups.size(), analyticalObject.getUid() ) );
         }
         
-        String dropSql = String.format( "drop table %s_orgunitgroups", favoriteTableName );
+        String dropSql = String.format( "drop table %s_orgunitgroups", favorite );
         
         jdbcTemplate.update( dropSql );
         
-        log.info( String.format( "Org unit update done for %s, dropped table %s_orgunitgroups", favoriteTableName, favoriteTableName ) );
+        log.info( String.format( "Org unit update done for %s", favorite ) );
     }
 }
