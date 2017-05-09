@@ -58,12 +58,12 @@
         foreign-key="fk_reporttable_categorydimensions_categorydimensionid" />
     </list>
 
-    <list name="dataElementGroups" table="reporttable_dataelementgroups">
+    <list name="dataElementGroupSetDimensions" table="reporttable_dataelementgroupsetdimensions" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="reporttableid" foreign-key="fk_reporttable_dataelementgroups_reporttableid" />
-      <list-index column="sort_order" base="0" />
-      <many-to-many column="dataelementgroupid" class="org.hisp.dhis.dataelement.DataElementGroup"
-        foreign-key="fk_reporttable_dataelementgroups_dataelementgroupid" />
+      <key column="reporttableid" foreign-key="fk_reporttable_dimensions_reporttableid" />
+      <list-index column="sort_order" />
+      <many-to-many column="dataelementgroupsetdimensionid" class="org.hisp.dhis.dataelement.DataElementGroupSetDimension"
+        foreign-key="fk_reporttable_dimensions_dataelementgroupsetdimensionid" />
     </list>
 
     <list name="organisationUnitGroups" table="reporttable_orgunitgroups">

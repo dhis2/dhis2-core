@@ -555,7 +555,9 @@ public class DefaultDimensionService
                 }
                 else if ( DATA_ELEMENT_GROUP_SET.equals( type ) )
                 {
-                    object.getDataElementGroups().addAll( idObjectManager.getByUidOrdered( DataElementGroup.class, uids ) );
+                    DataElementGroupSetDimension dataElementGroupSetDimension = new DataElementGroupSetDimension();
+                    dataElementGroupSetDimension.setDimension( idObjectManager.get( DataElementGroupSet.class, dimensionId ) );
+                    dataElementGroupSetDimension.getItems().addAll( idObjectManager.getByUidOrdered( DataElementGroup.class, uids ) );
                 }
                 else if ( ORGANISATION_UNIT_GROUP_SET.equals( type ) )
                 {
