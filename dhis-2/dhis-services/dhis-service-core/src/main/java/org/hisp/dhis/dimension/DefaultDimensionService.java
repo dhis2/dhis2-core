@@ -546,14 +546,6 @@ public class DefaultDimensionService
                         }
                     }
                 }
-                else if ( CATEGORY.equals( type ) )
-                {
-                    CategoryDimension categoryDimension = new CategoryDimension();
-                    categoryDimension.setDimension( idObjectManager.get( DataElementCategory.class, dimensionId ) );
-                    categoryDimension.getItems().addAll( idObjectManager.getByUidOrdered( DataElementCategoryOption.class, uids ) );
-                    
-                    object.getCategoryDimensions().add( categoryDimension );
-                }
                 else if ( DATA_ELEMENT_GROUP_SET.equals( type ) )
                 {
                     DataElementGroupSetDimension groupSetDimension = new DataElementGroupSetDimension();
@@ -569,6 +561,14 @@ public class DefaultDimensionService
                     groupSetDimension.getItems().addAll( idObjectManager.getByUidOrdered( OrganisationUnitGroup.class, uids ) );
                     
                     object.getOrganisationUnitGroupSetDimensions().add( groupSetDimension );
+                }
+                else if ( CATEGORY.equals( type ) )
+                {
+                    CategoryDimension categoryDimension = new CategoryDimension();
+                    categoryDimension.setDimension( idObjectManager.get( DataElementCategory.class, dimensionId ) );
+                    categoryDimension.getItems().addAll( idObjectManager.getByUidOrdered( DataElementCategoryOption.class, uids ) );
+
+                    object.getCategoryDimensions().add( categoryDimension );
                 }
                 else if ( CATEGORY_OPTION_GROUP_SET.equals( type ) )
                 {
