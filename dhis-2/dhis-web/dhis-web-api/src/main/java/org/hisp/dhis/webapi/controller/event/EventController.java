@@ -273,6 +273,7 @@ public class EventController
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) Date dueDateStart,
         @RequestParam( required = false ) Date dueDateEnd,
+        @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) Date lastUpdatedStartDate,
         @RequestParam( required = false ) Date lastUpdatedEndDate,
         @RequestParam( required = false ) EventStatus status,
@@ -309,6 +310,8 @@ public class EventController
         }
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+
+        lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
@@ -362,6 +365,7 @@ public class EventController
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) Date dueDateStart,
         @RequestParam( required = false ) Date dueDateEnd,
+        @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) Date lastUpdatedStartDate,
         @RequestParam( required = false ) Date lastUpdatedEndDate,
         @RequestParam( required = false ) EventStatus status,
@@ -386,6 +390,8 @@ public class EventController
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
         }
+
+        lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
