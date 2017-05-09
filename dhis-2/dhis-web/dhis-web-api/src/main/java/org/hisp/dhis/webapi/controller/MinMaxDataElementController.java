@@ -31,42 +31,44 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.google.common.collect.Lists;
-import org.apache.poi.ss.formula.functions.T;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.PagerUtils;
-import org.hisp.dhis.dxf2.common.OrderParams;
-import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
-import org.hisp.dhis.mapping.MapView;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.minmax.MinMaxDataElement;
+import org.hisp.dhis.minmax.MinMaxDataElementQuery;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
-import org.hisp.dhis.query.Order;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.descriptors.MinMaxDataElementSchemaDescriptor;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.webdomain.WebMetadata;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.webapi.service.WebMessageService;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -74,112 +76,158 @@ import java.util.Map;
 
 @Controller
 @RequestMapping( value = MinMaxDataElementSchemaDescriptor.API_ENDPOINT )
-@ApiVersion ( DhisApiVersion.DEFAULT, DhisApiVer )
+@ApiVersion ( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class MinMaxDataElementController
 {
+    private final ContextService contextService;
 
-    @Autowired
-    private ContextService contextService;
+    private final SchemaService schemaService;
 
-    @Autowired
-    private SchemaService schemaService;
+    private final MinMaxDataElementService minMaxService;
 
-    @Autowired
-    private MinMaxDataElementService minMaxDataElementService;
+    private final FieldFilterService fieldFilterService;
 
+    private final RenderService renderService;
 
+    private final WebMessageService webMessageService;
+
+    private final IdentifiableObjectManager manager;
+
+    public MinMaxDataElementController( ContextService contextService, SchemaService schemaService,
+        MinMaxDataElementService minMaxService, WebMessageService webMessageService, QueryService queryService,
+        FieldFilterService fieldFilterService, RenderService renderService, IdentifiableObjectManager manager )
+    {
+        this.contextService = contextService;
+        this.schemaService = schemaService;
+        this.minMaxService = minMaxService;
+        this.fieldFilterService = fieldFilterService;
+        this.renderService = renderService;
+        this.webMessageService = webMessageService;
+        this.manager = manager;
+
+    }
 
     //--------------------------------------------------------------------------
     // GET
     //--------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.GET )
-    public @ResponseBody RootNode getObjectList(
-        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        HttpServletResponse response, HttpServletRequest request, User currentUser ) throws QueryParserException
+    @GetMapping
+    public @ResponseBody RootNode getObjectList( MinMaxDataElementQuery query )
+        throws QueryParserException
     {
         Schema schema = schemaService.getDynamicSchema( MinMaxDataElement.class );
 
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-        List<Order> orders = orderParams.getOrders( schema );
+        query.setFilters( filters );
 
         if ( fields.isEmpty() )
         {
-            fields.addAll( Preset.defaultPreset().getFields() );
+            fields.addAll( Preset.ALL.getFields() );
         }
 
-        WebOptions options = new WebOptions( rpParameters );
-        WebMetadata metadata = new WebMetadata();
-
-        List<T> entities = getEntityList( metadata, options, filters, orders );
-        Pager pager = metadata.getPager();
-
-        if ( options.hasPaging() && pager == null )
-        {
-            pager = new Pager( options.getPage(), entities.size(), options.getPageSize() );
-            entities = PagerUtils.pageCollection( entities, pager );
-        }
-
-        postProcessEntities( entities );
-        postProcessEntities( entities, options, rpParameters );
-
-        handleLinksAndAccess( entities, fields, false, currentUser );
-
-        linkService.generatePagerLinks( pager, getEntityClass() );
+        List<MinMaxDataElement> minMaxDataElements = minMaxService.getMinMaxDataElements( query );
 
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.getConfig().setInclusionStrategy( getInclusionStrategy( rpParameters.get( "inclusionStrategy" ) ) );
 
-        if ( pager != null )
+        if ( !query.isSkipPaging() )
         {
-            rootNode.addChild( NodeUtils.createPager( pager ) );
+            query.setTotal( minMaxService.count( query ) );
+            rootNode.addChild( NodeUtils.createPager( query.getPager() ) );
         }
 
-        rootNode.addChild( fieldFilterService.filter( getEntityClass(), entities, fields ) );
+        rootNode.addChild( fieldFilterService.filter( MinMaxDataElement.class, minMaxDataElements, fields ) );
 
         return rootNode;
     }
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.GET )
-    public @ResponseBody RootNode getObject(
-        @PathVariable( "uid" ) String pvUid,
-        @RequestParam Map<String, String> rpParameters,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+    //--------------------------------------------------------------------------
+    // POST
+    //--------------------------------------------------------------------------
+
+    @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
+    public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
-        User user = currentUserService.getCurrentUser();
+        MinMaxDataElement minMax = deserializeJsonEntity( request, response );
 
-        if ( !aclService.canRead( user, getEntityClass() ) )
+        validate( minMax );
+
+        minMax = getReferences( minMax );
+
+        MinMaxDataElement persisted = minMaxService.getMinMaxDataElement( minMax.getSource(), minMax.getDataElement(), minMax.getOptionCombo() );
+
+        if ( Objects.isNull( persisted ) )
         {
-            throw new ReadAccessDeniedException( "You don't have the proper permissions to read objects of this type." );
-        }
-
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-        List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-
-        if ( fields.isEmpty() )
-        {
-            fields.add( ":all" );
-        }
-
-        return getObjectInternal( pvUid, rpParameters, filters, fields, user );
-    }
-
-    @Override
-    protected List<MinMaxDataElement> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
-        throws QueryParserException
-    {
-        List<MapView> entityList;
-
-        if ( options.getOptions().containsKey( "query" ) )
-        {
-            entityList = Lists.newArrayList( manager.filter( getEntityClass(), options.getOptions().get( "query" ) ) );
+            minMaxService.addMinMaxDataElement( minMax );
         }
         else
         {
-            entityList = new ArrayList<>( manager.getAll( getEntityClass() ) );
+            persisted.mergeWith( minMax );
+            minMaxService.updateMinMaxDataElement( persisted );
         }
 
-        return entityList;
+        WebMessage webMessage = new WebMessage();
+        webMessage.setHttpStatus( HttpStatus.CREATED );
+        webMessage.setStatus( Status.OK );
+
+        webMessageService.send( webMessage, response, request );
     }
+
+    //--------------------------------------------------------------------------
+    // DELETE
+    //--------------------------------------------------------------------------
+
+    @RequestMapping( method = RequestMethod.DELETE, consumes = "application/json" )
+    public void deleteObject( HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+
+        MinMaxDataElement minMax = deserializeJsonEntity( request, response );
+
+        validate( minMax );
+
+        minMax = getReferences( minMax );
+
+        MinMaxDataElement persisted = minMaxService.getMinMaxDataElement( minMax.getSource(), minMax.getDataElement(), minMax.getOptionCombo() );
+
+        if ( Objects.isNull( persisted ) )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "Can not find MinMaxDataElement." ) );
+        }
+
+        minMaxService.deleteMinMaxDataElement( persisted );
+
+        webMessageService.send( WebMessageUtils.ok( "MinMaxDataElement deleted." ), response, request );
+    }
+
+    private MinMaxDataElement deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response ) throws IOException
+    {
+        return renderService.fromJson( request.getInputStream(), MinMaxDataElement.class );
+    }
+
+    private void validate( MinMaxDataElement minMax ) throws WebMessageException
+    {
+        if ( !ObjectUtils.allNonNull( minMax.getDataElement(), minMax.getSource(), minMax.getOptionCombo() ) )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "Missing required parameters : Source, DataElement, OptionCombo." ) );
+        }
+    }
+
+    private MinMaxDataElement getReferences( MinMaxDataElement m ) throws WebMessageException
+    {
+        try
+        {
+            m.setDataElement( Objects.requireNonNull( manager.get( DataElement.class, m.getDataElement().getUid() ) ) );
+            m.setSource( Objects.requireNonNull( manager.get( OrganisationUnit.class, m.getSource().getUid() ) ) );
+            m.setOptionCombo( Objects.requireNonNull( manager.get( DataElementCategoryOptionCombo.class, m.getOptionCombo().getUid() ) ) );
+            return m;
+        }
+        catch ( NullPointerException e )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "Invalid required parameters: source, dataElement, optionCombo" ) );
+        }
+
+    }
+
+
 }
