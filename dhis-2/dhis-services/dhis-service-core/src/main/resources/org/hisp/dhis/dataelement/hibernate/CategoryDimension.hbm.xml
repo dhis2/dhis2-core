@@ -4,7 +4,7 @@
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.dataelement.DataElementCategoryDimension" table="categorydimension">
+  <class name="org.hisp.dhis.dataelement.CategoryDimension" table="categorydimension">
 
     <cache usage="read-write" />
 

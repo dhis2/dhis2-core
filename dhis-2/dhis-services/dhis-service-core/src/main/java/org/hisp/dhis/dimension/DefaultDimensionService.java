@@ -547,7 +547,7 @@ public class DefaultDimensionService
                 }
                 else if ( CATEGORY.equals( type ) )
                 {
-                    DataElementCategoryDimension categoryDimension = new DataElementCategoryDimension();
+                    CategoryDimension categoryDimension = new CategoryDimension();
                     categoryDimension.setDimension( idObjectManager.get( DataElementCategory.class, dimensionId ) );
                     categoryDimension.getItems().addAll( idObjectManager.getByUidOrdered( DataElementCategoryOption.class, uids ) );
 
