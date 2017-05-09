@@ -47,10 +47,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
-public class AnalyticalObjectGroupSetDimensionUpgrader
+public class AnalyticalObjectEmbeddedDimensionUpgrader
     extends TransactionContextStartupRoutine
 {
-    private static final Log log = LogFactory.getLog( AnalyticalObjectGroupSetDimensionUpgrader.class );
+    private static final Log log = LogFactory.getLog( AnalyticalObjectEmbeddedDimensionUpgrader.class );
     
     @Autowired
     private JdbcTemplate jdbcTemplate;
