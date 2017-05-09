@@ -653,7 +653,7 @@ $.extend( dhis2.period.WeeklyGenerator.prototype, {
       var endDate = this.calendar.newDate( startDate ).add( 1, 'w' ).add( -1, 'd' );
 
       period['endDate'] = endDate.formatDate( this.format );
-      period['name'] = 'W' + week + ' - ' + period['startDate'] + ' - ' + period['endDate'];
+      period['name'] = 'Week ' + week + ' - ' + period['startDate'] + ' - ' + period['endDate'];
       period['id'] = 'Weekly_' + period['startDate'];
       period['iso'] = year + 'W' + week;
 
@@ -715,7 +715,7 @@ $.extend( dhis2.period.WeeklyWednesdayGenerator.prototype, {
       var endDate = this.calendar.newDate( startDate ).add( 1, 'w' ).add( -1, 'd' );
 
       period['endDate'] = endDate.formatDate( this.format );
-      period['name'] = 'WedW' + week + ' - ' + period['startDate'] + ' - ' + period['endDate'];
+      period['name'] = 'Week ' + week + ' - ' + period['startDate'] + ' - ' + period['endDate'];
       period['id'] = 'WeeklyWednesday_' + period['startDate'];
       period['iso'] = year + 'WedW' + week;
 
@@ -777,7 +777,7 @@ $.extend( dhis2.period.WeeklyThursdayGenerator.prototype, {
       var endDate = this.calendar.newDate( startDate ).add( 1, 'w' ).add( -1, 'd' );
 
       period['endDate'] = endDate.formatDate( this.format );
-      period['name'] = 'ThuW' + week + ' - ' + period['startDate'] + ' - ' + period['endDate'];
+      period['name'] = 'Week ' + week + ' - ' + period['startDate'] + ' - ' + period['endDate'];
       period['id'] = 'WeeklyThursday_' + period['startDate'];
       period['iso'] = year + 'ThuW' + week;
 
@@ -839,7 +839,7 @@ $.extend( dhis2.period.WeeklySaturdayGenerator.prototype, {
       var endDate = this.calendar.newDate( startDate ).add( 1, 'w' ).add( -1, 'd' );
 
       period['endDate'] = endDate.formatDate( this.format );
-      period['name'] = 'SatW' + week + ' - ' + period['startDate'] + ' - ' + period['endDate'];
+      period['name'] = 'Week ' + week + ' - ' + period['startDate'] + ' - ' + period['endDate'];
       period['id'] = 'WeeklySaturday_' + period['startDate'];
       period['iso'] = year + 'SatW' + week;
 
@@ -901,7 +901,7 @@ $.extend( dhis2.period.WeeklySundayGenerator.prototype, {
       var endDate = this.calendar.newDate( startDate ).add( 1, 'w' ).add( -1, 'd' );
 
       period['endDate'] = endDate.formatDate( this.format );
-      period['name'] = 'SunW' + week + ' - ' + period['startDate'] + ' - ' + period['endDate'];
+      period['name'] = 'Week ' + week + ' - ' + period['startDate'] + ' - ' + period['endDate'];
       period['id'] = 'WeeklySunday_' + period['startDate'];
       period['iso'] = year + 'SunW' + week;
 
