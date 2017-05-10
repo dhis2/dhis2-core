@@ -1,4 +1,4 @@
-package org.hisp.dhis.query;
+package org.hisp.dhis.webapi.controller.exception;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,34 +28,26 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.Schema;
-
-import java.util.List;
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Created by sultanm.
+ * This exception could be used in all operation forbidden cases
  */
-public interface QueryParser
+public class OperationNotAllowedException
+    extends Exception
 {
-    /**
-     * Parses filter expressions, need 2 or 3 components depending on operator.
-     * i.e. for null you can use "name:null" which checks to see if property name is null
-     * i.e. for eq you can use "name:eq:ANC" which check to see if property name is equal to ANC
-     * <p>
-     * The general syntax is "propertyName:operatorName:<Value to check against if needed>"
-     *
-     * @param klass        Class type to query for
-     * @param filters      List of filters to add to Query
-     * @param rootJunction Root junction to use (defaults to AND)
-     * @return Query instance based on Schema of klass and filters list
-     * @throws QueryParserException
-     */
-    Query parse( Class<?> klass, List<String> filters, Junction.Type rootJunction ) throws QueryParserException;
 
-    Query parse( Class<?> klass, List<String> filters ) throws QueryParserException;
+    public OperationNotAllowedException( String message )
+    {
+        super( message );
+    }
 
-    Property getProperty( Schema schema, String path ) throws QueryParserException;
+    public OperationNotAllowedException( Throwable cause )
+    {
+        super( cause );
+    }
 
-    Restriction getRestriction( Schema schema, String path, String operator, Object arg ) throws QueryParserException;
+    public OperationNotAllowedException( String message, Throwable cause )
+    {
+        super( message, cause );
+    }
 }

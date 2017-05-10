@@ -55,11 +55,6 @@ public class ImportSummaryResponseExtractor
 
         HttpStatus status = response.getStatusCode();
 
-        if ( !(HttpStatus.CREATED.equals( status ) || HttpStatus.OK.equals( status )) )
-        {
-            throw new HttpServerErrorException( status, "Data synch failed on remote server" );
-        }
-
         return summary;
     }
 }

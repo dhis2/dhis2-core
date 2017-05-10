@@ -253,7 +253,7 @@ dhis2.de.shouldFetchDataSets = function( ids ) {
         return false;
     }
 
-    if( !$.isArray(ids) || ids.length == 0 || (ids.length > 0 && dhis2.de.fetchedDataSets[ids[0]]) ) {
+    if( !$.isArray(ids) || ids.length === 0 || (ids.length > 0 && dhis2.de.fetchedDataSets[ids[0]]) ) {
         return false;
     }
 
@@ -415,7 +415,7 @@ dhis2.de.uploadLocalData = function()
             },
             error: function( jqXHR, textStatus, errorThrown )
             {
-            	if ( 409 == xhr.status || 500 == xhr.status ) // Invalid value or locked
+            	if ( 409 === xhr.status || 500 === xhr.status ) // Invalid value or locked
             	{
             		// Ignore value for now TODO needs better handling for locking
             		
@@ -479,7 +479,7 @@ dhis2.de.uploadLocalData = function()
             },
             error: function( xhr, textStatus, errorThrown )
             {
-            	if ( 409 == xhr.status || 500 == xhr.status ) // Invalid value or locked
+            	if ( 409 === xhr.status || 500 === xhr.status ) // Invalid value or locked
             	{
             		// Ignore value for now TODO needs better handling for locking
             		
@@ -548,7 +548,7 @@ dhis2.de.addEventListeners = function()
             keyPress( event, this );
         } );
 
-        if ( type == 'DATE' )
+        if ( type === 'DATE' )
         {
             // Fake event, needed for valueBlur / valueFocus when using date-picker
             var fakeEvent = {
@@ -1190,7 +1190,7 @@ function dataSetSelected()
 
     dhis2.de.currentDataSetId = $( '#selectedDataSetId' ).val();
     
-    if ( dhis2.de.currentDataSetId && dhis2.de.currentDataSetId != -1 )
+    if ( dhis2.de.currentDataSetId && dhis2.de.currentDataSetId !== -1 )
     {
         $( '#selectedPeriodId' ).removeAttr( 'disabled' );
         $( '#prevButton' ).removeAttr( 'disabled' );
