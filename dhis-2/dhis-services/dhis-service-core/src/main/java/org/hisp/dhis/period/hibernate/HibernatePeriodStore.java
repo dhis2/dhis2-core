@@ -56,11 +56,11 @@ public class HibernatePeriodStore
     // -------------------------------------------------------------------------
 
     @Override
-    public int addPeriod( Period period )
+    public void addPeriod( Period period )
     {
         period.setPeriodType( reloadPeriodType( period.getPeriodType() ) );
 
-        return save( period );
+        save( period );
     }
 
     @Override

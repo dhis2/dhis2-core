@@ -427,11 +427,20 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
         }
         else if ( ProgramTrackedEntityAttributeGroup.class.isAssignableFrom( clazz ) )
         {
-            return (T) createProgramTrackedEntityAttributeGroup( uniqueName );
+            ProgramTrackedEntityAttributeGroup group = createProgramTrackedEntityAttributeGroup( uniqueName );
+
+            ProgramTrackedEntityAttribute attr = createProgramTrackedEntityAttribute( uniqueName );
+            group.addAttribute( attr );
+
+            return (T) group;
         }
         else if ( ProgramTrackedEntityAttribute.class.isAssignableFrom( clazz ))
         {
             return (T) createProgramTrackedEntityAttribute( uniqueName );
+        }
+        else if ( ProgramDataElementDimensionItem.class.isAssignableFrom( clazz ) )
+        {
+            return (T) createProgramDataElement( uniqueName );
         }
 
         return null;

@@ -77,7 +77,9 @@ public class DefaultOptionService
     @Override
     public int saveOptionSet( OptionSet optionSet )
     {
-        return optionSetStore.save( optionSet );
+        optionSetStore.save( optionSet );
+
+        return optionSet.getId();
     }
 
     @Override
@@ -180,7 +182,9 @@ public class DefaultOptionService
     @Override
     public int saveOptionGroup( OptionGroup group )
     {
-        return optionGroupStore.save( group );
+        optionGroupStore.save( group );
+
+        return group.getId();
     }
 
     @Override
@@ -246,7 +250,9 @@ public class DefaultOptionService
     @Override
     public int saveOptionGroupSet( OptionGroupSet group )
     {
-        return optionGroupSetStore.save( group );
+        optionGroupSetStore.save( group );
+
+        return group.getId();
     }
 
     @Override

@@ -28,6 +28,7 @@ package org.hisp.dhis.security.acl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -448,5 +449,143 @@ public class AclServiceTest
         manager.update( categoryOption );
 
         assertTrue( aclService.canUpdate( user2, categoryOption ) );
+    }
+
+    @Test
+    public void testUserCanUpdateDashboard()
+    {
+        User user1 = createUser( 'A' );
+        User user2 = createUser( 'B' );
+
+        manager.save( user1 );
+        manager.save( user2 );
+
+        Dashboard dashboard = new Dashboard( "Dashboard" );
+        dashboard.setUser( user1 );
+
+        manager.save( dashboard );
+
+        assertTrue( aclService.canRead( user1, dashboard ) );
+        assertTrue( aclService.canUpdate( user1, dashboard ) );
+        assertTrue( aclService.canDelete( user1, dashboard ) );
+        assertTrue( aclService.canManage( user1, dashboard ) );
+
+        assertFalse( aclService.canRead( user2, dashboard ) );
+        assertFalse( aclService.canUpdate( user2, dashboard ) );
+        assertFalse( aclService.canDelete( user2, dashboard ) );
+        assertFalse( aclService.canManage( user2, dashboard ) );
+    }
+
+    @Test
+    public void testUserCanUpdateDashboardSharedWithUserGroup()
+    {
+        User user1 = createUser( 'A' );
+        User user2 = createUser( 'B' );
+
+        manager.save( user1 );
+        manager.save( user2 );
+
+        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user1, user2 ) );
+        manager.save( userGroup );
+
+        Dashboard dashboard = new Dashboard( "Dashboard" );
+        dashboard.setUser( user1 );
+        manager.save( dashboard );
+
+        UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.READ );
+        dashboard.getUserGroupAccesses().add( userGroupAccess );
+        manager.update( dashboard );
+
+        assertTrue( aclService.canRead( user1, dashboard ) );
+        assertTrue( aclService.canUpdate( user1, dashboard ) );
+        assertTrue( aclService.canDelete( user1, dashboard ) );
+        assertTrue( aclService.canManage( user1, dashboard ) );
+
+        Access access = aclService.getAccess( dashboard, user2 );
+        assertTrue( access.isRead() );
+        assertFalse( access.isUpdate() );
+        assertFalse( access.isDelete() );
+        assertFalse( access.isManage() );
+
+        assertTrue( aclService.canRead( user2, dashboard ) );
+        assertFalse( aclService.canUpdate( user2, dashboard ) );
+        assertFalse( aclService.canDelete( user2, dashboard ) );
+        assertFalse( aclService.canManage( user2, dashboard ) );
+    }
+
+    @Test
+    public void testReadPrivateDataElementSharedThroughGroup()
+    {
+        User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
+        User user2 = createUser( "user2" );
+
+        manager.save( user1 );
+        manager.save( user2 );
+
+        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user1, user2 ) );
+        manager.save( userGroup );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setUser( user1 );
+
+        manager.save( dataElement );
+
+        UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.READ );
+        dataElement.getUserGroupAccesses().add( userGroupAccess );
+        manager.update( dataElement );
+
+        assertTrue( aclService.canRead( user1, dataElement ) );
+        assertTrue( aclService.canUpdate( user1, dataElement ) );
+        assertFalse( aclService.canDelete( user1, dataElement ) );
+        assertTrue( aclService.canManage( user1, dataElement ) );
+
+        Access access = aclService.getAccess( dataElement, user2 );
+        assertTrue( access.isRead() );
+        assertFalse( access.isUpdate() );
+        assertFalse( access.isDelete() );
+        assertFalse( access.isManage() );
+
+        assertTrue( aclService.canRead( user2, dataElement ) );
+        assertFalse( aclService.canUpdate( user2, dataElement ) );
+        assertFalse( aclService.canDelete( user2, dataElement ) );
+        assertFalse( aclService.canManage( user2, dataElement ) );
+    }
+
+    @Test
+    public void testUpdatePrivateDataElementSharedThroughGroup()
+    {
+        User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
+        User user2 = createUser( "user2" );
+
+        manager.save( user1 );
+        manager.save( user2 );
+
+        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user1, user2 ) );
+        manager.save( userGroup );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setUser( user1 );
+
+        manager.save( dataElement );
+
+        UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.READ_WRITE );
+        dataElement.getUserGroupAccesses().add( userGroupAccess );
+        manager.update( dataElement );
+
+        assertTrue( aclService.canRead( user1, dataElement ) );
+        assertTrue( aclService.canUpdate( user1, dataElement ) );
+        assertFalse( aclService.canDelete( user1, dataElement ) );
+        assertTrue( aclService.canManage( user1, dataElement ) );
+
+        Access access = aclService.getAccess( dataElement, user2 );
+        assertTrue( access.isRead() );
+        assertTrue( access.isUpdate() );
+        assertFalse( access.isDelete() );
+        assertTrue( access.isManage() );
+
+        assertTrue( aclService.canRead( user2, dataElement ) );
+        assertTrue( aclService.canUpdate( user2, dataElement ) );
+        assertFalse( aclService.canDelete( user2, dataElement ) );
+        assertTrue( aclService.canManage( user2, dataElement ) );
     }
 }

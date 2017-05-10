@@ -142,7 +142,7 @@ public class JdbcAnalyticsManager
             {
                 log.info( "Query failed, likely because the requested analytics table does not exist", ex );
 
-                return new AsyncResult<Map<String, Object>>( new HashMap<String, Object>() );
+                return new AsyncResult<>( new HashMap<String, Object>() );
             }
 
             replaceDataPeriodsWithAggregationPeriods( map, params, dataPeriodAggregationPeriodMap );
@@ -401,6 +401,12 @@ public class JdbcAnalyticsManager
                 "(coenddate >= '" + getMediumDateString( params.getEndDate() ) + "' or coenddate is null)) ";
         }
 
+        if ( params.hasStartEndDate() )
+        {
+            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "pestartdate" ) + "  >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+            sql += "and " + statementBuilder.columnQuote( "peenddate" ) + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
+        }
+
         if ( params.isTimely() )
         {
             sql += sqlHelper.whereAnd() + " timely is true ";
@@ -484,7 +490,7 @@ public class JdbcAnalyticsManager
     {
         Map<String, Object> map = new HashMap<>();
 
-        log.debug( "Analytics SQL: " + sql );
+        log.debug( String.format( "Analytics SQL: %s", sql ) );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 

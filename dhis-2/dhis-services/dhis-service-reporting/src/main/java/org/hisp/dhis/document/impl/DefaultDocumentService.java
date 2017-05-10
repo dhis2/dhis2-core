@@ -77,7 +77,9 @@ public class DefaultDocumentService
     @Override
     public int saveDocument( Document document )
     {
-        return documentStore.save( document );
+        documentStore.save( document );
+
+        return document.getId();
     }
 
     @Override

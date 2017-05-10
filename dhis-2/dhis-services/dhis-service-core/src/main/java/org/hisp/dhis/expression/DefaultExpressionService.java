@@ -163,7 +163,9 @@ public class DefaultExpressionService
     @Transactional
     public int addExpression( Expression expression )
     {
-        return expressionStore.save( expression );
+        expressionStore.save( expression );
+
+        return expression.getId();
     }
 
     @Override

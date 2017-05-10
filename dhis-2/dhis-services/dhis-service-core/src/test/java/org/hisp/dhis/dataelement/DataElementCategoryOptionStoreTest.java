@@ -28,18 +28,14 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-
-import javax.annotation.Resource;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.junit.Test;
+
+import javax.annotation.Resource;
+import java.util.List;
+
+import static org.junit.Assert.*;
 /**
  * @author Lars Helge Overland
  * @version $Id$
@@ -66,10 +62,13 @@ public class DataElementCategoryOptionStoreTest
         categoryOptionB = new DataElementCategoryOption( "CategoryOptionB" );
         categoryOptionC = new DataElementCategoryOption( "CategoryOptionC" );
         
-        int idA = categoryOptionStore.save( categoryOptionA );
-        int idB = categoryOptionStore.save( categoryOptionB );
-        int idC = categoryOptionStore.save( categoryOptionC );
-        
+        categoryOptionStore.save( categoryOptionA );
+        int idA = categoryOptionA.getId();
+        categoryOptionStore.save( categoryOptionB );
+        int idB = categoryOptionB.getId();
+        categoryOptionStore.save( categoryOptionC );
+        int idC = categoryOptionC.getId();
+
         assertEquals( categoryOptionA, categoryOptionStore.get( idA ) );
         assertEquals( categoryOptionB, categoryOptionStore.get( idB ) );
         assertEquals( categoryOptionC, categoryOptionStore.get( idC ) );
@@ -82,9 +81,12 @@ public class DataElementCategoryOptionStoreTest
         categoryOptionB = new DataElementCategoryOption( "CategoryOptionB" );
         categoryOptionC = new DataElementCategoryOption( "CategoryOptionC" );
 
-        int idA = categoryOptionStore.save( categoryOptionA );
-        int idB = categoryOptionStore.save( categoryOptionB );
-        int idC = categoryOptionStore.save( categoryOptionC );
+        categoryOptionStore.save( categoryOptionA );
+        int idA = categoryOptionA.getId();
+        categoryOptionStore.save( categoryOptionB );
+        int idB = categoryOptionB.getId();
+        categoryOptionStore.save( categoryOptionC );
+        int idC = categoryOptionC.getId();
         
         assertNotNull( categoryOptionStore.get( idA ) );
         assertNotNull( categoryOptionStore.get( idB ) );

@@ -173,7 +173,8 @@ public class DataValidationTask
 
                             if ( rule.getRightSide() != null && rule.getRightSide().getSlidingWindow() )
                             {
-                                rightSideValues = getExpressionValueMap( rule.getRightSide(), slidingWindowEventMap, period );
+                                rightSideValues = getExpressionValueMap( rule.getRightSide(), slidingWindowEventMap,
+                                    period );
                             }
                             else
                             {
@@ -347,9 +348,11 @@ public class DataValidationTask
             + ruleDataElements.size() + "] sourceDataElements[" + sourceDataElements.size() + "] elementsToGet["
             + dataElementsToGet.size() + "] allowedPeriodTypes[" + allowedPeriodTypes.size() + "]" );
 
-        return dataValueService.getDataValueMapByAttributeCombo( dataElementsToGet,
+        MapMap<String, DimensionalItemObject, Double> map = dataValueService.getDataValueMapByAttributeCombo( dataElementsToGet,
             period.getStartDate(), source, allowedPeriodTypes, context.getAttributeCombo(),
             context.getCogDimensionConstraints(), context.getCoDimensionConstraints(), lastUpdatedMap );
+
+        return map;
     }
 
     /**
@@ -403,7 +406,7 @@ public class DataValidationTask
         Calendar startDate = Calendar.getInstance();
 
         // Criteria 2
-        if ( endDate.after( period.getEndDate() ) )
+        if ( endDate.getTime().after( period.getEndDate() ) )
         {
             endDate.setTime( period.getEndDate() );
         }

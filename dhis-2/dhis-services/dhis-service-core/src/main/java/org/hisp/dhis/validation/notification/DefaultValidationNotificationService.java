@@ -28,9 +28,7 @@ package org.hisp.dhis.validation.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -39,21 +37,18 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
+import org.hisp.dhis.notification.SendStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.Importance;
 import org.hisp.dhis.validation.ValidationResult;
+import org.hisp.dhis.validation.ValidationResultService;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -63,6 +58,7 @@ import static org.hisp.dhis.commons.util.TextUtils.LN;
 /**
  * @author Halvdan Hoem Grelland
  */
+@Transactional
 public class DefaultValidationNotificationService
     implements ValidationNotificationService
 {
@@ -70,8 +66,8 @@ public class DefaultValidationNotificationService
 
     private static final Predicate<ValidationResult> IS_APPLICABLE_RESULT = vr ->
         Objects.nonNull( vr ) &&
-        Objects.nonNull( vr.getValidationRule() ) &&
-        !vr.getValidationRule().getNotificationTemplates().isEmpty();
+            Objects.nonNull( vr.getValidationRule() ) &&
+            !vr.getValidationRule().getNotificationTemplates().isEmpty();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -79,7 +75,8 @@ public class DefaultValidationNotificationService
 
     private NotificationMessageRenderer<ValidationResult> notificationMessageRenderer;
 
-    public void setNotificationMessageRenderer( NotificationMessageRenderer<ValidationResult> notificationMessageRenderer )
+    public void setNotificationMessageRenderer(
+        NotificationMessageRenderer<ValidationResult> notificationMessageRenderer )
     {
         this.notificationMessageRenderer = notificationMessageRenderer;
     }
@@ -91,16 +88,23 @@ public class DefaultValidationNotificationService
         this.messageService = messageService;
     }
 
+    private ValidationResultService validationResultService;
+
+    public void setValidationResultService( ValidationResultService validationResultService )
+    {
+        this.validationResultService = validationResultService;
+    }
+
     // -------------------------------------------------------------------------
     // ValidationNotificationService implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public void sendNotifications( Set<ValidationResult> validationResults )
+    public Set<ValidationResult> sendNotifications( Set<ValidationResult> validationResults )
     {
         if ( validationResults.isEmpty() )
         {
-            return;
+            return Sets.newHashSet();
         }
 
         Clock clock = new Clock( log ).startClock()
@@ -114,22 +118,86 @@ public class DefaultValidationNotificationService
         // Transform into distinct pairs of ValidationRule and ValidationNotificationTemplate
         SortedSet<MessagePair> messagePairs = createMessagePairs( applicableResults );
 
-        // Group the set of MessagePair into divisions representing a single summarized message and its recipients
-        Map<Set<User>, SortedSet<MessagePair>> groupedByRecipients = createRecipientsToMessagePairsMap( messagePairs );
+        // Segregate MessagePairs based on SendStrategy
+        Map<SendStrategy, SortedSet<MessagePair>> segregatedMap = segregateMessagePairBasedOnStrategy( messagePairs );
 
-        // Flatten the grouped and sorted MessagePairs into single NotificationMessages
-        Map<Set<User>, NotificationMessage> summaryMessages = createSummaryNotificationMessages( groupedByRecipients, new Date() );
+        Map<SendStrategy, Map<Set<User>, NotificationMessage>> notficationCollections = new HashMap<>();
 
-        clock.logTime( String.format( "Sending %d summarized notification(s)", summaryMessages.size() ) );
+        notficationCollections.put( SendStrategy.SINGLE_NOTIFICATION , createSingleNotifications( segregatedMap.getOrDefault( SendStrategy.SINGLE_NOTIFICATION, new TreeSet<>() ) ) );
 
-        summaryMessages.forEach( this::sendNotification );
+        notficationCollections.put( SendStrategy.COLLECTIVE_SUMMARY, createSummaryNotifications( segregatedMap.getOrDefault( SendStrategy.COLLECTIVE_SUMMARY, new TreeSet<>() ) ) );
+
+        for (Map.Entry<SendStrategy, Map<Set<User>, NotificationMessage>> entry : notficationCollections.entrySet() )
+        {
+            clock.logTime( String.format( "Sending %d %s notification(s)", entry.getValue().size(), entry.getKey().getDescription() ) );
+
+            entry.getValue().forEach( this::sendNotification );
+        }
 
         clock.logTime( "Done sending validation notifications" );
+
+        return applicableResults;
+    }
+
+    @Override
+    public void sendUnsentNotifications()
+    {
+        Set<ValidationResult> validationResults =
+            sendNotifications( Sets.newHashSet( validationResultService.getAllUnReportedValidationResults() ) );
+
+        validationResults.forEach( vr -> vr.setNotificationSent( true ) );
+        validationResultService.updateValidationResults( validationResults );
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    private Map<SendStrategy, SortedSet<MessagePair>> segregateMessagePairBasedOnStrategy( SortedSet<MessagePair> messagePairs )
+    {
+        Map<SendStrategy, SortedSet<MessagePair>> segregatedMap = new HashMap<>();
+
+        for ( MessagePair messagePair : messagePairs )
+        {
+            if ( SendStrategy.SINGLE_NOTIFICATION.equals( messagePair.template.getSendStrategy() ) )
+            {
+                segregatedMap.computeIfAbsent( SendStrategy.SINGLE_NOTIFICATION, k -> new TreeSet<>() ).add( messagePair );
+            }
+            else
+            {
+                segregatedMap.computeIfAbsent( SendStrategy.COLLECTIVE_SUMMARY, k -> new TreeSet<>() ).add( messagePair );
+            }
+        }
+
+        return segregatedMap;
+    }
+
+    private Map<Set<User>, NotificationMessage> createSingleNotifications( SortedSet<MessagePair> messagePairs )
+    {
+        BiMap<Set<User>, NotificationMessage> singleNotificationCollection = HashBiMap.create();
+
+        for ( MessagePair messagePair : messagePairs )
+        {
+            NotificationMessage notificationMessage = notificationMessageRenderer.render( messagePair.result, messagePair.template );
+
+            singleNotificationCollection.put( new HashSet<>(), notificationMessage );
+
+            resolveRecipients( messagePair ).forEach( user -> singleNotificationCollection.inverse().get( notificationMessage ).add( user ) );
+        }
+
+        return singleNotificationCollection;
+    }
+
+    private Map<Set<User>, NotificationMessage> createSummaryNotifications( SortedSet<MessagePair> messagePairs )
+    {
+        // Group the set of MessagePair into divisions representing a single summarized message and its recipients
+        Map<Set<User>, SortedSet<MessagePair>> groupedByRecipientsForSummary = createRecipientsToMessagePairsMap( messagePairs );
+
+        // Flatten the grouped and sorted MessagePairs into single NotificationMessages
+        Map<Set<User>, NotificationMessage> summaryMessages = createSummaryNotificationMessages( groupedByRecipientsForSummary, new Date() );
+
+        return summaryMessages;
+    }
 
     private Map<Set<User>, NotificationMessage> createSummaryNotificationMessages(
         Map<Set<User>, SortedSet<MessagePair>> groupedByRecipients, final Date validationDate )
@@ -153,7 +221,8 @@ public class DefaultValidationNotificationService
      * The messages generated by each distinct MessagePair are concatenated in their given order.
      */
     private static NotificationMessage createSummarizedMessage(
-        SortedSet<MessagePair> pairs, final Map<MessagePair, NotificationMessage> renderedNotificationsMap, final Date validationDate )
+        SortedSet<MessagePair> pairs, final Map<MessagePair, NotificationMessage> renderedNotificationsMap,
+        final Date validationDate )
     {
         Map<Importance, Long> counts = pairs.stream()
             .map( m -> m.result.getValidationRule().getImportance() )
@@ -171,7 +240,7 @@ public class DefaultValidationNotificationService
         String message = pairs.stream().sorted()
             .map( renderedNotificationsMap::get )
             .map( n -> String.format( "%s%s%s", n.getSubject(), LN, n.getMessage() ) )
-            .reduce( "", (initStr, newStr) -> String.format( "%s%s%s", initStr, LN + LN, newStr ) );
+            .reduce( "", ( initStr, newStr ) -> String.format( "%s%s%s", initStr, LN + LN, newStr ) );
 
         return new NotificationMessage( subject, message );
     }
@@ -185,13 +254,15 @@ public class DefaultValidationNotificationService
             .collect( Collectors.toCollection( TreeSet::new ) );
     }
 
-    private static Map<Set<User>, SortedSet<MessagePair>> createRecipientsToMessagePairsMap( SortedSet<MessagePair> messagePairs )
+    private static Map<Set<User>, SortedSet<MessagePair>> createRecipientsToMessagePairsMap(
+        SortedSet<MessagePair> messagePairs )
     {
         // Map each user to a distinct set of MessagePair
         Map<User, SortedSet<MessagePair>> singleUserToMessagePairs = getMessagePairsPerSingleUser( messagePairs );
 
         // Group each distinct SortedSet of MessagePair for the distinct Set of recipient Users
-        Map<Set<User>, SortedSet<MessagePair>> groupedByRecipients = groupRecipientsForMessagePairs( singleUserToMessagePairs );
+        Map<Set<User>, SortedSet<MessagePair>> groupedByRecipients = groupRecipientsForMessagePairs(
+            singleUserToMessagePairs );
 
         return groupedByRecipients;
     }
@@ -213,7 +284,8 @@ public class DefaultValidationNotificationService
         return messagePairsPerUsers;
     }
 
-    private static Map<Set<User>, SortedSet<MessagePair>> groupRecipientsForMessagePairs( Map<User, SortedSet<MessagePair>> messagePairsPerUser )
+    private static Map<Set<User>, SortedSet<MessagePair>> groupRecipientsForMessagePairs(
+        Map<User, SortedSet<MessagePair>> messagePairsPerUser )
     {
         BiMap<Set<User>, SortedSet<MessagePair>> grouped = HashBiMap.create();
 
@@ -284,13 +356,14 @@ public class DefaultValidationNotificationService
     /**
      * Wrapper for a distinct pair of ValidationResult and template which
      * correspond to one single (rendered) message.
-     *
+     * <p>
      * The natural order reflects the ordering of the contained ValidationResult.
      */
     private static class MessagePair
         implements Comparable<MessagePair>
     {
         final ValidationResult result;
+
         final ValidationNotificationTemplate template;
 
         private MessagePair( ValidationResult result, ValidationNotificationTemplate template )
@@ -302,9 +375,11 @@ public class DefaultValidationNotificationService
         @Override
         public boolean equals( Object other )
         {
-            if ( this == other ) return true;
+            if ( this == other )
+                return true;
 
-            if ( !(other instanceof MessagePair) ) return false;
+            if ( !(other instanceof MessagePair) )
+                return false;
 
             MessagePair that = (MessagePair) other;
 

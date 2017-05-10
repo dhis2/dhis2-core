@@ -1,4 +1,4 @@
-package org.hisp.dhis.programrule;
+package org.hisp.dhis.validation.notification;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,67 +28,74 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.security.NoSecurityContextRunnable;
+import org.hisp.dhis.system.notification.NotificationLevel;
+import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.system.util.Clock;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 /**
- * @author markusbekken
+ * @author Stian Sandvold
  */
-@Transactional
-public class DefaultProgramRuleActionService
-    implements ProgramRuleActionService
+public class ValidationResultNotificationTask
+    extends NoSecurityContextRunnable
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
 
-    private ProgramRuleActionStore programRuleActionStore;
+    @Autowired
+    private ValidationNotificationService notificationService;
 
-    public void setProgramRuleActionStore( ProgramRuleActionStore programRuleActionStore )
+    @Autowired
+    private MessageService messageService;
+
+    @Autowired
+    private Notifier notifier;
+
+    public static final String KEY_TASK = "validationResultNotificationTask";
+
+    private TaskId taskId;
+
+    public void setTaskId( TaskId taskId )
     {
-        this.programRuleActionStore = programRuleActionStore;
+        this.taskId = taskId;
     }
 
     // -------------------------------------------------------------------------
-    // ProgramRuleAction implementation
+    // Runnable implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public int addProgramRuleAction( ProgramRuleAction programRuleAction )
+    public void call()
     {
-        programRuleActionStore.save( programRuleAction );
+        final Clock clock = new Clock().startClock();
 
-        return programRuleAction.getId();
+        notifier.notify( taskId, "Sending new validation result notifications" );
+
+        try
+        {
+            runInternal();
+
+            notifier.notify( taskId, NotificationLevel.INFO,
+                "Sent validation result notifications: " + clock.time(), true );
+        }
+        catch ( RuntimeException ex )
+        {
+            notifier.notify( taskId, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
+
+            messageService
+                .sendSystemErrorNotification( "Sending validation result notifications failed", ex );
+
+            throw ex;
+        }
     }
 
-    @Override
-    public void deleteProgramRuleAction( ProgramRuleAction programRuleAction )
+    @Transactional
+    private void runInternal()
     {
-        programRuleActionStore.delete( programRuleAction );
-    }
 
-    @Override
-    public void updateProgramRuleAction( ProgramRuleAction programRuleAction )
-    {
-        programRuleActionStore.update( programRuleAction );
-    }
+        notificationService.sendUnsentNotifications();
 
-    @Override
-    public ProgramRuleAction getProgramRuleAction( int id )
-    {
-        return programRuleActionStore.get( id );
-    }
-
-    @Override
-    public List<ProgramRuleAction> getAllProgramRuleAction()
-    {
-        return programRuleActionStore.getAll();
-    }
-
-    @Override
-    public List<ProgramRuleAction> getProgramRuleAction( ProgramRule programRule )
-    {
-        return programRuleActionStore.get( programRule );
     }
 }

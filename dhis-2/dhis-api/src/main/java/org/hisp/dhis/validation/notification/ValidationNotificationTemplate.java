@@ -38,6 +38,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.notification.NotificationTemplate;
+import org.hisp.dhis.notification.SendStrategy;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.validation.ValidationRule;
@@ -67,6 +68,8 @@ public class ValidationNotificationTemplate
     private Boolean notifyUsersInHierarchyOnly;
 
     private Set<UserGroup> recipientUserGroups = new HashSet<>();
+
+    private SendStrategy sendStrategy = SendStrategy.COLLECTIVE_SUMMARY;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -159,6 +162,18 @@ public class ValidationNotificationTemplate
         this.recipientUserGroups = recipientUserGroups;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public SendStrategy getSendStrategy()
+    {
+        return sendStrategy;
+    }
+
+    public void setSendStrategy( SendStrategy sendStrategy )
+    {
+        this.sendStrategy = sendStrategy;
+    }
+
     // -------------------------------------------------------------------------
     // IdentifiableObject overrides
     // -------------------------------------------------------------------------
@@ -177,6 +192,7 @@ public class ValidationNotificationTemplate
                 subjectTemplate = that.getSubjectTemplate();
                 messageTemplate = that.getMessageTemplate();
                 notifyUsersInHierarchyOnly = that.notifyUsersInHierarchyOnly;
+                sendStrategy = that.sendStrategy;
             }
             else if ( mergeMode.isMerge() )
             {
@@ -184,6 +200,7 @@ public class ValidationNotificationTemplate
                 messageTemplate = that.getMessageTemplate() == null ? messageTemplate : that.getMessageTemplate();
                 notifyUsersInHierarchyOnly =
                     that.getNotifyUsersInHierarchyOnly() == null ? notifyUsersInHierarchyOnly : that.getNotifyUsersInHierarchyOnly();
+                sendStrategy = that.sendStrategy == null ? sendStrategy : that.sendStrategy;
             }
 
             validationRules.clear();

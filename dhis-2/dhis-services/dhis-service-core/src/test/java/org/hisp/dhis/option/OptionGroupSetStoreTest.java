@@ -59,4 +59,10 @@ public class OptionGroupSetStoreTest
     {
         return "org.hisp.dhis.option.OptionGroupSetStore";
     }
+
+    @Override
+    protected int getObjectId( OptionGroupSet object )
+    {
+        return  object.getId();
+    }
 }

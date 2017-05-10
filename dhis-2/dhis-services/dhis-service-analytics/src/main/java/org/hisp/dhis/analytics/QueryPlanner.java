@@ -91,7 +91,7 @@ public interface QueryPlanner
      * 
      * @param params the data query parameters.
      * @param plannerParams the query planner parameters.
-     * @return a DataQueryGroups object.
+     * @return a {@link DataQueryGroups} object.
      */
     DataQueryGroups planQuery( DataQueryParams params, QueryPlannerParams plannerParams  )
         throws IllegalQueryException;

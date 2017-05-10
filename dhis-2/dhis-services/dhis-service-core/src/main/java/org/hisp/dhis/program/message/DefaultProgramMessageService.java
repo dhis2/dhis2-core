@@ -182,7 +182,8 @@ public class DefaultProgramMessageService
     @Override
     public int saveProgramMessage( ProgramMessage programMessage )
     {
-        return programMessageStore.save( programMessage );
+        programMessageStore.save( programMessage );
+        return programMessage.getId();
     }
 
     @Override
