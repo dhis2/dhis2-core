@@ -50,6 +50,7 @@
     var i18_value = '$encoder.jsEscape( $i18n.getString( "value" ) , "'" )';
     var i18_text = '$encoder.jsEscape( $i18n.getString( "text" ) , "'" )';
     var i18_password = '$encoder.jsEscape( $i18n.getString( "password" ) , "'" )';
+	var i18_header = '$encoder.jsEscape( $i18n.getString( "header" ) , "'" )';
 
 
 </script>
@@ -116,11 +117,11 @@
 				<td><input type="text" name="name" id="name" style="width: 28em" value="$!encoder.htmlEncode( $!httpGateway.name )"/></td>
 			</tr>
 			<tr>
-				<td>$i18n.getString( "messageParameter" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+				<td>$i18n.getString( "messageParameter" ):</td>
 				<td><input type="text" name="messageParameter" id="messageParameter" style="width: 28em" value="$!httpGateway.messageParameter"/></td>
 			</tr>
 			<tr>
-				<td>$i18n.getString( "recipientParameter" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+				<td>$i18n.getString( "recipientParameter" ):</td>
 				<td><input type="text" name="recipientParameter" id="recipientParameter" style="width: 28em" value="$!httpGateway.recipientParameter"/></td>
 			</tr>
 			
@@ -140,8 +141,8 @@
 			     	 	 <input type="password" name="oldValue$rowId" id="oldValue$rowId" style="width:10em" value=""/>
 			     	 #else	     	 
 			     		 <input type="text" name="oldValue$rowId" id="oldValue$rowId" style="width:10em" value="$!encoder.htmlEncode( $!param.value )"/> 
-			     	 #end	     	
-			     		<input type="hidden" name="oldHidden$rowId" id="oldHidden$rowId" value="$!encoder.htmlEncode( $!param.classified )"/> 	      
+			     	 #end
+                         <input type="hidden" name="oldHidden$rowId" id="oldHidden$rowId" value="$!encoder.htmlEncode( $!param.classified )"/>
 			     	 	<input style="margin-left: 13em" type="button" value="remove" onclick="removeOldParamForm('$rowId')"/>
 			     	 </td>
 			      </tr>

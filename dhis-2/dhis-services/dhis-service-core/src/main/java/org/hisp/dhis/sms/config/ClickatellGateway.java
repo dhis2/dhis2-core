@@ -1,23 +1,15 @@
 package org.hisp.dhis.sms.config;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.ClickatellRequestEntity;
 import org.hisp.dhis.sms.outbound.ClickatellResponseEntity;
-import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Set;
@@ -54,7 +46,7 @@ import java.util.Set;
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 public class ClickatellGateway
-    implements SmsGateway
+    extends SmsGateway
 {
     private static final Log log = LogFactory.getLog( ClickatellGateway.class );
 
@@ -66,26 +58,7 @@ public class ClickatellGateway
 
     private static final String PROTOCOL_VERSION = "X-Version";
 
-    private static final String maxMessageParts = "?maxMessageParts=4";
-
-    private static final ImmutableMap<HttpStatus, GatewayResponse> CLICKATELL_GATEWAY_RESPONSE_MAP = new ImmutableMap.Builder<HttpStatus, GatewayResponse>()
-        .put( HttpStatus.OK, GatewayResponse.RESULT_CODE_200 )
-        .put( HttpStatus.ACCEPTED, GatewayResponse.RESULT_CODE_202 )
-        .put( HttpStatus.MULTI_STATUS, GatewayResponse.RESULT_CODE_207 )
-        .put( HttpStatus.BAD_REQUEST, GatewayResponse.RESULT_CODE_400 )
-        .put( HttpStatus.UNAUTHORIZED, GatewayResponse.RESULT_CODE_401 )
-        .put( HttpStatus.PAYMENT_REQUIRED, GatewayResponse.RESULT_CODE_402 )
-        .put( HttpStatus.NOT_FOUND, GatewayResponse.RESULT_CODE_404 )
-        .put( HttpStatus.METHOD_NOT_ALLOWED, GatewayResponse.RESULT_CODE_405 )
-        .put( HttpStatus.GONE, GatewayResponse.RESULT_CODE_410 )
-        .put( HttpStatus.SERVICE_UNAVAILABLE, GatewayResponse.RESULT_CODE_503 ).build();
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    @Autowired
-    private RestTemplate restTemplate;
+    private static final String MAX_MESSAGE_PART = "?maxMessageParts=4";
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -109,54 +82,14 @@ public class ClickatellGateway
         HttpEntity<ClickatellRequestEntity> request =
             new HttpEntity<>( getRequestBody( text, recipients ), getRequestHeaderParameters( clickatellConfiguration ) );
 
-        return handleResponse( send( clickatellConfiguration.getUrlTemplate(), request ) );
+        HttpStatus httpStatus = send( clickatellConfiguration.getUrlTemplate() + MAX_MESSAGE_PART, request, ClickatellResponseEntity.class );
+
+        return wrapHttpStatus( httpStatus );
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-
-    private HttpStatus send( String urlTemplate, HttpEntity<?> request )
-    {
-        ResponseEntity<ClickatellResponseEntity> response;
-        HttpStatus statusCode = null;
-
-        try
-        {
-            response = restTemplate.exchange( urlTemplate + maxMessageParts, HttpMethod.POST, request,
-                ClickatellResponseEntity.class );
-
-            statusCode = response.getStatusCode();
-        }
-        catch ( HttpClientErrorException ex )
-        {
-            log.error( "Client error", ex );
-
-            statusCode = ex.getStatusCode();
-        }
-        catch ( HttpServerErrorException ex )
-        {
-            log.error( "Server error", ex );
-
-            statusCode = ex.getStatusCode();
-        }
-        catch ( Exception ex )
-        {
-            log.error( "Error", ex );
-        }
-
-        log.info( "Response status code: " + statusCode );
-
-        return statusCode;
-    }
-
-    private OutboundMessageResponse handleResponse( HttpStatus httpStatus )
-    {
-        OutboundMessageResponse status = new OutboundMessageResponse();
-        status.setResponseObject( CLICKATELL_GATEWAY_RESPONSE_MAP.get( httpStatus ) );
-
-        return status;
-    }
 
     private ClickatellRequestEntity getRequestBody( String text, Set<String> recipients )
     {

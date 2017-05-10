@@ -41,10 +41,6 @@ public class ClickatellGatewayConfig
     private final String TOKEN_PREFIX = "Bearer ";
     
     private final String URL_TEMPLATE = "https://api.clickatell.com/rest/message";
-
-    private String username;
-
-    private String password;
     
     private String authToken;
 
@@ -59,32 +55,10 @@ public class ClickatellGatewayConfig
         this.authToken = TOKEN_PREFIX + authToken;
     }
 
-    @JsonProperty( value = "username" )
-    public String getUsername()
-    {
-        return username;
-    }
-
-    public void setUsername( String username )
-    {
-        this.username = username;
-    }
-
-    public String getPassword()
-    {
-        return password;
-    }
-
     @JsonProperty( value = "default" )
     public boolean getStatus()
     {
         return super.isDefault();
-    }
-
-    @JsonProperty
-    public void setPassword( String password )
-    {
-        this.password = password;
     }
 
     @JsonProperty( value = "name" )
