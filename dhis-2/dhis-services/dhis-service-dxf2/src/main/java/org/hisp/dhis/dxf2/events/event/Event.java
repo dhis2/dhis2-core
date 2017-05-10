@@ -403,7 +403,7 @@ public class Event
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getDeleted()
+    public Boolean isDeleted()
     {
         return deleted;
     }
