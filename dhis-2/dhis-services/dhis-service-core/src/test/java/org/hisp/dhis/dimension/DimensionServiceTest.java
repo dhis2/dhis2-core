@@ -43,6 +43,8 @@ import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
@@ -93,13 +95,19 @@ public class DimensionServiceTest
     
     private DimensionalItemObject ouUser;
     private DimensionalItemObject ouLevel2;
+
+    private DataElementGroupSet deGroupSetA;
+    
+    private DataElementGroup deGroupA;
+    private DataElementGroup deGroupB;
+    private DataElementGroup deGroupC;
+
+    private OrganisationUnitGroupSet ouGroupSetA;
     
     private OrganisationUnitGroup ouGroupA;
     private OrganisationUnitGroup ouGroupB;
     private OrganisationUnitGroup ouGroupC;
-    
-    private OrganisationUnitGroupSet ouGroupSetA;
-    
+        
     @Autowired
     private DataElementService dataElementService;
     
@@ -172,6 +180,28 @@ public class DimensionServiceTest
         
         ouUser = new BaseDimensionalItemObject( KEY_USER_ORGUNIT );
         ouLevel2 = new BaseDimensionalItemObject( level2 );
+        
+        deGroupSetA = createDataElementGroupSet( 'A' );
+        
+        dataElementService.addDataElementGroupSet( deGroupSetA );
+        
+        deGroupA = createDataElementGroup( 'A' );
+        deGroupB = createDataElementGroup( 'B' );
+        deGroupC = createDataElementGroup( 'C' );
+        
+        deGroupA.setGroupSet( deGroupSetA );
+        deGroupB.setGroupSet( deGroupSetA );
+        deGroupC.setGroupSet( deGroupSetA );
+        
+        dataElementService.addDataElementGroup( deGroupA );
+        dataElementService.addDataElementGroup( deGroupB );
+        dataElementService.addDataElementGroup( deGroupC );
+        
+        deGroupSetA.getMembers().add( deGroupA );
+        deGroupSetA.getMembers().add( deGroupB );
+        deGroupSetA.getMembers().add( deGroupC );
+        
+        dataElementService.updateDataElementGroupSet( deGroupSetA );
         
         ouGroupSetA = createOrganisationUnitGroupSet( 'A' );
         
@@ -276,8 +306,26 @@ public class DimensionServiceTest
         
         assertEquals( 2, reportTable.getDataDimensionItems().size() );
         assertEquals( 2, reportTable.getPeriods().size() );
-        assertEquals( 3, reportTable.getOrganisationUnitGroups().size() );
-    }
+        assertEquals( 1, reportTable.getOrganisationUnitGroupSetDimensions().size() );
+        assertEquals( 3, reportTable.getOrganisationUnitGroupSetDimensions().get( 0 ).getItems().size() );
+    }    
+
+    @Test
+    public void testMergeAnalyticalObjectDataElementGroupSet()
+    {
+        ReportTable reportTable = new ReportTable();
+        
+        reportTable.getColumns().add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( deA, deB ) ) );
+        reportTable.getRows().add( deGroupSetA );
+        reportTable.getFilters().add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB ) ) );
+
+        dimensionService.mergeAnalyticalObject( reportTable );
+        
+        assertEquals( 2, reportTable.getDataDimensionItems().size() );
+        assertEquals( 2, reportTable.getPeriods().size() );
+        assertEquals( 1, reportTable.getDataElementGroupSetDimensions().size() );
+        assertEquals( 3, reportTable.getDataElementGroupSetDimensions().get( 0 ).getItems().size() );
+    }        
     
     @Test
     public void testGetDimensionalItemObject()

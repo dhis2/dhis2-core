@@ -52,6 +52,9 @@ import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
@@ -60,6 +63,7 @@ import org.hisp.dhis.mock.MockI18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -89,6 +93,11 @@ public class ReportTableTest
     private DataElement dataElementA;
     private DataElement dataElementB;
     
+    private DataElementGroupSet deGroupSetA;
+    
+    private DataElementGroup deGroupA;
+    private DataElementGroup deGroupB;
+    
     private DataElementCategoryOptionCombo categoryOptionComboA;
     private DataElementCategoryOptionCombo categoryOptionComboB;
 
@@ -111,10 +120,10 @@ public class ReportTableTest
     private OrganisationUnit unitB;
     private OrganisationUnit unitC;
     
-    private OrganisationUnitGroupSet groupSet;
+    private OrganisationUnitGroupSet ouGroupSetA;
     
-    private OrganisationUnitGroup groupA;
-    private OrganisationUnitGroup groupB;
+    private OrganisationUnitGroup ouGroupA;
+    private OrganisationUnitGroup ouGroupB;
     
     private RelativePeriods relatives;
 
@@ -147,6 +156,17 @@ public class ReportTableTest
         
         dataElements.add( dataElementA );
         dataElements.add( dataElementB );
+        
+        deGroupSetA = createDataElementGroupSet( 'A' );
+        
+        deGroupA = createDataElementGroup( 'A' );
+        deGroupB = createDataElementGroup( 'B' );
+        
+        deGroupA.setGroupSet( deGroupSetA );
+        deGroupB.setGroupSet( deGroupSetA );
+        
+        deGroupSetA.getMembers().add( deGroupA );
+        deGroupSetA.getMembers().add( deGroupB );
         
         categoryOptionComboA = createCategoryOptionCombo( 'A', 'A', 'B' );
         categoryOptionComboB = createCategoryOptionCombo( 'B', 'C', 'D' );
@@ -217,28 +237,26 @@ public class ReportTableTest
         units.add( unitB );
         relativeUnits.add( unitA );
         
-        groupSet = createOrganisationUnitGroupSet( 'A' );
+        ouGroupSetA = createOrganisationUnitGroupSet( 'A' );
         
-        groupA = createOrganisationUnitGroup( 'A' );
-        groupB = createOrganisationUnitGroup( 'B' );
+        ouGroupA = createOrganisationUnitGroup( 'A' );
+        ouGroupB = createOrganisationUnitGroup( 'B' );
         
-        groupA.setGroupSet( groupSet );
-        groupB.setGroupSet( groupSet );
+        ouGroupA.setGroupSet( ouGroupSetA );
+        ouGroupB.setGroupSet( ouGroupSetA );
         
-        groupA.setId( 'A' );
-        groupB.setId( 'B' );
+        ouGroupA.setId( 'A' );
+        ouGroupB.setId( 'B' );
+
+        ouGroupSetA.getOrganisationUnitGroups().add( ouGroupA );
+        ouGroupSetA.getOrganisationUnitGroups().add( ouGroupB );
         
-        groups.add( groupA );
-        groups.add( groupB );
+        groups.add( ouGroupA );
+        groups.add( ouGroupB );
         
         i18nFormat = new MockI18nFormat();
     }
     
-    private static List<DimensionalItemObject> getList( DimensionalItemObject... objects )
-    {
-        return Arrays.asList( objects );
-    }
-
     private static List<String> getColumnNames( List<List<DimensionalItemObject>> cols )
     {
         List<String> columns = new ArrayList<>();
@@ -258,17 +276,17 @@ public class ReportTableTest
     @Test
     public void testGetColumnName()
     {
-        List<DimensionalItemObject> a1 = getList( unitA, periodC );
+        List<DimensionalItemObject> a1 = Lists.newArrayList( unitA, periodC );
         
         assertNotNull( getColumnName( a1 ) );
         assertEquals( "organisationunitshorta_reporting_month", getColumnName( a1 ) );
         
-        List<DimensionalItemObject> a2 = getList( unitB, periodD );
+        List<DimensionalItemObject> a2 = Lists.newArrayList( unitB, periodD );
 
         assertNotNull( getColumnName( a2 ) );
         assertEquals( "organisationunitshortb_year", getColumnName( a2 ) );
         
-        List<DimensionalItemObject> a3 = getList( groupA, indicatorA );
+        List<DimensionalItemObject> a3 = Lists.newArrayList( ouGroupA, indicatorA );
         
         assertNotNull( getColumnName( a3 ) );
         assertEquals( "organisationunitgroupshorta_indicatorshorta", getColumnName( a3 ) );
@@ -379,6 +397,62 @@ public class ReportTableTest
         assertEquals( unitC.getDisplayProperty( property ), grid.getValue( 1, 3 ) );
         assertEquals( unitC.getCode(), grid.getValue( 1, 4 ) );
     }
+
+    @Test
+    public void testOrgUnitGroupSetDimensionReportTable()
+    {
+        ReportTable table = new ReportTable();
+        
+        OrganisationUnitGroupSetDimension ougsd = new OrganisationUnitGroupSetDimension();
+        ougsd.setDimension( ouGroupSetA );
+        ougsd.getItems().addAll( Lists.newArrayList( ouGroupA, ouGroupB ) );
+        
+        table.addDataDimensionItem( dataElementA );
+        table.addDataDimensionItem( dataElementB );
+        table.getPeriods().add( periodA );
+        table.getPeriods().add( periodB );
+        table.getOrganisationUnitGroupSetDimensions().add( ougsd );
+        
+        table.setColumnDimensions( Lists.newArrayList( DimensionalObject.DATA_X_DIM_ID, DimensionalObject.PERIOD_DIM_ID ) );
+        table.setRowDimensions( Lists.newArrayList( ougsd.getDimension().getDimension() ) );
+
+        table.init( null, null, null, null, null, i18nFormat );
+
+        assertEquals( 4, table.getGridColumns().size() );
+        assertEquals( 2, table.getGridRows().size() );
+        
+        assertTrue( table.getGridRows().contains( Lists.newArrayList( ouGroupA ) ) );
+        assertTrue( table.getGridRows().contains( Lists.newArrayList( ouGroupB ) ) );
+    }
+    
+    @Test
+    public void testDataElementGroupSetDimensionReportTable()
+    {
+        ReportTable table = new ReportTable();
+        
+        DataElementGroupSetDimension degsd = new DataElementGroupSetDimension();
+        degsd.setDimension( deGroupSetA );
+        degsd.getItems().addAll( Lists.newArrayList( deGroupA, deGroupB ) );
+
+        table.addDataDimensionItem( dataElementA );
+        table.addDataDimensionItem( dataElementB );
+        table.getPeriods().add( periodA );
+        table.getPeriods().add( periodB );
+        table.getDataElementGroupSetDimensions().add( degsd );
+
+        table.setColumnDimensions( Lists.newArrayList( DimensionalObject.DATA_X_DIM_ID ) );
+        table.setRowDimensions( Lists.newArrayList( DimensionalObject.PERIOD_DIM_ID, degsd.getDimension().getDimension() ) );
+
+        table.init( null, null, null, null, null, i18nFormat );
+
+        assertEquals( 2, table.getGridColumns().size() );
+        assertEquals( 4, table.getGridRows().size() );
+
+        assertTrue( table.getGridRows().contains( Lists.newArrayList( periodA, deGroupA ) ) );
+        assertTrue( table.getGridRows().contains( Lists.newArrayList( periodA, deGroupB ) ) );
+        assertTrue( table.getGridRows().contains( Lists.newArrayList( periodB, deGroupA ) ) );
+        assertTrue( table.getGridRows().contains( Lists.newArrayList( periodB, deGroupB ) ) );        
+    }
     
     @Test
     public void testIndicatorReportTableA()
@@ -404,14 +478,14 @@ public class ReportTableTest
         assertNotNull( columns ); 
         assertEquals( 8, columns.size() );
         
-        assertTrue( columns.contains( getList( indicatorA, periodA  ) ) );
-        assertTrue( columns.contains( getList( indicatorA, periodB  ) ) );
-        assertTrue( columns.contains( getList( indicatorA, periodC  ) ) );
-        assertTrue( columns.contains( getList( indicatorA, periodD  ) ) );
-        assertTrue( columns.contains( getList( indicatorB, periodA  ) ) );
-        assertTrue( columns.contains( getList( indicatorB, periodB  ) ) );
-        assertTrue( columns.contains( getList( indicatorB, periodC  ) ) );
-        assertTrue( columns.contains( getList( indicatorB, periodD  ) ) );
+        assertTrue( columns.contains( Lists.newArrayList( indicatorA, periodA  ) ) );
+        assertTrue( columns.contains( Lists.newArrayList( indicatorA, periodB  ) ) );
+        assertTrue( columns.contains( Lists.newArrayList( indicatorA, periodC  ) ) );
+        assertTrue( columns.contains( Lists.newArrayList( indicatorA, periodD  ) ) );
+        assertTrue( columns.contains( Lists.newArrayList( indicatorB, periodA  ) ) );
+        assertTrue( columns.contains( Lists.newArrayList( indicatorB, periodB  ) ) );
+        assertTrue( columns.contains( Lists.newArrayList( indicatorB, periodC  ) ) );
+        assertTrue( columns.contains( Lists.newArrayList( indicatorB, periodD  ) ) );
             
         List<String> columnNames = getColumnNames( reportTable.getGridColumns() );
         
@@ -428,8 +502,8 @@ public class ReportTableTest
         assertNotNull( rows );
         assertEquals( 2, rows.size() );
                 
-        assertTrue( rows.contains( getList( unitB ) ) );
-        assertTrue( rows.contains( getList( unitB ) ) );
+        assertTrue( rows.contains( Lists.newArrayList( unitB ) ) );
+        assertTrue( rows.contains( Lists.newArrayList( unitB ) ) );
     }
 
     @Test
@@ -456,8 +530,8 @@ public class ReportTableTest
         assertNotNull( columns );
         assertEquals( 2, columns.size() );
 
-        assertTrue( columns.contains( getList( unitA ) ) );
-        assertTrue( columns.contains( getList( unitB ) ) );
+        assertTrue( columns.contains( Lists.newArrayList( unitA ) ) );
+        assertTrue( columns.contains( Lists.newArrayList( unitB ) ) );
         
         List<String> columnNames = getColumnNames( reportTable.getGridColumns() );
         
@@ -472,14 +546,14 @@ public class ReportTableTest
         assertNotNull( rows );
         assertEquals( 8, rows.size() );
 
-        assertTrue( rows.contains( getList( indicatorA, periodA  ) ) );
-        assertTrue( rows.contains( getList( indicatorA, periodB  ) ) );
-        assertTrue( rows.contains( getList( indicatorA, periodC  ) ) );
-        assertTrue( rows.contains( getList( indicatorA, periodD  ) ) );
-        assertTrue( rows.contains( getList( indicatorB, periodA  ) ) );
-        assertTrue( rows.contains( getList( indicatorB, periodB  ) ) );  
-        assertTrue( rows.contains( getList( indicatorB, periodC  ) ) );
-        assertTrue( rows.contains( getList( indicatorB, periodD  ) ) );                    
+        assertTrue( rows.contains( Lists.newArrayList( indicatorA, periodA  ) ) );
+        assertTrue( rows.contains( Lists.newArrayList( indicatorA, periodB  ) ) );
+        assertTrue( rows.contains( Lists.newArrayList( indicatorA, periodC  ) ) );
+        assertTrue( rows.contains( Lists.newArrayList( indicatorA, periodD  ) ) );
+        assertTrue( rows.contains( Lists.newArrayList( indicatorB, periodA  ) ) );
+        assertTrue( rows.contains( Lists.newArrayList( indicatorB, periodB  ) ) );  
+        assertTrue( rows.contains( Lists.newArrayList( indicatorB, periodC  ) ) );
+        assertTrue( rows.contains( Lists.newArrayList( indicatorB, periodD  ) ) );                    
     }
 
     @Test
@@ -506,10 +580,10 @@ public class ReportTableTest
         assertNotNull( columns );
         assertEquals( 4, columns.size() );
 
-        assertTrue( columns.contains( getList( indicatorA, unitA ) ) );
-        assertTrue( columns.contains( getList( indicatorA, unitB ) ) );
-        assertTrue( columns.contains( getList( indicatorB, unitA ) ) );
-        assertTrue( columns.contains( getList( indicatorB, unitB ) ) );
+        assertTrue( columns.contains( Arrays.asList( indicatorA, unitA ) ) );
+        assertTrue( columns.contains( Arrays.asList( indicatorA, unitB ) ) );
+        assertTrue( columns.contains( Arrays.asList( indicatorB, unitA ) ) );
+        assertTrue( columns.contains( Arrays.asList( indicatorB, unitB ) ) );
         
         List<String> columnNames = getColumnNames( reportTable.getGridColumns() );
         
@@ -526,10 +600,10 @@ public class ReportTableTest
         assertNotNull( rows );
         assertEquals( 4, rows.size() );
 
-        assertTrue( rows.contains( getList( periodA  ) ) );
-        assertTrue( rows.contains( getList( periodB  ) ) );
-        assertTrue( rows.contains( getList( periodC  ) ) );
-        assertTrue( rows.contains( getList( periodD  ) ) );
+        assertTrue( rows.contains( Lists.newArrayList( periodA  ) ) );
+        assertTrue( rows.contains( Lists.newArrayList( periodB  ) ) );
+        assertTrue( rows.contains( Lists.newArrayList( periodC  ) ) );
+        assertTrue( rows.contains( Lists.newArrayList( periodD  ) ) );
     }
     
     @Test

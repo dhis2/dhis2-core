@@ -812,9 +812,10 @@ public class DataQueryServiceTest
         chart.addDataDimensionItem( deB );
         chart.addDataDimensionItem( deC );
         
-        chart.getOrganisationUnitGroups().add( ouGroupA );
-        chart.getOrganisationUnitGroups().add( ouGroupB );
-        chart.getOrganisationUnitGroups().add( ouGroupC );
+        OrganisationUnitGroupSetDimension ouGroupSetDim = new OrganisationUnitGroupSetDimension();
+        ouGroupSetDim.setDimension( ouGroupSetA );
+        ouGroupSetDim.setItems( Lists.newArrayList( ouGroupA, ouGroupB, ouGroupC ) );
+        chart.getOrganisationUnitGroupSetDimensions().add( ouGroupSetDim );
         
         chart.getPeriods().add( PeriodType.getPeriodFromIsoString( "2012" ) );
         
@@ -839,11 +840,12 @@ public class DataQueryServiceTest
         chart.addDataDimensionItem( deA );
         chart.addDataDimensionItem( pdA );
         chart.addDataDimensionItem( pdB );
-        
-        chart.getOrganisationUnitGroups().add( ouGroupA );
-        chart.getOrganisationUnitGroups().add( ouGroupB );
-        chart.getOrganisationUnitGroups().add( ouGroupC );
-        
+
+        OrganisationUnitGroupSetDimension ouGroupSetDim = new OrganisationUnitGroupSetDimension();
+        ouGroupSetDim.setDimension( ouGroupSetA );
+        ouGroupSetDim.setItems( Lists.newArrayList( ouGroupA, ouGroupB, ouGroupC ) );
+        chart.getOrganisationUnitGroupSetDimensions().add( ouGroupSetDim );
+                
         chart.getPeriods().add( PeriodType.getPeriodFromIsoString( "2012" ) );
         
         DataQueryParams params = dataQueryService.getFromAnalyticalObject( chart );
