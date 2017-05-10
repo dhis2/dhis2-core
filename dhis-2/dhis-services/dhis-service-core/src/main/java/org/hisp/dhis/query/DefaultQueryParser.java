@@ -44,7 +44,6 @@ public class DefaultQueryParser implements QueryParser
 {
     private final SchemaService schemaService;
 
-    @Autowired
     public DefaultQueryParser( SchemaService schemaService )
     {
         this.schemaService = schemaService;

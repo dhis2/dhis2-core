@@ -37,7 +37,6 @@ import org.hisp.dhis.query.Restriction;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,8 +48,12 @@ import java.util.List;
  */
 public class DefaultQueryPlanner implements QueryPlanner
 {
-    @Autowired
-    private SchemaService schemaService;
+    private final SchemaService schemaService;
+
+    public DefaultQueryPlanner( SchemaService schemaService )
+    {
+        this.schemaService = schemaService;
+    }
 
     @Override
     public QueryPlan planQuery( Query query )
