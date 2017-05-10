@@ -43,7 +43,7 @@ import java.util.List;
  * @author Lars Helge Overland
  */
 @JacksonXmlRootElement( localName = "categoryDimension", namespace = DxfNamespaces.DXF_2_0 )
-public class DataElementCategoryDimension
+public class CategoryDimension
 {
     private int id;
 

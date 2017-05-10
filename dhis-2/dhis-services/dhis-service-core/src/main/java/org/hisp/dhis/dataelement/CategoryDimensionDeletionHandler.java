@@ -34,7 +34,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * @author Lars Helge Overland
  */
-public class DataElementCategoryDimensionDeletionHandler
+public class CategoryDimensionDeletionHandler
     extends DeletionHandler
 {
     private JdbcTemplate jdbcTemplate;
@@ -51,7 +51,7 @@ public class DataElementCategoryDimensionDeletionHandler
     @Override
     public String getClassName()
     {
-        return DataElementCategoryDimension.class.getSimpleName();
+        return CategoryDimension.class.getSimpleName();
     }
     
     @Override
