@@ -1864,6 +1864,7 @@
   <bean id="org.hisp.dhis.programrule.ProgramRuleActionDeletionHandler"
     class="org.hisp.dhis.programrule.ProgramRuleActionDeletionHandler">
     <property name="programRuleActionService" ref="org.hisp.dhis.programrule.ProgramRuleActionService" />
+    <property name="programRuleService" ref="org.hisp.dhis.programrule.ProgramRuleService" />
   </bean>
 
   <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueDeletionHandler"
