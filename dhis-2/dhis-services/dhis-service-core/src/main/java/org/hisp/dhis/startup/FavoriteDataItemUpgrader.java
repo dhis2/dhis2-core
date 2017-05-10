@@ -47,6 +47,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
+/**
+* @author Lars Helge Overland
+*/
 public class FavoriteDataItemUpgrader
     extends TransactionContextStartupRoutine
 {
@@ -84,7 +87,7 @@ public class FavoriteDataItemUpgrader
         }
         catch ( Exception ex )
         {
-            log.debug( "Error duing upgrade of favorites, probably beacuse upgrade is done", ex );
+            log.debug( "Error during data item upgrade of favorites, probably because upgrade was already done", ex );
             return;
         }
     }
