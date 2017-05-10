@@ -28,11 +28,8 @@ package org.hisp.dhis.dxf2.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResponseExtractor;
 
@@ -45,19 +42,18 @@ import java.io.InputStream;
 public class ImportSummariesResponseExtractor
     implements ResponseExtractor<ImportSummaries>
 {
-    private static final Log log = LogFactory.getLog( ImportSummariesResponseExtractor.class );
-
     @Override
     public ImportSummaries extractData( ClientHttpResponse response ) throws IOException
     {
-        HttpStatus status = response.getStatusCode();
         InputStream stream = response.getBody();
 
         ImportSummaries summary = null;
+        
         if ( stream != null )
         {
             summary = WebMessageParseUtils.fromWebMessageResponse( stream, ImportSummaries.class );
         }
+        
         return summary;
     }
 }

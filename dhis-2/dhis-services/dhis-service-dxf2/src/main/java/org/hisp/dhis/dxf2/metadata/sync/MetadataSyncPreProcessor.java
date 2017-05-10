@@ -46,9 +46,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.client.HttpClientErrorException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -87,9 +85,11 @@ public class MetadataSyncPreProcessor
         ImportSummary importSummary = null;
         AvailabilityStatus remoteServerAvailable = synchronizationManager.isRemoteServerAvailable();
 
-        //TODO We are checking the Remote server availability here, as the executeDataPush()
-        //returns 'null' in two cases: "Nothing to sync" and "Server unavailable." We need greater control
-        //to understand the exact reason.
+        // -------------------------------------------------------------------------
+        // We are checking the Remote server availability here, as executeDataPush
+        // returns null in two cases: "Nothing to sync" and "Server unavailable
+        // -------------------------------------------------------------------------
+
         if ( !(remoteServerAvailable.isAvailable()) )
         {
             String message = remoteServerAvailable.getMessage();
@@ -292,9 +292,7 @@ public class MetadataSyncPreProcessor
                 context.updateRetryContext( MetadataSyncTask.EVENT_PUSH_SUMMARY, summaryDescription.toString(), null, null );
                 throw new MetadataSyncServiceException( "The Event Data Push was not successful. " );
             }
-
         }
-
     }
 
     private MetadataVersion getLatestVersion( List<MetadataVersion> metadataVersionList )
@@ -315,6 +313,7 @@ public class MetadataSyncPreProcessor
                 return metadataVersion;
             }
         }
+        
         return null;
     }
 }
