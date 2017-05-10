@@ -124,7 +124,7 @@ public class JdbcEnrollmentAnalyticsTableManager
 
         sql += "from programinstance pi " +
             "inner join program pr on pi.programid=pr.programid " +
-            "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid " +
+            "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid and tei.deleted is false " +
             "inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid " +
             "left join _orgunitstructure ous on pi.organisationunitid=ous.organisationunitid " +
             "left join _organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid " +
@@ -132,8 +132,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             "where pr.programid=" + table.getProgram().getId() + " " + 
             "and pi.organisationunitid is not null " +
             "and pi.incidentdate is not null " +
-            "and pi.deleted is false " +
-            "and tei.deleted is false ";
+            "and pi.deleted is false ";
 
         populateAndLog( sql, tableName );
     }
