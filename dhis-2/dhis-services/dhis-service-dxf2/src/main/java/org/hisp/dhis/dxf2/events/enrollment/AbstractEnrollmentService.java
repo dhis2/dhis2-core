@@ -399,6 +399,7 @@ public abstract class AbstractEnrollmentService
         programInstance.setFollowup( enrollment.getFollowup() );
 
         programInstanceService.updateProgramInstance( programInstance );
+        manager.update( programInstance.getEntityInstance() );
 
         saveTrackedEntityComment( programInstance, enrollment );
 
@@ -528,6 +529,7 @@ public abstract class AbstractEnrollmentService
         updateDateFields( enrollment, programInstance );
 
         programInstanceService.updateProgramInstance( programInstance );
+        manager.update( programInstance.getEntityInstance() );
 
         saveTrackedEntityComment( programInstance, enrollment );
 
