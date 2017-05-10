@@ -78,6 +78,7 @@ public class DefaultQueryPlanner implements QueryPlanner
         return new QueryPlan( pQuery, npQuery );
     }
 
+    @Override
     public QueryPath getQueryPath( Schema schema, String path )
     {
         Schema curSchema = schema;
