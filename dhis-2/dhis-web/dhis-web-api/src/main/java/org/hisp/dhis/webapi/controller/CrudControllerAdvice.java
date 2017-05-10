@@ -234,13 +234,13 @@ public class CrudControllerAdvice
     public void handleMetadataImportConflictException( MetadataImportConflictException conflictException, HttpServletResponse response, HttpServletRequest request )
     {
 
-        if(conflictException.getMetadataSyncSummary() == null)
+        if ( conflictException.getMetadataSyncSummary() == null )
             webMessageService.send( WebMessageUtils.conflict( conflictException.getMessage() ), response, request );
         else
         {
             WebMessage message = new WebMessage( Status.ERROR, HttpStatus.CONFLICT );
             message.setResponse( conflictException.getMetadataSyncSummary() );
-            webMessageService.send(message, response, request);
+            webMessageService.send( message, response, request );
         }
 
     }
