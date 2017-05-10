@@ -87,7 +87,7 @@ public class DefaultQueryParser implements QueryParser
         return query;
     }
 
-    private Restriction getRestriction( Schema schema, String path, String operator, Object arg ) throws QueryParserException
+    public Restriction getRestriction( Schema schema, String path, String operator, Object arg ) throws QueryParserException
     {
         Property property = getProperty( schema, path );
 
@@ -211,7 +211,7 @@ public class DefaultQueryParser implements QueryParser
         }
     }
 
-    private Property getProperty( Schema schema, String path ) throws QueryParserException
+    public Property getProperty( Schema schema, String path ) throws QueryParserException
     {
         String[] paths = path.split( "\\." );
         Schema currentSchema = schema;
