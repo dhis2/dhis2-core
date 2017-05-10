@@ -189,9 +189,9 @@ public class DimensionServiceTest
         deGroupB = createDataElementGroup( 'B' );
         deGroupC = createDataElementGroup( 'C' );
         
-        deGroupA.setGroupSet( deGroupSetA );
-        deGroupB.setGroupSet( deGroupSetA );
-        deGroupC.setGroupSet( deGroupSetA );
+        deGroupA.getGroupSets().add( deGroupSetA );
+        deGroupB.getGroupSets().add( deGroupSetA );
+        deGroupC.getGroupSets().add( deGroupSetA );
         
         dataElementService.addDataElementGroup( deGroupA );
         dataElementService.addDataElementGroup( deGroupB );

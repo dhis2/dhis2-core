@@ -104,23 +104,20 @@ public class DataElementGroupSet
     public void addDataElementGroup( DataElementGroup dataElementGroup )
     {
         members.add( dataElementGroup );
-        dataElementGroup.setGroupSet( this );
+        dataElementGroup.getGroupSets().add( this );
     }
 
     public void removeDataElementGroup( DataElementGroup dataElementGroup )
     {
         members.remove( dataElementGroup );
-        dataElementGroup.setGroupSet( null );
+        dataElementGroup.getGroupSets().remove( this );
     }
 
     public void removeAllDataElementGroups()
     {
         for ( DataElementGroup dataElementGroup : members )
         {
-            if ( dataElementGroup.getGroupSet() != null && dataElementGroup.getGroupSet().equals( this ) )
-            {
-                dataElementGroup.setGroupSet( null );
-            }
+            dataElementGroup.getGroupSets().remove( this );
         }
 
         members.clear();

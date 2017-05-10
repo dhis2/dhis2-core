@@ -162,8 +162,8 @@ public class ReportTableTest
         deGroupA = createDataElementGroup( 'A' );
         deGroupB = createDataElementGroup( 'B' );
         
-        deGroupA.setGroupSet( deGroupSetA );
-        deGroupB.setGroupSet( deGroupSetA );
+        deGroupA.getGroupSets().add( deGroupSetA );
+        deGroupB.getGroupSets().add( deGroupSetA );
         
         deGroupSetA.getMembers().add( deGroupA );
         deGroupSetA.getMembers().add( deGroupB );
