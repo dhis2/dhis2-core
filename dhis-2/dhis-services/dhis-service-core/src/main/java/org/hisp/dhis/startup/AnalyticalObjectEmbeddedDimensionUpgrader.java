@@ -112,7 +112,7 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
         }
         catch ( Exception ex )
         {
-            log.info( "Error during group set dimensions upgrade of favorite, probably because upgrade was already done", ex );
+            log.debug( "Error during group set dimensions upgrade of favorite, probably because upgrade was already done", ex );
             return;
         }        
     }
@@ -129,7 +129,7 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
 
         String groupSetSql = TextUtils.replace( groupSetSqlPattern, "{favorite}", favorite, "{dimension}", dimension, "{item}", item );
         
-        log.info( String.format( "Group set SQL: %s", groupSetSql ) );
+        log.debug( String.format( "Group set SQL: %s", groupSetSql ) );
         
         String groupSqlPattern =
             "select d.{item}id " +
@@ -155,7 +155,7 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
             String groupSql = TextUtils.replace( groupSqlPattern, "{favorite}", favorite, "{dimension}", dimension, 
                 "{item}", item, "{favoriteId}", String.valueOf( favoriteId ), "{dimensionId}", String.valueOf( dimensionId ) );
             
-            log.info( String.format( "Group SQL: %s", groupSql ) );
+            log.debug( String.format( "Group SQL: %s", groupSql ) );
             
             SqlRowSet groupRs = jdbcTemplate.queryForRowSet( groupSql );
 
