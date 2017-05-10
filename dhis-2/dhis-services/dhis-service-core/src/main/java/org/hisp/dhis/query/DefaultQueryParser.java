@@ -44,7 +44,6 @@ public class DefaultQueryParser implements QueryParser
 {
     private final SchemaService schemaService;
 
-    @Autowired
     public DefaultQueryParser( SchemaService schemaService )
     {
         this.schemaService = schemaService;
@@ -87,7 +86,8 @@ public class DefaultQueryParser implements QueryParser
         return query;
     }
 
-    private Restriction getRestriction( Schema schema, String path, String operator, Object arg ) throws QueryParserException
+    @Override
+    public Restriction getRestriction( Schema schema, String path, String operator, Object arg ) throws QueryParserException
     {
         Property property = getProperty( schema, path );
 
@@ -211,7 +211,8 @@ public class DefaultQueryParser implements QueryParser
         }
     }
 
-    private Property getProperty( Schema schema, String path ) throws QueryParserException
+    @Override
+    public Property getProperty( Schema schema, String path ) throws QueryParserException
     {
         String[] paths = path.split( "\\." );
         Schema currentSchema = schema;
