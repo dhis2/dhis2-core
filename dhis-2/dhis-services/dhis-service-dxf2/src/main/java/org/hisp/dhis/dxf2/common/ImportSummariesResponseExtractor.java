@@ -31,7 +31,7 @@ package org.hisp.dhis.dxf2.common;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.webmessage.DefaultWebMessageJacksonService;
+import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResponseExtractor;
@@ -56,7 +56,7 @@ public class ImportSummariesResponseExtractor
         ImportSummaries summary = null;
         if ( stream != null )
         {
-            summary = DefaultWebMessageJacksonService.fromWebMessageResponse( stream, ImportSummaries.class );
+            summary = WebMessageParseUtils.fromWebMessageResponse( stream, ImportSummaries.class );
         }
         return summary;
     }

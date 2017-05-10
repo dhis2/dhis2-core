@@ -47,7 +47,8 @@ import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.dxf2.webmessage.DefaultWebMessageJacksonService;
+import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
@@ -195,7 +196,7 @@ public class DefaultSynchronizationManager
     }
 
     @Override
-    public ImportSummary executeDataPush()
+    public ImportSummary executeDataPush() throws WebMessageParseException
     {
         AvailabilityStatus availability = isRemoteServerAvailable();
 
@@ -220,7 +221,7 @@ public class DefaultSynchronizationManager
      * @param instance the remote system instance.
      * @return an ImportSummary.
      */
-    private ImportSummary executeDataPush( SystemInstance instance )
+    private ImportSummary executeDataPush( SystemInstance instance ) throws WebMessageParseException
     {
         // ---------------------------------------------------------------------
         // Set time for last success to start of process to make data saved
@@ -263,7 +264,7 @@ public class DefaultSynchronizationManager
         catch ( HttpClientErrorException ex )
         {
             String responseBody = ex.getResponseBodyAsString();
-            summary = DefaultWebMessageJacksonService.fromWebMessageResponse( responseBody, ImportSummary.class );
+            summary = WebMessageParseUtils.fromWebMessageResponse( responseBody, ImportSummary.class );
         }
         catch ( HttpServerErrorException ex )
         {
@@ -293,7 +294,7 @@ public class DefaultSynchronizationManager
     }
 
     @Override
-    public ImportSummaries executeAnonymousEventPush()
+    public ImportSummaries executeAnonymousEventPush() throws WebMessageParseException
     {
         AvailabilityStatus availability = isRemoteServerAvailable();
 
@@ -313,7 +314,7 @@ public class DefaultSynchronizationManager
 
         int lastUpdatedEventsCount = eventService.getAnonymousEventValuesCountLastUpdatedAfter( lastSuccessTime );
 
-        log.info( "Event Count: " + lastUpdatedEventsCount + " since last synch success: " + lastSuccessTime );
+        log.info( "Events: " + lastUpdatedEventsCount + " since last synch success: " + lastSuccessTime );
 
         if ( lastUpdatedEventsCount == 0 )
         {
@@ -351,7 +352,7 @@ public class DefaultSynchronizationManager
         catch ( HttpClientErrorException ex )
         {
             String responseBody = ex.getResponseBodyAsString();
-            summaries = DefaultWebMessageJacksonService.fromWebMessageResponse( responseBody, ImportSummaries.class );
+            summaries = WebMessageParseUtils.fromWebMessageResponse( responseBody, ImportSummaries.class );
         }
         catch ( HttpServerErrorException ex )
         {
@@ -395,12 +396,6 @@ public class DefaultSynchronizationManager
     public Date getLastSynchSuccess()
     {
         return (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_DATA_SYNC );
-    }
-
-    @Override
-    public Date getLastEventSynchSuccess()
-    {
-        return (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_EVENT_DATA_SYNC );
     }
 
     @Override
