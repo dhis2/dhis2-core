@@ -34,6 +34,7 @@ import java.util.function.BiConsumer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -101,25 +102,24 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
             upgradeGrupSetDimensions( "reporttable", "orgunitgroupset", "orgunitgroup", ReportTable.class, OrganisationUnitGroupSet.class, OrganisationUnitGroup.class, orgUnitGroupSetConsumer );
             upgradeGrupSetDimensions( "reporttable", "dataelementgroupset", "dataelementgroup", ReportTable.class, DataElementGroupSet.class, DataElementGroup.class, dataElementGroupSetConsumer );
             upgradeGrupSetDimensions( "reporttable", "categoryoptiongroupset", "categoryoptiongroup", ReportTable.class, CategoryOptionGroupSet.class, CategoryOptionGroup.class, categoryOptionGroupSetConsumer );
-
-            upgradeGrupSetDimensions( "chart", "orgunitgroupset", "orgunitgroup", ReportTable.class, OrganisationUnitGroupSet.class, OrganisationUnitGroup.class, orgUnitGroupSetConsumer );
-            upgradeGrupSetDimensions( "chart", "dataelementgroupset", "dataelementgroup", ReportTable.class, DataElementGroupSet.class, DataElementGroup.class, dataElementGroupSetConsumer );
-            upgradeGrupSetDimensions( "chart", "categoryoptiongroupset", "categoryoptiongroup", ReportTable.class, CategoryOptionGroupSet.class, CategoryOptionGroup.class, categoryOptionGroupSetConsumer );
+    
+            upgradeGrupSetDimensions( "chart", "orgunitgroupset", "orgunitgroup", Chart.class, OrganisationUnitGroupSet.class, OrganisationUnitGroup.class, orgUnitGroupSetConsumer );
+            upgradeGrupSetDimensions( "chart", "dataelementgroupset", "dataelementgroup", Chart.class, DataElementGroupSet.class, DataElementGroup.class, dataElementGroupSetConsumer );
+            upgradeGrupSetDimensions( "chart", "categoryoptiongroupset", "categoryoptiongroup", Chart.class, CategoryOptionGroupSet.class, CategoryOptionGroup.class, categoryOptionGroupSetConsumer );
             
             upgradeGrupSetDimensions( "eventreport", "orgunitgroupset", "orgunitgroup", EventReport.class, OrganisationUnitGroupSet.class, OrganisationUnitGroup.class, orgUnitGroupSetConsumer );
             upgradeGrupSetDimensions( "eventchart", "orgunitgroupset", "orgunitgroup", EventChart.class, OrganisationUnitGroupSet.class, OrganisationUnitGroup.class, orgUnitGroupSetConsumer );
         }
         catch ( Exception ex )
         {
-            log.info( "Error during group set dimensions upgrade of favorites, probably beacuse upgrade is done", ex );
+            log.info( "Error during group set dimensions upgrade of favorite, probably because upgrade was already done", ex );
             return;
-        }
-        
+        }        
     }
 
     @SuppressWarnings("unchecked")
     private void upgradeGrupSetDimensions( String favorite, String dimension, String item, 
-        Class<? extends AnalyticalObject> clazz, Class<? extends DimensionalObject> dimensionClass, Class<? extends DimensionalItemObject> itemClass,
+        Class<? extends AnalyticalObject> favoriteClazz, Class<? extends DimensionalObject> dimensionClass, Class<? extends DimensionalItemObject> itemClass,
         BiConsumer<BaseDimensionalEmbeddedObject, AnalyticalObject> consumer )
     {
         String groupSetSqlPattern = 
@@ -145,7 +145,13 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
         {
             int favoriteId = groupSetRs.getInt( 1 );
             int dimensionId = groupSetRs.getInt( 2 );
-                        
+
+            AnalyticalObject analyticalObject = idObjectManager.get( favoriteClazz, favoriteId );
+            DimensionalObject groupSet = idObjectManager.get( dimensionClass, dimensionId );
+
+            Assert.notNull( analyticalObject, String.format( "Analytical object not found: %s, class: %s", favoriteId, favoriteClazz ) );
+            Assert.notNull( groupSet, String.format( "Group set not found: %s, class: %s", dimensionId, dimensionClass ) );
+            
             String groupSql = TextUtils.replace( groupSqlPattern, "{favorite}", favorite, "{dimension}", dimension, 
                 "{item}", item, "{favoriteId}", String.valueOf( favoriteId ), "{dimensionId}", String.valueOf( dimensionId ) );
             
@@ -160,12 +166,8 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
                 groupIds.add( groupRs.getInt( 1 ) );
             }
 
-            AnalyticalObject analyticalObject = idObjectManager.get( clazz, favoriteId );
-            DimensionalObject groupSet = idObjectManager.get( OrganisationUnitGroupSet.class, dimensionId );
             List<DimensionalItemObject> groups = (List<DimensionalItemObject>) idObjectManager.getById( itemClass, groupIds );
             
-            Assert.notNull( analyticalObject, "Analytical object not found: " + favoriteId );
-            Assert.notNull( groupSet, "Group set not found: " + dimensionId );
             Assert.notNull( groups, "Groups cannot be null" );
             
             BaseDimensionalEmbeddedObject embeddedDimension = new BaseDimensionalEmbeddedObject( groupSet, groups );
@@ -182,7 +184,7 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
         
         jdbcTemplate.update( dropSql );
         
-        log.info( String.format( "Dropped link table, update done for %s", favorite ) );
+        log.info( String.format( "Dropped table, update done for favorite: %s and dimension: %s", favorite, dimension ) );
     }
     
     class BaseDimensionalEmbeddedObject
