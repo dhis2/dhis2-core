@@ -375,6 +375,8 @@ public abstract class AbstractJdbcTableManager
         log.debug( String.format( "Populate table: %s with SQL: ", tableName, sql ) );
 
         Timer timer = new SystemTimer().start();
+
+        log.info( "Query: " + sql );
         
         jdbcTemplate.execute( sql );
         
