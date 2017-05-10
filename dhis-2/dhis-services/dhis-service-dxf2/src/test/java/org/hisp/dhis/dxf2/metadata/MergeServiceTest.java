@@ -135,7 +135,8 @@ public class MergeServiceTest
 
         assertFalse( organisationUnitGroupB.getMembers().isEmpty() );
         assertEquals( 4, organisationUnitGroupB.getMembers().size() );
-        assertNotNull( organisationUnitGroupB.getGroupSet() );
+        assertNotNull( organisationUnitGroupB.getGroupSets() );
+        assertFalse( organisationUnitGroupB.getGroupSets().isEmpty() );
     }
 
     @Test

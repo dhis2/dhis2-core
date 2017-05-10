@@ -54,9 +54,7 @@ public class OrganisationUnitGroupSetDeletionHandler
     @Override
     public void deleteOrganisationUnitGroup( OrganisationUnitGroup group )
     {
-        OrganisationUnitGroupSet groupSet = group.getGroupSet();
-        
-        if ( groupSet != null )
+        for ( OrganisationUnitGroupSet groupSet : group.getGroupSets() )
         {
             groupSet.getOrganisationUnitGroups().remove( group );
             idObjectManager.updateNoAcl( groupSet );

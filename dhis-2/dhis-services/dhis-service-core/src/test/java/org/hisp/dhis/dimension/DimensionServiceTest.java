@@ -211,9 +211,9 @@ public class DimensionServiceTest
         ouGroupB = createOrganisationUnitGroup( 'B' );
         ouGroupC = createOrganisationUnitGroup( 'C' );
         
-        ouGroupA.setGroupSet( ouGroupSetA );
-        ouGroupB.setGroupSet( ouGroupSetA );
-        ouGroupC.setGroupSet( ouGroupSetA );
+        ouGroupA.getGroupSets().add( ouGroupSetA );
+        ouGroupB.getGroupSets().add( ouGroupSetA );
+        ouGroupC.getGroupSets().add( ouGroupSetA );
         
         organisationUnitGroupService.addOrganisationUnitGroup( ouGroupA );
         organisationUnitGroupService.addOrganisationUnitGroup( ouGroupB );

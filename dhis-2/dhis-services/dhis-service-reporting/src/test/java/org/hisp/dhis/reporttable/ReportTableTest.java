@@ -242,8 +242,8 @@ public class ReportTableTest
         ouGroupA = createOrganisationUnitGroup( 'A' );
         ouGroupB = createOrganisationUnitGroup( 'B' );
         
-        ouGroupA.setGroupSet( ouGroupSetA );
-        ouGroupB.setGroupSet( ouGroupSetA );
+        ouGroupA.getGroupSets().add( ouGroupSetA );
+        ouGroupB.getGroupSets().add( ouGroupSetA );
         
         ouGroupA.setId( 'A' );
         ouGroupB.setId( 'B' );
