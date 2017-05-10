@@ -77,16 +77,16 @@ public class ListMapTest
         DataElementGroup groupE = new DataElementGroup( "GroupE" );
         DataElementGroup groupF = new DataElementGroup( "GroupF" );
         
-        groupA.setGroupSet( groupSetA );
-        groupB.setGroupSet( groupSetB );
-        groupC.setGroupSet( groupSetC );
-        groupD.setGroupSet( groupSetA );
-        groupE.setGroupSet( groupSetB );
-        groupF.setGroupSet( groupSetA );
+        groupA.getGroupSets().add( groupSetA );
+        groupB.getGroupSets().add( groupSetB );
+        groupC.getGroupSets().add( groupSetC );
+        groupD.getGroupSets().add( groupSetA );
+        groupE.getGroupSets().add( groupSetB );
+        groupF.getGroupSets().add( groupSetA );
         
         List<DataElementGroup> groups = Lists.newArrayList( groupA, groupB, groupC, groupD, groupE, groupF );
                         
-        ListMap<DataElementGroupSet, DataElementGroup> map = ListMap.getListMap( groups, group -> group.getGroupSet() );
+        ListMap<DataElementGroupSet, DataElementGroup> map = ListMap.getListMap( groups, group -> group.getGroupSets().iterator().next() );
         
         assertEquals( Lists.newArrayList( groupA, groupD, groupF ), map.get( groupSetA ) );
         assertEquals( Lists.newArrayList( groupB, groupE ), map.get( groupSetB ) );
@@ -109,16 +109,16 @@ public class ListMapTest
         DataElementGroup groupE = new DataElementGroup( "GroupE" );
         DataElementGroup groupF = new DataElementGroup( "GroupF" );
         
-        groupA.setGroupSet( groupSetA );
-        groupB.setGroupSet( groupSetB );
-        groupC.setGroupSet( groupSetC );
-        groupD.setGroupSet( groupSetA );
-        groupE.setGroupSet( groupSetB );
-        groupF.setGroupSet( groupSetA );
+        groupA.getGroupSets().add( groupSetA );
+        groupB.getGroupSets().add( groupSetB );
+        groupC.getGroupSets().add( groupSetC );
+        groupD.getGroupSets().add( groupSetA );
+        groupE.getGroupSets().add( groupSetB );
+        groupF.getGroupSets().add( groupSetA );
         
         List<DataElementGroup> groups = Lists.newArrayList( groupA, groupB, groupC, groupD, groupE, groupF );
                         
-        ListMap<DataElementGroupSet, Integer> map = ListMap.getListMap( groups, group -> group.getGroupSet(), group -> group.getId() );
+        ListMap<DataElementGroupSet, Integer> map = ListMap.getListMap( groups, group -> group.getGroupSets().iterator().next(), group -> group.getId() );
         
         assertEquals( Lists.newArrayList( groupA.getId(), groupD.getId(), groupF.getId() ), map.get( groupSetA ) );
         assertEquals( Lists.newArrayList( groupB.getId(), groupE.getId() ), map.get( groupSetB ) );

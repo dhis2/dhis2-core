@@ -41,8 +41,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -56,7 +54,7 @@ public class CategoryOptionGroup
 {
     private Set<DataElementCategoryOption> members = new HashSet<>();
 
-    private CategoryOptionGroupSet groupSet;
+    private Set<CategoryOptionGroupSet> groupSets = new HashSet<>();
 
     private DataDimensionType dataDimensionType;
 
@@ -104,18 +102,18 @@ public class CategoryOptionGroup
         this.members = members;
     }
 
-    @JsonProperty( "categoryOptionGroupSet" )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( localName = "categoryOptionGroupSet", namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.REFERENCE, required = Property.Value.FALSE )
-    public CategoryOptionGroupSet getGroupSet()
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "groupSets", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "groupSet", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<CategoryOptionGroupSet> getGroupSets()
     {
-        return groupSet;
+        return groupSets;
     }
 
-    public void setGroupSet( CategoryOptionGroupSet groupSet )
+    public void setGroupSets( Set<CategoryOptionGroupSet> groupSets )
     {
-        this.groupSet = groupSet;
+        this.groupSets = groupSets;
     }
 
     @JsonProperty
@@ -157,21 +155,20 @@ public class CategoryOptionGroup
 
             if ( mergeMode.isReplace() )
             {
-                groupSet = categoryOptionGroup.getGroupSet();
                 dataDimensionType = categoryOptionGroup.getDataDimensionType();
             }
             else if ( mergeMode.isMerge() )
             {
-                groupSet = categoryOptionGroup.getGroupSet() == null ? groupSet : categoryOptionGroup.getGroupSet();
                 dataDimensionType = categoryOptionGroup.getDataDimensionType() == null ? dataDimensionType : categoryOptionGroup.getDataDimensionType();
             }
-
-            members.clear();
 
             for ( DataElementCategoryOption categoryOption : categoryOptionGroup.getMembers() )
             {
                 addCategoryOption( categoryOption );
             }
+
+            members.clear();
+            groupSets.clear();
         }
     }
 }

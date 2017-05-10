@@ -166,13 +166,13 @@ public class CategoryOptionGroupSet
     public void addCategoryOptionGroup( CategoryOptionGroup categoryOptionGroup )
     {
         members.add( categoryOptionGroup );
-        categoryOptionGroup.setGroupSet( this );
+        categoryOptionGroup.getGroupSets().add( this );
     }
 
     public void removeCategoryOptionGroup( CategoryOptionGroup categoryOptionGroup )
     {
         members.remove( categoryOptionGroup );
-        categoryOptionGroup.setGroupSet( null );
+        categoryOptionGroup.getGroupSets().remove( this );
     }
 
     @Override

@@ -627,8 +627,6 @@ public abstract class DhisConvenienceTest
         for ( CategoryOptionGroup categoryOptionGroup : categoryOptionGroups )
         {
             categoryOptionGroupSet.addCategoryOptionGroup( categoryOptionGroup );
-
-            categoryOptionGroup.setGroupSet( categoryOptionGroupSet );
         }
 
         return categoryOptionGroupSet;

@@ -103,10 +103,7 @@ public class DataElementCategoryOption
         {
             for ( CategoryOptionGroup group : groups )
             {
-                if ( group.getGroupSet() != null )
-                {
-                    groupSets.add( group.getGroupSet() );
-                }
+                groupSets.addAll( group.getGroupSets() );
             }
         }
 
