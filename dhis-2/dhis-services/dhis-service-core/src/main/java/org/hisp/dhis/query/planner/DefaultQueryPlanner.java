@@ -78,6 +78,58 @@ public class DefaultQueryPlanner implements QueryPlanner
         return new QueryPlan( pQuery, npQuery );
     }
 
+    public QueryPath getQueryPath( Schema schema, String path )
+    {
+        Schema curSchema = schema;
+        Property curProperty = null;
+        boolean persisted = true;
+        List<String> alias = new ArrayList<>();
+        String[] pathComponents = path.split( "\\." );
+
+        if ( pathComponents.length == 0 )
+        {
+            return null;
+        }
+
+        for ( int idx = 0; idx < pathComponents.length; idx++ )
+        {
+            String name = pathComponents[idx];
+            curProperty = curSchema.getProperty( name );
+
+            if ( curProperty == null )
+            {
+                throw new RuntimeException( "Invalid path property: " + name );
+            }
+
+            if ( !curProperty.isPersisted() )
+            {
+                persisted = false;
+            }
+
+            if ( (!curProperty.isSimple() && idx == pathComponents.length - 1) )
+            {
+                return new QueryPath( curProperty, persisted, alias.toArray( new String[]{} ) );
+            }
+
+            if ( curProperty.isCollection() )
+            {
+                curSchema = schemaService.getDynamicSchema( curProperty.getItemKlass() );
+                alias.add( curProperty.getFieldName() );
+            }
+            else if ( !curProperty.isSimple() )
+            {
+                curSchema = schemaService.getDynamicSchema( curProperty.getKlass() );
+                alias.add( curProperty.getFieldName() );
+            }
+            else
+            {
+                return new QueryPath( curProperty, persisted, alias.toArray( new String[]{} ) );
+            }
+        }
+
+        return new QueryPath( curProperty, persisted, alias.toArray( new String[]{} ) );
+    }
+
     /**
      * @param query Query
      * @return Query instance
@@ -174,57 +226,5 @@ public class DefaultQueryPlanner implements QueryPlanner
         }
 
         return criteriaJunction;
-    }
-
-    private QueryPath getQueryPath( Schema schema, String path )
-    {
-        Schema curSchema = schema;
-        Property curProperty = null;
-        boolean persisted = true;
-        List<String> alias = new ArrayList<>();
-        String[] pathComponents = path.split( "\\." );
-
-        if ( pathComponents.length == 0 )
-        {
-            return null;
-        }
-
-        for ( int idx = 0; idx < pathComponents.length; idx++ )
-        {
-            String name = pathComponents[idx];
-            curProperty = curSchema.getProperty( name );
-
-            if ( curProperty == null )
-            {
-                throw new RuntimeException( "Invalid path property: " + name );
-            }
-
-            if ( !curProperty.isPersisted() )
-            {
-                persisted = false;
-            }
-
-            if ( (!curProperty.isSimple() && idx == pathComponents.length - 1) )
-            {
-                return new QueryPath( curProperty, persisted, alias.toArray( new String[]{} ) );
-            }
-
-            if ( curProperty.isCollection() )
-            {
-                curSchema = schemaService.getDynamicSchema( curProperty.getItemKlass() );
-                alias.add( curProperty.getFieldName() );
-            }
-            else if ( !curProperty.isSimple() )
-            {
-                curSchema = schemaService.getDynamicSchema( curProperty.getKlass() );
-                alias.add( curProperty.getFieldName() );
-            }
-            else
-            {
-                return new QueryPath( curProperty, persisted, alias.toArray( new String[]{} ) );
-            }
-        }
-
-        return new QueryPath( curProperty, persisted, alias.toArray( new String[]{} ) );
     }
 }
