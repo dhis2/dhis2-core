@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.event;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -893,6 +894,7 @@ public abstract class AbstractEventService
         }
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
+        updateTrackedEntityInstance( programStageInstance );
 
         saveTrackedEntityComment( programStageInstance, event, storedBy );
 
@@ -1303,6 +1305,7 @@ public abstract class AbstractEventService
                     importOptions );
             }
 
+            updateTrackedEntityInstance( programStageInstance );
             saveTrackedEntityComment( programStageInstance, event, storedBy );
 
             importSummary.setReference( programStageInstance.getUid() );
@@ -1735,5 +1738,32 @@ public abstract class AbstractEventService
         {
             programStageInstance.setLastUpdatedAtClient( DateUtils.parseDate( lastUpdatedAtClient ) );
         }
+    }
+
+    private void updateTrackedEntityInstance( ProgramStageInstance programStageInstance )
+    {
+        updateTrackedEntityInstance( Lists.newArrayList( programStageInstance ) );
+    }
+
+    private void updateTrackedEntityInstance( List<ProgramStageInstance> programStageInstances )
+    {
+        Set<ProgramInstance> programInstances = new HashSet<>();
+        Set<TrackedEntityInstance> trackedEntityInstances = new HashSet<>();
+
+        for ( ProgramStageInstance programStageInstance : programStageInstances )
+        {
+            if ( programStageInstance.getProgramInstance() != null )
+            {
+                programInstances.add( programStageInstance.getProgramInstance() );
+
+                if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
+                {
+                    trackedEntityInstances.add( programStageInstance.getProgramInstance().getEntityInstance() );
+                }
+            }
+        }
+
+        programInstances.forEach( manager::update );
+        trackedEntityInstances.forEach( manager::update );
     }
 }
