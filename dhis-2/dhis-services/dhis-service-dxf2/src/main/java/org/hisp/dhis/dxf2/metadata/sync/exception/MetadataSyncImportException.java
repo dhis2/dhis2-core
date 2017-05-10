@@ -1,7 +1,5 @@
 package org.hisp.dhis.dxf2.metadata.sync.exception;
 
-import net.sf.jasperreports.engine.util.JRStyledText;
-
 /**
  * Created by vanyas on 5/1/17.
  */

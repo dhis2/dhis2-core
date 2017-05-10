@@ -261,20 +261,20 @@ public class DefaultSynchronizationManager
                 .execute( instance.getUrl(), HttpMethod.POST, requestCallback, responseExtractor );
         }
 
-         catch ( HttpClientErrorException ex )
+        catch ( HttpClientErrorException ex )
         {
             String responseBody = ex.getResponseBodyAsString();
             summary = DefaultWebMessageJacksonService.fromWebMessageResponse( responseBody, ImportSummary.class );
         }
-        catch (HttpServerErrorException ex)
+        catch ( HttpServerErrorException ex )
         {
             String responseBody = ex.getResponseBodyAsString();
-            log.error( "Internal error happened during event data push: " + responseBody , ex);
+            log.error( "Internal error happened during event data push: " + responseBody, ex );
             throw ex;
         }
-        catch (ResourceAccessException ex)
+        catch ( ResourceAccessException ex )
         {
-            log.error("Exception during event data push: "+ ex.getMessage(), ex);
+            log.error( "Exception during event data push: " + ex.getMessage(), ex );
             throw ex;
         }
 
@@ -354,22 +354,23 @@ public class DefaultSynchronizationManager
             String responseBody = ex.getResponseBodyAsString();
             summaries = DefaultWebMessageJacksonService.fromWebMessageResponse( responseBody, ImportSummaries.class );
         }
-        catch (HttpServerErrorException ex)
+        catch ( HttpServerErrorException ex )
         {
             String responseBody = ex.getResponseBodyAsString();
-            log.error( "Internal error happened during event data push: " + responseBody , ex);
+            log.error( "Internal error happened during event data push: " + responseBody, ex );
             throw ex;
         }
-        catch (ResourceAccessException ex)
+        catch ( ResourceAccessException ex )
         {
-            log.error("Exception during event data push: "+ ex.getMessage(), ex);
+            log.error( "Exception during event data push: " + ex.getMessage(), ex );
             throw ex;
         }
 
         log.info( "Event synch summary: " + summaries );
         boolean isError = false;
 
-        if(summaries!=null){
+        if ( summaries != null )
+        {
 
             for ( ImportSummary summary : summaries.getImportSummaries() )
             {
