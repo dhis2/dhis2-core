@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.event.data;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -59,12 +58,12 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
-
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
@@ -72,8 +71,6 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 
 /**
  * TODO could use row_number() and filtering for paging, but not supported on MySQL.
@@ -595,6 +592,15 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
+     * Returns a list of ascending or descending keywords for sorting
+     * @param params Event Query Params
+     */
+    private List<String> getSortColumns (EventQueryParams params)
+    {
+        return ListUtils.distinctUnion( params.getAsc(), params.getDesc() ).stream().map( s -> statementBuilder.columnQuote( s ) ).collect( Collectors.toList() );
+    }
+
+    /**
      * Returns a from and where SQL clause for all partitions part of the given
      * query parameters.
      * 
@@ -603,26 +609,9 @@ public class JdbcEventAnalyticsManager
      */
     private String getFromWhereMultiplePartitionsClause( EventQueryParams params, List<String> fixedColumns )
     {
-        List<String> cols = ListUtils.distinctUnion( fixedColumns, getAggregateColumns( params ), getPartitionSelectColumns( params ) );
-
-        HashSet<String> fixedColumnsHashSet = new HashSet<>( fixedColumns );
-        HashSet<String> sortingStrings = new HashSet<>();
-
-        if ( params.isSorting() )
-        {
-            for ( String item : params.getAsc() )
-            {
-                if ( !fixedColumnsHashSet.contains( item ) ) sortingStrings.add( "\"" + item + "\"" );
-            }
-
-            for  ( String item : params.getDesc() )
-            {
-                if ( !fixedColumnsHashSet.contains( item ) ) sortingStrings.add( "\"" + item + "\"" );
-            }
-        }
+        List<String> cols = ListUtils.distinctUnion( fixedColumns, getAggregateColumns( params ), getPartitionSelectColumns( params ),  getSortColumns( params ));
         
         String selectCols = StringUtils.join( cols, "," );
-        if ( !sortingStrings.isEmpty() ) selectCols += ", " + StringUtils.join( sortingStrings, "," );
 
         String sql = "from (";
         
