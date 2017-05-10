@@ -56,6 +56,7 @@ import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.util.Assert;
 
 /**
 * @author Lars Helge Overland
@@ -70,7 +71,6 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
     
     @Autowired
     private IdentifiableObjectManager idObjectManager;
-
 
     @Override
     public void executeInTransaction()
@@ -145,9 +145,7 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
         {
             int favoriteId = groupSetRs.getInt( 1 );
             int dimensionId = groupSetRs.getInt( 2 );
-            
-            AnalyticalObject analyticalObject = idObjectManager.get( clazz, favoriteId );
-            
+                        
             String groupSql = TextUtils.replace( groupSqlPattern, "{favorite}", favorite, "{dimension}", dimension, 
                 "{item}", item, "{favoriteId}", String.valueOf( favoriteId ), "{dimensionId}", String.valueOf( dimensionId ) );
             
@@ -160,11 +158,15 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
             while ( groupRs.next() )
             {
                 groupIds.add( groupRs.getInt( 1 ) );
-            }            
+            }
 
+            AnalyticalObject analyticalObject = idObjectManager.get( clazz, favoriteId );
+            DimensionalObject groupSet = idObjectManager.get( OrganisationUnitGroupSet.class, dimensionId );
             List<DimensionalItemObject> groups = (List<DimensionalItemObject>) idObjectManager.getById( itemClass, groupIds );
             
-            DimensionalObject groupSet = idObjectManager.get( OrganisationUnitGroupSet.class, dimensionId );
+            Assert.notNull( analyticalObject, "Analytical object not found: " + favoriteId );
+            Assert.notNull( groupSet, "Group set not found: " + dimensionId );
+            Assert.notNull( groups, "Groups cannot be null" );
             
             BaseDimensionalEmbeddedObject embeddedDimension = new BaseDimensionalEmbeddedObject( groupSet, groups );
             
