@@ -339,8 +339,8 @@ public class DataElementServiceTest
     public void testAndAndGetDataElementGroupSet()
     {
         DataElementGroup degA = createDataElementGroup( 'A' );
-        DataElementGroup degB = createDataElementGroup( 'A' );
-        DataElementGroup degC = createDataElementGroup( 'A' );
+        DataElementGroup degB = createDataElementGroup( 'B' );
+        DataElementGroup degC = createDataElementGroup( 'C' );
         
         dataElementService.addDataElementGroup( degA );
         dataElementService.addDataElementGroup( degB );
