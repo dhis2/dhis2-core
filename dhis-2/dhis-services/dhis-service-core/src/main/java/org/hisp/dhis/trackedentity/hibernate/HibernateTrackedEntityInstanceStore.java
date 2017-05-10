@@ -683,6 +683,6 @@ public class HibernateTrackedEntityInstanceStore
     @Override
     protected TrackedEntityInstance postProcessObject( TrackedEntityInstance trackedEntityInstance )
     {
-        return trackedEntityInstance.isDeleted() ? null : trackedEntityInstance;
+        return ( trackedEntityInstance == null || trackedEntityInstance.isDeleted() ) ? null : trackedEntityInstance;
     }
 }
