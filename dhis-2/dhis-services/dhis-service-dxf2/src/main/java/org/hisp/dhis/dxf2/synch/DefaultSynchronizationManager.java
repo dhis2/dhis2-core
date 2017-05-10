@@ -47,7 +47,7 @@ import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.dxf2.webmessage.DefaultWebMessageJacksonService;
+import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
@@ -264,7 +264,7 @@ public class DefaultSynchronizationManager
         catch ( HttpClientErrorException ex )
         {
             String responseBody = ex.getResponseBodyAsString();
-            summary = DefaultWebMessageJacksonService.fromWebMessageResponse( responseBody, ImportSummary.class );
+            summary = WebMessageParseUtils.fromWebMessageResponse( responseBody, ImportSummary.class );
         }
         catch ( HttpServerErrorException ex )
         {
@@ -352,7 +352,7 @@ public class DefaultSynchronizationManager
         catch ( HttpClientErrorException ex )
         {
             String responseBody = ex.getResponseBodyAsString();
-            summaries = DefaultWebMessageJacksonService.fromWebMessageResponse( responseBody, ImportSummaries.class );
+            summaries = WebMessageParseUtils.fromWebMessageResponse( responseBody, ImportSummaries.class );
         }
         catch ( HttpServerErrorException ex )
         {

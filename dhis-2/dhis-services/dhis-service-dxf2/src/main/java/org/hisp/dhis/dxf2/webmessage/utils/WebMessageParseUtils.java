@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.webmessage;
+package org.hisp.dhis.dxf2.webmessage.utils;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -35,7 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.apache.commons.io.IOUtils;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.render.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.render.ParseDateStdDeserializer;
 import org.hisp.dhis.render.WriteDateStdSerializer;
@@ -48,7 +48,7 @@ import java.util.Date;
 /**
  * Created by vanyas on 5/4/17.
  */
-public class DefaultWebMessageJacksonService
+public class WebMessageParseUtils
 {
     private final static ObjectMapper JSON_MAPPER = new ObjectMapper();
     private final static ObjectMapper XML_MAPPER = new XmlMapper();
