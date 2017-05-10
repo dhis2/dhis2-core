@@ -72,21 +72,6 @@ public interface AclService
     boolean isShareable( Class<?> klass );
 
     /**
-     * Can user write to this object (create)
-     * <p/>
-     * 1. Does user have ACL_OVERRIDE_AUTHORITIES authority?
-     * 2. Is the user for the object null?
-     * 3. Is the user of the object equal to current user?
-     * 4. Is the object public write?
-     * 5. Does any of the userGroupAccesses contain public write and the current user is in that group
-     *
-     * @param user   User to check against
-     * @param object Object to check
-     * @return Result of test
-     */
-    boolean canWrite( User user, IdentifiableObject object );
-
-    /**
      * Can user read this object
      * <p/>
      * 1. Does user have ACL_OVERRIDE_AUTHORITIES authority?
@@ -100,6 +85,21 @@ public interface AclService
      * @return Result of test
      */
     boolean canRead( User user, IdentifiableObject object );
+
+    /**
+     * Can user write to this object (create)
+     * <p/>
+     * 1. Does user have ACL_OVERRIDE_AUTHORITIES authority?
+     * 2. Is the user for the object null?
+     * 3. Is the user of the object equal to current user?
+     * 4. Is the object public write?
+     * 5. Does any of the userGroupAccesses contain public write and the current user is in that group
+     *
+     * @param user   User to check against
+     * @param object Object to check
+     * @return Result of test
+     */
+    boolean canWrite( User user, IdentifiableObject object );
 
     /**
      * Can user update this object

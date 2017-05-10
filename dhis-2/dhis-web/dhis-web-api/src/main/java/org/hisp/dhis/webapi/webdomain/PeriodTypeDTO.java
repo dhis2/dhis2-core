@@ -1,4 +1,4 @@
-package org.hisp.dhis.dataelement;
+package org.hisp.dhis.webapi.webdomain;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,76 +26,59 @@ package org.hisp.dhis.dataelement;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.hisp.dhis.period.PeriodType;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "categoryDimension", namespace = DxfNamespaces.DXF_2_0 )
-public class DataElementCategoryDimension
+@JacksonXmlRootElement( localName = "periodType", namespace = DxfNamespaces.DXF_2_0 )
+public class PeriodTypeDTO
 {
-    private int id;
+    private final String name;
+    private final String isoDuration;
+    private final String isoFormat;
+    private final int frequencyOrder;
 
-    private DataElementCategory dimension;
-
-    private List<DataElementCategoryOption> items = new ArrayList<>();
-
-    public int getId()
+    public PeriodTypeDTO( PeriodType periodType )
     {
-        return id;
+        this.name = periodType.getName();
+        this.frequencyOrder = periodType.getFrequencyOrder();
+        this.isoDuration = periodType.getIso8601Duration();
+        this.isoFormat = periodType.getIsoFormat();
     }
 
-    public void setId( int id )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getName()
     {
-        this.id = id;
+        return name;
     }
 
-    @JsonProperty( "dataElementCategory" )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( localName = "dataElementCategory", namespace = DxfNamespaces.DXF_2_0 )
-    public DataElementCategory getDimension()
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getIsoDuration()
     {
-        return dimension;
+        return isoDuration;
     }
 
-    public void setDimension( DataElementCategory dimension )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getIsoFormat()
     {
-        this.dimension = dimension;
+        return isoFormat;
     }
 
-    @JsonProperty( "categoryOptions" )
-    @JacksonXmlElementWrapper( localName = "categoryOptions", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0 )
-    public List<DataElementCategoryOption> getItems()
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getFrequencyOrder()
     {
-        return items;
-    }
-
-    public void setItems( List<DataElementCategoryOption> items )
-    {
-        this.items = items;
-    }
-
-
-    @Override
-    public String toString()
-    {
-        final StringBuilder sb = new StringBuilder( "DataElementCategoryDimension{" );
-        sb.append( "id=" ).append( id );
-        sb.append( ", dimension=" ).append( dimension );
-        sb.append( ", items=" ).append( items );
-        sb.append( '}' );
-        return sb.toString();
+        return frequencyOrder;
     }
 }

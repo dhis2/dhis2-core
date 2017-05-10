@@ -38,6 +38,7 @@ import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -54,6 +55,10 @@ public class TrackedEntityInstance
     private String created;
 
     private String lastUpdated;
+
+    private String createdAtClient;
+
+    private String lastUpdatedAtClient;
 
     private List<Relationship> relationships = new ArrayList<>();
 
@@ -128,7 +133,6 @@ public class TrackedEntityInstance
 
     public void setCreated( String created )
     {
-        this.created = created;
     }
 
     @JsonProperty( required = true )
@@ -140,7 +144,30 @@ public class TrackedEntityInstance
 
     public void setLastUpdated( String lastUpdated )
     {
-        this.lastUpdated = lastUpdated;
+    }
+
+    @JsonProperty( required = true )
+    @JacksonXmlProperty( isAttribute = true )
+    public String getCreatedAtClient()
+    {
+        return createdAtClient;
+    }
+
+    public void setCreatedAtClient( String createdAtClient )
+    {
+        this.createdAtClient = createdAtClient;
+    }
+
+    @JsonProperty( required = true )
+    @JacksonXmlProperty( isAttribute = true )
+    public String getLastUpdatedAtClient()
+    {
+        return lastUpdatedAtClient;
+    }
+
+    public void setLastUpdatedAtClient( String lastUpdatedAtClient )
+    {
+        this.lastUpdatedAtClient = lastUpdatedAtClient;
     }
 
     @JsonProperty
@@ -211,30 +238,25 @@ public class TrackedEntityInstance
     {
         if ( this == o ) return true;
         if ( o == null || getClass() != o.getClass() ) return false;
-
         TrackedEntityInstance that = (TrackedEntityInstance) o;
-
-        if ( attributes != null ? !attributes.equals( that.attributes ) : that.attributes != null ) return false;
-        if ( orgUnit != null ? !orgUnit.equals( that.orgUnit ) : that.orgUnit != null ) return false;
-        if ( created != null ? !created.equals( that.created ) : that.created != null ) return false;
-        if ( relationships != null ? !relationships.equals( that.relationships ) : that.relationships != null ) return false;
-        if ( trackedEntity != null ? !trackedEntity.equals( that.trackedEntity ) : that.trackedEntity != null ) return false;
-        if ( trackedEntityInstance != null ? !trackedEntityInstance.equals( that.trackedEntityInstance ) : that.trackedEntityInstance != null )
-            return false;
-
-        return true;
+        return Objects.equals( trackedEntity, that.trackedEntity ) &&
+            Objects.equals( trackedEntityInstance, that.trackedEntityInstance ) &&
+            Objects.equals( orgUnit, that.orgUnit ) &&
+            Objects.equals( created, that.created ) &&
+            Objects.equals( createdAtClient, that.createdAtClient ) &&
+            Objects.equals( lastUpdated, that.lastUpdated ) &&
+            Objects.equals( lastUpdatedAtClient, that.lastUpdatedAtClient ) &&
+            Objects.equals( relationships, that.relationships ) &&
+            Objects.equals( attributes, that.attributes ) &&
+            Objects.equals( enrollments, that.enrollments ) &&
+            Objects.equals( inactive, that.inactive );
     }
 
     @Override
     public int hashCode()
     {
-        int result = trackedEntity != null ? trackedEntity.hashCode() : 0;
-        result = 31 * result + (trackedEntityInstance != null ? trackedEntityInstance.hashCode() : 0);
-        result = 31 * result + (orgUnit != null ? orgUnit.hashCode() : 0);
-        result = 31 * result + (created != null ? created.hashCode() : 0);
-        result = 31 * result + (relationships != null ? relationships.hashCode() : 0);
-        result = 31 * result + (attributes != null ? attributes.hashCode() : 0);
-        return result;
+        return Objects.hash( trackedEntity, trackedEntityInstance, orgUnit, created, createdAtClient, lastUpdated, lastUpdatedAtClient,
+            relationships, attributes, enrollments, inactive );
     }
 
     @Override

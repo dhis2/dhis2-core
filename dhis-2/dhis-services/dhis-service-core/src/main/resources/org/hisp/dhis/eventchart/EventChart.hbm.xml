@@ -167,6 +167,10 @@
     </property>
     
     <property name="hideNaData" />
+    
+    <property name="percentStackedValues" />
+    
+    <property name="cumulativeValues" />
 
     <property name="rangeAxisMaxValue" />
 

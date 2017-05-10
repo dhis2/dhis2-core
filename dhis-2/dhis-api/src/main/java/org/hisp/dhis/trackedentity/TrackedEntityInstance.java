@@ -41,6 +41,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -52,6 +53,10 @@ public class TrackedEntityInstance
     extends BaseIdentifiableObject
 {
     public static String PREFIX_TRACKED_ENTITY_ATTRIBUTE = "attr";
+
+    private Date createdAtClient;
+
+    private Date lastUpdatedAtClient;
 
     private Set<TrackedEntityAttributeValue> trackedEntityAttributeValues = new HashSet<>();
 
@@ -75,6 +80,19 @@ public class TrackedEntityInstance
     {
     }
 
+    @Override
+    public void setAutoFields()
+    {
+        super.setAutoFields();
+
+        if ( createdAtClient == null )
+        {
+            createdAtClient = created;
+        }
+
+        lastUpdatedAtClient = lastUpdated;
+    }
+
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
@@ -94,6 +112,30 @@ public class TrackedEntityInstance
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getCreatedAtClient()
+    {
+        return createdAtClient;
+    }
+
+    public void setCreatedAtClient( Date createdAtClient )
+    {
+        this.createdAtClient = createdAtClient;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getLastUpdatedAtClient()
+    {
+        return lastUpdatedAtClient;
+    }
+
+    public void setLastUpdatedAtClient( Date lastUpdatedAtClient )
+    {
+        this.lastUpdatedAtClient = lastUpdatedAtClient;
+    }
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
@@ -199,6 +241,8 @@ public class TrackedEntityInstance
                 inactive = trackedEntityInstance.isInactive();
                 trackedEntity = trackedEntityInstance.getTrackedEntity();
                 representative = trackedEntityInstance.getRepresentative();
+                createdAtClient = trackedEntityInstance.getCreatedAtClient();
+                lastUpdatedAtClient = trackedEntityInstance.getLastUpdatedAtClient();
             }
             else if ( mergeMode.isMerge() )
             {

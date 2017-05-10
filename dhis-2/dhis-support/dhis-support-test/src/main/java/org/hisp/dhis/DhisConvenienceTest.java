@@ -827,7 +827,6 @@ public abstract class DhisConvenienceTest
         unit.setShortName( "OrganisationUnitShort" + uniqueCharacter );
         unit.setCode( "OrganisationUnitCode" + uniqueCharacter );
         unit.setOpeningDate( date );
-        unit.setClosedDate( date );
         unit.setComment( "Comment" + uniqueCharacter );
 
         return unit;
@@ -860,7 +859,6 @@ public abstract class DhisConvenienceTest
         unit.setShortName( name );
         unit.setCode( name );
         unit.setOpeningDate( date );
-        unit.setClosedDate( date );
         unit.setComment( "Comment " + name );
 
         return unit;

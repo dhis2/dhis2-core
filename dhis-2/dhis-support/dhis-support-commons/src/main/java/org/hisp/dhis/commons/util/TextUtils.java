@@ -585,4 +585,29 @@ public class TextUtils
 
         return new HashSet<>( Arrays.asList( values ) );
     }
+    
+    /**
+     * Replaces the first n matches of the given regular expression starting
+     * from the beginning of the given string.
+     * 
+     * @param string the string to replace matches.
+     * @param regex the regular expression to match the string against.
+     * @param replacement the replacement string.
+     * @param occurrences the number of matches to replace.
+     * @return the replaced string.
+     */
+    public static String replaceFirst( String string, final String regex, final String replacement, final int occurrences )
+    {
+        StringBuffer sb = new StringBuffer();
+        Matcher matcher = Pattern.compile( regex ).matcher( string );        
+        int c = 0;
+        
+        while ( matcher.find() && c < occurrences )
+        {
+            matcher.appendReplacement( sb, replacement );
+            c++;
+        }
+        
+        return appendTail( matcher, sb );
+    }
 }

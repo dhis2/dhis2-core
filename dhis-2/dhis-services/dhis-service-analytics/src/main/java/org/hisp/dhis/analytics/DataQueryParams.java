@@ -96,7 +96,6 @@ public class DataQueryParams
     public static final String DISPLAY_NAME_LATITUDE = "Latitude";
 
     public static final int DX_INDEX = 0;
-    public static final int CO_INDEX = 1;
 
     public static final ImmutableSet<Class<? extends IdentifiableObject>> DYNAMIC_DIM_CLASSES = ImmutableSet.of( 
         OrganisationUnitGroupSet.class, DataElementGroupSet.class, CategoryOptionGroupSet.class, DataElementCategory.class );
@@ -837,11 +836,11 @@ public class DataQueryParams
     }
     
     /**
-     * Retrieves the options for the given dimension identifier. If the co 
-     * dimension is specified, all category option combos for the first data 
+     * Retrieves the options for the given dimension identifier. If the "co"
+     * dimension is specified, all category option combinations for the first data 
      * element is returned. Returns an empty array if the dimension is not present.
      */
-    public List<DimensionalItemObject> getDimensionArrayExplodeCoc( String dimension )
+    public DimensionalItemObject[] getDimensionItemArrayExplodeCoc( String dimension )
     {
         List<DimensionalItemObject> items = new ArrayList<>();
         
@@ -869,7 +868,7 @@ public class DataQueryParams
             items.addAll( getDimensionOptions( dimension ) );
         }
         
-        return items;
+        return items.toArray( new DimensionalItemObject[0] );
     }
     
     /**
@@ -1110,25 +1109,15 @@ public class DataQueryParams
     }
     
     /**
-     * Adds the given dimension to the dimensions of this query. If the dimension
-     * is a data dimension it will be added to the beginning of the list of dimensions.
+     * Adds the given dimension to the dimensions of this query. The dimensions will 
+     * be ordered according to the order property value of the {@link DimensionType}
+     * of the dimension.
      */
     protected void addDimension( DimensionalObject dimension )
     {
-        if ( DATA_X_DIM_ID.equals( dimension.getDimension() ) )
-        {
-            dimensions.add( DX_INDEX, dimension );
-        }
-        else if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension.getDimension() ) )
-        {
-            int index = !dimensions.isEmpty() && DATA_X_DIM_ID.equals( dimensions.get( 0 ).getDimension() ) ? CO_INDEX : DX_INDEX;
-            
-            dimensions.add( index, dimension );
-        }
-        else
-        {
-            dimensions.add( dimension );
-        }
+        dimensions.add( dimension );
+        
+        Collections.sort( dimensions, ( o1, o2 ) -> o1.getDimensionType().getOrder() - o2.getDimensionType().getOrder() );
     }
     
     /**
@@ -1380,9 +1369,7 @@ public class DataQueryParams
     /**
      * Creates a mapping of permutation keys and mappings of data element operands
      * and values based on the given mapping of dimension option keys and 
-     * aggregated values. The data element dimension will be at index 0 and the
-     * category option combo dimension will be at index 1, if category option
-     * combinations is enabled.
+     * aggregated values. The data element dimension will be at index 0.
      * 
      * @param aggregatedDataMap the aggregated data map.
      * @return a mapping of permutation keys and mappings of data element operands

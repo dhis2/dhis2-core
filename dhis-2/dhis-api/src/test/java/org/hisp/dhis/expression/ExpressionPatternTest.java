@@ -39,6 +39,7 @@ import static org.hisp.dhis.expression.ExpressionService.GROUP_ID1;
 import static org.hisp.dhis.expression.ExpressionService.GROUP_ID2;
 import static org.hisp.dhis.expression.ExpressionService.GROUP_DATA_ELEMENT;
 import static org.hisp.dhis.expression.ExpressionService.GROUP_CATEGORORY_OPTION_COMBO;
+import static org.hisp.dhis.expression.ExpressionService.GROUP_ATTRIBUTE_OPTION_COMBO;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.junit.Assert.*;
 
@@ -54,16 +55,43 @@ public class ExpressionPatternTest
         assertTrue( matcher.find() );
         assertEquals( "PuRblkMqsKu", matcher.group( GROUP_DATA_ELEMENT ) );
         assertNull( matcher.group( GROUP_CATEGORORY_OPTION_COMBO ) );
+        assertNull( matcher.group( GROUP_ATTRIBUTE_OPTION_COMBO ) );
 
         matcher = OPERAND_PATTERN.matcher( "#{PuRblkMqsKu.kXGiFZ0msNV}" );
         assertTrue( matcher.find() );
         assertEquals( "PuRblkMqsKu", matcher.group( GROUP_DATA_ELEMENT ) );
         assertEquals( "kXGiFZ0msNV", matcher.group( GROUP_CATEGORORY_OPTION_COMBO ) );
+        assertNull( matcher.group( GROUP_ATTRIBUTE_OPTION_COMBO ) );
 
         matcher = OPERAND_PATTERN.matcher( "#{PuRblkMqsKu.*}" );
         assertTrue( matcher.find() );
         assertEquals( "PuRblkMqsKu", matcher.group( GROUP_DATA_ELEMENT ) );
         assertEquals( SYMBOL_WILDCARD, matcher.group( GROUP_CATEGORORY_OPTION_COMBO ) );
+        assertNull( matcher.group( GROUP_ATTRIBUTE_OPTION_COMBO ) );
+
+        matcher = OPERAND_PATTERN.matcher( "#{PuRblkMqsKu.kXGiFZ0msNV.Gb3ZyH0O9M6}" );
+        assertTrue( matcher.find() );
+        assertEquals( "PuRblkMqsKu", matcher.group( GROUP_DATA_ELEMENT ) );
+        assertEquals( "kXGiFZ0msNV", matcher.group( GROUP_CATEGORORY_OPTION_COMBO ) );
+        assertEquals( "Gb3ZyH0O9M6", matcher.group( GROUP_ATTRIBUTE_OPTION_COMBO ) );
+
+        matcher = OPERAND_PATTERN.matcher( "#{PuRblkMqsKu.*.Gb3ZyH0O9M6}" );
+        assertTrue( matcher.find() );
+        assertEquals( "PuRblkMqsKu", matcher.group( GROUP_DATA_ELEMENT ) );
+        assertEquals( SYMBOL_WILDCARD, matcher.group( GROUP_CATEGORORY_OPTION_COMBO ) );
+        assertEquals( "Gb3ZyH0O9M6", matcher.group( GROUP_ATTRIBUTE_OPTION_COMBO ) );
+
+        matcher = OPERAND_PATTERN.matcher( "#{PuRblkMqsKu.kXGiFZ0msNV.*}" );
+        assertTrue( matcher.find() );
+        assertEquals( "PuRblkMqsKu", matcher.group( GROUP_DATA_ELEMENT ) );
+        assertEquals( "kXGiFZ0msNV", matcher.group( GROUP_CATEGORORY_OPTION_COMBO ) );
+        assertEquals( SYMBOL_WILDCARD, matcher.group( GROUP_ATTRIBUTE_OPTION_COMBO ) );
+
+        matcher = OPERAND_PATTERN.matcher( "#{PuRblkMqsKu.*.*}" );
+        assertTrue( matcher.find() );
+        assertEquals( "PuRblkMqsKu", matcher.group( GROUP_DATA_ELEMENT ) );
+        assertEquals( SYMBOL_WILDCARD, matcher.group( GROUP_CATEGORORY_OPTION_COMBO ) );
+        assertEquals( SYMBOL_WILDCARD, matcher.group( GROUP_ATTRIBUTE_OPTION_COMBO ) );
 
         matcher = OPERAND_PATTERN.matcher( "#{1nvalidUid}" );
         assertFalse( matcher.find() );
@@ -92,6 +120,39 @@ public class ExpressionPatternTest
         assertEquals( "PuRblkMqsKu.kXGiFZ0msNV", matcher.group( GROUP_ID ) );
         assertEquals( "PuRblkMqsKu", matcher.group( GROUP_ID1 ) );
         assertEquals( "kXGiFZ0msNV", matcher.group( GROUP_ID2 ) );
+        assertNull( matcher.group( GROUP_ID3 ) );
+
+        matcher = VARIABLE_PATTERN.matcher( "#{PuRblkMqsKu.*}" );
+        assertTrue( matcher.find() );
+        assertEquals( "#", matcher.group( GROUP_KEY ) );
+        assertEquals( "PuRblkMqsKu.*", matcher.group( GROUP_ID ) );
+        assertEquals( "PuRblkMqsKu", matcher.group( GROUP_ID1 ) );
+        assertEquals( SYMBOL_WILDCARD, matcher.group( GROUP_ID2 ) );
+        assertNull( matcher.group( GROUP_ID3 ) );
+
+        matcher = VARIABLE_PATTERN.matcher( "#{PuRblkMqsKu.kXGiFZ0msNV.Gb3ZyH0O9M6}" );
+        assertTrue( matcher.find() );
+        assertEquals( "#", matcher.group( GROUP_KEY ) );
+        assertEquals( "PuRblkMqsKu.kXGiFZ0msNV.Gb3ZyH0O9M6", matcher.group( GROUP_ID ) );
+        assertEquals( "PuRblkMqsKu", matcher.group( GROUP_ID1 ) );
+        assertEquals( "kXGiFZ0msNV", matcher.group( GROUP_ID2 ) );
+        assertEquals( "Gb3ZyH0O9M6", matcher.group( GROUP_ID3 ) );
+
+        matcher = VARIABLE_PATTERN.matcher( "#{PuRblkMqsKu.*.Gb3ZyH0O9M6}" );
+        assertTrue( matcher.find() );
+        assertEquals( "#", matcher.group( GROUP_KEY ) );
+        assertEquals( "PuRblkMqsKu.*.Gb3ZyH0O9M6", matcher.group( GROUP_ID ) );
+        assertEquals( "PuRblkMqsKu", matcher.group( GROUP_ID1 ) );
+        assertEquals( SYMBOL_WILDCARD, matcher.group( GROUP_ID2 ) );
+        assertEquals( "Gb3ZyH0O9M6", matcher.group( GROUP_ID3 ) );
+
+        matcher = VARIABLE_PATTERN.matcher( "#{PuRblkMqsKu.kXGiFZ0msNV.*}" );
+        assertTrue( matcher.find() );
+        assertEquals( "#", matcher.group( GROUP_KEY ) );
+        assertEquals( "PuRblkMqsKu.kXGiFZ0msNV.*", matcher.group( GROUP_ID ) );
+        assertEquals( "PuRblkMqsKu", matcher.group( GROUP_ID1 ) );
+        assertEquals( "kXGiFZ0msNV", matcher.group( GROUP_ID2 ) );
+        assertEquals( SYMBOL_WILDCARD, matcher.group( GROUP_ID3 ) );
 
         matcher = VARIABLE_PATTERN.matcher( "#{1nvalidUid}" );
         assertFalse( matcher.find() );
@@ -124,7 +185,14 @@ public class ExpressionPatternTest
         assertTrue( matcher.find() );
         assertEquals( "PuRblkMqsKu", matcher.group( GROUP_ID ) );
 
+        matcher = WILDCARD_PATTERN.matcher( "#{PuRblkMqsKu.*.*}" );
+        assertTrue( matcher.find() );
+        assertEquals( "PuRblkMqsKu", matcher.group( GROUP_ID ) );
+
         matcher = WILDCARD_PATTERN.matcher( "#{PuRblkMqsKu.kXGiFZ0msNV}" );
+        assertFalse( matcher.find() );
+
+        matcher = WILDCARD_PATTERN.matcher( "#{PuRblkMqsKu.*.uaIRSFqITG7}" );
         assertFalse( matcher.find() );
         
         matcher = WILDCARD_PATTERN.matcher( "#{PuRblkMqsKu}" );
@@ -140,9 +208,9 @@ public class ExpressionPatternTest
     }
 
     @Test
-    public void testOptionComboOperandPattern()
+    public void testCategoryOptionComboOperandPattern()
     {
-        Matcher matcher = OPTION_COMBO_OPERAND_PATTERN.matcher( "#{ZGugB5Dfi9n.Xz9PckXF7Qu}" );
+        Matcher matcher = CATEGORY_OPTION_COMBO_OPERAND_PATTERN.matcher( "#{ZGugB5Dfi9n.Xz9PckXF7Qu}" );
         assertTrue( matcher.find() );
         assertEquals( "ZGugB5Dfi9n", matcher.group( GROUP_DATA_ELEMENT ) );
         assertEquals( "Xz9PckXF7Qu", matcher.group( GROUP_CATEGORORY_OPTION_COMBO ) );
