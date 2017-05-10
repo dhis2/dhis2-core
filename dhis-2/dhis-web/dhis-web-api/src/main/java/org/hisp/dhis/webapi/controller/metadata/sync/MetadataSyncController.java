@@ -46,7 +46,6 @@ import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -75,9 +74,6 @@ public class MetadataSyncController
 
     @Autowired
     private MetadataSyncService metadataSyncService;
-
-    @Autowired
-    private WebMessageService webMessageService;
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_MANAGE')" )
     @GetMapping
