@@ -87,7 +87,7 @@ public class FavoriteDataItemUpgrader
         }
         catch ( Exception ex )
         {
-            log.debug( "Error during data item upgrade of favorites, probably beacuse upgrade is done", ex );
+            log.debug( "Error during data item upgrade of favorites, probably because upgrade was already done", ex );
             return;
         }
     }
