@@ -33,6 +33,7 @@ import java.util.Date;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 
 /**
  * @author Lars Helge Overland
@@ -44,14 +45,14 @@ public interface SynchronizationManager
      * 
      * @return an {@link ImportSummary}.
      */
-    ImportSummary executeDataPush();
+    ImportSummary executeDataPush() throws WebMessageParseException;
 
     /**
      * Executes an event push to remote server.
      * 
      * @return an {@link ImportSummaries}.
      */
-    ImportSummaries executeEventPush();
+    ImportSummaries executeEventPush() throws WebMessageParseException;
     
     /**
      * Returns the time of the last successful data sync operation.

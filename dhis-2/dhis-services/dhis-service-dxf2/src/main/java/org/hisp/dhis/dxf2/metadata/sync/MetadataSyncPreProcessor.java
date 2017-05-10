@@ -46,7 +46,9 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.client.HttpClientErrorException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -106,7 +108,7 @@ public class MetadataSyncPreProcessor
             log.error( "Exception happened while trying to do data push " + ex.getMessage(), ex );
             if ( ex instanceof MetadataSyncServiceException )
             {
-                throw ex;
+                throw (MetadataSyncServiceException)ex;
             }
             context.updateRetryContext( MetadataSyncTask.DATA_PUSH_SUMMARY, ex.getMessage(), null, null );
             throw new MetadataSyncServiceException( ex.getMessage(), ex );
@@ -142,7 +144,7 @@ public class MetadataSyncPreProcessor
 
             if ( ex instanceof MetadataSyncServiceException )
             {
-                throw ex;
+                throw (MetadataSyncServiceException)ex;
             }
 
             context.updateRetryContext( MetadataSyncTask.EVENT_PUSH_SUMMARY, ex.getMessage(), null, null );
@@ -255,7 +257,7 @@ public class MetadataSyncPreProcessor
         {
             ImportStatus status = importSummary.getStatus();
 
-            if ( ImportStatus.ERROR.equals( status ) )
+            if ( ImportStatus.ERROR.equals( status ) || ImportStatus.WARNING.equals( status ) )
             {
                 log.error( "Import Summary description: " + importSummary.getDescription() );
                 context.updateRetryContext( MetadataSyncTask.DATA_PUSH_SUMMARY, importSummary.getDescription(), null, null );
