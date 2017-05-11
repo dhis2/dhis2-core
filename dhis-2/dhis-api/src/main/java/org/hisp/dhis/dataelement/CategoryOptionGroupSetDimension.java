@@ -28,30 +28,31 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionalEmbeddedObject;
+import org.hisp.dhis.common.DxfNamespaces;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionalEmbeddedObject;
-import org.hisp.dhis.common.DxfNamespaces;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "categoryDimension", namespace = DxfNamespaces.DXF_2_0 )
-public class CategoryDimension
+@JacksonXmlRootElement( localName = "categoryOptionGroupSetDimension", namespace = DxfNamespaces.DXF_2_0 )
+public class CategoryOptionGroupSetDimension
     implements DimensionalEmbeddedObject
 {
     private int id;
-
-    private DataElementCategory dimension;
-
-    private List<DataElementCategoryOption> items = new ArrayList<>();
+    
+    private CategoryOptionGroupSet dimension;
+    
+    private List<CategoryOptionGroup> items = new ArrayList<>();
 
     public int getId()
     {
@@ -63,41 +64,29 @@ public class CategoryDimension
         this.id = id;
     }
 
-    @JsonProperty( "dataElementCategory" )
+    @JsonProperty( "categoryOptionGroupSet" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( localName = "dataElementCategory", namespace = DxfNamespaces.DXF_2_0 )
-    public DataElementCategory getDimension()
+    @JacksonXmlProperty( localName = "categoryOptionGroupSet", namespace = DxfNamespaces.DXF_2_0 )
+    public CategoryOptionGroupSet getDimension()
     {
         return dimension;
     }
 
-    public void setDimension( DataElementCategory dimension )
+    public void setDimension( CategoryOptionGroupSet dimension )
     {
         this.dimension = dimension;
     }
 
-    @JsonProperty( "categoryOptions" )
-    @JacksonXmlElementWrapper( localName = "categoryOptions", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0 )
-    public List<DataElementCategoryOption> getItems()
+    @JsonProperty( "categoryOptionGroups" )
+    @JacksonXmlElementWrapper( localName = "categoryOptionGroups", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "categoryOptionGroup", namespace = DxfNamespaces.DXF_2_0 )
+    public List<CategoryOptionGroup> getItems()
     {
         return items;
     }
 
-    public void setItems( List<DataElementCategoryOption> items )
+    public void setItems( List<CategoryOptionGroup> items )
     {
         this.items = items;
-    }
-
-
-    @Override
-    public String toString()
-    {
-        final StringBuilder sb = new StringBuilder( "DataElementCategoryDimension{" );
-        sb.append( "id=" ).append( id );
-        sb.append( ", dimension=" ).append( dimension );
-        sb.append( ", items=" ).append( items );
-        sb.append( '}' );
-        return sb.toString();
     }
 }

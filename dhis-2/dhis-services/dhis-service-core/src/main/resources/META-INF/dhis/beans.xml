@@ -1636,6 +1636,11 @@
     <property name="skipInTests" value="true" />
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
+  
+  <bean id="org.hisp.dhis.startup.AnalyticalObjectEmbeddedDimensionUpgrader" class="org.hisp.dhis.startup.AnalyticalObjectEmbeddedDimensionUpgrader">
+    <property name="runlevel" value="9" />
+    <property name="skipInTests" value="true" />
+  </bean>
 
   <bean id="org.hisp.dhis.dataentryform.DataEntryFormUpgrader" class="org.hisp.dhis.dataentryform.DataEntryFormUpgrader">
     <property name="name" value="FavoriteDataItemUpgrader" />
@@ -1850,6 +1855,7 @@
   <bean id="org.hisp.dhis.programrule.ProgramRuleActionDeletionHandler"
     class="org.hisp.dhis.programrule.ProgramRuleActionDeletionHandler">
     <property name="programRuleActionService" ref="org.hisp.dhis.programrule.ProgramRuleActionService" />
+    <property name="programRuleService" ref="org.hisp.dhis.programrule.ProgramRuleService" />
   </bean>
 
   <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueDeletionHandler"

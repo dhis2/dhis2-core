@@ -32,7 +32,6 @@ import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
 import java.util.List;

@@ -40,8 +40,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -57,7 +55,7 @@ public class OrganisationUnitGroup
 
     private Set<OrganisationUnit> members = new HashSet<>();
 
-    private OrganisationUnitGroupSet groupSet;
+    private Set<OrganisationUnitGroupSet> groupSets = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -160,18 +158,18 @@ public class OrganisationUnitGroup
         this.members = members;
     }
 
-    @JsonProperty( "organisationUnitGroupSet" )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.REFERENCE, required = Property.Value.FALSE )
-    public OrganisationUnitGroupSet getGroupSet()
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "groupSets", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "groupSet", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<OrganisationUnitGroupSet> getGroupSets()
     {
-        return groupSet;
+        return groupSets;
     }
 
-    public void setGroupSet( OrganisationUnitGroupSet groupSet )
+    public void setGroupSets( Set<OrganisationUnitGroupSet> groupSets )
     {
-        this.groupSet = groupSet;
+        this.groupSets = groupSets;
     }
 
     @Override
@@ -185,12 +183,10 @@ public class OrganisationUnitGroup
 
             if ( mergeMode.isReplace() )
             {
-                groupSet = organisationUnitGroup.getGroupSet();
                 symbol = organisationUnitGroup.getSymbol();
             }
             else if ( mergeMode.isMerge() )
             {
-                groupSet = organisationUnitGroup.getGroupSet() == null ? groupSet : organisationUnitGroup.getGroupSet();
                 symbol = organisationUnitGroup.getSymbol() == null ? symbol : organisationUnitGroup.getSymbol();
             }
 
@@ -200,6 +196,8 @@ public class OrganisationUnitGroup
             {
                 addOrganisationUnit( organisationUnit );
             }
+            
+            groupSets.clear();
         }
     }
 }

@@ -143,7 +143,6 @@ public class CrudControllerAdvice
     public void constraintViolationExceptionHandler( ConstraintViolationException ex, HttpServletResponse response, HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.error( getExceptionMessage( ex ) ), response, request );
-        ex.printStackTrace();
     }
 
     @ExceptionHandler( MaintenanceModeException.class )
@@ -233,16 +232,16 @@ public class CrudControllerAdvice
     @ExceptionHandler( MetadataImportConflictException.class )
     public void handleMetadataImportConflictException( MetadataImportConflictException conflictException, HttpServletResponse response, HttpServletRequest request )
     {
-
         if ( conflictException.getMetadataSyncSummary() == null )
+        {
             webMessageService.send( WebMessageUtils.conflict( conflictException.getMessage() ), response, request );
+        }
         else
         {
             WebMessage message = new WebMessage( Status.ERROR, HttpStatus.CONFLICT );
             message.setResponse( conflictException.getMetadataSyncSummary() );
             webMessageService.send( message, response, request );
         }
-
     }
 
     @ExceptionHandler( OperationNotAllowedException.class )
@@ -251,7 +250,9 @@ public class CrudControllerAdvice
         webMessageService.send( WebMessageUtils.forbidden( ex.getMessage() ), response, request );
     }
 
-    // Catch default exception and send back to user, but rethrow internally so it still ends up in server logs
+    /**
+     * Catches default exception and send back to user, but re-throws internally so it still ends up in server logs.
+     */
     @ExceptionHandler( Exception.class )
     public void defaultExceptionHandler( Exception ex, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {

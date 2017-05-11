@@ -93,22 +93,22 @@ public class OrganisationUnitGroupSet
     public void addOrganisationUnitGroup( OrganisationUnitGroup organisationUnitGroup )
     {
         organisationUnitGroups.add( organisationUnitGroup );
-        organisationUnitGroup.setGroupSet( this );
+        organisationUnitGroup.getGroupSets().add( this );
     }
 
     public void removeOrganisationUnitGroup( OrganisationUnitGroup organisationUnitGroup )
     {
         organisationUnitGroups.remove( organisationUnitGroup );
-        organisationUnitGroup.setGroupSet( null );
+        organisationUnitGroup.getGroupSets().remove( this );
     }
 
     public void removeAllOrganisationUnitGroups()
     {
-        for ( OrganisationUnitGroup organisationUnitGroup : organisationUnitGroups )
+        for ( OrganisationUnitGroup group : organisationUnitGroups )
         {
-            organisationUnitGroup.setGroupSet( null );
+            group.getGroupSets().remove( this );
         }
-
+        
         organisationUnitGroups.clear();
     }
 
