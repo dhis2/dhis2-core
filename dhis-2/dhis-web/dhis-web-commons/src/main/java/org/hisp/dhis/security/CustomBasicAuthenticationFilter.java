@@ -2,7 +2,7 @@ package org.hisp.dhis.security;
 
 /*
  *
- *  Copyright (c) 2004-2016, University of Oslo
+ *  Copyright (c) 2004-2017, University of Oslo
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -30,66 +30,82 @@ package org.hisp.dhis.security;
  *
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.security.intercept.LoginInterceptor;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
 
-public class CustomBasicAuthenticationFilter extends BasicAuthenticationFilter
+public class CustomBasicAuthenticationFilter implements Filter
 {
 
-    @Autowired
-    private UserService userService;
+    Log log = LogFactory.getLog( CustomBasicAuthenticationFilter.class );
 
-    @Autowired
-    private SecurityService securityService;
+    private final UserService userService;
 
-    @Autowired
-    private DhisConfigurationProvider config;
+    private final DhisConfigurationProvider config;
 
-    public CustomBasicAuthenticationFilter( AuthenticationManager authenticationManager )
+    public CustomBasicAuthenticationFilter( UserService userService, DhisConfigurationProvider config )
     {
-        super( authenticationManager );
+        this.userService = userService;
+        this.config = config;
     }
 
     @Override
-    protected void onSuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException
+    public void init( FilterConfig filterConfig ) throws ServletException
     {
-        HttpSession session = request.getSession();
+    }
 
-        final String username = authentication.getName();
+    @Override
+    public void doFilter( ServletRequest request, ServletResponse response, FilterChain filterChain ) throws IOException, ServletException
+    {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        session.setAttribute( "userIs", username );
-        session.setAttribute( LoginInterceptor.JLI_SESSION_VARIABLE, Boolean.TRUE );
+        HttpServletRequest httpServletRequest = (HttpServletRequest) request;
 
-        UserCredentials credentials = userService.getUserCredentialsByUsername( username );
+        HttpSession session = httpServletRequest.getSession();
 
-        boolean readOnly = config.isReadOnlyMode();
-
-        if ( credentials != null && !readOnly )
+        if ( Objects.isNull( session.getAttribute( "userIs" ) ) && Objects.nonNull( auth ) && auth.isAuthenticated() )
         {
-            credentials.updateLastLogin();
-            userService.updateUserCredentials( credentials );
-        }
+            UserDetails userDetails = (UserDetails) auth.getPrincipal();
 
-        if ( credentials != null )
-        {
-            securityService.registerSuccessfulLogin( username );
-        }
+            String userName = userDetails.getUsername();
 
-        super.onSuccessfulAuthentication( request, response, authentication );
+            boolean readOnly = config.isReadOnlyMode();
+
+            UserCredentials credentials = userService.getUserCredentialsByUsername( userName );
+
+            if ( Objects.nonNull( credentials ) && !readOnly )
+            {
+                credentials.updateLastLogin();
+
+                userService.updateUserCredentials( credentials );
+            }
+        }
+        
+        filterChain.doFilter( request, response );
+    }
+
+    @Override
+    public void destroy()
+    {
     }
 }
