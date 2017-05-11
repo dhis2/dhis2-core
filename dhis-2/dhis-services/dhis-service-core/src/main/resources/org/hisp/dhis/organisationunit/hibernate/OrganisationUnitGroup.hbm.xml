@@ -27,6 +27,12 @@
       <many-to-many class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
         foreign-key="fk_orgunitgroup_organisationunitid" />
     </set>
+    
+    <set name="groupSets" table="orgunitgroupsetmembers" inverse="true">
+      <cache usage="read-write" />
+      <key column="orgunitgroupid" />
+      <many-to-many class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSet" column="orgunitgroupsetid" />
+    </set>
 
     <!-- Object Translation -->
     <set name="translations" table="orgunitgrouptranslations" cascade="all-delete-orphan">
@@ -58,11 +64,6 @@
       <key column="orgunitgroupid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
     </set>
-
-    <join table="orgunitgroupsetmembers" inverse="true">
-      <key column="orgunitgroupid" />
-      <many-to-one column="orgunitgroupsetid" name="groupSet" />
-    </join>
 
   </class>
 

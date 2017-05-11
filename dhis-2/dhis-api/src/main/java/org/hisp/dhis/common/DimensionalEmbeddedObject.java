@@ -1,4 +1,4 @@
-package org.hisp.dhis.system.filter;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,20 +28,16 @@ package org.hisp.dhis.system.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.commons.filter.Filter;
+import java.util.List;
 
 /**
- * TODO remove
- * 
- * @author Lars Helge Overland
- */
-public class OrganisationUnitGroupWithoutGroupSetFilter
-    implements Filter<OrganisationUnitGroup>
+* @author Lars Helge Overland
+*/
+public interface DimensionalEmbeddedObject
 {
-    @Override
-    public boolean retain( OrganisationUnitGroup object )
-    {
-        return object == null || object.getGroupSet() == null;
-    }
+    int getId();
+    
+    DimensionalObject getDimension();
+    
+    List<? extends DimensionalItemObject> getItems();
 }

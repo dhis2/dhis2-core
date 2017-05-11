@@ -1,4 +1,4 @@
-package org.hisp.dhis.system.filter;
+package org.hisp.dhis.webapi.controller.exception;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,18 +28,26 @@ package org.hisp.dhis.system.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.commons.filter.Filter;
-
 /**
- * @author Lars Helge Overland
+ * Created by sultanm.
+ * This exception could be used in all operation forbidden cases
  */
-public class DataElementGroupWithoutGroupSetFilter
-    implements Filter<DataElementGroup>
+public class OperationNotAllowedException
+    extends Exception
 {
-    @Override
-    public boolean retain( DataElementGroup object )
+
+    public OperationNotAllowedException( String message )
     {
-        return object == null || object.getGroupSet() == null;
+        super( message );
+    }
+
+    public OperationNotAllowedException( Throwable cause )
+    {
+        super( cause );
+    }
+
+    public OperationNotAllowedException( String message, Throwable cause )
+    {
+        super( message, cause );
     }
 }
