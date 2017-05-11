@@ -362,7 +362,7 @@ public class DataSetServiceTest
         assertTrue( dataSets.contains( dataSetA ) );
         assertTrue( dataSets.contains( dataSetB ) );
     }
-
+    
     @Test
     public void testAddDataSetElement()
     {

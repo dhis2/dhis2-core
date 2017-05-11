@@ -52,7 +52,6 @@
     </set>
 
     <set name="dataSetElements" table="datasetelement" inverse="true">
-      <cache usage="read-write" />
       <key column="dataelementid" foreign-key="fk_datasetmembers_dataelementid" not-null="true" />
       <one-to-many class="org.hisp.dhis.dataset.DataSetElement" />
     </set>
