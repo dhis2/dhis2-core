@@ -51,7 +51,7 @@
       <many-to-many class="org.hisp.dhis.dataelement.DataElementGroup" column="dataelementgroupid" />
     </set>
 
-    <set name="dataSetElements" table="datasetmembers" inverse="true">
+    <set name="dataSetElements" table="datasetelement" inverse="true">
       <key column="dataelementid" foreign-key="fk_datasetmembers_dataelementid" not-null="true" />
       <one-to-many class="org.hisp.dhis.dataset.DataSetElement" />
     </set>
