@@ -182,24 +182,19 @@ public class EnrollmentController
         importSummaries.setImportOptions( importOptions );
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
 
-        if ( importSummaries.getImportSummaries().isEmpty() || importSummaries.getImportSummaries().size() > 1 )
+        if ( importSummaries.getImportSummaries().size() == 1 )
         {
-            response.setStatus( HttpServletResponse.SC_CREATED );
-            webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
-        }
-        else
-        {
-            response.setStatus( HttpServletResponse.SC_CREATED );
             ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
-            importSummaries.setImportOptions( importOptions );
+            importSummary.setImportOptions( importOptions );
 
             if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
             {
                 response.setHeader( "Location", getResourcePath( request, importSummary ) );
             }
-
-            webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
         }
+
+        response.setStatus( HttpServletResponse.SC_CREATED );
+        webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
     }
 
     @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
@@ -213,24 +208,19 @@ public class EnrollmentController
         importSummaries.setImportOptions( importOptions );
         response.setContentType( MediaType.APPLICATION_XML_VALUE );
 
-        if ( importSummaries.getImportSummaries().size() > 1 )
+        if ( importSummaries.getImportSummaries().size() == 1 )
         {
-            response.setStatus( HttpServletResponse.SC_CREATED );
-            webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
-        }
-        else
-        {
-            response.setStatus( HttpServletResponse.SC_CREATED );
             ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
-            importSummaries.setImportOptions( importOptions );
+            importSummary.setImportOptions( importOptions );
 
             if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
             {
                 response.setHeader( "Location", getResourcePath( request, importSummary ) );
             }
-
-            webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
         }
+
+        response.setStatus( HttpServletResponse.SC_CREATED );
+        webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
     }
 
     // -------------------------------------------------------------------------
