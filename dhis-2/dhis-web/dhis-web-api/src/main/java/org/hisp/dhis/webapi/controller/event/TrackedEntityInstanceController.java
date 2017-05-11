@@ -426,47 +426,6 @@ public class TrackedEntityInstanceController
     // CREATE
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_INSTANCE_ADD')" )
-    public void postTrackedEntityInstanceXml( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response ) throws IOException
-    {
-        importOptions.setStrategy( strategy );
-        InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-        ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstanceXml( inputStream, importOptions );
-        response.setContentType( MediaType.APPLICATION_XML_VALUE );
-
-        if ( importSummaries.getImportSummaries().size() > 1 )
-        {
-            response.setStatus( HttpServletResponse.SC_CREATED );
-            renderService.toXml( response.getOutputStream(), importSummaries );
-        }
-        else
-        {
-            response.setStatus( HttpServletResponse.SC_CREATED );
-            ImportSummary importSummary;
-
-            if ( !importSummaries.getImportSummaries().isEmpty() )
-            {
-                importSummary = importSummaries.getImportSummaries().get( 0 );
-                importSummary.setImportOptions( importOptions );
-
-                if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
-                {
-                    response.setHeader( "Location", getResourcePath( request, importSummary ) );
-                }
-            }
-            else
-            {
-                importSummary = new ImportSummary( ImportStatus.SUCCESS, "Empty list of tracked entity instances given." );
-                importSummary.setImportOptions( importOptions );
-                importSummary.setImportCount( null );
-            }
-
-            webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
-        }
-    }
-
     @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_INSTANCE_ADD')" )
     public void postTrackedEntityInstanceJson( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
@@ -481,7 +440,7 @@ public class TrackedEntityInstanceController
         if ( importSummaries.getImportSummaries().size() > 1 )
         {
             response.setStatus( HttpServletResponse.SC_CREATED );
-            renderService.toJson( response.getOutputStream(), importSummaries );
+            webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
         }
         else
         {
@@ -509,6 +468,47 @@ public class TrackedEntityInstanceController
         }
     }
 
+    @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_INSTANCE_ADD')" )
+    public void postTrackedEntityInstanceXml( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
+        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response ) throws IOException
+    {
+        importOptions.setStrategy( strategy );
+        InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
+        ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstanceXml( inputStream, importOptions );
+        response.setContentType( MediaType.APPLICATION_XML_VALUE );
+
+        if ( importSummaries.getImportSummaries().size() > 1 )
+        {
+            response.setStatus( HttpServletResponse.SC_CREATED );
+            webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
+        }
+        else
+        {
+            response.setStatus( HttpServletResponse.SC_CREATED );
+            ImportSummary importSummary;
+
+            if ( !importSummaries.getImportSummaries().isEmpty() )
+            {
+                importSummary = importSummaries.getImportSummaries().get( 0 );
+                importSummary.setImportOptions( importOptions );
+
+                if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
+                {
+                    response.setHeader( "Location", getResourcePath( request, importSummary ) );
+                }
+            }
+            else
+            {
+                importSummary = new ImportSummary( ImportStatus.SUCCESS, "Empty list of tracked entity instances given." );
+                importSummary.setImportOptions( importOptions );
+                importSummary.setImportCount( null );
+            }
+
+            webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
+        }
+    }
+
     // -------------------------------------------------------------------------
     // UPDATE
     // -------------------------------------------------------------------------
@@ -521,6 +521,7 @@ public class TrackedEntityInstanceController
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstanceXml( id, inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
+
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
@@ -532,6 +533,7 @@ public class TrackedEntityInstanceController
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstanceJson( id, inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
+
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
