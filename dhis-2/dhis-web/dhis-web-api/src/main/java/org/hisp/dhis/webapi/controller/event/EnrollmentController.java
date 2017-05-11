@@ -182,6 +182,12 @@ public class EnrollmentController
         importSummaries.setImportOptions( importOptions );
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
 
+        importSummaries.getImportSummaries().stream()
+            .filter( importSummary -> !importOptions.isDryRun() && !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
+                !importOptions.getImportStrategy().isDelete() )
+            .forEach( importSummary -> importSummary.setHref(
+                ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + importSummary.getReference() ) );
+
         if ( importSummaries.getImportSummaries().size() == 1 )
         {
             ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );

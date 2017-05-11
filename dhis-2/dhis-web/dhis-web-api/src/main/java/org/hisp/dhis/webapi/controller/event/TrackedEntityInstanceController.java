@@ -437,6 +437,12 @@ public class TrackedEntityInstanceController
         importSummaries.setImportOptions( importOptions );
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
 
+        importSummaries.getImportSummaries().stream()
+            .filter( importSummary -> !importOptions.isDryRun() && !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
+                !importOptions.getImportStrategy().isDelete() )
+            .forEach( importSummary -> importSummary.setHref(
+                ContextUtils.getRootPath( request ) + TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT + "/" + importSummary.getReference() ) );
+
         if ( importSummaries.getImportSummaries().size() == 1 )
         {
             ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
@@ -461,6 +467,12 @@ public class TrackedEntityInstanceController
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstanceXml( inputStream, importOptions );
         response.setContentType( MediaType.APPLICATION_XML_VALUE );
+
+        importSummaries.getImportSummaries().stream()
+            .filter( importSummary -> !importOptions.isDryRun() && !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
+                !importOptions.getImportStrategy().isDelete() )
+            .forEach( importSummary -> importSummary.setHref(
+                ContextUtils.getRootPath( request ) + TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT + "/" + importSummary.getReference() ) );
 
         if ( importSummaries.getImportSummaries().size() == 1 )
         {
