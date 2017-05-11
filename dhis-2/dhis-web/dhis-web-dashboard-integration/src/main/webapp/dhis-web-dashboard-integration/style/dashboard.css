@@ -326,6 +326,10 @@
   display: none;
 }
 
+#shareFormError {
+  display: none;
+}
+
 #shareHelpForm
 {
   display: none;
