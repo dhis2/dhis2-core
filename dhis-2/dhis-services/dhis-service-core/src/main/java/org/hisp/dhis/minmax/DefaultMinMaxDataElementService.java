@@ -110,13 +110,13 @@ public class DefaultMinMaxDataElementService
     }
 
     @Override
-    public List<MinMaxDataElement> getMinMaxDataElements( MinMaxDataElementQuery query )
+    public List<MinMaxDataElement> getMinMaxDataElements( MinMaxDataElementQueryParams query )
     {
         return minMaxDataElementStore.query( query );
     }
 
     @Override
-    public int count( MinMaxDataElementQuery query )
+    public int count( MinMaxDataElementQueryParams query )
     {
         return minMaxDataElementStore.count( query );
     }

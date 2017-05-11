@@ -40,9 +40,9 @@ import java.util.List;
  */
 
 
-public class MinMaxDataElementQuery
+public class MinMaxDataElementQueryParams
 {
-    public static final MinMaxDataElementQuery EMPTY = new MinMaxDataElementQuery();
+    public static final MinMaxDataElementQueryParams EMPTY = new MinMaxDataElementQueryParams();
 
     private List<String> filters;
 
@@ -54,7 +54,7 @@ public class MinMaxDataElementQuery
 
     private int total;
 
-    public MinMaxDataElementQuery()
+    public MinMaxDataElementQueryParams()
     {
     }
 

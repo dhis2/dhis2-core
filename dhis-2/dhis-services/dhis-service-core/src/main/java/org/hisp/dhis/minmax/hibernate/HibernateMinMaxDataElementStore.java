@@ -37,7 +37,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.minmax.MinMaxDataElement;
-import org.hisp.dhis.minmax.MinMaxDataElementQuery;
+import org.hisp.dhis.minmax.MinMaxDataElementQueryParams;
 import org.hisp.dhis.minmax.MinMaxDataElementStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.QueryParser;
@@ -106,7 +106,7 @@ public class HibernateMinMaxDataElementStore
             Restrictions.in( "dataElement", dataElements ) ).list();
     }
 
-    public List<MinMaxDataElement> query(  MinMaxDataElementQuery query )
+    public List<MinMaxDataElement> query(  MinMaxDataElementQueryParams query )
     {
         Criteria criteria = getSession().createCriteria( MinMaxDataElement.class );
         criteria = parseFilter( criteria, query.getFilters() );
@@ -122,7 +122,7 @@ public class HibernateMinMaxDataElementStore
     }
 
     @Override
-    public int count( MinMaxDataElementQuery query )
+    public int count( MinMaxDataElementQueryParams query )
     {
         Criteria criteria = getSession().createCriteria( MinMaxDataElement.class );
         criteria = parseFilter( criteria, query.getFilters() );

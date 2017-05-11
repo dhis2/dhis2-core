@@ -41,17 +41,14 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.minmax.MinMaxDataElement;
-import org.hisp.dhis.minmax.MinMaxDataElementQuery;
+import org.hisp.dhis.minmax.MinMaxDataElementQueryParams;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.descriptors.MinMaxDataElementSchemaDescriptor;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -81,8 +78,6 @@ public class MinMaxDataElementController
 {
     private final ContextService contextService;
 
-    private final SchemaService schemaService;
-
     private final MinMaxDataElementService minMaxService;
 
     private final FieldFilterService fieldFilterService;
@@ -93,12 +88,11 @@ public class MinMaxDataElementController
 
     private final IdentifiableObjectManager manager;
 
-    public MinMaxDataElementController( ContextService contextService, SchemaService schemaService,
-        MinMaxDataElementService minMaxService, WebMessageService webMessageService, QueryService queryService,
-        FieldFilterService fieldFilterService, RenderService renderService, IdentifiableObjectManager manager )
+    public MinMaxDataElementController( ContextService contextService, MinMaxDataElementService minMaxService,
+        WebMessageService webMessageService, FieldFilterService fieldFilterService, RenderService renderService,
+        IdentifiableObjectManager manager )
     {
         this.contextService = contextService;
-        this.schemaService = schemaService;
         this.minMaxService = minMaxService;
         this.fieldFilterService = fieldFilterService;
         this.renderService = renderService;
@@ -112,11 +106,9 @@ public class MinMaxDataElementController
     //--------------------------------------------------------------------------
 
     @GetMapping
-    public @ResponseBody RootNode getObjectList( MinMaxDataElementQuery query )
+    public @ResponseBody RootNode getObjectList( MinMaxDataElementQueryParams query )
         throws QueryParserException
     {
-        Schema schema = schemaService.getDynamicSchema( MinMaxDataElement.class );
-
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
         query.setFilters( filters );
