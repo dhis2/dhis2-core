@@ -54,9 +54,6 @@ function getValidationRulesGateway()
 		};
 	} else {
 		rules = {
-			'genericHTTPFields input[id=name]' : { 'required' : true },
-			'genericHTTPFields input[id=username]' : { 'required' : true },
-			'genericHTTPFields input[id=password]' : { 'required' : true },
 			'genericHTTPFields input[id=urlTemplate]' : { 'required' : true }
 		};
 	}
@@ -264,7 +261,7 @@ function saveSettings ()
 
 	var newParams = getHttpKeyValueParamsAddedByTheUser(httpFields);
 
-	if (data.name == "" || data.messageParameter == "" || data.recipientParameter == "" || data.urltemplate == "") {
+	if ( data.urltemplate == "" ) {
 		showErrorMessage(i18n_required_data_error);
 	} else {
 

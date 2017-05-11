@@ -94,7 +94,7 @@ public class ClickatellGateway
     private ClickatellRequestEntity getRequestBody( String text, Set<String> recipients )
     {
         ClickatellRequestEntity requestBody = new ClickatellRequestEntity();
-        requestBody.setText( text );
+        requestBody.setContent( text );
         requestBody.setTo( recipients );
 
         return requestBody;
