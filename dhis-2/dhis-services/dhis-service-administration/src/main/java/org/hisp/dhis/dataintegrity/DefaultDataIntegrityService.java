@@ -513,7 +513,7 @@ public class DefaultDataIntegrityService
     {
         Collection<OrganisationUnitGroup> groups = organisationUnitGroupService.getAllOrganisationUnitGroups();
         
-        return groups.stream().filter( g -> g == null || g.getGroupSet() == null ).collect( Collectors.toList() );
+        return groups.stream().filter( g -> g == null || g.getGroupSets().isEmpty() ).collect( Collectors.toList() );
     }
 
     // -------------------------------------------------------------------------

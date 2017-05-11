@@ -1,4 +1,4 @@
-package org.hisp.dhis.dataelement;
+package org.hisp.dhis.period;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,47 +26,23 @@ package org.hisp.dhis.dataelement;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
-
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * @author Lars Helge Overland
+ * PeriodType for weekly Periods. A valid weekly Period has startDate set to
+ * saturday and endDate set to friday the same week, assuming saturday is the first
+ * day and friday is the last day of the week.
+ *
+ * @author Torgeir Lorange Ostby
  */
-public class DataElementCategoryDimensionDeletionHandler
-    extends DeletionHandler
+public class WeeklySaturdayPeriodType
+    extends WeeklyAbstractPeriodType
 {
-    private JdbcTemplate jdbcTemplate;
+    public static final String NAME = "WeeklySaturday";
 
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    public WeeklySaturdayPeriodType()
     {
-        this.jdbcTemplate = jdbcTemplate;
-    }
-
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String getClassName()
-    {
-        return DataElementCategoryDimension.class.getSimpleName();
-    }
-    
-    @Override
-    public String allowDeleteDataElementCategoryOption( DataElementCategoryOption categoryOption )
-    {
-        String sql = "select count(*) from categorydimension_items where categoryoptionid = " + categoryOption.getId();
-        
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
-    }
-    
-    @Override
-    public String allowDeleteDataElementCategory( DataElementCategory category )
-    {
-        String sql = "select count(*) from categorydimension where categoryid = " + category.getId();
-        
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        super( NAME, 6, "yyyySatWn", "P7D", 7, "SatW" );
     }
 }

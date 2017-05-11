@@ -1,4 +1,4 @@
-package org.hisp.dhis.system.filter;
+package org.hisp.dhis.dataelement;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,18 +28,45 @@ package org.hisp.dhis.system.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.commons.filter.Filter;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Lars Helge Overland
  */
-public class DataElementGroupWithoutGroupSetFilter
-    implements Filter<DataElementGroup>
+public class CategoryDimensionDeletionHandler
+    extends DeletionHandler
 {
-    @Override
-    public boolean retain( DataElementGroup object )
+    private JdbcTemplate jdbcTemplate;
+
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
     {
-        return object == null || object.getGroupSet() == null;
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public String getClassName()
+    {
+        return CategoryDimension.class.getSimpleName();
+    }
+    
+    @Override
+    public String allowDeleteDataElementCategoryOption( DataElementCategoryOption categoryOption )
+    {
+        String sql = "select count(*) from categorydimension_items where categoryoptionid = " + categoryOption.getId();
+        
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    }
+    
+    @Override
+    public String allowDeleteDataElementCategory( DataElementCategory category )
+    {
+        String sql = "select count(*) from categorydimension where categoryid = " + category.getId();
+        
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }
 }

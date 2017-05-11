@@ -25,7 +25,7 @@
       <cache usage="read-write" />
       <key column="categoryoptiongroupsetid" foreign-key="fk_categoryoptiongroupsetmembers_categoryoptiongroupsetid" />
       <list-index column="sort_order" base="1" />
-      <many-to-many class="org.hisp.dhis.dataelement.CategoryOptionGroup" column="categoryoptiongroupid" unique="true"
+      <many-to-many class="org.hisp.dhis.dataelement.CategoryOptionGroup" column="categoryoptiongroupid"
         foreign-key="fk_categoryoptiongroupsetmembers_categoryoptiongroupid" />
     </list>
 

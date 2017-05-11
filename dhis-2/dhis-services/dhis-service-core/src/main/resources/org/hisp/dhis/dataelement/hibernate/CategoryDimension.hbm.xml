@@ -4,7 +4,7 @@
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.dataelement.DataElementCategoryDimension" table="categorydimension">
+  <class name="org.hisp.dhis.dataelement.CategoryDimension" table="categorydimension">
 
     <cache usage="read-write" />
 
@@ -18,7 +18,7 @@
     <list name="items" table="categorydimension_items">
       <cache usage="read-write" />
       <key column="categorydimensionid" foreign-key="fk_categorydimension_items_categorydimensionid" />
-      <list-index column="sort_order" base="0" />
+      <list-index column="sort_order" />
       <many-to-many class="org.hisp.dhis.dataelement.DataElementCategoryOption" column="categoryoptionid"
         foreign-key="fk_categorydimension_items_categoryoptionid" />
     </list>
