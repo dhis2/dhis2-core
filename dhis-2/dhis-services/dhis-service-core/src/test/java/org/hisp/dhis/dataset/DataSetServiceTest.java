@@ -388,6 +388,7 @@ public class DataSetServiceTest
         assertTrue( dataSets.contains( dataSetB ) );
     }
     
+    @Test
     public void testAddDataSetElement()
     {
         DataSet dataSetA = createDataSet( 'A', periodType );
@@ -397,9 +398,9 @@ public class DataSetServiceTest
         
         assertEquals( 2, dataSetA.getDataSetElements().size() );
         assertEquals( 1, dataElementA.getDataSetElements().size() );
-        assertEquals( dataSetA, dataElementA.getDataSetElements().iterator().next() );
+        assertEquals( dataSetA, dataElementA.getDataSetElements().iterator().next().getDataSet() );
         assertEquals( 1, dataElementB.getDataSetElements().size() );
-        assertEquals( dataSetA, dataElementB.getDataSetElements().iterator().next() );        
+        assertEquals( dataSetA, dataElementB.getDataSetElements().iterator().next().getDataSet() );        
     }
 
     @Test
