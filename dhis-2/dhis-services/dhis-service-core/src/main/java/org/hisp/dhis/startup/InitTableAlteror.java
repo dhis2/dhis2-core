@@ -107,6 +107,16 @@ public class InitTableAlteror
         executeSql( "alter table programstageinstance alter column deleted set not null" );
         executeSql( "create index in_programstageinstance_deleted on programstageinstace(deleted)" );
 
+        // Update trackedentityinstance set deleted = false where deleted = null
+        executeSql( "UPDATE trackedentityinstance SET deleted = false WHERE deleted IS NULL" );
+        executeSql( "alter table trackedentityinstance alter column deleted set not null" );
+        executeSql( "create index in_trackedentityinstance_deleted on trackedentityinstance(deleted)" );
+
+        // Update programinstance set deleted = false where deleted = null
+        executeSql( "UPDATE programinstance SET deleted = false WHERE deleted IS NULL" );
+        executeSql( "alter table programinstance alter column deleted set not null" );
+        executeSql( "create index in_programinstance_deleted on programinstance(deleted)" );
+
         // Remove DataSet start and end date - replaced by DataInputPeriods
         executeSql( "ALTER TABLE dataset drop column startdate" );
         executeSql( "ALTER TABLE dataset drop column enddate" );
