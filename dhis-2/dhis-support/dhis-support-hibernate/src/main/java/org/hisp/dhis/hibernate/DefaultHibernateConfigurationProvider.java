@@ -224,8 +224,6 @@ public class DefaultHibernateConfigurationProvider
         log.info( String.format( "Hibernate configuration loaded, using dialect: %s, region factory: %s",
             config.getProperty( Environment.DIALECT ), config.getProperty( Environment.CACHE_REGION_FACTORY ) ) );
         
-        System.out.println( "CONN FACT " + config.getProperty( PROP_MEMCACHED_CONNECTION_FACTORY ) );
-        
         this.configuration = config;
     }
     
