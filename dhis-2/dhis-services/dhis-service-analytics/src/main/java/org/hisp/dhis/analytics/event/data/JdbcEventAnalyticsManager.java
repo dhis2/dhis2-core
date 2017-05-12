@@ -592,24 +592,14 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
-     * Returns a list of ascending or descending keywords for sorting
-     * @param params Event Query Params
+     * Returns a list of ascending or descending keywords for sorting.
+     * 
+     * @param params the {@link EventQueryParams}.
      */
-    private List<String> getSortColumns (EventQueryParams params, List<String> fixedColumns )
+    private List<String> getSortColumns( EventQueryParams params, List<String> fixedColumns )
     {
         List<String> sortColumns =  ListUtils.distinctUnion( params.getAsc(), params.getDesc() );
-        for ( String fixed : fixedColumns )
-        {
-            for ( String sort : sortColumns )
-            {
-                if ( sort.equals( fixed ) )
-                {
-                    sortColumns.remove( sort );
-                    break;
-                }
-            }
-        }
-
+        
         return sortColumns.stream().map( s -> statementBuilder.columnQuote( s ) ).collect( Collectors.toList());
     }
 
@@ -622,7 +612,7 @@ public class JdbcEventAnalyticsManager
      */
     private String getFromWhereMultiplePartitionsClause( EventQueryParams params, List<String> fixedColumns )
     {
-        List<String> cols = ListUtils.distinctUnion( fixedColumns, getAggregateColumns( params ), getPartitionSelectColumns( params ),  getSortColumns( params, fixedColumns ));
+        List<String> cols = ListUtils.distinctUnion( fixedColumns, getAggregateColumns( params ), getPartitionSelectColumns( params ), getSortColumns( params, fixedColumns ));
 
         String selectCols = StringUtils.join( cols, "," );
 
