@@ -178,6 +178,11 @@ public class DefaultTrackedEntityInstanceService
         grid.addHeader( new GridHeader( TRACKED_ENTITY_ID, "Tracked entity" ) );
         grid.addHeader( new GridHeader( INACTIVE_ID, "Inactive" ) );
 
+        if ( params.isIncludeDeleted() )
+        {
+            grid.addHeader( new GridHeader( DELETED, "Deleted", ValueType.BOOLEAN, "boolean", false, false ) );
+        }
+
         for ( QueryItem item : params.getAttributes() )
         {
             grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName() ) );
@@ -201,6 +206,11 @@ public class DefaultTrackedEntityInstanceService
             grid.addValue( entity.get( ORG_UNIT_NAME ) );
             grid.addValue( entity.get( TRACKED_ENTITY_ID ) );
             grid.addValue( entity.get( INACTIVE_ID ) );
+
+            if ( params.isIncludeDeleted() )
+            {
+                grid.addValue( entity.get( DELETED ) );
+            }
 
             tes.add( entity.get( TRACKED_ENTITY_ID ) );
 
@@ -370,7 +380,7 @@ public class DefaultTrackedEntityInstanceService
         Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
         Boolean followUp, Date lastUpdatedStartDate, Date lastUpdatedEndDate,
         Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate, Date programIncidentEndDate, String trackedEntity, EventStatus eventStatus,
-        Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, List<String> orders )
+        Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, List<String> orders )
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
 
@@ -445,6 +455,7 @@ public class DefaultTrackedEntityInstanceService
             .setPageSize( pageSize )
             .setTotalPages( totalPages )
             .setSkipPaging( skipPaging )
+            .setIncludeDeleted( includeDeleted )
             .setOrders( orders );
 
         return params;
@@ -585,7 +596,23 @@ public class DefaultTrackedEntityInstanceService
     public void deleteTrackedEntityInstance( TrackedEntityInstance instance )
     {
         attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
-        trackedEntityInstanceStore.delete( instance );
+        deleteTrackedEntityInstance( instance, false );
+
+    }
+
+    @Override
+    public void deleteTrackedEntityInstance( TrackedEntityInstance instance, boolean forceDelete )
+    {
+        if ( forceDelete )
+        {
+            trackedEntityInstanceStore.delete( instance );
+        }
+        else
+        {
+            instance.setDeleted( true );
+            trackedEntityInstanceStore.update( instance );
+        }
+
     }
 
     @Override

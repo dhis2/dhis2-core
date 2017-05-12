@@ -137,9 +137,9 @@ public class JdbcEventAnalyticsTableManager
         sql += "from programstageinstance psi " +
             "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
             "inner join programstage ps on psi.programstageid=ps.programstageid " +
-            "inner join program pr on pi.programid=pr.programid " +
+            "inner join program pr on pi.programid=pr.programid and pi.deleted is false " +
             "inner join categoryoptioncombo ao on psi.attributeoptioncomboid=ao.categoryoptioncomboid " +
-            "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid " +
+            "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid and tei.deleted is false " +
             "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid " +
             "left join _orgunitstructure ous on psi.organisationunitid=ous.organisationunitid " +
             "left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid " +
@@ -150,7 +150,7 @@ public class JdbcEventAnalyticsTableManager
             "and pr.programid=" + table.getProgram().getId() + " " + 
             "and psi.organisationunitid is not null " +
             "and psi.executiondate is not null " +
-            "and psi.deleted is false";
+            "and psi.deleted is false ";
 
         populateAndLog( sql, tableName );
     }

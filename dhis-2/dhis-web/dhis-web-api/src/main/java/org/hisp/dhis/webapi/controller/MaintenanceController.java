@@ -166,6 +166,22 @@ public class MaintenanceController
         maintenanceService.deleteSoftDeletedProgramStageInstances();
     }
 
+    @RequestMapping( value = "/softDeletedProgramInstanceRemoval", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void deleteSoftDeletedProgramInstances()
+    {
+        maintenanceService.deleteSoftDeletedProgramInstances();
+    }
+
+    @RequestMapping( value = "/softDeletedTrackedEntityInstanceRemoval", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void deleteSoftDeletedTrackedEntityInstances()
+    {
+        maintenanceService.deleteSoftDeletedTrackedEntityInstances();
+    }
+
     @RequestMapping( value = "/sqlViewsCreate", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
@@ -268,6 +284,8 @@ public class MaintenanceController
         @RequestParam( required = false ) boolean zeroDataValueRemoval,
         @RequestParam( required = false ) boolean softDeletedDataValueRemoval,
         @RequestParam( required = false ) boolean softDeletedEventRemoval,
+        @RequestParam( required = false ) boolean softDeletedEnrollmentRemoval,
+        @RequestParam( required = false ) boolean softDeletedTrackedEntityInstanceRemoval,
         @RequestParam( required = false ) boolean sqlViewsDrop,
         @RequestParam( required = false ) boolean sqlViewsCreate,
         @RequestParam( required = false ) boolean categoryOptionComboUpdate,
@@ -312,6 +330,16 @@ public class MaintenanceController
         if ( softDeletedEventRemoval )
         {
             deleteSoftDeletedProgramStageInstances();
+        }
+
+        if ( softDeletedEnrollmentRemoval )
+        {
+            deleteSoftDeletedProgramInstances();
+        }
+
+        if ( softDeletedTrackedEntityInstanceRemoval )
+        {
+            deleteSoftDeletedTrackedEntityInstances();
         }
 
         if ( sqlViewsDrop )

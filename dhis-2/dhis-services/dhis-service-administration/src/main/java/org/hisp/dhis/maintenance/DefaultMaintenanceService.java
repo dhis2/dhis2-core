@@ -130,6 +130,26 @@ public class DefaultMaintenanceService
     }
 
     @Override
+    public int deleteSoftDeletedProgramInstances()
+    {
+        int result = maintenanceStore.deleteSoftDeletedProgramInstances();
+
+        log.info( "Permanently deleted soft deleted enrollments: " + result );
+
+        return result;
+    }
+
+    @Override
+    public int deleteSoftDeletedTrackedEntityInstances()
+    {
+        int result = maintenanceStore.deleteSoftDeletedTrackedEntityInstances();
+
+        log.info( "Permanently deleted soft deleted tracked entity instances: " + result );
+
+        return result;
+    }
+
+    @Override
     public void prunePeriods()
     {
         for ( Period period : periodService.getAllPeriods() )
