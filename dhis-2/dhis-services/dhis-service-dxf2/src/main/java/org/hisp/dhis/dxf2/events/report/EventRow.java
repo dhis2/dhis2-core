@@ -87,6 +87,8 @@ public class EventRow
     
     private String attributeCategoryOptions;
 
+    private boolean deleted;
+
     public EventRow()
     {
     }
@@ -307,7 +309,20 @@ public class EventRow
     public void setAttributeCategoryOptions( String attributeCategoryOptions )
     {
         this.attributeCategoryOptions = attributeCategoryOptions;
-    } 
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+
+    public boolean getDeleted()
+    {
+        return this.deleted;
+    }
+
+    public void setDeleted(boolean deleted)
+    {
+        this.deleted = deleted;
+    }
 
     @Override
     public boolean equals( Object o )
