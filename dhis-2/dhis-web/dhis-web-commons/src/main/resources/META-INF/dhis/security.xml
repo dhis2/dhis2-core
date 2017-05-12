@@ -117,7 +117,8 @@
     </sec:headers>
 
     <sec:csrf disabled="true" />
-    <sec:http-basic/>
+
+    <sec:http-basic />
     <sec:logout logout-url="/dhis-web-commons-security/logout.action" logout-success-url="/" />
     <sec:intercept-url pattern="/dhis-web-commons/i18nJavaScript.action" access="permitAll()" />
     <sec:intercept-url pattern="/dhis-web-commons/security/**" access="permitAll()" />
@@ -152,11 +153,7 @@
     <sec:custom-filter ref="automaticAccessFilter" before="LOGOUT_FILTER" />
     <sec:custom-filter ref="corsFilter" before="BASIC_AUTH_FILTER" />
     <sec:custom-filter ref="customAuthenticationFilter" before="FORM_LOGIN_FILTER" />
-    <sec:custom-filter ref="customBasicAuthenticationFilter" after="BASIC_AUTH_FILTER" />
   </sec:http>
-
-  <bean id="customBasicAuthenticationFilter" class="org.hisp.dhis.security.CustomBasicAuthenticationFilter">
-  </bean>
 
   <bean id="securityExceptionTranslationHandler"
     class="org.hisp.dhis.security.CustomExceptionMappingAuthenticationFailureHandler">
