@@ -326,6 +326,10 @@
   display: none;
 }
 
+#shareFormError {
+  display: none;
+}
+
 #shareHelpForm
 {
   display: none;
@@ -850,6 +854,12 @@ div#selectionTree
 #interpretationPopup a{
   color: #000;
   text-decoration: none;
+}
+
+#interpretationPopup #newInterpretation {
+  display: block;
+  color: #3162C5;
+  margin-top: 5px;
 }
 
 #interpretationContainer{

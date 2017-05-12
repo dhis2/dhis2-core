@@ -103,6 +103,12 @@ jQuery( document ).ready( function() {
     <input type="button" class="interpretationButton" value="$i18n.getString( 'share' )" onclick="dhis2.db.shareInterpretation()">
 </div>
 
+<div id="shareFormError">
+    <p>$i18n.getString( 'cannot_write_interpretation' )</p>
+    <a class="greyButtonLink" href="javascript:void(0);" onclick="dhis2.db.closeDialog(this)" 
+       style="margin-top: 1px">$i18n.getString( "close" )</a>
+</div>
+
 <div id="shareHelpForm">
     <ul>
         <li>$i18n.getString( "from" ) <a href="../dhis-web-pivot/index.html">$i18n.getString( "pivot_table" )</a>, $i18n.getString( "generate_pivot_table_click_share" )</li>
