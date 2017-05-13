@@ -42,6 +42,7 @@ import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.UserGroup;
 
 import java.util.Set;
@@ -71,6 +72,8 @@ public class ProgramNotificationTemplate
 
     private UserGroup recipientUserGroup = null;
 
+    private TrackedEntityAttribute recipientProgramAttribute = null;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -81,7 +84,7 @@ public class ProgramNotificationTemplate
 
     public ProgramNotificationTemplate( String name, String subjectTemplate, String messageTemplate,
         NotificationTrigger notificationTrigger, ProgramNotificationRecipient notificationRecipient,
-        Set<DeliveryChannel> deliveryChannels, Integer relativeScheduledDays, UserGroup recipientUserGroup )
+        Set<DeliveryChannel> deliveryChannels, Integer relativeScheduledDays, UserGroup recipientUserGroup, TrackedEntityAttribute recipientProgramAttribute )
     {
         this.name = name;
         this.subjectTemplate = subjectTemplate;
@@ -91,6 +94,7 @@ public class ProgramNotificationTemplate
         this.deliveryChannels = deliveryChannels;
         this.relativeScheduledDays = relativeScheduledDays;
         this.recipientUserGroup = recipientUserGroup;
+        this.recipientProgramAttribute = recipientProgramAttribute;
     }
 
     // -------------------------------------------------------------------------
@@ -184,6 +188,18 @@ public class ProgramNotificationTemplate
         this.recipientUserGroup = recipientUserGroup;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public TrackedEntityAttribute getRecipientProgramAttribute()
+    {
+        return recipientProgramAttribute;
+    }
+
+    public void setRecipientProgramAttribute( TrackedEntityAttribute recipientProgramAttribute )
+    {
+        this.recipientProgramAttribute = recipientProgramAttribute;
+    }
+
     // -------------------------------------------------------------------------
     // IdObject overrides
     // -------------------------------------------------------------------------
@@ -205,6 +221,7 @@ public class ProgramNotificationTemplate
                 notificationRecipient = pnt.getNotificationRecipient();
                 relativeScheduledDays = pnt.getRelativeScheduledDays();
                 recipientUserGroup = pnt.getRecipientUserGroup();
+                recipientProgramAttribute = pnt.getRecipientProgramAttribute();
             }
             else if ( mergeMode.isMerge() )
             {
@@ -214,6 +231,7 @@ public class ProgramNotificationTemplate
                 notificationRecipient = pnt.getNotificationRecipient() == null ? notificationRecipient : pnt.getNotificationRecipient();
                 relativeScheduledDays = pnt.getRelativeScheduledDays() == null ? relativeScheduledDays : pnt.getRelativeScheduledDays();
                 recipientUserGroup = pnt.getRecipientUserGroup() == null ? recipientUserGroup : pnt.getRecipientUserGroup();
+                recipientProgramAttribute = pnt.getRecipientProgramAttribute() == null ? recipientProgramAttribute : pnt.getRecipientProgramAttribute();
             }
 
             deliveryChannels.clear();
