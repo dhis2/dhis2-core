@@ -244,14 +244,14 @@ public class JdbcEventAnalyticsManager
         {
             sql += "order by ";
 
-            for ( String item : params.getAsc() )
+            for ( DimensionalItemObject item : params.getAsc() )
             {
-                sql += statementBuilder.columnQuote( item ) + " asc,";
+                sql += statementBuilder.columnQuote( item.getUid() ) + " asc,";
             }
 
-            for  ( String item : params.getDesc() )
+            for  ( DimensionalItemObject item : params.getDesc() )
             {
-                sql += statementBuilder.columnQuote( item ) + " desc,";
+                sql += statementBuilder.columnQuote( item.getUid() ) + " desc,";
             }
 
             sql = removeLastComma( sql ) + " ";
@@ -595,7 +595,9 @@ public class JdbcEventAnalyticsManager
      */
     private List<String> getSortColumns( EventQueryParams params )
     {
-        return ListUtils.distinctUnion( params.getAsc(), params.getDesc() );
+       return ListUtils.distinctUnion( params.getAsc(), params.getDesc() ).stream().filter(
+                dimItObject -> DimensionItemType.PROGRAM_INDICATOR !=
+                    dimItObject.getDimensionItemType() ).map( IdentifiableObject::getUid ).collect( Collectors.toList());
     }
 
     /**

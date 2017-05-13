@@ -123,12 +123,12 @@ public class EventQueryParams
      * 
      * Columns to sort ascending.
      */
-    private List<String> asc = new ArrayList<>();
+    private List<DimensionalItemObject> asc = new ArrayList<>();
 
     /**
      * Columns to sort descending.
      */
-    private List<String> desc = new ArrayList<>();
+    private List<DimensionalItemObject> desc = new ArrayList<>();
     
     /**
      * The organisation unit selection mode.
@@ -659,7 +659,7 @@ public class EventQueryParams
         return programIndicator;
     }
 
-    public List<String> getAsc()
+    public List<DimensionalItemObject> getAsc()
     {
         return asc;
     }
@@ -670,7 +670,7 @@ public class EventQueryParams
         return dimensions;
     }
 
-    public List<String> getDesc()
+    public List<DimensionalItemObject> getDesc()
     {
         return desc;
     }
@@ -934,13 +934,13 @@ public class EventQueryParams
             return this;
         }
         
-        public Builder addAscSortItem( String sortItem )
+        public Builder addAscSortItem( DimensionalItemObject sortItem )
         {
             this.params.asc.add( sortItem );
             return this;
         }
         
-        public Builder addDescSortItem( String sortItem )
+        public Builder addDescSortItem( DimensionalItemObject sortItem )
         {
             this.params.desc.add( sortItem );
             return this;
