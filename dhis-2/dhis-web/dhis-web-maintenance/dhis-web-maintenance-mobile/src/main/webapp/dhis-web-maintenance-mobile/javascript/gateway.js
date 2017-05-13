@@ -325,7 +325,7 @@ function getHttpKeyValueParamsAddedByTheUser(allFields)
 			object.classified=false;
 		}
 		
-		if(newHeaderType == true)
+		if( newHeaderType == true )
 		{
 			object.header=true;
 		}

@@ -157,7 +157,7 @@ public class SimplisticHttpGetGateWay
     {
         HttpHeaders headers = new HttpHeaders();
 
-        parameters.stream().filter( p -> p.isHeader() == true ).forEach( p -> headers.set( p.getKey(), p.getValue() ) );
+        parameters.stream().filter( p -> p.isHeader() ).forEach( p -> headers.set( p.getKey(), p.getValue() ) );
 
         return headers;
     }
