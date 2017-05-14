@@ -37,7 +37,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
-import org.hisp.dhis.sms.outbound.ClickatellResponseEntity;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -51,7 +50,6 @@ import org.springframework.web.client.RestTemplate;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-
 public abstract class SmsGateway
 {
     private static final Log log = LogFactory.getLog( ClickatellGateway.class );

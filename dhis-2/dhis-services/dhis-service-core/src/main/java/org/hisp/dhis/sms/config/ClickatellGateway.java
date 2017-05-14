@@ -1,7 +1,5 @@
 package org.hisp.dhis.sms.config;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.ClickatellRequestEntity;
 import org.hisp.dhis.sms.outbound.ClickatellResponseEntity;
@@ -48,8 +46,6 @@ import java.util.Set;
 public class ClickatellGateway
     extends SmsGateway
 {
-    private static final Log log = LogFactory.getLog( ClickatellGateway.class );
-
     private static final String CONTENT_TYPE = "Content-Type";
 
     private static final String ACCEPT = "Accept";
