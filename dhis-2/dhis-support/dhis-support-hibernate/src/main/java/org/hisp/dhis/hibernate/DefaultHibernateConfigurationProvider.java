@@ -77,9 +77,9 @@ public class DefaultHibernateConfigurationProvider
     private static final String PROP_MEMCACHED_CONNECTION_FACTORY = "hibernate.memcached.connectionFactory";
     private static final String PROP_MEMCACHED_OPERATION_TIMEOUT = "hibernate.memcached.operationTimeout";
     private static final String PROP_MEMCACHED_HASH_ALGORITHM = "hibernate.memcached.hashAlgorithm";
+    private static final String PROP_MEMCACHED_CLEAR_SUPPORTED = "hibernate.memcached.clearSupported";    
     private static final String PROP_MEMCACHED_SERVERS = "hibernate.memcached.servers";
     private static final String PROP_MEMCACHED_CACHE_TIME_SECONDS = "hibernate.memcached.cacheTimeSeconds";
-    
     
     private static final int MAX_CLUSTER_INSTANCES = 5;
 
@@ -327,6 +327,7 @@ public class DefaultHibernateConfigurationProvider
         config.setProperty( PROP_MEMCACHED_CONNECTION_FACTORY, "KetamaConnectionFactory" );
         config.setProperty( PROP_MEMCACHED_OPERATION_TIMEOUT, "5000" );
         config.setProperty( PROP_MEMCACHED_HASH_ALGORITHM, "HashAlgorithm.FNV1_64_HASH" );
+        config.setProperty( PROP_MEMCACHED_CLEAR_SUPPORTED, "true" );
         config.setProperty( PROP_MEMCACHED_SERVERS, configurationProvider.getProperty( ConfigurationKey.CACHE_SERVERS ) );
         config.setProperty( PROP_MEMCACHED_CACHE_TIME_SECONDS, configurationProvider.getProperty( ConfigurationKey.CACHE_TIME ) );
     }
