@@ -54,7 +54,7 @@ public abstract class SmsGateway
 {
     private static final Log log = LogFactory.getLog( ClickatellGateway.class );
 
-    private static final ImmutableSet<HttpStatus> OK_CODES = ImmutableSet.of( HttpStatus.OK,
+    private static final Set<HttpStatus> OK_CODES = ImmutableSet.of( HttpStatus.OK,
             HttpStatus.ACCEPTED, HttpStatus.CREATED );
 
     private static final ImmutableMap<HttpStatus, GatewayResponse> GATEWAY_RESPONSE_MAP = new ImmutableMap.Builder<HttpStatus, GatewayResponse>()

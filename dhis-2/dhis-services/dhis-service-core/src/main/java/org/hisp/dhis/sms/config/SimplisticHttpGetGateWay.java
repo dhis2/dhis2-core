@@ -53,9 +53,9 @@ import java.util.Set;
  * <p>
  * The gateway adds the following keys to the parameters:
  * <ul>
- * <li>recipient
- * <li>message
- * <li>sender - if available in the message
+ * <li>recipient</li>
+ * <li>message</li>
+ * <li>sender - if available in the message</li>
  * </ul>
  * 
  * An example usage with bulksms.com would be this template:<br/>
@@ -64,8 +64,8 @@ import java.util.Set;
  * }&amp;password={password}&amp;message={message}&amp;msisdn={recipient}<br/>
  * With the following parameters provided:
  * <ul>
- * <li>username
- * <li>password
+ * <li>username</li>
+ * <li>password</li>
  * </ul>
  */
 public class SimplisticHttpGetGateWay
@@ -134,11 +134,8 @@ public class SimplisticHttpGetGateWay
         UriComponentsBuilder uriBuilder = null;
 
         uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
-
         uriBuilder = getUrlParameters( config.getParameters(), uriBuilder );
-
         uriBuilder.queryParam( config.getMessageParameter(), text );
-
         uriBuilder.queryParam( config.getRecipientParameter(),
             !recipients.isEmpty() ? recipients.iterator().next() : "" );
 
