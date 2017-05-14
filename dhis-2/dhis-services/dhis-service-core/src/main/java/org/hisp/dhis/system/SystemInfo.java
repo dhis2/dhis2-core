@@ -84,6 +84,8 @@ public class SystemInfo
 
     private String fileStoreProvider;
 
+    private String cacheProvider;
+
     private String readOnlyMode;
 
     private String javaVersion;
@@ -109,7 +111,7 @@ public class SystemInfo
     private Integer cpuCores;
 
     private boolean encryption;
-
+    
     private String systemId;
     
     private String systemName;
@@ -136,6 +138,7 @@ public class SystemInfo
     public void clearSensitiveInfo()
     {
         this.fileStoreProvider = null;
+        this.cacheProvider = null;
         this.readOnlyMode = null;
         this.javaVersion = null;
         this.javaVendor = null;
@@ -144,6 +147,7 @@ public class SystemInfo
         this.osArchitecture = null;
         this.osVersion = null;
         this.externalDirectory = null;
+        this.cacheProvider = null;
         this.readReplicaCount = null;
         this.memoryInfo = null;
         this.cpuCores = null;
@@ -324,6 +328,18 @@ public class SystemInfo
     public void setFileStoreProvider( String fileStoreProvider )
     {
         this.fileStoreProvider = fileStoreProvider;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getCacheProvider()
+    {
+        return cacheProvider;
+    }
+
+    public void setCacheProvider( String cacheProvider )
+    {
+        this.cacheProvider = cacheProvider;
     }
 
     @JsonProperty
@@ -553,5 +569,4 @@ public class SystemInfo
     {
         return isMetadataSyncEnabled;
     }
-
 }

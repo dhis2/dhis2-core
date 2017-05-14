@@ -48,7 +48,6 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -102,9 +101,6 @@ public class EnrollmentController
 
     @Autowired
     private WebMessageService webMessageService;
-
-    @Autowired
-    private RenderService renderService;
 
     // -------------------------------------------------------------------------
     // READ
