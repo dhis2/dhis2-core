@@ -56,7 +56,6 @@ import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.descriptors.TrackedEntityInstanceSchemaDescriptor;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
@@ -89,13 +88,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ * The following statements are added not to cause api break.
+ * They need to be remove say in 2.26 or so once users are aware of the changes.
+ * <p>
+ * programEnrollmentStartDate= ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
+ * programEnrollmentEndDate= ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
+ *         
  * @author Morten Olav Hansen <mortenoh@gmail.com>
- *         <p>
- *         The following statements are added not to cause api break.
- *         They need to be remove say in 2.26 or so once users are aware of the changes.
- *         <p>
- *         programEnrollmentStartDate= ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
- *         programEnrollmentEndDate= ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
  */
 @Controller
 @RequestMapping( value = TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT )
@@ -120,9 +119,6 @@ public class TrackedEntityInstanceController
 
     @Autowired
     private WebMessageService webMessageService;
-
-    @Autowired
-    private RenderService renderService;
 
     // -------------------------------------------------------------------------
     // READ
