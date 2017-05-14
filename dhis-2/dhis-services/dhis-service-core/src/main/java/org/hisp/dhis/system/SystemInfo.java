@@ -111,7 +111,7 @@ public class SystemInfo
     private Integer cpuCores;
 
     private boolean encryption;
-
+    
     private String systemId;
     
     private String systemName;
@@ -147,6 +147,7 @@ public class SystemInfo
         this.osArchitecture = null;
         this.osVersion = null;
         this.externalDirectory = null;
+        this.cacheProvider = null;
         this.readReplicaCount = null;
         this.memoryInfo = null;
         this.cpuCores = null;
