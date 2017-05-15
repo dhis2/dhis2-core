@@ -34,9 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
@@ -61,7 +59,7 @@ public class ProgramTrackedEntityAttribute
     private Boolean mandatory;
 
     private Boolean allowFutureDate;
-    
+
     private Boolean renderOptionsAsRadio = false;
 
     private Set<ProgramTrackedEntityAttributeGroup> groups = new HashSet<>();
@@ -153,7 +151,7 @@ public class ProgramTrackedEntityAttribute
     {
         return attribute != null ? attribute.getValueType() : null;
     }
-    
+
     @Override
     public String toString()
     {
@@ -258,7 +256,7 @@ public class ProgramTrackedEntityAttribute
     {
         this.groups = groups;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getRenderOptionsAsRadio()
@@ -269,43 +267,5 @@ public class ProgramTrackedEntityAttribute
     public void setRenderOptionsAsRadio( Boolean renderOptionsAsRadio )
     {
         this.renderOptionsAsRadio = renderOptionsAsRadio;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            ProgramTrackedEntityAttribute programTrackedEntityAttribute = (ProgramTrackedEntityAttribute) other;
-            displayInList = programTrackedEntityAttribute.isDisplayInList();
-
-            if ( mergeMode.isReplace() )
-            {
-                program = programTrackedEntityAttribute.getProgram();
-                sortOrder = programTrackedEntityAttribute.getSortOrder();
-                attribute = programTrackedEntityAttribute.getAttribute();
-                mandatory = programTrackedEntityAttribute.isMandatory();
-                allowFutureDate = programTrackedEntityAttribute.getAllowFutureDate();
-                renderOptionsAsRadio = programTrackedEntityAttribute.getRenderOptionsAsRadio();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                program = programTrackedEntityAttribute.getProgram() == null ? program : programTrackedEntityAttribute.getProgram();
-                sortOrder = programTrackedEntityAttribute.getSortOrder() == null ? sortOrder : programTrackedEntityAttribute.getSortOrder();
-                attribute = programTrackedEntityAttribute.getAttribute() == null ? attribute : programTrackedEntityAttribute.getAttribute();
-                mandatory = programTrackedEntityAttribute.isMandatory() == null ? mandatory : programTrackedEntityAttribute.isMandatory();
-                allowFutureDate = programTrackedEntityAttribute.getAllowFutureDate() == null ? allowFutureDate : programTrackedEntityAttribute.getAllowFutureDate();
-                renderOptionsAsRadio = programTrackedEntityAttribute.getRenderOptionsAsRadio() == null ? renderOptionsAsRadio : programTrackedEntityAttribute.getRenderOptionsAsRadio();
-            }
-
-            groups.clear();
-
-            for ( ProgramTrackedEntityAttributeGroup group : programTrackedEntityAttribute.getGroups() )
-            {
-                addGroup( group );
-            }
-        }
     }
 }

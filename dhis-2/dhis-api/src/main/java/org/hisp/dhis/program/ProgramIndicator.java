@@ -39,8 +39,6 @@ import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.RegexUtils;
 
@@ -108,7 +106,7 @@ public class ProgramIndicator
     public static final String INVALID_IDENTIFIERS_IN_EXPRESSION = "invalid_identifiers_in_expression";
     public static final String FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE = "filter_not_evaluating_to_true_or_false";
     public static final String UNKNOWN_VARIABLE = "unknown_variable";
-    
+
 
     private Program program;
 
@@ -314,36 +312,5 @@ public class ProgramIndicator
     public void setAnalyticsType( AnalyticsType analyticsType )
     {
         this.analyticsType = analyticsType;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            ProgramIndicator programIndicator = (ProgramIndicator) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                program = programIndicator.getProgram();
-                expression = programIndicator.getExpression();
-                filter = programIndicator.getFilter();
-                decimals = programIndicator.getDecimals();
-                displayInForm = programIndicator.getDisplayInForm();
-                analyticsType = programIndicator.getAnalyticsType();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                program = programIndicator.getProgram() == null ? program : programIndicator.getProgram();
-                expression = programIndicator.getExpression() == null ? expression : programIndicator.getExpression();
-                filter = programIndicator.getFilter() == null ? filter : programIndicator.getFilter();
-                decimals = programIndicator.getDecimals() == null ? decimals : programIndicator.getDecimals();
-                displayInForm = programIndicator.getDisplayInForm() == null ? displayInForm : programIndicator.getDisplayInForm();
-                analyticsType = programIndicator.getAnalyticsType() == null ?
-                    analyticsType : programIndicator.getAnalyticsType();
-            }
-        }
     }
 }

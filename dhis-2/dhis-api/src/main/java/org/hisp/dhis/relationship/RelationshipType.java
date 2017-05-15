@@ -33,8 +33,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
@@ -108,27 +106,5 @@ public class RelationshipType
             "\"aIsToB\":\"" + aIsToB + "\", " +
             "\"bIsToA\":\"" + bIsToA + "\" " +
             "}";
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            RelationshipType relationshipType = (RelationshipType) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                aIsToB = relationshipType.getaIsToB();
-                bIsToA = relationshipType.getbIsToA();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                aIsToB = relationshipType.getaIsToB() == null ? aIsToB : relationshipType.getaIsToB();
-                bIsToA = relationshipType.getbIsToA() == null ? bIsToA : relationshipType.getbIsToA();
-            }
-        }
     }
 }
