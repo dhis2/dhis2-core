@@ -51,9 +51,9 @@ public interface MinMaxDataElementStore
 
     List<MinMaxDataElement> get( OrganisationUnit source, Collection<DataElement> dataElements );
 
-    List<MinMaxDataElement> query( MinMaxDataElementQuery query );
+    List<MinMaxDataElement> query( MinMaxDataElementQueryParams query );
 
-    int count ( MinMaxDataElementQuery query );
+    int count ( MinMaxDataElementQueryParams query );
 
     void delete( OrganisationUnit organisationUnit );
     
