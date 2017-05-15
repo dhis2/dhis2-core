@@ -1668,7 +1668,7 @@ public abstract class DhisConvenienceTest
             ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE,
             Sets.newHashSet(),
             days,
-            null
+            null, null
         );
     }
 

@@ -39,7 +39,8 @@ public enum ProgramNotificationRecipient
     TRACKED_ENTITY_INSTANCE( true ),
     ORGANISATION_UNIT_CONTACT( true ),
     USERS_AT_ORGANISATION_UNIT( false ),
-    USER_GROUP( false );
+    USER_GROUP( false ),
+    PROGRAM_ATTRIBUTE( true );
 
     private boolean external;
 
