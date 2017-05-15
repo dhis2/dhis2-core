@@ -861,15 +861,15 @@ public class DefaultDataValueSetService
                 continue;
             }
 
+            dataValue.setValueForced(
+                ValidationUtils.getConvertedBoolValue( dataValue.getValue(), dataElement.getValueType() ) );
+
             String valueValid = ValidationUtils.dataValueIsValid( dataValue.getValue(), dataElement );
 
             if ( valueValid != null )
             {
                 summary.getConflicts().add( new ImportConflict( dataValue.getValue(), i18n.getString( valueValid ) + ", must match data element type: " + dataElement.getUid() ) );
                 continue;
-            } else if ( dataElement.getValueType() == ValueType.BOOLEAN )
-            {
-                dataValue.setValueForced( ValidationUtils.getConvertedBoolValue( dataValue.getValue() ) );
             }
 
             String commentValid = ValidationUtils.commentIsValid( dataValue.getComment() );

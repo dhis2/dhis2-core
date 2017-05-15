@@ -535,8 +535,10 @@ public class DataValueSetServiceTest
         List<String> expectedBools = Lists.newArrayList( "true", "false" );
         List<DataValue> resultBools = mockDataValueBatchHandler.getInserts();
 
-       for ( DataValue dataValue : resultBools )
-           assertTrue( expectedBools.contains( dataValue.getValue() ) );
+        for ( DataValue dataValue : resultBools )
+        {
+            assertTrue( expectedBools.contains( dataValue.getValue() ) );
+        }
     }
 
     @Test

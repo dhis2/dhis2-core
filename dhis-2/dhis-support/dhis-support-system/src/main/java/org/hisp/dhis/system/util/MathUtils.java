@@ -30,7 +30,6 @@ package org.hisp.dhis.system.util;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.google.common.collect.Lists;
 import org.apache.commons.math3.util.Precision;
 import org.apache.commons.validator.routines.DoubleValidator;
 import org.apache.commons.validator.routines.IntegerValidator;
@@ -494,7 +493,7 @@ public class MathUtils
      */
     public static boolean isBool( String value )
     {
-        return Lists.newArrayList("false", "False", "true", "True", "f", "F", "t", "T", "0", "1").contains( value );
+        return value != null && (value.equals( "true" ) || value.equals( "false" ));
     }
 
     /**
