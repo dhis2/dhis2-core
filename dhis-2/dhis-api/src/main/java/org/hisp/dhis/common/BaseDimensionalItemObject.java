@@ -155,30 +155,4 @@ public class BaseDimensionalItemObject
     {
         this.aggregationType = aggregationType;
     }
-
-    /*
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DimensionalItemObject object = (DimensionalItemObject) other;
-
-            if ( mergeMode.isReplace() )
-            {
-//                legendSets = object.getLegendSets();
-                aggregationType = object.getAggregationType();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-//                legendSets = object.getLegendSets() == null ? legendSets : object.getLegendSets();
-                aggregationType = object.getAggregationType() == null ? aggregationType : object.getAggregationType();
-            }
-
-            legendSets.clear();
-        }
-    }
-    */
 }
