@@ -29,19 +29,12 @@ package org.hisp.dhis.dxf2.datavalueset;
  */
 
 import com.csvreader.CsvReader;
+import org.hisp.dhis.common.*;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.calendar.CalendarService;
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.common.DateRange;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
@@ -1071,7 +1064,13 @@ public class DefaultDataValueSetService
             internalValue.setSource( orgUnit );
             internalValue.setCategoryOptionCombo( categoryOptionCombo );
             internalValue.setAttributeOptionCombo( attrOptionCombo );
-            internalValue.setValue( trimToNull( dataValue.getValue() ) );
+            if ( dataElement.getValueType() == ValueType.BOOLEAN)
+            {
+                internalValue.setValue( ValidationUtils.getConvertedBoolValue( dataValue.getValue() ) );
+            } else
+            {
+                internalValue.setValue( trimToNull( dataValue.getValue() ) );
+            }
             internalValue.setStoredBy( storedBy );
             internalValue.setCreated( dataValue.hasCreated() ? parseDate( dataValue.getCreated() ) : now );
             internalValue.setLastUpdated( dataValue.hasLastUpdated() ? parseDate( dataValue.getLastUpdated() ) : now );

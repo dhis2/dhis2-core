@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.datavalueset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.time.DateUtils;
 import org.hisp.dhis.DhisSpringTest;
@@ -37,13 +38,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -79,6 +74,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -134,6 +130,7 @@ public class DataValueSetServiceTest
     private DataElement deC;
     private DataElement deD;
     private DataElement deE;
+    private DataElement deF;
     private DataSet dsA;
     private OrganisationUnit ouA;
     private OrganisationUnit ouB;
@@ -190,6 +187,8 @@ public class DataValueSetServiceTest
         deD = createDataElement( 'D', categoryComboDef );
         deE = createDataElement( 'E' );
         deE.setOptionSet( osA );
+        deF = createDataElement( 'F', categoryComboDef );
+        deF.setValueType( ValueType.BOOLEAN );
         dsA = createDataSet( 'A', new MonthlyPeriodType() );
         dsA.setCategoryCombo( categoryComboDef );
         ouA = createOrganisationUnit( 'A' );
@@ -205,6 +204,7 @@ public class DataValueSetServiceTest
         deB.setUid( "Ix2HsbDMLea" );
         deC.setUid( "eY5ehpbEsB7" );
         deE.setUid( "jH26dja2f28" );
+        deF.setUid( "jH26dja2f30" );
         dsA.setUid( "pBOMPrpg1QX" );
         ouA.setUid( "DiszpKrYNg8" );
         ouB.setUid( "BdfsJfj87js" );
@@ -236,6 +236,7 @@ public class DataValueSetServiceTest
         dataElementService.addDataElement( deC );
         attributeService.addAttributeValue( deD, createAttributeValue( attribute, "DE4" ) );
         dataElementService.addDataElement( deD );
+        dataElementService.addDataElement( deF );
 
         idObjectManager.save( osA );
 
@@ -520,6 +521,22 @@ public class DataValueSetServiceTest
         assertEquals( ImportStatus.WARNING, summary.getStatus() );
 
         assertImportDataValues( summary );
+    }
+
+    @Test
+    public void testImportDataValuesBooleanCsv()
+        throws Exception
+    {
+        in = new ClassPathResource( "datavalueset/dataValueSetBooleanTest.csv" ).getInputStream();
+
+        ImportSummary summary = dataValueSetService.saveDataValueSetCsv( in, null, null );
+        assertEquals( summary.getConflicts().toString(), 1, summary.getConflicts().size() ); // Header row
+
+        List<String> expectedBools = Lists.newArrayList( "true", "false" );
+        List<DataValue> resultBools = mockDataValueBatchHandler.getInserts();
+
+       for ( DataValue dataValue : resultBools )
+           assertTrue( expectedBools.contains( dataValue.getValue() ) );
     }
 
     @Test

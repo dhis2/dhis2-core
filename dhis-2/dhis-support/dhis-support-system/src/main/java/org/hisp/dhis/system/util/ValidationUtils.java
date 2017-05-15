@@ -29,6 +29,7 @@ package org.hisp.dhis.system.util;
  */
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.apache.commons.validator.routines.DateValidator;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.commons.validator.routines.UrlValidator;
@@ -555,5 +556,18 @@ public class ValidationUtils
         {
             return "'A'";
         }
+    }
+
+    public static String getConvertedBoolValue( String bool )
+    {
+        if ( Lists.newArrayList("false", "False", "f", "F", "0").contains( bool ) )
+        {
+            return  "false";
+        } else if ( Lists.newArrayList("true", "True", "t", "T", "1").contains( bool ) )
+        {
+            return "true";
+        }
+
+        return bool;
     }
 }
