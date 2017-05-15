@@ -99,7 +99,6 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-commons</artifactId>
     </dependency>
-
   </dependencies>
 
   <properties>

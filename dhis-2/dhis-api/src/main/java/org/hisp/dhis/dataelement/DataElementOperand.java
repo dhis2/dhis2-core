@@ -36,10 +36,8 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.IdScheme;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
@@ -69,7 +67,7 @@ public class DataElementOperand
     private DataElement dataElement;
 
     private DataElementCategoryOptionCombo categoryOptionCombo;
-    
+
     private DataElementCategoryOptionCombo attributeOptionCombo;
 
     // -------------------------------------------------------------------------
@@ -126,7 +124,7 @@ public class DataElementOperand
             {
                 item += SEPARATOR + SYMBOL_WILDCARD;
             }
-            
+
             if ( attributeOptionCombo != null )
             {
                 item += SEPARATOR + attributeOptionCombo.getPropertyValue( idScheme );
@@ -187,7 +185,7 @@ public class DataElementOperand
         {
             name += SPACE + SYMBOL_WILDCARD;
         }
-        
+
         if ( hasNonDefaultAttributeOptionCombo() )
         {
             name += SPACE + attributeOptionCombo.getName();
@@ -214,7 +212,7 @@ public class DataElementOperand
         {
             name += SPACE + SYMBOL_WILDCARD;
         }
-        
+
         if ( hasNonDefaultAttributeOptionCombo() )
         {
             name += SPACE + attributeOptionCombo.getName();
@@ -222,41 +220,41 @@ public class DataElementOperand
 
         return shortName;
     }
-    
+
     /**
      * Creates a {@link DataElementOperand} instance from the given identifiers.
-     * 
-     * @param dataElementUid the data element identifier.
+     *
+     * @param dataElementUid         the data element identifier.
      * @param categoryOptionComboUid the category option combo identifier.
-     * @return a data element operand instance. 
+     * @return a data element operand instance.
      */
     public static DataElementOperand instance( String dataElementUid, String categoryOptionComboUid )
     {
         DataElement de = new DataElement();
         de.setUid( dataElementUid );
-        
+
         DataElementCategoryOptionCombo coc = null;
-        
+
         if ( categoryOptionComboUid != null )
         {
             coc = new DataElementCategoryOptionCombo();
             coc.setUid( categoryOptionComboUid );
         }
-        
+
         return new DataElementOperand( de, coc );
     }
-    
+
     /**
      * Indicates whether this operand specifies a data element only
      * with no option combinations.
-     * 
+     *
      * @return true if operand specifies a data element only.
      */
     public boolean isTotal()
     {
         return categoryOptionCombo == null && attributeOptionCombo == null;
     }
-    
+
     /**
      * Indicates whether a category option combination exists which is different
      * from default.
@@ -335,72 +333,48 @@ public class DataElementOperand
             '}';
     }
 
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DataElementOperand dataElementOperand = (DataElementOperand) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                dataElement = dataElementOperand.getDataElement();
-                categoryOptionCombo = dataElementOperand.getCategoryOptionCombo();
-                attributeOptionCombo = dataElementOperand.getAttributeOptionCombo();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                dataElement = dataElementOperand.getDataElement() != null ? dataElementOperand.getDataElement() : dataElement;
-                categoryOptionCombo = dataElementOperand.getCategoryOptionCombo() != null ? dataElementOperand.getCategoryOptionCombo() : categoryOptionCombo;
-                attributeOptionCombo = dataElementOperand.getAttributeOptionCombo() != null ? dataElementOperand.getAttributeOptionCombo() : attributeOptionCombo;
-            }
-        }
-    }
-
     // -------------------------------------------------------------------------
     // Option combination type
     // -------------------------------------------------------------------------
 
     public enum TotalType
     {
-        COC_ONLY( true, false, 1 ), 
-        AOC_ONLY( false, true, 1 ), 
-        COC_AND_AOC( true, true, 2 ), 
+        COC_ONLY( true, false, 1 ),
+        AOC_ONLY( false, true, 1 ),
+        COC_AND_AOC( true, true, 2 ),
         NONE( false, false, 0 );
-        
+
         private boolean coc;
         private boolean aoc;
         private int propertyCount;
-        
+
         TotalType()
         {
         }
-        
+
         TotalType( boolean coc, boolean aoc, int propertyCount )
         {
             this.coc = coc;
             this.aoc = aoc;
             this.propertyCount = propertyCount;
         }
-        
+
         public boolean isCategoryOptionCombo()
         {
             return coc;
         }
-        
+
         public boolean isAttributeOptionCombo()
         {
             return aoc;
         }
-        
+
         public int getPropertyCount()
         {
             return propertyCount;
         }
     }
-    
+
     public TotalType getTotalType()
     {
         if ( categoryOptionCombo != null && attributeOptionCombo != null )

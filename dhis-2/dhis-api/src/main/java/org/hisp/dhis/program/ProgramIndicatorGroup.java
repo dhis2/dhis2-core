@@ -37,8 +37,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
@@ -141,34 +139,4 @@ public class ProgramIndicatorGroup
     {
         this.members = members;
     }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            ProgramIndicatorGroup indicatorGroup = (ProgramIndicatorGroup) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                this.name = indicatorGroup.getName();
-                this.description = indicatorGroup.getDescription();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                this.name = indicatorGroup.getName() == null ? this.name : indicatorGroup.getName();
-                this.description = indicatorGroup.getDescription() == null ? this.description : indicatorGroup.getDescription();
-            }
-
-            removeAllProgramIndicators();
-
-            for ( ProgramIndicator indicator : indicatorGroup.getMembers() )
-            {
-                addProgramIndicator( indicator );
-            }
-        }
-    }
 }
-
