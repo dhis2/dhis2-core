@@ -197,6 +197,8 @@ public class TableAlteror
         executeSql( "UPDATE mapview SET hidden = false WHERE hidden IS NULL" );
         executeSql( "UPDATE mapview SET eventclustering = false WHERE eventclustering IS NULL" );
         executeSql( "UPDATE mapview SET eventpointradius = 0 WHERE eventpointradius IS NULL" );
+        executeSql( "UPDATE programnotificationtemplate SET trackedentityattributeid = 0 WHERE trackedentityattributeid IS NULL" );
+
 
         executeSql( "DELETE FROM systemsetting WHERE name = 'longitude'" );
         executeSql( "DELETE FROM systemsetting WHERE name = 'latitude'" );
@@ -710,6 +712,7 @@ public class TableAlteror
         // remove unused configurations
         executeSql( "delete from systemsetting where name='keySmsConfig'" );
         executeSql( "delete from systemsetting where name='keySmsConfiguration'" );
+        executeSql( "delete from systemsetting where name='keySmsConfigurations'" );
 
         // update denominator of indicator which has indicatortype as 'number'
         executeSql( "UPDATE indicator SET denominator = 1, denominatordescription = '' WHERE indicatortypeid IN (SELECT DISTINCT indicatortypeid FROM indicatortype WHERE indicatornumber = true) AND denominator IS NULL" );
