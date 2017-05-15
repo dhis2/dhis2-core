@@ -32,8 +32,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.MediaType;
 import org.springframework.web.accept.PathExtensionContentNegotiationStrategy;
 import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.util.UriUtils;
 import org.springframework.web.util.UrlPathHelper;
-import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Locale;
@@ -72,36 +72,8 @@ public class CustomPathExtensionContentNegotiationStrategy extends PathExtension
         }
 
         String path = URL_PATH_HELPER.getLookupPathForRequest( servletRequest );
-        String filename = WebUtils.extractFullFilenameFromUrlPath( path );
-        String extension = getFilenameExtension( filename );
+        String extension = UriUtils.extractFileExtension( path );
 
         return !StringUtils.isBlank( extension ) ? extension.toLowerCase( Locale.ENGLISH ) : null;
-    }
-
-    private static final char EXTENSION_SEPARATOR = '.';
-
-    private static final String FOLDER_SEPARATOR = "/";
-
-    private static String getFilenameExtension( String path )
-    {
-        if ( path == null )
-        {
-            return null;
-        }
-        int extIndex = path.indexOf( EXTENSION_SEPARATOR );
-
-        if ( extIndex == -1 )
-        {
-            return null;
-        }
-
-        int folderIndex = path.indexOf( FOLDER_SEPARATOR );
-
-        if ( folderIndex > extIndex )
-        {
-            return null;
-        }
-
-        return path.substring( extIndex + 1 );
     }
 }
