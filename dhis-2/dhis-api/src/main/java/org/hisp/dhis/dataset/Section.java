@@ -87,46 +87,6 @@ public class Section
     // Logic
     // -------------------------------------------------------------------------
 
-    public void addDataElement( DataElement dataElement )
-    {
-        dataElements.add( dataElement );
-    }
-
-    public void removeDataElement( DataElement dataElement )
-    {
-        dataElements.remove( dataElement );
-    }
-
-    public void addGreyedField( DataElementOperand greyedField )
-    {
-        greyedFields.add( greyedField );
-    }
-
-    public void removeGreyedField( DataElementOperand greyedField )
-    {
-        greyedFields.remove( greyedField );
-    }
-
-    private void addIndicator( Indicator indicator )
-    {
-        indicators.add( indicator );
-    }
-
-    public void removeAllGreyedFields()
-    {
-        greyedFields.clear();
-    }
-
-    public void removeAllDataElements()
-    {
-        dataElements.clear();
-    }
-
-    public void removeAllIndicators()
-    {
-        indicators.clear();
-    }
-
     public boolean hasCategoryCombo()
     {
         return !getCategoryCombos().isEmpty();
