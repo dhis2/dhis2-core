@@ -69,6 +69,7 @@ public class DefaultDhisConfigurationProvider
     private static final String GOOGLE_AUTH_FILENAME = "dhis-google-auth.json";
     private static final String GOOGLE_EE_SCOPE = "https://www.googleapis.com/auth/earthengine";
     private static final String ENABLED_VALUE = "on";
+    private static final String CACHE_PROVIDER_MEMCACHED = "memcached";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -238,6 +239,12 @@ public class DefaultDhisConfigurationProvider
     }
 
     @Override
+    public boolean isMemcachedCacheProviderEnabled()
+    {
+        return CACHE_PROVIDER_MEMCACHED.equals( getProperty( ConfigurationKey.CACHE_PROVIDER ) );
+    }
+
+    @Override
     public boolean isLdapConfigured()
     {
         String ldapUrl = getProperty( ConfigurationKey.LDAP_URL );
@@ -295,7 +302,7 @@ public class DefaultDhisConfigurationProvider
         try ( InputStream in = locationManager.getInputStream( CONF_FILENAME ) )
         {
             Properties conf = PropertiesLoaderUtils.loadProperties( new InputStreamResource( in ) );
-            replaceEnvironmentVariables( conf );
+            substituteEnvironmentVariables( conf );
 
             return conf;
         }
@@ -321,7 +328,7 @@ public class DefaultDhisConfigurationProvider
         }
     }
 
-    private void replaceEnvironmentVariables( Properties properties )
+    private void substituteEnvironmentVariables( Properties properties )
     {
         final StrSubstitutor substitutor = new StrSubstitutor( System.getenv() ); // Matches on ${...}
 

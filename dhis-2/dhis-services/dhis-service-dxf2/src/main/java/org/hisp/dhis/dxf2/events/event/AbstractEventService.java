@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.event;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -131,7 +132,7 @@ public abstract class AbstractEventService
         EVENT_LAST_UPDATED_ID, EVENT_STORED_BY_ID, EVENT_COMPLETED_BY_ID, EVENT_COMPLETED_DATE_ID,
         EVENT_EXECUTION_DATE_ID, EVENT_DUE_DATE_ID, EVENT_ORG_UNIT_ID, EVENT_ORG_UNIT_NAME, EVENT_STATUS_ID,
         EVENT_LONGITUDE_ID, EVENT_LATITUDE_ID, EVENT_PROGRAM_STAGE_ID, EVENT_PROGRAM_ID,
-        EVENT_ATTRIBUTE_OPTION_COMBO_ID );
+        EVENT_ATTRIBUTE_OPTION_COMBO_ID, EVENT_DELETED );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -349,7 +350,7 @@ public abstract class AbstractEventService
                 programStageInstance = programStageInstanceService.getProgramStageInstance( programInstance,
                     programStage );
 
-                if ( programStageInstance != null )
+                if ( programStageInstance != null && !programStageInstance.getUid().equals( event.getEvent() ) )
                 {
                     return new ImportSummary( ImportStatus.ERROR,
                         "Program stage is not repeatable and an event already exists" ).incrementIgnored();
@@ -893,6 +894,7 @@ public abstract class AbstractEventService
         }
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
+        updateTrackedEntityInstance( programStageInstance );
 
         saveTrackedEntityComment( programStageInstance, event, storedBy );
 
@@ -1303,6 +1305,7 @@ public abstract class AbstractEventService
                     importOptions );
             }
 
+            updateTrackedEntityInstance( programStageInstance );
             saveTrackedEntityComment( programStageInstance, event, storedBy );
 
             importSummary.setReference( programStageInstance.getUid() );
@@ -1439,6 +1442,7 @@ public abstract class AbstractEventService
         programStageInstance.setExecutionDate( executionDate );
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setAttributeOptionCombo( coc );
+        programStageInstance.setDeleted( event.isDeleted() );
 
         if ( programStage.getCaptureCoordinates() )
         {
@@ -1735,5 +1739,32 @@ public abstract class AbstractEventService
         {
             programStageInstance.setLastUpdatedAtClient( DateUtils.parseDate( lastUpdatedAtClient ) );
         }
+    }
+
+    private void updateTrackedEntityInstance( ProgramStageInstance programStageInstance )
+    {
+        updateTrackedEntityInstance( Lists.newArrayList( programStageInstance ) );
+    }
+
+    private void updateTrackedEntityInstance( List<ProgramStageInstance> programStageInstances )
+    {
+        Set<ProgramInstance> programInstances = new HashSet<>();
+        Set<TrackedEntityInstance> trackedEntityInstances = new HashSet<>();
+
+        for ( ProgramStageInstance programStageInstance : programStageInstances )
+        {
+            if ( programStageInstance.getProgramInstance() != null )
+            {
+                programInstances.add( programStageInstance.getProgramInstance() );
+
+                if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
+                {
+                    trackedEntityInstances.add( programStageInstance.getProgramInstance().getEntityInstance() );
+                }
+            }
+        }
+
+        programInstances.forEach( manager::update );
+        trackedEntityInstances.forEach( manager::update );
     }
 }

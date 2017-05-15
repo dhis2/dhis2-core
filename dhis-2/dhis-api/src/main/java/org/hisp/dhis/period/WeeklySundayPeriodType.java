@@ -1,4 +1,4 @@
-package org.hisp.dhis.common.adapter;
+package org.hisp.dhis.period;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,38 +26,23 @@ package org.hisp.dhis.common.adapter;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
-
-import org.hisp.dhis.common.BaseIdentifiableObject;
-
-import javax.xml.bind.annotation.adapters.XmlAdapter;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * PeriodType for weekly Periods. A valid weekly Period has startDate set to
+ * sunday and endDate set to saturday the same week, assuming sunday is the first
+ * day and saturday is the last day of the week.
+ *
+ * @author Torgeir Lorange Ostby
  */
-public class BaseIdentifiableObjectXmlAdapter extends XmlAdapter<BaseIdentifiableObject, BaseIdentifiableObject>
+public class WeeklySundayPeriodType
+    extends WeeklyAbstractPeriodType
 {
-    @Override
-    public BaseIdentifiableObject unmarshal( BaseIdentifiableObject baseIdentifiableObject )
+    public static final String NAME = "WeeklySunday";
+
+    public WeeklySundayPeriodType()
     {
-        return baseIdentifiableObject;
-    }
-
-    @Override
-    public BaseIdentifiableObject marshal( BaseIdentifiableObject baseIdentifiableObject )
-    {
-        if ( baseIdentifiableObject != null )
-        {
-            BaseIdentifiableObject bio = new BaseIdentifiableObject();
-
-            bio.setUid( baseIdentifiableObject.getUid() );
-            bio.setName( baseIdentifiableObject.getName() );
-            bio.setLastUpdated( baseIdentifiableObject.getLastUpdated() );
-            bio.setHref( baseIdentifiableObject.getHref() );
-
-            return bio;
-        }
-
-        return null;
+        super( NAME, 7, "yyyySunWn", "P7D", 7, "SunW" );
     }
 }

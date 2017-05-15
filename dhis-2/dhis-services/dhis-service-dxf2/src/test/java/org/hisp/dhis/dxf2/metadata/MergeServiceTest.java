@@ -37,6 +37,8 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.schema.MergeParams;
+import org.hisp.dhis.schema.MergeService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -135,7 +137,8 @@ public class MergeServiceTest
 
         assertFalse( organisationUnitGroupB.getMembers().isEmpty() );
         assertEquals( 4, organisationUnitGroupB.getMembers().size() );
-        assertNotNull( organisationUnitGroupB.getGroupSet() );
+        assertNotNull( organisationUnitGroupB.getGroupSets() );
+        assertFalse( organisationUnitGroupB.getGroupSets().isEmpty() );
     }
 
     @Test

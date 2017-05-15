@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.metadata;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,58 +28,16 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.MergeMode;
-
-import java.util.Objects;
+import java.util.List;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public final class MergeParams<T>
+* @author Lars Helge Overland
+*/
+public interface DimensionalEmbeddedObject
 {
-    private final T source;
-
-    private final T target;
-
-    private MergeMode mergeMode = MergeMode.REPLACE;
-
-    private boolean skipSharing;
-
-    public MergeParams( T source, T target )
-    {
-        this.source = Objects.requireNonNull( source );
-        this.target = Objects.requireNonNull( target );
-    }
-
-    public T getSource()
-    {
-        return source;
-    }
-
-    public T getTarget()
-    {
-        return target;
-    }
-
-    public MergeMode getMergeMode()
-    {
-        return mergeMode;
-    }
-
-    public MergeParams<T> setMergeMode( MergeMode mergeMode )
-    {
-        this.mergeMode = mergeMode;
-        return this;
-    }
-
-    public boolean isSkipSharing()
-    {
-        return skipSharing;
-    }
-
-    public MergeParams<T> setSkipSharing( boolean skipSharing )
-    {
-        this.skipSharing = skipSharing;
-        return this;
-    }
+    int getId();
+    
+    DimensionalObject getDimension();
+    
+    List<? extends DimensionalItemObject> getItems();
 }

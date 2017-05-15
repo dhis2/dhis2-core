@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.webapi.controller.exception;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -29,14 +29,25 @@ package org.hisp.dhis.common;
  */
 
 /**
- * This interface is for merging one object into another, this is to be used by code supporting
- * hibernate which means that for merging associations, only the owning side will be updated.
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Created by sultanm.
+ * This exception could be used in all operation forbidden cases
  */
-public interface Mergeable<T>
+public class OperationNotAllowedException
+    extends Exception
 {
-    void mergeWith( T other, MergeMode mergeMode );
 
-    void mergeSharingWith( T other );
+    public OperationNotAllowedException( String message )
+    {
+        super( message );
+    }
+
+    public OperationNotAllowedException( Throwable cause )
+    {
+        super( cause );
+    }
+
+    public OperationNotAllowedException( String message, Throwable cause )
+    {
+        super( message, cause );
+    }
 }

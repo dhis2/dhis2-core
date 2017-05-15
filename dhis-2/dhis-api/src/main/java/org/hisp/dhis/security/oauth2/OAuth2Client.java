@@ -34,8 +34,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
@@ -157,33 +155,5 @@ public class OAuth2Client
             && Objects.equals( this.secret, other.secret )
             && Objects.equals( this.redirectUris, other.redirectUris )
             && Objects.equals( this.grantTypes, other.grantTypes );
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            OAuth2Client oAuth2Client = (OAuth2Client) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                cid = oAuth2Client.getCid();
-                secret = oAuth2Client.getSecret();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                cid = oAuth2Client.getCid() == null ? cid : oAuth2Client.getCid();
-                secret = oAuth2Client.getSecret() == null ? secret : oAuth2Client.getSecret();
-            }
-
-            redirectUris.clear();
-            grantTypes.clear();
-
-            redirectUris.addAll( oAuth2Client.getRedirectUris() );
-            grantTypes.addAll( oAuth2Client.getGrantTypes() );
-        }
     }
 }

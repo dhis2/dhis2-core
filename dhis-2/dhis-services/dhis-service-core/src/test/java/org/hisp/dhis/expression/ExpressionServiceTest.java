@@ -28,35 +28,15 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.expression.Expression.SEPARATOR;
-import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
-import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.SetMap;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
@@ -66,6 +46,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -74,8 +55,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.*;
+
+import static org.hisp.dhis.expression.Expression.SEPARATOR;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -106,6 +91,12 @@ public class ExpressionServiceTest
     
     @Autowired
     private IdentifiableObjectManager idObjectManager;
+
+    @Autowired
+    private DataSetService dataSetService;
+
+    @Autowired
+    private PeriodService periodService;
 
     private DataElementCategoryOption categoryOptionA;
     private DataElementCategoryOption categoryOptionB;
@@ -145,6 +136,8 @@ public class ExpressionServiceTest
     private Constant constantA;
     
     private OrganisationUnitGroup groupA;
+
+    private ReportingRate reportingRate;
     
     private String expressionA;
     private String expressionB;
@@ -161,6 +154,8 @@ public class ExpressionServiceTest
     private String expressionM;
     private String expressionN;
 
+    private String expressionR;
+
     private String descriptionA;
     private String descriptionB;
     
@@ -174,6 +169,16 @@ public class ExpressionServiceTest
     public void setUpTest()
         throws Exception
     {
+        Period peJan = createPeriod( "2017-01" );
+        Period peFeb = createPeriod( "2017-02" );
+        Period peMar = createPeriod( "2017-03" );
+        Period peApril = createPeriod( "2017-04" );
+
+        periodService.addPeriod( peJan );
+        periodService.addPeriod( peFeb );
+        periodService.addPeriod( peMar );
+        periodService.addPeriod( peApril );
+
         categoryOptionA = new DataElementCategoryOption( "Under 5" );
         categoryOptionB = new DataElementCategoryOption( "Over 5" );
         categoryOptionC = new DataElementCategoryOption( "Male" );
@@ -264,6 +269,13 @@ public class ExpressionServiceTest
         groupA.addOrganisationUnit( unitC );
         
         organisationUnitGroupService.addOrganisationUnitGroup( groupA );
+
+        DataSet dataSetA = createDataSet( 'A' );
+        dataSetA.setUid( "a23dataSetA" );
+        dataSetA.addOrganisationUnit( unitA );
+        dataSetService.addDataSet( dataSetA );
+
+        reportingRate = new ReportingRate( dataSetA );
         
         expressionA = "#{" + opA.getDimensionItem() + "}+#{" + opB.getDimensionItem() + "}";
         expressionB = "#{" + deC.getUid() + SEPARATOR + coc.getUid() + "}-#{" + deD.getUid() + SEPARATOR
@@ -281,6 +293,7 @@ public class ExpressionServiceTest
         expressionL = "AVG("+expressionJ+")+1.5*STDDEV("+expressionJ+")";
         expressionM = "#{" + deA.getUid() + SEPARATOR + SYMBOL_WILDCARD + "}-#{" + deB.getUid() + SEPARATOR + coc.getUid() + "}";
         expressionN = "#{" + deA.getUid() + SEPARATOR + cocA.getUid() + SEPARATOR + cocB.getUid() + "}-#{" + deB.getUid() + SEPARATOR + cocA.getUid() + "}";
+        expressionR = "#{" + deB.getUid() + SEPARATOR + coc.getUid() + "}" + " + R{" + reportingRate.getUid() + ".REPORTING_RATE}";
 
         descriptionA = "Expression A";
         descriptionB = "Expression B";
@@ -384,6 +397,15 @@ public class ExpressionServiceTest
         assertTrue( operands.contains( opA ) );
         assertTrue( operands.contains( opB ) );        
     }
+
+    @Test
+    public void testGetReportingRatesInExpression()
+    {
+        Set<DimensionalItemObject> reportingRates = expressionService.getDimensionalItemObjectsInExpression( expressionR );
+
+        assertEquals( 2, reportingRates.size() );
+        assertTrue( reportingRates.contains( reportingRate ) );
+    }
     
     @Test
     public void testGetAggregatesInExpression()
@@ -464,6 +486,7 @@ public class ExpressionServiceTest
         assertTrue( expressionService.expressionIsValid( expressionL ).isValid() );
         assertTrue( expressionService.expressionIsValid( expressionM ).isValid() );
         assertTrue( expressionService.expressionIsValid( expressionN ).isValid() );
+        assertTrue( expressionService.expressionIsValid( expressionR ).isValid() );
 
         String expression = "#{nonExisting" + SEPARATOR + coc.getUid() + "} + 12";
 
@@ -516,17 +539,21 @@ public class ExpressionServiceTest
         
         description = expressionService.getExpressionDescription( expressionM );
 
-        assertEquals( "DataElementA-DataElementB", description );     
+        assertEquals( "DataElementA-DataElementB", description );
+
+        description = expressionService.getExpressionDescription( expressionR );
+
+        assertEquals( "DataElementB + DataSetA Reporting rate", description );
     }
-    
+
     @Test
     public void testGenerateExpressionWithMap()
-    {
-        Map<DataElementOperand, Double> valueMap = new HashMap<>();
+    {   Map<DimensionalItemObject, Double> valueMap = new HashMap<>();
         valueMap.put( new DataElementOperand( deA, coc ), 12d );
         valueMap.put( new DataElementOperand( deB, coc ), 34d );
         valueMap.put( new DataElementOperand( deA, cocA, cocB ), 26d );
         valueMap.put( new DataElementOperand( deB, cocA ), 16d );
+        valueMap.put( reportingRate, 20d );
         
         Map<String, Double> constantMap = new HashMap<>();
         constantMap.put( constantA.getUid(), 2.0 );
@@ -534,11 +561,13 @@ public class ExpressionServiceTest
         Map<String, Integer> orgUnitCountMap = new HashMap<>();
         orgUnitCountMap.put( groupA.getUid(), groupA.getMembers().size() );
 
+
         assertEquals( "12.0+34.0", expressionService.generateExpression( expressionA, valueMap, constantMap, null, null, null ) );
         assertEquals( "12.0+5", expressionService.generateExpression( expressionD, valueMap, constantMap, null, 5, null ) );
         assertEquals( "12.0*2.0", expressionService.generateExpression( expressionE, valueMap, constantMap, null, null, null ) );
         assertEquals( "12.0*3", expressionService.generateExpression( expressionH, valueMap, constantMap, orgUnitCountMap, null, null ) );
         assertEquals( "26.0-16.0", expressionService.generateExpression( expressionN, valueMap, constantMap, orgUnitCountMap, null, null ) );
+        assertEquals( "34.0 + 20.0", expressionService.generateExpression( expressionR, valueMap, constantMap, orgUnitCountMap, null, null ) );
     }
 
     @Test
@@ -561,12 +590,14 @@ public class ExpressionServiceTest
         Expression expE = new Expression( expressionE, null );
         Expression expH = new Expression( expressionH, null );
         Expression expN = new Expression( expressionN, null );
+        Expression expR = new Expression( expressionR, null );
         
-        Map<DataElementOperand, Double> valueMap = new HashMap<>();
+        Map<DimensionalItemObject, Double> valueMap = new HashMap<>();
         valueMap.put( new DataElementOperand( deA, coc ), 12d );
         valueMap.put( new DataElementOperand( deB, coc ), 34d );
         valueMap.put( new DataElementOperand( deA, cocA, cocB ), 26d );
         valueMap.put( new DataElementOperand( deB, cocA ), 16d );
+        valueMap.put( reportingRate, 20d );
         
         Map<String, Double> constantMap = new HashMap<>();
         constantMap.put( constantA.getUid(), 2.0 );
@@ -579,6 +610,7 @@ public class ExpressionServiceTest
         assertEquals( 24d, expressionService.getExpressionValue( expE, valueMap, constantMap, null, null ), DELTA );
         assertEquals( 36d, expressionService.getExpressionValue( expH, valueMap, constantMap, orgUnitCountMap, null ), DELTA );
         assertEquals( 10d, expressionService.getExpressionValue( expN, valueMap, constantMap, orgUnitCountMap, null ), DELTA );
+        assertEquals( 54d, expressionService.getExpressionValue( expR, valueMap, constantMap, orgUnitCountMap, null ), DELTA );
     }
     
     @Test

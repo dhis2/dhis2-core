@@ -1,4 +1,4 @@
-package org.hisp.dhis.common.adapter;
+package org.hisp.dhis.dataelement;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,45 +28,45 @@ package org.hisp.dhis.common.adapter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlType;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.jdbc.core.JdbcTemplate;
 
-@XmlType(propOrder={"value", "key"})
-public class Parameter
+/**
+ * @author Lars Helge Overland
+ */
+public class CategoryDimensionDeletionHandler
+    extends DeletionHandler
 {
-    private String key;
+    private JdbcTemplate jdbcTemplate;
 
-    private String value;
-
-    public Parameter()
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
     {
+        this.jdbcTemplate = jdbcTemplate;
     }
 
-    public Parameter( String key, String value )
-    {
-        this.key = key;
-        this.value = value;
-    }
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
 
-    @XmlAttribute
-    public String getKey()
+    @Override
+    public String getClassName()
     {
-        return key;
+        return CategoryDimension.class.getSimpleName();
     }
-
-    @XmlAttribute
-    public String getValue()
+    
+    @Override
+    public String allowDeleteDataElementCategoryOption( DataElementCategoryOption categoryOption )
     {
-        return value;
+        String sql = "select count(*) from categorydimension_items where categoryoptionid = " + categoryOption.getId();
+        
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }
-
-    public void setKey( String key )
+    
+    @Override
+    public String allowDeleteDataElementCategory( DataElementCategory category )
     {
-        this.key = key;
-    }
-
-    public void setValue( String value )
-    {
-        this.value = value;
+        String sql = "select count(*) from categorydimension where categoryid = " + category.getId();
+        
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }
 }

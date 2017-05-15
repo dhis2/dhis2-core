@@ -37,8 +37,6 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -103,10 +101,7 @@ public class DataElementCategoryOption
         {
             for ( CategoryOptionGroup group : groups )
             {
-                if ( group.getGroupSet() != null )
-                {
-                    groupSets.add( group.getGroupSet() );
-                }
+                groupSets.addAll( group.getGroupSets() );
             }
         }
 
@@ -253,37 +248,5 @@ public class DataElementCategoryOption
     public void setGroups( Set<CategoryOptionGroup> groups )
     {
         this.groups = groups;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DataElementCategoryOption categoryOption = (DataElementCategoryOption) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                startDate = categoryOption.getStartDate();
-                endDate = categoryOption.getEndDate();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                startDate = categoryOption.getStartDate() == null ? startDate : categoryOption.getStartDate();
-                endDate = categoryOption.getEndDate() == null ? endDate : categoryOption.getEndDate();
-            }
-
-            organisationUnits.clear();
-            categories.clear();
-            groups.clear();
-            categoryOptionCombos.clear();
-
-            organisationUnits.addAll( categoryOption.getOrganisationUnits() );
-            categories.addAll( categoryOption.getCategories() );
-            groups.addAll( categoryOption.getGroups() );
-            categoryOptionCombos.addAll( categoryOption.getCategoryOptionCombos() );
-        }
     }
 }

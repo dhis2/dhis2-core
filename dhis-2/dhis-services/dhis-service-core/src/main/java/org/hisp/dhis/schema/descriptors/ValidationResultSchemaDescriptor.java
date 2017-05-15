@@ -1,7 +1,6 @@
-package org.hisp.dhis.dataelement;
-
+package org.hisp.dhis.schema.descriptors;
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,45 +27,28 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.validation.ValidationResult;
 
 /**
- * @author Lars Helge Overland
+ * @author Stian Sandvold
  */
-public class DataElementCategoryDimensionDeletionHandler
-    extends DeletionHandler
+public class ValidationResultSchemaDescriptor implements SchemaDescriptor
 {
-    private JdbcTemplate jdbcTemplate;
+    public static final String SINGULAR = "validationresult";
 
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
-    {
-        this.jdbcTemplate = jdbcTemplate;
-    }
+    public static final String PLURAL = "validationresults";
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
+    public static final String API_ENDPOINT = "/" + PLURAL;
 
     @Override
-    public String getClassName()
+    public Schema getSchema()
     {
-        return DataElementCategoryDimension.class.getSimpleName();
-    }
-    
-    @Override
-    public String allowDeleteDataElementCategoryOption( DataElementCategoryOption categoryOption )
-    {
-        String sql = "select count(*) from categorydimension_items where categoryoptionid = " + categoryOption.getId();
-        
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
-    }
-    
-    @Override
-    public String allowDeleteDataElementCategory( DataElementCategory category )
-    {
-        String sql = "select count(*) from categorydimension where categoryid = " + category.getId();
-        
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        Schema schema = new Schema( ValidationResult.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 2000 );
+
+        return schema;
     }
 }

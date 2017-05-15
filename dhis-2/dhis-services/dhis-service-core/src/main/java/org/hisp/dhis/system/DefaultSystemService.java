@@ -209,7 +209,9 @@ public class DefaultSystemService
         }
 
         info.setFileStoreProvider( dhisConfig.getProperty( ConfigurationKey.FILESTORE_PROVIDER ) );
+        info.setCacheProvider( dhisConfig.getProperty( ConfigurationKey.CACHE_PROVIDER ) );
         info.setReadOnlyMode( dhisConfig.getProperty( ConfigurationKey.SYSTEM_READ_ONLY_MODE ) );
+        info.setNodeId( dhisConfig.getProperty( ConfigurationKey.NODE_ID ) );
 
         // ---------------------------------------------------------------------
         // Database

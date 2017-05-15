@@ -11,6 +11,8 @@
 
   <bean id="org.hisp.dhis.calendar.CalendarService" class="org.hisp.dhis.calendar.DefaultCalendarService" />
 
+  <bean id="org.hisp.dhis.schema.MergeService" class="org.hisp.dhis.schema.DefaultMergeService" />
+
   <bean class="org.hisp.dhis.calendar.impl.Iso8601Calendar" />
 
   <bean class="org.hisp.dhis.calendar.impl.CopticCalendar" />
@@ -1516,12 +1518,12 @@
   <!-- Scheduled task for scheduled program notifications -->
 
   <bean id="scheduledProgramNotificationsTask"
-        class="org.hisp.dhis.program.notification.ProgramNotificationTask" scope="prototype" />
+    class="org.hisp.dhis.program.notification.ProgramNotificationTask" scope="prototype" />
 
   <!-- Scheduled task for validation result notifications -->
 
   <bean id="validationResultNotificationTask"
-        class="org.hisp.dhis.validation.notification.ValidationResultNotificationTask" scope="prototype" />
+    class="org.hisp.dhis.validation.notification.ValidationResultNotificationTask" scope="prototype" />
 
   <!-- Startup routine definitions -->
 
@@ -1637,6 +1639,11 @@
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
+  <bean id="org.hisp.dhis.startup.AnalyticalObjectEmbeddedDimensionUpgrader" class="org.hisp.dhis.startup.AnalyticalObjectEmbeddedDimensionUpgrader">
+    <property name="runlevel" value="9" />
+    <property name="skipInTests" value="true" />
+  </bean>
+
   <bean id="org.hisp.dhis.dataentryform.DataEntryFormUpgrader" class="org.hisp.dhis.dataentryform.DataEntryFormUpgrader">
     <property name="name" value="FavoriteDataItemUpgrader" />
     <property name="dataEntryFormService" ref="org.hisp.dhis.dataentryform.DataEntryFormService" />
@@ -1692,8 +1699,8 @@
     <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
   </bean>
 
-  <bean id="org.hisp.dhis.dataelement.DataElementCategoryDimensionDeletionHandler"
-    class="org.hisp.dhis.dataelement.DataElementCategoryDimensionDeletionHandler">
+  <bean id="org.hisp.dhis.dataelement.CategoryDimensionDeletionHandler"
+    class="org.hisp.dhis.dataelement.CategoryDimensionDeletionHandler">
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
@@ -1850,6 +1857,7 @@
   <bean id="org.hisp.dhis.programrule.ProgramRuleActionDeletionHandler"
     class="org.hisp.dhis.programrule.ProgramRuleActionDeletionHandler">
     <property name="programRuleActionService" ref="org.hisp.dhis.programrule.ProgramRuleActionService" />
+    <property name="programRuleService" ref="org.hisp.dhis.programrule.ProgramRuleService" />
   </bean>
 
   <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueDeletionHandler"

@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.webapi.webdomain;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,14 +26,59 @@ package org.hisp.dhis.common;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import org.hisp.dhis.node.Provider;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.period.PeriodType;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface NamedProvider<T> extends Provider<T>
+@JacksonXmlRootElement( localName = "periodType", namespace = DxfNamespaces.DXF_2_0 )
+public class PeriodTypeDTO
 {
-    String name();
+    private final String name;
+    private final String isoDuration;
+    private final String isoFormat;
+    private final int frequencyOrder;
+
+    public PeriodTypeDTO( PeriodType periodType )
+    {
+        this.name = periodType.getName();
+        this.frequencyOrder = periodType.getFrequencyOrder();
+        this.isoDuration = periodType.getIso8601Duration();
+        this.isoFormat = periodType.getIsoFormat();
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getName()
+    {
+        return name;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getIsoDuration()
+    {
+        return isoDuration;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getIsoFormat()
+    {
+        return isoFormat;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getFrequencyOrder()
+    {
+        return frequencyOrder;
+    }
 }

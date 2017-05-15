@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.metadata;
+package org.hisp.dhis.period;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,20 +26,23 @@ package org.hisp.dhis.dxf2.metadata;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * PeriodType for weekly Periods. A valid weekly Period has startDate set to
+ * saturday and endDate set to friday the same week, assuming saturday is the first
+ * day and friday is the last day of the week.
+ *
+ * @author Torgeir Lorange Ostby
  */
-public interface MergeService
+public class WeeklySaturdayPeriodType
+    extends WeeklyAbstractPeriodType
 {
-    /**
-     * Merges source object into target object, requires a "schema friendly" class.
-     */
-    <T> T merge( MergeParams<T> mergeParams );
+    public static final String NAME = "WeeklySaturday";
 
-    /**
-     * Clones source into target, using REPLACE mode.
-     */
-    <T> T clone( T source );
+    public WeeklySaturdayPeriodType()
+    {
+        super( NAME, 6, "yyyySatWn", "P7D", 7, "SatW" );
+    }
 }

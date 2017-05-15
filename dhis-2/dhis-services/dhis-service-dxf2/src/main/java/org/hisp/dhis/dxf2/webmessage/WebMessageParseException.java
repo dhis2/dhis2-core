@@ -1,4 +1,4 @@
-package org.hisp.dhis.dataprune;
+package org.hisp.dhis.dxf2.webmessage;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,18 +26,30 @@ package org.hisp.dhis.dataprune;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import java.util.List;
-
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import java.io.IOException;
 
 /**
- * @author Quang Nguyen
- * @version Apr 6, 2010 5:44:47 PM
+ * Created by vanyas on 5/5/17.
  */
-
-public interface DataPruneStore
+public class WebMessageParseException
+    extends IOException
 {
-    int deleteMultiOrganisationUnit(List<OrganisationUnit> orgUnits);
+    public WebMessageParseException( String message )
+    {
+        super( message );
+    }
+
+    public WebMessageParseException( Throwable cause )
+    {
+        super( cause );
+    }
+
+    public WebMessageParseException( String message, Throwable cause )
+    {
+        super( message, cause );
+    }
+
 }

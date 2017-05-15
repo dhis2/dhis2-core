@@ -175,6 +175,12 @@ public class DefaultIdentifiableObjectManager
             session.save( translation );
             persistedObject.getTranslations().add( translation );
         } );
+
+        BaseIdentifiableObject translatedObject = (BaseIdentifiableObject) persistedObject;
+        translatedObject.setLastUpdated( new Date() );
+        translatedObject.setLastUpdatedBy( currentUserService.getCurrentUser() );
+
+        session.update( translatedObject );
     }
 
     @Override
@@ -478,6 +484,20 @@ public class DefaultIdentifiableObjectManager
         }
 
         return (List<T>) store.getByUid( uids );
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getById( Class<T> clazz, Collection<Integer> ids )
+    {
+        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return null;
+        }
+
+        return (List<T>) store.getById( ids );
     }
 
     @Override

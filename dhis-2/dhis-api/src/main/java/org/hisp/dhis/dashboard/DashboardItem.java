@@ -38,7 +38,6 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.InterpretableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
@@ -426,45 +425,5 @@ public class DashboardItem
     public void setShape( DashboardItemShape shape )
     {
         this.shape = shape;
-    }
-
-    // -------------------------------------------------------------------------
-    // Merge with
-    // -------------------------------------------------------------------------
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DashboardItem dashboardItem = (DashboardItem) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                chart = dashboardItem.getChart();
-                map = dashboardItem.getMap();
-                reportTable = dashboardItem.getReportTable();
-                users = dashboardItem.getUsers();
-                reports = dashboardItem.getReports();
-                resources = dashboardItem.getResources();
-                messages = dashboardItem.getMessages();
-                appKey = dashboardItem.getAppKey();
-                shape = dashboardItem.getShape();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                chart = dashboardItem.getChart() == null ? chart : dashboardItem.getChart();
-                map = dashboardItem.getMap() == null ? map : dashboardItem.getMap();
-                reportTable = dashboardItem.getReportTable() == null ? reportTable : dashboardItem.getReportTable();
-                users = dashboardItem.getUsers() == null ? users : dashboardItem.getUsers();
-                reports = dashboardItem.getReports() == null ? reports : dashboardItem.getReports();
-                resources = dashboardItem.getResources() == null ? resources : dashboardItem.getResources();
-                messages = dashboardItem.getMessages() == null ? messages : dashboardItem.getMessages();
-                appKey = dashboardItem.getAppKey() == null ? appKey : dashboardItem.getAppKey();
-                shape = dashboardItem.getShape() == null ? shape : dashboardItem.getShape();
-            }
-        }
     }
 }

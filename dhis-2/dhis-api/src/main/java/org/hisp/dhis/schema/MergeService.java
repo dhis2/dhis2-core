@@ -1,4 +1,4 @@
-package org.hisp.dhis.system.filter;
+package org.hisp.dhis.schema;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,20 +26,21 @@ package org.hisp.dhis.system.filter;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
-
-import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.commons.filter.Filter;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DataElementGroupWithoutGroupSetFilter
-    implements Filter<DataElementGroup>
+public interface MergeService
 {
-    @Override
-    public boolean retain( DataElementGroup object )
-    {
-        return object == null || object.getGroupSet() == null;
-    }
+    /**
+     * Merges source object into target object, requires a "schema friendly" class.
+     */
+    <T> T merge( MergeParams<T> mergeParams );
+
+    /**
+     * Clones source into target, using REPLACE mode.
+     */
+    <T> T clone( T source );
 }

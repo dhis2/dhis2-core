@@ -1,4 +1,4 @@
-package org.hisp.dhis.system.filter;
+package org.hisp.dhis.period;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,22 +26,23 @@ package org.hisp.dhis.system.filter;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
-
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.commons.filter.Filter;
 
 /**
- * TODO remove
- * 
- * @author Lars Helge Overland
+ * PeriodType for weekly Periods. A valid weekly Period has startDate set to
+ * wednesday and endDate set to tuesday the same week, assuming wednesday is the first
+ * day and tuesday is the last day of the week.
+ *
+ * @author Torgeir Lorange Ostby
  */
-public class OrganisationUnitGroupWithoutGroupSetFilter
-    implements Filter<OrganisationUnitGroup>
+public class WeeklyWednesdayPeriodType
+    extends WeeklyAbstractPeriodType
 {
-    @Override
-    public boolean retain( OrganisationUnitGroup object )
+    public static final String NAME = "WeeklyWednesday";
+
+    public WeeklyWednesdayPeriodType()
     {
-        return object == null || object.getGroupSet() == null;
+        super( NAME, 3, "yyyyWedWn", "P7D", 7, "WedW" );
     }
 }
