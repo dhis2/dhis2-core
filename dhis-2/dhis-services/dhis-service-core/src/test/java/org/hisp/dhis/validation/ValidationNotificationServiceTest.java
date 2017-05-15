@@ -277,9 +277,7 @@ public class ValidationNotificationServiceTest
         assertEquals( "The validation results should form a single summarized message", 1, sentMessages.size() );
 
         String text = sentMessages.iterator().next().text;
-
-        System.out.println(text + " :: " + STATIC_MOCK_MESSAGE + " :: " + sentMessages.size());
-
+        
         assertEquals(
             "Wrong number of messages in the summarized message", 10, StringUtils.countMatches( text, STATIC_MOCK_SUBJECT ) );
     }
