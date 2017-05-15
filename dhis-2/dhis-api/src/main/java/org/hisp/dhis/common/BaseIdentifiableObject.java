@@ -720,21 +720,4 @@ public class BaseIdentifiableObject
 
         translationCache.clear();
     }
-
-    @Override
-    public void mergeSharingWith( IdentifiableObject other )
-    {
-        Validate.notNull( other );
-
-        // sharing
-        user = other.getUser() == null ? user : other.getUser();
-        publicAccess = other.getPublicAccess() == null ? publicAccess : other.getPublicAccess();
-        externalAccess = other.getExternalAccess();
-
-        userGroupAccesses.clear();
-        userGroupAccesses.addAll( other.getUserGroupAccesses() );
-
-        userAccesses.clear();
-        userAccesses.addAll( other.getUserAccesses() );
-    }
 }
