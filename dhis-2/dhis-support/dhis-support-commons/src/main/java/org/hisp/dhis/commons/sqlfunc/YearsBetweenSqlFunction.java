@@ -29,17 +29,17 @@ package org.hisp.dhis.commons.sqlfunc;
  */
 
 /**
- * Function which evaluates to the number of days between two given dates.
+ * Function which evaluates to the number of years between two given dates.
  * 
- * @author Lars Helge Overland
+ * @author Markus Bekken
  */
-public class DaysBetweenSqlFunction
+public class YearsBetweenSqlFunction
     extends BaseDateComparatorSqlFunction
 {
-    public static final String KEY = "daysBetween";
+    public static final String KEY = "yearsBetween";
     
     protected String compare( String startDate, String endDate )
     {
-        return "(cast(" + endDate + " as date) - cast(" + startDate + " as date))";
+        return "(date_part('year',age(cast(" + endDate + " as date), cast(" + startDate + " as date))))";
     }
 }

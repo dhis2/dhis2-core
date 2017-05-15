@@ -34,8 +34,11 @@ import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.commons.sqlfunc.ConditionalSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.DaysBetweenSqlFunction;
+import org.hisp.dhis.commons.sqlfunc.MonthsBetweenSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.OneIfZeroOrPositiveSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.SqlFunction;
+import org.hisp.dhis.commons.sqlfunc.WeeksBetweenSqlFunction;
+import org.hisp.dhis.commons.sqlfunc.YearsBetweenSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.ZeroIfNegativeSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.ZeroPositiveValueCountFunction;
 import org.hisp.dhis.commons.sqlfunc.HasValueSqlFunction;
@@ -73,6 +76,9 @@ public class DefaultProgramIndicatorService
         put( OneIfZeroOrPositiveSqlFunction.KEY, new OneIfZeroOrPositiveSqlFunction() ).
         put( ZeroPositiveValueCountFunction.KEY, new ZeroPositiveValueCountFunction() ).
         put( DaysBetweenSqlFunction.KEY, new DaysBetweenSqlFunction() ).
+        put( WeeksBetweenSqlFunction.KEY, new WeeksBetweenSqlFunction() ).
+        put( MonthsBetweenSqlFunction.KEY, new MonthsBetweenSqlFunction() ).
+        put( YearsBetweenSqlFunction.KEY, new YearsBetweenSqlFunction() ).
         put( ConditionalSqlFunction.KEY, new ConditionalSqlFunction() ).
         put( HasValueSqlFunction.KEY, new HasValueSqlFunction() ).build();
     

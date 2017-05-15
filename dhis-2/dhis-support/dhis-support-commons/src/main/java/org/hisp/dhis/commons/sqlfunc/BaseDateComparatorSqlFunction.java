@@ -29,17 +29,26 @@ package org.hisp.dhis.commons.sqlfunc;
  */
 
 /**
- * Function which evaluates to the number of days between two given dates.
+ * Function which evaluates a relation between two given dates.
  * 
- * @author Lars Helge Overland
+ * @author Markus Bekken
  */
-public class DaysBetweenSqlFunction
-    extends BaseDateComparatorSqlFunction
+public abstract class BaseDateComparatorSqlFunction
+    implements SqlFunction
 {
-    public static final String KEY = "daysBetween";
+    protected abstract String compare( String startDate, String endDate );
     
-    protected String compare( String startDate, String endDate )
+    @Override
+    public String evaluate( String... args )
     {
-        return "(cast(" + endDate + " as date) - cast(" + startDate + " as date))";
+        if ( args == null || args.length != 2 )
+        {
+            throw new IllegalArgumentException( "Illegal arguments, expected 2 arguments: start-date, end-date" );
+        }
+        
+        String startDate = args[0];
+        String endDate = args[1];
+        
+        return compare( startDate, endDate );
     }
 }
