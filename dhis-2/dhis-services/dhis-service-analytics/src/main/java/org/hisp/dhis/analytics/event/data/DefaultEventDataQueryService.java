@@ -357,16 +357,18 @@ public class DefaultEventDataQueryService
         return queryItem;
     }
 
-    private String getSortItem( String item, Program program )
+    private DimensionalItemObject getSortItem( String item, Program program )
     {
-        if ( !SORTABLE_ITEMS.contains( item.toLowerCase() ) && getQueryItem( item, program ) == null )
+        QueryItem queryItem = getQueryItem( item, program );
+        
+        if ( !SORTABLE_ITEMS.contains( item.toLowerCase() ) && queryItem == null )
         {
-            throw new IllegalQueryException( "Descending sort item is invalid: " + item );
+            throw new IllegalQueryException( "Sort item is invalid: " + item );
         }
 
         item = ITEM_EVENT_DATE.equalsIgnoreCase( item ) ? COL_NAME_EVENTDATE : item;
 
-        return item;
+        return queryItem.getItem();
     }
 
     private QueryItem getQueryItemFromDimension( String dimension, Program program )
