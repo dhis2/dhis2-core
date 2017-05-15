@@ -217,4 +217,20 @@ public class ValidationUtilsTest
         assertTrue( expressionIsValidSQl( "\"oZg33kd9taw\" == 'Female'" ) );
         assertTrue( expressionIsValidSQl( "\"oZg33kd9taw\" == 'Female' and \"qrur9Dvnyt5\" <= 5" ) );
     }
+
+    @Test
+    public void testNormalizeBoolean()
+    {
+        assertEquals( "true", normalizeBoolean( "1", ValueType.BOOLEAN ) );
+        assertEquals( "true", normalizeBoolean( "T", ValueType.BOOLEAN ) );
+        assertEquals( "true", normalizeBoolean( "true", ValueType.BOOLEAN ) );
+        assertEquals( "true", normalizeBoolean( "t", ValueType.BOOLEAN ) );
+
+        assertEquals( "test", normalizeBoolean( "test", ValueType.TEXT ) );
+
+        assertEquals( "false", normalizeBoolean( "0", ValueType.BOOLEAN ) );
+        assertEquals( "false", normalizeBoolean( "f", ValueType.BOOLEAN ) );
+        assertEquals( "false", normalizeBoolean( "False", ValueType.BOOLEAN ) );
+        assertEquals( "false", normalizeBoolean( "F", ValueType.BOOLEAN ) );
+    }
 }

@@ -28,21 +28,20 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
-
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-
 import org.apache.commons.math3.util.Precision;
 import org.apache.commons.validator.routines.DoubleValidator;
 import org.apache.commons.validator.routines.IntegerValidator;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.system.jep.CustomFunctions;
 import org.nfunk.jep.JEP;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 /**
  * @author Lars Helge Overland
