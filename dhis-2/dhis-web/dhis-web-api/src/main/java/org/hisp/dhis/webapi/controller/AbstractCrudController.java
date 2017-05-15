@@ -46,7 +46,7 @@ import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
-import org.hisp.dhis.dxf2.metadata.MergeService;
+import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;

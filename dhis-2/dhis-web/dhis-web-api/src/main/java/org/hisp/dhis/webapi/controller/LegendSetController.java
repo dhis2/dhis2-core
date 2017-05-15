@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller;
  *
  */
 
-import org.hisp.dhis.dxf2.metadata.MergeParams;
+import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
