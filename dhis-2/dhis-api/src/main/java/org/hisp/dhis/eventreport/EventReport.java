@@ -46,10 +46,12 @@ import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.FontSize;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
@@ -174,6 +176,16 @@ public class EventReport
      */
     private FontSize fontSize;
 
+    /**
+     * The program status.
+     */
+    private ProgramStatus programStatus;
+    
+    /**
+     * The event status.
+     */
+    private EventStatus eventStatus;
+    
     /**
      * The font size of the text in the table.
      */
@@ -507,6 +519,30 @@ public class EventReport
     public void setFontSize( FontSize fontSize )
     {
         this.fontSize = fontSize;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramStatus getProgramStatus()
+    {
+        return programStatus;
+    }
+
+    public void setProgramStatus( ProgramStatus programStatus )
+    {
+        this.programStatus = programStatus;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public EventStatus getEventStatus()
+    {
+        return eventStatus;
+    }
+
+    public void setEventStatus( EventStatus eventStatus )
+    {
+        this.eventStatus = eventStatus;
     }
 
     @JsonProperty
