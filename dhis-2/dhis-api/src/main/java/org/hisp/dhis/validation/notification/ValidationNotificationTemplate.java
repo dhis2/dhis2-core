@@ -34,8 +34,6 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.notification.SendStrategy;
@@ -172,42 +170,5 @@ public class ValidationNotificationTemplate
     public void setSendStrategy( SendStrategy sendStrategy )
     {
         this.sendStrategy = sendStrategy;
-    }
-
-    // -------------------------------------------------------------------------
-    // IdentifiableObject overrides
-    // -------------------------------------------------------------------------
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            ValidationNotificationTemplate that = (ValidationNotificationTemplate) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                subjectTemplate = that.getSubjectTemplate();
-                messageTemplate = that.getMessageTemplate();
-                notifyUsersInHierarchyOnly = that.notifyUsersInHierarchyOnly;
-                sendStrategy = that.sendStrategy;
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                subjectTemplate = that.getSubjectTemplate() == null ? subjectTemplate : that.getSubjectTemplate();
-                messageTemplate = that.getMessageTemplate() == null ? messageTemplate : that.getMessageTemplate();
-                notifyUsersInHierarchyOnly =
-                    that.getNotifyUsersInHierarchyOnly() == null ? notifyUsersInHierarchyOnly : that.getNotifyUsersInHierarchyOnly();
-                sendStrategy = that.sendStrategy == null ? sendStrategy : that.sendStrategy;
-            }
-
-            validationRules.clear();
-            validationRules.addAll( that.getValidationRules() );
-
-            recipientUserGroups.clear();
-            recipientUserGroups.addAll( that.getRecipientUserGroups() );
-        }
     }
 }

@@ -35,8 +35,6 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.schema.PropertyType;
@@ -182,42 +180,5 @@ public class ProgramNotificationTemplate
     public void setRecipientUserGroup( UserGroup recipientUserGroup )
     {
         this.recipientUserGroup = recipientUserGroup;
-    }
-
-    // -------------------------------------------------------------------------
-    // IdObject overrides
-    // -------------------------------------------------------------------------
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            ProgramNotificationTemplate pnt = (ProgramNotificationTemplate) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                subjectTemplate = pnt.getSubjectTemplate();
-                messageTemplate = pnt.getMessageTemplate();
-                notificationTrigger = pnt.getNotificationTrigger();
-                notificationRecipient = pnt.getNotificationRecipient();
-                relativeScheduledDays = pnt.getRelativeScheduledDays();
-                recipientUserGroup = pnt.getRecipientUserGroup();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                subjectTemplate = pnt.getSubjectTemplate() == null ? subjectTemplate : pnt.getSubjectTemplate();
-                messageTemplate = pnt.getMessageTemplate() == null ? messageTemplate : pnt.getMessageTemplate();
-                notificationTrigger = pnt.getNotificationTrigger() == null ? notificationTrigger : pnt.getNotificationTrigger();
-                notificationRecipient = pnt.getNotificationRecipient() == null ? notificationRecipient : pnt.getNotificationRecipient();
-                relativeScheduledDays = pnt.getRelativeScheduledDays() == null ? relativeScheduledDays : pnt.getRelativeScheduledDays();
-                recipientUserGroup = pnt.getRecipientUserGroup() == null ? recipientUserGroup : pnt.getRecipientUserGroup();
-            }
-
-            deliveryChannels.clear();
-            deliveryChannels.addAll( pnt.getDeliveryChannels() );
-        }
     }
 }

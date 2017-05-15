@@ -36,8 +36,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
@@ -196,28 +194,5 @@ public class DataApprovalWorkflow
     public void setDataSets( Set<DataSet> dataSets )
     {
         this.dataSets = dataSets;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DataApprovalWorkflow dataApprovalWorkflow = (DataApprovalWorkflow) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                periodType = dataApprovalWorkflow.getPeriodType();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                periodType = dataApprovalWorkflow.getPeriodType() == null ? periodType : dataApprovalWorkflow.getPeriodType();
-            }
-
-            levels.clear();
-            levels.addAll( dataApprovalWorkflow.getLevels() );
-        }
     }
 }

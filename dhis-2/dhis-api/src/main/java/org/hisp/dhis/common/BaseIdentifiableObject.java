@@ -35,7 +35,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.annotation.Description;
@@ -686,38 +685,5 @@ public class BaseIdentifiableObject
             "\"created\":\"" + getCreated() + "\", " +
             "\"lastUpdated\":\"" + getLastUpdated() + "\" " +
             "}";
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        Validate.notNull( other );
-
-        if ( mergeMode.isReplace() )
-        {
-            uid = other.getUid();
-            name = other.getName();
-            code = other.getCode();
-            lastUpdated = other.getLastUpdated();
-            created = other.getCreated();
-            user = other.getUser();
-        }
-        else if ( mergeMode.isMerge() )
-        {
-            uid = other.getUid() == null ? uid : other.getUid();
-            name = other.getName() == null ? name : other.getName();
-            code = other.getCode() == null ? code : other.getCode();
-            lastUpdated = other.getLastUpdated() == null ? lastUpdated : other.getLastUpdated();
-            created = other.getCreated() == null ? created : other.getCreated();
-            user = other.getUser() == null ? user : other.getUser();
-        }
-
-        attributeValues.clear();
-        attributeValues.addAll( other.getAttributeValues() );
-
-        translations.clear();
-        translations.addAll( other.getTranslations() );
-
-        translationCache.clear();
     }
 }

@@ -94,32 +94,4 @@ public class BaseDataDimensionalItemObject
     {
         this.aggregateExportAttributeOptionCombo = aggregateExportAttributeOptionCombo;
     }
-
-    // -------------------------------------------------------------------------
-    // Merge
-    // -------------------------------------------------------------------------
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DataDimensionalItemObject object = (DataDimensionalItemObject) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                aggregateExportCategoryOptionCombo = object.getAggregateExportCategoryOptionCombo();
-                aggregateExportAttributeOptionCombo = object.getAggregateExportAttributeOptionCombo();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                aggregateExportCategoryOptionCombo = object.getAggregateExportCategoryOptionCombo() == null ? 
-                    aggregateExportCategoryOptionCombo : object.getAggregateExportCategoryOptionCombo();
-                aggregateExportAttributeOptionCombo = object.getAggregateExportAttributeOptionCombo() == null ?
-                    aggregateExportAttributeOptionCombo : object.getAggregateExportAttributeOptionCombo();
-            }
-        }
-    }
 }

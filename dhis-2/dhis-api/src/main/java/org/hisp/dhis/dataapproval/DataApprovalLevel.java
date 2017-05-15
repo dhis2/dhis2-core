@@ -34,8 +34,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.schema.PropertyType;
@@ -213,29 +211,5 @@ public class DataApprovalLevel
     public void setOrgUnitLevelName( String orgUnitLevelName )
     {
         this.orgUnitLevelName = orgUnitLevelName;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DataApprovalLevel dataApprovalLevel = (DataApprovalLevel) other;
-
-            level = dataApprovalLevel.getLevel();
-            orgUnitLevel = dataApprovalLevel.getOrgUnitLevel();
-
-            if ( mergeMode.isReplace() )
-            {
-                categoryOptionGroupSet = dataApprovalLevel.getCategoryOptionGroupSet();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                categoryOptionGroupSet = dataApprovalLevel.getCategoryOptionGroupSet() == null ?
-                    categoryOptionGroupSet : dataApprovalLevel.getCategoryOptionGroupSet();
-            }
-        }
     }
 }
