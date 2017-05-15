@@ -38,6 +38,8 @@ import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
+import java.io.Serializable;
+
 /**
  * Class representing a validation violation. The validationRule, period and org unit
  * properties make up a composite unique key.
@@ -46,8 +48,10 @@ import org.hisp.dhis.period.Period;
  */
 @JacksonXmlRootElement( localName = "validationResult", namespace = DxfNamespaces.DXF_2_0 )
 public class ValidationResult
-    extends BaseIdentifiableObject
+    implements Serializable, Comparable<ValidationResult>
 {
+
+    private int id;
 
     /**
      * Determines if a de-serialized file is compatible with this class.
@@ -229,6 +233,87 @@ public class ValidationResult
         }
 
         return true;
+    }
+
+    /**
+     * Note: this method is called from threads in which it may not be possible
+     * to initialize lazy Hibernate properties. So object properties to compare
+     * must be chosen accordingly.
+     */
+    @Override
+    public int compareTo( ValidationResult other )
+    {
+        int result = organisationUnit.getName().compareTo( other.organisationUnit.getName() );
+
+        if ( result != 0 )
+        {
+            return result;
+        }
+
+        result = period.getStartDate().compareTo( other.period.getStartDate() );
+
+        if ( result != 0 )
+        {
+            return result;
+        }
+
+        result = period.getEndDate().compareTo( other.period.getEndDate() );
+
+        if ( result != 0 )
+        {
+            return result;
+        }
+
+        result = attributeOptionCombo.getId() - other.attributeOptionCombo.getId();
+
+        if ( result != 0 )
+        {
+            return result;
+        }
+
+        result = validationImportanceOrder( validationRule.getImportance() ) - validationImportanceOrder( other.validationRule.getImportance() );
+
+        if ( result != 0 )
+        {
+            return result;
+        }
+
+        result = validationRule.getLeftSide().getDescription().compareTo( other.validationRule.getLeftSide().getDescription() );
+
+        if ( result != 0 )
+        {
+            return result;
+        }
+
+        result = validationRule.getOperator().compareTo( other.validationRule.getOperator() );
+
+        if ( result != 0 )
+        {
+            return result;
+        }
+
+        result = validationRule.getRightSide().getDescription().compareTo( other.validationRule.getRightSide().getDescription() );
+
+        if ( result != 0 )
+        {
+            return result;
+        }
+
+        result = (int) Math.signum( Math.round( 100.0 * leftsideValue ) - Math.round( 100.0 * other.leftsideValue ) );
+
+        if ( result != 0 )
+        {
+            return result;
+        }
+
+        result = (int) Math.signum( Math.round( 100.0 * rightsideValue ) - Math.round( 100.0 * other.rightsideValue ) );
+
+        if ( result != 0 )
+        {
+            return result;
+        }
+
+        return 0;
     }
 
     private int validationImportanceOrder( Importance importance )
