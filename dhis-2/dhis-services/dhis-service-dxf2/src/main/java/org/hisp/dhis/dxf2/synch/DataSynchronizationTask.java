@@ -1,9 +1,7 @@
 package org.hisp.dhis.dxf2.synch;
 
-import org.hisp.dhis.message.MessageService;
-
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +28,10 @@ import org.hisp.dhis.message.MessageService;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
+import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +44,7 @@ public class DataSynchronizationTask
 {
     @Autowired
     private SynchronizationManager synchronizationManager;
-    
+
     @Autowired
     private MessageService messageService;
 
@@ -50,6 +52,8 @@ public class DataSynchronizationTask
     private Notifier notifier;
 
     private TaskId taskId;
+
+    private static final Log log = LogFactory.getLog( DataSynchronizationTask.class );
 
     public void setTaskId( TaskId taskId )
     {
@@ -71,6 +75,10 @@ public class DataSynchronizationTask
         {
             notifier.notify( taskId, "Data synch failed: " + ex.getMessage() );
         }
+        catch ( WebMessageParseException e )
+        {
+            log.error( "Error while executing event sync task. " + e.getMessage(), e );
+        }
 
         try
         {
@@ -79,8 +87,12 @@ public class DataSynchronizationTask
         catch ( RuntimeException ex )
         {
             notifier.notify( taskId, "Event synch failed: " + ex.getMessage() );
-            
+
             messageService.sendSystemErrorNotification( "Event synch failed", ex );
+        }
+        catch ( WebMessageParseException e )
+        {
+            log.error( "Error while executing event sync task. " + e.getMessage(), e );
         }
 
         notifier.notify( taskId, "Data/Event synch successful" );

@@ -46,9 +46,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.client.HttpClientErrorException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -75,7 +73,7 @@ public class MetadataSyncPreProcessor
     @Autowired
     private MetadataVersionDelegate metadataVersionDelegate;
 
-    public void setUp(MetadataRetryContext context)
+    public void setUp( MetadataRetryContext context )
     {
         systemSettingManager.saveSystemSetting( SettingKey.METADATAVERSION_ENABLED, true );
     }
@@ -108,7 +106,7 @@ public class MetadataSyncPreProcessor
             log.error( "Exception happened while trying to do data push " + ex.getMessage(), ex );
             if ( ex instanceof MetadataSyncServiceException )
             {
-                throw ex;
+                throw (MetadataSyncServiceException) ex;
             }
             context.updateRetryContext( MetadataSyncTask.DATA_PUSH_SUMMARY, ex.getMessage(), null, null );
             throw new MetadataSyncServiceException( ex.getMessage(), ex );
@@ -144,7 +142,7 @@ public class MetadataSyncPreProcessor
 
             if ( ex instanceof MetadataSyncServiceException )
             {
-                throw ex;
+                throw (MetadataSyncServiceException) ex;
             }
 
             context.updateRetryContext( MetadataSyncTask.EVENT_PUSH_SUMMARY, ex.getMessage(), null, null );

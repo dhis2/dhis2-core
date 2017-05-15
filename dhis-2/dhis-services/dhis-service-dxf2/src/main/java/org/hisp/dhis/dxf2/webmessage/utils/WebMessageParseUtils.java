@@ -54,7 +54,7 @@ public class WebMessageParseUtils
     private final static ObjectMapper XML_MAPPER = new XmlMapper();
 
 
-    public static <T> T fromWebMessageResponse( InputStream input, Class<T> klass )
+    public static <T> T fromWebMessageResponse( InputStream input, Class<T> klass ) throws WebMessageParseException
     {
         StringWriter writer = new StringWriter();
         try
@@ -68,12 +68,12 @@ public class WebMessageParseUtils
         return parseJson( writer.toString(), klass );
     }
 
-    public static <T> T fromWebMessageResponse( String input, Class<T> klass )
+    public static <T> T fromWebMessageResponse( String input, Class<T> klass ) throws WebMessageParseException
     {
         return parseJson( input, klass );
     }
 
-    private static <T> T parseJson( String input, Class<T> klass )
+    private static <T> T parseJson( String input, Class<T> klass ) throws WebMessageParseException
     {
         JsonNode objectNode = null;
         try
