@@ -34,6 +34,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.opengis.geometry.primitive.Point;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Set;
 
@@ -50,8 +52,8 @@ public enum ValueType
     EMAIL( String.class, false ),
     BOOLEAN( Boolean.class, true ),
     TRUE_ONLY( Boolean.class, true ),
-    DATE( Date.class, false ),
-    DATETIME( Date.class, false ),
+    DATE( LocalDate.class, false ),
+    DATETIME( LocalDateTime.class, false ),
     TIME( String.class, false ),
     NUMBER( Double.class, true ),
     UNIT_INTERVAL( Double.class, true ),
