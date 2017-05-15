@@ -840,11 +840,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         collectionService.addCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getAdditions() ) );
     }
 
-    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE )
-    public void addCollectionItemsXml(
-        @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE )
+        public void addCollectionItemsXml(
+            @PathVariable( "uid" ) String pvUid,
+            @PathVariable( "property" ) String pvProperty,
+            HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         List<T> objects = getEntity( pvUid );
         IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(), IdentifiableObjects.class );
@@ -853,11 +853,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         collectionService.addCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getAdditions() ) );
     }
 
-    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
-    public void replaceCollectionItemsJson(
-        @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
+        public void replaceCollectionItemsJson(
+            @PathVariable( "uid" ) String pvUid,
+            @PathVariable( "property" ) String pvProperty,
+            HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         List<T> objects = getEntity( pvUid );
         IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(), IdentifiableObjects.class );
@@ -921,12 +921,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         collectionService.delCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
     }
 
-    @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.DELETE )
-    public void deleteCollectionItem(
-        @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
-        @PathVariable( "itemId" ) String pvItemId,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.DELETE )
+        public void deleteCollectionItem(
+            @PathVariable( "uid" ) String pvUid,
+            @PathVariable( "property" ) String pvProperty,
+            @PathVariable( "itemId" ) String pvItemId,
+            HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         List<T> objects = getEntity( pvUid );
         response.setStatus( HttpServletResponse.SC_NO_CONTENT );
