@@ -43,7 +43,6 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.acl.Access;
-import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.translation.ObjectTranslation;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.User;
@@ -592,27 +591,6 @@ public class BaseIdentifiableObject
         }
 
         setLastUpdated( date );
-    }
-
-    /**
-     * Clear out all sharing properties.
-     *
-     * @param clearUser Clear out user property
-     */
-    public void clearSharing( boolean clearUser )
-    {
-        if ( clearUser )
-        {
-            user = null;
-        }
-
-        publicAccess = AccessStringHelper.DEFAULT;
-        externalAccess = false;
-
-        if ( userGroupAccesses != null )
-        {
-            userGroupAccesses.clear();
-        }
     }
 
     /**
