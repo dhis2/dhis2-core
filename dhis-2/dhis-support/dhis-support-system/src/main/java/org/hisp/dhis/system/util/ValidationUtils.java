@@ -565,7 +565,7 @@ public class ValidationUtils
 
 
 
-    public static String getConvertedBoolValue( String bool, ValueType valueType )
+    public static String normalizeBoolean( String bool, ValueType valueType )
     {
         if (valueType != ValueType.BOOLEAN)
         {

@@ -862,7 +862,7 @@ public class DefaultDataValueSetService
             }
 
             dataValue.setValueForced(
-                ValidationUtils.getConvertedBoolValue( dataValue.getValue(), dataElement.getValueType() ) );
+                ValidationUtils.normalizeBoolean( dataValue.getValue(), dataElement.getValueType() ) );
 
             String valueValid = ValidationUtils.dataValueIsValid( dataValue.getValue(), dataElement );
 
