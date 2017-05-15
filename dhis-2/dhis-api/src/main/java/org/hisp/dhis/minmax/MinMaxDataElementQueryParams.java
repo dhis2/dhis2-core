@@ -38,8 +38,6 @@ import java.util.List;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-
-
 public class MinMaxDataElementQueryParams
 {
     public static final MinMaxDataElementQueryParams EMPTY = new MinMaxDataElementQueryParams();

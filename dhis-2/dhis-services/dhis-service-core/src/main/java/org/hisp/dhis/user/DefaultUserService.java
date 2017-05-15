@@ -537,6 +537,7 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional
     public UserCredentials getUserCredentialsByUsername( String username )
     {
         return userCredentialsStore.getUserCredentialsByUsername( username );

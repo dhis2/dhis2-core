@@ -55,6 +55,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -63,14 +64,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-
 @Controller
 @RequestMapping( value = MinMaxDataElementSchemaDescriptor.API_ENDPOINT )
 @ApiVersion ( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
@@ -138,10 +137,11 @@ public class MinMaxDataElementController
     //--------------------------------------------------------------------------
 
     @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')" )
     public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        MinMaxDataElement minMax = deserializeJsonEntity( request, response );
+        MinMaxDataElement minMax = renderService.fromJson( request.getInputStream(), MinMaxDataElement.class );
 
         validate( minMax );
 
@@ -171,10 +171,11 @@ public class MinMaxDataElementController
     //--------------------------------------------------------------------------
 
     @RequestMapping( method = RequestMethod.DELETE, consumes = "application/json" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_DELETE')" )
     public void deleteObject( HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
 
-        MinMaxDataElement minMax = deserializeJsonEntity( request, response );
+        MinMaxDataElement minMax = renderService.fromJson( request.getInputStream(), MinMaxDataElement.class );
 
         validate( minMax );
 
@@ -190,11 +191,6 @@ public class MinMaxDataElementController
         minMaxService.deleteMinMaxDataElement( persisted );
 
         webMessageService.send( WebMessageUtils.ok( "MinMaxDataElement deleted." ), response, request );
-    }
-
-    private MinMaxDataElement deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response ) throws IOException
-    {
-        return renderService.fromJson( request.getInputStream(), MinMaxDataElement.class );
     }
 
     private void validate( MinMaxDataElement minMax ) throws WebMessageException
@@ -220,6 +216,4 @@ public class MinMaxDataElementController
         }
 
     }
-
-
 }

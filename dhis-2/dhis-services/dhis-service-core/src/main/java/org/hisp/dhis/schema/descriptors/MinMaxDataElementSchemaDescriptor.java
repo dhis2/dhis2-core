@@ -40,8 +40,6 @@ import org.hisp.dhis.security.AuthorityType;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-
-
 public class MinMaxDataElementSchemaDescriptor implements SchemaDescriptor
 {
     public static final String SINGULAR = "minMaxDataElement";
@@ -55,7 +53,6 @@ public class MinMaxDataElementSchemaDescriptor implements SchemaDescriptor
     {
         Schema schema = new Schema( MinMaxDataElement.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1322 );
 
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_MINMAX_DATAELEMENT_ADD" ) ) );
         schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_MINMAX_DATAELEMENT_DELETE" ) ) );
