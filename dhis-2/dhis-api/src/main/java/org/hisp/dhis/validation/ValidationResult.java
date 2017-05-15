@@ -32,8 +32,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.apache.commons.lang.builder.CompareToBuilder;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -109,7 +111,7 @@ public class ValidationResult
 
     // -------------------------------------------------------------------------
     // Equals, compareTo, hashCode and toString
-    // -------------------------------------------------------------------------     
+    // -------------------------------------------------------------------------
 
     @Override
     public int hashCode()
@@ -245,6 +247,24 @@ public class ValidationResult
             "(" + validationRule.getDisplayName() + ")"+
             ", left side value: " + leftsideValue +
             ", right side value: " + rightsideValue + "]";
+    }
+
+    /**
+     * Comparing validation results is done by priority, then time
+     * @param identifiableObject
+     * @return
+     */
+    public int compareTo( IdentifiableObject identifiableObject )
+    {
+        ValidationResult other = (ValidationResult) identifiableObject;
+
+        return new CompareToBuilder()
+            .append( this.validationRule, other.getValidationRule() )
+            .append( this.period, other.getPeriod() )
+            .append( this.attributeOptionCombo, other.getAttributeOptionCombo() )
+            .append( this.organisationUnit, other.getOrganisationUnit() )
+            .append( this.id, other.getId() )
+            .toComparison();
     }
 
     // -------------------------------------------------------------------------
