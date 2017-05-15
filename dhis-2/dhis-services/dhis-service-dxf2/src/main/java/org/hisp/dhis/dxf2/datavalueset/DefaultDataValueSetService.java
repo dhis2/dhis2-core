@@ -29,12 +29,11 @@ package org.hisp.dhis.dxf2.datavalueset;
  */
 
 import com.csvreader.CsvReader;
-import org.hisp.dhis.common.*;
-import org.hisp.staxwax.factory.XMLFactory;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.calendar.CalendarService;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
@@ -90,23 +89,17 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
+import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static org.apache.commons.lang3.StringUtils.trimToNull;
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
-import static org.hisp.dhis.system.notification.NotificationLevel.WARN;
+import static org.hisp.dhis.system.notification.NotificationLevel.*;
 import static org.hisp.dhis.system.util.DateUtils.parseDate;
 
 /**
@@ -874,6 +867,9 @@ public class DefaultDataValueSetService
             {
                 summary.getConflicts().add( new ImportConflict( dataValue.getValue(), i18n.getString( valueValid ) + ", must match data element type: " + dataElement.getUid() ) );
                 continue;
+            } else if ( valueValid != null && dataElement.getValueType() == ValueType.BOOLEAN )
+            {
+                dataValue.setValueForced( ValidationUtils.getConvertedBoolValue( dataValue.getValue() ) );
             }
 
             String commentValid = ValidationUtils.commentIsValid( dataValue.getComment() );
@@ -1064,13 +1060,7 @@ public class DefaultDataValueSetService
             internalValue.setSource( orgUnit );
             internalValue.setCategoryOptionCombo( categoryOptionCombo );
             internalValue.setAttributeOptionCombo( attrOptionCombo );
-            if ( dataElement.getValueType() == ValueType.BOOLEAN)
-            {
-                internalValue.setValue( ValidationUtils.getConvertedBoolValue( dataValue.getValue() ) );
-            } else
-            {
-                internalValue.setValue( trimToNull( dataValue.getValue() ) );
-            }
+            internalValue.setValue( trimToNull( dataValue.getValue() ) );
             internalValue.setStoredBy( storedBy );
             internalValue.setCreated( dataValue.hasCreated() ? parseDate( dataValue.getCreated() ) : now );
             internalValue.setLastUpdated( dataValue.hasLastUpdated() ? parseDate( dataValue.getLastUpdated() ) : now );
