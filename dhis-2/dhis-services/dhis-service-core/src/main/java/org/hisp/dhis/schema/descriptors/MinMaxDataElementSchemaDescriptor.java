@@ -40,8 +40,6 @@ import org.hisp.dhis.security.AuthorityType;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-
-
 public class MinMaxDataElementSchemaDescriptor implements SchemaDescriptor
 {
     public static final String SINGULAR = "minMaxDataElement";
