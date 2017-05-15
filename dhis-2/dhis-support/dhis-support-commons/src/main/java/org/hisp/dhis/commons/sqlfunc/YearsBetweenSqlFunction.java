@@ -1,7 +1,7 @@
-package org.hisp.dhis.dxf2.csv;
+package org.hisp.dhis.commons.sqlfunc;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,47 +28,18 @@ package org.hisp.dhis.dxf2.csv;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dxf2.metadata.Metadata;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
-
-import java.io.IOException;
-import java.io.InputStream;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-public class CsvImportServiceTest
-    extends DhisSpringTest
+/**
+ * Function which evaluates to the number of years between two given dates.
+ * 
+ * @author Markus Bekken
+ */
+public class YearsBetweenSqlFunction
+    extends BaseDateComparatorSqlFunction
 {
-    @Autowired
-    private CsvImportService csvImportService;
+    public static final String KEY = "yearsBetween";
     
-    private InputStream inputBasicObjects;
-
-    @Override
-    protected void setUpTest() 
-        throws Exception
+    protected String compare( String startDate, String endDate )
     {
-        inputBasicObjects = new ClassPathResource( "csv/basic_objects.csv" ).getInputStream();
-    }
-    
-    @Test
-    public void testCategoryOptionImport()
-        throws IOException
-    {
-        Metadata metadata = csvImportService.fromCsv( inputBasicObjects, DataElementCategoryOption.class );
-        
-        assertEquals( 3, metadata.getCategoryOptions().size() );
-        
-        for ( DataElementCategoryOption categoryOption : metadata.getCategoryOptions() )
-        {
-            assertNotNull( categoryOption.getUid() );
-            assertNotNull( categoryOption.getName() );
-            assertNotNull( categoryOption.getShortName() );
-        }
+        return "(date_part('year',age(cast(" + endDate + " as date), cast(" + startDate + " as date))))";
     }
 }
