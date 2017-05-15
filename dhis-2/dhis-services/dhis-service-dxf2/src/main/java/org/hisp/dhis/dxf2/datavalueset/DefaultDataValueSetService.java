@@ -867,7 +867,7 @@ public class DefaultDataValueSetService
             {
                 summary.getConflicts().add( new ImportConflict( dataValue.getValue(), i18n.getString( valueValid ) + ", must match data element type: " + dataElement.getUid() ) );
                 continue;
-            } else if ( valueValid != null && dataElement.getValueType() == ValueType.BOOLEAN )
+            } else if ( dataElement.getValueType() == ValueType.BOOLEAN )
             {
                 dataValue.setValueForced( ValidationUtils.getConvertedBoolValue( dataValue.getValue() ) );
             }
