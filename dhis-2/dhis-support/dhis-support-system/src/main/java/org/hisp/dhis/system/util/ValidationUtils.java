@@ -563,6 +563,14 @@ public class ValidationUtils
         }
     }
 
+    /**
+     * Returns normalized boolean value. Supports a set of true and false values, indicated in
+     * BOOL_FALSE_VARIANTS and BOOL_TRUE_VARIANTS sets.
+     *
+     * @param bool input value
+     * @param valueType type of value. Return boolean value if type is boolean.
+     * @return normalized boolean value.
+     */
     public static String normalizeBoolean( String bool, ValueType valueType )
     {
         if ( valueType != ValueType.BOOLEAN )
