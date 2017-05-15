@@ -482,11 +482,7 @@ public class MathUtils
 
     /**
      * Indicates if the provided string argument is to be considered as a boolean,
-     * more specifically if it equals:
-     * true / false
-     * t / f
-     * 1 / 0
-     * Not case sensitive
+     * more specifically if it equals "true" or "false".
      *
      * @param value the value.
      * @return if the provided string argument is to be considered as a boolean.

@@ -60,9 +60,9 @@ public class ValidationUtils
     private static final Pattern TIME_OF_DAY_PATTERN = Pattern.compile( "^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$" );
     private static final Pattern BBOX_PATTERN = Pattern.compile( "^" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + "$" );
 
-    private static Set<String> falseStrings = Sets.newHashSet( "false", "False", "f", "F", "0" );
+    private static Set<String> BOOL_FALSE_VARIANTS = Sets.newHashSet( "false", "False", "f", "F", "0" );
 
-    private static Set<String> trueStrings = Sets.newHashSet( "true", "True", "t", "T", "1" );
+    private static Set<String> BOOL_TRUE_VARIANTS = Sets.newHashSet( "true", "True", "t", "T", "1" );
 
     private static final int VALUE_MAX_LENGTH = 50000;
 
@@ -563,22 +563,20 @@ public class ValidationUtils
         }
     }
 
-
-
     public static String normalizeBoolean( String bool, ValueType valueType )
     {
-        if (valueType != ValueType.BOOLEAN)
+        if ( valueType != ValueType.BOOLEAN )
         {
             return bool;
         }
 
-        if ( falseStrings.contains( bool ) )
+        if ( BOOL_FALSE_VARIANTS.contains( bool ) )
         {
-            return "false";
+            return DataValue.FALSE;
         }
-        else if ( trueStrings.contains( bool ) )
+        else if ( BOOL_TRUE_VARIANTS.contains( bool ) )
         {
-            return "true";
+            return DataValue.TRUE;
         }
 
         return bool;
