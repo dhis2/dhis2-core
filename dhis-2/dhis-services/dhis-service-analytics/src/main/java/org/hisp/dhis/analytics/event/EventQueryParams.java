@@ -119,8 +119,6 @@ public class EventQueryParams
     private ProgramIndicator programIndicator;
 
     /**
-     * TOOD use {@link DimensionalItemObject}
-     * 
      * Columns to sort ascending.
      */
     private List<DimensionalItemObject> asc = new ArrayList<>();
