@@ -38,8 +38,6 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.period.PeriodType;
@@ -180,25 +178,5 @@ public class DataElementGroup
     public void setGroupSets( Set<DataElementGroupSet> groupSets )
     {
         this.groupSets = groupSets;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DataElementGroup dataElementGroup = (DataElementGroup) other;
-
-            removeAllDataElements();
-
-            for ( DataElement dataElement : dataElementGroup.getMembers() )
-            {
-                addDataElement( dataElement );
-            }
-            
-            groupSets.clear();
-        }
     }
 }

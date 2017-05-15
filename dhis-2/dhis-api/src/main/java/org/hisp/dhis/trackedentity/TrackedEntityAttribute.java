@@ -9,8 +9,6 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.option.Option;
@@ -403,53 +401,5 @@ public class TrackedEntityAttribute
     public void setSearchScope( TrackedEntityAttributeSearchScope searchScope )
     {
         this.searchScope = searchScope;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            TrackedEntityAttribute trackedEntityAttribute = (TrackedEntityAttribute) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                description = trackedEntityAttribute.getDescription();
-                valueType = trackedEntityAttribute.getValueType();
-                inherit = trackedEntityAttribute.getInherit();
-                expression = trackedEntityAttribute.getExpression();
-                displayOnVisitSchedule = trackedEntityAttribute.getDisplayOnVisitSchedule();
-                sortOrderInVisitSchedule = trackedEntityAttribute.getSortOrderInVisitSchedule();
-                displayInListNoProgram = trackedEntityAttribute.getDisplayInListNoProgram();
-                sortOrderInListNoProgram = trackedEntityAttribute.getSortOrderInListNoProgram();
-                unique = trackedEntityAttribute.isUnique();
-                generated = trackedEntityAttribute.isGenerated();
-                pattern = trackedEntityAttribute.getPattern();
-                orgunitScope = trackedEntityAttribute.getOrgunitScope();
-                programScope = trackedEntityAttribute.getProgramScope();
-                searchScope = trackedEntityAttribute.getSearchScope();
-                optionSet = trackedEntityAttribute.getOptionSet();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                description = trackedEntityAttribute.getDescription() == null ? description : trackedEntityAttribute.getDescription();
-                valueType = trackedEntityAttribute.getValueType() == null ? valueType : trackedEntityAttribute.getValueType();
-                inherit = trackedEntityAttribute.getInherit() == null ? inherit : trackedEntityAttribute.getInherit();
-                expression = trackedEntityAttribute.getExpression() == null ? expression : trackedEntityAttribute.getExpression();
-                displayOnVisitSchedule = trackedEntityAttribute.getDisplayOnVisitSchedule() == null ? displayOnVisitSchedule : trackedEntityAttribute.getDisplayOnVisitSchedule();
-                sortOrderInVisitSchedule = trackedEntityAttribute.getSortOrderInVisitSchedule() == null ? sortOrderInVisitSchedule : trackedEntityAttribute.getSortOrderInVisitSchedule();
-                displayInListNoProgram = trackedEntityAttribute.getDisplayInListNoProgram() == null ? displayInListNoProgram : trackedEntityAttribute.getDisplayInListNoProgram();
-                sortOrderInListNoProgram = trackedEntityAttribute.getSortOrderInListNoProgram() == null ? sortOrderInListNoProgram : trackedEntityAttribute.getSortOrderInListNoProgram();
-                unique = trackedEntityAttribute.isUnique() == null ? unique : trackedEntityAttribute.isUnique();
-                generated = trackedEntityAttribute.isGenerated() == null ? generated : trackedEntityAttribute.isGenerated();
-                pattern = trackedEntityAttribute.getPattern() == null ? pattern : trackedEntityAttribute.getPattern();
-                orgunitScope = trackedEntityAttribute.getOrgunitScope() == null ? orgunitScope : trackedEntityAttribute.getOrgunitScope();
-                programScope = trackedEntityAttribute.getProgramScope() == null ? programScope : trackedEntityAttribute.getProgramScope();
-                searchScope = trackedEntityAttribute.getSearchScope() == null ? searchScope : trackedEntityAttribute.getSearchScope();
-                optionSet = trackedEntityAttribute.getOptionSet() == null ? optionSet : trackedEntityAttribute.getOptionSet();
-            }
-        }
     }
 }

@@ -28,8 +28,6 @@ package org.hisp.dhis.fileresource;
  */
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 
 import java.util.Date;
@@ -83,36 +81,5 @@ public class ExternalFileResource
     public void setFileResource( FileResource fileResource )
     {
         this.fileResource = fileResource;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-
-            ExternalFileResource externalFileResource = (ExternalFileResource) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                fileResource = externalFileResource.getFileResource();
-                accessToken = externalFileResource.getAccessToken();
-                expires = externalFileResource.getExpires();
-            }
-
-            if ( mergeMode.isMerge() )
-            {
-                fileResource = (externalFileResource.getFileResource() != null ?
-                    externalFileResource.getFileResource() :
-                    null);
-                accessToken = (externalFileResource.getAccessToken() != null ?
-                    externalFileResource.getAccessToken() :
-                    null);
-                expires = (externalFileResource.getExpires() != null ? externalFileResource.getExpires() : null);
-            }
-        }
     }
 }

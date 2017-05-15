@@ -41,8 +41,6 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 
 import java.util.ArrayList;
@@ -230,28 +228,5 @@ public class DataElementCategory
     public void setCategoryCombos( List<DataElementCategoryCombo> categoryCombos )
     {
         this.categoryCombos = categoryCombos;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DataElementCategory category = (DataElementCategory) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                dataDimensionType = category.getDataDimensionType();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                dataDimensionType = category.getDataDimensionType() == null ? dataDimensionType : category.getDataDimensionType();
-            }
-
-            removeAllCategoryOptions();
-            category.getCategoryOptions().forEach( this::addCategoryOption );
-        }
     }
 }

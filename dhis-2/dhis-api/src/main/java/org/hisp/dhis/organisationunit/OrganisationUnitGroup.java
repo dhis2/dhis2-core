@@ -37,8 +37,6 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 
 import java.util.HashSet;
@@ -170,34 +168,5 @@ public class OrganisationUnitGroup
     public void setGroupSets( Set<OrganisationUnitGroupSet> groupSets )
     {
         this.groupSets = groupSets;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            OrganisationUnitGroup organisationUnitGroup = (OrganisationUnitGroup) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                symbol = organisationUnitGroup.getSymbol();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                symbol = organisationUnitGroup.getSymbol() == null ? symbol : organisationUnitGroup.getSymbol();
-            }
-
-            removeAllOrganisationUnits();
-
-            for ( OrganisationUnit organisationUnit : organisationUnitGroup.getMembers() )
-            {
-                addOrganisationUnit( organisationUnit );
-            }
-            
-            groupSets.clear();
-        }
     }
 }

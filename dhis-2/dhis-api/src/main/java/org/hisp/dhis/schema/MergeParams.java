@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.schema;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,17 +26,61 @@ package org.hisp.dhis.common;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
+
+import org.hisp.dhis.common.MergeMode;
+
+import java.util.Objects;
 
 /**
- * This interface is for merging one object into another, this is to be used by code supporting
- * hibernate which means that for merging associations, only the owning side will be updated.
- *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface Mergeable<T>
+public final class MergeParams<T>
 {
-    void mergeWith( T other, MergeMode mergeMode );
+    private final T source;
 
-    void mergeSharingWith( T other );
+    private final T target;
+
+    private MergeMode mergeMode = MergeMode.REPLACE;
+
+    private boolean skipSharing;
+
+    public MergeParams( T source, T target )
+    {
+        this.source = Objects.requireNonNull( source );
+        this.target = Objects.requireNonNull( target );
+    }
+
+    public T getSource()
+    {
+        return source;
+    }
+
+    public T getTarget()
+    {
+        return target;
+    }
+
+    public MergeMode getMergeMode()
+    {
+        return mergeMode;
+    }
+
+    public MergeParams<T> setMergeMode( MergeMode mergeMode )
+    {
+        this.mergeMode = mergeMode;
+        return this;
+    }
+
+    public boolean isSkipSharing()
+    {
+        return skipSharing;
+    }
+
+    public MergeParams<T> setSkipSharing( boolean skipSharing )
+    {
+        this.skipSharing = skipSharing;
+        return this;
+    }
 }
