@@ -194,21 +194,6 @@ public class UserAuthorityGroup
         this.dataSets = dataSets;
     }
 
-    public void removeAllDataSets()
-    {
-        dataSets.clear();
-    }
-
-    private void removeAllAuthorities()
-    {
-        authorities.clear();
-    }
-
-    public void removeAllPrograms()
-    {
-        programs.clear();
-    }
-
     @JsonProperty
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "programs", namespace = DxfNamespaces.DXF_2_0 )
