@@ -50,14 +50,13 @@ import static org.junit.Assert.assertNotNull;
 public class ContextUtilsTest
     extends DhisWebSpringTest
 {
+    @Autowired
+    private ContextUtils contextUtils;
 
     @Autowired
-    ContextUtils contextUtils;
+    private SystemSettingManager systemSettingManager;
 
-    @Autowired
-    SystemSettingManager systemSettingManager;
-
-    HttpServletResponse response;
+    private HttpServletResponse response;
 
     @Before
     public void init()
@@ -140,6 +139,5 @@ public class ContextUtilsTest
         response.reset();
         contextUtils.configureAnalyticsResponse( response, null, CacheStrategy.CACHE_1_HOUR, null, false, outsideThreshold.getLatestEndDate() );
         assertEquals( "max-age=3600, public", response.getHeader( "Cache-Control" ) );
-
     }
 }

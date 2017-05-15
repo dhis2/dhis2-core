@@ -90,16 +90,16 @@ public class SetMapTest
         DataElementGroup groupE = new DataElementGroup( "GroupE" );
         DataElementGroup groupF = new DataElementGroup( "GroupF" );
         
-        groupA.setGroupSet( groupSetA );
-        groupB.setGroupSet( groupSetB );
-        groupC.setGroupSet( groupSetC );
-        groupD.setGroupSet( groupSetA );
-        groupE.setGroupSet( groupSetB );
-        groupF.setGroupSet( groupSetA );
+        groupA.getGroupSets().add( groupSetA );
+        groupB.getGroupSets().add( groupSetB );
+        groupC.getGroupSets().add( groupSetC );
+        groupD.getGroupSets().add( groupSetA );
+        groupE.getGroupSets().add( groupSetB );
+        groupF.getGroupSets().add( groupSetA );
         
         Set<DataElementGroup> groups = Sets.newHashSet( groupA, groupB, groupC, groupD, groupE, groupF );
                         
-        SetMap<DataElementGroupSet, DataElementGroup> map = SetMap.getSetMap( groups, group -> group.getGroupSet() );
+        SetMap<DataElementGroupSet, DataElementGroup> map = SetMap.getSetMap( groups, group -> group.getGroupSets().iterator().next() );
         
         assertEquals( Sets.newHashSet( groupA, groupD, groupF ), map.get( groupSetA ) );
         assertEquals( Sets.newHashSet( groupB, groupE ), map.get( groupSetB ) );

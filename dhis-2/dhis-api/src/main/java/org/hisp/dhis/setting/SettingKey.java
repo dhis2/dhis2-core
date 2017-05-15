@@ -80,7 +80,7 @@ public enum SettingKey
     MAX_PASSWORD_LENGTH( "maxPasswordLength", 40, Integer.class ),
     INSTANCE_BASE_URL( "keyInstanceBaseUrl" ),
     SCHEDULED_TASKS( "keySchedTasks", ListMap.class ),
-    SMS_CONFIG( "keySmsConfigurations", SmsConfiguration.class ),
+    SMS_CONFIG( "keySmsSetting", SmsConfiguration.class ),
     CACHE_STRATEGY( "keyCacheStrategy", "CACHE_6AM_TOMORROW", String.class ),
     CACHEABILITY( "keyCacheability", Cacheability.PUBLIC, Cacheability.class ),
     ANALYTICS_FINANCIAL_YEAR_START( "analyticsFinancialYearStart", FinancialOctoberPeriodType.class, FinancialJulyPeriodType.class ),

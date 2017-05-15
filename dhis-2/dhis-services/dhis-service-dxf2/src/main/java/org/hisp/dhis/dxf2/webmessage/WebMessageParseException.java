@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.dxf2.webmessage;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,14 +26,30 @@ package org.hisp.dhis.common;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import org.hisp.dhis.node.Provider;
+import java.io.IOException;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Created by vanyas on 5/5/17.
  */
-public interface NamedProvider<T> extends Provider<T>
+public class WebMessageParseException
+    extends IOException
 {
-    String name();
+    public WebMessageParseException( String message )
+    {
+        super( message );
+    }
+
+    public WebMessageParseException( Throwable cause )
+    {
+        super( cause );
+    }
+
+    public WebMessageParseException( String message, Throwable cause )
+    {
+        super( message, cause );
+    }
+
 }

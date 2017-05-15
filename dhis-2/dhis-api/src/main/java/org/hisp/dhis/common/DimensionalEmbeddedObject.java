@@ -1,4 +1,4 @@
-package org.hisp.dhis.common.adapter;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,36 +28,16 @@ package org.hisp.dhis.common.adapter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
-
-import javax.xml.bind.annotation.adapters.XmlAdapter;
+import java.util.List;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class BaseIdentifiableObjectXmlAdapter extends XmlAdapter<BaseIdentifiableObject, BaseIdentifiableObject>
+* @author Lars Helge Overland
+*/
+public interface DimensionalEmbeddedObject
 {
-    @Override
-    public BaseIdentifiableObject unmarshal( BaseIdentifiableObject baseIdentifiableObject )
-    {
-        return baseIdentifiableObject;
-    }
-
-    @Override
-    public BaseIdentifiableObject marshal( BaseIdentifiableObject baseIdentifiableObject )
-    {
-        if ( baseIdentifiableObject != null )
-        {
-            BaseIdentifiableObject bio = new BaseIdentifiableObject();
-
-            bio.setUid( baseIdentifiableObject.getUid() );
-            bio.setName( baseIdentifiableObject.getName() );
-            bio.setLastUpdated( baseIdentifiableObject.getLastUpdated() );
-            bio.setHref( baseIdentifiableObject.getHref() );
-
-            return bio;
-        }
-
-        return null;
-    }
+    int getId();
+    
+    DimensionalObject getDimension();
+    
+    List<? extends DimensionalItemObject> getItems();
 }

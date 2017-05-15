@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.metadata.sync;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncImportException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
@@ -99,7 +100,8 @@ public class MetadataSyncImportHandler
         catch ( Exception e )
         {
             String message = "Exception occurred while trying to import the metadata. " + e.getMessage();
-            log.error( message, e );
+            log.error( message,e );
+            throw new MetadataSyncImportException( message,e );
         }
         
         boolean addNewVersion = handleImportReport( importReport, version );

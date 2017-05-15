@@ -1,4 +1,4 @@
-package org.hisp.dhis.common.adapter;
+package org.hisp.dhis.webapi.controller.exception;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,45 +28,26 @@ package org.hisp.dhis.common.adapter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlType;
-
-@XmlType(propOrder={"value", "key"})
-public class Parameter
+/**
+ * Created by sultanm.
+ * This exception could be used in all operation forbidden cases
+ */
+public class OperationNotAllowedException
+    extends Exception
 {
-    private String key;
 
-    private String value;
-
-    public Parameter()
+    public OperationNotAllowedException( String message )
     {
+        super( message );
     }
 
-    public Parameter( String key, String value )
+    public OperationNotAllowedException( Throwable cause )
     {
-        this.key = key;
-        this.value = value;
+        super( cause );
     }
 
-    @XmlAttribute
-    public String getKey()
+    public OperationNotAllowedException( String message, Throwable cause )
     {
-        return key;
-    }
-
-    @XmlAttribute
-    public String getValue()
-    {
-        return value;
-    }
-
-    public void setKey( String key )
-    {
-        this.key = key;
-    }
-
-    public void setValue( String value )
-    {
-        this.value = value;
+        super( message, cause );
     }
 }

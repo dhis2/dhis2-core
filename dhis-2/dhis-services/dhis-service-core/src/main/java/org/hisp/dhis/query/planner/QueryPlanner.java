@@ -29,6 +29,7 @@ package org.hisp.dhis.query.planner;
  */
 
 import org.hisp.dhis.query.Query;
+import org.hisp.dhis.schema.Schema;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -38,4 +39,6 @@ public interface QueryPlanner
     QueryPlan planQuery( Query query );
 
     QueryPlan planQuery( Query query, boolean persistedOnly );
+
+    QueryPath getQueryPath( Schema schema, String path );
 }
