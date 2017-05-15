@@ -87,6 +87,8 @@ public class SystemInfo
     private String cacheProvider;
 
     private String readOnlyMode;
+    
+    private String nodeId;
 
     private String javaVersion;
 
@@ -140,6 +142,7 @@ public class SystemInfo
         this.fileStoreProvider = null;
         this.cacheProvider = null;
         this.readOnlyMode = null;
+        this.nodeId = null;
         this.javaVersion = null;
         this.javaVendor = null;
         this.javaOpts = null;
@@ -352,6 +355,18 @@ public class SystemInfo
     public void setReadOnlyMode( String readOnlyMode )
     {
         this.readOnlyMode = readOnlyMode;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getNodeId()
+    {
+        return nodeId;
+    }
+
+    public void setNodeId( String nodeId )
+    {
+        this.nodeId = nodeId;
     }
 
     @JsonProperty

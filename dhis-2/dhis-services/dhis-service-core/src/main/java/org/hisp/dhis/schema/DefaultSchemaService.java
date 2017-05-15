@@ -149,6 +149,7 @@ public class DefaultSchemaService
         add( new ReportingRateSchemaDescriptor() ).
         add( new UserAccessSchemaDescriptor() ).
         add( new UserGroupAccessSchemaDescriptor() ).
+        add( new ValidationResultSchemaDescriptor() ).
         build();
 
     private Map<Class<?>, Schema> classSchemaMap = new HashMap<>();

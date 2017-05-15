@@ -35,7 +35,8 @@ public enum ConfigurationKey
 {
     SYSTEM_READ_ONLY_MODE( "system.read_only_mode", "off" ),
     SYSTEM_SESSION_TIMEOUT( "system.session.timeout", "3600" ),
-    INTERNAL_SERVICE_API( "system.internal_service_api", "off" ),
+    SYSTEM_INTERNAL_SERVICE_API( "system.internal_service_api", "off" ),
+    NODE_ID( "node.id" ),
     ENCRYPTION_PASSWORD( "encryption.password", "" ),
     CONNECTION_DIALECT( "connection.dialect" ),
     CONNECTION_DRIVER_CLASS( "connection.driver_class" ),
