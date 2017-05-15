@@ -58,6 +58,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -93,6 +94,7 @@ public class DefaultProgramIndicatorService
         put( ProgramIndicator.VAR_EVENT_DATE, "'2017-07-08'" ).
         put( ProgramIndicator.VAR_EXECUTION_DATE, "'2017-07-08'" ).
         put( ProgramIndicator.VAR_INCIDENT_DATE, "'2017-07-08'" ).
+        put( ProgramIndicator.VAR_ANALYTICS_PERIOD_START, "'2017-07-08'" ).
         put( ProgramIndicator.VAR_PROGRAM_STAGE_ID, "'WZbXY0S00lP'" ).
         put( ProgramIndicator.VAR_PROGRAM_STAGE_NAME, "'First antenatal care visit'" ).
         put( ProgramIndicator.VAR_TEI_COUNT, "1" ).
@@ -286,13 +288,13 @@ public class DefaultProgramIndicatorService
     }
 
     @Override
-    public String getAnalyticsSQl( String expression, AnalyticsType analyticsType )
+    public String getAnalyticsSQl( String expression, AnalyticsType analyticsType, Date startDate, Date endDate )
     {
-        return getAnalyticsSQl( expression, analyticsType, true );
+        return getAnalyticsSQl( expression, analyticsType, true, startDate, endDate );
     }
 
     @Override
-    public String getAnalyticsSQl( String expression, AnalyticsType analyticsType, boolean ignoreMissingValues )
+    public String getAnalyticsSQl( String expression, AnalyticsType analyticsType, boolean ignoreMissingValues, Date startDate, Date endDate )
     {
         if ( expression == null )
         {
@@ -301,7 +303,7 @@ public class DefaultProgramIndicatorService
 
         expression = TextUtils.removeNewlines( expression );
         
-        expression = getSubstitutedVariablesForAnalyticsSql( expression, analyticsType );
+        expression = getSubstitutedVariablesForAnalyticsSql( expression, analyticsType, startDate, endDate );
 
         expression = getSubstitutedFunctionsAnalyticsSql( expression, false, analyticsType );
         
@@ -353,7 +355,7 @@ public class DefaultProgramIndicatorService
         return TextUtils.appendTail( matcher, buffer );
     }
 
-    private String getSubstitutedVariablesForAnalyticsSql( String expression, AnalyticsType analyticsType )
+    private String getSubstitutedVariablesForAnalyticsSql( String expression, AnalyticsType analyticsType, Date startDate, Date endDate )
     {
         if ( expression == null )
         {
@@ -368,7 +370,7 @@ public class DefaultProgramIndicatorService
         {
             String var = matcher.group( 1 );
 
-            String sql = getVariableAsSql( var, expression, analyticsType );
+            String sql = getVariableAsSql( var, expression, analyticsType, startDate, endDate );
 
             if ( sql != null )
             {
@@ -598,7 +600,7 @@ public class DefaultProgramIndicatorService
      * @param expression the program indicator expression.
      * @return a SQL select clause.
      */
-    private String getVariableAsSql( String var, String expression, AnalyticsType analyticsType )
+    private String getVariableAsSql( String var, String expression, AnalyticsType analyticsType, Date startDate, Date endDate )
     {
         final String dbl = statementBuilder.getDoubleColumnType();
 
@@ -689,6 +691,14 @@ public class DefaultProgramIndicatorService
             {
                 return "''";
             }
+        }
+        else if ( ProgramIndicator.VAR_ANALYTICS_PERIOD_START.equals( var ) )
+        {
+            return "'" + DateUtils.getSqlDateString( startDate ) + "'";
+        }
+        else if ( ProgramIndicator.VAR_ANALYTICS_PERIOD_END.equals( var ) )
+        {
+            return "'" + DateUtils.getSqlDateString( endDate ) + "'";
         }
 
         return null;
