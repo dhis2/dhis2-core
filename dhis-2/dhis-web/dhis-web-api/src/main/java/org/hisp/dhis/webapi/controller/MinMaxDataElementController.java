@@ -97,7 +97,6 @@ public class MinMaxDataElementController
         this.renderService = renderService;
         this.webMessageService = webMessageService;
         this.manager = manager;
-
     }
 
     //--------------------------------------------------------------------------
@@ -123,7 +122,7 @@ public class MinMaxDataElementController
 
         if ( !query.isSkipPaging() )
         {
-            query.setTotal( minMaxService.count( query ) );
+            query.setTotal( minMaxService.countMinMaxDataElement( query ) );
             rootNode.addChild( NodeUtils.createPager( query.getPager() ) );
         }
 
@@ -174,7 +173,6 @@ public class MinMaxDataElementController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_DELETE')" )
     public void deleteObject( HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
-
         MinMaxDataElement minMax = renderService.fromJson( request.getInputStream(), MinMaxDataElement.class );
 
         validate( minMax );
@@ -214,6 +212,5 @@ public class MinMaxDataElementController
         {
             throw new WebMessageException( WebMessageUtils.notFound( "Invalid required parameters: source, dataElement, optionCombo" ) );
         }
-
     }
 }
