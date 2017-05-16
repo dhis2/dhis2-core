@@ -32,7 +32,6 @@ import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.i18n.I18nLocaleService;
-import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.TranslationUtils;
@@ -76,13 +75,6 @@ public class I18nAction
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-
-    private LocaleManager localeManager;
-
-    public void setLocaleManager( LocaleManager localeManager )
-    {
-        this.localeManager = localeManager;
-    }
 
     private UserSettingService userSettingService;
 

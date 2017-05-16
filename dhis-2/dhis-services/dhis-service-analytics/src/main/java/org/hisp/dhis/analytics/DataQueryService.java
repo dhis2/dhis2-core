@@ -74,14 +74,15 @@ public interface DataQueryService
      * @param approvalLevel the approval level identifier.
      * @param relativePeriodDate the date to use as basis for relative periods.
      * @param userOrgUnit the user organisation unit to use, overrides current user.
+     * @param allowAllPeriods whether to allow all period items, meaning specifying the
+     *        period dimension with no period items.
      * @param apiVersion the API version used for the request.
-     * @param format the i18n format.
      * @return a data query parameter object created based on the given URL info.
      */
     DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType, String measureCriteria,
         String preAggregationMeasureCriteria, boolean skipMeta, boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta,
         boolean ignoreLimit, boolean hideEmptyRows, boolean showHierarchy, boolean includeNumDen, DisplayProperty displayProperty,
-        IdScheme outputIdScheme, IdScheme inputIdScheme, boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit, DhisApiVersion apiVersion );
+        IdScheme outputIdScheme, IdScheme inputIdScheme, boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit, boolean allowAllPeriods, DhisApiVersion apiVersion );
 
     /**
      * Creates a data query parameter object from the given BaseAnalyticalObject.
@@ -94,15 +95,18 @@ public interface DataQueryService
     /**
      * Creates a list of DimensionalObject from the given set of dimension params.
      *
-     * @param dimensionParams the dimension URL params.
+     * @param dimensionParams the dimension URL parameter.
      * @param relativePeriodDate the date to use as basis for relative periods.
-     * @param userOrgUnit the user organisation unit param, overrides current
+     * @param userOrgUnit the user organisation unit parameter, overrides current
      *        user, can be null.
      * @param format the i18n format.
+     * @param allowAllPeriods whether to allow all period items, meaning specifying the
+     *        period dimension with no period items.
      * @param inputIdScheme the identifier scheme to interpret dimension and filters.
      * @return a list of DimensionalObject.
      */
-    List<DimensionalObject> getDimensionalObjects( Set<String> dimensionParams, Date relativePeriodDate, String userOrgUnit, I18nFormat format, IdScheme inputIdScheme );
+    List<DimensionalObject> getDimensionalObjects( Set<String> dimensionParams, Date relativePeriodDate, 
+        String userOrgUnit, I18nFormat format, boolean allowAllPeriods, IdScheme inputIdScheme );
 
     /**
      * Returns a persisted DimensionalObject generated from the given  dimension
@@ -121,12 +125,14 @@ public interface DataQueryService
      *        user, can be null.
      * @param format the I18nFormat, can be null.
      * @param allowNull return null if no dimension was found.
+     * @param allowAllPeriods whether to allow all period items, meaning specifying the
+     *        period dimension with no period items.
      * @param inputIdScheme the identifier scheme to interpret dimension and filters.
      * @throws IllegalQueryException if no dimensions was found.
      * @return list of DimensionalObjects.
      */
     DimensionalObject getDimension( String dimension, List<String> items, Date relativePeriodDate,
-        List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull, IdScheme inputIdScheme );
+        List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull, boolean allowAllPeriods, IdScheme inputIdScheme );
 
     /**
      * Returns a list of user organisation units, looking first at the given user

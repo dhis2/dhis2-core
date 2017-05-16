@@ -30,7 +30,6 @@ package org.hisp.dhis.mobile.outgoing;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.stream.Collectors;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -43,8 +42,6 @@ import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
 import org.hisp.dhis.sms.task.SendSmsTask;
-import org.hisp.dhis.sms.outbound.OutboundSms;
-import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
@@ -81,9 +78,6 @@ public class ProcessingSendSMSAction
     @Autowired
     private GatewayAdministrationService gatewayAdminService;
 
-    @Autowired
-    private OutboundSmsService outboundSmsService;
-    
     @Autowired
     private Scheduler scheduler;
 
