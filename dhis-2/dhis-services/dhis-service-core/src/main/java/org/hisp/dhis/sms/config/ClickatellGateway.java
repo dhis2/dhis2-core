@@ -1,19 +1,5 @@
 package org.hisp.dhis.sms.config;
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.sms.outbound.ClickatellRequestEntity;
-import org.hisp.dhis.sms.outbound.ClickatellResponseEntity;
-import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -41,6 +27,19 @@ import java.util.Set;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.sms.outbound.ClickatellRequestEntity;
+import org.hisp.dhis.sms.outbound.ClickatellResponseEntity;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>

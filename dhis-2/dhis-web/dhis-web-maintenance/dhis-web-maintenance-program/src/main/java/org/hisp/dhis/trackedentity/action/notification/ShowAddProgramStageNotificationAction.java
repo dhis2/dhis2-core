@@ -30,7 +30,6 @@ package org.hisp.dhis.trackedentity.action.notification;
 
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -126,10 +125,5 @@ public class ShowAddProgramStageNotificationAction
     private List<TrackedEntityAttribute> getAttributeBasedOnValueType( List<TrackedEntityAttribute> attributes, ValueType valueType )
     {
         return attributes.stream().filter( attr -> attr.getValueType().equals( valueType ) ).collect( Collectors.toList() );
-    }
-
-    private List<DataElement> getDataElementBasedOnValueType( List<DataElement> dataElements, ValueType valueType )
-    {
-        return dataElements.stream().filter( element -> element.getValueType().equals( valueType ) ).collect( Collectors.toList() );
     }
 }

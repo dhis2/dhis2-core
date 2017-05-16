@@ -106,6 +106,8 @@ public class HibernateMinMaxDataElementStore
             Restrictions.in( "dataElement", dataElements ) ).list();
     }
 
+    @Override
+    @SuppressWarnings( "unchecked" )
     public List<MinMaxDataElement> query(  MinMaxDataElementQueryParams query )
     {
         Criteria criteria = getSession().createCriteria( MinMaxDataElement.class );

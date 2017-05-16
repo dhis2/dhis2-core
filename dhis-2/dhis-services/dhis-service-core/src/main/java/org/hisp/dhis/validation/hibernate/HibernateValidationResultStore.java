@@ -27,7 +27,7 @@ package org.hisp.dhis.validation.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultStore;
 
@@ -37,7 +37,7 @@ import java.util.List;
  * @author Stian Sandvold
  */
 public class HibernateValidationResultStore
-    extends HibernateIdentifiableObjectStore<ValidationResult>
+    extends HibernateGenericStore<ValidationResult>
     implements ValidationResultStore
 {
     @Override

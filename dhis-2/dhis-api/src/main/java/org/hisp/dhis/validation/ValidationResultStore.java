@@ -1,4 +1,5 @@
 package org.hisp.dhis.validation;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -27,7 +28,7 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.GenericStore;
 
 import java.util.List;
 
@@ -35,7 +36,7 @@ import java.util.List;
  * @author Stian Sandvold
  */
 public interface ValidationResultStore
-    extends GenericIdentifiableObjectStore<ValidationResult>
+    extends GenericStore<ValidationResult>
 {
     List<ValidationResult> getAllUnreportedValidationResults();
 

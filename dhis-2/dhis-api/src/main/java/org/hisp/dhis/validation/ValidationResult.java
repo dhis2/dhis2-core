@@ -50,12 +50,6 @@ import org.hisp.dhis.period.Period;
 public class ValidationResult
     extends BaseIdentifiableObject
 {
-
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = -4118317796752962296L;
-
     private ValidationRule validationRule;
 
     private Period period;
@@ -231,11 +225,6 @@ public class ValidationResult
         }
 
         return true;
-    }
-
-    private int validationImportanceOrder( Importance importance )
-    {
-        return importance == Importance.HIGH ? 0 : importance == Importance.MEDIUM ? 1 : 2;
     }
 
     @Override

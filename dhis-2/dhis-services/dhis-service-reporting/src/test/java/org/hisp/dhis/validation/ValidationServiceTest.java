@@ -84,9 +84,6 @@ public class ValidationServiceTest
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private ValidationResultStore validationResultStore;
-
-    @Autowired
     private PeriodService periodService;
 
     private DataElement dataElementA;
