@@ -1,4 +1,5 @@
-package org.hisp.dhis.validation;
+package org.hisp.dhis.commons.sqlfunc;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -27,16 +28,18 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-
-import java.util.List;
-
 /**
- * @author Stian Sandvold
+ * Function which evaluates to the number of months between two given dates.
+ * 
+ * @author Markus Bekken
  */
-public interface ValidationResultStore
-    extends GenericIdentifiableObjectStore<ValidationResult>
+public class MonthsBetweenSqlFunction
+    extends BaseDateComparatorSqlFunction
 {
-    List<ValidationResult> getAllUnreportedValidationResults();
-
+    public static final String KEY = "monthsBetween";
+    
+    protected String compare( String startDate, String endDate )
+    {
+        return "(date_part('month',age(cast(" + endDate + " as date), cast(" + startDate + " as date))))";
+    }
 }

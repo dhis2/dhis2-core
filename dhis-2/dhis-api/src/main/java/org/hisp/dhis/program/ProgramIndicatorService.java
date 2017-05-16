@@ -28,6 +28,7 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -113,7 +114,7 @@ public interface ProgramIndicatorService
      * @param expression the expression.
      * @return the SQL string.
      */
-    String getAnalyticsSQl( String expression, AnalyticsType aalyticsType );
+    String getAnalyticsSQl( String expression, AnalyticsType aalyticsType, Date startDate, Date endDate );
     
     /**
      * Get the expression as an analytics SQL clause.
@@ -122,7 +123,7 @@ public interface ProgramIndicatorService
      * @param whether to ignore missing values for data elements and attributes.
      * @return the SQL string.
      */
-    String getAnalyticsSQl( String expression, AnalyticsType analyticsType, boolean ignoreMissingValues );
+    String getAnalyticsSQl( String expression, AnalyticsType analyticsType, boolean ignoreMissingValues, Date startDate, Date endDate );
     
     /**
      * Returns a SQL clause which matches any value for the data elements and

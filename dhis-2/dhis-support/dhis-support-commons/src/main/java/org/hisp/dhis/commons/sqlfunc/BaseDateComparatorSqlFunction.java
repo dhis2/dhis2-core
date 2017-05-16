@@ -1,4 +1,5 @@
-package org.hisp.dhis.validation;
+package org.hisp.dhis.commons.sqlfunc;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -27,16 +28,27 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-
-import java.util.List;
-
 /**
- * @author Stian Sandvold
+ * Function which evaluates a relation between two given dates.
+ * 
+ * @author Markus Bekken
  */
-public interface ValidationResultStore
-    extends GenericIdentifiableObjectStore<ValidationResult>
+public abstract class BaseDateComparatorSqlFunction
+    implements SqlFunction
 {
-    List<ValidationResult> getAllUnreportedValidationResults();
-
+    protected abstract String compare( String startDate, String endDate );
+    
+    @Override
+    public String evaluate( String... args )
+    {
+        if ( args == null || args.length != 2 )
+        {
+            throw new IllegalArgumentException( "Illegal arguments, expected 2 arguments: start-date, end-date" );
+        }
+        
+        String startDate = args[0];
+        String endDate = args[1];
+        
+        return compare( startDate, endDate );
+    }
 }

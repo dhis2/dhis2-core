@@ -1,4 +1,5 @@
-package org.hisp.dhis.validation;
+package org.hisp.dhis.security.oauth2;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -25,18 +26,35 @@ package org.hisp.dhis.validation;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-
-import java.util.List;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.oauth2.provider.ClientDetailsService;
+import org.springframework.security.oauth2.provider.ClientRegistrationException;
+import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
 
 /**
- * @author Stian Sandvold
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface ValidationResultStore
-    extends GenericIdentifiableObjectStore<ValidationResult>
+public class DefaultClientDetailsUserDetailsService extends ClientDetailsUserDetailsService
 {
-    List<ValidationResult> getAllUnreportedValidationResults();
+    public DefaultClientDetailsUserDetailsService( ClientDetailsService clientDetailsService )
+    {
+        super( clientDetailsService );
+    }
 
+    @Override
+    public UserDetails loadUserByUsername( String username ) throws UsernameNotFoundException
+    {
+        try
+        {
+            return super.loadUserByUsername( username );
+        }
+        catch ( ClientRegistrationException ex )
+        {
+            throw new UsernameNotFoundException( ex.getMessage(), ex );
+        }
+    }
 }
