@@ -49,7 +49,7 @@ public class DefaultMinMaxDataElementService
     // -------------------------------------------------------------------------
 
     private MinMaxDataElementStore minMaxDataElementStore;
-    
+
     public void setMinMaxDataElementStore( MinMaxDataElementStore minMaxDataElementStore )
     {
         this.minMaxDataElementStore = minMaxDataElementStore;
@@ -90,19 +90,19 @@ public class DefaultMinMaxDataElementService
     {
         return minMaxDataElementStore.get( source, dataElement, optionCombo );
     }
-    
+
     @Override
     public List<MinMaxDataElement> getMinMaxDataElements( OrganisationUnit source, DataElement dataElement )
     {
         return minMaxDataElementStore.get( source, dataElement );
-    }   
+    }
 
     @Override
     public List<MinMaxDataElement> getMinMaxDataElements( OrganisationUnit source, Collection<DataElement> dataElements )
     {
         return minMaxDataElementStore.get( source, dataElements );
     }
-    
+
     @Override
     public List<MinMaxDataElement> getAllMinMaxDataElements()
     {
@@ -110,26 +110,40 @@ public class DefaultMinMaxDataElementService
     }
 
     @Override
+    public List<MinMaxDataElement> getMinMaxDataElements( MinMaxDataElementQueryParams query )
+    {
+        return minMaxDataElementStore.query( query );
+    }
+
+    @Override
+    public int countMinMaxDataElements( MinMaxDataElementQueryParams query )
+    {
+        return minMaxDataElementStore.countMinMaxDataElements( query );
+    }
+
+    @Override
     public void removeMinMaxDataElements( OrganisationUnit organisationUnit )
     {
         minMaxDataElementStore.delete( organisationUnit );
     }
-    
+
     @Override
     public void removeMinMaxDataElements( DataElement dataElement )
     {
         minMaxDataElementStore.delete( dataElement );
     }
-    
+
     @Override
     public void removeMinMaxDataElements( DataElementCategoryOptionCombo optionCombo )
     {
         minMaxDataElementStore.delete( optionCombo );
     }
-    
+
     @Override
     public void removeMinMaxDataElements( Collection<DataElement> dataElements, Collection<OrganisationUnit> organisationUnits )
     {
         minMaxDataElementStore.delete( dataElements, organisationUnits );
     }
 }
+
+
