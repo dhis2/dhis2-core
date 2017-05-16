@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.metadata;
+package org.hisp.dhis.schema;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,20 +26,61 @@ package org.hisp.dhis.dxf2.metadata;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
+
+import org.hisp.dhis.common.MergeMode;
+
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface MergeService
+public final class MergeParams<T>
 {
-    /**
-     * Merges source object into target object, requires a "schema friendly" class.
-     */
-    <T> T merge( MergeParams<T> mergeParams );
+    private final T source;
 
-    /**
-     * Clones source into target, using REPLACE mode.
-     */
-    <T> T clone( T source );
+    private final T target;
+
+    private MergeMode mergeMode = MergeMode.REPLACE;
+
+    private boolean skipSharing;
+
+    public MergeParams( T source, T target )
+    {
+        this.source = Objects.requireNonNull( source );
+        this.target = Objects.requireNonNull( target );
+    }
+
+    public T getSource()
+    {
+        return source;
+    }
+
+    public T getTarget()
+    {
+        return target;
+    }
+
+    public MergeMode getMergeMode()
+    {
+        return mergeMode;
+    }
+
+    public MergeParams<T> setMergeMode( MergeMode mergeMode )
+    {
+        this.mergeMode = mergeMode;
+        return this;
+    }
+
+    public boolean isSkipSharing()
+    {
+        return skipSharing;
+    }
+
+    public MergeParams<T> setSkipSharing( boolean skipSharing )
+    {
+        this.skipSharing = skipSharing;
+        return this;
+    }
 }

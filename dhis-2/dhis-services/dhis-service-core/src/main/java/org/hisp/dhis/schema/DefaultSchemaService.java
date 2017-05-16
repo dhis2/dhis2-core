@@ -150,6 +150,7 @@ public class DefaultSchemaService
         add( new UserAccessSchemaDescriptor() ).
         add( new UserGroupAccessSchemaDescriptor() ).
         add( new MinMaxDataElementSchemaDescriptor() ).
+        add( new ValidationResultSchemaDescriptor() ).
         build();
 
     private Map<Class<?>, Schema> classSchemaMap = new HashMap<>();

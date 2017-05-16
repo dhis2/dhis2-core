@@ -35,8 +35,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.VersionedObject;
@@ -165,34 +163,5 @@ public class OptionSet
     public void setVersion( int version )
     {
         this.version = version;
-    }
-
-    // -------------------------------------------------------------------------
-    // Merge with
-    // -------------------------------------------------------------------------
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            OptionSet optionSet = (OptionSet) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                valueType = optionSet.getValueType();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                valueType = optionSet.getValueType() == null ? valueType : optionSet.getValueType();
-            }
-
-            version = optionSet.getVersion();
-
-            removeAllOptions();
-            options.addAll( optionSet.getOptions() );
-        }
     }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.common.adapter;
+package org.hisp.dhis.commons.sqlfunc;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,36 +28,18 @@ package org.hisp.dhis.common.adapter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
-
-import javax.xml.bind.annotation.adapters.XmlAdapter;
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Function which evaluates to the number of months between two given dates.
+ * 
+ * @author Markus Bekken
  */
-public class BaseIdentifiableObjectXmlAdapter extends XmlAdapter<BaseIdentifiableObject, BaseIdentifiableObject>
+public class MonthsBetweenSqlFunction
+    extends BaseDateComparatorSqlFunction
 {
-    @Override
-    public BaseIdentifiableObject unmarshal( BaseIdentifiableObject baseIdentifiableObject )
+    public static final String KEY = "monthsBetween";
+    
+    protected String compare( String startDate, String endDate )
     {
-        return baseIdentifiableObject;
-    }
-
-    @Override
-    public BaseIdentifiableObject marshal( BaseIdentifiableObject baseIdentifiableObject )
-    {
-        if ( baseIdentifiableObject != null )
-        {
-            BaseIdentifiableObject bio = new BaseIdentifiableObject();
-
-            bio.setUid( baseIdentifiableObject.getUid() );
-            bio.setName( baseIdentifiableObject.getName() );
-            bio.setLastUpdated( baseIdentifiableObject.getLastUpdated() );
-            bio.setHref( baseIdentifiableObject.getHref() );
-
-            return bio;
-        }
-
-        return null;
+        return "(date_part('month',age(cast(" + endDate + " as date), cast(" + startDate + " as date))))";
     }
 }

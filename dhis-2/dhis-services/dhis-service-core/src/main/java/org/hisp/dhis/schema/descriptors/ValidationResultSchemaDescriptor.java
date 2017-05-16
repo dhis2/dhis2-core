@@ -1,7 +1,6 @@
-package org.hisp.dhis.dataprune;
-
+package org.hisp.dhis.schema.descriptors;
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +27,28 @@ package org.hisp.dhis.dataprune;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.validation.ValidationResult;
 
 /**
- * @author Quang Nguyen
- * @version Apr 6, 2010 5:44:47 PM
+ * @author Stian Sandvold
  */
-
-public interface DataPruneService
+public class ValidationResultSchemaDescriptor implements SchemaDescriptor
 {
-    int pruneOrganisationUnit( OrganisationUnit organisationUnit );
+    public static final String SINGULAR = "validationresult";
+
+    public static final String PLURAL = "validationresults";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
+    {
+        Schema schema = new Schema( ValidationResult.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 2000 );
+
+        return schema;
+    }
 }

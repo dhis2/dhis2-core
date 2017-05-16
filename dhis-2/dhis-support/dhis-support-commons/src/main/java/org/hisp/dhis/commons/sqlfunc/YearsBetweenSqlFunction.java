@@ -1,4 +1,4 @@
-package org.hisp.dhis.common.adapter;
+package org.hisp.dhis.commons.sqlfunc;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,31 +28,18 @@ package org.hisp.dhis.common.adapter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
-import javax.xml.bind.annotation.XmlElement;
-
-public class Parameters
+/**
+ * Function which evaluates to the number of years between two given dates.
+ * 
+ * @author Markus Bekken
+ */
+public class YearsBetweenSqlFunction
+    extends BaseDateComparatorSqlFunction
 {
-    List<Parameter> parameters;
-
-    public Parameters()
+    public static final String KEY = "yearsBetween";
+    
+    protected String compare( String startDate, String endDate )
     {
+        return "(date_part('year',age(cast(" + endDate + " as date), cast(" + startDate + " as date))))";
     }
-
-    public Parameters( List<Parameter> parameters )
-    {
-        this.parameters = parameters;
-    }
-
-    @XmlElement( name = "parameter" )
-    public List<Parameter> getParameters()
-    {
-        return parameters;
-    }
-
-    public void setParameters( List<Parameter> parameters )
-    {
-        this.parameters = parameters;
-    }    
 }

@@ -56,7 +56,7 @@ import java.util.Set;
  */
 
 public class BulkSmsGateway
-    implements SmsGateway
+    extends SmsGateway
 {
     private static final Log log = LogFactory.getLog( BulkSmsGateway.class );
 

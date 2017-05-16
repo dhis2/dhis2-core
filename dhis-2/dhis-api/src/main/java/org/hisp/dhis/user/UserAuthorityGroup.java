@@ -37,8 +37,6 @@ import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.Program;
@@ -196,21 +194,6 @@ public class UserAuthorityGroup
         this.dataSets = dataSets;
     }
 
-    public void removeAllDataSets()
-    {
-        dataSets.clear();
-    }
-
-    private void removeAllAuthorities()
-    {
-        authorities.clear();
-    }
-
-    public void removeAllPrograms()
-    {
-        programs.clear();
-    }
-
     @JsonProperty
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "programs", namespace = DxfNamespaces.DXF_2_0 )
@@ -223,34 +206,5 @@ public class UserAuthorityGroup
     public void setPrograms( Set<Program> programs )
     {
         this.programs = programs;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            UserAuthorityGroup userAuthorityGroup = (UserAuthorityGroup) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                description = userAuthorityGroup.getDescription();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                description = userAuthorityGroup.getDescription() == null ? description : userAuthorityGroup.getDescription();
-            }
-
-            removeAllAuthorities();
-            authorities.addAll( ((UserAuthorityGroup) other).getAuthorities() );
-
-            removeAllDataSets();
-            dataSets.addAll( userAuthorityGroup.getDataSets() );
-
-            removeAllPrograms();
-            programs.addAll( userAuthorityGroup.getPrograms() );
-        }
     }
 }

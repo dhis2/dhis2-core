@@ -42,8 +42,6 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 
 import java.util.ArrayList;
@@ -173,32 +171,5 @@ public class CategoryOptionGroupSet
     {
         members.remove( categoryOptionGroup );
         categoryOptionGroup.getGroupSets().remove( this );
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            CategoryOptionGroupSet categoryOptionGroupSet = (CategoryOptionGroupSet) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                dataDimensionType = categoryOptionGroupSet.getDataDimensionType();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                dataDimensionType = categoryOptionGroupSet.getDataDimensionType() == null ? dataDimensionType : categoryOptionGroupSet.getDataDimensionType();
-            }
-
-            members.clear();
-
-            for ( CategoryOptionGroup categoryOptionGroup : categoryOptionGroupSet.getMembers() )
-            {
-                addCategoryOptionGroup( categoryOptionGroup );
-            }
-        }
     }
 }

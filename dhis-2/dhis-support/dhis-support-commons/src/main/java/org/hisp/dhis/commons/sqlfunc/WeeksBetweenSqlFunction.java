@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.commons.sqlfunc;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -29,14 +29,17 @@ package org.hisp.dhis.common;
  */
 
 /**
- * This interface is for merging one object into another, this is to be used by code supporting
- * hibernate which means that for merging associations, only the owning side will be updated.
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Function which evaluates to the number of weeks between two given dates.
+ * 
+ * @author Markus Bekken
  */
-public interface Mergeable<T>
+public class WeeksBetweenSqlFunction
+    extends BaseDateComparatorSqlFunction
 {
-    void mergeWith( T other, MergeMode mergeMode );
-
-    void mergeSharingWith( T other );
+    public static final String KEY = "weeksBetween";
+    
+    protected String compare( String startDate, String endDate )
+    {
+        return "((cast(" + endDate + " as date) - cast(" + startDate + " as date))/7)";
+    }
 }

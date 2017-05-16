@@ -36,8 +36,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
 
@@ -490,38 +488,6 @@ public class MessageConversation
     public void setMessageCount( int messageCount )
     {
         this.messageCount = messageCount;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            MessageConversation messageConversation = (MessageConversation) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                subject = messageConversation.getSubject();
-                lastSender = messageConversation.getLastSender();
-                lastMessage = messageConversation.getLastMessage();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                subject = messageConversation.getSubject() == null ? subject : messageConversation.getSubject();
-                lastSender =
-                    messageConversation.getLastSender() == null ? lastSender : messageConversation.getLastSender();
-                lastMessage =
-                    messageConversation.getLastMessage() == null ? lastMessage : messageConversation.getLastMessage();
-            }
-
-            removeAllUserMessages();
-            userMessages.addAll( messageConversation.getUserMessages() );
-
-            removeAllMessages();
-            messages.addAll( messageConversation.getMessages() );
-        }
     }
 
     // -------------------------------------------------------------------------
