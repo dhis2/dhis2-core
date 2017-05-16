@@ -1,4 +1,4 @@
-package org.hisp.dhis.dataprune;
+package org.hisp.dhis.commons.sqlfunc;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,14 +28,18 @@ package org.hisp.dhis.dataprune;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
 /**
- * @author Quang Nguyen
- * @version Apr 6, 2010 5:44:47 PM
+ * Function which evaluates to the number of years between two given dates.
+ * 
+ * @author Markus Bekken
  */
-
-public interface DataPruneService
+public class YearsBetweenSqlFunction
+    extends BaseDateComparatorSqlFunction
 {
-    int pruneOrganisationUnit( OrganisationUnit organisationUnit );
+    public static final String KEY = "yearsBetween";
+    
+    protected String compare( String startDate, String endDate )
+    {
+        return "(date_part('year',age(cast(" + endDate + " as date), cast(" + startDate + " as date))))";
+    }
 }

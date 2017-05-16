@@ -733,6 +733,11 @@ public class JdbcEventStore
             }
         }
 
+        if ( params.getEvents() != null && !params.getEvents().isEmpty() && !params.hasFilters() )
+        {
+            sql += hlp.whereAnd() + " (psi.uid in (" + getQuotedCommaDelimitedString( params.getEvents() ) + ")) ";
+        }
+
         return sql;
     }
 

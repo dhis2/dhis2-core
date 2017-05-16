@@ -27,9 +27,6 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.jdbc.batchhandler.ValidationResultBatchHandler;
-import org.hisp.quick.BatchHandler;
-import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,24 +44,10 @@ public class DefaultValidationResultService
     @Autowired
     private ValidationResultStore validationResultStore;
 
-    @Autowired
-    private BatchHandlerFactory batchHandlerFactory;
-
     @Override
     public void saveValidationResults( Collection<ValidationResult> validationResults )
     {
-        BatchHandler<ValidationResult> validationResultBatchHandler = batchHandlerFactory
-            .createBatchHandler( ValidationResultBatchHandler.class ).init();
-
-        validationResults.forEach( validationResult ->
-        {
-            if ( !validationResultBatchHandler.objectExists( validationResult ) )
-            {
-                validationResultBatchHandler.addObject( validationResult );
-            }
-        } );
-
-        validationResultBatchHandler.flush();
+        validationResults.forEach( validationResult -> validationResultStore.save( validationResult ) );
     }
 
     public List<ValidationResult> getAllValidationResults()

@@ -34,8 +34,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
@@ -207,33 +205,5 @@ public class ProgramRuleVariable
     public void setSourceType( ProgramRuleVariableSourceType sourceType )
     {
         this.sourceType = sourceType;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            ProgramRuleVariable programRuleVariable = (ProgramRuleVariable) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                this.sourceType = programRuleVariable.getSourceType();
-                this.attribute = programRuleVariable.getAttribute();
-                this.dataElement = programRuleVariable.getDataElement();
-                this.useCodeForOptionSet = programRuleVariable.getUseCodeForOptionSet();
-                this.programStage = programRuleVariable.getProgramStage();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                this.sourceType = programRuleVariable.getSourceType() == null ? sourceType : programRuleVariable.getSourceType();
-                this.attribute = programRuleVariable.getAttribute() == null ? attribute : programRuleVariable.getAttribute();
-                this.dataElement = programRuleVariable.getDataElement() == null ? dataElement : programRuleVariable.getDataElement();
-                this.useCodeForOptionSet = programRuleVariable.getUseCodeForOptionSet() == null ? useCodeForOptionSet : programRuleVariable.getUseCodeForOptionSet();
-                this.programStage = programRuleVariable.getProgramStage() == null ? programStage : programRuleVariable.getProgramStage();
-            }
-        }
     }
 }

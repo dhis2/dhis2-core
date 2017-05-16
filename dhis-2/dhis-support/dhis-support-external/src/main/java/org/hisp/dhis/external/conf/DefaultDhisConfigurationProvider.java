@@ -302,7 +302,7 @@ public class DefaultDhisConfigurationProvider
         try ( InputStream in = locationManager.getInputStream( CONF_FILENAME ) )
         {
             Properties conf = PropertiesLoaderUtils.loadProperties( new InputStreamResource( in ) );
-            replaceEnvironmentVariables( conf );
+            substituteEnvironmentVariables( conf );
 
             return conf;
         }
@@ -328,7 +328,7 @@ public class DefaultDhisConfigurationProvider
         }
     }
 
-    private void replaceEnvironmentVariables( Properties properties )
+    private void substituteEnvironmentVariables( Properties properties )
     {
         final StrSubstitutor substitutor = new StrSubstitutor( System.getenv() ); // Matches on ${...}
 

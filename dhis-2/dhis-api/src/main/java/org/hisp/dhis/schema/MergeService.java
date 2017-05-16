@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.schema;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,14 +26,21 @@ package org.hisp.dhis.common;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
-
-import org.hisp.dhis.node.Provider;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface NamedProvider<T> extends Provider<T>
+public interface MergeService
 {
-    String name();
+    /**
+     * Merges source object into target object, requires a "schema friendly" class.
+     */
+    <T> T merge( MergeParams<T> mergeParams );
+
+    /**
+     * Clones source into target, using REPLACE mode.
+     */
+    <T> T clone( T source );
 }

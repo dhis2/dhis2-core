@@ -40,8 +40,6 @@
 
   <bean id="org.hisp.dhis.dxf2.metadata.MetadataImportService" class="org.hisp.dhis.dxf2.metadata.DefaultMetadataImportService" />
 
-  <bean id="org.hisp.dhis.dxf2.metadata.MergeService" class="org.hisp.dhis.dxf2.metadata.DefaultMergeService" />
-
   <bean id="org.hisp.dhis.dxf2.gml.GmlImportService" class="org.hisp.dhis.dxf2.gml.DefaultGmlImportService" />
 
   <bean id="org.hisp.dhis.dxf2.events.event.csv.CsvEventService" class="org.hisp.dhis.dxf2.events.event.csv.DefaultCsvEventService" />

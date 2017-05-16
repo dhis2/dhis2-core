@@ -1,4 +1,5 @@
 package org.hisp.dhis.validation;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -37,7 +38,6 @@ import java.util.List;
 public interface ValidationResultStore
     extends GenericStore<ValidationResult>
 {
-
     List<ValidationResult> getAllUnreportedValidationResults();
 
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.common.adapter;
+package org.hisp.dhis.commons.sqlfunc;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,45 +28,27 @@ package org.hisp.dhis.common.adapter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlType;
-
-@XmlType(propOrder={"value", "key"})
-public class Parameter
+/**
+ * Function which evaluates a relation between two given dates.
+ * 
+ * @author Markus Bekken
+ */
+public abstract class BaseDateComparatorSqlFunction
+    implements SqlFunction
 {
-    private String key;
-
-    private String value;
-
-    public Parameter()
+    protected abstract String compare( String startDate, String endDate );
+    
+    @Override
+    public String evaluate( String... args )
     {
-    }
-
-    public Parameter( String key, String value )
-    {
-        this.key = key;
-        this.value = value;
-    }
-
-    @XmlAttribute
-    public String getKey()
-    {
-        return key;
-    }
-
-    @XmlAttribute
-    public String getValue()
-    {
-        return value;
-    }
-
-    public void setKey( String key )
-    {
-        this.key = key;
-    }
-
-    public void setValue( String value )
-    {
-        this.value = value;
+        if ( args == null || args.length != 2 )
+        {
+            throw new IllegalArgumentException( "Illegal arguments, expected 2 arguments: start-date, end-date" );
+        }
+        
+        String startDate = args[0];
+        String endDate = args[1];
+        
+        return compare( startDate, endDate );
     }
 }

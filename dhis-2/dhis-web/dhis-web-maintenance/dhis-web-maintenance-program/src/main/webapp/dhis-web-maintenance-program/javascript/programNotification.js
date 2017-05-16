@@ -8,6 +8,10 @@
         var recipientSelector = qs( '#notificationRecipient' );
         var userGroup = qs( '#userGroup' );
         var userGroupContainer = qs( '#userGroupContainer' );
+
+        var programAttributeContainer=qs('#programAttributeContainer');
+        var programAttribute = qs('#programAttribute');
+
         var notificationTrigger = qs( '#notificationTrigger' );
         var daysContainer = qs( '#daysContainer' );
         var days = qs( '#days' );
@@ -47,6 +51,15 @@
                 userGroupContainer.style.display = 'none';
                 userGroup.value = "";
                 userGroup.disabled = true;
+            }
+
+            if ( recipient === 'PROGRAM_ATTRIBUTE' ) {
+                programAttributeContainer.style.display = 'table-row';
+                programAttribute.disabled = false;
+            } else {
+                programAttributeContainer.style.display = 'none';
+                programAttribute.value = "";
+                programAttribute.disabled = true;
             }
 
             if ( isExternalRecipient( recipient ) ) {
@@ -110,6 +123,11 @@
             var uid = qs( '#userGroup' ).value || undefined;
             return ( uid === undefined ) ? undefined : { 'id' : uid };
         }
+        
+        function getProgramAttribute() {
+            var uid = qs( '#programAttribute' ).value || undefined;
+            return ( uid === undefined ) ? undefined : { 'id' : uid };
+        }
 
         function getScheduledDays() {
             return ( days.value || 0 ) * ( qs( '#daysModifier' ).value );
@@ -122,6 +140,7 @@
                 relativeScheduledDays : getScheduledDays(),
                 notificationRecipient : qs( '#notificationRecipient' ).value,
                 recipientUserGroup : getUserGroup(),
+                recipientProgramAttribute: getProgramAttribute(),
                 deliveryChannels : getSelectedDeliveryChannels(),
                 subjectTemplate : qs( '#subjectTemplate' ).value,
                 messageTemplate : qs( '#messageTemplate' ).value

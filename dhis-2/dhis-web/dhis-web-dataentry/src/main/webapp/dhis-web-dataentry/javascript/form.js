@@ -2179,6 +2179,39 @@ function displayUserDetails()
 // Validation
 // -----------------------------------------------------------------------------
 
+dhis2.de.validateCompulsoryDataElements = function ()
+{
+  var compulsoryValid = true;
+
+  $('[required=required]').each( function() {
+    if ( $(this).hasClass("entryselect") )
+    {
+      var entrySelectName =  $(this).attr("name");
+      var value  = $("[name="+entrySelectName+"]:checked").val();
+
+      if( value == undefined )
+      {
+        $(this).parents("td").addClass("required");
+        compulsoryValid = false;
+      }
+    }
+    else if( $.trim( $( this ).val() ).length == 0 )
+    {
+      if( $(this).hasClass("entryoptionset") )
+      {
+        $(this).siblings("div.entryoptionset").css("border", "1px solid red");
+      }
+      else
+      {
+        $(this).css( 'background-color', dhis2.de.cst.colorRed );
+      }
+
+      compulsoryValid = false;
+    }
+  }) ;
+  return compulsoryValid;
+}
+
 /**
  * Executes all validation checks.
  * 
@@ -2189,10 +2222,12 @@ function displayUserDetails()
 dhis2.de.validate = function( ignoreValidationSuccess, successCallback )
 {
 	var compulsoryCombinationsValid = dhis2.de.validateCompulsoryCombinations();
+
+  var compulsoryDataElementsValid = dhis2.de.validateCompulsoryDataElements();
 	
 	// Check for compulsory combinations and return false if violated
 	
-	if ( !compulsoryCombinationsValid )
+	if ( !compulsoryCombinationsValid || !compulsoryDataElementsValid )
 	{
     	var html = '<h3>' + i18n_validation_result + ' &nbsp;<img src="../images/warning_small.png"></h3>' +
         	'<p class="bold">' + i18n_all_values_for_data_element_must_be_filled + '</p>';

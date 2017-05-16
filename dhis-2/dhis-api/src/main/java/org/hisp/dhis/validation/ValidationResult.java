@@ -32,13 +32,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.apache.commons.lang.builder.CompareToBuilder;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-
-import java.io.Serializable;
 
 /**
  * Class representing a validation violation. The validationRule, period and org unit
@@ -48,16 +48,8 @@ import java.io.Serializable;
  */
 @JacksonXmlRootElement( localName = "validationResult", namespace = DxfNamespaces.DXF_2_0 )
 public class ValidationResult
-    implements Serializable, Comparable<ValidationResult>
+    extends BaseIdentifiableObject
 {
-
-    private int id;
-
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = -4118317796752962296L;
-
     private ValidationRule validationRule;
 
     private Period period;
@@ -113,7 +105,7 @@ public class ValidationResult
 
     // -------------------------------------------------------------------------
     // Equals, compareTo, hashCode and toString
-    // -------------------------------------------------------------------------     
+    // -------------------------------------------------------------------------
 
     @Override
     public int hashCode()
@@ -235,92 +227,6 @@ public class ValidationResult
         return true;
     }
 
-    /**
-     * Note: this method is called from threads in which it may not be possible
-     * to initialize lazy Hibernate properties. So object properties to compare
-     * must be chosen accordingly.
-     */
-    @Override
-    public int compareTo( ValidationResult other )
-    {
-        int result = organisationUnit.getName().compareTo( other.organisationUnit.getName() );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = period.getStartDate().compareTo( other.period.getStartDate() );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = period.getEndDate().compareTo( other.period.getEndDate() );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = attributeOptionCombo.getId() - other.attributeOptionCombo.getId();
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = validationImportanceOrder( validationRule.getImportance() ) - validationImportanceOrder( other.validationRule.getImportance() );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = validationRule.getLeftSide().getDescription().compareTo( other.validationRule.getLeftSide().getDescription() );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = validationRule.getOperator().compareTo( other.validationRule.getOperator() );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = validationRule.getRightSide().getDescription().compareTo( other.validationRule.getRightSide().getDescription() );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = (int) Math.signum( Math.round( 100.0 * leftsideValue ) - Math.round( 100.0 * other.leftsideValue ) );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = (int) Math.signum( Math.round( 100.0 * rightsideValue ) - Math.round( 100.0 * other.rightsideValue ) );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        return 0;
-    }
-
-    private int validationImportanceOrder( Importance importance )
-    {
-        return importance == Importance.HIGH ? 0 : importance == Importance.MEDIUM ? 1 : 2;
-    }
-
     @Override
     public String toString()
     {
@@ -330,6 +236,24 @@ public class ValidationResult
             "(" + validationRule.getDisplayName() + ")"+
             ", left side value: " + leftsideValue +
             ", right side value: " + rightsideValue + "]";
+    }
+
+    /**
+     * Comparing validation results is done by priority, then time
+     * @param identifiableObject
+     * @return
+     */
+    public int compareTo( IdentifiableObject identifiableObject )
+    {
+        ValidationResult other = (ValidationResult) identifiableObject;
+
+        return new CompareToBuilder()
+            .append( this.validationRule, other.getValidationRule() )
+            .append( this.period, other.getPeriod() )
+            .append( this.attributeOptionCombo, other.getAttributeOptionCombo() )
+            .append( this.organisationUnit, other.getOrganisationUnit() )
+            .append( this.id, other.getId() )
+            .toComparison();
     }
 
     // -------------------------------------------------------------------------

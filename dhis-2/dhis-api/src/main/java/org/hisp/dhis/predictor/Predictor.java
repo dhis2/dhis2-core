@@ -37,8 +37,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
@@ -252,55 +250,6 @@ public class Predictor
     public void setSampleSkipTest( Expression sampleSkipTest )
     {
         this.sampleSkipTest = sampleSkipTest;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        // TODO: what else needs to be merged?
-
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            Predictor predictor = (Predictor) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                description = predictor.getDescription();
-                output = predictor.getOutput();
-                generator = predictor.getGenerator();
-                periodType = predictor.getPeriodType();
-                sequentialSampleCount = predictor.getSequentialSampleCount();
-                sequentialSkipCount = predictor.getSequentialSkipCount();
-                annualSampleCount = predictor.getAnnualSampleCount();
-                organisationUnitLevels = predictor.getOrganisationUnitLevels();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                description = predictor.getDescription() == null ? description : predictor.getDescription();
-                periodType = predictor.getPeriodType() == null ? periodType : predictor.getPeriodType();
-                output = predictor.getOutput() == null ? output : predictor.getOutput();
-                sequentialSampleCount = (predictor.getSequentialSampleCount() == null) ?
-                    sequentialSampleCount : predictor.getSequentialSampleCount();
-                sequentialSkipCount = (predictor.getSequentialSkipCount() == null) ?
-                    sequentialSkipCount : predictor.getSequentialSkipCount();
-                annualSampleCount = (predictor.getAnnualSampleCount() == null) ?
-                    annualSampleCount : predictor.getAnnualSampleCount();
-                organisationUnitLevels = (predictor.getOrganisationUnitLevels() == null) ?
-                    organisationUnitLevels : predictor.getOrganisationUnitLevels();
-            }
-
-            if ( generator != null && predictor.getGenerator() != null )
-            {
-                generator.mergeWith( predictor.getGenerator() );
-            }
-
-            if ( sampleSkipTest != null && predictor.getSampleSkipTest() != null )
-            {
-                sampleSkipTest.mergeWith( predictor.getSampleSkipTest() );
-            }
-        }
     }
 
     /**

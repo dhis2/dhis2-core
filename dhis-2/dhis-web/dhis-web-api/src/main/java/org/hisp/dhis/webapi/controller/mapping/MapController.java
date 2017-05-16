@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.mapping;
 
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -147,10 +148,9 @@ public class MapController
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
 
         Map newMap = deserializeJsonEntity( request, response );
+        newMap.setUid( uid );
 
-        map.mergeWith( newMap, params.getMergeMode() );
-        map.setUid( uid );
-
+        mergeService.merge( new MergeParams<>( newMap, map ).setMergeMode( params.getMergeMode() ) );
         mappingService.updateMap( map );
     }
 

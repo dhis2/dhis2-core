@@ -28,9 +28,6 @@ package org.hisp.dhis.dxf2.csv;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dxf2.metadata.Metadata;
@@ -38,7 +35,11 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import static org.junit.Assert.*;
+import java.io.IOException;
+import java.io.InputStream;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class CsvImportServiceTest
     extends DhisSpringTest
@@ -47,7 +48,7 @@ public class CsvImportServiceTest
     private CsvImportService csvImportService;
     
     private InputStream inputBasicObjects;
-    
+
     @Override
     protected void setUpTest() 
         throws Exception
