@@ -180,8 +180,8 @@ public class DefaultEventAnalyticsService
             // Limit and sort, done again due to potential multiple partitions
             // -----------------------------------------------------------------
 
-            if ( params.hasSortOrder() )
-            {            
+            if ( params.hasSortOrder() && grid.getHeight() > 0 )
+            {
                 grid.sortGrid( 1, params.getSortOrderAsInt() );
             }
             
