@@ -53,7 +53,7 @@ public interface MinMaxDataElementStore
 
     List<MinMaxDataElement> query( MinMaxDataElementQueryParams query );
 
-    int countMinMaxDataElement ( MinMaxDataElementQueryParams query );
+    int countMinMaxDataElements( MinMaxDataElementQueryParams query );
 
     void delete( OrganisationUnit organisationUnit );
     

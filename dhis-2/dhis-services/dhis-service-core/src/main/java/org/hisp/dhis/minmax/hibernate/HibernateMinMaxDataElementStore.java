@@ -122,7 +122,7 @@ public class HibernateMinMaxDataElementStore
     }
 
     @Override
-    public int countMinMaxDataElement( MinMaxDataElementQueryParams query )
+    public int countMinMaxDataElements( MinMaxDataElementQueryParams query )
     {
         Criteria criteria = getSession().createCriteria( MinMaxDataElement.class );
         criteria = parseFilter( criteria, query.getFilters() );

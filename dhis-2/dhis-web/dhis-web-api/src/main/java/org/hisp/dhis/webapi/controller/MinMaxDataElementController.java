@@ -122,7 +122,7 @@ public class MinMaxDataElementController
 
         if ( !query.isSkipPaging() )
         {
-            query.setTotal( minMaxService.countMinMaxDataElement( query ) );
+            query.setTotal( minMaxService.countMinMaxDataElements( query ) );
             rootNode.addChild( NodeUtils.createPager( query.getPager() ) );
         }
 

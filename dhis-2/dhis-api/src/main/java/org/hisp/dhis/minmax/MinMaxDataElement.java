@@ -219,14 +219,11 @@ public class MinMaxDataElement
 
     public void mergeWith( MinMaxDataElement other )
     {
-        if ( other.getClass().isInstance( this ) )
-        {
-           source = other.getSource() == null ? source : other.getSource();
-           dataElement = other.getDataElement() == null ? dataElement : other.getDataElement();
-           optionCombo = other.getOptionCombo() == null ? optionCombo : other.getOptionCombo();
-           min = other.getMin();
-           max = other.getMax();
-           generated = other.isGenerated();
-        }
+       source = other.getSource() == null ? source : other.getSource();
+       dataElement = other.getDataElement() == null ? dataElement : other.getDataElement();
+       optionCombo = other.getOptionCombo() == null ? optionCombo : other.getOptionCombo();
+       min = other.getMin();
+       max = other.getMax();
+       generated = other.isGenerated();
     }
 }
