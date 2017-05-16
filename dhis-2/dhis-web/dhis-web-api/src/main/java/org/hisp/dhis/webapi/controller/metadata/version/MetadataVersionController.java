@@ -43,7 +43,6 @@ import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.omg.PortableServer.CurrentPackage.NoContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -199,7 +198,7 @@ public class MetadataVersionController
 
     //Gets the list of all versions
     @RequestMapping( value = "/metadata/versions", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
-    public @ResponseBody RootNode getAllVersion() throws MetadataVersionException,BadRequestException
+    public @ResponseBody RootNode getAllVersion() throws MetadataVersionException, BadRequestException
     {
         boolean enabled = isMetadataVersioningEnabled();
 
