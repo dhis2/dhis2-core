@@ -207,6 +207,11 @@ public class DataValue
         this.value = value;
     }
 
+    public void setValueForced( String value )
+    {
+        this.value = value;
+    }
+
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public String getStoredBy()

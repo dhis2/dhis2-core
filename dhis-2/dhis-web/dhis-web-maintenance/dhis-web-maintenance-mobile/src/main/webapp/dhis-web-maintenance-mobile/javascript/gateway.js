@@ -29,7 +29,6 @@ function changeValueType( value )
 function hideAll() 
 {
 	 hideById( "bulksmsFields" );
-	 hideById( "smppFields" );
 	 hideById( "clickatellFields" );
 	 hideById( "genericHTTPFields" ); 
 }
@@ -44,12 +43,6 @@ function getValidationRulesGateway()
 			'bulksmsFields input[id=urlTemplate]' : { 'required' : true },
 			'bulksmsFields input[id=password]' : { 'required' : true }
 		};
-	} else if ( currentType == 'smpp_gw' ) {
-		rules = {
-			'smppFields input[id=name]' : { 'required' : true },
-			'smppFields input[id=username]' : { 'required' : true },
-			'smppFields input[id=password]' : { 'required' : true }
-		};
 	} else if ( currentType == 'clickatell' ) {
 		rules = {
 			'clickatellFields input[id=name]' : { 'required' : true },
@@ -61,9 +54,6 @@ function getValidationRulesGateway()
 		};
 	} else {
 		rules = {
-			'genericHTTPFields input[id=name]' : { 'required' : true },
-			'genericHTTPFields input[id=username]' : { 'required' : true },
-			'genericHTTPFields input[id=password]' : { 'required' : true },
 			'genericHTTPFields input[id=urlTemplate]' : { 'required' : true }
 		};
 	}
@@ -150,7 +140,7 @@ function saveGatewayConfig()
 		
 		var URL = getFieldValue( 'genericHTTPFields input[id=urlTemplate]' );
 
-		if( usernameParameter == "" || passwordParameter == "" || URL == "" ||  username == "" || password == "" || messageParameter == "" || recipientParameter == "")
+		if( usernameParameter == "" || passwordParameter == "" || URL == "" ||  username == "" || password == "")
 		{	
 			showErrorMessage( i18n_required_data_error );
 		}
@@ -238,6 +228,7 @@ function generateaddKeyValueParamForm()
 		+	'<td><input id="value' + rowId + '" name="value' + rowId + '" type="text" style="width: 10em" placeholder="' + i18_value + '"/>'
 		+   	'<input type="radio" name="inputType'+rowId+'" value="text" onclick="updateInputType(' + rowId + ',\'text\')" checked>'+i18_text+'</input>'
 		+   	'<input type="radio" name="inputType'+rowId+'" value="classified" onclick="updateInputType(' + rowId + ',\'classified\')" style="margin-left: 1em" >'+i18_password+'</input>'
+		+   	'<input type="checkbox" name="headerType'+rowId+'" style="margin-left: 1em">'+i18_header+'</input>'
 		+   	'<input style="margin-left: 3em" type="button" value="remove" onclick="removeNewParamForm(' + rowId + ')"/></td>'
 		+ '</tr>';
 	jQuery('#genericHTTPFields').append(contend);
@@ -270,7 +261,7 @@ function saveSettings ()
 
 	var newParams = getHttpKeyValueParamsAddedByTheUser(httpFields);
 
-	if (data.name == "" || data.messageParameter == "" || data.recipientParameter == "" || data.urltemplate == "") {
+	if ( data.urltemplate == "" ) {
 		showErrorMessage(i18n_required_data_error);
 	} else {
 
@@ -320,6 +311,7 @@ function getHttpKeyValueParamsAddedByTheUser(allFields)
 		newParamName = allFields.find('#trNewParam'+rowIndex).find('#name'+rowIndex)[0].value;
 		newParamValue = allFields.find('#trNewParam'+rowIndex).find('#value'+rowIndex)[0].value;	
 		newParamType = $('input[name=inputType'+rowIndex+']:checked').val();
+		newHeaderType = $('input[name=headerType'+rowIndex+']').is(":checked");
 		
 		object.key=newParamName;
 		object.value=newParamValue;
@@ -331,6 +323,15 @@ function getHttpKeyValueParamsAddedByTheUser(allFields)
 		else
 		{
 			object.classified=false;
+		}
+		
+		if( newHeaderType == true )
+		{
+			object.header=true;
+		}
+		else
+		{
+			object.header=false;
 		}
 		
 		if(validateParameters(object))

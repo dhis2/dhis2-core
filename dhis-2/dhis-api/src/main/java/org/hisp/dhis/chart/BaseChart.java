@@ -41,9 +41,7 @@ import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.HideEmptyItemStrategy;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.RegressionType;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -377,7 +375,7 @@ public abstract class BaseChart
     {
         this.hideEmptyRowItems = hideEmptyRowItems;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isPercentStackedValues()
@@ -462,63 +460,5 @@ public abstract class BaseChart
     public void setFilterDimensions( List<String> filterDimensions )
     {
         this.filterDimensions = filterDimensions;
-    }
-
-    // -------------------------------------------------------------------------
-    // Merge with
-    // -------------------------------------------------------------------------
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            BaseChart chart = (BaseChart) other;
-
-            hideLegend = chart.isHideLegend();
-            hideTitle = chart.isHideTitle();
-            hideSubtitle = chart.isHideSubtitle();
-            showData = chart.isShowData();
-            percentStackedValues = chart.isPercentStackedValues();
-            cumulativeValues = chart.isCumulativeValues();
-
-            if ( mergeMode.isReplace() )
-            {
-                hideEmptyRowItems = chart.getHideEmptyRowItems();
-                domainAxisLabel = chart.getDomainAxisLabel();
-                rangeAxisLabel = chart.getRangeAxisLabel();
-                type = chart.getType();
-                regressionType = chart.getRegressionType();
-                targetLineValue = chart.getTargetLineValue();
-                targetLineLabel = chart.getTargetLineLabel();
-                baseLineValue = chart.getBaseLineValue();
-                baseLineLabel = chart.getBaseLineLabel();
-                rangeAxisMaxValue = chart.getRangeAxisMaxValue();
-                rangeAxisMinValue = chart.getRangeAxisMinValue();
-                rangeAxisSteps = chart.getRangeAxisSteps();
-                rangeAxisDecimals = chart.getRangeAxisDecimals();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                hideEmptyRowItems = chart.getHideEmptyRowItems() == null ? hideEmptyRowItems : chart.getHideEmptyRowItems();
-                domainAxisLabel = chart.getDomainAxisLabel() == null ? domainAxisLabel : chart.getDomainAxisLabel();
-                rangeAxisLabel = chart.getRangeAxisLabel() == null ? rangeAxisLabel : chart.getRangeAxisLabel();
-                type = chart.getType() == null ? type : chart.getType();
-                regressionType = chart.getRegressionType() == null ? regressionType : chart.getRegressionType();
-                targetLineValue = chart.getTargetLineValue() == null ? targetLineValue : chart.getTargetLineValue();
-                targetLineLabel = chart.getTargetLineLabel() == null ? targetLineLabel : chart.getTargetLineLabel();
-                baseLineValue = chart.getBaseLineValue() == null ? baseLineValue : chart.getBaseLineValue();
-                baseLineLabel = chart.getBaseLineLabel() == null ? baseLineLabel : chart.getBaseLineLabel();
-                rangeAxisMaxValue = chart.getRangeAxisMaxValue() == null ? rangeAxisMaxValue : chart.getRangeAxisMaxValue();
-                rangeAxisMinValue = chart.getRangeAxisMinValue() == null ? rangeAxisMinValue : chart.getRangeAxisMinValue();
-                rangeAxisSteps = chart.getRangeAxisSteps() == null ? rangeAxisSteps : chart.getRangeAxisSteps();
-                rangeAxisDecimals = chart.getRangeAxisDecimals() == null ? rangeAxisDecimals : chart.getRangeAxisDecimals();
-            }
-
-            filterDimensions.clear();
-            filterDimensions.addAll( chart.getFilterDimensions() );
-        }
     }
 }

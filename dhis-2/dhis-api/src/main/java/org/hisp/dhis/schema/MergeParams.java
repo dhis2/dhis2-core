@@ -1,4 +1,4 @@
-package org.hisp.dhis.common.adapter;
+package org.hisp.dhis.schema;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,33 +26,61 @@ package org.hisp.dhis.common.adapter;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import java.util.List;
+import org.hisp.dhis.common.MergeMode;
 
-import javax.xml.bind.annotation.XmlElement;
+import java.util.Objects;
 
-public class Parameters
+/**
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
+public final class MergeParams<T>
 {
-    List<Parameter> parameters;
+    private final T source;
 
-    public Parameters()
+    private final T target;
+
+    private MergeMode mergeMode = MergeMode.REPLACE;
+
+    private boolean skipSharing;
+
+    public MergeParams( T source, T target )
     {
+        this.source = Objects.requireNonNull( source );
+        this.target = Objects.requireNonNull( target );
     }
 
-    public Parameters( List<Parameter> parameters )
+    public T getSource()
     {
-        this.parameters = parameters;
+        return source;
     }
 
-    @XmlElement( name = "parameter" )
-    public List<Parameter> getParameters()
+    public T getTarget()
     {
-        return parameters;
+        return target;
     }
 
-    public void setParameters( List<Parameter> parameters )
+    public MergeMode getMergeMode()
     {
-        this.parameters = parameters;
-    }    
+        return mergeMode;
+    }
+
+    public MergeParams<T> setMergeMode( MergeMode mergeMode )
+    {
+        this.mergeMode = mergeMode;
+        return this;
+    }
+
+    public boolean isSkipSharing()
+    {
+        return skipSharing;
+    }
+
+    public MergeParams<T> setSkipSharing( boolean skipSharing )
+    {
+        this.skipSharing = skipSharing;
+        return this;
+    }
 }

@@ -73,6 +73,11 @@ public class ProgramNotificationTemplateObjectBundleHook
             template.setRecipientUserGroup( null );
         }
 
+        if ( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE != template.getNotificationRecipient() )
+        {
+            template.setRecipientProgramAttribute( null );
+        }
+
         if ( ! ( template.getNotificationRecipient().isExternalRecipient() ) )
         {
             template.setDeliveryChannels( Sets.newHashSet() );

@@ -40,8 +40,6 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 
 import java.util.ArrayList;
@@ -193,29 +191,5 @@ public class OptionGroupSet
         Collections.sort( sortedGroups );
 
         return sortedGroups;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            OptionGroupSet optionGroupSet = (OptionGroupSet) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                optionSet = optionGroupSet.getOptionSet();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                optionSet = optionGroupSet.getOptionSet() == null ? optionSet : optionGroupSet.getOptionSet();
-            }
-
-            members.clear();
-
-            optionGroupSet.getMembers().forEach( this::addOptionGroup );
-        }
     }
 }

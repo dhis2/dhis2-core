@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.metadata;
+package org.hisp.dhis.commons.sqlfunc;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -29,17 +29,17 @@ package org.hisp.dhis.dxf2.metadata;
  */
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Function which evaluates to the number of months between two given dates.
+ * 
+ * @author Markus Bekken
  */
-public interface MergeService
+public class MonthsBetweenSqlFunction
+    extends BaseDateComparatorSqlFunction
 {
-    /**
-     * Merges source object into target object, requires a "schema friendly" class.
-     */
-    <T> T merge( MergeParams<T> mergeParams );
-
-    /**
-     * Clones source into target, using REPLACE mode.
-     */
-    <T> T clone( T source );
+    public static final String KEY = "monthsBetween";
+    
+    protected String compare( String startDate, String endDate )
+    {
+        return "(date_part('month',age(cast(" + endDate + " as date), cast(" + startDate + " as date))))";
+    }
 }

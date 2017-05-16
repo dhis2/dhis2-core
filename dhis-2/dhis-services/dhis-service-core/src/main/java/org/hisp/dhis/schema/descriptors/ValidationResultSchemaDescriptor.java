@@ -1,7 +1,6 @@
-package org.hisp.dhis.common;
-
+package org.hisp.dhis.schema.descriptors;
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +27,28 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * This interface is for merging one object into another, this is to be used by code supporting
- * hibernate which means that for merging associations, only the owning side will be updated.
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface Mergeable<T>
-{
-    void mergeWith( T other, MergeMode mergeMode );
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.validation.ValidationResult;
 
-    void mergeSharingWith( T other );
+/**
+ * @author Stian Sandvold
+ */
+public class ValidationResultSchemaDescriptor implements SchemaDescriptor
+{
+    public static final String SINGULAR = "validationresult";
+
+    public static final String PLURAL = "validationresults";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
+    {
+        Schema schema = new Schema( ValidationResult.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 2000 );
+
+        return schema;
+    }
 }
