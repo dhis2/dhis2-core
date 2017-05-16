@@ -1,5 +1,6 @@
 package org.hisp.dhis.sms.config;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.ClickatellRequestEntity;
 import org.hisp.dhis.sms.outbound.ClickatellResponseEntity;
@@ -9,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -68,7 +70,7 @@ public class ClickatellGateway
 
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig config )
     {
-        return null;
+        return new ArrayList<>();
     }
 
     @Override
