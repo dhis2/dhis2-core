@@ -58,7 +58,6 @@
                 </td>
                 <td>
                     <select type="text" id="notificationRecipient" name="notificationRecipient">
-                        <option value="TRACKED_ENTITY_INSTANCE">$i18n.getString( "tracked_entity_instance" )</option>
                         <option value="ORGANISATION_UNIT_CONTACT">$i18n.getString( "orgunit_contact" )</option>
                         <option value="USERS_AT_ORGANISATION_UNIT">$i18n.getString( "users_at_orgunit" )</option>
                         <option value="USER_GROUP">$i18n.getString( "user_group" )</option>

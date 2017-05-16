@@ -1,7 +1,6 @@
-package org.hisp.dhis.minmax;
-
+package org.hisp.dhis.schema.descriptors;
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,38 +27,28 @@ package org.hisp.dhis.minmax;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
-import java.util.Collection;
-import java.util.List;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.validation.ValidationResult;
 
 /**
- * @author Kristian Nordal
- * @version $Id: MinMaxDataElementStore.java 5012 2008-04-24 21:14:40Z larshelg $
+ * @author Stian Sandvold
  */
-public interface MinMaxDataElementStore
-    extends GenericStore<MinMaxDataElement>
+public class ValidationResultSchemaDescriptor implements SchemaDescriptor
 {
-    String ID = MinMaxDataElementStore.class.getName();
+    public static final String SINGULAR = "validationresult";
 
-    MinMaxDataElement get( OrganisationUnit source, DataElement dataElement, DataElementCategoryOptionCombo optionCombo );
-    
-    List<MinMaxDataElement> get( OrganisationUnit source, DataElement dataElement );  
+    public static final String PLURAL = "validationresults";
 
-    List<MinMaxDataElement> get( OrganisationUnit source, Collection<DataElement> dataElements );
+    public static final String API_ENDPOINT = "/" + PLURAL;
 
-    List<MinMaxDataElement> query( MinMaxDataElementQueryParams query );
+    @Override
+    public Schema getSchema()
+    {
+        Schema schema = new Schema( ValidationResult.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 2000 );
 
-    int countMinMaxDataElements( MinMaxDataElementQueryParams query );
-
-    void delete( OrganisationUnit organisationUnit );
-    
-    void delete( DataElement dataElement );
-    
-    void delete( DataElementCategoryOptionCombo optionCombo );
-    
-    void delete( Collection<DataElement> dataElements, Collection<OrganisationUnit> organisationUnits );
+        return schema;
+    }
 }

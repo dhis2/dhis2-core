@@ -103,6 +103,12 @@
                                 </span>
                             </td>    
                             #foreach( $optionCombo in $optionCombos )
+                                #set( $compulsory = false )
+                                #foreach( $compulsoryDe in $dataSet.compulsoryDataElementOperands )
+                                    #if( $dataElement.uid == $compulsoryDe.dataElement.uid && $optionCombo.uid == $compulsoryDe.categoryOptionCombo.uid )
+                                        #set( $compulsory = true )
+                                    #end
+                                #end
                                 #set( $dataEntryId = "${dataElement.uid}-${optionCombo.uid}-val" )
                                 #set( $commentId = "${dataElement.uid}-${optionCombo.uid}-comment" )
                                 #set( $rowTotalIds = "${rowTotalIds}-$optionCombo.uid" )
@@ -111,25 +117,25 @@
                                 #if( $dataElement.valueType == "BOOLEAN" )
                                     <td>
                                         <label>
-                                            <input type="radio" name="${dataEntryId}" class="entryselect" id="${dataEntryId}" value="" tabindex="${tabIndex}"#if( $greyedField || !$hasAccess ) disabled="disabled"#end>
+                                            <input #if( $compulsory ) required="required" #end  type="radio" name="${dataEntryId}" class="entryselect" id="${dataEntryId}" value="" tabindex="${tabIndex}"#if( $greyedField || !$hasAccess ) disabled="disabled"#end>
                                             $i18n.getString( "no_value" )		
                                         </label>
                                         <label>
-                                            <input type="radio" name="${dataEntryId}" class="entryselect" id="${dataEntryId}" value="true" tabindex="${tabIndex}"#if( $greyedField || !$hasAccess ) disabled="disabled"#end>
+                                            <input #if( $compulsory ) required="required" #end  type="radio" name="${dataEntryId}" class="entryselect" id="${dataEntryId}" value="true" tabindex="${tabIndex}"#if( $greyedField || !$hasAccess ) disabled="disabled"#end>
                                             $i18n.getString( "yes" )
                                         </label>
                                         <label>
-                                                <input type="radio" name="${dataEntryId}" class="entryselect" id="${dataEntryId}" value="false" tabindex="${tabIndex}"#if( $greyedField || !$hasAccess ) disabled="disabled"#end>
+                                                <input #if( $compulsory ) required="required" #end  type="radio" name="${dataEntryId}" class="entryselect" id="${dataEntryId}" value="false" tabindex="${tabIndex}"#if( $greyedField || !$hasAccess ) disabled="disabled"#end>
                                                 $i18n.getString( "no" )			
                                         </label>
                                         <img class="commentlink" id="${commentId}">
                                     </td>
                                 #elseif( $dataElement.valueType == "TRUE_ONLY" )
-                                    <td><input name="entrytrueonly" class="entrytrueonly" id="${dataEntryId}" type="checkbox" tabindex="${tabIndex}"#if( $greyedField || !$hasAccess ) disabled="disabled"#end><img class="commentlink" id="${commentId}"></td>
+                                    <td><input #if( $compulsory ) required="required" #end name="entrytrueonly" class="entrytrueonly" id="${dataEntryId}" type="checkbox" tabindex="${tabIndex}"#if( $greyedField || !$hasAccess ) disabled="disabled"#end><img class="commentlink" id="${commentId}"></td>
                                 #elseif( "LONG_TEXT" == $dataElement.valueType )
-                                    <td><textarea name="entryfield" class="entryfield entryarea" id="${dataEntryId}" tabindex="${tabIndex}" #if( $greyedField || !$hasAccess ) disabled="disabled"#end></textarea></td>
+                                    <td><textarea #if( $compulsory ) required="required" #end name="entryfield" class="entryfield entryarea" id="${dataEntryId}" tabindex="${tabIndex}" #if( $greyedField || !$hasAccess ) disabled="disabled"#end></textarea></td>
                                 #elseif( "URL" == $dataElement.valueType )
-                                    <td><input type="url" name="entryfield" class="entryfieldclear" id="${dataEntryId}" tabindex="${tabIndex}" #if( $greyedField || !$hasAccess ) disabled="disabled"#end></input></td>
+                                    <td><input #if( $compulsory ) required="required" #end type="url" name="entryfield" class="entryfieldclear" id="${dataEntryId}" tabindex="${tabIndex}" #if( $greyedField || !$hasAccess ) disabled="disabled"#end></input></td>
                                 #elseif( "FILE_RESOURCE" == $dataElement.valueType )
                                     <td>
                                         <div class="entryfileresource" id="${dataEntryId}" tabindex="${tabIndex}">
@@ -152,13 +158,13 @@
                                     </td>
                                 #elseif( $dataElement.valueType == "TIME" )
                                     <td>
-                                        <input type="text" name="entrytime" class="entryfield" id="${dataEntryId}" tabindex="${tabIndex}" />
+                                        <input #if( $compulsory ) required="required" #end type="text" name="entrytime" class="entryfield" id="${dataEntryId}" tabindex="${tabIndex}" />
                                     </td>
                                 #else
                                     #if( $dataElement.optionSet )
-                                      <td><input name="entryoptionset" class="entryoptionset" id="${dataEntryId}" type="text" tabindex="${tabIndex}"#if( $greyedField || !$hasAccess ) disabled="disabled"#end><img class="commentlink" id="${commentId}"></td>
+                                      <td><input #if( $compulsory ) required="required" #end  name="entryoptionset" class="entryoptionset" id="${dataEntryId}" type="text" tabindex="${tabIndex}"#if( $greyedField || !$hasAccess ) disabled="disabled"#end><img class="commentlink" id="${commentId}"></td>
                                     #else
-                                      <td><input name="entryfield" class="entryfield" id="${dataEntryId}" type="text" tabindex="${tabIndex}"#if( $greyedField || !$hasAccess ) disabled="disabled"#end></td>
+                                      <td><input #if( $compulsory ) required="required" #end  name="entryfield" class="entryfield" id="${dataEntryId}" type="text" tabindex="${tabIndex}"#if( $greyedField || !$hasAccess ) disabled="disabled"#end></td>
                                     #end
                                 #end
                                 #set( $tabIndex = $tabIndex + 1 )                                

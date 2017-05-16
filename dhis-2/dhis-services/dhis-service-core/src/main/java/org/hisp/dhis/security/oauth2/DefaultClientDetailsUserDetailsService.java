@@ -1,4 +1,4 @@
-package org.hisp.dhis.minmax;
+package org.hisp.dhis.security.oauth2;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,40 +26,35 @@ package org.hisp.dhis.minmax;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
-import java.util.Collection;
-import java.util.List;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.oauth2.provider.ClientDetailsService;
+import org.springframework.security.oauth2.provider.ClientRegistrationException;
+import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
 
 /**
- * @author Kristian Nordal
- * @version $Id: MinMaxDataElementStore.java 5012 2008-04-24 21:14:40Z larshelg $
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface MinMaxDataElementStore
-    extends GenericStore<MinMaxDataElement>
+public class DefaultClientDetailsUserDetailsService extends ClientDetailsUserDetailsService
 {
-    String ID = MinMaxDataElementStore.class.getName();
+    public DefaultClientDetailsUserDetailsService( ClientDetailsService clientDetailsService )
+    {
+        super( clientDetailsService );
+    }
 
-    MinMaxDataElement get( OrganisationUnit source, DataElement dataElement, DataElementCategoryOptionCombo optionCombo );
-    
-    List<MinMaxDataElement> get( OrganisationUnit source, DataElement dataElement );  
-
-    List<MinMaxDataElement> get( OrganisationUnit source, Collection<DataElement> dataElements );
-
-    List<MinMaxDataElement> query( MinMaxDataElementQueryParams query );
-
-    int countMinMaxDataElements( MinMaxDataElementQueryParams query );
-
-    void delete( OrganisationUnit organisationUnit );
-    
-    void delete( DataElement dataElement );
-    
-    void delete( DataElementCategoryOptionCombo optionCombo );
-    
-    void delete( Collection<DataElement> dataElements, Collection<OrganisationUnit> organisationUnits );
+    @Override
+    public UserDetails loadUserByUsername( String username ) throws UsernameNotFoundException
+    {
+        try
+        {
+            return super.loadUserByUsername( username );
+        }
+        catch ( ClientRegistrationException ex )
+        {
+            throw new UsernameNotFoundException( ex.getMessage(), ex );
+        }
+    }
 }

@@ -63,10 +63,9 @@
             <td>
                 #set( $rcpt = $template.notificationRecipient.name() )
                 <select type="text" id="notificationRecipient" name="notificationRecipient">
-                    <option value="TRACKED_ENTITY_INSTANCE" #if ( $rcpt == "TRACKED_ENTITY_INSTANCE" ) selected #end>$i18n.getString( "tracked_entity_instance" )</option>
                     <option value="ORGANISATION_UNIT_CONTACT" #if ( $rcpt == "ORGANISATION_UNIT_CONTACT" ) selected #end>$i18n.getString( "orgunit_contact" )</option>
                     <option value="USERS_AT_ORGANISATION_UNIT" #if ( $rcpt == "USERS_AT_ORGANISATION_UNIT" ) selected #end>$i18n.getString( "users_at_orgunit" )</option>
-                    <option value="USER_GROUP" #if ( $rcpt == "USER_GROUP" ) selected #end>$i18n.getString( "user_group" )</option>
+                    <option value="USER_GROUP" #if ( $rcpt == "USER_GROUP" ) forselected #end>$i18n.getString( "user_group" )</option>
                     <option value="PROGRAM_ATTRIBUTE" #if ( $rcpt == "PROGRAM_ATTRIBUTE" ) selected #end>$i18n.getString( "program_attributes" )</option>
                 </select>
             </td>
@@ -105,7 +104,7 @@
                 </select>
             </td>
         </tr>
-        <tr id="deliveryChannelsContainer" #if ( !$template.notificationRecipient.isExternalRecipient() ) style="display: none;" #end>
+        <tr id="deliveryChannelsContainer" #if ( $rcpt != "ORGANISATION_UNIT_CONTACT" ) style="display: none;" #end>
             <td><label for="deliveryChannelsForm">$i18n.getString( "message_type" )</label></td>
             <td>
                 #set( $dc = $template.deliveryChannels )

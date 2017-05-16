@@ -93,7 +93,7 @@
         // Internal
 
         function isExternalRecipient( recipient ) {
-            return recipient === 'TRACKED_ENTITY_INSTANCE' || recipient === 'ORGANISATION_UNIT_CONTACT' || recipient === 'PROGRAM_ATTRIBUTE';
+            return recipient === 'TRACKED_ENTITY_INSTANCE' || recipient === 'ORGANISATION_UNIT_CONTACT';
         }
 
         function returnToListing() {
