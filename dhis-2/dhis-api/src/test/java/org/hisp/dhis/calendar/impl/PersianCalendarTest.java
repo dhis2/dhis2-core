@@ -26,9 +26,16 @@
 package org.hisp.dhis.calendar.impl;
 
 
+import java.util.Date;
+import java.util.List;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
+import org.hisp.dhis.period.Cal;
+import org.hisp.dhis.period.DailyPeriodType;
+import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.Period;
 import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,7 +45,7 @@ import org.junit.Test;
  */
 public class PersianCalendarTest
 {
-    
+
     private Calendar calendar;
 
     @Before
@@ -46,7 +53,7 @@ public class PersianCalendarTest
     {
         calendar = PersianCalendar.getInstance();
     }
-   
+
     @Test
     public void testIsoStartOfYear()
     {
@@ -54,34 +61,34 @@ public class PersianCalendarTest
         Assert.assertEquals( 2004, startOfYear.getYear() );
         Assert.assertEquals( 3, startOfYear.getMonth() );
         Assert.assertEquals( 20, startOfYear.getDay() );
-        
+
         startOfYear = calendar.isoStartOfYear( 1409 );
         Assert.assertEquals( 2030, startOfYear.getYear() );
         Assert.assertEquals( 3, startOfYear.getMonth() );
-        Assert.assertEquals( 21, startOfYear.getDay() );        
+        Assert.assertEquals( 21, startOfYear.getDay() );
     }
-    
+
     @Test( expected = RuntimeException.class )
     public void testDaysInMonth13()
     {
         calendar.daysInMonth( 1389, 13 );
     }
-    
-    
+
+
     @Test
     public void testDaysInMonth()
     {
         Assert.assertEquals( 29, calendar.daysInMonth( 1389, 12 ));
         Assert.assertEquals( 30, calendar.daysInMonth( 1395, 12 ));
     }
-    
+
     @Test
     public void testDaysInYears()
     {
         Assert.assertEquals( 365, calendar.daysInYear( 1389 ));
         Assert.assertEquals( 366, calendar.daysInYear( 1395 ));
     }
-      
+
 
     @Test
     public void testToIso()
@@ -89,15 +96,37 @@ public class PersianCalendarTest
         Assert.assertEquals( new DateTimeUnit( 1993, 3, 21, true ), calendar.toIso( new DateTimeUnit( 1372, 1, 1 ) ) );
         Assert.assertEquals( new DateTimeUnit( 2020, 3, 20, true ), calendar.toIso( new DateTimeUnit( 1399, 1, 1 ) ) );
     }
-       
+
 
     @Test
     public void testFromIso()
     {
         Assert.assertEquals( new DateTimeUnit( 1372, 1, 1, false ), calendar.fromIso( new DateTimeUnit( 1993, 3, 21, true ) ) );
         Assert.assertEquals( new DateTimeUnit( 1399, 1, 1, false ), calendar.fromIso( new DateTimeUnit( 2020, 3, 20, true ) ) );
+        Assert.assertEquals( new DateTimeUnit( 1383, 1, 1, false ), calendar.fromIso( new DateTimeUnit( 2004, 3, 20, true ) ) );
+  
     }
     
+    @Test
+    public void testGenerateMonthlyPeriods()
+    {
+        Date startDate = new Cal( 1997, 1, 1, true ).time();
+        Date endDate = new Cal( 1998, 1, 1, true ).time();
+
+        List<Period> monthly = new MonthlyPeriodType().generatePeriods( calendar, startDate, endDate );
+        assertEquals( 13, monthly.size() );
+    }
+    
+    @Test
+    public void testGenerateDailyPeriods()
+    {
+        Date startDate = new Cal( 1997, 1, 1, true ).time();
+        Date endDate = new Cal( 1997, 2, 1, true ).time();
+ 
+        List<Period> daily = new DailyPeriodType().generatePeriods( calendar, startDate, endDate );
+        assertEquals( 31, daily.size() );
+    }      
+
     @Test
     public void testPlusDays()
     {
@@ -121,9 +150,7 @@ public class PersianCalendarTest
         Assert.assertEquals( 30, testDateTimeUnit.getDay() );
 
     }
-    
-    
-    //anchor date. One good such date is Sunday, 1 Farvardin 1372, which equals 21 March 1993. 
+
     
     @Test
     public void testPlusWeeks()
@@ -134,9 +161,9 @@ public class PersianCalendarTest
         Assert.assertEquals( 1382, testDateTimeUnit.getYear());
         Assert.assertEquals( 2, testDateTimeUnit.getMonth());
         Assert.assertEquals( 17, testDateTimeUnit.getDay());
-              
+
     }
-    
+
     @Test
     public void testPlusMonths()
     {
@@ -146,9 +173,9 @@ public class PersianCalendarTest
         Assert.assertEquals( 1382, testDateTimeUnit.getYear());
         Assert.assertEquals( 5, testDateTimeUnit.getMonth());
         Assert.assertEquals( 20, testDateTimeUnit.getDay());
-           
+
     }
-    
+
     @Test
     public void testMinusDays()
     {
@@ -158,26 +185,26 @@ public class PersianCalendarTest
         Assert.assertEquals( 1370, testDateTimeUnit.getYear() );
         Assert.assertEquals( 12, testDateTimeUnit.getMonth() );
         Assert.assertEquals( 30, testDateTimeUnit.getDay() );
-        
+
         testDateTimeUnit = calendar.minusDays( dateTimeUnit, 366 );
         Assert.assertEquals( 1370, testDateTimeUnit.getYear() );
         Assert.assertEquals( 1, testDateTimeUnit.getMonth() );
-        Assert.assertEquals( 1, testDateTimeUnit.getDay() );  
-        
+        Assert.assertEquals( 1, testDateTimeUnit.getDay() );
+
         dateTimeUnit = new DateTimeUnit( 1371, 7, 1 );
         testDateTimeUnit = calendar.minusDays( dateTimeUnit, 1 );
         Assert.assertEquals( 1371, testDateTimeUnit.getYear() );
         Assert.assertEquals( 6, testDateTimeUnit.getMonth() );
         Assert.assertEquals( 31, testDateTimeUnit.getDay() );
-        
+
         dateTimeUnit = new DateTimeUnit( 1371, 8, 1 );
         testDateTimeUnit = calendar.minusDays( dateTimeUnit, 1 );
         Assert.assertEquals( 1371, testDateTimeUnit.getYear() );
         Assert.assertEquals( 7, testDateTimeUnit.getMonth() );
-        Assert.assertEquals( 30, testDateTimeUnit.getDay() );            
+        Assert.assertEquals( 30, testDateTimeUnit.getDay() );
     }
-    
-    
+
+
     @Test
     public void testMinusWeeks()
     {
@@ -187,9 +214,9 @@ public class PersianCalendarTest
         Assert.assertEquals( 1381, testDateTimeUnit.getYear());
         Assert.assertEquals( 12, testDateTimeUnit.getMonth());
         Assert.assertEquals( 25, testDateTimeUnit.getDay());
-              
+
     }
-    
+
     @Test
     public void testMinusMonths()
     {
@@ -199,14 +226,14 @@ public class PersianCalendarTest
         Assert.assertEquals( 1381, testDateTimeUnit.getYear());
         Assert.assertEquals( 12, testDateTimeUnit.getMonth());
         Assert.assertEquals( 20, testDateTimeUnit.getDay());
-           
+
     }
-    
+
     @Test
-    public void testWeekday() 
+    public void testWeekday()
     {
         Assert.assertEquals( 2, calendar.weekday( new DateTimeUnit( 1372, 1, 2 ) ));
     }
-    
+
 
 }

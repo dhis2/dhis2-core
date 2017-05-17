@@ -55,6 +55,8 @@ public class PersianCalendar extends AbstractCalendar
     private static final DateTimeUnit START_ISO = new DateTimeUnit( 1975, 3, 21, java.util.Calendar.FRIDAY, true );
 
     private static final Calendar SELF = new PersianCalendar();
+    
+    private static final int CYCLE = 128;
 
     public static Calendar getInstance()
     {
@@ -69,8 +71,17 @@ public class PersianCalendar extends AbstractCalendar
 
     @Override
     public DateTimeUnit toIso( DateTimeUnit dateTimeUnit )
-    {
-        if ( dateTimeUnit.isIso8601() )
+    {            
+        
+        if (dateTimeUnit.getYear() < (START_PERSIAN.getYear() + CONVERSION_MAP.size()) - CYCLE) 
+        {
+            dateTimeUnit.setYear( dateTimeUnit.getYear() + CYCLE );
+            DateTimeUnit res = new DateTimeUnit( DateTimeUnit.fromJodaDateTime( dateTimeUnit.toJodaDateTime() ), true );
+            return res;
+            
+        }
+        
+        if ( dateTimeUnit.isIso8601())
         {
             return dateTimeUnit;
         }
@@ -78,7 +89,7 @@ public class PersianCalendar extends AbstractCalendar
         DateTime dateTime = START_ISO.toJodaDateTime();
 
         int totalDays = 0;
-        
+
         for ( int year = START_PERSIAN.getYear(); year < dateTimeUnit.getYear(); year++ )
         {
             totalDays += getYearTotal( year );
@@ -105,12 +116,18 @@ public class PersianCalendar extends AbstractCalendar
     @Override
     public DateTimeUnit fromIso( DateTimeUnit dateTimeUnit )
     {
+
+        if (dateTimeUnit.getYear() < (START_PERSIAN.getYear() + CONVERSION_MAP.size()))
+        {
+            dateTimeUnit.setYear( dateTimeUnit.getYear() - CYCLE );
+            return dateTimeUnit;
+        }
         
         DateTime start = START_ISO.toJodaDateTime();
         DateTime end = dateTimeUnit.toJodaDateTime();
                 
         DateTimeUnit res = plusDays(START_PERSIAN, Days.daysBetween( start, end ).getDays() );
-        
+
         return res;
     }
 
@@ -455,10 +472,17 @@ public class PersianCalendar extends AbstractCalendar
         int curDay = dateTimeUnit.getDay();
         int dayOfWeek = dateTimeUnit.getDayOfWeek();
                 
+        boolean correction = false;       
+        if (curYear < (START_PERSIAN.getYear() + CONVERSION_MAP.size()) - CYCLE)
+        {
+            curYear = curYear + CYCLE;
+            correction = true;
+        } 
+      
         while ( days != 0 ) {
-        
+
             if (curDay < CONVERSION_MAP.get( curYear )[curMonth]) {                
-                curDay++;           
+                curDay++;
             } else {
                 curMonth++;
                 curDay = 1;
@@ -474,29 +498,33 @@ public class PersianCalendar extends AbstractCalendar
             }
         }
         
+        if (correction) {
+            curYear = curYear - CYCLE;
+        }
+        
         return new DateTimeUnit( curYear, curMonth, curDay, dayOfWeek );
-                       
+
     }
 
     @Override
     public DateTimeUnit isoStartOfYear( int year )
     {
         int day = 21;
-        
+
         int[] twenties = new int[]{1375, 1379, 1383, 1387, 1391, 1395, 1399, 1403, 1407, 1408, 1411, 1412, 1415, 1416, 1419};
-                
+
         if (contains(twenties, year)) {
             day = 20;
         }
-        
+
         return new DateTimeUnit( year + 621, 3, day, java.util.Calendar.FRIDAY, true );
-        
+
     }
-    
-    
+
+
     private boolean contains(final int[] arr, final int key) {
         return Arrays.stream(arr).anyMatch(i -> i == key);
-    }    
+    }
 
     // check if day is more than current maximum for month, don't overflow, just set to maximum
     // set day of week
@@ -522,7 +550,7 @@ public class PersianCalendar extends AbstractCalendar
      * Index 1 - 12 is used for months, index 0 is used to give year total (lazy calculated).
      */
     private static final Map<Integer, int[]> CONVERSION_MAP = new HashMap<>();
-    
+
     static
     {
         CONVERSION_MAP.put( 1354, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
@@ -590,8 +618,6 @@ public class PersianCalendar extends AbstractCalendar
         CONVERSION_MAP.put( 1416, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
         CONVERSION_MAP.put( 1417, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
         CONVERSION_MAP.put( 1418, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1419, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );            
+        CONVERSION_MAP.put( 1419, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
     }
 }
-
-
