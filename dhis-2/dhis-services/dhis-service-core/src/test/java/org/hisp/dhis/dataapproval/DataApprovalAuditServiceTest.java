@@ -294,8 +294,8 @@ public class DataApprovalAuditServiceTest
         optionGroupSetB.addCategoryOptionGroup( optionGroupA );
         optionGroupSetB.addCategoryOptionGroup( optionGroupB );
 
-        optionGroupA.setGroupSet( optionGroupSetB );
-        optionGroupB.setGroupSet( optionGroupSetB );
+        optionGroupA.getGroupSets().add( optionGroupSetB );
+        optionGroupB.getGroupSets().add( optionGroupSetB );
 
         setPrivateAccess( optionA, userGroupC );
         setPrivateAccess( optionB );
