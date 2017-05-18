@@ -29,20 +29,25 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.google.common.collect.Lists;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.LockException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.MathUtils;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -89,6 +94,12 @@ public class LockExceptionController
     @Autowired
     private WebMessageService webMessageService;
 
+    @Autowired
+    private AclService aclService;
+
+    @Autowired
+    private CurrentUserService userService;
+
 
     // -------------------------------------------------------------------------
     // Resources
@@ -131,12 +142,20 @@ public class LockExceptionController
     public void addLockException( @RequestParam( "ou" ) String organisationUnitId, @RequestParam( "pe" ) String periodId,
         @RequestParam( "ds" ) String dataSetId, HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
     {
+        User user = userService.getCurrentUser();
+
         DataSet dataSet = dataSetService.getDataSet( dataSetId );
+
         Period period = periodService.reloadPeriod( PeriodType.getPeriodFromIsoString( periodId ) );
 
         if ( dataSet == null || period == null )
         {
             throw new WebMessageException( WebMessageUtils.conflict( " DataSet or Period is invalid" ) );
+        }
+
+        if ( !aclService.canUpdate( user, dataSet ) )
+        {
+            throw new ReadAccessDeniedException( "You don't have the proper permissions to update this object" );
         }
 
         boolean created = false;
@@ -186,28 +205,34 @@ public class LockExceptionController
     }
 
     @RequestMapping( method = RequestMethod.DELETE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
+    @ResponseStatus( HttpStatus.OK )
     public void deleteLockException( @RequestParam( "ou" ) String organisationUnitId, @RequestParam( "pe" ) String periodId,
         @RequestParam( "ds" ) String dataSetId, HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
     {
+        User user = userService.getCurrentUser();
+
         DataSet dataSet = dataSetService.getDataSet( dataSetId );
+
         Period period = periodService.reloadPeriod( PeriodType.getPeriodFromIsoString( periodId ) );
         OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( organisationUnitId );
 
-        if ( dataSet != null || period != null )
+        if ( !ObjectUtils.allNonNull( dataSet, period ) )
         {
-            if ( organisationUnit != null )
-            {
-                dataSetService.deleteLockExceptionCombination( dataSet, period, organisationUnit );
-            }
-            else
-            {
-                dataSetService.deleteLockExceptionCombination( dataSet, period );
-            }
+            throw new WebMessageException( WebMessageUtils.conflict( "Can't find LockException with combination: dataSet=" + dataSetId + ", period=" + periodId ) );
+        }
+
+        if ( !aclService.canDelete( user, dataSet ) )
+        {
+            throw new ReadAccessDeniedException( "You don't have the proper permissions to delete this object." );
+        }
+
+        if ( organisationUnit != null )
+        {
+            dataSetService.deleteLockExceptionCombination( dataSet, period, organisationUnit );
         }
         else
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Can't find LockException with combination: dataSet=" + dataSetId + ", period=" + periodId ) );
+            dataSetService.deleteLockExceptionCombination( dataSet, period );
         }
     }
 }
