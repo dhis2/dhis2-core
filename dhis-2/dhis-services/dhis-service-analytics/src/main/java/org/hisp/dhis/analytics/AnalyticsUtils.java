@@ -53,7 +53,6 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.util.Assert;
-import static org.hisp.dhis.dataelement.DataElementOperand.TotalType;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -61,6 +60,8 @@ import java.util.Map.Entry;
 import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_MAP;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.dataelement.DataElementOperand.TotalType;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
 
 /**
  * @author Lars Helge Overland
@@ -228,9 +229,26 @@ public class AnalyticsUtils
         
         for ( Entry<String, T> entry : valueMap.entrySet() )
         {
+            List<String> items = Lists.newArrayList( entry.getKey().split( DimensionalObject.DIMENSION_SEP ) );
+            List<String> operands = items.subList( 0, totalType.getPropertyCount() + 1 );
+            List<String> dimensions = items.subList( totalType.getPropertyCount() + 1, items.size() );
+            
+            if ( TotalType.AOC_ONLY == totalType )
+            {
+                operands.add( 1, SYMBOL_DAYS );
+            }
+            
+            String operand = StringUtils.join( operands, DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP );
+            String dimension = StringUtils.join( dimensions, DimensionalObject.DIMENSION_SEP );
+            dimension = dimension != null ? ( DimensionalObject.DIMENSION_SEP + dimension ) : StringUtils.EMPTY;
+            String key = operand + dimension;
+            
+            map.put( key, entry.getValue() );
+            
+            /*
             map.put( TextUtils.replaceFirst( 
-                entry.getKey(), DimensionalObject.DIMENSION_SEP, DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP, totalType.getPropertyCount() ), 
-                entry.getValue() );
+                key, DimensionalObject.DIMENSION_SEP, DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP, totalType.getPropertyCount() ), 
+                entry.getValue() );*/
         }
         
         return map;
