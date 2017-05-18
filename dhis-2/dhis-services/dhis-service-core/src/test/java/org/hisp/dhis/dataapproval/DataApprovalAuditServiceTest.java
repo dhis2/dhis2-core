@@ -85,7 +85,7 @@ public class DataApprovalAuditServiceTest
 
     @Autowired
     private DataApprovalLevelService dataApprovalLevelService;
-    
+
     @Autowired
     private DataApprovalService dataApprovalService;
 
@@ -112,7 +112,7 @@ public class DataApprovalAuditServiceTest
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
-    
+
     // -------------------------------------------------------------------------
     // Supporting data
     // -------------------------------------------------------------------------
