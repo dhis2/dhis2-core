@@ -191,7 +191,7 @@ public class DataElementCategoryServiceTest
         assertEquals( 1, categoryService.getCategoryOptionGroup( idB ).getMembers().size() );
         assertEquals( 0, categoryService.getCategoryOptionGroup( idC ).getMembers().size() );
     }
-    
+
     // -------------------------------------------------------------------------
     // CategoryOptionGroupSet
     // -------------------------------------------------------------------------
