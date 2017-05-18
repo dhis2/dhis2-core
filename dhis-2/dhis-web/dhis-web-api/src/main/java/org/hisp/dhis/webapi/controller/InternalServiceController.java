@@ -69,7 +69,7 @@ public class InternalServiceController
     {
         boolean hasAllAuth = currentUserService.getCurrentUser().isAuthorized( UserAuthorityGroup.AUTHORITY_ALL );
 
-        if ( config.isEnabled( ConfigurationKey.INTERNAL_SERVICE_API ) && hasAllAuth )
+        if ( config.isEnabled( ConfigurationKey.SYSTEM_INTERNAL_SERVICE_API ) && hasAllAuth )
         {
             dbmsManager.emptyDatabase();
         }

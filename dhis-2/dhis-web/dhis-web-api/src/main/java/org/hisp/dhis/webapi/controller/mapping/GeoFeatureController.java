@@ -227,7 +227,7 @@ public class GeoFeatureController
 
                     if ( group != null )
                     {
-                        feature.getDimensions().put( groupSet.getUid(), group.getName() );
+                        feature.getDimensions().put( groupSet.getUid(), group.getUid() );
                     }
                 }
             }

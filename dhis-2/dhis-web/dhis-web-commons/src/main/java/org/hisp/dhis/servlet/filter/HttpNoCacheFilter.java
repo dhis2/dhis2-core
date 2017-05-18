@@ -28,22 +28,21 @@ package org.hisp.dhis.servlet.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
+import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpMethod;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.http.CacheControl;
-import org.springframework.http.HttpMethod;
+import java.io.IOException;
 
 /**
- * Filter which enforces no cache for HTML pages like 
- * index pages to prevent stale versions being rendered 
+ * Filter which enforces no cache for HTML pages like
+ * index pages to prevent stale versions being rendered
  * in clients.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class HttpNoCacheFilter
@@ -53,13 +52,11 @@ public class HttpNoCacheFilter
     public final void doHttpFilter( HttpServletRequest request, HttpServletResponse response, FilterChain chain )
         throws IOException, ServletException
     {
-        HttpServletResponse httpResponse = (HttpServletResponse) response;
-        
         if ( HttpMethod.GET == HttpMethod.resolve( request.getMethod() ) )
-        {        
-            ContextUtils.setCacheControl( httpResponse, CacheControl.noStore().cachePrivate() );
+        {
+            ContextUtils.setCacheControl( response, CacheControl.noStore().cachePrivate() );
         }
-        
+
         chain.doFilter( request, response );
     }
 }

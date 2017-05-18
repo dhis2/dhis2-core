@@ -37,14 +37,8 @@ public class ClickatellGatewayConfig
     extends SmsGatewayConfig
 {
     private static final long serialVersionUID = -4286107769356591957L;
-    
-    private final String TOKEN_PREFIX = "Bearer ";
-    
-    private final String URL_TEMPLATE = "https://api.clickatell.com/rest/message";
 
-    private String username;
-
-    private String password;
+    private final String URL_TEMPLATE = "https://platform.clickatell.com/messages";
     
     private String authToken;
 
@@ -56,35 +50,13 @@ public class ClickatellGatewayConfig
 
     public void setAuthToken( String authToken )
     {
-        this.authToken = TOKEN_PREFIX + authToken;
-    }
-
-    @JsonProperty( value = "username" )
-    public String getUsername()
-    {
-        return username;
-    }
-
-    public void setUsername( String username )
-    {
-        this.username = username;
-    }
-
-    public String getPassword()
-    {
-        return password;
+        this.authToken = authToken;
     }
 
     @JsonProperty( value = "default" )
     public boolean getStatus()
     {
         return super.isDefault();
-    }
-
-    @JsonProperty
-    public void setPassword( String password )
-    {
-        this.password = password;
     }
 
     @JsonProperty( value = "name" )

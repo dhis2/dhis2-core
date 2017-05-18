@@ -141,4 +141,16 @@ public class TextUtilsTest
         assertEquals( "mamamand", TextUtils.replaceFirst( "lalaland", "la", "ma", 3 ) );
         assertEquals( "lalaland", TextUtils.replaceFirst( "lalaland", "la", "ma", 0 ) );
     }
+    
+    @Test
+    public void testReplace()
+    {        
+        String actual = TextUtils.replace( "select * from {table} where {column} = 'Foo'", "{table}", "dataelement", "{column}", "name" );
+        
+        assertEquals( "select * from dataelement where name = 'Foo'", actual );
+        
+        actual = TextUtils.replace( "Hi [name] and welcome to [place]", "[name]", "Frank", "[place]", "Oslo" );
+        
+        assertEquals( "Hi Frank and welcome to Oslo", actual );
+    }
 }

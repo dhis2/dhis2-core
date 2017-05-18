@@ -399,6 +399,7 @@ public abstract class AbstractEnrollmentService
         programInstance.setFollowup( enrollment.getFollowup() );
 
         programInstanceService.updateProgramInstance( programInstance );
+        manager.update( programInstance.getEntityInstance() );
 
         saveTrackedEntityComment( programInstance, enrollment );
 
@@ -528,6 +529,7 @@ public abstract class AbstractEnrollmentService
         updateDateFields( enrollment, programInstance );
 
         programInstanceService.updateProgramInstance( programInstance );
+        manager.update( programInstance.getEntityInstance() );
 
         saveTrackedEntityComment( programInstance, enrollment );
 
@@ -577,6 +579,7 @@ public abstract class AbstractEnrollmentService
         if ( programInstance != null )
         {
             programInstanceService.deleteProgramInstance( programInstance );
+            manager.update( programInstance.getEntityInstance() );
             return new ImportSummary( ImportStatus.SUCCESS, "Deletion of enrollment " + uid + " was successful." ).incrementDeleted();
         }
 
@@ -609,6 +612,7 @@ public abstract class AbstractEnrollmentService
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
         programInstanceService.cancelProgramInstanceStatus( programInstance );
+        manager.update( programInstance.getEntityInstance() );
     }
 
     @Override
@@ -616,6 +620,7 @@ public abstract class AbstractEnrollmentService
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
         programInstanceService.completeProgramInstanceStatus( programInstance );
+        manager.update( programInstance.getEntityInstance() );
     }
 
     @Override
@@ -623,6 +628,7 @@ public abstract class AbstractEnrollmentService
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
         programInstanceService.incompleteProgramInstanceStatus( programInstance );
+        manager.update( programInstance.getEntityInstance() );
     }
 
     // -------------------------------------------------------------------------

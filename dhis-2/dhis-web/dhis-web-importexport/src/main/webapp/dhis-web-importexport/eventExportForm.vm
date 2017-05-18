@@ -46,6 +46,7 @@
       url += "&endDate=" + endDate;
       url += "&links=false";
       url += "&skipPaging=true";
+      url += "&includeDeleted=true";
 
       url += "&idScheme=" + idscheme;
 

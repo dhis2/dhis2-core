@@ -1,4 +1,4 @@
-package org.hisp.dhis.system.filter;
+package org.hisp.dhis.commons.sqlfunc;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,20 +28,18 @@ package org.hisp.dhis.system.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.commons.filter.Filter;
-
 /**
- * TODO remove
+ * Function which evaluates to the number of years between two given dates.
  * 
- * @author Lars Helge Overland
+ * @author Markus Bekken
  */
-public class OrganisationUnitGroupWithoutGroupSetFilter
-    implements Filter<OrganisationUnitGroup>
+public class YearsBetweenSqlFunction
+    extends BaseDateComparatorSqlFunction
 {
-    @Override
-    public boolean retain( OrganisationUnitGroup object )
+    public static final String KEY = "yearsBetween";
+    
+    protected String compare( String startDate, String endDate )
     {
-        return object == null || object.getGroupSet() == null;
+        return "(date_part('year',age(cast(" + endDate + " as date), cast(" + startDate + " as date))))";
     }
 }

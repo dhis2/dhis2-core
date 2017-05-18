@@ -40,9 +40,7 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.common.adapter.JacksonOrganisationUnitChildrenSerializer;
@@ -641,7 +639,7 @@ public class OrganisationUnit
     }
 
     /**
-     * Returns the list of ancestor organisation unit names up to any of the given 
+     * Returns the list of ancestor organisation unit names up to any of the given
      * roots for this organisation unit. The list is ordered by root first.
      *
      * @param roots the root organisation units, if null using real roots.
@@ -649,12 +647,12 @@ public class OrganisationUnit
     public List<String> getAncestorNames( Collection<OrganisationUnit> roots, boolean includeThis )
     {
         List<String> units = new ArrayList<>();
-        
+
         if ( includeThis )
         {
             units.add( getDisplayName() );
         }
-        
+
         OrganisationUnit unit = parent;
 
         while ( unit != null )
@@ -672,7 +670,7 @@ public class OrganisationUnit
         Collections.reverse( units );
         return units;
     }
-    
+
     /**
      * Returns the list of ancestor organisation unit UIDs up to any of the given roots
      * for this organisation unit. Does not include itself. The list is ordered by
@@ -851,7 +849,7 @@ public class OrganisationUnit
 
         return map;
     }
-    
+
     /**
      * Indicates whether this organisation unit is associated with the given
      * data element through its data set associations.
@@ -1242,54 +1240,5 @@ public class OrganisationUnit
     public void setMemberCount( Integer memberCount )
     {
         this.memberCount = memberCount;
-    }
-
-    // -------------------------------------------------------------------------
-    // Merge
-    // -------------------------------------------------------------------------
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            OrganisationUnit organisationUnit = (OrganisationUnit) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                openingDate = organisationUnit.getOpeningDate();
-                closedDate = organisationUnit.getClosedDate();
-                comment = organisationUnit.getComment();
-                featureType = organisationUnit.getFeatureType();
-                coordinates = organisationUnit.getCoordinates();
-                url = organisationUnit.getUrl();
-                contactPerson = organisationUnit.getContactPerson();
-                address = organisationUnit.getAddress();
-                email = organisationUnit.getEmail();
-                phoneNumber = organisationUnit.getPhoneNumber();
-                parent = organisationUnit.getParent();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                openingDate = organisationUnit.getOpeningDate() == null ? openingDate : organisationUnit.getOpeningDate();
-                closedDate = organisationUnit.getClosedDate() == null ? closedDate : organisationUnit.getClosedDate();
-                comment = organisationUnit.getComment() == null ? comment : organisationUnit.getComment();
-                featureType = organisationUnit.getFeatureType() == null ? featureType : organisationUnit.getFeatureType();
-                coordinates = organisationUnit.getCoordinates() == null ? coordinates : organisationUnit.getCoordinates();
-                url = organisationUnit.getUrl() == null ? url : organisationUnit.getUrl();
-                contactPerson = organisationUnit.getContactPerson() == null ? contactPerson : organisationUnit.getContactPerson();
-                address = organisationUnit.getAddress() == null ? address : organisationUnit.getAddress();
-                email = organisationUnit.getEmail() == null ? email : organisationUnit.getEmail();
-                phoneNumber = organisationUnit.getPhoneNumber() == null ? phoneNumber : organisationUnit.getPhoneNumber();
-                parent = organisationUnit.getParent() == null ? parent : organisationUnit.getParent();
-            }
-
-            groups.clear();
-            users.clear();
-            dataSets.clear();
-            programs.clear();
-        }
     }
 }

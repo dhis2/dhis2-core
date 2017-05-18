@@ -11,6 +11,8 @@
             <generator class="native"/>
         </id>
 
+        <property name="created" type="timestamp" not-null="true" />
+
         <property name="leftsideValue"/>
 
         <property name="rightsideValue"/>

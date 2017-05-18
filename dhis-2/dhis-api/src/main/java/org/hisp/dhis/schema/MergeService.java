@@ -1,4 +1,4 @@
-package org.hisp.dhis.common.adapter;
+package org.hisp.dhis.schema;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,38 +26,21 @@ package org.hisp.dhis.common.adapter;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
-
-import org.hisp.dhis.common.BaseIdentifiableObject;
-
-import javax.xml.bind.annotation.adapters.XmlAdapter;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class BaseIdentifiableObjectXmlAdapter extends XmlAdapter<BaseIdentifiableObject, BaseIdentifiableObject>
+public interface MergeService
 {
-    @Override
-    public BaseIdentifiableObject unmarshal( BaseIdentifiableObject baseIdentifiableObject )
-    {
-        return baseIdentifiableObject;
-    }
+    /**
+     * Merges source object into target object, requires a "schema friendly" class.
+     */
+    <T> T merge( MergeParams<T> mergeParams );
 
-    @Override
-    public BaseIdentifiableObject marshal( BaseIdentifiableObject baseIdentifiableObject )
-    {
-        if ( baseIdentifiableObject != null )
-        {
-            BaseIdentifiableObject bio = new BaseIdentifiableObject();
-
-            bio.setUid( baseIdentifiableObject.getUid() );
-            bio.setName( baseIdentifiableObject.getName() );
-            bio.setLastUpdated( baseIdentifiableObject.getLastUpdated() );
-            bio.setHref( baseIdentifiableObject.getHref() );
-
-            return bio;
-        }
-
-        return null;
-    }
+    /**
+     * Clones source into target, using REPLACE mode.
+     */
+    <T> T clone( T source );
 }

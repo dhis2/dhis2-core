@@ -110,7 +110,7 @@ public abstract class PeriodType
     // -------------------------------------------------------------------------
 
     /**
-     * All period types in descending order according to frequency.
+     * All period types enumerated in descending order according to frequency.
      */
     public static final List<PeriodType> PERIOD_TYPES = new ArrayList<PeriodType>()
     {

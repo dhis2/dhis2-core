@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.dataelement.DataElementGroupSetDimension" table="dataelementgroupsetdimension">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="dataelementgroupsetdimensionid">
+      <generator class="native" />
+    </id>
+    
+    <many-to-one name="dimension" class="org.hisp.dhis.dataelement.DataElementGroupSet" column="dataelementgroupsetid"
+      foreign-key="fk_dimension_dataelementgroupsetid" />
+    
+    <list name="items" table="dataelementgroupsetdimension_items">
+      <cache usage="read-write" />
+      <key column="dataelementgroupsetdimensionid" foreign-key="fk_dimension_items_dataelementgroupsetdimensionid" />
+      <list-index column="sort_order" />
+      <many-to-many class="org.hisp.dhis.dataelement.DataElementGroup" column="dataelementgroupid"
+        foreign-key="fk_dimension_items_dataelementgroupid" />
+    </list>
+  </class>
+</hibernate-mapping>

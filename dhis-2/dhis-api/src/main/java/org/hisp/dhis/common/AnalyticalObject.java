@@ -1,5 +1,8 @@
 package org.hisp.dhis.common;
 
+import org.hisp.dhis.dataelement.CategoryOptionGroupSetDimension;
+import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -28,8 +31,8 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.period.Period;
 
 import java.util.Date;
@@ -60,11 +63,15 @@ public interface AnalyticalObject
     
     List<OrganisationUnit> getOrganisationUnits();
     
-    List<CategoryOptionGroup> getCategoryOptionGroups();
-        
     boolean addDataDimensionItem( DimensionalItemObject object );
     
     boolean removeDataDimensionItem( DimensionalItemObject object );
+    
+    void addDataElementGroupSetDimension( DataElementGroupSetDimension dimension );
+    
+    void addOrganisationUnitGroupSetDimension( OrganisationUnitGroupSetDimension dimension );
+    
+    void addCategoryOptionGroupSetDimension( CategoryOptionGroupSetDimension dimension );
     
     String getTitle();
     

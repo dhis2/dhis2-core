@@ -26,6 +26,12 @@
         foreign-key="fk_categoryoptiongroupmembers_categoryoptiongroupid" />
     </set>
 
+    <set name="groupSets" table="categoryoptiongroupsetmembers" inverse="true">
+      <cache usage="read-write" />
+      <key column="categoryoptiongroupid" />
+      <many-to-many class="org.hisp.dhis.dataelement.CategoryOptionGroupSet" column="categoryoptiongroupsetid" />    
+    </set>
+    
     <property name="dataDimensionType" column="datadimensiontype" type="org.hisp.dhis.common.DataDimensionTypeUserType" />
 
     <!-- Dynamic attribute values -->
@@ -59,11 +65,6 @@
       <key column="categoryoptiongroupid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
-
-    <join table="categoryoptiongroupsetmembers" inverse="true">
-      <key column="categoryoptiongroupid" />
-      <many-to-one column="categoryoptiongroupsetid" name="groupSet" />
-    </join>
 
   </class>
 

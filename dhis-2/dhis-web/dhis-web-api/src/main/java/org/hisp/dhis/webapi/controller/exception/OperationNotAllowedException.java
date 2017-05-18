@@ -1,4 +1,4 @@
-package org.hisp.dhis.dataprune;
+package org.hisp.dhis.webapi.controller.exception;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,14 +28,26 @@ package org.hisp.dhis.dataprune;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
 /**
- * @author Quang Nguyen
- * @version Apr 6, 2010 5:44:47 PM
+ * Created by sultanm.
+ * This exception could be used in all operation forbidden cases
  */
-
-public interface DataPruneService
+public class OperationNotAllowedException
+    extends Exception
 {
-    int pruneOrganisationUnit( OrganisationUnit organisationUnit );
+
+    public OperationNotAllowedException( String message )
+    {
+        super( message );
+    }
+
+    public OperationNotAllowedException( Throwable cause )
+    {
+        super( cause );
+    }
+
+    public OperationNotAllowedException( String message, Throwable cause )
+    {
+        super( message, cause );
+    }
 }

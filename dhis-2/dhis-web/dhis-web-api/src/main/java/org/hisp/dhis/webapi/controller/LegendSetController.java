@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
  *
  */
 
+import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -92,8 +93,7 @@ public class LegendSetController
         newLegendSet.setUser( currentUserService.getCurrentUser() );
         newLegendSet.setUid( legendSet.getUid() );
 
-        legendSet.mergeWith( newLegendSet, params.getMergeMode() );
-
+        mergeService.merge( new MergeParams<>( newLegendSet, legendSet ).setMergeMode( params.getMergeMode() ) );
         legendSetService.updateLegendSet( legendSet );
     }
 

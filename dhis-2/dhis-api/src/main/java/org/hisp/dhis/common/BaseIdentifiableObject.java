@@ -35,7 +35,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.annotation.Description;
@@ -44,7 +43,6 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.acl.Access;
-import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.translation.ObjectTranslation;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.User;
@@ -596,27 +594,6 @@ public class BaseIdentifiableObject
     }
 
     /**
-     * Clear out all sharing properties.
-     *
-     * @param clearUser Clear out user property
-     */
-    public void clearSharing( boolean clearUser )
-    {
-        if ( clearUser )
-        {
-            user = null;
-        }
-
-        publicAccess = AccessStringHelper.DEFAULT;
-        externalAccess = false;
-
-        if ( userGroupAccesses != null )
-        {
-            userGroupAccesses.clear();
-        }
-    }
-
-    /**
      * Returns the value of the property referred to by the given IdScheme.
      *
      * @param idScheme the IdScheme.
@@ -686,55 +663,5 @@ public class BaseIdentifiableObject
             "\"created\":\"" + getCreated() + "\", " +
             "\"lastUpdated\":\"" + getLastUpdated() + "\" " +
             "}";
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        Validate.notNull( other );
-
-        if ( mergeMode.isReplace() )
-        {
-            uid = other.getUid();
-            name = other.getName();
-            code = other.getCode();
-            lastUpdated = other.getLastUpdated();
-            created = other.getCreated();
-            user = other.getUser();
-        }
-        else if ( mergeMode.isMerge() )
-        {
-            uid = other.getUid() == null ? uid : other.getUid();
-            name = other.getName() == null ? name : other.getName();
-            code = other.getCode() == null ? code : other.getCode();
-            lastUpdated = other.getLastUpdated() == null ? lastUpdated : other.getLastUpdated();
-            created = other.getCreated() == null ? created : other.getCreated();
-            user = other.getUser() == null ? user : other.getUser();
-        }
-
-        attributeValues.clear();
-        attributeValues.addAll( other.getAttributeValues() );
-
-        translations.clear();
-        translations.addAll( other.getTranslations() );
-
-        translationCache.clear();
-    }
-
-    @Override
-    public void mergeSharingWith( IdentifiableObject other )
-    {
-        Validate.notNull( other );
-
-        // sharing
-        user = other.getUser() == null ? user : other.getUser();
-        publicAccess = other.getPublicAccess() == null ? publicAccess : other.getPublicAccess();
-        externalAccess = other.getExternalAccess();
-
-        userGroupAccesses.clear();
-        userGroupAccesses.addAll( other.getUserGroupAccesses() );
-
-        userAccesses.clear();
-        userAccesses.addAll( other.getUserAccesses() );
     }
 }

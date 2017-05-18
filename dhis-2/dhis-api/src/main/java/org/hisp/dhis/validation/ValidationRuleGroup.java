@@ -35,8 +35,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
@@ -120,32 +118,5 @@ public class ValidationRuleGroup
     public void setMembers( Set<ValidationRule> members )
     {
         this.members = members;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            ValidationRuleGroup validationRuleGroup = (ValidationRuleGroup) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                description = validationRuleGroup.getDescription();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                description = validationRuleGroup.getDescription() == null ? description : validationRuleGroup.getDescription();
-            }
-
-            removeAllValidationRules();
-
-            for ( ValidationRule validationRule : validationRuleGroup.getMembers() )
-            {
-                addValidationRule( validationRule );
-            }
-        }
     }
 }

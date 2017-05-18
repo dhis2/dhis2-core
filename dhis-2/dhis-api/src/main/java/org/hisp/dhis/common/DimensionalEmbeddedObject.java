@@ -1,4 +1,4 @@
-package org.hisp.dhis.dataelement;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,45 +28,16 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.jdbc.core.JdbcTemplate;
+import java.util.List;
 
 /**
- * @author Lars Helge Overland
- */
-public class DataElementCategoryDimensionDeletionHandler
-    extends DeletionHandler
+* @author Lars Helge Overland
+*/
+public interface DimensionalEmbeddedObject
 {
-    private JdbcTemplate jdbcTemplate;
-
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
-    {
-        this.jdbcTemplate = jdbcTemplate;
-    }
-
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String getClassName()
-    {
-        return DataElementCategoryDimension.class.getSimpleName();
-    }
+    int getId();
     
-    @Override
-    public String allowDeleteDataElementCategoryOption( DataElementCategoryOption categoryOption )
-    {
-        String sql = "select count(*) from categorydimension_items where categoryoptionid = " + categoryOption.getId();
-        
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
-    }
+    DimensionalObject getDimension();
     
-    @Override
-    public String allowDeleteDataElementCategory( DataElementCategory category )
-    {
-        String sql = "select count(*) from categorydimension where categoryid = " + category.getId();
-        
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
-    }
+    List<? extends DimensionalItemObject> getItems();
 }

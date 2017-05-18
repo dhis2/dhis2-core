@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.dxf2.webmessage;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,17 +26,30 @@ package org.hisp.dhis.common;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
+
+import java.io.IOException;
 
 /**
- * This interface is for merging one object into another, this is to be used by code supporting
- * hibernate which means that for merging associations, only the owning side will be updated.
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Created by vanyas on 5/5/17.
  */
-public interface Mergeable<T>
+public class WebMessageParseException
+    extends IOException
 {
-    void mergeWith( T other, MergeMode mergeMode );
+    public WebMessageParseException( String message )
+    {
+        super( message );
+    }
 
-    void mergeSharingWith( T other );
+    public WebMessageParseException( Throwable cause )
+    {
+        super( cause );
+    }
+
+    public WebMessageParseException( String message, Throwable cause )
+    {
+        super( message, cause );
+    }
+
 }

@@ -101,6 +101,7 @@ public class Event
 
     public Event()
     {
+        deleted = false;
     }
 
     public String getUid()

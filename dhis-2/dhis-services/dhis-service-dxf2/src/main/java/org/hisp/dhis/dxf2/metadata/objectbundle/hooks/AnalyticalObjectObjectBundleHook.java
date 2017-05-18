@@ -33,7 +33,7 @@ import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dataelement.DataElementCategoryDimension;
+import org.hisp.dhis.dataelement.CategoryDimension;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.schema.Schema;
@@ -120,7 +120,7 @@ public class AnalyticalObjectObjectBundleHook
     {
         if ( !schema.havePersistedProperty( "categoryDimensions" ) ) return;
 
-        for ( DataElementCategoryDimension categoryDimension : analyticalObject.getCategoryDimensions() )
+        for ( CategoryDimension categoryDimension : analyticalObject.getCategoryDimensions() )
         {
             if ( categoryDimension == null )
             {

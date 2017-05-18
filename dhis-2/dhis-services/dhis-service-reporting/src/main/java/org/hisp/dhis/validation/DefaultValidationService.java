@@ -536,7 +536,8 @@ public class DefaultValidationService
      * @param dimClass Class of dimensional object
      * @param idClasses Component class(es) of identifiable objects
      */
-    private void getIdentifiableObjectIds( SetMap<Class<? extends IdentifiableObject>, String> idsToGet,
+    @SafeVarargs
+    private final void getIdentifiableObjectIds( SetMap<Class<? extends IdentifiableObject>, String> idsToGet,
         SetMap<Class<? extends DimensionalItemObject>, String> expressionIdMap,
         Class<? extends DimensionalItemObject> dimClass,
         Class<? extends IdentifiableObject>... idClasses )

@@ -26,6 +26,12 @@
         foreign-key="fk_dataelementgroup_dataelementid" />
     </set>
 
+    <set name="groupSets" table="dataelementgroupsetmembers" inverse="true">
+      <cache usage="read-write" />
+      <key column="dataelementgroupid" />
+      <many-to-many class="org.hisp.dhis.dataelement.DataElementGroupSet" column="dataelementgroupsetid" />
+    </set>
+
     <!-- Dynamic attribute values -->
 
     <set name="attributeValues" table="dataelementgroupattributevalues" cascade="all-delete-orphan">
@@ -57,11 +63,6 @@
       <key column="dataelementgroupid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
-
-    <join table="dataelementgroupsetmembers" inverse="true">
-      <key column="dataelementgroupid" />
-      <many-to-one column="dataelementgroupsetid" name="groupSet" />
-    </join>
 
   </class>
 

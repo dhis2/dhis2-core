@@ -34,8 +34,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 
 import java.util.Objects;
@@ -190,29 +188,5 @@ public class DataEntryForm
     public void setFormat( int format )
     {
         this.format = format;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DataEntryForm dataEntryForm = (DataEntryForm) other;
-
-            format = dataEntryForm.getFormat();
-
-            if ( mergeMode.isReplace() )
-            {
-                style = dataEntryForm.getStyle();
-                htmlCode = dataEntryForm.getHtmlCode();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                style = dataEntryForm.getStyle() == null ? style : dataEntryForm.getStyle();
-                htmlCode = dataEntryForm.getHtmlCode() == null ? htmlCode : dataEntryForm.getHtmlCode();
-            }
-        }
     }
 }

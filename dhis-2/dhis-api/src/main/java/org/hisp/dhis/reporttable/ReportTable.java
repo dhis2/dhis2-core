@@ -48,7 +48,6 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ValueType;
@@ -532,9 +531,9 @@ public class ReportTable
      * Generates a grid for this report table based on the given aggregate value
      * map.
      *
-     * @param grid the grid, should be empty and not null.
-     * @param valueMap the mapping of identifiers to aggregate values.
-     * @param displayProperty the display property to use for meta data.
+     * @param grid               the grid, should be empty and not null.
+     * @param valueMap           the mapping of identifiers to aggregate values.
+     * @param displayProperty    the display property to use for meta data.
      * @param reportParamColumns whether to include report parameter columns.
      * @return a grid.
      */
@@ -676,8 +675,8 @@ public class ReportTable
         if ( showHierarchy && rowDimensions.contains( ORGUNIT_DIM_ID ) && grid.hasInternalMetaDataKey( AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS.getKey() ) )
         {
             int ouIdColumnIndex = rowDimensions.indexOf( ORGUNIT_DIM_ID ) * 4;
-            
-            addHierarchyColumns( grid, ouIdColumnIndex );            
+
+            addHierarchyColumns( grid, ouIdColumnIndex );
         }
 
         return grid;
@@ -692,29 +691,29 @@ public class ReportTable
      */
     @SuppressWarnings( "unchecked" )
     private void addHierarchyColumns( Grid grid, int ouIdColumnIndex )
-    {   
+    {
         Map<Object, List<?>> ancestorMap = (Map<Object, List<?>>) grid.getInternalMetaData().get( AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS.getKey() );
 
         Assert.notEmpty( ancestorMap, "Ancestor map cannot be null or empty when show hierarchy is enabled" );
-        
+
         int newColumns = ancestorMap.values().stream().mapToInt( List::size ).max().orElseGet( () -> 0 );
-        
+
         List<GridHeader> headers = new ArrayList<>();
-        
+
         for ( int i = 0; i < newColumns; i++ )
         {
             int level = i + 1;
-            
+
             String name = String.format( "Org unit level %d", level );
             String column = String.format( "orgunitlevel%d", level );
-            
+
             headers.add( new GridHeader( name, column, ValueType.TEXT, String.class.getName(), false, true ) );
         }
-        
+
         grid.addHeaders( ouIdColumnIndex, headers );
         grid.addAndPopulateColumnsBefore( ouIdColumnIndex, ancestorMap, newColumns );
     }
-    
+
     /**
      * Returns the number of empty lists among the argument lists.
      */
@@ -1073,56 +1072,5 @@ public class ReportTable
     {
         this.gridTitle = gridTitle;
         return this;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            ReportTable reportTable = (ReportTable) other;
-
-            regression = reportTable.isRegression();
-            cumulative = reportTable.isCumulative();
-            rowTotals = reportTable.isRowTotals();
-            colTotals = reportTable.isColTotals();
-            rowSubTotals = reportTable.isRowSubTotals();
-            colSubTotals = reportTable.isColSubTotals();
-            hideEmptyRows = reportTable.isHideEmptyRows();
-            showHierarchy = reportTable.isShowHierarchy();
-            showDimensionLabels = reportTable.isShowDimensionLabels();
-            skipRounding = reportTable.isSkipRounding();
-            hideEmptyRows = reportTable.isHideEmptyRows();
-            topLimit = reportTable.getTopLimit();
-            sortOrder = reportTable.getSortOrder();
-            legendDisplayStrategy = reportTable.getLegendDisplayStrategy();
-            legendDisplayStyle = reportTable.getLegendDisplayStyle();
-
-            if ( mergeMode.isReplace() )
-            {
-                reportParams = reportTable.getReportParams();
-                displayDensity = reportTable.getDisplayDensity();
-                fontSize = reportTable.getFontSize();
-                legendSet = reportTable.getLegendSet();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                reportParams = reportTable.getReportParams() == null ? reportParams : reportTable.getReportParams();
-                displayDensity = reportTable.getDisplayDensity() == null ? displayDensity : reportTable.getDisplayDensity();
-                fontSize = reportTable.getFontSize() == null ? fontSize : reportTable.getFontSize();
-                legendSet = reportTable.getLegendSet() == null ? legendSet : reportTable.getLegendSet();
-            }
-
-            columnDimensions.clear();
-            columnDimensions.addAll( reportTable.getColumnDimensions() );
-
-            rowDimensions.clear();
-            rowDimensions.addAll( reportTable.getRowDimensions() );
-
-            filterDimensions.clear();
-            filterDimensions.addAll( reportTable.getFilterDimensions() );
-        }
     }
 }

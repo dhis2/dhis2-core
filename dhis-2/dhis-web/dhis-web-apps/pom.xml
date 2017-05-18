@@ -197,6 +197,15 @@
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-interpretation</outputDirectory>
                   <includes>**/*.*</includes>
                 </artifactItem>
+                <!-- Datastore -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-datastore</artifactId>
+                  <version>2.27-SNAPSHOT</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-datastore</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
               </artifactItems>
             </configuration>
           </execution>

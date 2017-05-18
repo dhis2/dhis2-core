@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.commons.sqlfunc;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,12 +28,27 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.node.Provider;
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Function which evaluates a relation between two given dates.
+ * 
+ * @author Markus Bekken
  */
-public interface NamedProvider<T> extends Provider<T>
+public abstract class BaseDateComparatorSqlFunction
+    implements SqlFunction
 {
-    String name();
+    protected abstract String compare( String startDate, String endDate );
+    
+    @Override
+    public String evaluate( String... args )
+    {
+        if ( args == null || args.length != 2 )
+        {
+            throw new IllegalArgumentException( "Illegal arguments, expected 2 arguments: start-date, end-date" );
+        }
+        
+        String startDate = args[0];
+        String endDate = args[1];
+        
+        return compare( startDate, endDate );
+    }
 }

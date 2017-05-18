@@ -20,6 +20,9 @@
     <many-to-one name="recipientUserGroup" class="org.hisp.dhis.user.UserGroup"
       column="usergroupid" foreign-key="fk_programstagenotification_usergroup" not-null="false" />
 
+    <many-to-one name="recipientProgramAttribute" class="org.hisp.dhis.trackedentity.TrackedEntityAttribute"
+                 column="trackedentityattributeid" foreign-key="fk_programstagenotification_trackedentityattributeid" not-null="false" />
+
     <!-- TODO Should we allow null-templates? -->
 
     <property name="subjectTemplate" column="subjecttemplate" not-null="false" length="100" />

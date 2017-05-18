@@ -36,8 +36,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 
 import java.util.HashSet;
@@ -197,19 +195,5 @@ public class UserGroup
     public void setManagedByGroups( Set<UserGroup> managedByGroups )
     {
         this.managedByGroups = managedByGroups;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            UserGroup userGroup = (UserGroup) other;
-
-            members.clear();
-            members.addAll( userGroup.getMembers() );
-        }
     }
 }

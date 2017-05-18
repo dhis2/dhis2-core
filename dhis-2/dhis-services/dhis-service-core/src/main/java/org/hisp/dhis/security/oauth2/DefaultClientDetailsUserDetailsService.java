@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.metadata;
+package org.hisp.dhis.security.oauth2;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,20 +26,35 @@ package org.hisp.dhis.dxf2.metadata;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
+
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.oauth2.provider.ClientDetailsService;
+import org.springframework.security.oauth2.provider.ClientRegistrationException;
+import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface MergeService
+public class DefaultClientDetailsUserDetailsService extends ClientDetailsUserDetailsService
 {
-    /**
-     * Merges source object into target object, requires a "schema friendly" class.
-     */
-    <T> T merge( MergeParams<T> mergeParams );
+    public DefaultClientDetailsUserDetailsService( ClientDetailsService clientDetailsService )
+    {
+        super( clientDetailsService );
+    }
 
-    /**
-     * Clones source into target, using REPLACE mode.
-     */
-    <T> T clone( T source );
+    @Override
+    public UserDetails loadUserByUsername( String username ) throws UsernameNotFoundException
+    {
+        try
+        {
+            return super.loadUserByUsername( username );
+        }
+        catch ( ClientRegistrationException ex )
+        {
+            throw new UsernameNotFoundException( ex.getMessage(), ex );
+        }
+    }
 }

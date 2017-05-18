@@ -29,7 +29,6 @@ package org.hisp.dhis.resourcetable.table;
  */
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -96,7 +95,6 @@ public class PeriodResourceTable
         {
             if ( period != null && period.isValid() )
             {
-                final Date startDate = period.getStartDate();
                 final PeriodType rowType = period.getPeriodType();
                 final String isoDate = period.getIsoDate();
 
@@ -118,7 +116,9 @@ public class PeriodResourceTable
                 {
                     if ( rowType.getFrequencyOrder() < periodType.getFrequencyOrder() || rowType.equals( periodType ) )
                     {
-                        values.add( IdentifiableObjectUtils.getLocalPeriodIdentifier( startDate, periodType, calendar ) );
+                        Period targetPeriod = IdentifiableObjectUtils.getPeriodByPeriodType( period, periodType, calendar );
+                                                
+                        values.add( IdentifiableObjectUtils.getLocalPeriodIdentifier( targetPeriod, calendar ) );
                     }
                     else
                     {
