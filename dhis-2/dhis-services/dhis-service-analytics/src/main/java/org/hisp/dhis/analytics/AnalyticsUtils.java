@@ -53,6 +53,7 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.util.Assert;
+import static org.hisp.dhis.dataelement.DataElementOperand.TotalType;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -221,14 +222,14 @@ public class AnalyticsUtils
      * @param propertyCount the number of properties to collapse into operand key.
      * @return a value map.
      */
-    public static <T> Map<String, T> convertDxToOperand( Map<String, T> valueMap, int propertyCount )
+    public static <T> Map<String, T> convertDxToOperand( Map<String, T> valueMap, TotalType totalType )
     {
         Map<String, T> map = Maps.newHashMap();
         
         for ( Entry<String, T> entry : valueMap.entrySet() )
         {
             map.put( TextUtils.replaceFirst( 
-                entry.getKey(), DimensionalObject.DIMENSION_SEP, DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP, propertyCount ), 
+                entry.getKey(), DimensionalObject.DIMENSION_SEP, DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP, totalType.getPropertyCount() ), 
                 entry.getValue() );
         }
         
