@@ -175,6 +175,13 @@
     <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
   </bean>
 
+  <bean id="org.hisp.dhis.dataapproval.DataApprovalAuditStore" class="org.hisp.dhis.dataapproval.hibernate.HibernateDataApprovalAuditStore">
+    <property name="clazz" value="org.hisp.dhis.dataapproval.DataApprovalAudit" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+  </bean>
+
   <bean id="org.hisp.dhis.dataapproval.DataApprovalLevelStore" class="org.hisp.dhis.dataapproval.hibernate.HibernateDataApprovalLevelStore">
     <property name="clazz" value="org.hisp.dhis.dataapproval.DataApprovalLevel" />
     <property name="sessionFactory" ref="sessionFactory" />
@@ -823,12 +830,21 @@
 
   <bean id="org.hisp.dhis.dataapproval.DataApprovalService" class="org.hisp.dhis.dataapproval.DefaultDataApprovalService">
     <property name="dataApprovalStore" ref="org.hisp.dhis.dataapproval.DataApprovalStore" />
+    <property name="dataApprovalAuditStore" ref="org.hisp.dhis.dataapproval.DataApprovalAuditStore" />
     <property name="workflowStore" ref="org.hisp.dhis.dataapproval.DataApprovalWorkflowStore" />
     <property name="dataApprovalLevelService" ref="org.hisp.dhis.dataapproval.DataApprovalLevelService" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
     <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataapproval.DataApprovalAuditService" class="org.hisp.dhis.dataapproval.DefaultDataApprovalAuditService">
+    <property name="dataApprovalAuditStore" ref="org.hisp.dhis.dataapproval.DataApprovalAuditStore" />
+    <property name="dataApprovalLevelService" ref="org.hisp.dhis.dataapproval.DataApprovalLevelService" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="aclService" ref="org.hisp.dhis.security.acl.AclService" />
   </bean>
 
   <bean id="org.hisp.dhis.dataapproval.DataApprovalLevelService" class="org.hisp.dhis.dataapproval.DefaultDataApprovalLevelService">
