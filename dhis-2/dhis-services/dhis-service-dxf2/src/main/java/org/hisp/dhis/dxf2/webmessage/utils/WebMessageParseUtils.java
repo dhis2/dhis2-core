@@ -105,7 +105,6 @@ public class WebMessageParseUtils
         }
     }
 
-
     static
     {
         SimpleModule module = new SimpleModule();

@@ -81,7 +81,7 @@ public class MetadataSyncController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_MANAGE')" )
     @GetMapping
-    public ResponseEntity<? extends WebMessageResponse> metadataSync(HttpServletRequest request, HttpServletResponse response)
+    public ResponseEntity<? extends WebMessageResponse> metadataSync( HttpServletRequest request, HttpServletResponse response )
         throws MetadataSyncException, BadRequestException, MetadataImportConflictException, OperationNotAllowedException
     {
         MetadataSyncParams syncParams;
@@ -105,12 +105,12 @@ public class MetadataSyncController
 
             try
             {
-                boolean isSyncRequired = metadataSyncService.isSyncRequired(syncParams);
+                boolean isSyncRequired = metadataSyncService.isSyncRequired( syncParams );
 
-                if( isSyncRequired )
+                if ( isSyncRequired )
                 {
                     metadataSyncSummary = metadataSyncService.doMetadataSync( syncParams );
-                    validateSyncSummaryResponse(metadataSyncSummary);
+                    validateSyncSummaryResponse( metadataSyncSummary );
                 }
                 else
                 {
@@ -118,7 +118,7 @@ public class MetadataSyncController
                 }
             }
 
-            catch (MetadataSyncImportException importerException)
+            catch ( MetadataSyncImportException importerException )
             {
                 throw new MetadataSyncException( "Runtime exception occurred while doing import: " + importerException.getMessage() );
             }
@@ -138,7 +138,8 @@ public class MetadataSyncController
     private void validateSyncSummaryResponse( MetadataSyncSummary metadataSyncSummary ) throws MetadataImportConflictException
     {
         ImportReport importReport = metadataSyncSummary.getImportReport();
-        if(importReport.getStatus() != Status.OK){
+        if ( importReport.getStatus() != Status.OK )
+        {
             throw new MetadataImportConflictException( metadataSyncSummary );
         }
     }

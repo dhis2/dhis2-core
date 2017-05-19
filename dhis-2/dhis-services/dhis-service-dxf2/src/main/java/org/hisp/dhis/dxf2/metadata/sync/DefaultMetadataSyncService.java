@@ -127,7 +127,7 @@ public class DefaultMetadataSyncService
     }
 
     @Override
-    public boolean isSyncRequired ( MetadataSyncParams syncParams )
+    public boolean isSyncRequired( MetadataSyncParams syncParams )
     {
         MetadataVersion version = getMetadataVersion( syncParams );
         return ( metadataVersionService.getVersionByName( version.getName() ) == null );
@@ -169,13 +169,13 @@ public class DefaultMetadataSyncService
         {
             metadataVersionSnapshot = metadataVersionDelegate.downloadMetadataVersionSnapshot( version );
         }
-        catch ( MetadataVersionServiceException e )
+        catch ( MetadataVersionServiceException ex )
         {
-            throw new MetadataSyncServiceException( e.getMessage(), e );
+            throw new MetadataSyncServiceException( ex.getMessage(), ex );
         }
-        catch( RemoteServerUnavailableException e)
+        catch ( RemoteServerUnavailableException ex )
         {
-            throw new MetadataSyncServiceException( e.getMessage(), e );
+            throw new MetadataSyncServiceException( ex.getMessage(), ex );
         }
 
         if ( metadataVersionSnapshot == null )
