@@ -130,10 +130,25 @@ public class AnalyticsUtilsTest
         map.put( "PcfRp1HETO8-zqXKIEycBck-KBJBZopYMPV-TTiPRz3QKJE", 12d );
                 
         Map<String, Double> convertedMap = AnalyticsUtils.convertDxToOperand( map, TotalType.COC_AND_AOC );
-        System.out.println( convertedMap );
+        
         assertTrue( convertedMap.containsKey( "GauDLAiXPKT.kC1OT9Q1n1j.R9U8q7X1aJG-TTiPRz3QKJE" ) );
         assertTrue( convertedMap.containsKey( "YkRvCLedQa4.h1dJ9W4dWor.Zrd4DAf8M99-TTiPRz3QKJE" ) );
         assertTrue( convertedMap.containsKey( "PcfRp1HETO8.zqXKIEycBck.KBJBZopYMPV-TTiPRz3QKJE" ) );
+    }
+
+    @Test
+    public void testConvertDxToOperandNone()
+    {
+        Map<String, Double> map = new HashMap<>();
+        map.put( "GauDLAiXPKT-kC1OT9Q1n1j-R9U8q7X1aJG", 10d );
+        map.put( "YkRvCLedQa4-h1dJ9W4dWor-Zrd4DAf8M99", 11d );
+        map.put( "PcfRp1HETO8-zqXKIEycBck-KBJBZopYMPV", 12d );
+                
+        Map<String, Double> convertedMap = AnalyticsUtils.convertDxToOperand( map, TotalType.NONE );
+
+        assertTrue( convertedMap.containsKey( "GauDLAiXPKT-kC1OT9Q1n1j-R9U8q7X1aJG" ) );
+        assertTrue( convertedMap.containsKey( "YkRvCLedQa4-h1dJ9W4dWor-Zrd4DAf8M99" ) );
+        assertTrue( convertedMap.containsKey( "PcfRp1HETO8-zqXKIEycBck-KBJBZopYMPV" ) );
     }
     
     @Test

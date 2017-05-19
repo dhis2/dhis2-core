@@ -43,6 +43,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -61,7 +62,7 @@ import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_M
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.dataelement.DataElementOperand.TotalType;
-import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 
 /**
  * @author Lars Helge Overland
@@ -217,7 +218,9 @@ public class AnalyticsUtils
     
     /**
      * Converts the data and option combo identifiers to an operand identifier,
-     * i.e. "deuid-cocuid" to "deuid.cocuid".
+     * i.e. {@code deuid-cocuid} to {@code deuid.cocuid}. For {@link DataElementOperand.TotalType#AOC_ONLY}
+     * a {@link ExpressionService#SYMBOL_WILDCARD} symbol will be inserted after the data
+     * item.
      * 
      * @param valueMap the value map to convert.
      * @param propertyCount the number of properties to collapse into operand key.
@@ -230,12 +233,12 @@ public class AnalyticsUtils
         for ( Entry<String, T> entry : valueMap.entrySet() )
         {
             List<String> items = Lists.newArrayList( entry.getKey().split( DimensionalObject.DIMENSION_SEP ) );
-            List<String> operands = items.subList( 0, totalType.getPropertyCount() + 1 );
-            List<String> dimensions = items.subList( totalType.getPropertyCount() + 1, items.size() );
+            List<String> operands = Lists.newArrayList( items.subList( 0, totalType.getPropertyCount() + 1 ) );
+            List<String> dimensions = Lists.newArrayList( items.subList( totalType.getPropertyCount() + 1, items.size() ) );
             
             if ( TotalType.AOC_ONLY == totalType )
             {
-                operands.add( 1, SYMBOL_DAYS );
+                operands.add( 1, SYMBOL_WILDCARD );
             }
             
             String operand = StringUtils.join( operands, DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP );
@@ -244,11 +247,6 @@ public class AnalyticsUtils
             String key = operand + dimension;
             
             map.put( key, entry.getValue() );
-            
-            /*
-            map.put( TextUtils.replaceFirst( 
-                key, DimensionalObject.DIMENSION_SEP, DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP, totalType.getPropertyCount() ), 
-                entry.getValue() );*/
         }
         
         return map;
