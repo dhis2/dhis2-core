@@ -243,7 +243,7 @@ public class AnalyticsUtils
             
             String operand = StringUtils.join( operands, DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP );
             String dimension = StringUtils.join( dimensions, DimensionalObject.DIMENSION_SEP );
-            dimension = dimension != null ? ( DimensionalObject.DIMENSION_SEP + dimension ) : StringUtils.EMPTY;
+            dimension = !dimension.isEmpty() ? ( DimensionalObject.DIMENSION_SEP + dimension ) : StringUtils.EMPTY;
             String key = operand + dimension;
             
             map.put( key, entry.getValue() );

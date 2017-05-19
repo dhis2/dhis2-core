@@ -107,6 +107,21 @@ public class AnalyticsUtilsTest
     }
 
     @Test
+    public void testConvertDxToOperandCocOnlyNoDmensions()
+    {
+        Map<String, Double> map = new HashMap<>();
+        map.put( "GauDLAiXPKT-kC1OT9Q1n1j", 10d );
+        map.put( "YkRvCLedQa4-h1dJ9W4dWor", 11d );
+        map.put( "PcfRp1HETO8-zqXKIEycBck", 12d );
+        
+        Map<String, Double> convertedMap = AnalyticsUtils.convertDxToOperand( map, TotalType.COC_ONLY );
+
+        assertTrue( convertedMap.containsKey( "GauDLAiXPKT.kC1OT9Q1n1j" ) );
+        assertTrue( convertedMap.containsKey( "YkRvCLedQa4.h1dJ9W4dWor" ) );
+        assertTrue( convertedMap.containsKey( "PcfRp1HETO8.zqXKIEycBck" ) );
+    }
+
+    @Test
     public void testConvertDxToOperandAocOnly()
     {
         Map<String, Double> map = new HashMap<>();
