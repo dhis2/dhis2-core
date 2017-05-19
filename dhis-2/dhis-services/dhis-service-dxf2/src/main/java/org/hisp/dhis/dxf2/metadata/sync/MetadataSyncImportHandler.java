@@ -31,13 +31,14 @@ package org.hisp.dhis.dxf2.metadata.sync;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
-import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
-import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncImportException;
+import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
+import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
+import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.VersionType;
 import org.hisp.dhis.render.RenderFormat;
@@ -96,12 +97,13 @@ public class MetadataSyncImportHandler
             importReport = metadataImportService.importMetadata( importParams );
 
         }
-        catch ( Exception e )
+        catch ( Exception ex )
         {
-            String message = "Exception occurred while trying to import the metadata. " + e.getMessage();
-            log.error( message, e );
+            String message = "Exception occurred while trying to import the metadata. " + ex.getMessage();
+            log.error( message, ex );
+            throw new MetadataSyncImportException( message, ex );
         }
-        
+
         boolean addNewVersion = handleImportReport( importReport, version );
 
         if ( addNewVersion )
@@ -110,9 +112,9 @@ public class MetadataSyncImportHandler
             {
                 metadataVersionDelegate.addNewMetadataVersion( version );
             }
-            catch ( MetadataVersionServiceException e )
+            catch ( MetadataVersionServiceException ex )
             {
-                throw new MetadataSyncServiceException( e.getMessage(), e );
+                throw new MetadataSyncServiceException( ex.getMessage(), ex );
             }
 
         }
@@ -133,7 +135,7 @@ public class MetadataSyncImportHandler
         {
             return false;
         }
-        
+
         Status importStatus = importReport.getStatus();
         return importStatus.equals( Status.OK ) || isBestEffort( version, importStatus );
     }

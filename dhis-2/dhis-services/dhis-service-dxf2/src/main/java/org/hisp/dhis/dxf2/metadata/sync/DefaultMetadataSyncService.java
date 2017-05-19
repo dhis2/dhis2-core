@@ -37,6 +37,7 @@ import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
+import org.hisp.dhis.exception.RemoteServerUnavailableException;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
@@ -126,7 +127,7 @@ public class DefaultMetadataSyncService
     }
 
     @Override
-    public boolean isSyncRequired ( MetadataSyncParams syncParams )
+    public boolean isSyncRequired( MetadataSyncParams syncParams )
     {
         MetadataVersion version = getMetadataVersion( syncParams );
         return ( metadataVersionService.getVersionByName( version.getName() ) == null );
@@ -168,9 +169,13 @@ public class DefaultMetadataSyncService
         {
             metadataVersionSnapshot = metadataVersionDelegate.downloadMetadataVersionSnapshot( version );
         }
-        catch ( MetadataVersionServiceException e )
+        catch ( MetadataVersionServiceException ex )
         {
-            throw new MetadataSyncServiceException( e.getMessage(), e );
+            throw new MetadataSyncServiceException( ex.getMessage(), ex );
+        }
+        catch ( RemoteServerUnavailableException ex )
+        {
+            throw new MetadataSyncServiceException( ex.getMessage(), ex );
         }
 
         if ( metadataVersionSnapshot == null )

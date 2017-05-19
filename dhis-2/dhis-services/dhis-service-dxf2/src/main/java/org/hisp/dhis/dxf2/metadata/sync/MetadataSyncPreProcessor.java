@@ -73,7 +73,7 @@ public class MetadataSyncPreProcessor
     @Autowired
     private MetadataVersionDelegate metadataVersionDelegate;
 
-    public void setUp(MetadataRetryContext context)
+    public void setUp( MetadataRetryContext context )
     {
         systemSettingManager.saveSystemSetting( SettingKey.METADATAVERSION_ENABLED, true );
     }
@@ -106,7 +106,7 @@ public class MetadataSyncPreProcessor
             log.error( "Exception happened while trying to do data push " + ex.getMessage(), ex );
             if ( ex instanceof MetadataSyncServiceException )
             {
-                throw ex;
+                throw (MetadataSyncServiceException) ex;
             }
             context.updateRetryContext( MetadataSyncTask.DATA_PUSH_SUMMARY, ex.getMessage(), null, null );
             throw new MetadataSyncServiceException( ex.getMessage(), ex );
@@ -142,7 +142,7 @@ public class MetadataSyncPreProcessor
 
             if ( ex instanceof MetadataSyncServiceException )
             {
-                throw ex;
+                throw (MetadataSyncServiceException) ex;
             }
 
             context.updateRetryContext( MetadataSyncTask.EVENT_PUSH_SUMMARY, ex.getMessage(), null, null );
@@ -255,7 +255,7 @@ public class MetadataSyncPreProcessor
         {
             ImportStatus status = importSummary.getStatus();
 
-            if ( ImportStatus.ERROR.equals( status ) )
+            if ( ImportStatus.ERROR.equals( status ) || ImportStatus.WARNING.equals( status ) )
             {
                 log.error( "Import Summary description: " + importSummary.getDescription() );
                 context.updateRetryContext( MetadataSyncTask.DATA_PUSH_SUMMARY, importSummary.getDescription(), null, null );
