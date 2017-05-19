@@ -1,4 +1,4 @@
-package org.hisp.dhis.deletedobject.hibernate;
+package org.hisp.dhis.dataapproval;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,43 +26,27 @@ package org.hisp.dhis.deletedobject.hibernate;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
-
-import org.hibernate.event.spi.PostDeleteEvent;
-import org.hibernate.event.spi.PostDeleteEventListener;
-import org.hibernate.persister.entity.EntityPersister;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.UserContext;
-import org.hisp.dhis.deletedobject.DeletedObject;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Jim Grace
  */
-public class DeletedObjectPostDeleteEventListener implements PostDeleteEventListener
+public enum DataApprovalAction
 {
-    @Override
-    public void onPostDelete( PostDeleteEvent event )
-    {
-        if ( MetadataObject.class.isInstance( event.getEntity() ) )
-        {
-            IdentifiableObject identifiableObject = (IdentifiableObject) event.getEntity();
-            DeletedObject deletedObject = new DeletedObject( identifiableObject );
-            deletedObject.setDeletedBy( getUsername() );
+    APPROVE( "approve" ),
+    UNAPPROVE( "unapprove"),
+    ACCEPT( "accept" ),
+    UNACCEPT( "unaccept" );
 
-            event.getSession().persist( deletedObject );
-        }
+    private final String value;
+
+    DataApprovalAction( String value )
+    {
+        this.value = value;
     }
 
-    @Override
-    public boolean requiresPostCommitHanding( EntityPersister persister )
+    public String getValue()
     {
-        return false;
-    }
-
-    private String getUsername()
-    {
-        return UserContext.haveUser() ? UserContext.getUser().getUsername() : "system-process";
+        return value;
     }
 }

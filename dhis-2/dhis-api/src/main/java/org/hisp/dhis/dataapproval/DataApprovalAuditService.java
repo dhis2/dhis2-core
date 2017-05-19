@@ -1,4 +1,4 @@
-package org.hisp.dhis.deletedobject.hibernate;
+package org.hisp.dhis.dataapproval;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,43 +26,33 @@ package org.hisp.dhis.deletedobject.hibernate;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
-import org.hibernate.event.spi.PostDeleteEvent;
-import org.hibernate.event.spi.PostDeleteEventListener;
-import org.hibernate.persister.entity.EntityPersister;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.UserContext;
-import org.hisp.dhis.deletedobject.DeletedObject;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+
+import java.util.Date;
+import java.util.List;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Jim Grace
  */
-public class DeletedObjectPostDeleteEventListener implements PostDeleteEventListener
+public interface DataApprovalAuditService
 {
-    @Override
-    public void onPostDelete( PostDeleteEvent event )
-    {
-        if ( MetadataObject.class.isInstance( event.getEntity() ) )
-        {
-            IdentifiableObject identifiableObject = (IdentifiableObject) event.getEntity();
-            DeletedObject deletedObject = new DeletedObject( identifiableObject );
-            deletedObject.setDeletedBy( getUsername() );
+    String ID = DataApprovalAuditService.class.getName();
 
-            event.getSession().persist( deletedObject );
-        }
-    }
+    /**
+     * Deletes all data approval audits for the given organisation unit.
+     *
+     * @param organisationUnit the organisation unit.
+     */
+    void deleteDataApprovalAudits( OrganisationUnit organisationUnit );
 
-    @Override
-    public boolean requiresPostCommitHanding( EntityPersister persister )
-    {
-        return false;
-    }
-
-    private String getUsername()
-    {
-        return UserContext.haveUser() ? UserContext.getUser().getUsername() : "system-process";
-    }
+    /**
+     * Returns DataApprovalAudit objects for query parameters.
+     *
+     * @param params Data approval audit query parameters.
+     * @return matching DataApproval object, if any
+     */
+    public List<DataApprovalAudit> getDataApprovalAudits( DataApprovalAuditQueryParams params );
 }
