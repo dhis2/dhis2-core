@@ -24,5 +24,7 @@
 
     <property name="deletedAt" column="deleted_at" type="timestamp" not-null="true" />
 
+    <property name="deletedBy" column="deleted_by" not-null="true" />
+
   </class>
 </hibernate-mapping>
