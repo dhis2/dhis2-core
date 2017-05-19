@@ -130,7 +130,7 @@ public class AnalyticsUtilsTest
         map.put( "w1G4l0cSxOi-gQhAMdimKO4-2017", 12d );
         
         Map<String, Double> convertedMap = AnalyticsUtils.convertDxToOperand( map, TotalType.AOC_ONLY );
-        System.out.println( convertedMap );
+        
         assertTrue( convertedMap.containsKey( "GauDLAiXPKT.*.kC1OT9Q1n1j-2016" ) );
         assertTrue( convertedMap.containsKey( "YkRvCLedQa4.*.h1dJ9W4dWor-2017" ) );
         assertTrue( convertedMap.containsKey( "w1G4l0cSxOi.*.gQhAMdimKO4-2017" ) );
