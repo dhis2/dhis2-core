@@ -125,30 +125,30 @@ public class AnalyticsUtilsTest
     public void testConvertDxToOperandAocOnly()
     {
         Map<String, Double> map = new HashMap<>();
-        map.put( "GauDLAiXPKT-kC1OT9Q1n1j-R9U8q7X1aJG", 10d );
-        map.put( "YkRvCLedQa4-h1dJ9W4dWor-Zrd4DAf8M99", 11d );
-        map.put( "PcfRp1HETO8-zqXKIEycBck-KBJBZopYMPV", 12d );
+        map.put( "GauDLAiXPKT-kC1OT9Q1n1j-2016", 10d );
+        map.put( "YkRvCLedQa4-h1dJ9W4dWor-2017", 11d );
+        map.put( "w1G4l0cSxOi-gQhAMdimKO4-2017", 12d );
         
         Map<String, Double> convertedMap = AnalyticsUtils.convertDxToOperand( map, TotalType.AOC_ONLY );
-        
-        assertTrue( convertedMap.containsKey( "GauDLAiXPKT.*.kC1OT9Q1n1j-R9U8q7X1aJG" ) );
-        assertTrue( convertedMap.containsKey( "YkRvCLedQa4.*.h1dJ9W4dWor-Zrd4DAf8M99" ) );
-        assertTrue( convertedMap.containsKey( "PcfRp1HETO8.*.zqXKIEycBck-KBJBZopYMPV" ) );
+        System.out.println( convertedMap );
+        assertTrue( convertedMap.containsKey( "GauDLAiXPKT.*.kC1OT9Q1n1j-2016" ) );
+        assertTrue( convertedMap.containsKey( "YkRvCLedQa4.*.h1dJ9W4dWor-2017" ) );
+        assertTrue( convertedMap.containsKey( "w1G4l0cSxOi.*.gQhAMdimKO4-2017" ) );
     }
 
     @Test
     public void testConvertDxToOperandCocAndAoc()
     {
         Map<String, Double> map = new HashMap<>();
-        map.put( "GauDLAiXPKT-kC1OT9Q1n1j-R9U8q7X1aJG-TTiPRz3QKJE", 10d );
-        map.put( "YkRvCLedQa4-h1dJ9W4dWor-Zrd4DAf8M99-TTiPRz3QKJE", 11d );
-        map.put( "PcfRp1HETO8-zqXKIEycBck-KBJBZopYMPV-TTiPRz3QKJE", 12d );
+        map.put( "GauDLAiXPKT-kC1OT9Q1n1j-R9U8q7X1aJG-201701", 10d );
+        map.put( "YkRvCLedQa4-h1dJ9W4dWor-Zrd4DAf8M99-201702", 11d );
+        map.put( "PcfRp1HETO8-zqXKIEycBck-KBJBZopYMPV-201703", 12d );
                 
         Map<String, Double> convertedMap = AnalyticsUtils.convertDxToOperand( map, TotalType.COC_AND_AOC );
         
-        assertTrue( convertedMap.containsKey( "GauDLAiXPKT.kC1OT9Q1n1j.R9U8q7X1aJG-TTiPRz3QKJE" ) );
-        assertTrue( convertedMap.containsKey( "YkRvCLedQa4.h1dJ9W4dWor.Zrd4DAf8M99-TTiPRz3QKJE" ) );
-        assertTrue( convertedMap.containsKey( "PcfRp1HETO8.zqXKIEycBck.KBJBZopYMPV-TTiPRz3QKJE" ) );
+        assertTrue( convertedMap.containsKey( "GauDLAiXPKT.kC1OT9Q1n1j.R9U8q7X1aJG-201701" ) );
+        assertTrue( convertedMap.containsKey( "YkRvCLedQa4.h1dJ9W4dWor.Zrd4DAf8M99-201702" ) );
+        assertTrue( convertedMap.containsKey( "PcfRp1HETO8.zqXKIEycBck.KBJBZopYMPV-201703" ) );
     }
 
     @Test

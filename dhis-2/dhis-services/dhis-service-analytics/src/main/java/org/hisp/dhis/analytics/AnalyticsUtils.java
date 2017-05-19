@@ -236,6 +236,8 @@ public class AnalyticsUtils
             List<String> operands = Lists.newArrayList( items.subList( 0, totalType.getPropertyCount() + 1 ) );
             List<String> dimensions = Lists.newArrayList( items.subList( totalType.getPropertyCount() + 1, items.size() ) );
             
+            // Add wild card in place of category option combination
+            
             if ( TotalType.AOC_ONLY == totalType )
             {
                 operands.add( 1, SYMBOL_WILDCARD );
