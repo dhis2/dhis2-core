@@ -180,7 +180,7 @@ public class GeoFeatureController
         set.add( ou );
 
         DataQueryParams params = dataQueryService.getFromUrl( set, null, AggregationType.SUM, null, null, null, null, false, false,
-            false, false, false, false, false, false, false, displayProperty, null, null, false, null, relativePeriodDate, userOrgUnit, apiVersion );
+            false, false, false, false, false, false, false, displayProperty, null, null, false, null, relativePeriodDate, userOrgUnit, false, apiVersion );
 
         DimensionalObject dim = params.getDimension( DimensionalObject.ORGUNIT_DIM_ID );
 
@@ -227,7 +227,7 @@ public class GeoFeatureController
 
                     if ( group != null )
                     {
-                        feature.getDimensions().put( groupSet.getUid(), group.getName() );
+                        feature.getDimensions().put( groupSet.getUid(), group.getUid() );
                     }
                 }
             }

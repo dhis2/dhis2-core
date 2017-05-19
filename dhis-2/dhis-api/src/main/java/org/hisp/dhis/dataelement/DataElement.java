@@ -39,8 +39,6 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataset.DataSet;
@@ -309,22 +307,6 @@ public class DataElement
     }
 
     /**
-     * Returns the attribute category combinations associated with the data sets
-     * of this data element.
-     */
-    public Set<DataElementCategoryCombo> getDataSetCategoryCombos()
-    {
-        Set<DataElementCategoryCombo> categoryCombos = new HashSet<>();
-
-        for ( DataSet dataSet : getDataSets() )
-        {
-            categoryCombos.add( dataSet.getCategoryCombo() );
-        }
-
-        return categoryCombos;
-    }
-
-    /**
      * Returns the attribute category options combinations associated with the
      * data sets of this data element.
      */
@@ -525,16 +507,31 @@ public class DataElement
         return expiryDays != DataSet.NO_EXPIRY && new DateTime( period.getEndDate() ).plusDays( expiryDays ).isBefore( new DateTime( now ) );
     }
 
+    /**
+     * Indicates whether this data element has a description.
+     *
+     * @return true if this data element has a description.
+     */
     public boolean hasDescription()
     {
         return description != null && !description.trim().isEmpty();
     }
 
+    /**
+     * Indicates whether this data element has a URL.
+     *
+     * @return true if this data element has a URL.
+     */
     public boolean hasUrl()
     {
         return url != null && !url.trim().isEmpty();
     }
 
+    /**
+     * Indicates whether this data element has an option set.
+     *
+     * @return true if this data element has an option set.
+     */
     public boolean hasOptionSet()
     {
         return optionSet != null;
@@ -717,47 +714,5 @@ public class DataElement
     {
         return getDataSets().isEmpty() || getDataSets().stream()
             .anyMatch( dataSet -> dataSet.isDataInputPeriodAndDateAllowed( period, date ) );
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DataElement dataElement = (DataElement) other;
-
-            zeroIsSignificant = dataElement.isZeroIsSignificant();
-
-            if ( mergeMode.isReplace() )
-            {
-                formName = dataElement.getFormName();
-                domainType = dataElement.getDomainType();
-                aggregationType = dataElement.getAggregationType();
-                valueType = dataElement.getValueType();
-                dataElementCategoryCombo = dataElement.getDataElementCategoryCombo();
-                url = dataElement.getUrl();
-                optionSet = dataElement.getOptionSet();
-                commentOptionSet = dataElement.getCommentOptionSet();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                formName = dataElement.getFormName() == null ? formName : dataElement.getFormName();
-                domainType = dataElement.getDomainType() == null ? domainType : dataElement.getDomainType();
-                aggregationType = dataElement.getAggregationType() == null ? aggregationType : dataElement.getAggregationType();
-                valueType = dataElement.getValueType() == null ? valueType : dataElement.getValueType();
-                dataElementCategoryCombo = dataElement.getDataElementCategoryCombo() == null ? dataElementCategoryCombo : dataElement.getDataElementCategoryCombo();
-                url = dataElement.getUrl() == null ? url : dataElement.getUrl();
-                optionSet = dataElement.getOptionSet() == null ? optionSet : dataElement.getOptionSet();
-                commentOptionSet = dataElement.getCommentOptionSet() == null ? commentOptionSet : dataElement.getCommentOptionSet();
-            }
-
-            groups.clear();
-            dataSetElements.clear();
-
-            aggregationLevels.clear();
-            aggregationLevels.addAll( dataElement.getAggregationLevels() );
-        }
     }
 }

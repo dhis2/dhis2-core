@@ -28,22 +28,16 @@ package org.hisp.dhis.dataelement.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
-import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementStore;
-import org.springframework.jdbc.BadSqlGrammarException;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -52,8 +46,6 @@ public class HibernateDataElementStore
     extends HibernateIdentifiableObjectStore<DataElement>
     implements DataElementStore
 {
-    private static final Log log = LogFactory.getLog( HibernateDataElementStore.class );
-
     // -------------------------------------------------------------------------
     // DataElement
     // -------------------------------------------------------------------------
@@ -117,33 +109,5 @@ public class HibernateDataElementStore
         String hql = "from DataElement de join de.aggregationLevels al where al = :aggregationLevel";
 
         return getQuery( hql ).setInteger( "aggregationLevel", aggregationLevel ).list();
-    }
-
-    @Override
-    public ListMap<String, String> getDataElementCategoryOptionComboMap( Set<String> dataElementUids )
-    {
-        final String sql =
-            "select dataelementuid, categoryoptioncombouid " +
-                "from _dataelementcategoryoptioncombo " +
-                "where dataelementuid in (" + TextUtils.getQuotedCommaDelimitedString( dataElementUids ) + ")";
-
-        final ListMap<String, String> map = new ListMap<>();
-
-        try
-        {
-            jdbcTemplate.query( sql, rs -> {
-                String de = rs.getString( 1 );
-                String coc = rs.getString( 2 );
-
-                map.putValue( de, coc );
-            } );
-        }
-        catch ( BadSqlGrammarException ex )
-        {
-            log.error( "Resource table _dataelementcategoryoptioncomboname does not exist, please generate it" );
-            return new ListMap<>();
-        }
-
-        return map;
     }
 }

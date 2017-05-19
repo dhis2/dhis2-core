@@ -48,6 +48,6 @@ public class HasValueSqlFunction
         
         String expression = args[0];
         
-        return "((" + expression + ") is null)";
+        return "((" + expression + ") is not null)";
     }
 }

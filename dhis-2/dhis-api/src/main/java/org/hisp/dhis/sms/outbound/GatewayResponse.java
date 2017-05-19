@@ -76,7 +76,8 @@ public enum GatewayResponse
     RESULT_CODE_405( "method not allowed", "Http method is not support on the resource" ),
     RESULT_CODE_410( "gone", "Mobile number is blocked" ),
     RESULT_CODE_429( "too many requests", "Generic rate limiting error" ),
-    RESULT_CODE_503( "service unavailable", "A temporary error has occurred on our platform, please retry" );
+    RESULT_CODE_503( "service unavailable", "A temporary error has occurred on our platform, please retry" ),
+    RESULT_CODE_504( "Internal server exception", "Internal server exception" );
 
     private final String responseMessage;
 

@@ -229,15 +229,19 @@ public class DefaultValidationNotificationService
             .collect( Collectors.groupingBy( Function.identity(), Collectors.counting() ) );
 
         String subject = String.format(
-            "Validation violations as of %s: High %d, medium %d, low %d",
-            DateUtils.getLongDateString( validationDate ),
-            counts.getOrDefault( Importance.HIGH, 0L ),
-            counts.getOrDefault( Importance.MEDIUM, 0L ),
-            counts.getOrDefault( Importance.LOW, 0L )
+            "Validation violations as of %s",
+            DateUtils.getLongDateString( validationDate )
         );
 
+        String message = String.format(
+                "Violations: High %d, medium %d, low %d",
+                counts.getOrDefault( Importance.HIGH, 0L ),
+                counts.getOrDefault( Importance.MEDIUM, 0L ),
+                counts.getOrDefault( Importance.LOW, 0L ) );
+
         // Concatenate the notifications in sorted order, divide by double linebreak
-        String message = pairs.stream().sorted()
+
+        message = message + pairs.stream().sorted()
             .map( renderedNotificationsMap::get )
             .map( n -> String.format( "%s%s%s", n.getSubject(), LN, n.getMessage() ) )
             .reduce( "", ( initStr, newStr ) -> String.format( "%s%s%s", initStr, LN + LN, newStr ) );

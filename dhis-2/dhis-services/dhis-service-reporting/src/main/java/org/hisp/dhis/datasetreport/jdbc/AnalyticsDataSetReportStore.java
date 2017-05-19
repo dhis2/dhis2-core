@@ -97,7 +97,7 @@ public class AnalyticsDataSetReportStore
         
         if ( dimensions != null )
         {
-            params.addFilters( dataQueryService.getDimensionalObjects( dimensions, null, null, null, IdScheme.UID ) );
+            params.addFilters( dataQueryService.getDimensionalObjects( dimensions, null, null, null, false, IdScheme.UID ) );
         }
         
         Map<String, Object> map = analyticsService.getAggregatedDataValueMapping( params.build() );
@@ -156,7 +156,7 @@ public class AnalyticsDataSetReportStore
 
                 if ( dimensions != null )
                 {
-                    params.addFilters( dataQueryService.getDimensionalObjects( dimensions, null, null, null, IdScheme.UID ) );
+                    params.addFilters( dataQueryService.getDimensionalObjects( dimensions, null, null, null, false, IdScheme.UID ) );
                 }
                 
                 Map<String, Object> map = analyticsService.getAggregatedDataValueMapping( params.build() );
@@ -191,7 +191,7 @@ public class AnalyticsDataSetReportStore
 
         if ( dimensions != null )
         {
-            params.addFilters( dataQueryService.getDimensionalObjects( dimensions, null, null, null, IdScheme.UID ) );
+            params.addFilters( dataQueryService.getDimensionalObjects( dimensions, null, null, null, false, IdScheme.UID ) );
         }
         
         Map<String, Object> map = analyticsService.getAggregatedDataValueMapping( params.build() );
@@ -224,7 +224,7 @@ public class AnalyticsDataSetReportStore
 
         if ( dimensions != null )
         {
-            params.addFilters( dataQueryService.getDimensionalObjects( dimensions, null, null, null, IdScheme.UID ) );
+            params.addFilters( dataQueryService.getDimensionalObjects( dimensions, null, null, null, false, IdScheme.UID ) );
         }
         
         Map<String, Object> map = analyticsService.getAggregatedDataValueMapping( params.build() );

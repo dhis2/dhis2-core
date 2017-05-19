@@ -32,14 +32,12 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.AuthorityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -89,70 +87,28 @@ public class DefaultAclService implements AclService
     }
 
     @Override
-    public boolean canWrite( User user, IdentifiableObject object )
-    {
-        Schema schema = schemaService.getSchema( object.getClass() );
-
-        if ( schema == null )
-        {
-            return false;
-        }
-
-        if ( !schema.isShareable() )
-        {
-            return canAccess( user, schema.getAuthorityByType( AuthorityType.CREATE ) );
-        }
-
-        if ( haveOverrideAuthority( user )
-            || (object.getUser() == null && canMakePublic( user, object.getClass() ) && !schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ).isEmpty())
-            || (user != null && object.getUser() != null && user.getUid().equals( object.getUser().getUid() ))
-            || ((object instanceof User) && canMakePrivate( user, object.getClass() ))
-            || AccessStringHelper.canWrite( object.getPublicAccess() ) )
-        {
-            return true;
-        }
-
-        for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
-        {
-            /* Is the user allowed to write to this object through group access? */
-            if ( AccessStringHelper.canWrite( userGroupAccess.getAccess() )
-                && userGroupAccess.getUserGroup().getMembers().contains( user ) )
-            {
-                return true;
-            }
-        }
-
-        for ( UserAccess userAccess : object.getUserAccesses() )
-        {
-            /* Is the user allowed to write to this object through user access? */
-            if ( AccessStringHelper.canWrite( userAccess.getAccess() )
-                && user.equals( userAccess.getUser() ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    @Override
     public boolean canRead( User user, IdentifiableObject object )
     {
-        if ( object == null || Period.class.isInstance( object ) )
+        if ( object == null )
         {
             return true;
         }
 
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        if ( schema == null )
+        if ( schema == null || user == null || object.getUser() == null || object.getPublicAccess() == null )
         {
-            return false;
+            return true;
         }
 
         if ( canAccess( user, schema.getAuthorityByType( AuthorityType.READ ) ) )
         {
             if ( !schema.isShareable() )
+            {
+                return true;
+            }
+
+            if ( checkUser( user, object ) || checkSharingPermission( user, object, AccessStringHelper.Permission.READ ) )
             {
                 return true;
             }
@@ -162,34 +118,43 @@ public class DefaultAclService implements AclService
             return false;
         }
 
-        if ( haveOverrideAuthority( user )
-            || UserGroup.class.isAssignableFrom( object.getClass() )
-            || object.getUser() == null
-            || object.getPublicAccess() == null
-            || user.equals( object.getUser() )
-            || AccessStringHelper.canRead( object.getPublicAccess() ) )
+        return false;
+    }
+
+    @Override
+    public boolean canWrite( User user, IdentifiableObject object )
+    {
+        Schema schema = schemaService.getSchema( object.getClass() );
+
+        if ( schema == null )
         {
             return true;
         }
 
-        for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
+        List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.CREATE );
+
+        if ( anyAuthorities.isEmpty() )
         {
-            /* Is the user allowed to read this object through group access? */
-            if ( AccessStringHelper.canRead( userGroupAccess.getAccess() )
-                && userGroupAccess.getUserGroup().getMembers().contains( user ) )
+            anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ) );
+            anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE_PUBLIC ) );
+        }
+
+        if ( canAccess( user, anyAuthorities ) )
+        {
+            if ( !schema.isShareable() )
+            {
+                return true;
+            }
+
+            if ( checkSharingAccess( user, object ) &&
+                (checkUser( user, object ) || checkSharingPermission( user, object, AccessStringHelper.Permission.WRITE )) )
             {
                 return true;
             }
         }
-
-        for ( UserAccess userAccess : object.getUserAccesses() )
+        else if ( schema.isImplicitPrivateAuthority() && checkSharingAccess( user, object ) )
         {
-            /* Is the user allowed to read to this object through user access? */
-            if ( AccessStringHelper.canRead( userAccess.getAccess() )
-                && user.equals( userAccess.getUser() ) )
-            {
-                return true;
-            }
+            return true;
         }
 
         return false;
@@ -200,29 +165,9 @@ public class DefaultAclService implements AclService
     {
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        if ( schema == null )
+        if ( schema == null || user == null )
         {
-            return false;
-        }
-
-        for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
-        {
-            /* Is the user allowed to read this object through group access? */
-            if ( AccessStringHelper.canWrite( userGroupAccess.getAccess() )
-                && userGroupAccess.getUserGroup().getMembers().contains( user ) )
-            {
-                return true;
-            }
-        }
-
-        for ( UserAccess userAccess : object.getUserAccesses() )
-        {
-            /* Is the user allowed to read to this object through user access? */
-            if ( AccessStringHelper.canWrite( userAccess.getAccess() )
-                && user.equals( userAccess.getUser() ) )
-            {
-                return true;
-            }
+            return true;
         }
 
         List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.UPDATE );
@@ -234,56 +179,70 @@ public class DefaultAclService implements AclService
             anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE_PUBLIC ) );
         }
 
-        return (schema.isImplicitPrivateAuthority() && userCheck( user, object ))
-            || canAccess( user, anyAuthorities ) && (!schema.isShareable() || canWrite( user, object ));
+        if ( canAccess( user, anyAuthorities ) )
+        {
+            if ( !schema.isShareable() )
+            {
+                return true;
+            }
+
+            if ( checkSharingAccess( user, object ) &&
+                (checkUser( user, object ) || checkSharingPermission( user, object, AccessStringHelper.Permission.WRITE )) )
+            {
+                return true;
+            }
+        }
+        else if ( schema.isImplicitPrivateAuthority() && checkUser( user, object ) && checkSharingAccess( user, object ) )
+        {
+            return true;
+        }
+
+        return false;
     }
 
     @Override
     public boolean canDelete( User user, IdentifiableObject object )
     {
         Schema schema = schemaService.getSchema( object.getClass() );
-        return schema != null && canAccess( user, schema.getAuthorityByType( AuthorityType.DELETE ) ) && (!schema.isShareable() || canWrite( user, object ));
+
+        if ( schema == null || user == null )
+        {
+            return true;
+        }
+
+        List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.DELETE );
+
+        if ( anyAuthorities.isEmpty() )
+        {
+            anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE ) );
+            anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ) );
+            anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE_PUBLIC ) );
+        }
+
+        if ( canAccess( user, anyAuthorities ) )
+        {
+            if ( !schema.isShareable() )
+            {
+                return true;
+            }
+
+            if ( checkUser( user, object ) || checkSharingPermission( user, object, AccessStringHelper.Permission.WRITE ) )
+            {
+                return true;
+            }
+        }
+        else if ( schema.isImplicitPrivateAuthority() && checkUser( user, object ) )
+        {
+            return true;
+        }
+
+        return false;
     }
 
     @Override
     public boolean canManage( User user, IdentifiableObject object )
     {
-        Schema schema = schemaService.getSchema( object.getClass() );
-
-        if ( schema == null || !schema.isShareable() )
-        {
-            return false;
-        }
-
-        if ( haveOverrideAuthority( user )
-            || user.equals( object.getUser() )
-            || (object.getUser() == null && canMakePublic( user, object.getClass() ) && !schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ).isEmpty())
-            || AccessStringHelper.canWrite( object.getPublicAccess() ) )
-        {
-            return true;
-        }
-
-        for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
-        {
-            /* Is the user allowed to write to this object through group access? */
-            if ( AccessStringHelper.canWrite( userGroupAccess.getAccess() )
-                && userGroupAccess.getUserGroup().getMembers().contains( user ) )
-            {
-                return true;
-            }
-        }
-
-        for ( UserAccess userAccess : object.getUserAccesses() )
-        {
-            /* Is the user allowed to write to this object through group access? */
-            if ( AccessStringHelper.canWrite( userAccess.getAccess() )
-                && user.equals( userAccess.getUser() ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return canUpdate( user, object );
     }
 
     @Override
@@ -480,7 +439,7 @@ public class DefaultAclService implements AclService
         return errorReports;
     }
 
-    private boolean userCheck( User user, IdentifiableObject object )
+    private boolean checkUser( User user, IdentifiableObject object )
     {
         if ( user == null || object.getUser() == null )
         {
@@ -488,5 +447,64 @@ public class DefaultAclService implements AclService
         }
 
         return user.equals( object.getUser() );
+    }
+
+    private boolean checkSharingAccess( User user, IdentifiableObject object )
+    {
+        boolean canMakePublic = canMakePublic( user, object.getClass() );
+        boolean canMakePrivate = canMakePrivate( user, object.getClass() );
+        boolean canMakeExternal = canMakeExternal( user, object.getClass() );
+
+        if ( AccessStringHelper.DEFAULT.equals( object.getPublicAccess() ) )
+        {
+            if ( !(canMakePublic || canMakePrivate) )
+            {
+                return false;
+            }
+        }
+        else
+        {
+            if ( !canMakePublic )
+            {
+                return false;
+            }
+        }
+
+        if ( object.getExternalAccess() && !canMakeExternal )
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean checkSharingPermission( User user, IdentifiableObject object, AccessStringHelper.Permission permission )
+    {
+        if ( AccessStringHelper.isEnabled( object.getPublicAccess(), permission ) )
+        {
+            return true;
+        }
+
+        for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
+        {
+            /* Is the user allowed to read this object through group access? */
+            if ( AccessStringHelper.isEnabled( userGroupAccess.getAccess(), permission )
+                && userGroupAccess.getUserGroup().getMembers().contains( user ) )
+            {
+                return true;
+            }
+        }
+
+        for ( UserAccess userAccess : object.getUserAccesses() )
+        {
+            /* Is the user allowed to read to this object through user access? */
+            if ( AccessStringHelper.isEnabled( userAccess.getAccess(), permission )
+                && user.equals( userAccess.getUser() ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

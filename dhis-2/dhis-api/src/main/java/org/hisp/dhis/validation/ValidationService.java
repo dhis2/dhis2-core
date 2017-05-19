@@ -52,26 +52,26 @@ public interface ValidationService
      *
      * @param startDate         the start date.
      * @param endDate           the end date.
-     * @param sources           a collection of Sources.
+     * @param orgUnits          a list of organisation units.
      * @param attributeCombo    attribute category option combo (null for all).
      * @param group             validation rule group (null for all validationRules).
      * @param sendNotifications whether to send notifications upon rule violations.
-     * @param format         the i18n format.
+     * @param format            the i18n format.
      * @return a Collection of ValidationResults for each validation violation.
      */
-    Collection<ValidationResult> startInteractiveValidationAnalysis( Date startDate, Date endDate, Collection<OrganisationUnit> sources,
+    Collection<ValidationResult> startInteractiveValidationAnalysis( Date startDate, Date endDate, List<OrganisationUnit> orgUnits,
         DataElementCategoryOptionCombo attributeCombo, ValidationRuleGroup group, boolean sendNotifications, I18nFormat format );
 
     /**
      * Validate DataValues.
      *
-     * @param dataSet        the DataSet.
-     * @param period         the Period.
-     * @param source         the Organisation unit.
-     * @param attributeCombo attribute category option combo (null for all).
+     * @param dataSet              the data set.
+     * @param period               the period.
+     * @param orgUnit              the organisation unit.
+     * @param attributeOptionCombo the attribute option combo.
      * @return a Collection of ValidationResults for each validation violation.
      */
-    Collection<ValidationResult> startInteractiveValidationAnalysis( DataSet dataSet, Period period, OrganisationUnit source, DataElementCategoryOptionCombo attributeCombo );
+    Collection<ValidationResult> startInteractiveValidationAnalysis( DataSet dataSet, Period period, OrganisationUnit orgUnit, DataElementCategoryOptionCombo attributeOptionCombo );
 
     /**
      * Evaluates all the validation rules that could generate notifications,
@@ -85,9 +85,9 @@ public interface ValidationService
      *
      * @param dataSet              the data set.
      * @param period               the period.
-     * @param organisationUnit     the organisation unit.
+     * @param orgUnit              the organisation unit.
      * @param attributeOptionCombo the attribute option combo.
      * @return a list of operands representing missing comments.
      */
-    List<DataElementOperand> validateRequiredComments( DataSet dataSet, Period period, OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo );
+    List<DataElementOperand> validateRequiredComments( DataSet dataSet, Period period, OrganisationUnit orgUnit, DataElementCategoryOptionCombo attributeOptionCombo );
 }

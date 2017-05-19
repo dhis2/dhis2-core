@@ -119,4 +119,10 @@
         </action>
     </package>
 
+    <package name="dhis-web-datastore" extends="dhis-web-commons" namespace="/dhis-web-datastore">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">#</result>
+        </action>
+    </package>
+
 </struts>

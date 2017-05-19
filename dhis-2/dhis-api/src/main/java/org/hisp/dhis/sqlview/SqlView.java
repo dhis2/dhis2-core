@@ -35,8 +35,6 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheable;
@@ -64,7 +62,7 @@ public class SqlView
 
     public static final Set<String> ILLEGAL_KEYWORDS = ImmutableSet.<String>builder().add(
         "delete", "alter", "update", "create", "drop", "commit", "createdb",
-        "createuser", "insert", "rename", "replace", "restore", "write" ).build();
+        "createuser", "insert", "rename", "restore", "write" ).build();
 
     private static final String CRITERIA_SEP = ":";
     private static final String REGEX_SEP = "|";
@@ -292,31 +290,5 @@ public class SqlView
     public void setCacheStrategy( CacheStrategy cacheStrategy )
     {
         this.cacheStrategy = cacheStrategy;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            SqlView sqlView = (SqlView) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                description = sqlView.getDescription();
-                sqlQuery = sqlView.getSqlQuery();
-                type = sqlView.getType();
-                cacheStrategy = sqlView.getCacheStrategy();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                description = sqlView.getDescription() == null ? description : sqlView.getDescription();
-                sqlQuery = sqlView.getSqlQuery() == null ? sqlQuery : sqlView.getSqlQuery();
-                type = sqlView.getType() == null ? type : sqlView.getType();
-                cacheStrategy = sqlView.getCacheStrategy() == null ? cacheStrategy : sqlView.getCacheStrategy();
-            }
-        }
     }
 }

@@ -133,7 +133,7 @@ public class SharingController
 
         User user = currentUserService.getCurrentUser();
 
-        if ( !aclService.canManage( user, object ) )
+        if ( !aclService.canRead( user, object ) )
         {
             throw new AccessDeniedException( "You do not have manage access to this object." );
         }

@@ -54,9 +54,7 @@ public class DataElementGroupSetDeletionHandler
     @Override
     public void deleteDataElementGroup( DataElementGroup dataElementGroup )
     {
-        DataElementGroupSet groupSet = dataElementGroup.getGroupSet();
-        
-        if ( groupSet != null )
+        for ( DataElementGroupSet groupSet : dataElementGroup.getGroupSets() )
         {
             groupSet.getMembers().remove( dataElementGroup );
             idObjectManager.updateNoAcl( groupSet );

@@ -61,6 +61,7 @@ public class TrackedEntityInstanceQueryParams
     public static final String TRACKED_ENTITY_ATTRIBUTE_ID = "teattribute";
     public static final String TRACKED_ENTITY_ATTRIBUTE_VALUE_ID = "tevalue";
     public static final String INACTIVE_ID = "inactive";
+    public static final String DELETED = "deleted";
 
     public static final String META_DATA_NAMES_KEY = "names";
     public static final String PAGER_META_KEY = "pager";
@@ -184,6 +185,11 @@ public class TrackedEntityInstanceQueryParams
      * Indicates whether paging should be skipped.
      */
     private boolean skipPaging;
+
+    /**
+     * Indicates whether to include soft-deleted elements
+     */
+    private boolean includeDeleted;
 
     /**
      * TEI order params
@@ -870,6 +876,18 @@ public class TrackedEntityInstanceQueryParams
     public TrackedEntityInstanceQueryParams setSkipPaging( boolean skipPaging )
     {
         this.skipPaging = skipPaging;
+        return this;
+    }
+
+    public boolean isIncludeDeleted()
+    {
+        return includeDeleted;
+    }
+
+    public TrackedEntityInstanceQueryParams setIncludeDeleted( boolean includeDeleted )
+    {
+        this.includeDeleted = includeDeleted;
+
         return this;
     }
 

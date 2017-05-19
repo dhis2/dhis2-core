@@ -168,7 +168,7 @@ public class HibernateProgramStageInstanceStore
     @Override
     protected ProgramStageInstance postProcessObject( ProgramStageInstance programStageInstance )
     {
-        return programStageInstance.isDeleted() ? null : programStageInstance;
+        return ( programStageInstance == null || programStageInstance.isDeleted() ) ? null : programStageInstance;
     }
 
     // -------------------------------------------------------------------------

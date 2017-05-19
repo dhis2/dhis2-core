@@ -30,13 +30,11 @@ package org.hisp.dhis.dataelement;
 
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.GenericNameableObjectStore;
-import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.PeriodType;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -165,12 +163,6 @@ public class DefaultDataElementService
     public List<DataElement> getDataElementsByAggregationLevel( int aggregationLevel )
     {
         return dataElementStore.getDataElementsByAggregationLevel( aggregationLevel );
-    }
-
-    @Override
-    public ListMap<String, String> getDataElementCategoryOptionComboMap( Set<String> dataElementUids )
-    {
-        return dataElementStore.getDataElementCategoryOptionComboMap( dataElementUids );
     }
 
     // -------------------------------------------------------------------------

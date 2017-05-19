@@ -87,8 +87,12 @@ public class Event
 
     private String lastUpdated;
 
+    private String createdAtClient;
+
+    private String lastUpdatedAtClient;
+
     private String attributeOptionCombo;
-    
+
     private String attributeCategoryOptions;
 
     private String completedBy;
@@ -97,6 +101,7 @@ public class Event
 
     public Event()
     {
+        deleted = false;
     }
 
     public String getUid()
@@ -312,7 +317,6 @@ public class Event
 
     public void setCreated( String created )
     {
-        this.created = created;
     }
 
     @JsonProperty
@@ -324,8 +328,31 @@ public class Event
 
     public void setLastUpdated( String lastUpdated )
     {
-        this.lastUpdated = lastUpdated;
-    }    
+    }
+
+    @JsonProperty( required = true )
+    @JacksonXmlProperty( isAttribute = true )
+    public String getCreatedAtClient()
+    {
+        return createdAtClient;
+    }
+
+    public void setCreatedAtClient( String createdAtClient )
+    {
+        this.createdAtClient = createdAtClient;
+    }
+
+    @JsonProperty( required = true )
+    @JacksonXmlProperty( isAttribute = true )
+    public String getLastUpdatedAtClient()
+    {
+        return lastUpdatedAtClient;
+    }
+
+    public void setLastUpdatedAtClient( String lastUpdatedAtClient )
+    {
+        this.lastUpdatedAtClient = lastUpdatedAtClient;
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

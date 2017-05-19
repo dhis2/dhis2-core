@@ -29,19 +29,11 @@ package org.hisp.dhis.dxf2.datavalueset;
  */
 
 import com.csvreader.CsvReader;
-import org.hisp.staxwax.factory.XMLFactory;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.calendar.CalendarService;
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.common.DateRange;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
@@ -97,23 +89,17 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
+import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static org.apache.commons.lang3.StringUtils.trimToNull;
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
-import static org.hisp.dhis.system.notification.NotificationLevel.WARN;
+import static org.hisp.dhis.system.notification.NotificationLevel.*;
 import static org.hisp.dhis.system.util.DateUtils.parseDate;
 
 /**
@@ -875,6 +861,9 @@ public class DefaultDataValueSetService
                 continue;
             }
 
+            dataValue.setValueForced(
+                ValidationUtils.normalizeBoolean( dataValue.getValue(), dataElement.getValueType() ) );
+
             String valueValid = ValidationUtils.dataValueIsValid( dataValue.getValue(), dataElement );
 
             if ( valueValid != null )
@@ -1171,7 +1160,7 @@ public class DefaultDataValueSetService
         int ignores = totalCount - importCount - updateCount - deleteCount;
 
         summary.setImportCount( new ImportCount( importCount, updateCount, ignores, deleteCount ) );
-        summary.setStatus( ImportStatus.SUCCESS );
+        summary.setStatus( summary.getConflicts().isEmpty() ? ImportStatus.SUCCESS : ImportStatus.WARNING );
         summary.setDescription( "Import process completed successfully" );
 
         clock.logTime( "Data value import done, total: " + totalCount + ", import: " + importCount + ", update: " + updateCount + ", delete: " + deleteCount );

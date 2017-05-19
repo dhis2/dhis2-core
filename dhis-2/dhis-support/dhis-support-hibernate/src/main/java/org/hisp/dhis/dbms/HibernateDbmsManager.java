@@ -112,14 +112,14 @@ public class HibernateDbmsManager
         emptyTable( "delete from report" );
 
         emptyTable( "reporttable_categorydimensions" );
-        emptyTable( "reporttable_categoryoptiongroups" );
+        emptyTable( "reporttable_categoryoptiongroupsetdimensions" );
         emptyTable( "reporttable_columns" );
         emptyTable( "reporttable_datadimensionitems" );
-        emptyTable( "reporttable_dataelementgroups" );
+        emptyTable( "reporttable_dataelementgroupsetdimensions" );
         emptyTable( "reporttable_filters" );
         emptyTable( "reporttable_itemorgunitgroups" );
         emptyTable( "reporttable_organisationunits" );
-        emptyTable( "reporttable_orgunitgroups" );
+        emptyTable( "reporttable_orgunitgroupsetdimensions" );
         emptyTable( "reporttable_orgunitlevels" );
         emptyTable( "reporttable_periods" );
         emptyTable( "reporttable_rows" );
@@ -128,13 +128,13 @@ public class HibernateDbmsManager
         emptyTable( "reporttable" );
 
         emptyTable( "chart_categorydimensions" );
-        emptyTable( "chart_categoryoptiongroups" );
+        emptyTable( "chart_categoryoptiongroupsetdimensions" );
         emptyTable( "chart_datadimensionitems" );
-        emptyTable( "chart_dataelementgroups" );
+        emptyTable( "chart_dataelementgroupsetdimensions" );
         emptyTable( "chart_filters" );
         emptyTable( "chart_itemorgunitgroups" );
         emptyTable( "chart_organisationunits" );
-        emptyTable( "chart_orgunitgroups" );
+        emptyTable( "chart_orgunitgroupsetdimensions" );
         emptyTable( "chart_orgunitlevels" );
         emptyTable( "chart_periods" );
         emptyTable( "chartusergroupaccesses" );
@@ -147,7 +147,7 @@ public class HibernateDbmsManager
         emptyTable( "eventreport_filters" );
         emptyTable( "eventreport_itemorgunitgroups" );
         emptyTable( "eventreport_organisationunits" );
-        emptyTable( "eventreport_orgunitgroups" );
+        emptyTable( "eventreport_orgunitgroupsetdimensions" );
         emptyTable( "eventreport_orgunitlevels" );
         emptyTable( "eventreport_periods" );
         emptyTable( "eventreport_programindicatordimensions" );
@@ -162,7 +162,7 @@ public class HibernateDbmsManager
         emptyTable( "eventchart_filters" );
         emptyTable( "eventchart_itemorgunitgroups" );
         emptyTable( "eventchart_organisationunits" );
-        emptyTable( "eventchart_orgunitgroups" );
+        emptyTable( "eventchart_orgunitgroupsetdimensions" );
         emptyTable( "eventchart_orgunitlevels" );
         emptyTable( "eventchart_periods" );
         emptyTable( "eventchart_programindicatordimensions" );
@@ -170,6 +170,13 @@ public class HibernateDbmsManager
         emptyTable( "eventchartusergroupaccesses" );
         emptyTable( "eventcharttranslations" );
         emptyTable( "eventchart" );
+        
+        emptyTable( "dataelementgroupsetdimension_items" );
+        emptyTable( "dataelementgroupsetdimension" );
+        emptyTable( "categoryoptiongroupsetdimension" );
+        emptyTable( "categoryoptiongroupsetdimension_items" );
+        emptyTable( "orgunitgroupsetdimension_items" );
+        emptyTable( "orgunitgroupsetdimension" );
 
         emptyTable( "users_catdimensionconstraints" );
         emptyTable( "userrolemembers" );

@@ -28,11 +28,9 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.common.DxfNamespaces;
 
 import java.io.Serializable;
@@ -96,12 +94,6 @@ public class Expression
     private MissingValueStrategy missingValueStrategy = MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
 
     // -------------------------------------------------------------------------
-    // Transient properties
-    // -------------------------------------------------------------------------
-
-    private transient String explodedExpression;
-
-    // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
 
@@ -113,8 +105,8 @@ public class Expression
     }
 
     /**
-     * @param expression               The expression as a String
-     * @param description              A description of the Expression.
+     * @param expression  The expression as a String
+     * @param description A description of the Expression.
      */
     public Expression( String expression, String description )
     {
@@ -125,9 +117,9 @@ public class Expression
     /**
      * Constructor with all the parameters.
      *
-     * @param expression                 The expression as a String
-     * @param description                A description of the Expression.
-     * @param missingValueStrategy       Strategy for handling missing values.
+     * @param expression           The expression as a String
+     * @param description          A description of the Expression.
+     * @param missingValueStrategy Strategy for handling missing values.
      */
     public Expression( String expression, String description,
         MissingValueStrategy missingValueStrategy )
@@ -135,18 +127,6 @@ public class Expression
         this.expression = expression;
         this.description = description;
         this.missingValueStrategy = missingValueStrategy;
-    }
-
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
-
-    /**
-     * Returns exploded expression, if null returns expression.
-     */
-    public String getExplodedExpressionFallback()
-    {
-        return explodedExpression != null ? explodedExpression : expression;
     }
 
     // -------------------------------------------------------------------------
@@ -218,7 +198,6 @@ public class Expression
             "\"class\":\"" + getClass() + "\", " +
             "\"id\":\"" + id + "\", " +
             "\"expression\":\"" + expression + "\", " +
-            "\"explodedExpression\":\"" + explodedExpression + "\", " +
             "\"description\":\"" + description + "\" " +
             "}";
     }
@@ -311,26 +290,6 @@ public class Expression
     public void setMissingValueStrategy( MissingValueStrategy missingValueStrategy )
     {
         this.missingValueStrategy = missingValueStrategy;
-    }
-
-    @JsonIgnore
-    public String getExplodedExpression()
-    {
-        return explodedExpression;
-    }
-
-    public void setExplodedExpression( String explodedExpression )
-    {
-        this.explodedExpression = explodedExpression;
-    }
-
-    public void mergeWith( Expression other )
-    {
-        Validate.notNull( other );
-
-        expression = other.getExpression() == null ? expression : other.getExpression();
-        description = other.getDescription() == null ? description : other.getDescription();
-        missingValueStrategy = other.getMissingValueStrategy() == null ? missingValueStrategy : other.getMissingValueStrategy();
     }
 
     @JsonProperty

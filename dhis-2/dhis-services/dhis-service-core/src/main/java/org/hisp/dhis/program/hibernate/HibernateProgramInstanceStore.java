@@ -239,4 +239,10 @@ public class HibernateProgramInstanceStore
 
         return null;
     }
+
+    @Override
+    protected ProgramInstance postProcessObject( ProgramInstance programInstance )
+    {
+        return ( programInstance == null || programInstance.isDeleted() ) ? null : programInstance;
+    }
 }

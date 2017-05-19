@@ -28,18 +28,18 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.commons.util.TextUtils.removeLast;
-
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
-
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.common.ValueType;
 import org.springframework.scheduling.annotation.Async;
+
+import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Future;
+
+import static org.hisp.dhis.commons.util.TextUtils.removeLast;
 
 /**
  * @author Markus Bekken
@@ -109,7 +109,7 @@ public abstract class AbstractEventJdbcTableManager
         {
             return "integer";
         }
-        else if ( Date.class.equals( valueType.getJavaClass() ) )
+        else if ( LocalDateTime.class.equals( valueType.getJavaClass() ) )
         {
             return "timestamp";
         }
@@ -141,7 +141,7 @@ public abstract class AbstractEventJdbcTableManager
         {
             return "case when value = 'true' then 1 when value = 'false' then 0 else null end";
         }
-        else if ( Date.class.equals( valueType.getJavaClass() ) )
+        else if ( LocalDateTime.class.equals( valueType.getJavaClass() ) )
         {
             return "cast(value as timestamp)";
         }

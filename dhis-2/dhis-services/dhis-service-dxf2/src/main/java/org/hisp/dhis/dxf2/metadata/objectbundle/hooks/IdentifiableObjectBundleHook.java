@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.Session;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -36,6 +37,8 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.schema.Schema;
 import org.springframework.core.annotation.Order;
 import org.springframework.util.StringUtils;
+
+import java.util.Iterator;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -55,10 +58,9 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
     @Override
     public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
     {
-
-        BaseIdentifiableObject identifableObject = (BaseIdentifiableObject) object;
-        identifableObject.setAutoFields();
-        identifableObject.setLastUpdatedBy( bundle.getUser() );
+        BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
+        identifiableObject.setAutoFields();
+        identifiableObject.setLastUpdatedBy( bundle.getUser() );
 
         Schema schema = schemaService.getDynamicSchema( object.getClass() );
         handleAttributeValues( object, bundle, schema );
@@ -66,15 +68,34 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
 
     private void handleAttributeValues( IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
     {
+        Session session = sessionFactory.getCurrentSession();
+
         if ( !schema.havePersistedProperty( "attributeValues" ) ) return;
 
-        for ( AttributeValue attributeValue : identifiableObject.getAttributeValues() )
+        Iterator<AttributeValue> iterator = identifiableObject.getAttributeValues().iterator();
+
+        while ( iterator.hasNext() )
         {
+            AttributeValue attributeValue = iterator.next();
+
             // if value null or empty, just skip it
-            if ( StringUtils.isEmpty( attributeValue.getValue() ) ) continue;
+            if ( StringUtils.isEmpty( attributeValue.getValue() ) )
+            {
+                iterator.remove();
+                continue;
+            }
 
             Attribute attribute = bundle.getPreheat().get( bundle.getPreheatIdentifier(), attributeValue.getAttribute() );
+
+            if ( attribute == null )
+            {
+                iterator.remove();
+                continue;
+            }
+
             attributeValue.setAttribute( attribute );
+            session.save( attributeValue );
+            session.flush();
         }
     }
 }

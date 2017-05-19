@@ -55,7 +55,6 @@ import static org.junit.Assert.*;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-
 public class AclServiceTest
     extends DhisSpringTest
 {
@@ -132,7 +131,7 @@ public class AclServiceTest
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
 
-        assertTrue( aclService.canUpdate( user, dataElement ) );
+        assertFalse( aclService.canUpdate( user, dataElement ) );
     }
 
     @Test
@@ -430,7 +429,7 @@ public class AclServiceTest
     public void testCategoryOptionSharingPrivateRW()
     {
         User user1 = createUser( "user1", "F_CATEGORY_OPTION_PRIVATE_ADD" );
-        User user2 = createUser( "user2" );
+        User user2 = createUser( "user2", "F_CATEGORY_OPTION_PRIVATE_ADD" );
 
         DataElementCategoryOption categoryOption = createCategoryOption( 'A' );
         categoryOption.setUser( user1 );
@@ -517,7 +516,7 @@ public class AclServiceTest
     public void testReadPrivateDataElementSharedThroughGroup()
     {
         User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
-        User user2 = createUser( "user2" );
+        User user2 = createUser( "user2", "F_DATAELEMENT_PRIVATE_ADD" );
 
         manager.save( user1 );
         manager.save( user2 );
@@ -526,26 +525,33 @@ public class AclServiceTest
         manager.save( userGroup );
 
         DataElement dataElement = createDataElement( 'A' );
+        dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
         dataElement.setUser( user1 );
 
+        assertTrue( aclService.canWrite( user1, dataElement ) );
         manager.save( dataElement );
 
         UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.READ );
         dataElement.getUserGroupAccesses().add( userGroupAccess );
+
+        assertTrue( aclService.canUpdate( user1, dataElement ) );
         manager.update( dataElement );
 
         assertTrue( aclService.canRead( user1, dataElement ) );
+        assertTrue( aclService.canWrite( user1, dataElement ) );
         assertTrue( aclService.canUpdate( user1, dataElement ) );
         assertFalse( aclService.canDelete( user1, dataElement ) );
         assertTrue( aclService.canManage( user1, dataElement ) );
 
         Access access = aclService.getAccess( dataElement, user2 );
         assertTrue( access.isRead() );
+        assertFalse( access.isWrite() );
         assertFalse( access.isUpdate() );
         assertFalse( access.isDelete() );
         assertFalse( access.isManage() );
 
         assertTrue( aclService.canRead( user2, dataElement ) );
+        assertFalse( aclService.canWrite( user2, dataElement ) );
         assertFalse( aclService.canUpdate( user2, dataElement ) );
         assertFalse( aclService.canDelete( user2, dataElement ) );
         assertFalse( aclService.canManage( user2, dataElement ) );
@@ -555,7 +561,7 @@ public class AclServiceTest
     public void testUpdatePrivateDataElementSharedThroughGroup()
     {
         User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
-        User user2 = createUser( "user2" );
+        User user2 = createUser( "user2", "F_DATAELEMENT_PRIVATE_ADD" );
 
         manager.save( user1 );
         manager.save( user2 );
@@ -564,6 +570,7 @@ public class AclServiceTest
         manager.save( userGroup );
 
         DataElement dataElement = createDataElement( 'A' );
+        dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
         dataElement.setUser( user1 );
 
         manager.save( dataElement );
@@ -579,13 +586,139 @@ public class AclServiceTest
 
         Access access = aclService.getAccess( dataElement, user2 );
         assertTrue( access.isRead() );
+        assertTrue( access.isWrite() );
         assertTrue( access.isUpdate() );
         assertFalse( access.isDelete() );
         assertTrue( access.isManage() );
 
         assertTrue( aclService.canRead( user2, dataElement ) );
+        assertTrue( aclService.canWrite( user2, dataElement ) );
         assertTrue( aclService.canUpdate( user2, dataElement ) );
         assertFalse( aclService.canDelete( user2, dataElement ) );
         assertTrue( aclService.canManage( user2, dataElement ) );
+    }
+
+    @Test
+    public void testBlockMakePublic()
+    {
+        User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
+        manager.save( user1 );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
+        dataElement.setUser( user1 );
+
+        assertTrue( aclService.canWrite( user1, dataElement ) );
+        manager.save( dataElement );
+
+        dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
+        assertFalse( aclService.canUpdate( user1, dataElement ) );
+    }
+
+    @Test
+    public void testAllowSuperuserMakePublic1()
+    {
+        User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
+        User user2 = createUser( "user2", "ALL" );
+        manager.save( user1 );
+        manager.save( user2 );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
+        dataElement.setUser( user1 );
+
+        assertTrue( aclService.canWrite( user1, dataElement ) );
+        manager.save( dataElement );
+
+        dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
+        assertTrue( aclService.canUpdate( user2, dataElement ) );
+    }
+
+    @Test
+    public void testAllowSuperuserMakePublic2()
+    {
+        User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
+        User user2 = createUser( "user2", "ALL" );
+        manager.save( user1 );
+        manager.save( user2 );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
+        dataElement.setUser( user1 );
+
+        assertTrue( aclService.canWrite( user1, dataElement ) );
+        manager.save( dataElement, user1 );
+
+        dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
+        assertTrue( aclService.canUpdate( user2, dataElement ) );
+        manager.save( dataElement, user2 );
+
+        assertFalse( aclService.canWrite( user1, dataElement ) );
+        manager.save( dataElement, user1 );
+    }
+
+    @Test
+    public void testAllowMakePublic()
+    {
+        User user1 = createUser( "user1", "F_DATAELEMENT_PUBLIC_ADD" );
+        manager.save( user1 );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
+        dataElement.setUser( user1 );
+
+        Access access = aclService.getAccess( dataElement, user1 );
+        assertTrue( access.isRead() );
+        assertTrue( access.isWrite() );
+        assertTrue( access.isUpdate() );
+        assertFalse( access.isDelete() );
+
+        manager.save( dataElement );
+
+        dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
+
+        access = aclService.getAccess( dataElement, user1 );
+        assertTrue( access.isRead() );
+        assertTrue( access.isWrite() );
+        assertTrue( access.isUpdate() );
+        assertFalse( access.isDelete() );
+
+        assertTrue( aclService.canUpdate( user1, dataElement ) );
+    }
+
+    @Test
+    public void testBlockDashboardPublic()
+    {
+        User user1 = createUser( "user1" );
+        manager.save( user1 );
+
+        Dashboard dashboard = new Dashboard( "Dashboard" );
+        dashboard.setPublicAccess( AccessStringHelper.DEFAULT );
+        dashboard.setUser( user1 );
+
+        aclService.canWrite( user1, dashboard );
+        manager.save( dashboard );
+
+        dashboard.setPublicAccess( AccessStringHelper.READ_WRITE );
+        assertFalse( aclService.canUpdate( user1, dashboard ) );
+        manager.update( dashboard );
+    }
+
+    @Test
+    public void testAllowDashboardPublic()
+    {
+        User user1 = createUser( "user1", "F_DASHBOARD_PUBLIC_ADD" );
+        manager.save( user1 );
+
+        Dashboard dashboard = new Dashboard( "Dashboard" );
+        dashboard.setPublicAccess( AccessStringHelper.DEFAULT );
+        dashboard.setUser( user1 );
+
+        aclService.canWrite( user1, dashboard );
+        manager.save( dashboard );
+
+        dashboard.setPublicAccess( AccessStringHelper.READ_WRITE );
+        assertTrue( aclService.canUpdate( user1, dashboard ) );
+        manager.update( dashboard );
     }
 }

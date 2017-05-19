@@ -38,8 +38,6 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.VersionedObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
@@ -801,84 +799,5 @@ public class Program
     public void setCompleteEventsExpiryDays( int completeEventsExpiryDays )
     {
         this.completeEventsExpiryDays = completeEventsExpiryDays;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            Program program = (Program) other;
-
-            version = program.getVersion();
-            expiryDays = program.getExpiryDays();
-            completeEventsExpiryDays = program.getCompleteEventsExpiryDays();
-
-            if ( mergeMode.isReplace() )
-            {
-                enrollmentDateLabel = program.getEnrollmentDateLabel();
-                incidentDateLabel = program.getIncidentDateLabel();
-                programType = program.getProgramType();
-                displayIncidentDate = program.getDisplayIncidentDate();
-                ignoreOverdueEvents = program.getIgnoreOverdueEvents();
-                onlyEnrollOnce = program.getOnlyEnrollOnce();
-                selectEnrollmentDatesInFuture = program.getSelectEnrollmentDatesInFuture();
-                selectIncidentDatesInFuture = program.getSelectIncidentDatesInFuture();
-                relationshipText = program.getRelationshipText();
-                relationshipType = program.getRelationshipType();
-                relationshipFromA = program.getRelationshipFromA();
-                relatedProgram = program.getRelatedProgram();
-                trackedEntity = program.getTrackedEntity();
-                useFirstStageDuringRegistration = program.getUseFirstStageDuringRegistration();
-                categoryCombo = program.getCategoryCombo();
-                captureCoordinates = program.getCaptureCoordinates();
-                expiryPeriodType = program.getExpiryPeriodType();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                enrollmentDateLabel = program.getEnrollmentDateLabel() == null ? enrollmentDateLabel : program.getEnrollmentDateLabel();
-                incidentDateLabel = program.getIncidentDateLabel() == null ? incidentDateLabel : program.getIncidentDateLabel();
-                programType = program.getProgramType() == null ? programType : program.getProgramType();
-                displayIncidentDate = program.getDisplayIncidentDate() == null ? displayIncidentDate : program.getDisplayIncidentDate();
-                ignoreOverdueEvents = program.getIgnoreOverdueEvents() == null ? ignoreOverdueEvents : program.getIgnoreOverdueEvents();
-                onlyEnrollOnce = program.getOnlyEnrollOnce() == null ? onlyEnrollOnce : program.getOnlyEnrollOnce();
-                selectEnrollmentDatesInFuture = program.getSelectEnrollmentDatesInFuture() == null ? selectEnrollmentDatesInFuture : program.getSelectEnrollmentDatesInFuture();
-                selectIncidentDatesInFuture = program.getSelectIncidentDatesInFuture() == null ? selectIncidentDatesInFuture : program.getSelectIncidentDatesInFuture();
-                relationshipText = program.getRelationshipText() == null ? relationshipText : program.getRelationshipText();
-                relationshipType = program.getRelationshipType() == null ? relationshipType : program.getRelationshipType();
-                relationshipFromA = program.getRelationshipFromA() == null ? relationshipFromA : program.getRelationshipFromA();
-                relatedProgram = program.getRelatedProgram() == null ? relatedProgram : program.getRelatedProgram();
-                trackedEntity = program.getTrackedEntity() == null ? trackedEntity : program.getTrackedEntity();
-                useFirstStageDuringRegistration = program.getUseFirstStageDuringRegistration() == null ? useFirstStageDuringRegistration : program.getUseFirstStageDuringRegistration();
-                categoryCombo = program.getCategoryCombo() == null ? categoryCombo : program.getCategoryCombo();
-                captureCoordinates = program.getCaptureCoordinates() == null ? captureCoordinates : program.getCaptureCoordinates();
-                expiryPeriodType = program.getExpiryPeriodType() == null ? expiryPeriodType : program.getExpiryPeriodType();
-            }
-
-            organisationUnits.clear();
-            organisationUnits.addAll( program.getOrganisationUnits() );
-
-            programStages.clear();
-
-            for ( ProgramStage programStage : program.getProgramStages() )
-            {
-                programStages.add( programStage );
-                programStage.setProgram( this );
-            }
-
-            validationCriteria.clear();
-            validationCriteria.addAll( program.getValidationCriteria() );
-
-            programAttributes.clear();
-            programAttributes.addAll( program.getProgramAttributes() );
-
-            userRoles.clear();
-            userRoles.addAll( program.getUserRoles() );
-
-            notificationTemplates.clear();
-            notificationTemplates.addAll( program.getNotificationTemplates() );
-        }
     }
 }

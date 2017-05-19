@@ -38,8 +38,6 @@ import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.schema.PropertyType;
@@ -133,16 +131,6 @@ public class Indicator
     public void removeAllAttributeValues()
     {
         attributeValues.clear();
-    }
-
-    public String getExplodedNumeratorFallback()
-    {
-        return explodedNumerator != null ? explodedNumerator : numerator;
-    }
-
-    public String getExplodedDenominatorFallback()
-    {
-        return explodedDenominator != null ? explodedDenominator : denominator;
     }
 
     public boolean hasDecimals()
@@ -315,44 +303,5 @@ public class Indicator
     public void setDataSets( Set<DataSet> dataSets )
     {
         this.dataSets = dataSets;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            Indicator indicator = (Indicator) other;
-
-            annualized = indicator.isAnnualized();
-
-            if ( mergeMode.isReplace() )
-            {
-                decimals = indicator.getDecimals();
-                denominator = indicator.getDenominator();
-                denominatorDescription = indicator.getDenominatorDescription();
-                numerator = indicator.getNumerator();
-                numeratorDescription = indicator.getNumeratorDescription();
-                explodedNumerator = indicator.getExplodedNumerator();
-                explodedDenominator = indicator.getExplodedDenominator();
-                indicatorType = indicator.getIndicatorType();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                decimals = indicator.getDecimals() == null ? decimals : indicator.getDecimals();
-                denominator = indicator.getDenominator() == null ? denominator : indicator.getDenominator();
-                denominatorDescription = indicator.getDenominatorDescription() == null ? denominatorDescription : indicator.getDenominatorDescription();
-                numerator = indicator.getNumerator() == null ? numerator : indicator.getNumerator();
-                numeratorDescription = indicator.getNumeratorDescription() == null ? numeratorDescription : indicator.getNumeratorDescription();
-                explodedNumerator = indicator.getExplodedNumerator() == null ? explodedNumerator : indicator.getExplodedNumerator();
-                explodedDenominator = indicator.getExplodedDenominator() == null ? explodedDenominator : indicator.getExplodedDenominator();
-                indicatorType = indicator.getIndicatorType() == null ? indicatorType : indicator.getIndicatorType();
-            }
-
-            dataSets.clear();
-            groups.clear();
-        }
     }
 }

@@ -14,7 +14,7 @@
         $('#ouwtSelected').val( ouwtSelected[0] );
         selection.setSelected( ouwtSelected !== undefined ? ouwtSelected : [] );
         
-        validateInvite().done(function(val) {        
+        validateInvite().done(function(val) {
         	form.submit();
         });
       }
@@ -30,7 +30,7 @@
     checkValueIsExist("openId", "validateUser.action");
     checkValueIsExist("ldapId", "validateUser.action");
     checkValueIsExist("inviteUsername", "validateUser.action");
-      checkValueIsExist("rawPassword", "validateUser.action",{ newUser: true });
+    checkValueIsExist("rawPassword", "validateUser.action",{ newUser: true });
 
       ouwtSelected = selection.getSelected();
     selection.setOfflineLevel( 1 );

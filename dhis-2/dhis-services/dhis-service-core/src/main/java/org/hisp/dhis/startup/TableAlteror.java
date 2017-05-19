@@ -130,6 +130,14 @@ public class TableAlteror
         executeSql( "DROP TABLE datadictionarydataelements" );
         executeSql( "DROP TABLE datadictionary" );
         executeSql( "DROP TABLE caseaggregationcondition" );
+        executeSql( "DROP TABLE trackedentitytabularreportusergroupaccesses" );
+        executeSql( "DROP TABLE trackedentitytabularreport_filters" );
+        executeSql( "DROP TABLE trackedentitytabularreport_dimensions" );
+        executeSql( "DROP TABLE trackedentitytabularreport" );
+        executeSql( "DROP TABLE trackedentityaggregatereportusergroupaccesses" );
+        executeSql( "DROP TABLE trackedentityaggregatereport_filters" );
+        executeSql( "DROP TABLE trackedentityaggregatereport_dimension" );
+        executeSql( "DROP TABLE trackedentityaggregatereport" );
         executeSql( "ALTER TABLE categoryoptioncombo drop column userid" );
         executeSql( "ALTER TABLE categoryoptioncombo drop column publicaccess" );
         executeSql( "ALTER TABLE categoryoptioncombo alter column name type text" );
@@ -189,6 +197,8 @@ public class TableAlteror
         executeSql( "UPDATE mapview SET hidden = false WHERE hidden IS NULL" );
         executeSql( "UPDATE mapview SET eventclustering = false WHERE eventclustering IS NULL" );
         executeSql( "UPDATE mapview SET eventpointradius = 0 WHERE eventpointradius IS NULL" );
+        executeSql( "UPDATE programnotificationtemplate SET trackedentityattributeid = 0 WHERE trackedentityattributeid IS NULL" );
+
 
         executeSql( "DELETE FROM systemsetting WHERE name = 'longitude'" );
         executeSql( "DELETE FROM systemsetting WHERE name = 'latitude'" );
@@ -447,6 +457,8 @@ public class TableAlteror
         executeSql( "update eventchart set hidetitle = false where hidetitle is null" );
         executeSql( "update eventchart set hidesubtitle = false where hidesubtitle is null" );
         executeSql( "update eventchart set hidenadata = false where hidenadata is null" );
+        executeSql( "update eventchart set percentstackedvalues = false where percentstackedvalues is null" );
+        executeSql( "update eventchart set cumulativevalues = false where cumulativevalues is null" );
         executeSql( "update reporttable set showdimensionlabels = false where showdimensionlabels is null" );
         executeSql( "update eventreport set showdimensionlabels = false where showdimensionlabels is null" );
         executeSql( "update reporttable set skiprounding = false where skiprounding is null" );
@@ -700,6 +712,7 @@ public class TableAlteror
         // remove unused configurations
         executeSql( "delete from systemsetting where name='keySmsConfig'" );
         executeSql( "delete from systemsetting where name='keySmsConfiguration'" );
+        executeSql( "delete from systemsetting where name='keySmsConfigurations'" );
 
         // update denominator of indicator which has indicatortype as 'number'
         executeSql( "UPDATE indicator SET denominator = 1, denominatordescription = '' WHERE indicatortypeid IN (SELECT DISTINCT indicatortypeid FROM indicatortype WHERE indicatornumber = true) AND denominator IS NULL" );
@@ -771,6 +784,7 @@ public class TableAlteror
         executeSql( "ALTER TABLE dataelementgroupset ALTER COLUMN datadimension SET NOT NULL" );
         executeSql( "UPDATE orgunitgroupset SET datadimension=true WHERE datadimension IS NULL" );
         executeSql( "ALTER TABLE orgunitgroupset ALTER COLUMN datadimension SET NOT NULL" );
+        executeSql( "ALTER TABLE validationnotificationtemplate ALTER COLUMN sendstrategy SET NOT NULL" );
 
         // set attribute defaults
         executeSql( "UPDATE attribute SET dataelementattribute=false WHERE dataelementattribute IS NULL" );

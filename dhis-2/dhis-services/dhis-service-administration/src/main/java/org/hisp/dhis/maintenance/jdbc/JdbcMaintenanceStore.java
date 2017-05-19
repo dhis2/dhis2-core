@@ -60,7 +60,7 @@ public class JdbcMaintenanceStore
               "where de.aggregationtype = 'SUM' " +
               "and de.zeroissignificant is false ) " +
             "and dv.value = '0';";
-        
+
         return jdbcTemplate.update( sql );
     }
 
@@ -70,7 +70,7 @@ public class JdbcMaintenanceStore
         String sql =
             "delete from datavalue dv " +
             "where dv.deleted is true;";
-        
+
         return jdbcTemplate.update( sql );
     }
 
@@ -80,6 +80,26 @@ public class JdbcMaintenanceStore
         String sql =
             "delete from programstageinstance " +
             "where deleted is true";
+
+        return jdbcTemplate.update( sql );
+    }
+
+    @Override
+    public int deleteSoftDeletedProgramInstances()
+    {
+        String sql =
+            "delete from programinstance " +
+            "where deleted is true";
+
+        return jdbcTemplate.update( sql );
+    }
+
+    @Override
+    public int deleteSoftDeletedTrackedEntityInstances()
+    {
+        String sql =
+            "delete from trackedentityinstance " +
+                "where deleted is true";
 
         return jdbcTemplate.update( sql );
     }

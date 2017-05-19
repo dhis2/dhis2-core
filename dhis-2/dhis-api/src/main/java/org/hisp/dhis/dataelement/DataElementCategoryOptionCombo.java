@@ -40,8 +40,6 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
@@ -402,32 +400,5 @@ public class DataElementCategoryOptionCombo
     public void setIgnoreApproval( boolean ignoreApproval )
     {
         this.ignoreApproval = ignoreApproval;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DataElementCategoryOptionCombo categoryOptionCombo = (DataElementCategoryOptionCombo) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                categoryCombo = categoryOptionCombo.getCategoryCombo();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                categoryCombo = categoryOptionCombo.getCategoryCombo() == null ? categoryCombo : categoryOptionCombo.getCategoryCombo();
-            }
-
-            removeAllCategoryOptions();
-
-            for ( DataElementCategoryOption categoryOption : categoryOptionCombo.getCategoryOptions() )
-            {
-                addDataElementCategoryOption( categoryOption );
-            }
-        }
     }
 }

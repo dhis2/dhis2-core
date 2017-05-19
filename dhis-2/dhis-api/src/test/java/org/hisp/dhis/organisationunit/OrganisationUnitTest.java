@@ -108,6 +108,22 @@ public class OrganisationUnitTest
     }
 
     @Test
+    public void testGetAncestorNames()
+    {
+        unitD.setParent( unitC );
+        unitC.setParent( unitB );
+        unitB.setParent( unitA );
+        
+        List<String> expected = new ArrayList<>( Arrays.asList( unitA.getDisplayName(), unitB.getDisplayName(), unitC.getDisplayName() ) );
+        
+        assertEquals( expected, unitD.getAncestorNames( null, false ) );
+        
+        expected = new ArrayList<>( Arrays.asList( unitA.getDisplayName(), unitB.getDisplayName(), unitC.getDisplayName(), unitD.getDisplayName() ) );
+        
+        assertEquals( expected, unitD.getAncestorNames( null, true ) );
+    }
+
+    @Test
     public void testGetAncestorsWithRoots()
     {
         unitD.setParent( unitC );

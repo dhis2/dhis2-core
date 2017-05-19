@@ -4,6 +4,8 @@ function performMaintenance() {
     var zeroValues = $("#zeroValues").is(":checked");
     var softDeletedValues = $("#softDeletedValues").is(":checked");
     var softDeletedEvents = $("#softDeletedEvents").is(":checked");
+    var softDeletedEnrollments = $("#softDeletedEnrollments").is(":checked");
+    var softDeletedTrackedEntityInstances = $("#softDeletedTrackedEntityInstances").is(":checked");
     var prunePeriods = $("#prunePeriods").is(":checked");
     var removeExpiredInvitations = $("#removeExpiredInvitations").is(":checked");
     var dropSqlViews = $("#dropSqlViews").is(":checked");
@@ -13,7 +15,7 @@ function performMaintenance() {
     var clearApplicationCache = $("#clearApplicationCache").is(":checked");
     var reloadApps = $("#reloadApps").is(":checked");
 
-    if ( clearAnalytics || analyzeAnalytics || zeroValues || softDeletedValues || softDeletedEvents || prunePeriods || removeExpiredInvitations ||
+    if ( clearAnalytics || analyzeAnalytics || zeroValues || softDeletedValues || softDeletedEvents || softDeletedEnrollments || softDeletedTrackedEntityInstances || prunePeriods || removeExpiredInvitations ||
         dropSqlViews || createSqlViews || updateCategoryOptionCombos || updateOrganisationUnitPaths || clearApplicationCache || reloadApps ) {
 
         setHeaderWaitMessage(i18n_performing_maintenance);
@@ -23,6 +25,8 @@ function performMaintenance() {
             "&zeroDataValueRemoval=" + zeroValues +
             "&softDeletedDataValueRemoval=" + softDeletedValues +
             "&softDeletedEventRemoval=" + softDeletedEvents +
+            "&softDeletedEnrollmentRemoval=" + softDeletedEnrollments +
+            "&softDeletedTrackedEntityInstanceRemoval=" + softDeletedTrackedEntityInstances +
             "&periodPruning=" + prunePeriods +
             "&expiredInvitationsClear=" + removeExpiredInvitations +
             "&sqlViewsDrop=" + dropSqlViews +

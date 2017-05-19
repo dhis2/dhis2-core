@@ -55,6 +55,10 @@ import java.util.Set;
 public class ProgramInstance
     extends BaseIdentifiableObject
 {
+    private Date createdAtClient;
+
+    private Date lastUpdatedAtClient;
+
     private ProgramStatus status = ProgramStatus.ACTIVE;
 
     private OrganisationUnit organisationUnit;
@@ -83,6 +87,8 @@ public class ProgramInstance
 
     private Double latitude;
 
+    private Boolean deleted = false;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -97,6 +103,19 @@ public class ProgramInstance
         this.incidentDate = incidentDate;
         this.entityInstance = entityInstance;
         this.program = program;
+    }
+
+    @Override
+    public void setAutoFields()
+    {
+        super.setAutoFields();
+
+        if ( createdAtClient == null )
+        {
+            createdAtClient = created;
+        }
+
+        lastUpdatedAtClient = lastUpdated;
     }
 
     // -------------------------------------------------------------------------
@@ -254,6 +273,30 @@ public class ProgramInstance
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getCreatedAtClient()
+    {
+        return createdAtClient;
+    }
+
+    public void setCreatedAtClient( Date createdAtClient )
+    {
+        this.createdAtClient = createdAtClient;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getLastUpdatedAtClient()
+    {
+        return lastUpdatedAtClient;
+    }
+
+    public void setLastUpdatedAtClient( Date lastUpdatedAtClient )
+    {
+        this.lastUpdatedAtClient = lastUpdatedAtClient;
+    }
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
@@ -425,5 +468,17 @@ public class ProgramInstance
     public void setLatitude( Double latitude )
     {
         this.latitude = latitude;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean isDeleted()
+    {
+        return deleted;
+    }
+
+    public void setDeleted( Boolean deleted )
+    {
+        this.deleted = deleted;
     }
 }

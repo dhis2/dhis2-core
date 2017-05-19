@@ -108,7 +108,7 @@ public class AnalyticsController
     {
 
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, startDate, endDate, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
-            ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, false, approvalLevel, relativePeriodDate, userOrgUnit, apiVersion );
+            ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, false, approvalLevel, relativePeriodDate, userOrgUnit, false, apiVersion );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
@@ -145,7 +145,7 @@ public class AnalyticsController
         HttpServletResponse response ) throws Exception
     {
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, startDate, endDate, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
-            ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, false, approvalLevel, relativePeriodDate, userOrgUnit, apiVersion );
+            ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, false, approvalLevel, relativePeriodDate, userOrgUnit, false, apiVersion );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
@@ -183,7 +183,7 @@ public class AnalyticsController
         HttpServletResponse response ) throws Exception
     {
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, startDate, endDate, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
-            ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, false, approvalLevel, relativePeriodDate, userOrgUnit, apiVersion );
+            ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, false, approvalLevel, relativePeriodDate, userOrgUnit, false, apiVersion );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
@@ -221,7 +221,7 @@ public class AnalyticsController
         HttpServletResponse response ) throws Exception
     {
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, startDate, endDate, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
-            ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, false, approvalLevel, relativePeriodDate, userOrgUnit, apiVersion );
+            ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, false, approvalLevel, relativePeriodDate, userOrgUnit, false, apiVersion );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
@@ -259,7 +259,7 @@ public class AnalyticsController
         HttpServletResponse response ) throws Exception
     {
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, startDate, endDate, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
-            ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, false, approvalLevel, relativePeriodDate, userOrgUnit, apiVersion );
+            ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, false, approvalLevel, relativePeriodDate, userOrgUnit, false, apiVersion );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.csv", true, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
@@ -297,7 +297,7 @@ public class AnalyticsController
         HttpServletResponse response ) throws Exception
     {
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, startDate, endDate, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
-            ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, false, approvalLevel, relativePeriodDate, userOrgUnit, apiVersion );
+            ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, false, approvalLevel, relativePeriodDate, userOrgUnit, false, apiVersion );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.xls", true, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
@@ -336,7 +336,7 @@ public class AnalyticsController
         HttpServletResponse response ) throws Exception
     {
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, null, null, null,
-            startDate, endDate, true, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, apiVersion );
+            startDate, endDate, true, false, false, false, false, false, false, false, false, null, null, null, false, null, null, null, false, apiVersion );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.jrxml", false, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params );
@@ -375,7 +375,7 @@ public class AnalyticsController
         HttpServletResponse response ) throws Exception
     {
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, startDate, endDate, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
-            ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, false, approvalLevel, relativePeriodDate, userOrgUnit, apiVersion );
+            ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, false, approvalLevel, relativePeriodDate, userOrgUnit, false, apiVersion );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_TEXT, CacheStrategy.NO_CACHE, "debug.sql", false, params.getLatestEndDate() );
         return AnalyticsUtils.getDebugDataSql( params );
@@ -403,7 +403,7 @@ public class AnalyticsController
         HttpServletResponse response ) throws Exception
     {
         DataQueryParams params = dataQueryService.getFromUrl( dimension, null, null, null, null, startDate, endDate, skipMeta, skipData, false, false, hierarchyMeta,
-            false, false, showHierarchy, false, displayProperty, outputIdScheme, inputIdScheme, false, null, null, userOrgUnit, apiVersion );
+            false, false, showHierarchy, false, displayProperty, outputIdScheme, inputIdScheme, false, null, null, userOrgUnit, true, apiVersion );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getRawDataValues( params );
@@ -427,7 +427,7 @@ public class AnalyticsController
         HttpServletResponse response ) throws Exception
     {
         DataQueryParams params = dataQueryService.getFromUrl( dimension, null, null, null, null, startDate, endDate, skipMeta, skipData, false, false, hierarchyMeta,
-            false, false, showHierarchy, false, displayProperty, outputIdScheme, inputIdScheme, false, null, null, userOrgUnit, apiVersion );
+            false, false, showHierarchy, false, displayProperty, outputIdScheme, inputIdScheme, false, null, null, userOrgUnit, true, apiVersion );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         Grid grid = analyticsService.getRawDataValues( params );
@@ -470,7 +470,7 @@ public class AnalyticsController
         HttpServletResponse response ) throws Exception
     {
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, startDate, endDate, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
-            ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, duplicatesOnly, approvalLevel, relativePeriodDate, userOrgUnit, apiVersion );
+            ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, duplicatesOnly, approvalLevel, relativePeriodDate, userOrgUnit, false, apiVersion );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getAggregatedDataValueSet( params );
@@ -508,7 +508,7 @@ public class AnalyticsController
         HttpServletResponse response ) throws Exception
     {
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, startDate, endDate, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
-            ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, duplicatesOnly, approvalLevel, relativePeriodDate, userOrgUnit, apiVersion );
+            ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, duplicatesOnly, approvalLevel, relativePeriodDate, userOrgUnit, false, apiVersion );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getAggregatedDataValueSet( params );

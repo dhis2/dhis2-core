@@ -37,8 +37,6 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 
 import java.util.ArrayList;
@@ -312,30 +310,5 @@ public class DataElementCategoryCombo
     public void setSkipTotal( boolean skipTotal )
     {
         this.skipTotal = skipTotal;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DataElementCategoryCombo categoryCombo = (DataElementCategoryCombo) other;
-
-            skipTotal = categoryCombo.isSkipTotal();
-
-            if ( mergeMode.isReplace() )
-            {
-                dataDimensionType = categoryCombo.getDataDimensionType();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                dataDimensionType = categoryCombo.getDataDimensionType() == null ? dataDimensionType : categoryCombo.getDataDimensionType();
-            }
-
-            removeAllCategories();
-            categoryCombo.getCategories().forEach( this::addDataElementCategory );
-        }
     }
 }

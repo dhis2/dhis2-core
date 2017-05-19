@@ -38,14 +38,14 @@
     <many-to-one name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
       cascade="all-delete-orphan" foreign-key="fk_eventchart_relativeperiodsid" />
 
-    <list name="organisationUnitGroups" table="eventchart_orgunitgroups">
+    <list name="organisationUnitGroupSetDimensions" table="eventchart_orgunitgroupsetdimensions" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="eventchartid" foreign-key="fk_eventchart_orgunitunitgroups_eventchartid" />
-      <list-index column="sort_order" base="0" />
-      <many-to-many column="orgunitgroupid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroup"
-        foreign-key="fk_eventchart_orgunitgroups_orgunitgroupid" />
+      <key column="eventchartid" foreign-key="fk_eventchart_orgunitgroupsetdimensions_eventchartid" />
+      <list-index column="sort_order" />
+      <many-to-many column="orgunitgroupsetdimensionid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension"
+        foreign-key="fk_eventchart_dimensions_ogunitgroupsetdimensionid" />
     </list>
-
+    
     <list name="organisationUnitLevels" table="eventchart_orgunitlevels">
       <cache usage="read-write" />
       <key column="eventchartid" foreign-key="fk_eventchart_orgunitlevels_eventchartid" />
@@ -167,6 +167,26 @@
     </property>
     
     <property name="hideNaData" />
+    
+    <property name="programStatus" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.program.ProgramStatus</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
+    <property name="eventStatus" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.event.EventStatus</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
+    <property name="percentStackedValues" />
+    
+    <property name="cumulativeValues" />
 
     <property name="rangeAxisMaxValue" />
 

@@ -29,10 +29,8 @@ package org.hisp.dhis.dataelement;
  */
 
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
-import org.hisp.dhis.common.ListMap;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * Defines the functionality for persisting DataElements and DataElementGroups.
@@ -100,13 +98,4 @@ public interface DataElementStore
      * @return all DataElements which have the given aggregation level assigned.
      */
     List<DataElement> getDataElementsByAggregationLevel( int aggregationLevel );
-
-    /**
-     * Returns a mapping of data element uid and associated category option combo
-     * uids.
-     *
-     * @param dataElementUids the uids of the data elements to include in the map.
-     * @return a ListMap.
-     */
-    ListMap<String, String> getDataElementCategoryOptionComboMap( Set<String> dataElementUids );
 }

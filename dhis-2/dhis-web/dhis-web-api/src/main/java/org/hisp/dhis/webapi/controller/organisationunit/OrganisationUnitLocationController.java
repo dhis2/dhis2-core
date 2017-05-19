@@ -88,10 +88,8 @@ public class OrganisationUnitLocationController
             {
                 for ( OrganisationUnitGroup organisationUnitGroup : organisationUnit.getGroups() )
                 {
-                    if ( organisationUnitGroup.getGroupSet() != null )
+                    for ( OrganisationUnitGroupSet orgunitGroupSet : organisationUnitGroup.getGroupSets() )
                     {
-                        OrganisationUnitGroupSet orgunitGroupSet = organisationUnitGroup.getGroupSet();
-
                         if ( orgunitGroupSet.getUid().compareTo( orgUnitGroupSetId ) == 0 )
                         {
                             AttributeValue attributeValue = new AttributeValue();

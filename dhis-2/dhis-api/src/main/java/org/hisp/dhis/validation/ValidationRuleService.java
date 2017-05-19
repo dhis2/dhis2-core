@@ -1,8 +1,5 @@
 package org.hisp.dhis.validation;
 
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DimensionalItemObject;
-
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -116,15 +113,6 @@ public interface ValidationRuleService
      * @return a set of data elements.
      */
     Set<DataElement> getDataElements( ValidationRule validationRule );
-
-    /**
-     * Get dimensional item objects part of the left side and right side expressions 
-     * of the given validation rule.
-     * 
-     * @param validationRule the validation rule.
-     * @return a set of data elements.
-     */
-    Set<DimensionalItemObject> getDimensionalItemObjects( ValidationRule validationRule, Set<DimensionItemType> dimensionItemTypes );
 
     /**
      * Returns all validation-type rules which have specified data elements

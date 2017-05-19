@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.event;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -131,7 +132,7 @@ public abstract class AbstractEventService
         EVENT_LAST_UPDATED_ID, EVENT_STORED_BY_ID, EVENT_COMPLETED_BY_ID, EVENT_COMPLETED_DATE_ID,
         EVENT_EXECUTION_DATE_ID, EVENT_DUE_DATE_ID, EVENT_ORG_UNIT_ID, EVENT_ORG_UNIT_NAME, EVENT_STATUS_ID,
         EVENT_LONGITUDE_ID, EVENT_LATITUDE_ID, EVENT_PROGRAM_STAGE_ID, EVENT_PROGRAM_ID,
-        EVENT_ATTRIBUTE_OPTION_COMBO_ID );
+        EVENT_ATTRIBUTE_OPTION_COMBO_ID, EVENT_DELETED );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -349,7 +350,7 @@ public abstract class AbstractEventService
                 programStageInstance = programStageInstanceService.getProgramStageInstance( programInstance,
                     programStage );
 
-                if ( programStageInstance != null )
+                if ( programStageInstance != null && !programStageInstance.getUid().equals( event.getEvent() ) )
                 {
                     return new ImportSummary( ImportStatus.ERROR,
                         "Program stage is not repeatable and an event already exists" ).incrementIgnored();
@@ -893,6 +894,7 @@ public abstract class AbstractEventService
         }
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
+        updateTrackedEntityInstance( programStageInstance );
 
         saveTrackedEntityComment( programStageInstance, event, storedBy );
 
@@ -1097,7 +1099,9 @@ public abstract class AbstractEventService
         event.setCompletedBy( programStageInstance.getCompletedBy() );
         event.setCompletedDate( DateUtils.getIso8601NoTz( programStageInstance.getCompletedDate() ) );
         event.setCreated( DateUtils.getIso8601NoTz( programStageInstance.getCreated() ) );
+        event.setCreatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getCreatedAtClient() ) );
         event.setLastUpdated( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdated() ) );
+        event.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdatedAtClient() ) );
 
         UserCredentials userCredentials = currentUserService.getCurrentUser().getUserCredentials();
 
@@ -1290,17 +1294,18 @@ public abstract class AbstractEventService
         {
             if ( programStageInstance == null )
             {
-                programStageInstance = createProgramStageInstance( programStage, programInstance, organisationUnit,
+                programStageInstance = createProgramStageInstance( event, programStage, programInstance, organisationUnit,
                     dueDate, executionDate, event.getStatus().getValue(), event.getCoordinate(), completedBy,
                     event.getEvent(), coc, importOptions );
             }
             else
             {
-                updateProgramStageInstance( programStage, programInstance, organisationUnit, dueDate, executionDate,
+                updateProgramStageInstance( event, programStage, programInstance, organisationUnit, dueDate, executionDate,
                     event.getStatus().getValue(), event.getCoordinate(), completedBy, programStageInstance, coc,
                     importOptions );
             }
 
+            updateTrackedEntityInstance( programStageInstance );
             saveTrackedEntityComment( programStageInstance, event, storedBy );
 
             importSummary.setReference( programStageInstance.getUid() );
@@ -1403,7 +1408,7 @@ public abstract class AbstractEventService
         }
     }
 
-    private ProgramStageInstance createProgramStageInstance( ProgramStage programStage, ProgramInstance programInstance,
+    private ProgramStageInstance createProgramStageInstance( Event event, ProgramStage programStage, ProgramInstance programInstance,
         OrganisationUnit organisationUnit, Date dueDate, Date executionDate, int status, Coordinate coordinate,
         String completedBy, String programStageInstanceIdentifier, DataElementCategoryOptionCombo coc,
         ImportOptions importOptions )
@@ -1420,13 +1425,13 @@ public abstract class AbstractEventService
             programStageInstance.setCode( programStageInstanceIdentifier );
         }
 
-        updateProgramStageInstance( programStage, programInstance, organisationUnit, dueDate, executionDate, status,
+        updateProgramStageInstance( event, programStage, programInstance, organisationUnit, dueDate, executionDate, status,
             coordinate, completedBy, programStageInstance, coc, importOptions );
 
         return programStageInstance;
     }
 
-    private void updateProgramStageInstance( ProgramStage programStage, ProgramInstance programInstance,
+    private void updateProgramStageInstance( Event event, ProgramStage programStage, ProgramInstance programInstance,
         OrganisationUnit organisationUnit, Date dueDate, Date executionDate, int status, Coordinate coordinate,
         String completedBy, ProgramStageInstance programStageInstance, DataElementCategoryOptionCombo coc,
         ImportOptions importOptions )
@@ -1437,6 +1442,8 @@ public abstract class AbstractEventService
         programStageInstance.setExecutionDate( executionDate );
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setAttributeOptionCombo( coc );
+        programStageInstance.setDeleted( event.isDeleted() );
+
         if ( programStage.getCaptureCoordinates() )
         {
             if ( coordinate != null && coordinate.isValid() )
@@ -1445,6 +1452,8 @@ public abstract class AbstractEventService
                 programStageInstance.setLatitude( coordinate.getLatitude() );
             }
         }
+
+        updateDateFields( event, programStageInstance );
 
         programStageInstance.setStatus( EventStatus.fromInt( status ) );
 
@@ -1711,5 +1720,51 @@ public abstract class AbstractEventService
         accessibleProgramsCache.clear();
 
         dbmsManager.clearSession();
+    }
+
+    private void updateDateFields( Event event, ProgramStageInstance programStageInstance )
+    {
+        programStageInstance.setAutoFields();
+
+        Date createdAtClient = DateUtils.parseDate( event.getCreatedAtClient() );
+
+        if ( createdAtClient != null )
+        {
+            programStageInstance.setCreatedAtClient( createdAtClient );
+        }
+
+        String lastUpdatedAtClient = event.getLastUpdatedAtClient();
+
+        if ( lastUpdatedAtClient != null )
+        {
+            programStageInstance.setLastUpdatedAtClient( DateUtils.parseDate( lastUpdatedAtClient ) );
+        }
+    }
+
+    private void updateTrackedEntityInstance( ProgramStageInstance programStageInstance )
+    {
+        updateTrackedEntityInstance( Lists.newArrayList( programStageInstance ) );
+    }
+
+    private void updateTrackedEntityInstance( List<ProgramStageInstance> programStageInstances )
+    {
+        Set<ProgramInstance> programInstances = new HashSet<>();
+        Set<TrackedEntityInstance> trackedEntityInstances = new HashSet<>();
+
+        for ( ProgramStageInstance programStageInstance : programStageInstances )
+        {
+            if ( programStageInstance.getProgramInstance() != null )
+            {
+                programInstances.add( programStageInstance.getProgramInstance() );
+
+                if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
+                {
+                    trackedEntityInstances.add( programStageInstance.getProgramInstance().getEntityInstance() );
+                }
+            }
+        }
+
+        programInstances.forEach( manager::update );
+        trackedEntityInstances.forEach( manager::update );
     }
 }

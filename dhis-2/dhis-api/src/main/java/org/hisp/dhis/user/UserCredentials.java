@@ -37,9 +37,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataset.DataSet;
@@ -48,9 +46,13 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.Property.Access;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Nguyen Hong Duc
@@ -741,53 +743,6 @@ public class UserCredentials
     public void setDisabled( boolean disabled )
     {
         this.disabled = disabled;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            UserCredentials userCredentials = (UserCredentials) other;
-
-            username = userCredentials.getUsername();
-            password = StringUtils.isEmpty( userCredentials.getPassword() ) ? password : userCredentials.getPassword();
-            passwordLastUpdated = userCredentials.getPasswordLastUpdated();
-
-            lastLogin = userCredentials.getLastLogin();
-            restoreToken = userCredentials.getRestoreToken();
-            restoreExpiry = userCredentials.getRestoreExpiry();
-            selfRegistered = userCredentials.isSelfRegistered();
-            disabled = userCredentials.isDisabled();
-            externalAuth = userCredentials.isExternalAuth();
-
-            if ( mergeMode.isReplace() )
-            {
-                openId = userCredentials.getOpenId();
-                ldapId = userCredentials.getLdapId();
-                userInfo = userCredentials.getUserInfo();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                openId = userCredentials.getOpenId() == null ? openId : userCredentials.getOpenId();
-                ldapId = userCredentials.getLdapId() == null ? ldapId : userCredentials.getLdapId();
-                userInfo = userCredentials.getUserInfo() == null ? userInfo : userCredentials.getUserInfo();
-            }
-
-            userAuthorityGroups.clear();
-            userAuthorityGroups.addAll( userCredentials.getUserAuthorityGroups() );
-
-            catDimensionConstraints.clear();
-            catDimensionConstraints.addAll( userCredentials.getCatDimensionConstraints() );
-
-            cogsDimensionConstraints.clear();
-            cogsDimensionConstraints.addAll( userCredentials.getCogsDimensionConstraints() );
-
-            previousPasswords.clear();
-            previousPasswords.addAll( userCredentials.getPreviousPasswords() );
-        }
     }
 
     @Override

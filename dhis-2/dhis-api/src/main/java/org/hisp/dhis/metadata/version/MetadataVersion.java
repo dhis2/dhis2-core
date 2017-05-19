@@ -33,8 +33,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -121,11 +119,5 @@ public class MetadataVersion
             ", \"type\": \"" + type + "\"" +
             ", \"name\": \"" + name + "\"" +
             "}";
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        //Do nothing. We don't allow metadataversion updates
     }
 }

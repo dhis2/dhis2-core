@@ -108,7 +108,21 @@ public class DefaultProgramInstanceService
     @Override
     public void deleteProgramInstance( ProgramInstance programInstance )
     {
-        programInstanceStore.delete( programInstance );
+        deleteProgramInstance( programInstance, false );
+    }
+
+    @Override
+    public void deleteProgramInstance( ProgramInstance programInstance, boolean forceDelete )
+    {
+        if ( forceDelete )
+        {
+            programInstanceStore.delete( programInstance );
+        }
+        else
+        {
+            programInstance.setDeleted( true );
+            programInstanceStore.update( programInstance );
+        }
     }
 
     @Override

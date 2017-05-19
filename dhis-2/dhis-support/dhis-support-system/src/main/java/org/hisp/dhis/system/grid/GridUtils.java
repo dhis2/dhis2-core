@@ -284,7 +284,7 @@ public class GridUtils
 
         WritableSheet sheet = workbook.createSheet( sheetName, sheetNo );
 
-        int rowNumber = 1;
+        int rowNumber = 0;
 
         int columnIndex = 0;
 

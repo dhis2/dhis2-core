@@ -1,5 +1,7 @@
 package org.hisp.dhis.system.grid;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -30,9 +32,12 @@ package org.hisp.dhis.system.grid;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.google.common.collect.Iterables;
+
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.common.Grid;
@@ -89,6 +94,12 @@ public class ListGrid
     private Map<String, Object> metaData;
 
     /**
+     * A Map which can hold internal arbitrary meta data. Will not be
+     * serialized.
+     */
+    private Map<String, Object> internalMetaData;
+
+    /**
      * A two dimensional List which simulates a grid where the first list
      * represents rows and the second represents columns.
      */
@@ -116,16 +127,19 @@ public class ListGrid
     {
         this.headers = new ArrayList<>();
         this.metaData = new HashMap<>();
+        this.internalMetaData = new HashMap<>();
         this.grid = new ArrayList<>();
     }
 
     /**
      * @param metaData meta data.
+     * @param internalMetaData internal meta data.
      */
-    public ListGrid( Map<String, Object> metaData )
+    public ListGrid( Map<String, Object> metaData, Map<String, Object> internalMetaData )
     {
         this.headers = new ArrayList<>();
         this.metaData = metaData;
+        this.internalMetaData = internalMetaData;
         this.grid = new ArrayList<>();
     }
 
@@ -195,6 +209,24 @@ public class ListGrid
 
         updateColumnIndexMap();
 
+        return this;
+    }
+    
+    @Override
+    public Grid addHeaders( int headerIndex, List<GridHeader> gridHeaders )
+    {
+        if ( gridHeaders == null || gridHeaders.isEmpty() )
+        {
+            return this;
+        }
+        
+        for ( int i = gridHeaders.size() - 1; i >= 0; i-- )
+        {
+            headers.add( headerIndex, gridHeaders.get( i ) );
+        }
+        
+        updateColumnIndexMap();
+        
         return this;
     }
 
@@ -274,6 +306,20 @@ public class ListGrid
     public Grid addMetaData( String key, Object value )
     {
         this.metaData.put( key, value );
+        return this;
+    }
+
+    @Override
+    @JsonIgnore
+    public Map<String, Object> getInternalMetaData()
+    {
+        return internalMetaData;
+    }
+
+    @Override
+    public Grid setInternalMetaData( Map<String, Object> internalMetaData )
+    {
+        this.internalMetaData = internalMetaData;
         return this;
     }
 
@@ -476,28 +522,25 @@ public class ListGrid
     }
 
     @Override
-    public Grid addAndPopulateColumn( Object columnValue )
+    public Grid addAndPopulateColumnsBefore( int referenceColumnIndex, Map<Object, List<?>> valueMap, int newColumns )
     {
+        Validate.inclusiveBetween( 0, getWidth() - 1, referenceColumnIndex );
+        Validate.notNull( valueMap );
         verifyGridState();
-
-        for ( int i = 0; i < getHeight(); i++ )
+                
+        for ( List<Object> row : grid )
         {
-            grid.get( i ).add( columnValue );
+            Object refVal = row.get( referenceColumnIndex );
+            List<?> list = valueMap.get( refVal );
+            
+            for ( int i = 0; i < newColumns; i++ )
+            {                
+                Object value = list == null ? null : Iterables.get( list, i, null );
+                int index = referenceColumnIndex + i;
+                row.add( index, value );
+            }
         }
-
-        return this;
-    }
-
-    @Override
-    public Grid addAndPopulateColumns( int columns, Object columnValue )
-    {
-        verifyGridState();
-
-        for ( int i = 0; i < columns; i++ )
-        {
-            addAndPopulateColumn( columnValue );
-        }
-
+        
         return this;
     }
 
@@ -550,6 +593,12 @@ public class ListGrid
         return metaData != null && metaData.containsKey( key );
     }
 
+    @Override
+    public boolean hasInternalMetaDataKey( String key )
+    {
+        return internalMetaData != null && internalMetaData.containsKey( key );
+    }
+    
     @Override
     public Grid limitGrid( int limit )
     {

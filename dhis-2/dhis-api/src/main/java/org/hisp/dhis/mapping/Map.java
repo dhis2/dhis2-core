@@ -36,9 +36,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.InterpretableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -178,38 +176,5 @@ public class Map
     public void setInterpretations( Set<Interpretation> interpretations )
     {
         this.interpretations = interpretations;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            Map map = (Map) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                user = map.getUser();
-                longitude = map.getLongitude();
-                latitude = map.getLatitude();
-                zoom = map.getZoom();
-                basemap = map.getBasemap();
-                title = map.getTitle();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                user = map.getUser() == null ? user : map.getUser();
-                longitude = map.getLongitude() == null ? longitude : map.getLongitude();
-                latitude = map.getLatitude() == null ? latitude : map.getLatitude();
-                zoom = map.getZoom() == null ? zoom : map.getZoom();
-                basemap = map.getBasemap() == null ? basemap : map.getBasemap();
-                title = map.getTitle() == null ? title : map.getTitle();
-            }
-
-            mapViews.clear();
-            mapViews.addAll( map.getMapViews() );
-        }
     }
 }

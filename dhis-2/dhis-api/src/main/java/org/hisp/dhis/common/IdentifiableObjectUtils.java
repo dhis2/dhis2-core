@@ -30,6 +30,8 @@ package org.hisp.dhis.common;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+
+import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.dataelement.DataElementCategory;
@@ -37,15 +39,16 @@ import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.WeeklyAbstractPeriodType;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -57,7 +60,7 @@ import java.util.stream.Collectors;
 public class IdentifiableObjectUtils
 {
     public static final String SEPARATOR = "-";
-    private static final String SEPARATOR_JOIN = ", ";
+    public static final String SEPARATOR_JOIN = ", ";
 
     public static final DateTimeFormatter LONG_DATE_FORMAT = DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss" );
     public static final DateTimeFormatter MEDIUM_DATE_FORMAT = DateTimeFormat.forPattern( "yyyy-MM-dd" );
@@ -69,31 +72,23 @@ public class IdentifiableObjectUtils
 
     /**
      * Joins the names of the IdentifiableObjects in the given list and separates
-     * them with a comma and space. Returns null if the given list is null or has
-     * no elements.
+     * them with {@link IdentifiableObjectUtils#SEPARATOR_JOIN} (a comma and a space).
+     * Returns null if the given list is null or has no elements.
      *
      * @param objects the list of IdentifiableObjects.
      * @return the joined string.
      */
     public static String join( Collection<? extends IdentifiableObject> objects )
     {
-        if ( objects != null && objects.size() > 0 )
+        if ( objects == null || objects.isEmpty() )
         {
-            Iterator<? extends IdentifiableObject> iterator = objects.iterator();
-
-            StringBuilder builder = new StringBuilder( iterator.next().getDisplayName() );
-
-            while ( iterator.hasNext() )
-            {
-                builder.append( SEPARATOR_JOIN ).append( iterator.next().getDisplayName() );
-            }
-
-            return builder.toString();
+            return null;
         }
-
-        return null;
+        
+        List<String> names = objects.stream().map( IdentifiableObject::getDisplayName ).collect( Collectors.toList() );
+        return StringUtils.join( names, SEPARATOR_JOIN );
     }
-
+    
     /**
      * Returns a list of uids for the given collection of IdentifiableObjects.
      *
@@ -158,19 +153,6 @@ public class IdentifiableObjectUtils
     }
 
     /**
-     * Returns a local period identifier for a specific date / periodType / calendar.
-     *
-     * @param date       Date to create from
-     * @param periodType PeriodType to create from
-     * @param calendar   Calendar to create from
-     * @return Period identifier based on given calendar
-     */
-    public static String getLocalPeriodIdentifier( Date date, PeriodType periodType, Calendar calendar )
-    {
-        return getLocalPeriodIdentifier( periodType.createPeriod( date, calendar ), calendar );
-    }
-
-    /**
      * Returns a local period identifier for a specific period / calendar.
      *
      * @param period   the list of periods.
@@ -185,6 +167,36 @@ public class IdentifiableObjectUtils
         }
 
         return period.getPeriodType().getIsoDate( calendar.fromIso( period.getStartDate() ) );
+    }
+    
+    /**
+     * Returns the {@link Period} of the argument period type which corresponds to the argument period.
+     * The frequency order of the given period type must greater than or equal to the period type 
+     * of the given period (represent "longer" periods). Weeks are converted to "longer" periods by 
+     * determining which period contains at least 4 days of the week.
+     * <p>
+     * As an example, providing
+     * {@code Quarter 1, 2017} and {@code Yearly} as arguments will return the yearly 
+     * period {@link 2017}.
+     * 
+     * @param period the period.
+     * @param periodType the period type of the period to return.
+     * @param calendar the calendar to use when calculating the period.
+     * @return a period.
+     */
+    public static Period getPeriodByPeriodType( Period period, PeriodType periodType, Calendar calendar )
+    {
+        Assert.isTrue( periodType.getFrequencyOrder() >= period.getPeriodType().getFrequencyOrder(), 
+            "Frequency order of period type must be greater than or equal to period" );
+        
+        Date date = period.getStartDate();
+                
+        if ( WeeklyAbstractPeriodType.class.isAssignableFrom( period.getPeriodType().getClass() ) )
+        {
+            date = new DateTime( date.getTime() ).plusDays( 4 ).toDate();
+        }
+        
+        return periodType.createPeriod( date, calendar );
     }
 
     /**

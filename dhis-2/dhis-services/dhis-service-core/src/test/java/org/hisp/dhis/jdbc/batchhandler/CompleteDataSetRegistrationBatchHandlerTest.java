@@ -161,15 +161,15 @@ public class CompleteDataSetRegistrationBatchHandlerTest
 
         batchHandler.flush();
         
-        List<CompleteDataSetRegistration> registratins = registrationService.getAllCompleteDataSetRegistrations();
+        List<CompleteDataSetRegistration> registrations = registrationService.getAllCompleteDataSetRegistrations();
 
-        assertNotNull( registratins );
-        assertEquals( 4, registratins.size() );
+        assertNotNull( registrations );
+        assertEquals( 4, registrations.size() );
         
-        assertTrue( registratins.contains( regA ) );
-        assertTrue( registratins.contains( regB ) );
-        assertTrue( registratins.contains( regC ) );
-        assertTrue( registratins.contains( regD ) );
+        assertTrue( registrations.contains( regA ) );
+        assertTrue( registrations.contains( regB ) );
+        assertTrue( registrations.contains( regC ) );
+        assertTrue( registrations.contains( regD ) );
     }
 
     @Test
