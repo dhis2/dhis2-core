@@ -1,4 +1,4 @@
-package org.hisp.dhis.dataapproval;
+package org.hisp.dhis.analytics;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,29 +28,17 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.common.DxfNamespaces;
 
-import java.util.List;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * @author Jim Grace
+ * @author Lars Helge Overland
  */
-public interface DataApprovalAuditService
+@JacksonXmlRootElement( localName = "numberType", namespace = DxfNamespaces.DXF_2_0 )
+public enum NumberType
 {
-    String ID = DataApprovalAuditService.class.getName();
-
-    /**
-     * Deletes all data approval audits for the given organisation unit.
-     *
-     * @param organisationUnit the organisation unit.
-     */
-    void deleteDataApprovalAudits( OrganisationUnit organisationUnit );
-
-    /**
-     * Returns DataApprovalAudit objects for query parameters.
-     *
-     * @param params Data approval audit query parameters.
-     * @return matching DataApproval object, if any
-     */
-    public List<DataApprovalAudit> getDataApprovalAudits( DataApprovalAuditQueryParams params );
+    VALUE, 
+    ROW_PERCENTAGE, 
+    COLUMN_PERCENTAGE;
 }
