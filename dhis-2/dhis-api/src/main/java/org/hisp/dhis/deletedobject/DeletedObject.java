@@ -75,6 +75,11 @@ public class DeletedObject
      */
     private Date deletedAt = new Date();
 
+    /**
+     * User who deleted this object (if available)
+     */
+    private String deletedBy;
+
     protected DeletedObject()
     {
     }
@@ -145,6 +150,18 @@ public class DeletedObject
     public void setDeletedAt( Date deletedAt )
     {
         this.deletedAt = deletedAt;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDeletedBy()
+    {
+        return deletedBy;
+    }
+
+    public void setDeletedBy( String deletedBy )
+    {
+        this.deletedBy = deletedBy;
     }
 
     @Override

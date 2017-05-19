@@ -63,6 +63,11 @@ public final class UserContext
         return threadUser.get();
     }
 
+    public static boolean haveUser()
+    {
+        return getUser() != null;
+    }
+
     // TODO need synchronized ?
     public static void setUserSetting( UserSettingKey key, Serializable value )
     {
