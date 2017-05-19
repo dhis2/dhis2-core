@@ -81,7 +81,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
 
         if ( programTrackedEntityAttributes != null && !programTrackedEntityAttributes.isEmpty() )
         {
-            for ( ProgramTrackedEntityAttribute programTrackedEntityAttribute : program.getProgramAttributes() )
+            for ( ProgramTrackedEntityAttribute programTrackedEntityAttribute : programTrackedEntityAttributes )
             {
                 preheatService.connectReferences( programTrackedEntityAttribute, bundle.getPreheat(), bundle.getPreheatIdentifier() );
                 program.getProgramAttributes().add( programTrackedEntityAttribute );
