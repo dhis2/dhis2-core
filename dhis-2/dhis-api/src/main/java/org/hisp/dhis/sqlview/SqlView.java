@@ -63,7 +63,7 @@ public class SqlView
 
     public static final Set<String> ILLEGAL_KEYWORDS = ImmutableSet.<String>builder().add(
         "delete", "alter", "update", "create", "drop", "commit", "createdb",
-        "createuser", "insert", "rename", "replace", "restore", "write" ).build();
+        "createuser", "insert", "rename", "restore", "write" ).build();
 
     private static final String CRITERIA_SEP = ":";
     private static final String REGEX_SEP = "|";
