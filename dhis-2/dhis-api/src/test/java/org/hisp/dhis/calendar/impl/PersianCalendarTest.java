@@ -29,9 +29,10 @@ package org.hisp.dhis.calendar.impl;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.calendar.DateInterval;
+import org.hisp.dhis.calendar.DateIntervalType;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.period.Cal;
-import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.junit.Assert;
@@ -73,7 +74,17 @@ public class PersianCalendarTest
     {
         calendar.daysInMonth( 1389, 13 );
     }
+    
+    @Test( expected = RuntimeException.class )
+    public void testGetDaysFromMapEx()
+    {
+        calendar.daysInMonth( 1500, 7 );
+    }    
 
+    public void testGetDaysFromMap()
+    {
+        Assert.assertEquals( 29, calendar.daysInMonth( 1408, 12 ));
+    } 
 
     @Test
     public void testDaysInMonth()
@@ -95,7 +106,7 @@ public class PersianCalendarTest
     {
         Assert.assertEquals( new DateTimeUnit( 1993, 3, 21, true ), calendar.toIso( new DateTimeUnit( 1372, 1, 1 ) ) );
         Assert.assertEquals( new DateTimeUnit( 2020, 3, 20, true ), calendar.toIso( new DateTimeUnit( 1399, 1, 1 ) ) );
-    }
+    }  
 
 
     @Test
@@ -118,14 +129,15 @@ public class PersianCalendarTest
     }
     
     @Test
-    public void testGenerateDailyPeriods()
-    {
-        Date startDate = new Cal( 1997, 1, 1, true ).time();
-        Date endDate = new Cal( 1997, 2, 1, true ).time();
- 
-        List<Period> daily = new DailyPeriodType().generatePeriods( calendar, startDate, endDate );
-        assertEquals( 31, daily.size() );
-    }      
+    public void testToInterval()
+    {     
+        DateTimeUnit start = new DateTimeUnit( 1373, 6, 1, java.util.Calendar.FRIDAY ); 
+        DateInterval interval = calendar.toInterval( start, DateIntervalType.ISO8601_DAY, 0, 10 );
+        
+        assertEquals( 1994, interval.getTo().getYear());
+        assertEquals( 9, interval.getTo().getMonth());
+        assertEquals( 2, interval.getTo().getDay());
+    }    
 
     @Test
     public void testPlusDays()
