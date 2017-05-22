@@ -106,6 +106,7 @@ public class PersianCalendarTest
     {
         Assert.assertEquals( new DateTimeUnit( 1993, 3, 21, true ), calendar.toIso( new DateTimeUnit( 1372, 1, 1 ) ) );
         Assert.assertEquals( new DateTimeUnit( 2020, 3, 20, true ), calendar.toIso( new DateTimeUnit( 1399, 1, 1 ) ) );
+        Assert.assertEquals( new DateTimeUnit( 2020, 3, 20, true ), calendar.toIso( new DateTimeUnit( 2020, 3, 20 ) ) );
     }  
 
 
@@ -115,7 +116,7 @@ public class PersianCalendarTest
         Assert.assertEquals( new DateTimeUnit( 1372, 1, 1, false ), calendar.fromIso( new DateTimeUnit( 1993, 3, 21, true ) ) );
         Assert.assertEquals( new DateTimeUnit( 1399, 1, 1, false ), calendar.fromIso( new DateTimeUnit( 2020, 3, 20, true ) ) );
         Assert.assertEquals( new DateTimeUnit( 1383, 1, 1, false ), calendar.fromIso( new DateTimeUnit( 2004, 3, 20, true ) ) );
-  
+        Assert.assertEquals( new DateTimeUnit( 1383, 1, 1, false ), calendar.fromIso( new DateTimeUnit( 1383, 1, 1, true ) ) );  
     }
     
     @Test

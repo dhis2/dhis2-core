@@ -64,7 +64,7 @@ public class PersianCalendar extends AbstractCalendar
     private static final DateTimeUnit STOP_ISO = new DateTimeUnit( 2040, 3, 19, java.util.Calendar.MONDAY, true );    
 
     private static final Calendar SELF = new PersianCalendar();
-        
+            
     private static final boolean logging = false;
 
     public static Calendar getInstance()
@@ -86,12 +86,18 @@ public class PersianCalendar extends AbstractCalendar
         if ( dateTimeUnit.isIso8601())
         {
             return dateTimeUnit;
-        }      
+        }
         
-        if (dateTimeUnit.getYear() > STOP_PERSIAN.getYear() || dateTimeUnit.getYear() < START_PERSIAN.getYear() ) {
+        if (dateTimeUnit.getYear() >= START_ISO.getYear() && dateTimeUnit.getYear() <= STOP_ISO.getYear()) 
+        {      
+            return new DateTimeUnit(dateTimeUnit.getYear(), dateTimeUnit.getMonth(), dateTimeUnit.getDay(), dateTimeUnit.getDayOfWeek(), true  );
+        }
+                        
+        if (dateTimeUnit.getYear() > STOP_PERSIAN.getYear() || dateTimeUnit.getYear() < START_PERSIAN.getYear() ) 
+        {
             throw new RuntimeException( "Illegal PERSIAN year, must be between " + START_PERSIAN.getYear() + " and " + STOP_PERSIAN.getYear() + ", was given " + dateTimeUnit.getYear());
-        }         
-                
+        }
+                        
         DateTime dateTime = START_ISO.toJodaDateTime();
 
         int totalDays = 0;
@@ -124,12 +130,20 @@ public class PersianCalendar extends AbstractCalendar
     {
         if (logging) log.info("fromIso. Iso = " + dateTimeUnit.isIso8601() + ' ' + dateTimeUnit.getYear() + ' ' + dateTimeUnit.getMonth() + ' ' + dateTimeUnit.getDay());
         
+        /*
         if ( !dateTimeUnit.isIso8601())
         {
             return dateTimeUnit;
         }
-        
-        if (dateTimeUnit.getYear() > STOP_ISO.getYear() || dateTimeUnit.getYear() < START_ISO.getYear() ) {
+        */
+                
+        if (dateTimeUnit.getYear() >= START_PERSIAN.getYear() && dateTimeUnit.getYear() <= STOP_PERSIAN.getYear() ) 
+        {
+            return new DateTimeUnit(dateTimeUnit.getYear(), dateTimeUnit.getMonth(), dateTimeUnit.getDay(), dateTimeUnit.getDayOfWeek(), false  );    
+        }
+                
+        if (dateTimeUnit.getYear() < START_ISO.getYear() || dateTimeUnit.getYear() > STOP_ISO.getYear() ) 
+        {            
             throw new RuntimeException( "Illegal ISO year, must be between " + START_ISO.getYear() + " and " + STOP_ISO.getYear() + ", was given " + dateTimeUnit.getYear());
         }        
         
@@ -262,6 +276,16 @@ public class PersianCalendar extends AbstractCalendar
     public int daysInMonth( int year, int month )
     {
         if (logging) log.info("daysInMonth = " + year + ' ' + month);
+        
+        if (year > START_ISO.getYear()) {
+            
+            if (month < 4) {
+                year = year - 622;
+            } else {
+                year = year - 621;
+            }
+        }
+        
         return getDaysFromMap(year, month);
     }
 
@@ -496,12 +520,13 @@ public class PersianCalendar extends AbstractCalendar
     @Override
     public DateTimeUnit plusDays( DateTimeUnit dateTimeUnit, int days )
     {
-        if (logging) log.info("plusDays = " + dateTimeUnit.getYear() + ' ' + dateTimeUnit.getMonth() + ' ' + dateTimeUnit.getDay()+ ' ' + days);
+        if (logging) log.info("plusDays = " + dateTimeUnit.isIso8601() + ' ' + dateTimeUnit.getYear() + ' ' + dateTimeUnit.getMonth() + ' ' + dateTimeUnit.getDay()+ ' ' + days);
+          
         int curYear = dateTimeUnit.getYear();
         int curMonth = dateTimeUnit.getMonth();
         int curDay = dateTimeUnit.getDay();
         int dayOfWeek = dateTimeUnit.getDayOfWeek();
-              
+                              
         while ( days != 0 ) {
             if (curDay < getDaysFromMap(curYear, curMonth) ) {                
                 curDay++;
@@ -519,9 +544,8 @@ public class PersianCalendar extends AbstractCalendar
                 dayOfWeek = 1;
             }
         }
-        
-        return new DateTimeUnit( curYear, curMonth, curDay, dayOfWeek );
-
+                       
+        return new DateTimeUnit( curYear, curMonth, curDay, dayOfWeek, false );
     }
 
     @Override
@@ -537,7 +561,6 @@ public class PersianCalendar extends AbstractCalendar
         }
 
         return new DateTimeUnit( year + 621, 3, day, java.util.Calendar.FRIDAY, true );
-
     }
     
     
@@ -547,8 +570,7 @@ public class PersianCalendar extends AbstractCalendar
             throw new RuntimeException( "Illegal PERSIAN year, must be between " + START_PERSIAN.getYear() + " and " + STOP_PERSIAN.getYear() + ", was given " + year);
         }
         
-        return CONVERSION_MAP.get( year )[month];
-               
+        return CONVERSION_MAP.get( year )[month];               
     }
 
 
