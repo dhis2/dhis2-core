@@ -393,7 +393,7 @@ public class UserCredentials
     @Override
     public String getName()
     {
-        return user != null ? user.getName() : username;
+        return userInfo!= null ? userInfo.getName() : username;
     }
 
     /**
