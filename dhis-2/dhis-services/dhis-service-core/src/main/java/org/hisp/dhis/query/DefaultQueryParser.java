@@ -190,11 +190,25 @@ public class DefaultQueryParser implements QueryParser
             }
             case "in":
             {
-                return Restrictions.in( path, QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg ) );
+                Collection values = QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg );
+
+                if ( values == null || values.isEmpty() )
+                {
+                    throw new QueryParserException( "Invalid argument `" + arg + "` for in operator." );
+                }
+
+                return Restrictions.in( path, values );
             }
             case "!in":
             {
-                return Restrictions.notIn( path, QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg ) );
+                Collection values = QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg );
+
+                if ( values == null || values.isEmpty() )
+                {
+                    throw new QueryParserException( "Invalid argument `" + arg + "` for in operator." );
+                }
+
+                return Restrictions.notIn( path, values );
             }
             case "null":
             {
