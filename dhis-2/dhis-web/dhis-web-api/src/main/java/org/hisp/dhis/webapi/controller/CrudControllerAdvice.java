@@ -236,7 +236,9 @@ public class CrudControllerAdvice
     {
 
         if ( conflictException.getMetadataSyncSummary() == null )
+        {
             webMessageService.send( WebMessageUtils.conflict( conflictException.getMessage() ), response, request );
+        }
         else
         {
             WebMessage message = new WebMessage( Status.ERROR, HttpStatus.CONFLICT );
