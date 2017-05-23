@@ -70,13 +70,18 @@
             </td>
             <td>
                 <select type="text" id="programAttribute" name="programAttribute" class="programAttribute">
-                    <option value="">[$i18n.getString("please_select")]</option>
-                    #foreach( $phoneNumber in $!phoneNumberAttributes )
-                        <option value="$phoneNumber.uid">$phoneNumber.displayName</option>
-                    #end
+                    #if ( $phoneNumberAttributes.size() > 0 || $emailAttributes.size() > 0 )
+                        <option value="">[$i18n.getString("please_select")]</option>
+                            #foreach( $phoneNumber in $!phoneNumberAttributes )
+                                <option value="$phoneNumber.uid">$phoneNumber.displayName</option>
+                            #end
 
-                    #foreach( $email in $!emailAttributes )
-                        <option value="$email.uid">$email.displayName</option>
+                            #foreach( $email in $!emailAttributes )
+                                <option value="$email.uid">$email.displayName</option>
+                            #end
+
+                    #else
+                        <option value="">[$i18n.getString("no_phonenumber_email_found")]</option>
                     #end
                 </select>
             </td>
