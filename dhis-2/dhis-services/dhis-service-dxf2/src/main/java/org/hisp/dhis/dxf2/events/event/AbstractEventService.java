@@ -879,7 +879,7 @@ public abstract class AbstractEventService
 
         validateExpiryDays( event, program, programStageInstance );
 
-        if ( event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null )
+        if ( ( event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null ) || event.getAttributeOptionCombo() != null )
         {
             IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
             
@@ -1273,7 +1273,7 @@ public abstract class AbstractEventService
 
         DataElementCategoryOptionCombo aoc = null;
 
-        if ( event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null )
+        if ( ( event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null ) || event.getAttributeOptionCombo() != null )
         {
             IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
 
