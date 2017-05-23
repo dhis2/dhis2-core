@@ -616,7 +616,7 @@ public abstract class AbstractEventService
         Boolean followUp, String orgUnit, OrganisationUnitSelectionMode orgUnitSelectionMode,
         String trackedEntityInstance, Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd,
         Date lastUpdatedStartDate, Date lastUpdatedEndDate, EventStatus status,
-        DataElementCategoryOptionCombo attributeCoc, IdSchemes idSchemes, Integer page, Integer pageSize,
+        DataElementCategoryOptionCombo attributeOptionCombo, IdSchemes idSchemes, Integer page, Integer pageSize,
         boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes,
         Set<String> events, Set<String> filters, Set<String> dataElements, boolean includeDeleted )
     {
@@ -715,7 +715,7 @@ public abstract class AbstractEventService
         params.setLastUpdatedStartDate( lastUpdatedStartDate );
         params.setLastUpdatedEndDate( lastUpdatedEndDate );
         params.setEventStatus( status );
-        params.setCategoryOptionCombo( attributeCoc );
+        params.setCategoryOptionCombo( attributeOptionCombo );
         params.setIdSchemes( idSchemes );
         params.setPage( page );
         params.setPageSize( pageSize );
@@ -1271,7 +1271,7 @@ public abstract class AbstractEventService
         String storedBy = getStoredBy( event, importSummary, user );
         String completedBy = getCompletedBy( event, importSummary, user );
 
-        DataElementCategoryOptionCombo coc = null;
+        DataElementCategoryOptionCombo aoc = null;
 
         if ( event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null )
         {
@@ -1279,7 +1279,7 @@ public abstract class AbstractEventService
 
             try
             {
-                coc = inputUtils.getAttributeOptionCombo( program.getCategoryCombo(),
+                aoc = inputUtils.getAttributeOptionCombo( program.getCategoryCombo(),
                     event.getAttributeCategoryOptions(), event.getAttributeOptionCombo(), idScheme );
             }
             catch ( IllegalQueryException ex )
@@ -1290,7 +1290,7 @@ public abstract class AbstractEventService
         }
         else
         {
-            coc = categoryService.getDefaultDataElementCategoryOptionCombo();
+            aoc = categoryService.getDefaultDataElementCategoryOptionCombo();
         }
 
         if ( !dryRun )
@@ -1299,12 +1299,12 @@ public abstract class AbstractEventService
             {
                 programStageInstance = createProgramStageInstance( event, programStage, programInstance, organisationUnit,
                     dueDate, executionDate, event.getStatus().getValue(), event.getCoordinate(), completedBy,
-                    event.getEvent(), coc, importOptions );
+                    event.getEvent(), aoc, importOptions );
             }
             else
             {
                 updateProgramStageInstance( event, programStage, programInstance, organisationUnit, dueDate, executionDate,
-                    event.getStatus().getValue(), event.getCoordinate(), completedBy, programStageInstance, coc,
+                    event.getStatus().getValue(), event.getCoordinate(), completedBy, programStageInstance, aoc,
                     importOptions );
             }
 
@@ -1413,7 +1413,7 @@ public abstract class AbstractEventService
 
     private ProgramStageInstance createProgramStageInstance( Event event, ProgramStage programStage, ProgramInstance programInstance,
         OrganisationUnit organisationUnit, Date dueDate, Date executionDate, int status, Coordinate coordinate,
-        String completedBy, String programStageInstanceIdentifier, DataElementCategoryOptionCombo coc,
+        String completedBy, String programStageInstanceIdentifier, DataElementCategoryOptionCombo aoc,
         ImportOptions importOptions )
     {
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
@@ -1429,14 +1429,14 @@ public abstract class AbstractEventService
         }
 
         updateProgramStageInstance( event, programStage, programInstance, organisationUnit, dueDate, executionDate, status,
-            coordinate, completedBy, programStageInstance, coc, importOptions );
+            coordinate, completedBy, programStageInstance, aoc, importOptions );
 
         return programStageInstance;
     }
 
     private void updateProgramStageInstance( Event event, ProgramStage programStage, ProgramInstance programInstance,
         OrganisationUnit organisationUnit, Date dueDate, Date executionDate, int status, Coordinate coordinate,
-        String completedBy, ProgramStageInstance programStageInstance, DataElementCategoryOptionCombo coc,
+        String completedBy, ProgramStageInstance programStageInstance, DataElementCategoryOptionCombo aoc,
         ImportOptions importOptions )
     {
         programStageInstance.setProgramInstance( programInstance );
@@ -1444,7 +1444,7 @@ public abstract class AbstractEventService
         programStageInstance.setDueDate( dueDate );
         programStageInstance.setExecutionDate( executionDate );
         programStageInstance.setOrganisationUnit( organisationUnit );
-        programStageInstance.setAttributeOptionCombo( coc );
+        programStageInstance.setAttributeOptionCombo( aoc );
         programStageInstance.setDeleted( event.isDeleted() );
 
         if ( programStage.getCaptureCoordinates() )
