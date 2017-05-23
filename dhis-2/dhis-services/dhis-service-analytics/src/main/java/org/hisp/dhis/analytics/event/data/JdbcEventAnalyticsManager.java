@@ -326,7 +326,7 @@ public class JdbcEventAnalyticsManager
     @Override
     public Grid getEventClusters( EventQueryParams params, Grid grid, int maxLimit )
     {
-        String clusterField = statementBuilder.columnQuote( params.getCoordinateField() );
+        String clusterField = params.getCoordinateField();
         
         List<String> columns = Lists.newArrayList( "count(psi) as count", 
             "ST_AsText(ST_Centroid(ST_Collect(" + clusterField + "))) as center", "ST_Extent(" + clusterField + ") as extent" );
@@ -383,7 +383,7 @@ public class JdbcEventAnalyticsManager
     @Override
     public Rectangle getRectangle( EventQueryParams params )
     {
-        String clusterField = statementBuilder.columnQuote( params.getCoordinateField() );
+        String clusterField = params.getCoordinateField();
                 
         String sql = "select count(psi) as " + COL_COUNT + ", ST_Extent(" + clusterField + ") as " + COL_EXTENT + " ";
         
