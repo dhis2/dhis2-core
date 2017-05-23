@@ -188,12 +188,12 @@ public class DefaultProgramService
     @Override
     public Set<Program> getUserPrograms( User user )
     {
-        if ( user != null )
+        if ( user == null || user.isSuper() )
         {
-            return user.isSuper() ? Sets.newHashSet( getAllPrograms() ) : user.getUserCredentials().getAllPrograms();
+            return Sets.newHashSet( getAllPrograms() );
         }
 
-        return Sets.newHashSet();
+        return user.getUserCredentials().getAllPrograms();
     }
 
     @Override
