@@ -324,8 +324,8 @@ public class DefaultMetadataExportService implements MetadataExportService
         if ( DataSet.class.isInstance( object ) ) return handleDataSet( metadata, (DataSet) object );
         if ( Program.class.isInstance( object ) ) return handleProgram( metadata, (Program) object );
         if ( DataElementCategoryCombo.class.isInstance( object ) ) return handleCategoryCombo( metadata, (DataElementCategoryCombo) object );
-        if ( Dashboard.class.isInstance( object )) return  handleDashboard ( metadata, (Dashboard) object);
-        if ( DataElementGroup.class.isInstance( object )) return handleDataElementGroup( metadata, (DataElementGroup) object);
+        if ( Dashboard.class.isInstance( object ) ) return handleDashboard( metadata, (Dashboard) object );
+        if ( DataElementGroup.class.isInstance( object ) ) return handleDataElementGroup( metadata, (DataElementGroup) object );
         return metadata;
     }
 
@@ -753,6 +753,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         metadata.putValue( DataElementGroup.class, dataElementGroup );
 
         dataElementGroup.getMembers().forEach( dataElement -> handleDataElement( metadata, dataElement ) );
+        handleLegendSet( metadata, dataElementGroup.getLegendSets() );
 
         return metadata;
     }

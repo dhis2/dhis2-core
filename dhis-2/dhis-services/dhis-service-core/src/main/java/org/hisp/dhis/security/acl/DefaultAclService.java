@@ -89,14 +89,14 @@ public class DefaultAclService implements AclService
     @Override
     public boolean canRead( User user, IdentifiableObject object )
     {
-        if ( object == null )
+        if ( object == null || haveOverrideAuthority( user ) )
         {
             return true;
         }
 
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        if ( schema == null || user == null || object.getUser() == null || object.getPublicAccess() == null )
+        if ( schema == null || object.getUser() == null || object.getPublicAccess() == null )
         {
             return true;
         }
@@ -126,7 +126,7 @@ public class DefaultAclService implements AclService
     {
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        if ( schema == null )
+        if ( schema == null || haveOverrideAuthority( user ) )
         {
             return true;
         }
@@ -165,7 +165,7 @@ public class DefaultAclService implements AclService
     {
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        if ( schema == null || user == null )
+        if ( schema == null || haveOverrideAuthority( user ) )
         {
             return true;
         }
@@ -205,7 +205,7 @@ public class DefaultAclService implements AclService
     {
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        if ( schema == null || user == null )
+        if ( schema == null || haveOverrideAuthority( user ) )
         {
             return true;
         }

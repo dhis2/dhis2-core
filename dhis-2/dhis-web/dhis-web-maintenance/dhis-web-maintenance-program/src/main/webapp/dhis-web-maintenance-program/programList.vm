@@ -10,8 +10,6 @@
 	<li data-enabled="canManageProgramEntryForm"><a data-target-fn="viewProgramEntryForm"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "design_custom_registration_form" )</a></li>
     <li data-enabled="canUpdate"><a data-target-fn="programStageManagement"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "view_program_stages" )</a></li>
     <li data-enabled="canUpdate"><a data-target-fn="programIndicatorManagementForm"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "view_program_indicators" )</a></li>
-	<li data-enabled="canManageProgramRule"><a data-target-fn="programRule"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "view_program_rule" )</a></li>
-    <!--<li data-enabled="canUpdate"><a data-target-fn="validationCriteria"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "view_validation_criteria" )</a></li>-->
 	<li data-enabled="canManageProgramNotification"><a data-target-fn="programNotification"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "view_program_notifications" )</a></li>
     <li data-enabled="canUpdate"><a data-target-fn="translateWithContext"><i class="fa fa-globe"></i>&nbsp;&nbsp;$i18n.getString( "translation_translate" )</a></li>
     <li data-enabled="canDelete"><a data-target-fn="removeProgram"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
