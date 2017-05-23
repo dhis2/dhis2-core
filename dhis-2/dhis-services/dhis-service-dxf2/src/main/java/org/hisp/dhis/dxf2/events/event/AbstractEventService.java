@@ -884,7 +884,7 @@ public abstract class AbstractEventService
             IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
             
             DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(
-                program.getCategoryCombo(), event.getAttributeCategoryOptions(), idScheme );
+                program.getCategoryCombo(), event.getAttributeCategoryOptions(), event.getAttributeOptionCombo(), idScheme );
 
             if ( attributeOptionCombo == null )
             {
@@ -1280,7 +1280,7 @@ public abstract class AbstractEventService
             try
             {
                 coc = inputUtils.getAttributeOptionCombo( program.getCategoryCombo(),
-                    event.getAttributeCategoryOptions(), idScheme );
+                    event.getAttributeCategoryOptions(), event.getAttributeOptionCombo(), idScheme );
             }
             catch ( IllegalQueryException ex )
             {
