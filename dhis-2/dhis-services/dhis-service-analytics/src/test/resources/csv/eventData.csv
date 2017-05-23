@@ -1,0 +1,6 @@
+"program",      "date",         "orgunit",      "value"
+"programA123",  "2017-03-04",   "ouabcdefghC",  "2"
+"programA123",  "2017-03-05",   "ouabcdefghC",  "22"
+"programA123",  "2017-03-10",   "ouabcdefghD",  "4"
+"programA123",  "2017-04-01",   "ouabcdefghE",  "53"
+"programA123",  "2017-05-22",   "ouabcdefghE",  "10"

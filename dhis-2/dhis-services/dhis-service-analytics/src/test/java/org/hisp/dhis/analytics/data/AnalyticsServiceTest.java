@@ -28,12 +28,12 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.csvreader.CsvReader;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.utils.AnalyticsTestUtils;
+import org.hisp.dhis.analytics.utils.DefaultAnalyticsTestUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -59,11 +59,8 @@ import org.hisp.dhis.reporttable.ReportTable;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.util.*;
 
 import static org.junit.Assert.*;
@@ -128,6 +125,8 @@ public class AnalyticsServiceTest
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
+
+    private AnalyticsTestUtils analyticsTestUtils = new DefaultAnalyticsTestUtils();
 
     // Database (value, data element, period)
     // --------------------------------------------------------------------
@@ -194,7 +193,7 @@ public class AnalyticsServiceTest
         ouD.setClosedDate( null );
 
         OrganisationUnit ouE = createOrganisationUnit( 'E' );
-        configureHierarchy( ouA, ouB, ouC, ouD, ouE );
+        analyticsTestUtils.configureHierarchy( ouA, ouB, ouC, ouD, ouE );
 
         organisationUnitService.addOrganisationUnit( ouA );
         organisationUnitService.addOrganisationUnit( ouB );
@@ -265,10 +264,10 @@ public class AnalyticsServiceTest
 
         // Read data values from CSV files
         // --------------------------------------------------------------------
-        ArrayList<String[]> dataValueLines = readInputFile( "csv/dataValues.csv" );
+        ArrayList<String[]> dataValueLines = analyticsTestUtils.readInputFile( "csv/dataValues.csv" );
         parseDataValues( dataValueLines );
 
-        ArrayList<String[]> dataSetRegistrationLines = readInputFile( "csv/dataSetRegistrations.csv" );
+        ArrayList<String[]> dataSetRegistrationLines = analyticsTestUtils.readInputFile( "csv/dataSetRegistrations.csv" );
         parseDataSetRegistrations( dataSetRegistrationLines );
 
         // Make indicators
@@ -727,31 +726,6 @@ public class AnalyticsServiceTest
     // -------------------------------------------------------------------------
 
     /**
-     * Reads CSV input file with following set up:
-     * "dataelement","period","orgunit","categoryoptioncombo","value"
-     *
-     * @param inputFile points to file in class path
-     */
-    public ArrayList<String[]> readInputFile( String inputFile )
-        throws IOException
-    {
-        InputStream input = new ClassPathResource( inputFile ).getInputStream();
-        assertNotNull( "Reading '" + inputFile + "' failed", input );
-
-        CsvReader reader = new CsvReader( input, Charset.forName( "UTF-8" ) );
-
-        reader.readRecord(); // Ignore first row
-        ArrayList<String[]> lines = new ArrayList<>();
-        while ( reader.readRecord() )
-        {
-            String[] values = reader.getValues();
-            lines.add( values );
-        }
-
-        return lines;
-    }
-
-    /**
      * Adds data value based on input from vales
      *
      * @param lines the arraylist of arrays of property values.
@@ -800,32 +774,7 @@ public class AnalyticsServiceTest
             completeDataSetRegistrationService.getAllCompleteDataSetRegistrations().size(), 15 );
     }
 
-    /**
-     * Configure org unit hierarchy like so:
-     *
-     *          A
-     *         / \
-     *        B   C
-     *       / \
-     *      D   E
-     *
-     * @param ouA root
-     * @param ouB leftRoot
-     * @param ouC rightRoot
-     * @param ouD leftB
-     * @param ouE rightB
-     */
-    private void configureHierarchy( OrganisationUnit ouA, OrganisationUnit ouB, 
-        OrganisationUnit ouC, OrganisationUnit ouD, OrganisationUnit ouE )
-    {
-        ouA.getChildren().addAll( Sets.newHashSet( ouB, ouC ) );
-        ouB.setParent( ouA );
-        ouC.setParent( ouA );
 
-        ouB.getChildren().addAll( Sets.newHashSet( ouD, ouE ) );
-        ouD.setParent( ouB );
-        ouE.setParent( ouB );
-    }
 
     /**
      * Test if values from keyValue corresponds with values in
