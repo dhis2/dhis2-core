@@ -26,13 +26,12 @@ package org.hisp.dhis.period;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
 /**
  * PeriodType for weekly Periods. A valid weekly Period has startDate set to
- * thursday and endDate set to wednesday the same week, assuming thursday is the first
- * day and wednesday is the last day of the week.
+ * Thursday and endDate set to Wednesday the same week, assuming Thursday is the first
+ * day and Wednesday is the last day of the week.
  *
  * @author Torgeir Lorange Ostby
  */
