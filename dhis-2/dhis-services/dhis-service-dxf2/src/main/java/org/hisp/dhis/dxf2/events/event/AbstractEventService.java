@@ -361,6 +361,7 @@ public abstract class AbstractEventService
                 if ( event.getEvent() != null )
                 {
                     programStageInstance = manager.getObject( ProgramStageInstance.class, importOptions.getIdSchemes().getProgramStageInstanceIdScheme(), event.getEvent() );
+                    
                     if ( programStageInstance == null )
                     {
                         if ( !CodeGenerator.isValidCode( event.getEvent() ) )
@@ -880,8 +881,10 @@ public abstract class AbstractEventService
 
         if ( event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null )
         {
+            IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
+            
             DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(
-                program.getCategoryCombo().getUid(), event.getAttributeCategoryOptions(), false );
+                program.getCategoryCombo(), event.getAttributeCategoryOptions(), idScheme );
 
             if ( attributeOptionCombo == null )
             {

@@ -99,7 +99,7 @@ public class InputUtils
 
     /**
      * Validates and retrieves the attribute option combo. 409 conflict as status
-     * code along with a textual messagewill be set on the response in case of
+     * code along with a textual message will be set on the response in case of
      * invalid input.
      *
      * @param categoryCombo the category combo.
@@ -116,7 +116,7 @@ public class InputUtils
 
     /**
      * Validates and retrieves the attribute option combo. 409 conflict as status
-     * code along with a textual messagewill be set on the response in case of
+     * code along with a textual message will be set on the response in case of
      * invalid input.
      *
      * @param categoryCombo the category combo.
