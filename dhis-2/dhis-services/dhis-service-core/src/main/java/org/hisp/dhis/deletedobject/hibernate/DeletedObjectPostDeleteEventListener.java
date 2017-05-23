@@ -34,6 +34,7 @@ import org.hibernate.event.spi.PostDeleteEventListener;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.deletedobject.DeletedObject;
 
 /**
@@ -47,7 +48,10 @@ public class DeletedObjectPostDeleteEventListener implements PostDeleteEventList
         if ( MetadataObject.class.isInstance( event.getEntity() ) )
         {
             IdentifiableObject identifiableObject = (IdentifiableObject) event.getEntity();
-            event.getSession().persist( new DeletedObject( identifiableObject ) );
+            DeletedObject deletedObject = new DeletedObject( identifiableObject );
+            deletedObject.setDeletedBy( getUsername() );
+
+            event.getSession().persist( deletedObject );
         }
     }
 
@@ -55,5 +59,10 @@ public class DeletedObjectPostDeleteEventListener implements PostDeleteEventList
     public boolean requiresPostCommitHanding( EntityPersister persister )
     {
         return false;
+    }
+
+    private String getUsername()
+    {
+        return UserContext.haveUser() ? UserContext.getUser().getUsername() : "system-process";
     }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.period;
+package org.hisp.dhis.dataapproval;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -29,19 +29,24 @@ package org.hisp.dhis.period;
  */
 
 /**
- * PeriodType for weekly Periods. A valid weekly Period has startDate set to
- * Wednesday and endDate set to Tuesday the same week, assuming Wednesday is the first
- * day and Tuesday is the last day of the week.
- *
- * @author Torgeir Lorange Ostby
+ * @author Jim Grace
  */
-public class WeeklyWednesdayPeriodType
-    extends WeeklyAbstractPeriodType
+public enum DataApprovalAction
 {
-    public static final String NAME = "WeeklyWednesday";
+    APPROVE( "approve" ),
+    UNAPPROVE( "unapprove"),
+    ACCEPT( "accept" ),
+    UNACCEPT( "unaccept" );
 
-    public WeeklyWednesdayPeriodType()
+    private final String value;
+
+    DataApprovalAction( String value )
     {
-        super( NAME, 3, "yyyyWedWn", "P7D", 7, "WedW" );
+        this.value = value;
+    }
+
+    public String getValue()
+    {
+        return value;
     }
 }

@@ -53,6 +53,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.descriptors.DataElementOperandSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.stereotype.Controller;
@@ -76,17 +77,19 @@ public class DataElementOperandController
     private final IdentifiableObjectManager manager;
     private final QueryService queryService;
     private final FieldFilterService fieldFilterService;
+    private final LinkService linkService;
     private final ContextService contextService;
     private final SchemaService schemaService;
     private final DataElementCategoryService dataElementCategoryService;
 
     public DataElementOperandController( IdentifiableObjectManager manager, QueryService queryService,
-        FieldFilterService fieldFilterService, ContextService contextService, SchemaService schemaService,
+        FieldFilterService fieldFilterService, LinkService linkService, ContextService contextService, SchemaService schemaService,
         DataElementCategoryService dataElementCategoryService )
     {
         this.manager = manager;
         this.queryService = queryService;
         this.fieldFilterService = fieldFilterService;
+        this.linkService = linkService;
         this.contextService = contextService;
         this.schemaService = schemaService;
         this.dataElementCategoryService = dataElementCategoryService;
@@ -152,6 +155,8 @@ public class DataElementOperandController
         if ( options.hasPaging() && pager == null )
         {
             pager = new Pager( options.getPage(), dataElementOperands.size(), options.getPageSize() );
+            linkService.generatePagerLinks( pager, DataElementOperand.class );
+
             dataElementOperands = PagerUtils.pageCollection( dataElementOperands, pager );
         }
 

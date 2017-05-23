@@ -789,7 +789,7 @@ public abstract class AbstractEventService
             importOptions = new ImportOptions();
         }
 
-        ImportSummary importSummary = new ImportSummary();
+        ImportSummary importSummary = new ImportSummary( event.getEvent() );
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getEvent() );
 
@@ -1240,7 +1240,7 @@ public abstract class AbstractEventService
         Assert.notNull( programInstance, "Program instance cannot be null" );
         Assert.notNull( programStage, "Program stage cannot be null" );
 
-        ImportSummary importSummary = new ImportSummary();
+        ImportSummary importSummary = new ImportSummary( event.getEvent() );
         importSummary.setStatus( ImportStatus.SUCCESS );
 
         if ( importOptions == null )
