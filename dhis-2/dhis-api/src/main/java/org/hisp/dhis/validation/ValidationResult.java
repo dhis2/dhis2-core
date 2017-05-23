@@ -374,6 +374,8 @@ public class ValidationResult implements Comparable<ValidationResult>
         this.notificationSent = notificationSent;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty
     public Date getCreated()
     {
         return created;
