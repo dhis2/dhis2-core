@@ -76,14 +76,20 @@
             <td>
                 #set( $pAttr = $template.recipientProgramAttribute )
                 <select type="text" id="programAttribute" name="programAttribute" class="programAttribute">
-                    <option value="">[$i18n.getString("please_select")]</option>
-                    #foreach( $phoneNumber in $!phoneNumberAttributes )
-                        <option value="$phoneNumber.uid" #if ( $pAttr && $pAttr.uid.equals( $phoneNumber.uid ) ) selected #end>$phoneNumber.displayName</option>
-                    #end
+                    #if ( $phoneNumberAttributes.size() > 0 || $emailAttributes.size() > 0 )
 
-                    #foreach( $email in $!emailAttributes )
-                        <option value="$email.uid" #if ( $pAttr && $pAttr.uid.equals( $email.uid ) ) selected #end>$email.displayName</option>
-                    #end
+                    <option value="">[$i18n.getString("please_select")]</option>
+                            #foreach( $phoneNumber in $!phoneNumberAttributes )
+                                <option value="$phoneNumber.uid" #if ( $pAttr && $pAttr.uid.equals( $phoneNumber.uid ) ) selected #end>$phoneNumber.displayName</option>
+                            #end
+
+                            #foreach( $email in $!emailAttributes )
+                                <option value="$email.uid" #if ( $pAttr && $pAttr.uid.equals( $email.uid ) ) selected #end>$email.displayName</option>
+                            #end
+                #else
+                    <option value="">[$i18n.getString("no_phonenumber_email_found")]</option>
+                #end
+
                 </select>
             </td>
         </tr>

@@ -73,6 +73,7 @@
                 </td>
                 <td>
                     <select type="text" id="programAttribute" name="programAttribute" class="programAttribute">
+                    #if ( $phoneNumbers.size() > 0 || $emails.size() > 0 )
                         <option value="">[$i18n.getString("please_select")]</option>
                         #foreach( $phoneNumber in $!phoneNumbers )
                             <option value="$phoneNumber.uid">$phoneNumber.displayName</option>
@@ -81,6 +82,10 @@
                         #foreach( $email in $!emails )
                             <option value="$email.uid">$email.displayName</option>
                         #end
+                    #else
+                        <option value="">[$i18n.getString("no_phonenumber_email_found")]</option>
+                    #end
+
                     </select>
                 </td>
             </tr>
