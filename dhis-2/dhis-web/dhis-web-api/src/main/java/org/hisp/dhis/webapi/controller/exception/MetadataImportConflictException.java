@@ -1,7 +1,7 @@
-package org.hisp.dhis.dxf2.common;
+package org.hisp.dhis.webapi.controller.exception;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,36 +28,40 @@ package org.hisp.dhis.dxf2.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.web.client.ResponseExtractor;
-
-import java.io.IOException;
-import java.io.InputStream;
+import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 
 /**
- * @author aamerm
+ * Created by vanyas on 4/22/17.
+ * This exception can be used for handling Metadata Import related conflict exceptions
+ * to return 409.
  */
-public class ImportSummariesResponseExtractor
-    implements ResponseExtractor<ImportSummaries>
+public class MetadataImportConflictException
+    extends Exception
 {
-    private static final Log log = LogFactory.getLog( ImportSummariesResponseExtractor.class );
+    private MetadataSyncSummary metadataSyncSummary = null;
 
-    @Override
-    public ImportSummaries extractData( ClientHttpResponse response ) throws IOException
+    public MetadataImportConflictException( MetadataSyncSummary metadataSyncSummary )
     {
-        HttpStatus status = response.getStatusCode();
-        InputStream stream = response.getBody();
+        this.metadataSyncSummary = metadataSyncSummary;
+    }
 
-        ImportSummaries summary = null;
-        if ( stream != null )
-        {
-            summary = WebMessageParseUtils.fromWebMessageResponse( stream, ImportSummaries.class );
-        }
-        return summary;
+    public MetadataImportConflictException( String message )
+    {
+        super( message );
+    }
+
+    public MetadataImportConflictException( Throwable cause )
+    {
+        super( cause );
+    }
+
+    public MetadataImportConflictException( String message, Throwable cause )
+    {
+        super( message, cause );
+    }
+
+    public MetadataSyncSummary getMetadataSyncSummary()
+    {
+        return metadataSyncSummary;
     }
 }

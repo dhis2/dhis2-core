@@ -47,6 +47,8 @@ import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
+import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
@@ -194,7 +196,7 @@ public class DefaultSynchronizationManager
     }
 
     @Override
-    public ImportSummary executeDataPush()
+    public ImportSummary executeDataPush() throws WebMessageParseException
     {
         AvailabilityStatus availability = isRemoteServerAvailable();
 
@@ -219,7 +221,7 @@ public class DefaultSynchronizationManager
      * @param instance the remote system instance.
      * @return an ImportSummary.
      */
-    private ImportSummary executeDataPush( SystemInstance instance )
+    private ImportSummary executeDataPush( SystemInstance instance ) throws WebMessageParseException
     {
         // ---------------------------------------------------------------------
         // Set time for last success to start of process to make data saved
@@ -243,23 +245,38 @@ public class DefaultSynchronizationManager
 
         log.info( "Remote server POST URL: " + instance.getUrl() );
 
-        final RequestCallback requestCallback = new RequestCallback()
+        final RequestCallback requestCallback = request ->
         {
-            @Override
-            public void doWithRequest( ClientHttpRequest request )
-                throws IOException
-            {
-                request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
-                request.getHeaders().add( HEADER_AUTHORIZATION, CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
+            request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
+            request.getHeaders().add( HEADER_AUTHORIZATION, CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
 
-                dataValueSetService.writeDataValueSetJson( lastSuccessTime, request.getBody(), new IdSchemes() );
-            }
+            dataValueSetService.writeDataValueSetJson( lastSuccessTime, request.getBody(), new IdSchemes() );
         };
 
         ResponseExtractor<ImportSummary> responseExtractor = new ImportSummaryResponseExtractor();
+        ImportSummary summary = null;
+        try
+        {
+            summary = restTemplate
+                .execute( instance.getUrl(), HttpMethod.POST, requestCallback, responseExtractor );
+        }
 
-        ImportSummary summary = restTemplate
-            .execute( instance.getUrl(), HttpMethod.POST, requestCallback, responseExtractor );
+        catch ( HttpClientErrorException ex )
+        {
+            String responseBody = ex.getResponseBodyAsString();
+            summary = WebMessageParseUtils.fromWebMessageResponse( responseBody, ImportSummary.class );
+        }
+        catch ( HttpServerErrorException ex )
+        {
+            String responseBody = ex.getResponseBodyAsString();
+            log.error( "Internal error happened during event data push: " + responseBody, ex );
+            throw ex;
+        }
+        catch ( ResourceAccessException ex )
+        {
+            log.error( "Exception during event data push: " + ex.getMessage(), ex );
+            throw ex;
+        }
 
         log.info( "Synch summary: " + summary );
 
@@ -277,7 +294,7 @@ public class DefaultSynchronizationManager
     }
 
     @Override
-    public ImportSummaries executeAnonymousEventPush()
+    public ImportSummaries executeAnonymousEventPush() throws WebMessageParseException
     {
         AvailabilityStatus availability = isRemoteServerAvailable();
 
@@ -297,7 +314,7 @@ public class DefaultSynchronizationManager
 
         int lastUpdatedEventsCount = eventService.getAnonymousEventValuesCountLastUpdatedAfter( lastSuccessTime );
 
-        log.info( "Event Values: " + lastUpdatedEventsCount + " since last synch success: " + lastSuccessTime );
+        log.info( "Events: " + lastUpdatedEventsCount + " since last synch success: " + lastSuccessTime );
 
         if ( lastUpdatedEventsCount == 0 )
         {
@@ -327,18 +344,42 @@ public class DefaultSynchronizationManager
         };
 
         ResponseExtractor<ImportSummaries> responseExtractor = new ImportSummariesResponseExtractor();
-        ImportSummaries summaries = restTemplate.execute( url, HttpMethod.POST, requestCallback, responseExtractor );
+        ImportSummaries summaries = null;
+        try
+        {
+            summaries = restTemplate.execute( url, HttpMethod.POST, requestCallback, responseExtractor );
+        }
+        catch ( HttpClientErrorException ex )
+        {
+            String responseBody = ex.getResponseBodyAsString();
+            summaries = WebMessageParseUtils.fromWebMessageResponse( responseBody, ImportSummaries.class );
+        }
+        catch ( HttpServerErrorException ex )
+        {
+            String responseBody = ex.getResponseBodyAsString();
+            log.error( "Internal error happened during event data push: " + responseBody, ex );
+            throw ex;
+        }
+        catch ( ResourceAccessException ex )
+        {
+            log.error( "Exception during event data push: " + ex.getMessage(), ex );
+            throw ex;
+        }
 
         log.info( "Event synch summary: " + summaries );
         boolean isError = false;
 
-        for ( ImportSummary summary : summaries.getImportSummaries() )
+        if ( summaries != null )
         {
-            if ( ImportStatus.ERROR.equals( summary.getStatus() ) || ImportStatus.WARNING.equals( summary.getStatus() ) )
+
+            for ( ImportSummary summary : summaries.getImportSummaries() )
             {
-                isError = true;
-                log.debug( "Sync failed: " + summaries );
-                break;
+                if ( ImportStatus.ERROR.equals( summary.getStatus() ) || ImportStatus.WARNING.equals( summary.getStatus() ) )
+                {
+                    isError = true;
+                    log.debug( "Sync failed: " + summaries );
+                    break;
+                }
             }
         }
 

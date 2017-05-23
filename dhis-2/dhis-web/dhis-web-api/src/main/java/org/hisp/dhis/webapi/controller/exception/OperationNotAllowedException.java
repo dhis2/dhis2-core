@@ -1,7 +1,7 @@
-package org.hisp.dhis.dxf2.common;
+package org.hisp.dhis.webapi.controller.exception;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,36 +28,26 @@ package org.hisp.dhis.dxf2.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.web.client.ResponseExtractor;
-
-import java.io.IOException;
-import java.io.InputStream;
-
 /**
- * @author aamerm
+ * Created by sultanm.
+ * This exception could be used in all operation forbidden cases
  */
-public class ImportSummariesResponseExtractor
-    implements ResponseExtractor<ImportSummaries>
+public class OperationNotAllowedException
+    extends Exception
 {
-    private static final Log log = LogFactory.getLog( ImportSummariesResponseExtractor.class );
 
-    @Override
-    public ImportSummaries extractData( ClientHttpResponse response ) throws IOException
+    public OperationNotAllowedException( String message )
     {
-        HttpStatus status = response.getStatusCode();
-        InputStream stream = response.getBody();
+        super( message );
+    }
 
-        ImportSummaries summary = null;
-        if ( stream != null )
-        {
-            summary = WebMessageParseUtils.fromWebMessageResponse( stream, ImportSummaries.class );
-        }
-        return summary;
+    public OperationNotAllowedException( Throwable cause )
+    {
+        super( cause );
+    }
+
+    public OperationNotAllowedException( String message, Throwable cause )
+    {
+        super( message, cause );
     }
 }

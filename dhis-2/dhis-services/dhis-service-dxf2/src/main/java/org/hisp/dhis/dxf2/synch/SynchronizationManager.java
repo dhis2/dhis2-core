@@ -29,23 +29,23 @@ package org.hisp.dhis.dxf2.synch;
  */
 
 import java.util.Date;
-
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 
 /**
  * @author Lars Helge Overland
  */
 public interface SynchronizationManager
 {
-    ImportSummary executeDataPush();
+    ImportSummary executeDataPush() throws WebMessageParseException;
 
-    ImportSummaries executeAnonymousEventPush();
-    
+    ImportSummaries executeAnonymousEventPush() throws WebMessageParseException;
+
     Date getLastSynchSuccess();
-    
+
     ImportReport executeMetadataPull( String url );
-    
-    AvailabilityStatus isRemoteServerAvailable();    
+
+    AvailabilityStatus isRemoteServerAvailable();
 }
