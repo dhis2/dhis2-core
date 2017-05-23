@@ -59,11 +59,17 @@ public class ImportSummary extends AbstractWebMessageResponse
     private String href;
 
     private ImportSummaries enrollments;
+
     private ImportSummaries events;
 
     public ImportSummary()
     {
 
+    }
+
+    public ImportSummary( String reference )
+    {
+        this.reference = reference;
     }
 
     public ImportSummary( ImportStatus status )
