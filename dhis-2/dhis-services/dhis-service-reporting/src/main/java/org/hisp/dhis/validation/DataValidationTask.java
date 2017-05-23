@@ -246,7 +246,11 @@ public class DataValidationTask
         if ( validationResults.size() > 0 )
         {
             context.getValidationResults().addAll( validationResults );
-            validationResultService.saveValidationResults( validationResults );
+
+            if ( context.isPersistResults() )
+            {
+                validationResultService.saveValidationResults( validationResults );
+            }
         }
     }
 

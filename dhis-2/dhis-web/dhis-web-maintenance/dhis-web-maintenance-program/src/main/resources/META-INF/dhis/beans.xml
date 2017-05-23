@@ -519,31 +519,4 @@
     <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
   </bean>
 
-  <!-- Program Rule -->
-  
-  <bean
-    id="org.hisp.dhis.trackedentity.action.programrule.ValidateProgramRuleAction"
-    class="org.hisp.dhis.trackedentity.action.programrule.ValidateProgramRuleAction"
-    scope="prototype">
-  </bean>
-   
-   <bean
-    id="org.hisp.dhis.trackedentity.action.programrule.GetProgramRuleAction"
-    class="org.hisp.dhis.trackedentity.action.programrule.GetProgramRuleAction"
-    scope="prototype">
-  </bean>
-     
-  <bean
-    id="org.hisp.dhis.trackedentity.action.programrule.GetProgramRuleListAction"
-    class="org.hisp.dhis.trackedentity.action.programrule.GetProgramRuleListAction"
-    scope="prototype">
-  </bean>
-  
-  <bean
-    id="org.hisp.dhis.trackedentity.action.programrule.ShowAddProgramRuleFormAction"
-    class="org.hisp.dhis.trackedentity.action.programrule.ShowAddProgramRuleFormAction"
-    scope="prototype">
-  </bean>
-  
-
 </beans>

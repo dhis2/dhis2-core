@@ -1,4 +1,4 @@
-package org.hisp.dhis.period;
+package org.hisp.dhis.dataapproval;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,20 +28,34 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * PeriodType for weekly Periods. A valid weekly Period has startDate set to
- * Wednesday and endDate set to Tuesday the same week, assuming Wednesday is the first
- * day and Tuesday is the last day of the week.
- *
- * @author Torgeir Lorange Ostby
- */
-public class WeeklyWednesdayPeriodType
-    extends WeeklyAbstractPeriodType
-{
-    public static final String NAME = "WeeklyWednesday";
+import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-    public WeeklyWednesdayPeriodType()
-    {
-        super( NAME, 3, "yyyyWedWn", "P7D", 7, "WedW" );
-    }
+import java.util.List;
+
+/**
+ * Defines the functionality for persisting DataApproval objects.
+ *
+ * @author Jim Grace
+ */
+public interface DataApprovalAuditStore
+    extends GenericStore<DataApprovalAudit>
+{
+    String ID = DataApprovalAuditStore.class.getName();
+
+    /**
+     * Deletes DataApprovalAudits for the given organisation unit.
+     *
+     * @param organisationUnit the organisation unit.
+     */
+    void deleteDataApprovalAudits( OrganisationUnit organisationUnit );
+
+    /**
+     * Returns DataApprovalAudit objects for query parameters.
+     *
+     * @param params Data approval audit query parameters.
+     * @return matching DataApproval object, if any
+     */
+    List<DataApprovalAudit> getDataApprovalAudits( DataApprovalAuditQueryParams params );
 }
+

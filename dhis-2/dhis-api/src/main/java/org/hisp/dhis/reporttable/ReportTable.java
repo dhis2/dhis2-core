@@ -35,6 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
+import org.hisp.dhis.analytics.NumberType;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -189,6 +190,11 @@ public class ReportTable
      */
     private LegendDisplayStyle legendDisplayStyle;
 
+    /**
+     * The number type.
+     */
+    private NumberType numberType;
+    
     /**
      * Indicates showing organisation unit hierarchy names.
      */
@@ -982,6 +988,18 @@ public class ReportTable
     public void setLegendDisplayStyle( LegendDisplayStyle legendDisplayStyle )
     {
         this.legendDisplayStyle = legendDisplayStyle;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public NumberType getNumberType()
+    {
+        return numberType;
+    }
+
+    public void setNumberType( NumberType numberType )
+    {
+        this.numberType = numberType;
     }
 
     @JsonProperty

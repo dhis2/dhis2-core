@@ -47,7 +47,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.CurrentUserService;
@@ -91,9 +90,6 @@ public class LockExceptionController
 
     @Autowired
     private DataSetService dataSetService;
-
-    @Autowired
-    private RenderService renderService;
 
     @Autowired
     private PeriodService periodService;

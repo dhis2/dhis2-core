@@ -1,4 +1,4 @@
-package org.hisp.dhis.period;
+package org.hisp.dhis.analytics;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,20 +28,17 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * PeriodType for weekly Periods. A valid weekly Period has startDate set to
- * Wednesday and endDate set to Tuesday the same week, assuming Wednesday is the first
- * day and Tuesday is the last day of the week.
- *
- * @author Torgeir Lorange Ostby
- */
-public class WeeklyWednesdayPeriodType
-    extends WeeklyAbstractPeriodType
-{
-    public static final String NAME = "WeeklyWednesday";
+import org.hisp.dhis.common.DxfNamespaces;
 
-    public WeeklyWednesdayPeriodType()
-    {
-        super( NAME, 3, "yyyyWedWn", "P7D", 7, "WedW" );
-    }
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
+/**
+ * @author Lars Helge Overland
+ */
+@JacksonXmlRootElement( localName = "numberType", namespace = DxfNamespaces.DXF_2_0 )
+public enum NumberType
+{
+    VALUE, 
+    ROW_PERCENTAGE, 
+    COLUMN_PERCENTAGE;
 }
