@@ -83,10 +83,12 @@ public class PersianCalendar extends AbstractCalendar
     {            
         if (logging) log.info("toIso year Iso = " + dateTimeUnit.isIso8601() + ' ' + dateTimeUnit.getYear() + ' ' + dateTimeUnit.getMonth() + ' ' + dateTimeUnit.getDay());
         
+        /*
         if ( dateTimeUnit.isIso8601())
         {
             return dateTimeUnit;
         }
+        */
         
         if (dateTimeUnit.getYear() >= START_ISO.getYear() && dateTimeUnit.getYear() <= STOP_ISO.getYear()) 
         {      
