@@ -36,6 +36,7 @@ import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultStore;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -81,6 +82,13 @@ public class HibernateValidationResultStore
         Criteria criteria = getCurrentSession().createCriteria( DeletedObject.class );
 
         return criteria.list().size();
+    }
+
+    @Override
+    public void save( ValidationResult validationResult )
+    {
+        validationResult.setCreated( new Date() );
+        super.save( validationResult );
     }
 
     private Session getCurrentSession()
