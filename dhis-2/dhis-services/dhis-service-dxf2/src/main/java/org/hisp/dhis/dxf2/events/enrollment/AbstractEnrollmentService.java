@@ -497,7 +497,7 @@ public abstract class AbstractEnrollmentService
 
         if ( program.getCaptureCoordinates() )
         {
-            if ( enrollment.getCoordinate().isValid() )
+            if ( enrollment.getCoordinate() != null && enrollment.getCoordinate().isValid() )
             {
                 programInstance.setLatitude( enrollment.getCoordinate().getLatitude() );
                 programInstance.setLongitude( enrollment.getCoordinate().getLongitude() );
