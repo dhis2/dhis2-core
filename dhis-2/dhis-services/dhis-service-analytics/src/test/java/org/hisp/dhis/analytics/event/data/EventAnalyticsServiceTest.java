@@ -49,17 +49,15 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.*;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -77,6 +75,13 @@ public class EventAnalyticsServiceTest
     private Map<String, AnalyticalObject> analyticalObjectHashMap = new HashMap<>();
 
     private Map<String, Map<String, Double>> results = new HashMap<>();
+
+
+    private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
+    private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
+    private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleA;
+    private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB;
+
 
     @Autowired
     private AnalyticsTableGenerator analyticsTableGenerator;
@@ -97,7 +102,13 @@ public class EventAnalyticsServiceTest
     private ProgramStageService programStageService;
 
     @Autowired
+    private ProgramInstanceService programInstanceService;
+
+    @Autowired
     private DataElementService dataElementService;
+
+    @Autowired
+    private TrackedEntityService trackedEntityService;
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
@@ -182,6 +193,28 @@ public class EventAnalyticsServiceTest
         idObjectManager.save( ouD );
         idObjectManager.save( ouE );
 
+        TrackedEntity trackedEntity = createTrackedEntity( 'A' );
+        trackedEntityService.addTrackedEntity( trackedEntity );
+
+        maleA = createTrackedEntityInstance( 'A', ouA );
+        maleB = createTrackedEntityInstance( 'B', ouB );
+        femaleA = createTrackedEntityInstance( 'C', ouA );
+        femaleB = createTrackedEntityInstance( 'D', ouB );
+
+        maleA.setTrackedEntity( trackedEntity );
+        maleB.setTrackedEntity( trackedEntity );
+        femaleA.setTrackedEntity( trackedEntity );
+        femaleB.setTrackedEntity( trackedEntity );
+
+        idObjectManager.save( maleA );
+        idObjectManager.save( maleB );
+        idObjectManager.save( femaleA );
+        idObjectManager.save( femaleB );
+        idObjectManager.save( programA );
+
+        programInstanceService.enrollTrackedEntityInstance( maleA, programA, null, null, ouA );
+        programInstanceService.enrollTrackedEntityInstance( femaleA, programA, null, null, ouA );
+
         // Read event data from CSV file
         // --------------------------------------------------------------------
         ArrayList<String[]> eventDataLines = analyticsTestUtils.readInputFile( "csv/eventData.csv" );
@@ -217,13 +250,25 @@ public class EventAnalyticsServiceTest
 
     }
 
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
+    @Override
+    public void tearDownTest()
+    {
+        analyticsTableGenerator.dropTables();
+    }
+
     @Autowired
     private HibernateDbmsManager hibernateDbmsManager;
 
     @Test
     public void testGetAggregatedEvents()
     {
-        List<List<Object>> rows = hibernateDbmsManager.getTableContent( "analytics_completenesstarget_2017" );
+        /*List<List<Object>> rows = hibernateDbmsManager.getTableContent( "analytics_completenesstarget_2017" );
 
         for ( List<Object> row : rows )
         {
@@ -232,7 +277,7 @@ public class EventAnalyticsServiceTest
                 System.out.print(line + ", ");
             }
             System.out.println();
-        }
+        }*/
 
         Grid aggregatedEventData;
         for ( Map.Entry<String, EventQueryParams> entry : eventQueryParams.entrySet() )
@@ -274,6 +319,9 @@ public class EventAnalyticsServiceTest
 
             event.setCompletedDate( line[3] );
             event.setStatus( EventStatus.COMPLETED );
+            event.setTrackedEntityInstance( maleA.getUid() );
+
+            
 
             System.out.println("Event: " + event);
 
