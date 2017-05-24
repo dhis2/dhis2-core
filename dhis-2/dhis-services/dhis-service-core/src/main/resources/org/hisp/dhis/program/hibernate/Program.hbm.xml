@@ -95,7 +95,7 @@
       <one-to-many class="org.hisp.dhis.programrule.ProgramRuleVariable" />
     </set>
 
-    <set name="notificationTemplates" cascade="all">
+    <set name="notificationTemplates">
       <key column="programid" />
       <one-to-many class="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
     </set>
