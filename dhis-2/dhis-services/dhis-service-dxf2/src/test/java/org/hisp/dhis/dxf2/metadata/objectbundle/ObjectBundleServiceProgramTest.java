@@ -46,7 +46,6 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.validation.ValidationRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -123,7 +122,6 @@ public class ObjectBundleServiceProgramTest
     }
 
     @Test
-    @Ignore
     public void testCreateSimpleProgramWithSectionsNoReg() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
@@ -168,7 +166,6 @@ public class ObjectBundleServiceProgramTest
     }
 
     @Test
-    @Ignore
     public void testCreateSimpleProgramReg() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
