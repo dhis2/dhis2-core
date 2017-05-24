@@ -435,60 +435,6 @@
       ref="org.hisp.dhis.program.ProgramExpressionService" />
   </bean>
 
-  <!-- Program Indicator -->
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.programindicator.AddProgramIndicatorAction"
-    class="org.hisp.dhis.trackedentity.action.programindicator.AddProgramIndicatorAction"
-    scope="prototype">
-    <property name="programService" ref="org.hisp.dhis.program.ProgramService" />
-    <property name="programIndicatorService">
-      <ref bean="org.hisp.dhis.program.ProgramIndicatorService" />
-    </property>
-  </bean>
-
-
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.programindicator.RemoveProgramIndicatorAction"
-    class="org.hisp.dhis.trackedentity.action.programindicator.RemoveProgramIndicatorAction"
-    scope="prototype">
-    <property name="programIndicatorService">
-      <ref bean="org.hisp.dhis.program.ProgramIndicatorService" />
-    </property>
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.programindicator.GetProgramIndicatorAction"
-    class="org.hisp.dhis.trackedentity.action.programindicator.GetProgramIndicatorAction"
-    scope="prototype">
-    <property name="programIndicatorService"
-      ref="org.hisp.dhis.program.ProgramIndicatorService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.programindicator.GetProgramIndicatorListAction"
-    class="org.hisp.dhis.trackedentity.action.programindicator.GetProgramIndicatorListAction"
-    scope="prototype"/>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.programindicator.UpdateProgramIndicatorAction"
-    class="org.hisp.dhis.trackedentity.action.programindicator.UpdateProgramIndicatorAction"
-    scope="prototype">
-    <property name="programIndicatorService">
-      <ref bean="org.hisp.dhis.program.ProgramIndicatorService" />
-    </property>
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.programindicator.ValidateProgramIndicatorAction"
-    class="org.hisp.dhis.trackedentity.action.programindicator.ValidateProgramIndicatorAction"
-    scope="prototype">
-    <property name="programIndicatorService">
-      <ref bean="org.hisp.dhis.program.ProgramIndicatorService" />
-    </property>
-  </bean>
-
   <!-- Program notifications -->
 
   <bean id="org.hisp.dhis.trackedentity.action.notification.ShowAddProgramNotificationAction"
