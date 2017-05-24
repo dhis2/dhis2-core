@@ -36,12 +36,15 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.utils.AnalyticsTestUtils;
 import org.hisp.dhis.analytics.utils.DefaultAnalyticsTestUtils;
 import org.hisp.dhis.common.AnalyticalObject;
-import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dbms.HibernateDbmsManager;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -56,6 +59,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -93,6 +97,9 @@ public class EventAnalyticsServiceTest
     private ProgramStageService programStageService;
 
     @Autowired
+    private DataElementService dataElementService;
+
+    @Autowired
     private IdentifiableObjectManager idObjectManager;
 
     @Autowired
@@ -115,6 +122,16 @@ public class EventAnalyticsServiceTest
         periodService.addPeriod( peMar );
         periodService.addPeriod( peApril );
 
+        DataElement deA = createDataElement( 'A' );
+        DataElement deB = createDataElement( 'B' );
+        DataElement deC = createDataElement( 'C' );
+        DataElement deD = createDataElement( 'D' );
+
+        dataElementService.addDataElement( deA );
+        dataElementService.addDataElement( deB );
+        dataElementService.addDataElement( deC );
+        dataElementService.addDataElement( deD );
+
 
         Program programA = createProgram( 'A' );
         programA.setLastUpdated( getDate( 2017, 5, 23 ) );
@@ -132,7 +149,9 @@ public class EventAnalyticsServiceTest
         programService.addProgram( programD );
 
         ProgramStage programStageA = createProgramStage( 'A', programA );
+        programStageA.setUid( "programStgA" );
         ProgramStage programStageB = createProgramStage( 'B', programA );
+        programStageA.setUid( "programStgB" );
 
         programStageService.saveProgramStage( programStageA );
         programStageService.saveProgramStage( programStageB );
@@ -171,7 +190,7 @@ public class EventAnalyticsServiceTest
 
         // Generate analytics tables
         // --------------------------------------------------------------------
-        analyticsTableGenerator.generateTables( 1, null, null, false );
+        analyticsTableGenerator.generateTables( null, null, null, false );
 
         // Set parameters
         // --------------------------------------------------------------------
@@ -179,11 +198,10 @@ public class EventAnalyticsServiceTest
         // all events - 2017
         Period y2017 = createPeriod( "2017" );
         EventQueryParams events_2017_params =  new EventQueryParams.Builder()
-            .withOrganisationUnits( organisationUnitService.getAllOrganisationUnits() )
+            .withOrganisationUnits( Lists.newArrayList( ouA ) )
             .withStartDate( getDate( 2017, 1, 1 ) )
             .withEndDate( getDate( 2017, 12, 31 ) )
             .withProgram( programA )
-            .withDisplayProperty( DisplayProperty.NAME )
             .build();
 
         eventQueryParams.put( "events_2017", events_2017_params );
@@ -199,9 +217,23 @@ public class EventAnalyticsServiceTest
 
     }
 
+    @Autowired
+    private HibernateDbmsManager hibernateDbmsManager;
+
     @Test
     public void testGetAggregatedEvents()
     {
+        List<List<Object>> rows = hibernateDbmsManager.getTableContent( "analytics_completenesstarget_2017" );
+
+        for ( List<Object> row : rows )
+        {
+            for ( Object line : row )
+            {
+                System.out.print(line + ", ");
+            }
+            System.out.println();
+        }
+
         Grid aggregatedEventData;
         for ( Map.Entry<String, EventQueryParams> entry : eventQueryParams.entrySet() )
         {
@@ -226,16 +258,24 @@ public class EventAnalyticsServiceTest
 
         for( String[] line : lines)
         {
-            Event event = new Event();
+            Event event = new Event( );
             event.setProgram( line[0] );
-            event.setEventDate( line[1] );
-            event.setOrgUnit( line[2] );
+            event.setProgramStage( line[1] );
 
             DataValue dataValue = new DataValue();
-            dataValue.setValue( line[3] );
+            dataValue.setDataElement( line[2] );
+            dataValue.setValue( line[5] );
             dataValue.setStoredBy( storedBy );
 
+            event.setEventDate( line[3] );
+            event.setOrgUnit( line[4] );
+
             event.setDataValues( Lists.newArrayList( dataValue ) );
+
+            event.setCompletedDate( line[3] );
+            event.setStatus( EventStatus.COMPLETED );
+
+            System.out.println("Event: " + event);
 
             eventService.addEvent( event, null );
         }

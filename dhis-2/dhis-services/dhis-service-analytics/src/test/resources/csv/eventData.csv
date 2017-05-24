@@ -1,6 +1,6 @@
-"program",      "date",         "orgunit",      "value"
-"programA123",  "2017-03-04",   "ouabcdefghC",  "2"
-"programA123",  "2017-03-05",   "ouabcdefghC",  "22"
-"programA123",  "2017-03-10",   "ouabcdefghD",  "4"
-"programA123",  "2017-04-01",   "ouabcdefghE",  "53"
-"programA123",  "2017-05-22",   "ouabcdefghE",  "10"
+program,      programstage, dataelement,    date,         orgunit,      value
+programA123,  programStgA,  deabcdefghA,    2017-03-04,   ouabcdefghA,  2
+programA123,  programStgA,  deabcdefghA,    2017-03-05,   ouabcdefghA,  22
+programA123,  programStgA,  deabcdefghA,    2017-03-10,   ouabcdefghA,  4
+programA123,  programStgA,  deabcdefghA,    2017-04-01,   ouabcdefghA,  53
+programA123,  programStgA,  deabcdefghA,    2017-05-22,   ouabcdefghA,  10
