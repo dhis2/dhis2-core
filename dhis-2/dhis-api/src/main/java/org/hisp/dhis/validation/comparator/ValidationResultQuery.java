@@ -1,6 +1,6 @@
-package org.hisp.dhis.validation;
+package org.hisp.dhis.validation.comparator;
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,55 +27,81 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.validation.comparator.ValidationResultQuery;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import com.google.common.base.MoreObjects;
+import org.hisp.dhis.common.Pager;
 
 /**
  * @author Stian Sandvold
  */
-public interface ValidationResultService
+public class ValidationResultQuery
 {
-    /**
-     * Saves a set of ValidationResults in a bulk action
-     * @param validationResults
-     */
-    void saveValidationResults( Collection<ValidationResult> validationResults );
 
-    /**
-     * Returns a list of all existing ValidationResults
-     * @return
-     */
-    List<ValidationResult> getAllValidationResults();
+    public static final ValidationResultQuery EMPTY = new ValidationResultQuery();
 
-    /**
-     * Returns a list of al ValidationResults where notificationSent is false
-     * @return
-     */
-    List<ValidationResult> getAllUnReportedValidationResults();
+    private boolean skipPaging;
 
-    /**
-     * Deletes the validationResult
-     * @param validationResult
-     */
-    void deleteValidationResult( ValidationResult validationResult );
+    private int page = 1;
 
-    /**
-     * Updates a list of ValidationResults
-     * @param validationResults validationResults to update
-     */
-    void updateValidationResults( Set<ValidationResult> validationResults );
+    private int pageSize = Pager.DEFAULT_PAGE_SIZE;
 
-    /**
-     * Returns the ValidationResult with the given id, or null if no validation result exists with that id
-     * @param id
-     * @return
-     */
-    ValidationResult getById( int id );
+    private int total;
 
-    List<ValidationResult> getValidationResults( ValidationResultQuery query );
+    public ValidationResultQuery()
+    {
+    }
 
-    int countValidationResults( ValidationResultQuery query );
+    public boolean isSkipPaging()
+    {
+        return skipPaging;
+    }
+
+    public void setSkipPaging( boolean skipPaging )
+    {
+        this.skipPaging = skipPaging;
+    }
+
+    public int getPage()
+    {
+        return page;
+    }
+
+    public void setPage( int page )
+    {
+        this.page = page;
+    }
+
+    public int getPageSize()
+    {
+        return pageSize;
+    }
+
+    public void setPageSize( int pageSize )
+    {
+        this.pageSize = pageSize;
+    }
+
+    public int getTotal()
+    {
+        return total;
+    }
+
+    public void setTotal( int total )
+    {
+        this.total = total;
+    }
+
+    public Pager getPager()
+    {
+        return skipPaging ? null : new Pager( page, total, pageSize );
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "page", page )
+            .add( "pageSize", pageSize )
+            .add( "total", total )
+            .toString();
+    }
 }
