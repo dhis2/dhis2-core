@@ -29,7 +29,6 @@ package org.hisp.dhis.validation;
  */
 
 import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 
 import java.util.List;
 
@@ -41,9 +40,4 @@ public interface ValidationResultStore
 {
     List<ValidationResult> getAllUnreportedValidationResults();
 
-    ValidationResult getById( int id );
-
-    List<ValidationResult> query( ValidationResultQuery query );
-
-    int count( ValidationResultQuery query );
 }

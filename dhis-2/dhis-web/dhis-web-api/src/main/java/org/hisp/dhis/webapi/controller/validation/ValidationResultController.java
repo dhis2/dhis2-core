@@ -27,88 +27,180 @@ package org.hisp.dhis.webapi.controller.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.Preset;
+import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.schema.descriptors.ValidationResultSchemaDescriptor;
 import org.hisp.dhis.validation.ValidationResult;
-import org.hisp.dhis.validation.ValidationResultService;
-import org.hisp.dhis.validation.comparator.ValidationResultQuery;
+import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.ContextService;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 
 /**
  * @author Stian Sandvold
  */
-@RestController
+@Controller
 @RequestMapping( value = ValidationResultSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( { DhisApiVersion.ALL, DhisApiVersion.DEFAULT } )
 public class ValidationResultController
+    extends AbstractCrudController<ValidationResult>
 {
-    private final FieldFilterService fieldFilterService;
 
-    private final ValidationResultService validationResultService;
-
-    private final ContextService contextService;
-
-    public ValidationResultController( FieldFilterService fieldFilterService,
-        ValidationResultService validationResultService,
-        ContextService contextService )
+    @Override
+    public void replaceTranslations(
+        @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
-        this.fieldFilterService = fieldFilterService;
-        this.validationResultService = validationResultService;
-        this.contextService = contextService;
+        throw new HttpRequestMethodNotSupportedException( "Method not supported for this endpoint" );
     }
 
-    @GetMapping
+    @Override
+    public void partialUpdateObject(
+        @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
+    {
+        throw new HttpRequestMethodNotSupportedException( "Method not supported for this endpoint" );
+    }
+
+    public void updateObjectProperty(
+        @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
+        @RequestParam Map<String, String> rpParameters,
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
+    {
+        throw new HttpRequestMethodNotSupportedException( "Method not supported for this endpoint" );
+    }
+
+    public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
+        throws Exception
+    {
+        throw new HttpRequestMethodNotSupportedException( "Method not supported for this endpoint" );
+    }
+
+    public void postXmlObject( HttpServletRequest request, HttpServletResponse response )
+        throws Exception
+    {
+        throw new HttpRequestMethodNotSupportedException( "Method not supported for this endpoint" );
+    }
+
+    public void putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
+        HttpServletResponse response )
+        throws Exception
+    {
+        throw new HttpRequestMethodNotSupportedException( "Method not supported for this endpoint" );
+    }
+
+    public void putXmlObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
+        HttpServletResponse response )
+        throws Exception
+    {
+        throw new HttpRequestMethodNotSupportedException( "Method not supported for this endpoint" );
+    }
+
+    public void deleteObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
+        HttpServletResponse response )
+        throws Exception
+    {
+        throw new HttpRequestMethodNotSupportedException( "Method not supported for this endpoint" );
+    }
+
     public
     @ResponseBody
-    RootNode getObjectList( ValidationResultQuery query )
+    RootNode getCollectionItem(
+        @PathVariable( "uid" ) String pvUid,
+        @PathVariable( "property" ) String pvProperty,
+        @PathVariable( "itemId" ) String pvItemId,
+        @RequestParam Map<String, String> parameters,
+        TranslateParams translateParams,
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-
-        if ( fields.isEmpty() )
-        {
-            fields.addAll( Preset.ALL.getFields() );
-        }
-
-        List<ValidationResult> validationResults = validationResultService.getValidationResults( query );
-
-        RootNode rootNode = NodeUtils.createMetadata();
-
-        if ( !query.isSkipPaging() )
-        {
-            query.setTotal( validationResultService.countValidationResults( query ) );
-            rootNode.addChild( NodeUtils.createPager( query.getPager() ) );
-        }
-
-        rootNode.addChild( fieldFilterService.filter( ValidationResult.class, validationResults, fields ) );
-
-        return rootNode;
+        throw new HttpRequestMethodNotSupportedException( "Method not supported for this endpoint" );
     }
 
-    @GetMapping( value = "/{id}")
-    public @ResponseBody ValidationResult getObject( @PathVariable int id )
-        throws WebMessageException
+    public void addCollectionItemsJson(
+        @PathVariable( "uid" ) String pvUid,
+        @PathVariable( "property" ) String pvProperty,
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
-        ValidationResult result = validationResultService.getById( id );
+        throw new HttpRequestMethodNotSupportedException( "Method not supported for this endpoint" );
+    }
 
-        if ( result == null )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Validation result with id " + id + " was not found" ) );
-        }
-        else
-        {
-            return result;
-        }
+    public void addCollectionItemsXml(
+        @PathVariable( "uid" ) String pvUid,
+        @PathVariable( "property" ) String pvProperty,
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
+    {
+        throw new HttpRequestMethodNotSupportedException( "Method not supported for this endpoint" );
+    }
+
+    public void replaceCollectionItemsJson(
+        @PathVariable( "uid" ) String pvUid,
+        @PathVariable( "property" ) String pvProperty,
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
+    {
+        throw new HttpRequestMethodNotSupportedException( "Method not supported for this endpoint" );
+    }
+
+    public void replaceCollectionItemsXml(
+        @PathVariable( "uid" ) String pvUid,
+        @PathVariable( "property" ) String pvProperty,
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
+    {
+        throw new HttpRequestMethodNotSupportedException( "Method not supported for this endpoint" );
+    }
+
+    public void addCollectionItem(
+        @PathVariable( "uid" ) String pvUid,
+        @PathVariable( "property" ) String pvProperty,
+        @PathVariable( "itemId" ) String pvItemId,
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
+    {
+        throw new HttpRequestMethodNotSupportedException( "Method not supported for this endpoint" );
+    }
+
+    public void deleteCollectionItemsJson(
+        @PathVariable( "uid" ) String pvUid,
+        @PathVariable( "property" ) String pvProperty,
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
+    {
+        throw new HttpRequestMethodNotSupportedException( "Method not supported for this endpoint" );
+    }
+
+    public void deleteCollectionItemsXml(
+        @PathVariable( "uid" ) String pvUid,
+        @PathVariable( "property" ) String pvProperty,
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
+    {
+        throw new HttpRequestMethodNotSupportedException( "Method not supported for this endpoint" );
+    }
+
+    public void deleteCollectionItem(
+        @PathVariable( "uid" ) String pvUid,
+        @PathVariable( "property" ) String pvProperty,
+        @PathVariable( "itemId" ) String pvItemId,
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
+    {
+        throw new HttpRequestMethodNotSupportedException( "Method not supported for this endpoint" );
     }
 
 }
