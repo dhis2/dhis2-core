@@ -40,6 +40,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.collect.Lists;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -404,6 +406,10 @@ public class DefaultEventAnalyticsService
                 else if ( item.hasOptionSet() )
                 {
                     dimensionItems.put( item.getItemId(), item.getQueryFilterItems() );
+                }
+                else
+                {
+                    dimensionItems.put( item.getItemId(), Lists.newArrayList() );
                 }
             }
 
