@@ -75,15 +75,6 @@ public interface ProgramIndicatorService
     ProgramIndicator getProgramIndicator( String name );
 
     /**
-     * Returns a {@link ProgramIndicator} with a given short name.
-     *
-     * @param shortName the name of the ProgramIndicator to return.
-     * @return the ProgramIndicator with the given short name, or null if no
-     * match.
-     */
-    ProgramIndicator getProgramIndicatorByShortName( String shortName );
-
-    /**
      * Returns the {@link ProgramIndicator} with the given UID.
      *
      * @param uid the UID.
@@ -169,15 +160,5 @@ public interface ProgramIndicatorService
     ProgramIndicatorGroup getProgramIndicatorGroup( String uid );
 
     List<ProgramIndicatorGroup> getAllProgramIndicatorGroups();
-
-    ProgramIndicatorGroup getProgramIndicatorGroupByName( String name );
-
-    List<ProgramIndicatorGroup> getProgramIndicatorGroupsBetween( int first, int max );
-
-    List<ProgramIndicatorGroup> getProgramIndicatorGroupsBetweenByName( String name, int first, int max );
-
-    int getProgramIndicatorGroupCount();
-
-    int getProgramIndicatorGroupCountByName( String name );
 
 }

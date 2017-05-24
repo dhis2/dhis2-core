@@ -48,7 +48,7 @@ public class ProgramStageSectionSchemaDescriptor implements SchemaDescriptor
     {
         Schema schema = new Schema( ProgramStageSection.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1515 );
+        schema.setOrder( 1508 );
 
         return schema;
     }

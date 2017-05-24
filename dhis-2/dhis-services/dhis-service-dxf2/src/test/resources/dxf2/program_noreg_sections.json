@@ -173,38 +173,12 @@
       "id": "s3eRU5FLgF7",
       "lastUpdated": "2016-03-10T08:32:23.104+0000",
       "created": "2016-03-10T08:32:23.104+0000",
-      "programStageDataElements": [
+      "dataElements": [
         {
-          "displayInReports": false,
-          "sortOrder": 0,
-          "dataElement": {
-            "id": "jSmlTqYWkor"
-          },
-          "allowProvidedElsewhere": false,
-          "compulsory": true,
-          "programStage": {
-            "id": "agYrfZeYx1b"
-          },
-          "allowFutureDate": false,
-          "lastUpdated": "2016-03-10T07:27:58.719+0000",
-          "id": "vOdNoOX7l10",
-          "created": "2016-03-10T07:27:58.718+0000"
+          "id": "jSmlTqYWkor"
         },
         {
-          "programStage": {
-            "id": "agYrfZeYx1b"
-          },
-          "allowFutureDate": false,
-          "lastUpdated": "2016-03-10T07:27:58.727+0000",
-          "id": "x7wLneg4rTZ",
-          "created": "2016-03-10T07:27:58.726+0000",
-          "displayInReports": false,
-          "dataElement": {
-            "id": "HLRGJHHgfxc"
-          },
-          "sortOrder": 1,
-          "allowProvidedElsewhere": true,
-          "compulsory": false
+          "id": "HLRGJHHgfxc"
         }
       ],
       "programStage": {
