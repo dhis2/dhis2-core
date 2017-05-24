@@ -32,11 +32,11 @@
     </set>
 
     <many-to-one name="dataEntryForm" class="org.hisp.dhis.dataentryform.DataEntryForm"
-      column="dataentryformid" foreign-key="fk_programstage_dataentryform" cascade="all" />
+      column="dataentryformid" foreign-key="fk_programstage_dataentryform" />
 
     <property name="standardInterval" />
 
-    <set name="programStageSections" order-by="sortOrder" cascade="save-update">
+    <set name="programStageSections" order-by="sortOrder">
       <key column="programstageid" />
       <one-to-many class="org.hisp.dhis.program.ProgramStageSection" />
     </set>
@@ -45,7 +45,7 @@
 
     <property name="dueDateLabel" column="duedatelabel" />
 
-    <set name="notificationTemplates" cascade="all">
+    <set name="notificationTemplates">
       <key column="programstageid" />
       <one-to-many class="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
     </set>

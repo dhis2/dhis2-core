@@ -27,7 +27,7 @@
 
     <property name="incidentDateLabel" column="incidentdatelabel" type="text" />
 
-    <set name="programStages" order-by="sortOrder" cascade="all">
+    <set name="programStages" order-by="sortOrder">
       <key column="programid" />
       <one-to-many class="org.hisp.dhis.program.ProgramStage" />
     </set>
@@ -95,7 +95,7 @@
       <one-to-many class="org.hisp.dhis.programrule.ProgramRuleVariable" />
     </set>
 
-    <set name="notificationTemplates" cascade="all">
+    <set name="notificationTemplates">
       <key column="programid" />
       <one-to-many class="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
     </set>
@@ -112,7 +112,7 @@
     <property name="relationshipFromA" />
 
     <many-to-one name="relatedProgram" class="org.hisp.dhis.program.Program"
-      column="relatedprogramid" foreign-key="fk_program_relatedprogram" />    
+      column="relatedprogramid" foreign-key="fk_program_relatedprogram" />
 
     <many-to-one name="categoryCombo" class="org.hisp.dhis.dataelement.DataElementCategoryCombo"
       column="categorycomboid" not-null="true" foreign-key="fk_program_categorycomboid" />
