@@ -397,7 +397,7 @@ public class DefaultEventAnalyticsService
                 }
             }
             
-            for ( QueryItem item : params.getItemsAndItemFilters() )
+            for ( QueryItem item : params.getItems() )
             {
                 if ( item.hasLegendSet() )
                 {
@@ -410,6 +410,22 @@ public class DefaultEventAnalyticsService
                 else
                 {
                     dimensionItems.put( item.getItemId(), Lists.newArrayList() );
+                }
+            }
+
+            for ( QueryItem item : params.getItemFilters() )
+            {
+                if ( item.hasLegendSet() )
+                {
+                    dimensionItems.put( item.getItemId(), IdentifiableObjectUtils.getUids( item.getLegendSet().getSortedLegends() ) );
+                }
+                else if ( item.hasOptionSet() )
+                {
+                    dimensionItems.put( item.getItemId(), item.getQueryFilterItems() );
+                }
+                else
+                {
+                    dimensionItems.put( item.getItemId(), Lists.newArrayList( item.getFiltersAsString() ) );
                 }
             }
 
