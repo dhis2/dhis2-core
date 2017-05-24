@@ -1,7 +1,6 @@
-package org.hisp.dhis.schema.descriptors;
-
+package org.hisp.dhis.validation.comparator;
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,28 +27,81 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramStageSection;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import com.google.common.base.MoreObjects;
+import org.hisp.dhis.common.Pager;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Stian Sandvold
  */
-public class ProgramStageSectionSchemaDescriptor implements SchemaDescriptor
+public class ValidationResultQuery
 {
-    public static final String SINGULAR = "programStageSection";
 
-    public static final String PLURAL = "programStageSections";
+    public static final ValidationResultQuery EMPTY = new ValidationResultQuery();
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    private boolean skipPaging;
+
+    private int page = 1;
+
+    private int pageSize = Pager.DEFAULT_PAGE_SIZE;
+
+    private int total;
+
+    public ValidationResultQuery()
+    {
+    }
+
+    public boolean isSkipPaging()
+    {
+        return skipPaging;
+    }
+
+    public void setSkipPaging( boolean skipPaging )
+    {
+        this.skipPaging = skipPaging;
+    }
+
+    public int getPage()
+    {
+        return page;
+    }
+
+    public void setPage( int page )
+    {
+        this.page = page;
+    }
+
+    public int getPageSize()
+    {
+        return pageSize;
+    }
+
+    public void setPageSize( int pageSize )
+    {
+        this.pageSize = pageSize;
+    }
+
+    public int getTotal()
+    {
+        return total;
+    }
+
+    public void setTotal( int total )
+    {
+        this.total = total;
+    }
+
+    public Pager getPager()
+    {
+        return skipPaging ? null : new Pager( page, total, pageSize );
+    }
 
     @Override
-    public Schema getSchema()
+    public String toString()
     {
-        Schema schema = new Schema( ProgramStageSection.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1508 );
-
-        return schema;
+        return MoreObjects.toStringHelper( this )
+            .add( "page", page )
+            .add( "pageSize", pageSize )
+            .add( "total", total )
+            .toString();
     }
 }
