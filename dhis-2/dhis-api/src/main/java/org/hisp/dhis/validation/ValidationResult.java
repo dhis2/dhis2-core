@@ -35,26 +35,21 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang.builder.CompareToBuilder;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
-import java.util.Date;
-
 /**
  * Class representing a validation violation. The validationRule, period and org unit
  * properties make up a composite unique key.
- *
+ * 
  * @author Margrethe Store
  */
 @JacksonXmlRootElement( localName = "validationResult", namespace = DxfNamespaces.DXF_2_0 )
-public class ValidationResult implements Comparable<ValidationResult>
+public class ValidationResult
+    extends BaseIdentifiableObject
 {
-
-    private int id;
-
-    private Date created;
-
     private ValidationRule validationRule;
 
     private Period period;
@@ -95,8 +90,8 @@ public class ValidationResult implements Comparable<ValidationResult>
     {
     }
 
-    public ValidationResult( ValidationRule validationRule, Period period,
-        OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo,
+    public ValidationResult( ValidationRule validationRule, Period period, 
+        OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo, 
         Double leftsideValue, Double rightsideValue, int dayInPeriod )
     {
         this.validationRule = validationRule;
@@ -238,19 +233,20 @@ public class ValidationResult implements Comparable<ValidationResult>
         return "[Org unit: " + organisationUnit.getUid() +
             ", period: " + period.getUid() +
             ", validation rule: " + validationRule.getUid() +
-            "(" + validationRule.getDisplayName() + ")" +
+            "(" + validationRule.getDisplayName() + ")"+
             ", left side value: " + leftsideValue +
             ", right side value: " + rightsideValue + "]";
     }
 
     /**
      * Comparing validation results is done by priority, then time
-     *
      * @param identifiableObject
      * @return
      */
-    public int compareTo( ValidationResult other )
+    public int compareTo( IdentifiableObject identifiableObject )
     {
+        ValidationResult other = (ValidationResult) identifiableObject;
+
         return new CompareToBuilder()
             .append( this.validationRule, other.getValidationRule() )
             .append( this.period, other.getPeriod() )
@@ -264,8 +260,6 @@ public class ValidationResult implements Comparable<ValidationResult>
     // Set and get methods
     // -------------------------------------------------------------------------     
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getId()
     {
         return id;
@@ -362,8 +356,6 @@ public class ValidationResult implements Comparable<ValidationResult>
         this.dayInPeriod = dayInPeriod;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getNotificationSent()
     {
         return notificationSent;
@@ -372,17 +364,5 @@ public class ValidationResult implements Comparable<ValidationResult>
     public void setNotificationSent( Boolean notificationSent )
     {
         this.notificationSent = notificationSent;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty
-    public Date getCreated()
-    {
-        return created;
-    }
-
-    public void setCreated( Date created )
-    {
-        this.created = created;
     }
 }

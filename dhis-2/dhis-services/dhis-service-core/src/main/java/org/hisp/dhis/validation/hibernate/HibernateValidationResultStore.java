@@ -27,16 +27,10 @@ package org.hisp.dhis.validation.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Criteria;
-import org.hibernate.Session;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.deletedobject.DeletedObject;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultStore;
-import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -47,52 +41,9 @@ public class HibernateValidationResultStore
     implements ValidationResultStore
 {
     @Override
-    @SuppressWarnings( "unchecked" )
+    @SuppressWarnings("unchecked")
     public List<ValidationResult> getAllUnreportedValidationResults()
     {
         return getQuery( "from ValidationResult where notificationSent is false" ).list();
-    }
-
-    @Override
-    public ValidationResult getById( int id )
-    {
-        return (ValidationResult) getQuery( "from ValidationResult where id = :id" ).setInteger( "id", id )
-            .uniqueResult();
-    }
-
-    @Override
-    public List<ValidationResult> query( ValidationResultQuery query )
-    {
-
-        Criteria criteria = getCurrentSession().createCriteria( ValidationResult.class );
-
-        if ( !query.isSkipPaging() )
-        {
-            Pager pager = query.getPager();
-            criteria.setFirstResult( pager.getOffset() );
-            criteria.setMaxResults( pager.getPageSize() );
-        }
-
-        return criteria.list();
-    }
-
-    @Override
-    public int count( ValidationResultQuery query )
-    {
-        Criteria criteria = getCurrentSession().createCriteria( DeletedObject.class );
-
-        return criteria.list().size();
-    }
-
-    @Override
-    public void save( ValidationResult validationResult )
-    {
-        validationResult.setCreated( new Date() );
-        super.save( validationResult );
-    }
-
-    private Session getCurrentSession()
-    {
-        return sessionFactory.getCurrentSession();
     }
 }
