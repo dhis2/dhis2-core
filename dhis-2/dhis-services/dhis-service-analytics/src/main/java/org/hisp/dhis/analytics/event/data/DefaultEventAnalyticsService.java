@@ -389,6 +389,10 @@ public class DefaultEventAnalyticsService
             
             dimensionItems.put( PERIOD_DIM_ID, periodUids );
 
+            // -----------------------------------------------------------------
+            // Dimensions and filers
+            // -----------------------------------------------------------------
+
             for ( DimensionalObject dim : params.getDimensionsAndFilters() )
             {
                 if ( !metaData.keySet().contains( dim.getDimension() ) )
@@ -396,7 +400,11 @@ public class DefaultEventAnalyticsService
                     dimensionItems.put( dim.getDimension(), getDimensionalItemIds( dim.getItems() ) );
                 }
             }
-            
+
+            // -----------------------------------------------------------------
+            // Items
+            // -----------------------------------------------------------------
+
             for ( QueryItem item : params.getItems() )
             {
                 if ( item.hasLegendSet() )
@@ -412,6 +420,10 @@ public class DefaultEventAnalyticsService
                     dimensionItems.put( item.getItemId(), Lists.newArrayList() );
                 }
             }
+
+            // -----------------------------------------------------------------
+            // Item filters
+            // -----------------------------------------------------------------
 
             for ( QueryItem item : params.getItemFilters() )
             {
@@ -437,6 +449,10 @@ public class DefaultEventAnalyticsService
             {
                 metaData.putAll( dimensionItems );
             }
+
+            // -----------------------------------------------------------------
+            // Organisation unit hierarchy
+            // -----------------------------------------------------------------
 
             User user = securityManager.getCurrentUser( params );
 
