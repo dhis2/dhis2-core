@@ -37,9 +37,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -69,7 +69,10 @@ public class ClickatellGateway
 
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig config )
     {
-        return new ArrayList<>();
+        return batch.getMessages()
+                .stream()
+                .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), config ) )
+                .collect( Collectors.toList() );
     }
 
     @Override

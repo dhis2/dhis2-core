@@ -31,16 +31,15 @@ package org.hisp.dhis.sms.config;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.springframework.http.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Simplistic http gateway sending smses through a get to a url constructed from
@@ -80,14 +79,10 @@ public class SimplisticHttpGetGateWay
     @Override
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
-        List<OutboundMessageResponse> statuses = new ArrayList<>();
-
-        for ( OutboundMessage message : batch.getMessages() )
-        {
-            statuses.add( send( message.getSubject(), message.getText(), message.getRecipients(), gatewayConfig ) );
-        }
-
-        return statuses;
+        return batch.getMessages()
+                .stream()
+                .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), gatewayConfig ) )
+                .collect( Collectors.toList() );
     }
 
     @Override
