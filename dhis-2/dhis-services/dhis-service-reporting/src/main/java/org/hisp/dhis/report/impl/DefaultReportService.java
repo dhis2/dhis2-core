@@ -28,26 +28,10 @@ package org.hisp.dhis.report.impl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-
-import java.io.OutputStream;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.sql.DataSource;
-
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.calendar.Calendar;
@@ -72,6 +56,20 @@ import org.hisp.dhis.system.util.JRExportUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.sql.DataSource;
+import java.io.OutputStream;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 
 /**
  * @author Lars Helge Overland
@@ -304,7 +302,9 @@ public class DefaultReportService
     @Override
     public int saveReport( Report report )
     {
-        return reportStore.save( report );
+        reportStore.save( report );
+
+        return report.getId();
     }
 
     @Override

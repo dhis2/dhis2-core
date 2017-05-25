@@ -30,12 +30,13 @@ package org.hisp.dhis.webapi.controller.mapping;
 
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.legend.LegendService;
+import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.mapgeneration.MapGenerationService;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
@@ -85,7 +86,7 @@ public class MapController
     private MappingService mappingService;
 
     @Autowired
-    private LegendService legendService;
+    private LegendSetService legendSetService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -147,10 +148,9 @@ public class MapController
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
 
         Map newMap = deserializeJsonEntity( request, response );
+        newMap.setUid( uid );
 
-        map.mergeWith( newMap, params.getMergeMode() );
-        map.setUid( uid );
-
+        mergeService.merge( new MergeParams<>( newMap, map ).setMergeMode( params.getMergeMode() ) );
         mappingService.updateMap( map );
     }
 
@@ -267,7 +267,7 @@ public class MapController
 
         if ( view.getLegendSet() != null )
         {
-            view.setLegendSet( legendService.getLegendSet( view.getLegendSet().getUid() ) );
+            view.setLegendSet( legendSetService.getLegendSet( view.getLegendSet().getUid() ) );
         }
 
         if ( view.getOrganisationUnitGroupSet() != null )

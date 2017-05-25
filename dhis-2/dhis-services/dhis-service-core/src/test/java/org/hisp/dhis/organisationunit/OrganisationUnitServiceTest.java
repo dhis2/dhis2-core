@@ -42,6 +42,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.user.User;
@@ -314,6 +315,16 @@ public class OrganisationUnitServiceTest
     @Test
     public void testGetOrganisationUnitsAtLevel()
     {
+        OrganisationUnitLevel levelA = new OrganisationUnitLevel( 1, "National" );
+        OrganisationUnitLevel levelB = new OrganisationUnitLevel( 2, "Province" );
+        OrganisationUnitLevel levelC = new OrganisationUnitLevel( 3, "County" );
+        OrganisationUnitLevel levelD = new OrganisationUnitLevel( 4, "District" );
+
+        organisationUnitService.addOrganisationUnitLevel( levelA );
+        organisationUnitService.addOrganisationUnitLevel( levelB );
+        organisationUnitService.addOrganisationUnitLevel( levelC );
+        organisationUnitService.addOrganisationUnitLevel( levelD );
+
         OrganisationUnit unit1 = createOrganisationUnit( '1' );
         organisationUnitService.addOrganisationUnit( unit1 );
 
@@ -340,13 +351,33 @@ public class OrganisationUnitServiceTest
         OrganisationUnit unit7 = createOrganisationUnit( '7' );
         organisationUnitService.addOrganisationUnit( unit7 );
 
+        // unit1
+        // unit1 . unit2
+        // unit1 . unit2 . unit3
+        // unit1 . unit2 . unit4
+        // unit1 . unit2 . unit5
+        // unit1 . unit2 . unit3 . unit6
+        // unit7
+
         assertEquals( 2, organisationUnitService.getOrganisationUnitsAtLevel( 1 ).size() );
         assertEquals( 3, organisationUnitService.getOrganisationUnitsAtLevel( 3 ).size() );
         assertEquals( 4, organisationUnitService.getNumberOfOrganisationalLevels() );
         assertTrue( unit4.getLevel() == 3 );
         assertTrue( unit1.getLevel() == 1 );
         assertTrue( unit6.getLevel() == 4 );
-    }    
+
+        assertEquals( 3, organisationUnitService.getOrganisationUnitsAtLevels( Lists.newArrayList( 3 ),  Lists.newArrayList( unit1 ) ).size() );
+        assertEquals( 3, organisationUnitService.getOrganisationUnitsAtLevels( Lists.newArrayList( 3 ),  Lists.newArrayList( unit2 ) ).size() );
+        assertEquals( 0, organisationUnitService.getOrganisationUnitsAtLevels( Lists.newArrayList( 3 ),  Lists.newArrayList( unit7 ) ).size() );
+        assertEquals( 4, organisationUnitService.getOrganisationUnitsAtLevels( Lists.newArrayList( 3, 4 ),  Lists.newArrayList( unit1 ) ).size() );
+        assertEquals( 4, organisationUnitService.getOrganisationUnitsAtLevels( Lists.newArrayList( 3, 4 ),  Lists.newArrayList( unit1, unit7 ) ).size() );
+
+        assertEquals( 3, organisationUnitService.getOrganisationUnitsAtOrgUnitLevels( Lists.newArrayList( levelC ),  Lists.newArrayList( unit1 ) ).size() );
+        assertEquals( 3, organisationUnitService.getOrganisationUnitsAtOrgUnitLevels( Lists.newArrayList( levelC ),  Lists.newArrayList( unit2 ) ).size() );
+        assertEquals( 0, organisationUnitService.getOrganisationUnitsAtOrgUnitLevels( Lists.newArrayList( levelC ),  Lists.newArrayList( unit7 ) ).size() );
+        assertEquals( 4, organisationUnitService.getOrganisationUnitsAtOrgUnitLevels( Lists.newArrayList( levelC, levelD ),  Lists.newArrayList( unit1 ) ).size() );
+        assertEquals( 4, organisationUnitService.getOrganisationUnitsAtOrgUnitLevels( Lists.newArrayList( levelC, levelD ),  Lists.newArrayList( unit1, unit7 ) ).size() );
+    }
 
     @Test
     public void testGetNumberOfOrganisationalLevels()

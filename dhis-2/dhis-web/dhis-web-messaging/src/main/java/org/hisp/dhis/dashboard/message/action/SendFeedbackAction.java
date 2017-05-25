@@ -79,7 +79,7 @@ public class SendFeedbackAction
         String metaData = MessageService.META_USER_AGENT + 
             ServletActionContext.getRequest().getHeader( ContextUtils.HEADER_USER_AGENT );
 
-        messageService.sendFeedback( subject, text, metaData );
+        messageService.sendTicketMessage( subject, text, metaData );
         
         return SUCCESS;
     }

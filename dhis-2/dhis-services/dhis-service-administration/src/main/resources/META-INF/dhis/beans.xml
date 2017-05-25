@@ -10,6 +10,7 @@
 
   <bean id="org.hisp.dhis.resourcetable.ResourceTableStore" class="org.hisp.dhis.resourcetable.jdbc.JdbcResourceTableStore">
     <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="statementBuilder" ref="statementBuilder" />
     <property name="dbmsManager" ref="dbmsManager" />
   </bean>
 

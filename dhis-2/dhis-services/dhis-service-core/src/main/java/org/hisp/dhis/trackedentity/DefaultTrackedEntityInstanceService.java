@@ -112,7 +112,7 @@ public class DefaultTrackedEntityInstanceService
 
     @Autowired
     private CurrentUserService currentUserService;
-    
+
     @Autowired
     private TrackedEntityAttributeValueAuditService attributeValueAuditService;
 
@@ -146,9 +146,9 @@ public class DefaultTrackedEntityInstanceService
 
         return trackedEntityInstanceStore.countTrackedEntityInstances( params );
     }
-    
+
     // TODO lower index on attribute value?
-    
+
     @Override
     public Grid getTrackedEntityInstancesGrid( TrackedEntityInstanceQueryParams params )
     {
@@ -178,6 +178,11 @@ public class DefaultTrackedEntityInstanceService
         grid.addHeader( new GridHeader( TRACKED_ENTITY_ID, "Tracked entity" ) );
         grid.addHeader( new GridHeader( INACTIVE_ID, "Inactive" ) );
 
+        if ( params.isIncludeDeleted() )
+        {
+            grid.addHeader( new GridHeader( DELETED, "Deleted", ValueType.BOOLEAN, "boolean", false, false ) );
+        }
+
         for ( QueryItem item : params.getAttributes() )
         {
             grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName() ) );
@@ -201,6 +206,11 @@ public class DefaultTrackedEntityInstanceService
             grid.addValue( entity.get( ORG_UNIT_NAME ) );
             grid.addValue( entity.get( TRACKED_ENTITY_ID ) );
             grid.addValue( entity.get( INACTIVE_ID ) );
+
+            if ( params.isIncludeDeleted() )
+            {
+                grid.addValue( entity.get( DELETED ) );
+            }
 
             tes.add( entity.get( TRACKED_ENTITY_ID ) );
 
@@ -246,7 +256,7 @@ public class DefaultTrackedEntityInstanceService
     /**
      * Handles injection of attributes. The following combinations of parameters
      * will lead to attributes being injected.
-     * 
+     * <p>
      * - query: add display in list attributes
      * - attributes
      * - program: add program attributes
@@ -268,7 +278,7 @@ public class DefaultTrackedEntityInstanceService
             params.addAttributes( QueryItem.getQueryItems( params.getProgram().getTrackedEntityAttributes() ) );
         }
     }
-    
+
     @Override
     public void decideAccess( TrackedEntityInstanceQueryParams params )
     {
@@ -292,12 +302,12 @@ public class DefaultTrackedEntityInstanceService
 
         User user = currentUserService.getCurrentUser();
 
-        if ( !params.hasOrganisationUnits() && !( params.isOrganisationUnitMode( ALL ) || params.isOrganisationUnitMode( ACCESSIBLE ) ) )
+        if ( !params.hasOrganisationUnits() && !(params.isOrganisationUnitMode( ALL ) || params.isOrganisationUnitMode( ACCESSIBLE )) )
         {
             violation = "At least one organisation unit must be specified";
         }
 
-        if ( params.isOrganisationUnitMode( ACCESSIBLE ) && ( user == null || !user.hasDataViewOrganisationUnitWithFallback() ) )
+        if ( params.isOrganisationUnitMode( ACCESSIBLE ) && (user == null || !user.hasDataViewOrganisationUnitWithFallback()) )
         {
             violation = "Current user must be associated with at least one organisation unit when selection mode is ACCESSIBLE";
         }
@@ -336,7 +346,7 @@ public class DefaultTrackedEntityInstanceService
         {
             violation = "Program must be defined when program incident end date is specified";
         }
-        
+
         if ( params.hasEventStatus() && (!params.hasEventStartDate() || !params.hasEventEndDate()) )
         {
             violation = "Event start and end date must be specified when event status is specified";
@@ -368,8 +378,9 @@ public class DefaultTrackedEntityInstanceService
     @Override
     public TrackedEntityInstanceQueryParams getFromUrl( String query, Set<String> attribute, Set<String> filter,
         Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
-        Boolean followUp, Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate, Date programIncidentEndDate, String trackedEntity, EventStatus eventStatus,
-        Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, List<String> orders)
+        Boolean followUp, Date lastUpdatedStartDate, Date lastUpdatedEndDate,
+        Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate, Date programIncidentEndDate, String trackedEntity, EventStatus eventStatus,
+        Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, List<String> orders )
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
 
@@ -428,6 +439,8 @@ public class DefaultTrackedEntityInstanceService
             .setProgram( pr )
             .setProgramStatus( programStatus )
             .setFollowUp( followUp )
+            .setLastUpdatedStartDate( lastUpdatedStartDate )
+            .setLastUpdatedEndDate( lastUpdatedEndDate )
             .setProgramEnrollmentStartDate( programEnrollmentStartDate )
             .setProgramEnrollmentEndDate( programEnrollmentEndDate )
             .setProgramIncidentStartDate( programIncidentStartDate )
@@ -442,6 +455,7 @@ public class DefaultTrackedEntityInstanceService
             .setPageSize( pageSize )
             .setTotalPages( totalPages )
             .setSkipPaging( skipPaging )
+            .setIncludeDeleted( includeDeleted )
             .setOrders( orders );
 
         return params;
@@ -521,7 +535,9 @@ public class DefaultTrackedEntityInstanceService
     @Override
     public int addTrackedEntityInstance( TrackedEntityInstance instance )
     {
-        return trackedEntityInstanceStore.save( instance );
+        trackedEntityInstanceStore.save( instance );
+
+        return instance.getId();
     }
 
     @Override
@@ -580,7 +596,23 @@ public class DefaultTrackedEntityInstanceService
     public void deleteTrackedEntityInstance( TrackedEntityInstance instance )
     {
         attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
-        trackedEntityInstanceStore.delete( instance );
+        deleteTrackedEntityInstance( instance, false );
+
+    }
+
+    @Override
+    public void deleteTrackedEntityInstance( TrackedEntityInstance instance, boolean forceDelete )
+    {
+        if ( forceDelete )
+        {
+            trackedEntityInstanceStore.delete( instance );
+        }
+        else
+        {
+            instance.setDeleted( true );
+            trackedEntityInstanceStore.update( instance );
+        }
+
     }
 
     @Override
@@ -627,7 +659,7 @@ public class DefaultTrackedEntityInstanceService
                 if ( relationshipTypeId != null )
                 {
                     RelationshipType relType = relationshipTypeService.getRelationshipType( relationshipTypeId );
-                    
+
                     if ( relType != null )
                     {
                         rel.setRelationshipType( relType );

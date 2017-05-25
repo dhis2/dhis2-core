@@ -37,8 +37,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataelement.DataElement;
@@ -57,7 +56,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "Predictor", namespace = DxfNamespaces.DXF_2_0 )
 public class Predictor
-    extends BaseNameableObject
+    extends BaseNameableObject implements MetadataObject
 {
     /**
      * The data element into which the predictor writes
@@ -253,59 +252,8 @@ public class Predictor
         this.sampleSkipTest = sampleSkipTest;
     }
 
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        // TODO: what else needs to be merged?
-
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            Predictor predictor = (Predictor) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                description = predictor.getDescription();
-                output = predictor.getOutput();
-                generator = predictor.getGenerator();
-                periodType = predictor.getPeriodType();
-                sequentialSampleCount = predictor.getSequentialSampleCount();
-                sequentialSkipCount = predictor.getSequentialSkipCount();
-                annualSampleCount = predictor.getAnnualSampleCount();
-                organisationUnitLevels = predictor.getOrganisationUnitLevels();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                description = predictor.getDescription() == null ? description : predictor.getDescription();
-                periodType = predictor.getPeriodType() == null ? periodType : predictor.getPeriodType();
-                output = predictor.getOutput() == null ? output : predictor.getOutput();
-                sequentialSampleCount = (predictor.getSequentialSampleCount() == null) ?
-                    sequentialSampleCount : predictor.getSequentialSampleCount();
-                sequentialSkipCount = (predictor.getSequentialSkipCount() == null) ?
-                    sequentialSkipCount : predictor.getSequentialSkipCount();
-                annualSampleCount = (predictor.getAnnualSampleCount() == null) ?
-                    annualSampleCount : predictor.getAnnualSampleCount();
-                organisationUnitLevels = (predictor.getOrganisationUnitLevels() == null) ?
-                    organisationUnitLevels : predictor.getOrganisationUnitLevels();
-            }
-
-            if ( generator != null && predictor.getGenerator() != null )
-            {
-                generator.mergeWith( predictor.getGenerator() );
-            }
-
-            if ( sampleSkipTest != null && predictor.getSampleSkipTest() != null )
-            {
-                sampleSkipTest.mergeWith( predictor.getSampleSkipTest() );
-            }
-        }
-    }
-
     /**
-     * Clears the generator and skipTest expressions. This can be useful, for
-     * example, before changing the validation rule period type, because the
-     * data elements allowed in the expressions depend on the period type.
+     * Clears the generator and skipTest expressions.
      */
     public void clearExpressions()
     {

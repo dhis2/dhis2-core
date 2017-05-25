@@ -29,15 +29,12 @@ package org.hisp.dhis.dataelement;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.ValueType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -178,28 +175,6 @@ public class DataElementServiceTest
     }
 
     @Test
-    public void testGetDataElementByShortName()
-    {
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        int idA = dataElementService.addDataElement( dataElementA );
-        int idB = dataElementService.addDataElement( dataElementB );
-
-        dataElementA = dataElementService.getDataElementByShortName( "DataElementShortA" );
-        assertNotNull( dataElementA );
-        assertEquals( idA, dataElementA.getId() );
-        assertEquals( "DataElementA", dataElementA.getName() );
-
-        dataElementB = dataElementService.getDataElementByShortName( "DataElementShortB" );
-        assertNotNull( dataElementB );
-        assertEquals( idB, dataElementB.getId() );
-        assertEquals( "DataElementB", dataElementB.getName() );
-
-        DataElement dataElementC = dataElementService.getDataElementByShortName( "DataElementShortC" );
-        assertNull( dataElementC );
-    }
-
-    @Test
     public void testGetAllDataElements()
     {
         assertEquals( 0, dataElementService.getAllDataElements().size() );
@@ -224,107 +199,6 @@ public class DataElementServiceTest
         assertNotNull( dataElements );
         assertEquals( dataElementsRef.size(), dataElements.size() );
         assertTrue( dataElements.containsAll( dataElementsRef ) );
-    }
-
-    @Test
-    public void testGetAggregateableDataElements()
-    {
-        assertEquals( 0, dataElementService.getAggregateableDataElements().size() );
-
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        DataElement dataElementC = createDataElement( 'C' );
-        DataElement dataElementD = createDataElement( 'D' );
-
-        dataElementA.setValueType( ValueType.INTEGER );
-        dataElementB.setValueType( ValueType.BOOLEAN );
-        dataElementC.setValueType( ValueType.TEXT );
-        dataElementD.setValueType( ValueType.INTEGER );
-
-        dataElementService.addDataElement( dataElementA );
-        dataElementService.addDataElement( dataElementB );
-        dataElementService.addDataElement( dataElementC );
-        dataElementService.addDataElement( dataElementD );
-
-        List<DataElement> dataElementsRef = new ArrayList<>();
-        dataElementsRef.add( dataElementA );
-        dataElementsRef.add( dataElementB );
-        dataElementsRef.add( dataElementD );
-
-        List<DataElement> dataElements = dataElementService.getAggregateableDataElements();
-        assertNotNull( dataElements );
-        assertEquals( dataElementsRef.size(), dataElements.size() );
-        assertTrue( dataElements.containsAll( dataElementsRef ) );
-    }
-
-    @Test
-    public void testGetDataElementsByAggregationType()
-    {
-        assertEquals( 0, dataElementService.getDataElementsByAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT ).size() );
-        assertEquals( 0, dataElementService.getDataElementsByAggregationType( AggregationType.SUM ).size() );
-
-        DataElement dataElementA = createDataElement( 'A' );
-        dataElementA.setAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT );
-        DataElement dataElementB = createDataElement( 'B' );
-        dataElementB.setAggregationType( AggregationType.SUM );
-        DataElement dataElementC = createDataElement( 'C' );
-        dataElementC.setAggregationType( AggregationType.SUM );
-        DataElement dataElementD = createDataElement( 'D' );
-        dataElementD.setAggregationType( AggregationType.SUM );
-
-        dataElementService.addDataElement( dataElementA );
-        dataElementService.addDataElement( dataElementB );
-        dataElementService.addDataElement( dataElementC );
-        dataElementService.addDataElement( dataElementD );
-
-        assertEquals( 1, dataElementService.getDataElementsByAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT ).size() );
-        assertEquals( 3, dataElementService.getDataElementsByAggregationType( AggregationType.SUM ).size() );
-    }
-
-    @Test
-    public void testGetDataElementsByValueType()
-    {
-        DataElement dataElementA = createDataElement( 'A', ValueType.NUMBER, AggregationType.SUM );
-        DataElement dataElementB = createDataElement( 'B', ValueType.NUMBER, AggregationType.SUM );
-        DataElement dataElementC = createDataElement( 'C', ValueType.BOOLEAN, AggregationType.SUM );
-        DataElement dataElementD = createDataElement( 'D', ValueType.TEXT, AggregationType.SUM );
-
-        dataElementService.addDataElement( dataElementA );
-        dataElementService.addDataElement( dataElementB );
-        dataElementService.addDataElement( dataElementC );
-        dataElementService.addDataElement( dataElementD );
-
-        assertEquals( 2, dataElementService.getDataElementsByValueType( ValueType.NUMBER ).size() );
-        assertEquals( 1, dataElementService.getDataElementsByValueType( ValueType.BOOLEAN ).size() );
-        assertEquals( 1, dataElementService.getDataElementsByValueType( ValueType.TEXT ).size() );
-        assertEquals( 0, dataElementService.getDataElementsByValueType( ValueType.LONG_TEXT ).size() );
-        assertEquals( 0, dataElementService.getDataElementsByValueType( ValueType.INTEGER ).size() );
-        assertEquals( 0, dataElementService.getDataElementsByValueType( ValueType.INTEGER_POSITIVE ).size() );
-        assertEquals( 0, dataElementService.getDataElementsByValueType( ValueType.INTEGER_NEGATIVE ).size() );
-    }
-
-    @Test
-    public void testGetDataElementsByValueTypes()
-    {
-        DataElement dataElementA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
-        DataElement dataElementB = createDataElement( 'B', ValueType.INTEGER_POSITIVE, AggregationType.SUM );
-        DataElement dataElementC = createDataElement( 'C', ValueType.INTEGER_ZERO_OR_POSITIVE, AggregationType.SUM );
-        DataElement dataElementD = createDataElement( 'D', ValueType.NUMBER, AggregationType.SUM );
-        DataElement dataElementE = createDataElement( 'E', ValueType.TEXT, AggregationType.SUM );
-        DataElement dataElementF = createDataElement( 'F', ValueType.LONG_TEXT, AggregationType.SUM );
-        DataElement dataElementG = createDataElement( 'G', ValueType.COORDINATE, AggregationType.SUM );
-
-        dataElementService.addDataElement( dataElementA );
-        dataElementService.addDataElement( dataElementB );
-        dataElementService.addDataElement( dataElementC );
-        dataElementService.addDataElement( dataElementD );
-        dataElementService.addDataElement( dataElementE );
-        dataElementService.addDataElement( dataElementF );
-        dataElementService.addDataElement( dataElementG );
-
-        assertEquals( 3, dataElementService.getDataElementsByValueTypes( ValueType.INTEGER_TYPES ).size() );
-        assertEquals( 4, dataElementService.getDataElementsByValueTypes( ValueType.NUMERIC_TYPES ).size() );
-        assertEquals( 3, dataElementService.getDataElementsByValueTypes( ValueType.TEXT_TYPES ).size() );
     }
 
     // -------------------------------------------------------------------------
@@ -460,37 +334,37 @@ public class DataElementServiceTest
         DataElementGroup dataElementGroupC = dataElementService.getDataElementGroupByName( "DataElementGroupC" );
         assertNull( dataElementGroupC );
     }
-
+    
     @Test
-    public void testGetDataElementsByZeroIsSignificantAndGroup()
+    public void testAndAndGetDataElementGroupSet()
     {
-        DataElementGroup dataElementGroupA = new DataElementGroup( "DataElementGroupA" );
+        DataElementGroup degA = createDataElementGroup( 'A' );
+        DataElementGroup degB = createDataElementGroup( 'B' );
+        DataElementGroup degC = createDataElementGroup( 'C' );
+        
+        dataElementService.addDataElementGroup( degA );
+        dataElementService.addDataElementGroup( degB );
+        dataElementService.addDataElementGroup( degC );
+        
+        DataElementGroupSet degsA = createDataElementGroupSet( 'A' );
+        degsA.addDataElementGroup( degA );
+        degsA.addDataElementGroup( degB );
+        
+        DataElementGroupSet degsB = createDataElementGroupSet( 'B' );
+        degsB.addDataElementGroup( degB );
+        degsB.addDataElementGroup( degC );
+        
+        dataElementService.addDataElementGroupSet( degsA );
+        dataElementService.addDataElementGroupSet( degsB );
+        
+        assertTrue( degsA.getMembers().contains( degA ) );
+        assertTrue( degsA.getMembers().contains( degB ) );
+        assertTrue( degA.getGroupSets().contains( degsA ) );
+        assertTrue( degB.getGroupSets().contains( degsA ) );
 
-        DataElement dataElementA = createDataElement( 'A' );
-        dataElementA.setZeroIsSignificant( true );
-        DataElement dataElementB = createDataElement( 'B' );
-        dataElementB.setZeroIsSignificant( false );
-        DataElement dataElementC = createDataElement( 'C' );
-        dataElementC.setZeroIsSignificant( true );
-        DataElement dataElementD = createDataElement( 'D' );
-        dataElementD.setZeroIsSignificant( false );
-
-        dataElementGroupA.addDataElement( dataElementA );
-        dataElementGroupA.addDataElement( dataElementB );
-        dataElementGroupA.addDataElement( dataElementC );
-        dataElementGroupA.addDataElement( dataElementD );
-
-        dataElementService.addDataElement( dataElementA );
-        dataElementService.addDataElement( dataElementB );
-        dataElementService.addDataElement( dataElementC );
-        dataElementService.addDataElement( dataElementD );
-
-        dataElementService.addDataElementGroup( dataElementGroupA );
-
-        Set<DataElement> expected = new HashSet<>();
-        expected.add( dataElementA );
-        expected.add( dataElementC );
-
-        assertEquals( expected, dataElementService.getDataElementsByZeroIsSignificantAndGroup( true, dataElementGroupA ) );
+        assertTrue( degsB.getMembers().contains( degB ) );
+        assertTrue( degsB.getMembers().contains( degC ) );
+        assertTrue( degB.getGroupSets().contains( degsB ) );
+        assertTrue( degC.getGroupSets().contains( degsB ) );        
     }
 }

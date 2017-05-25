@@ -88,13 +88,13 @@ public class DataValidationTask
     @Autowired
     private ValidationResultService validationResultService;
 
-    private OrganisationUnitExtended sourceX;
+    private OrganisationUnit orgUnit;
 
     private ValidationRunContext context;
 
-    public void init( OrganisationUnitExtended sourceX, ValidationRunContext context )
+    public void init( OrganisationUnit orgUnit, ValidationRunContext context )
     {
-        this.sourceX = sourceX;
+        this.orgUnit = orgUnit;
         this.context = context;
     }
 
@@ -126,37 +126,60 @@ public class DataValidationTask
         {
             for ( PeriodTypeExtended periodTypeX : context.getPeriodTypeExtendedMap().values() )
             {
-                Set<DataElement> sourceDataElements = periodTypeX.getSourceDataElements().get( sourceX.getSource() );
+                Set<ValidationRuleExtended> ruleXs = getRulesBySourceAndPeriodType( orgUnit, periodTypeX );
 
-                Set<ValidationRule> rules = getRulesBySourceAndPeriodType( periodTypeX, sourceDataElements );
+                SetMap<String, DataElementOperand> dataElementOperandsToGet = getDataElementOperands( ruleXs );
 
-                expressionService.explodeValidationRuleExpressions( rules );
-
-                if ( !rules.isEmpty() )
+                if ( !ruleXs.isEmpty() )
                 {
                     for ( Period period : periodTypeX.getPeriods() )
                     {
                         MapMap<String, DataElementOperand, Date> lastUpdatedMap = new MapMap<>();
 
                         MapMap<String, DimensionalItemObject, Double> dataValueMap = getDataValueMap(
-                            periodTypeX.getDataElements(), sourceDataElements, periodTypeX.getAllowedPeriodTypes(),
-                            period, sourceX.getSource(), lastUpdatedMap );
+                            dataElementOperandsToGet, periodTypeX.getAllowedPeriodTypes(),
+                            period, orgUnit, lastUpdatedMap );
+
+                        MapMap<String, DimensionalItemObject, Double> slidingWindowEventMap = getEventMapForSlidingWindow(
+                            context.getEventItems(), period, orgUnit );
+
+                        slidingWindowEventMap.putMap( dataValueMap );
 
                         MapMap<String, DimensionalItemObject, Double> eventMap = getEventMap(
-                            context.getDimensionItems(), period, sourceX.getSource() );
+                            context.getEventItems(), period, orgUnit );
 
                         dataValueMap.putMap( eventMap );
 
-                        log.trace( "Source " + sourceX.getSource().getName() + " [" + period.getStartDate() + " - "
+                        log.trace( "OrgUnit " + orgUnit.getName() + " [" + period.getStartDate() + " - "
                             + period.getEndDate() + "]" + " currentValueMap[" + dataValueMap.size() + "]" );
 
-                        for ( ValidationRule rule : rules )
+                        for ( ValidationRuleExtended ruleX : ruleXs )
                         {
-                            Map<String, Double> leftSideValues =
-                                getExpressionValueMap( rule.getLeftSide(), dataValueMap, period );
+                            ValidationRule rule = ruleX.getRule();
 
-                            Map<String, Double> rightSideValues =
-                                getExpressionValueMap( rule.getRightSide(), dataValueMap, period );
+                            Map<String, Double> leftSideValues;
+
+                            if ( rule.getLeftSide() != null && rule.getLeftSide().getSlidingWindow() )
+                            {
+                                leftSideValues = getExpressionValueMap( rule.getLeftSide(), slidingWindowEventMap,
+                                    period );
+                            }
+                            else
+                            {
+                                leftSideValues = getExpressionValueMap( rule.getLeftSide(), dataValueMap, period );
+                            }
+
+                            Map<String, Double> rightSideValues;
+
+                            if ( rule.getRightSide() != null && rule.getRightSide().getSlidingWindow() )
+                            {
+                                rightSideValues = getExpressionValueMap( rule.getRightSide(), slidingWindowEventMap,
+                                    period );
+                            }
+                            else
+                            {
+                                rightSideValues = getExpressionValueMap( rule.getRightSide(), dataValueMap, period );
+                            }
 
                             Set<String> attributeOptionCombos = Sets.newHashSet( leftSideValues.keySet() );
                             attributeOptionCombos.addAll( rightSideValues.keySet() );
@@ -199,7 +222,7 @@ public class DataValidationTask
                                 if ( violation )
                                 {
                                     validationResults.add( new ValidationResult(
-                                        rule, period, sourceX.getSource(),
+                                        rule, period, orgUnit,
                                         categoryService.getDataElementCategoryOptionCombo( optionCombo ),
                                         roundSignificant( zeroIfNull( leftSide ) ),
                                         roundSignificant( zeroIfNull( rightSide ) ),
@@ -223,7 +246,11 @@ public class DataValidationTask
         if ( validationResults.size() > 0 )
         {
             context.getValidationResults().addAll( validationResults );
-            validationResultService.saveValidationResults( validationResults );
+
+            if ( context.isPersistResults() )
+            {
+                validationResultService.saveValidationResults( validationResults );
+            }
         }
     }
 
@@ -231,46 +258,53 @@ public class DataValidationTask
      * Gets the rules that should be evaluated for a given organisation unit and
      * period type.
      *
-     * @param periodTypeX        the period type extended information
-     * @param sourceDataElements all data elements collected for this
-     *                           organisation unit
-     * @return set of rules for this org unit and period type
+     * @param orgUnit     The organisation unit.
+     * @param periodTypeX The period type extended information.
+     * @return set of rules for this org unit and period type.
      */
-    private Set<ValidationRule> getRulesBySourceAndPeriodType( PeriodTypeExtended periodTypeX,
-        Set<DataElement> sourceDataElements )
+    private Set<ValidationRuleExtended> getRulesBySourceAndPeriodType(
+        OrganisationUnit orgUnit, PeriodTypeExtended periodTypeX )
     {
-        Set<ValidationRule> periodTypeRules = new HashSet<>();
+        Set<DataElement> orgUnitDataElements = periodTypeX.getOrgUnitDataElements().get( orgUnit );
 
-        for ( ValidationRule rule : periodTypeX.getRules() )
+        Set<ValidationRuleExtended> periodTypeRuleXs = new HashSet<>();
+
+        for ( ValidationRuleExtended ruleX : periodTypeX.getRuleXs() )
         {
             // Include only rules where the organisation collects all the data elements
             // in the rule, or rules which have no data elements.
 
-            Set<DataElement> elements = getDataElements( rule );
+            Set<DataElement> elements = ruleX.getDataElements();
 
-            if ( elements.isEmpty() || sourceDataElements.containsAll( elements ) )
+            if ( elements.isEmpty() || orgUnitDataElements.containsAll( elements ) )
             {
-                periodTypeRules.add( rule );
+                periodTypeRuleXs.add( ruleX );
             }
         }
 
-        return periodTypeRules;
+        return periodTypeRuleXs;
     }
 
     /**
-     * Gets data elements part of left side and right side expressions of the
-     * given validation rule.
+     * Gets the DataElementOperands from a set of Rules (extended),
+     * mapped by DataElement UID.
      *
-     * @param validationRule the validation rule.
+     * @param ruleXs the set of ValidationRuleExtendeds.
+     * @return the combined list of DataElementOperands.
      */
-    private Set<DataElement> getDataElements( ValidationRule validationRule )
+    private SetMap<String, DataElementOperand> getDataElementOperands( Set<ValidationRuleExtended> ruleXs )
     {
-        Set<DataElement> elements = new HashSet<>();
-        elements
-            .addAll( expressionService.getDataElementsInExpression( validationRule.getLeftSide().getExpression() ) );
-        elements
-            .addAll( expressionService.getDataElementsInExpression( validationRule.getRightSide().getExpression() ) );
-        return elements;
+        SetMap<String, DataElementOperand> dataElementOperands = new SetMap<>();
+
+        for ( ValidationRuleExtended ruleX : ruleXs )
+        {
+            for ( DataElementOperand operand : ruleX.getDataElementOperands() )
+            {
+                dataElementOperands.putValue( operand.getDataElement().getUid(), operand );
+            }
+        }
+
+        return dataElementOperands;
     }
 
     /**
@@ -305,29 +339,27 @@ public class DataValidationTask
      * Gets data values for a given organisation unit and period, recursing if
      * necessary to sum the values from child organisation units.
      *
-     * @param ruleDataElements   data elements configured for the rule
-     * @param sourceDataElements data elements configured for the organisation unit
-     * @param allowedPeriodTypes all the periods in which we might find data values
-     * @param period             period in which we are looking for values
-     * @param source             organisation unit for which we are looking for values
-     * @param lastUpdatedMap     map showing when each data values was last updated
+     * @param dataElementOperandsToGet data element operands for orgUnit and period
+     * @param allowedPeriodTypes       all the periods in which we might find data values
+     * @param period                   period in which we are looking for values
+     * @param orgUnit                  organisation unit for which we are looking for values
+     * @param lastUpdatedMap           map showing when each data value was last updated
      * @return map of attribute option combo to map of values found.
      */
     private MapMap<String, DimensionalItemObject, Double> getDataValueMap(
-        Set<DataElement> ruleDataElements, Set<DataElement> sourceDataElements,
+        SetMap<String, DataElementOperand> dataElementOperandsToGet,
         Set<PeriodType> allowedPeriodTypes, Period period,
-        OrganisationUnit source, MapMap<String, DataElementOperand, Date> lastUpdatedMap )
+        OrganisationUnit orgUnit, MapMap<String, DataElementOperand, Date> lastUpdatedMap )
     {
-        Set<DataElement> dataElementsToGet = new HashSet<>( ruleDataElements );
-        dataElementsToGet.retainAll( sourceDataElements );
+        log.trace( "getDataValueMap: orgUnit:" + orgUnit.getName()
+            + " dataElementOperandsToGet[" + dataElementOperandsToGet.size()
+            + "] allowedPeriodTypes[" + allowedPeriodTypes.size() + "]" );
 
-        log.trace( "getDataValueMapRecursive: source:" + source.getName() + " ruleDataElements["
-            + ruleDataElements.size() + "] sourceDataElements[" + sourceDataElements.size() + "] elementsToGet["
-            + dataElementsToGet.size() + "] allowedPeriodTypes[" + allowedPeriodTypes.size() + "]" );
-
-        return dataValueService.getDataValueMapByAttributeCombo( dataElementsToGet,
-            period.getStartDate(), source, allowedPeriodTypes, context.getAttributeCombo(),
+        MapMap<String, DimensionalItemObject, Double> map = dataValueService.getDataValueMapByAttributeCombo(
+            dataElementOperandsToGet, period.getStartDate(), orgUnit, allowedPeriodTypes, context.getAttributeCombo(),
             context.getCogDimensionConstraints(), context.getCoDimensionConstraints(), lastUpdatedMap );
+
+        return map;
     }
 
     /**
@@ -356,6 +388,56 @@ public class DataValidationTask
             .withFilterOrganisationUnits( Lists.newArrayList( organisationUnit ) )
             .build();
 
+        return getEventData( params );
+    }
+
+    private MapMap<String, DimensionalItemObject, Double> getEventMapForSlidingWindow(
+        Set<DimensionalItemObject> dimensionItems,
+        Period period, OrganisationUnit organisationUnit )
+    {
+        MapMap<String, DimensionalItemObject, Double> map = new MapMap<>();
+
+        if ( dimensionItems.isEmpty() || period == null || organisationUnit == null )
+        {
+            return map;
+        }
+
+        // We want to position the sliding window over the most recent data. To achieve this, we need to satisfy the
+        // following criteria:
+        //
+        // 1. Window end should not be later than the current date
+        // 2. Window end should not be later than the period.endDate
+
+        // Criteria 1
+        Calendar endDate = Calendar.getInstance();
+        Calendar startDate = Calendar.getInstance();
+
+        // Criteria 2
+        if ( endDate.getTime().after( period.getEndDate() ) )
+        {
+            endDate.setTime( period.getEndDate() );
+        }
+
+        // The window size is based on the frequencyOrder of the period's periodType:
+        startDate.setTime( endDate.getTime() );
+        startDate.add( Calendar.DATE, (-1 * period.frequencyOrder()) );
+
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataDimensionItems( Lists.newArrayList( dimensionItems ) )
+            .withAttributeOptionCombos( Lists.newArrayList() )
+            .withStartDate( startDate.getTime() )
+            .withEndDate( endDate.getTime() )
+            .withFilterOrganisationUnits( Lists.newArrayList( organisationUnit ) )
+            .build();
+
+        return getEventData( params );
+
+    }
+
+    private MapMap<String, DimensionalItemObject, Double> getEventData( DataQueryParams params )
+    {
+        MapMap<String, DimensionalItemObject, Double> map = new MapMap<>();
+
         Grid grid = analyticsService.getAggregatedDataValues( params );
 
         int dxInx = grid.getIndexOfHeader( DimensionalObject.DATA_X_DIM_ID );
@@ -372,5 +454,7 @@ public class DataValidationTask
         }
 
         return map;
+
     }
+
 }

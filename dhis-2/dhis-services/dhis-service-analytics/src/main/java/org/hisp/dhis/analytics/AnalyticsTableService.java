@@ -40,7 +40,9 @@ import org.hisp.dhis.scheduling.TaskId;
 public interface AnalyticsTableService
 {
     /**
-     * Returns the type of analytics table which this manager handles.
+     * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
+     * 
+     * @return the type of analytics table.
      */
     AnalyticsTableType getAnalyticsTableType();
     
@@ -48,9 +50,9 @@ public interface AnalyticsTableService
      * Rebuilds the analytics tables.
      * 
      * @param lastYears the number of last years of data to include, null if all.
-     * @param taskId the TaskId.
+     * @param taskId the {@link TaskId}.
      */
-    void update( Integer lastYears, TaskId id );
+    void update( Integer lastYears, TaskId taskId );
     
     /**
      * Drops main and temporary analytics tables.

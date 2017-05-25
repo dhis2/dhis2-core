@@ -59,7 +59,9 @@ public class DefaultValidationCriteriaService
     @Override
     public int saveValidationCriteria( ValidationCriteria validationCriteria )
     {
-        return validationCriteriaStore.save( validationCriteria );
+        validationCriteriaStore.save( validationCriteria );
+
+        return validationCriteria.getId();
     }
 
     @Override

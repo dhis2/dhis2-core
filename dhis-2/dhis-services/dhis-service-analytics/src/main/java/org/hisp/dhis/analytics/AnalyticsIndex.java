@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics;
  */
 
 /**
+ * Class representing an index on a database table column.
+ * 
  * @author Lars Helge Overland
  */
 public class AnalyticsIndex

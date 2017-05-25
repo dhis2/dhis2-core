@@ -34,7 +34,6 @@ import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormStore;
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.ProgramStage;
 
 import java.util.List;
@@ -55,14 +54,6 @@ public class HibernateDataEntryFormStore
     {
         Criteria criteria = getSession().createCriteria( DataEntryForm.class );
         criteria.add( Restrictions.eq( "name", name ) );
-
-        return (DataEntryForm) criteria.uniqueResult();
-    }
-
-    public DataEntryForm getDataEntryFormByDataSet( DataSet dataSet )
-    {
-        Criteria criteria = getSession().createCriteria( DataEntryForm.class );
-        criteria.add( Restrictions.eq( "dataSet", dataSet ) );
 
         return (DataEntryForm) criteria.uniqueResult();
     }

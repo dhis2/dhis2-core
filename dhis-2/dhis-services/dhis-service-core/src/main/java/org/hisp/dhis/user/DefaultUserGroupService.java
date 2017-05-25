@@ -83,7 +83,8 @@ public class DefaultUserGroupService
     @Override
     public int addUserGroup( UserGroup userGroup )
     {
-        return userGroupStore.save( userGroup );
+        userGroupStore.save( userGroup );
+        return userGroup.getId();
     }
 
     @Override

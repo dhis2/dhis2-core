@@ -101,13 +101,28 @@ public class DefaultProgramInstanceService
     @Override
     public int addProgramInstance( ProgramInstance programInstance )
     {
-        return programInstanceStore.save( programInstance );
+        programInstanceStore.save( programInstance );
+        return programInstance.getId();
     }
 
     @Override
     public void deleteProgramInstance( ProgramInstance programInstance )
     {
-        programInstanceStore.delete( programInstance );
+        deleteProgramInstance( programInstance, false );
+    }
+
+    @Override
+    public void deleteProgramInstance( ProgramInstance programInstance, boolean forceDelete )
+    {
+        if ( forceDelete )
+        {
+            programInstanceStore.delete( programInstance );
+        }
+        else
+        {
+            programInstance.setDeleted( true );
+            programInstanceStore.update( programInstance );
+        }
     }
 
     @Override

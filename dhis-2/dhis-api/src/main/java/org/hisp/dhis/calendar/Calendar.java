@@ -407,4 +407,12 @@ public interface Calendar
      * @return
      */
     DateTimeUnit isoStartOfYear( int year );
+
+    /**
+     * Is DateTimeUnit valid for this calendar.
+     *
+     * @param dateTime DateTime to check
+     * @return true if valid, false if not
+     */
+    boolean isValid( DateTimeUnit dateTime );
 }

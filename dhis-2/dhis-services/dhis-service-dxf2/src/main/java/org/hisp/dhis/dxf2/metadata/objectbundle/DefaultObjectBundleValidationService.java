@@ -35,7 +35,7 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.LinkObject;
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
@@ -985,7 +985,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
     private boolean skipCheck( Class<?> klass )
     {
-        return klass != null && (UserCredentials.class.isAssignableFrom( klass ) || LinkObject.class.isAssignableFrom( klass ) ||
+        return klass != null && (UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass ) ||
             Period.class.isAssignableFrom( klass ) || PeriodType.class.isAssignableFrom( klass ));
     }
 }

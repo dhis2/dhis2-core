@@ -42,8 +42,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EventAnalyticalObject;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -69,7 +68,7 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 @JacksonXmlRootElement( localName = "mapView", namespace = DxfNamespaces.DXF_2_0 )
 public class MapView
     extends BaseAnalyticalObject
-    implements EventAnalyticalObject
+    implements EventAnalyticalObject, MetadataObject
 {
     public static final String LAYER_BOUNDARY = "boundary";
     public static final String LAYER_FACILITY = "facility";
@@ -656,69 +655,5 @@ public class MapView
     public void setParentLevel( int parentLevel )
     {
         this.parentLevel = parentLevel;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            MapView mapView = (MapView) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                layer = mapView.getLayer();
-                method = mapView.getMethod();
-                classes = mapView.getClasses();
-                colorLow = mapView.getColorLow();
-                colorHigh = mapView.getColorHigh();
-                colorScale = mapView.getColorScale();
-                legendSet = mapView.getLegendSet();
-                radiusLow = mapView.getRadiusLow();
-                radiusHigh = mapView.getRadiusHigh();
-                opacity = mapView.getOpacity();
-                organisationUnitGroupSet = mapView.getOrganisationUnitGroupSet();
-                areaRadius = mapView.getAreaRadius();
-                hidden = mapView.getHidden();
-                labels = mapView.getLabels();
-                labelFontSize = mapView.getLabelFontSize();
-                labelFontWeight = mapView.getLabelFontWeight();
-                labelFontStyle = mapView.getLabelFontStyle();
-                labelFontColor = mapView.getLabelFontColor();
-                eventClustering = mapView.isEventClustering();
-                eventCoordinateField = mapView.getEventCoordinateField();
-                eventPointColor = mapView.getEventPointColor();
-                eventPointRadius = mapView.getEventPointRadius();
-                config = mapView.getConfig();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                layer = mapView.getLayer() == null ? layer : mapView.getLayer();
-                method = mapView.getMethod() == null ? method : mapView.getMethod();
-                classes = mapView.getClasses() == null ? classes : mapView.getClasses();
-                colorLow = mapView.getColorLow() == null ? colorLow : mapView.getColorLow();
-                colorHigh = mapView.getColorHigh() == null ? colorHigh : mapView.getColorHigh();
-                colorScale = mapView.getColorScale() == null ? colorScale : mapView.getColorScale();
-                legendSet = mapView.getLegendSet() == null ? legendSet : mapView.getLegendSet();
-                radiusLow = mapView.getRadiusLow() == null ? radiusLow : mapView.getRadiusLow();
-                radiusHigh = mapView.getRadiusHigh() == null ? radiusHigh : mapView.getRadiusHigh();
-                opacity = mapView.getOpacity() == null ? opacity : mapView.getOpacity();
-                organisationUnitGroupSet = mapView.getOrganisationUnitGroupSet() == null ? organisationUnitGroupSet : mapView.getOrganisationUnitGroupSet();
-                areaRadius = mapView.getAreaRadius() == null ? areaRadius : mapView.getAreaRadius();
-                hidden = mapView.getHidden() == null ? hidden : mapView.getHidden();
-                labels = mapView.getLabels() == null ? labels : mapView.getLabels();
-                labelFontSize = mapView.getLabelFontSize() == null ? labelFontSize : mapView.getLabelFontSize();
-                labelFontWeight = mapView.getLabelFontWeight() == null ? labelFontWeight : mapView.getLabelFontWeight();
-                labelFontStyle = mapView.getLabelFontStyle() == null ? labelFontStyle : mapView.getLabelFontStyle();
-                labelFontColor = mapView.getLabelFontColor() == null ? labelFontColor : mapView.getLabelFontColor();
-                eventClustering = mapView.isEventClustering();
-                eventCoordinateField = mapView.getEventCoordinateField();
-                eventPointColor = mapView.getEventPointColor() == null ? eventPointColor : mapView.getEventPointColor();
-                eventPointRadius = mapView.getEventPointRadius();
-                config = mapView.getConfig() == null ? config : mapView.getConfig();
-            }
-        }
     }
 }

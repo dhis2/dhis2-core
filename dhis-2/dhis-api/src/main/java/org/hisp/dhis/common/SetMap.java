@@ -65,6 +65,11 @@ public class SetMap<T, V>
         return super.put( key, set );
     }
 
+    public void putValues( SetMap<T, V> setMap )
+    {
+        setMap.forEach( ( k, v ) -> putValues( k, v ) );
+    }
+
     /**
      * Produces a SetMap based on the given set of values. The key for
      * each entry is produced by applying the given keyMapper function.

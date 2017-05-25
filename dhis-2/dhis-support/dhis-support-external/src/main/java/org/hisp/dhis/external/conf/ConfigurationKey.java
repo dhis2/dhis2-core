@@ -35,7 +35,8 @@ public enum ConfigurationKey
 {
     SYSTEM_READ_ONLY_MODE( "system.read_only_mode", "off" ),
     SYSTEM_SESSION_TIMEOUT( "system.session.timeout", "3600" ),
-    INTERNAL_SERVICE_API( "system.internal_service_api", "off" ),
+    SYSTEM_INTERNAL_SERVICE_API( "system.internal_service_api", "off" ),
+    NODE_ID( "node.id" ),
     ENCRYPTION_PASSWORD( "encryption.password", "" ),
     CONNECTION_DIALECT( "connection.dialect" ),
     CONNECTION_DRIVER_CLASS( "connection.driver_class" ),
@@ -60,6 +61,9 @@ public enum ConfigurationKey
     CLUSTER_INSTANCE_HOSTNAME( "cluster.instance0.hostname" ),
     CLUSTER_INSTANCE_CACHE_PORT( "cluster.instance0.cache.port", "4001" ),
     SERVER_SIDE_APPS( "server_side_apps.enabled" , "off");
+    CACHE_PROVIDER( "cache.provider", "ehcache" ),
+    CACHE_SERVERS( "cache.servers", "localhost:11211" ),
+    CACHE_TIME( "cache.time", "600" );
 
     private final String key;
     

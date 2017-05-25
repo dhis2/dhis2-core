@@ -61,7 +61,8 @@ public class DefaultUserKeyJsonValueService
     @Override
     public int addUserKeyJsonValue( UserKeyJsonValue userKeyJsonValue )
     {
-        return userKeyJsonValueStore.save( userKeyJsonValue );
+        userKeyJsonValueStore.save( userKeyJsonValue );
+        return userKeyJsonValue.getId();
     }
 
     @Override

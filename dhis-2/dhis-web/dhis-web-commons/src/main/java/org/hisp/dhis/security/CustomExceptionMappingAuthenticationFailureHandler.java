@@ -28,9 +28,13 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.i18n.I18nManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.ExceptionMappingAuthenticationFailureHandler;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -45,6 +49,9 @@ public class CustomExceptionMappingAuthenticationFailureHandler
 {
     @Autowired
     private SecurityService securityService;
+
+    @Autowired
+    private I18nManager i18nManager;
     
     @Override
     public void onAuthenticationFailure( HttpServletRequest request, HttpServletResponse response, AuthenticationException exception ) throws IOException, ServletException
@@ -54,7 +61,19 @@ public class CustomExceptionMappingAuthenticationFailureHandler
         request.getSession().setAttribute( "username", username );
         
         securityService.registerFailedLogin( username );
-        
+
+        I18n i18n = i18nManager.getI18n();
+
+        if ( ExceptionUtils.indexOfThrowable( exception, LockedException.class )  != -1)
+        {
+            request.getSession().setAttribute( "LOGIN_FAILED_MESSAGE", i18n.getString( "authentication.message.account.locked" ) );
+        }
+        else
+        {
+            request.getSession().setAttribute( "LOGIN_FAILED_MESSAGE", i18n.getString( "authentication.message.account.invalid" ) );
+        }
+
+
         super.onAuthenticationFailure( request, response, exception );
     }
 }

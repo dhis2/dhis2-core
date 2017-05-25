@@ -54,7 +54,9 @@ public class DefaultTrackedEntityCommentService
     @Override
     public int addTrackedEntityComment( TrackedEntityComment comment )
     {
-        return commentStore.save( comment );
+        commentStore.save( comment );
+
+        return comment.getId();
     }
 
     @Override

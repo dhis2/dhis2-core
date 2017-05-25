@@ -34,8 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
@@ -44,7 +43,7 @@ import org.hisp.dhis.schema.annotation.Property;
  */
 @JacksonXmlRootElement( localName = "option", namespace = DxfNamespaces.DXF_2_0 )
 public class Option
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     private OptionSet optionSet;
     private Integer sortOrder;
@@ -109,27 +108,5 @@ public class Option
     public void setSortOrder( Integer sortOrder )
     {
         this.sortOrder = sortOrder;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            Option programStageDataElement = (Option) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                optionSet = programStageDataElement.getOptionSet();
-                sortOrder = programStageDataElement.getSortOrder();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                optionSet = programStageDataElement.getOptionSet() == null ? optionSet : programStageDataElement.getOptionSet();
-                sortOrder = programStageDataElement.getSortOrder() == null ? sortOrder : programStageDataElement.getSortOrder();
-            }
-        }
     }
 }

@@ -53,6 +53,8 @@ public class UserQueryParams
     private Date lastLogin;
     
     private Date inactiveSince;
+
+    private Date daysPassedSincePasswordChange;
     
     private Integer inactiveMonths;
     
@@ -272,5 +274,15 @@ public class UserQueryParams
     {
         this.includeOrgUnitChildren = includeOrgUnitChildren;
         return this;
+    }
+
+    public Date getDaysPassedSincePasswordChange()
+    {
+        return daysPassedSincePasswordChange;
+    }
+
+    public void setDaysPassedSincePasswordChange( Date daysPassedSincePasswordChange )
+    {
+        this.daysPassedSincePasswordChange = daysPassedSincePasswordChange;
     }
 }

@@ -88,7 +88,7 @@ public class ProgramNotificationTask
             notifier.notify( taskId, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
 
             messageService.sendSystemErrorNotification( "Generating and sending scheduled program notifications failed", ex );
-            
+
             throw ex;
         }
 

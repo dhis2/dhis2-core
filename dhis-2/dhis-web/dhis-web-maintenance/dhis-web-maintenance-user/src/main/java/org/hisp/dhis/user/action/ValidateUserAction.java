@@ -29,18 +29,18 @@ package org.hisp.dhis.user.action;
  */
 
 import com.opensymphony.xwork2.Action;
-import org.apache.commons.lang3.StringUtils;
+
 import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: ValidateUserAction.java 3816 2007-11-02 23:00:19Z larshelg $
  */
 public class ValidateUserAction
     implements Action
@@ -112,11 +112,11 @@ public class ValidateUserAction
         this.rawPassword = rawPassword;
     }
 
-    private boolean newUser;
+    private String email;
 
-    public void setNewUser(  boolean newUser)
+    public void setEmail( String email )
     {
-        this.newUser = newUser;
+        this.email = email;
     }
 
     // -------------------------------------------------------------------------
@@ -190,16 +190,19 @@ public class ValidateUserAction
         {
             PasswordValidationResult result;
 
+            CredentialsInfo credentialsInfo = new CredentialsInfo( username, rawPassword, email, true );
+
             if ( id != null )
             {
-                String username = userService.getUser( id ).getUsername();
+                User user = userService.getUser( id );
 
-                result = passwordValidationService.validate( username, rawPassword, newUser );
+                if ( user != null )
+                {
+                    credentialsInfo = new CredentialsInfo( user.getUsername(), rawPassword, user.getEmail(), false );
+                }
             }
-            else
-            {
-                result = passwordValidationService.validate( StringUtils.EMPTY, rawPassword, newUser );
-            }
+
+            result = passwordValidationService.validate( credentialsInfo );
 
             if ( !result.isValid() )
             {

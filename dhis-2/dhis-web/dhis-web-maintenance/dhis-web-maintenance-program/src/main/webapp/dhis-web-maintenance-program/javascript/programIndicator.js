@@ -17,7 +17,7 @@ $(function() {
 // -----------------------------------------------------------------------------
 
 function showUpdateProgramIndicator( context ) {
-  location.href = 'showUpdateProgramIndicator.action?id=' + context.id;
+    location.href = 'showUpdateProgramIndicator.action?id=' + context.id;
 }
 
 function removeIndicator( context ) {
@@ -35,8 +35,6 @@ function showProgramIndicatorDetails( context ) {
     setInnerHTML('filterField', json.programIndicator.filter);
     setInnerHTML('idField', json.programIndicator.uid);
     setInnerHTML('programIndicatorAnalayticsTypeField', json.programIndicator.programIndicatorAnalayticsType);
-    
-    analyticsTypeChanged();
         
     showDetails();
   });
@@ -45,6 +43,10 @@ function showProgramIndicatorDetails( context ) {
 // -----------------------------------------------------------------------------
 // Remove Program Indicator
 // -----------------------------------------------------------------------------
+
+jQuery(document).ready(function() {
+    analyticsTypeChanged();
+});
 
 function removeProgramIndicator( context ) {
   removeItem(context.id, context.name, i18n_confirm_delete, 'removeProgramIndicator.action');
@@ -164,11 +166,15 @@ function getExpressionDescription( type ) {
 
 function analyticsTypeChanged() {
     var analyticsType = getFieldValue('analyticsType');
-    if ('ENROLLMENT' === analyticsType) {
+    if ('ENROLLMENT' === analyticsType && !$("#event_count_variable").parent().is("span")) {
         $("#event_count_variable").wrap('<span/>');
+        $("#program_stage_name_variable").wrap('<span/>');
+        $("#program_stage_id_variable").wrap('<span/>');
     }
-    else {
-        $('#event_count_variable').unwrap();
+    else if ($("#event_count_variable").parent().is("span")) {
+        $("#event_count_variable").unwrap();
+        $("#program_stage_name_variable").unwrap();
+        $("#program_stage_id_variable").unwrap();
     }
 }
 

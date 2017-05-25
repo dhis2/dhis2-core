@@ -177,7 +177,9 @@ public class DefaultReportTableService
     @Override
     public int saveReportTable( ReportTable reportTable )
     {
-        return reportTableStore.save( reportTable );
+        reportTableStore.save( reportTable );
+
+        return reportTable.getId();
     }
 
     @Override

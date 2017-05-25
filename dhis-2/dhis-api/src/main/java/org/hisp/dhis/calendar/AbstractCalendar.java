@@ -263,4 +263,20 @@ public abstract class AbstractCalendar implements Calendar
     {
         return new DateTimeUnit( year, 1, 1 );
     }
+
+    @Override
+    public boolean isValid( DateTimeUnit dateTime )
+    {
+        if ( dateTime.getMonth() < 1 || dateTime.getMonth() > monthsInYear() )
+        {
+            return false;
+        }
+
+        if ( dateTime.getDay() < 1 || dateTime.getDay() > daysInMonth( dateTime.getYear(), dateTime.getMonth() ) )
+        {
+            return false;
+        }
+
+        return true;
+    }
 }

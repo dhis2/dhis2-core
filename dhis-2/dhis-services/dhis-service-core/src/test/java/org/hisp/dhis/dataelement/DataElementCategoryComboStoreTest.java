@@ -28,21 +28,17 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.annotation.Resource;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -100,10 +96,13 @@ public class DataElementCategoryComboStoreTest
         categoryComboB = new DataElementCategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION, categories );
         categoryComboC = new DataElementCategoryCombo( "CategoryComboC", DataDimensionType.DISAGGREGATION, categories );
         
-        int idA = categoryComboStore.save( categoryComboA );
-        int idB = categoryComboStore.save( categoryComboB );
-        int idC = categoryComboStore.save( categoryComboC );
-        
+        categoryComboStore.save( categoryComboA );
+        int idA = categoryComboA.getId();
+        categoryComboStore.save( categoryComboB );
+        int idB = categoryComboB.getId();
+        categoryComboStore.save( categoryComboC );
+        int idC = categoryComboC.getId();
+
         assertEquals( categoryComboA, categoryComboStore.get( idA ) );
         assertEquals( categoryComboB, categoryComboStore.get( idB ) );
         assertEquals( categoryComboC, categoryComboStore.get( idC ) );
@@ -119,10 +118,13 @@ public class DataElementCategoryComboStoreTest
         categoryComboA = new DataElementCategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
         categoryComboB = new DataElementCategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION, categories );
         categoryComboC = new DataElementCategoryCombo( "CategoryComboC", DataDimensionType.DISAGGREGATION, categories );
-        
-        int idA = categoryComboStore.save( categoryComboA );
-        int idB = categoryComboStore.save( categoryComboB );
-        int idC = categoryComboStore.save( categoryComboC );
+
+        categoryComboStore.save( categoryComboA );
+        int idA = categoryComboA.getId();
+        categoryComboStore.save( categoryComboB );
+        int idB = categoryComboB.getId();
+        categoryComboStore.save( categoryComboC );
+        int idC = categoryComboC.getId();
         
         assertNotNull( categoryComboStore.get( idA ) );
         assertNotNull( categoryComboStore.get( idB ) );

@@ -46,9 +46,6 @@ public class ReportingRateSchemaDescriptor implements SchemaDescriptor
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( ReportingRate.class, SINGULAR, PLURAL );
-        schema.setMetadata( false );
-
-        return schema;
+        return new Schema( ReportingRate.class, SINGULAR, PLURAL );
     }
 }

@@ -80,7 +80,9 @@ public class DefaultDataStatisticsService
     @Override
     public int addEvent( DataStatisticsEvent event )
     {
-        return dataStatisticsEventStore.save( event );
+        dataStatisticsEventStore.save( event );
+
+        return event.getId();
     }
 
     @Override
@@ -131,7 +133,9 @@ public class DefaultDataStatisticsService
     @Override
     public int saveDataStatistics( DataStatistics dataStatistics )
     {
-        return dataStatisticsStore.save( dataStatistics );
+        dataStatisticsStore.save( dataStatistics );
+
+        return dataStatistics.getId();
     }
 
     @Override

@@ -37,10 +37,6 @@ public interface DataEntryFormStore
 {
     String ID = DataEntryFormStore.class.getName();
 
-    // -------------------------------------------------------------------------
-    // DataEntryForm
-    // -------------------------------------------------------------------------
-
     /**
      * Returns a DataEntryForm with the given name.
      *

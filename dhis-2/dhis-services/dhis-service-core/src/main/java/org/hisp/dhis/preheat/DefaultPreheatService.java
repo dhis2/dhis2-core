@@ -39,21 +39,23 @@ import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionItem;
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.LinkObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
-import org.hisp.dhis.dataelement.DataElementCategoryDimension;
+import org.hisp.dhis.dataelement.CategoryDimension;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
+import org.hisp.dhis.schema.MergeParams;
+import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
@@ -106,6 +108,9 @@ public class DefaultPreheatService implements PreheatService
 
     @Autowired
     private AttributeService attributeService;
+
+    @Autowired
+    private MergeService mergeService;
 
     @Override
     @SuppressWarnings( "unchecked" )
@@ -542,7 +547,7 @@ public class DefaultPreheatService implements PreheatService
                 {
                     BaseAnalyticalObject analyticalObject = (BaseAnalyticalObject) object;
                     List<DataDimensionItem> dataDimensionItems = analyticalObject.getDataDimensionItems();
-                    List<DataElementCategoryDimension> categoryDimensions = analyticalObject.getCategoryDimensions();
+                    List<CategoryDimension> categoryDimensions = analyticalObject.getCategoryDimensions();
                     List<TrackedEntityDataElementDimension> trackedEntityDataElementDimensions = analyticalObject.getDataElementDimensions();
                     List<TrackedEntityAttributeDimension> attributeDimensions = analyticalObject.getAttributeDimensions();
                     List<TrackedEntityProgramIndicatorDimension> programIndicatorDimensions = analyticalObject.getProgramIndicatorDimensions();
@@ -679,7 +684,7 @@ public class DefaultPreheatService implements PreheatService
                             try
                             {
                                 IdentifiableObject identifiableObject = (IdentifiableObject) p.getKlass().newInstance();
-                                identifiableObject.mergeWith( reference, MergeMode.REPLACE );
+                                mergeService.merge( new MergeParams<>( reference, identifiableObject ) );
                                 refMap.get( object.getUid() ).put( p.getName(), identifiableObject );
                             }
                             catch ( InstantiationException | IllegalAccessException ignored )
@@ -699,7 +704,7 @@ public class DefaultPreheatService implements PreheatService
                                 try
                                 {
                                     IdentifiableObject identifiableObject = (IdentifiableObject) p.getItemKlass().newInstance();
-                                    identifiableObject.mergeWith( reference, MergeMode.REPLACE );
+                                    mergeService.merge( new MergeParams<>( reference, identifiableObject ) );
                                     refObjects.add( identifiableObject );
                                 }
                                 catch ( InstantiationException | IllegalAccessException ignored )
@@ -742,14 +747,14 @@ public class DefaultPreheatService implements PreheatService
             List<?> objects = entry.getValue();
 
             Schema schema = schemaService.getDynamicSchema( klass );
-            List<Property> properties = schema.getLinkObjectProperties();
+            Map<String, Property> properties = schema.getEmbeddedObjectProperties();
 
             if ( properties.isEmpty() )
             {
                 return;
             }
 
-            for ( Property property : properties )
+            for ( Property property : properties.values() )
             {
                 if ( property.isCollection() )
                 {
@@ -827,7 +832,8 @@ public class DefaultPreheatService implements PreheatService
                 IdentifiableObject refObject = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
                 IdentifiableObject ref = getPersistedObject( preheat, identifier, refObject );
 
-                if ( Preheat.isDefaultClass( property.getKlass() ) && (ref == null || refObject == null || "default".equals( refObject.getName() )) )
+                if ( !DataSetElement.class.isInstance( property.getKlass() )
+                    && (Preheat.isDefaultClass( property.getKlass() ) && (ref == null || refObject == null || "default".equals( refObject.getName() ))) )
                 {
                     ref = defaults.get( property.getKlass() );
                 }
@@ -961,6 +967,6 @@ public class DefaultPreheatService implements PreheatService
 
     private boolean skipConnect( Class<?> klass )
     {
-        return klass != null && (UserCredentials.class.isAssignableFrom( klass ) || LinkObject.class.isAssignableFrom( klass ));
+        return klass != null && (UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass ));
     }
 }

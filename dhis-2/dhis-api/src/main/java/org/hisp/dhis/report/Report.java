@@ -34,8 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheable;
 import org.hisp.dhis.period.RelativePeriods;
@@ -48,7 +47,7 @@ import org.hisp.dhis.reporttable.ReportTable;
 @JacksonXmlRootElement( localName = "report", namespace = DxfNamespaces.DXF_2_0 )
 public class Report
     extends BaseIdentifiableObject
-    implements Cacheable
+    implements Cacheable, MetadataObject
 {
     public static final String TEMPLATE_DIR = "templates";
 
@@ -205,35 +204,5 @@ public class Report
     public void setCacheStrategy( CacheStrategy cacheStrategy )
     {
         this.cacheStrategy = cacheStrategy;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            Report report = (Report) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                type = report.getType();
-                designContent = report.getDesignContent();
-                reportTable = report.getReportTable();
-                relatives = report.getRelatives();
-                reportParams = report.getReportParams();
-                cacheStrategy = report.getCacheStrategy();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                type = report.getType() == null ? type : report.getType();
-                designContent = report.getDesignContent() == null ? designContent : report.getDesignContent();
-                reportTable = report.getReportTable() == null ? reportTable : report.getReportTable();
-                relatives = report.getRelatives() == null ? relatives : report.getRelatives();
-                reportParams = report.getReportParams() == null ? reportParams : report.getReportParams();
-                cacheStrategy = report.getCacheStrategy() == null ? cacheStrategy : report.getCacheStrategy();
-            }
-        }
     }
 }

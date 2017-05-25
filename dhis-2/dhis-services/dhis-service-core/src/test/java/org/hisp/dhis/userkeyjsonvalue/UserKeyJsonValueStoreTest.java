@@ -68,7 +68,8 @@ public class UserKeyJsonValueStoreTest
         userKeyJsonValue.setNamespace( "a" );
         userKeyJsonValue.setUser( user );
 
-        int id = userKeyJsonValueStore.save( userKeyJsonValue );
+        userKeyJsonValueStore.save( userKeyJsonValue );
+        int id = userKeyJsonValue.getId();
 
         assertNotNull( userKeyJsonValue );
         assertEquals( userKeyJsonValue, userKeyJsonValueStore.get( id ) );

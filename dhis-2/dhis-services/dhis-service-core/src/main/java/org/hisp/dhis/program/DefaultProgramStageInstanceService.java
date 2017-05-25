@@ -95,7 +95,9 @@ public class DefaultProgramStageInstanceService
     public int addProgramStageInstance( ProgramStageInstance programStageInstance )
     {
         programStageInstance.setAutoFields();
-        return programStageInstanceStore.save( programStageInstance );
+        programStageInstanceStore.save( programStageInstance );
+
+        return programStageInstance.getId();
     }
 
     @Override

@@ -44,6 +44,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.deletion.DeletionManager;
 import org.hisp.dhis.system.filter.UserAuthorityGroupCanIssueFilter;
 import org.hisp.dhis.system.util.DateUtils;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +62,8 @@ public class DefaultUserService
     implements UserService
 {
     private static final Log log = LogFactory.getLog( DefaultUserService.class );
+
+    private static final int EXPIRY_THRESHOLD = 14;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -131,7 +134,9 @@ public class DefaultUserService
     {
         AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_CREATE );
 
-        return userStore.save( user );
+        userStore.save( user );
+
+        return user.getId();
     }
 
     @Override
@@ -387,7 +392,8 @@ public class DefaultUserService
     @Override
     public int addUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
     {
-        return userAuthorityGroupStore.save( userAuthorityGroup );
+        userAuthorityGroupStore.save( userAuthorityGroup );
+        return userAuthorityGroup.getId();
     }
 
     @Override
@@ -479,7 +485,8 @@ public class DefaultUserService
     @Override
     public int addUserCredentials( UserCredentials userCredentials )
     {
-        return userCredentialsStore.save( userCredentials );
+        userCredentialsStore.save( userCredentials );
+        return userCredentials.getId();
     }
 
     @Override
@@ -638,5 +645,19 @@ public class DefaultUserService
         } );
 
         return errors;
+    }
+
+    @Override
+    public List<User> getExpiringUsers()
+    {
+        int daysBeforePasswordChangeRequired = (Integer) systemSettingManager.getSystemSetting( SettingKey.CREDENTIALS_EXPIRES ) * 30;
+
+        Date daysPassed = new DateTime( new Date() ).minusDays( daysBeforePasswordChangeRequired - EXPIRY_THRESHOLD ).toDate();
+
+        UserQueryParams userQueryParams = new UserQueryParams();
+
+        userQueryParams.setDaysPassedSincePasswordChange( daysPassed );
+
+        return userStore.getExpiringUsers( userQueryParams );
     }
 }

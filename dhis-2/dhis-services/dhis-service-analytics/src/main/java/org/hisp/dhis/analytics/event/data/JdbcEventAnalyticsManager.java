@@ -59,10 +59,13 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
@@ -70,8 +73,6 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 
 /**
  * TODO could use row_number() and filtering for paging, but not supported on MySQL.
@@ -162,7 +163,7 @@ public class JdbcEventAnalyticsManager
     
     private void getAggregatedEventData( Grid grid, EventQueryParams params, String sql )
     {
-        log.debug( "Analytics event aggregate SQL: " + sql );
+        log.debug( String.format( "Analytics event aggregate SQL: %s", sql ) );
         
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -228,7 +229,7 @@ public class JdbcEventAnalyticsManager
         List<String> fixedCols = Lists.newArrayList( "psi", "ps", "executiondate", "longitude", "latitude", "ouname", "oucode" );
         
         List<String> selectCols = ListUtils.distinctUnion( fixedCols, getSelectColumns( params ) );
-        
+
         String sql = "select " + StringUtils.join( selectCols, "," ) + " ";
 
         // ---------------------------------------------------------------------
@@ -244,19 +245,20 @@ public class JdbcEventAnalyticsManager
         if ( params.isSorting() )
         {
             sql += "order by ";
-        
-            for ( String item : params.getAsc() )
+
+            for ( DimensionalItemObject item : params.getAsc() )
             {
-                sql += statementBuilder.columnQuote( item ) + " asc,";
+                sql += statementBuilder.columnQuote( item.getUid() ) + " asc,";
             }
-            
-            for  ( String item : params.getDesc() )
+
+            for  ( DimensionalItemObject item : params.getDesc() )
             {
-                sql += statementBuilder.columnQuote( item ) + " desc,";
+                sql += statementBuilder.columnQuote( item.getUid() ) + " desc,";
             }
-            
+
             sql = removeLastComma( sql ) + " ";
         }
+
         
         // ---------------------------------------------------------------------
         // Paging
@@ -289,7 +291,7 @@ public class JdbcEventAnalyticsManager
 
     private void getEvents( Grid grid, EventQueryParams params, String sql )
     {
-        log.debug( "Analytics event query SQL: " + sql );
+        log.debug( String.format( "Analytics event query SQL: %s", sql ) );
         
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -324,7 +326,7 @@ public class JdbcEventAnalyticsManager
     @Override
     public Grid getEventClusters( EventQueryParams params, Grid grid, int maxLimit )
     {
-        String clusterField = statementBuilder.columnQuote( params.getCoordinateField() );
+        String clusterField = params.getCoordinateField();
         
         List<String> columns = Lists.newArrayList( "count(psi) as count", 
             "ST_AsText(ST_Centroid(ST_Collect(" + clusterField + "))) as center", "ST_Extent(" + clusterField + ") as extent" );
@@ -339,7 +341,7 @@ public class JdbcEventAnalyticsManager
         
         sql += "group by ST_SnapToGrid(ST_Transform(" + clusterField + ", 3785), " + params.getClusterSize() + ") ";
 
-        log.debug( "Analytics event cluster SQL: " + sql );
+        log.debug( String.format( "Analytics event cluster SQL: %s", sql ) );
         
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -381,13 +383,13 @@ public class JdbcEventAnalyticsManager
     @Override
     public Rectangle getRectangle( EventQueryParams params )
     {
-        String clusterField = statementBuilder.columnQuote( params.getCoordinateField() );
+        String clusterField = params.getCoordinateField();
                 
         String sql = "select count(psi) as " + COL_COUNT + ", ST_Extent(" + clusterField + ") as " + COL_EXTENT + " ";
         
         sql += getFromWhereClause( params, Lists.newArrayList( "psi", clusterField ) );
 
-        log.debug( "Analytics event count and extent SQL: " + sql );
+        log.debug( String.format( "Analytics event count and extent SQL: %s", sql ) );
         
         Rectangle rectangle = new Rectangle();
         
@@ -410,6 +412,8 @@ public class JdbcEventAnalyticsManager
 
     /**
      * Returns the count clause based on value dimension and output type.
+     * 
+     * @param params the {@link EventQueryParams}.
      * 
      * TODO include output type if aggregation type is count
      */
@@ -434,7 +438,7 @@ public class JdbcEventAnalyticsManager
             function = TextUtils.emptyIfEqual( function, AggregationType.CUSTOM.getValue() );
             
             String expression = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getExpression(), 
-                params.getProgramIndicator().getAnalyticsType() );
+                params.getProgramIndicator().getAnalyticsType(), params.getEarliestStartDate(), params.getLatestEndDate() );
             
             return function + "(" + expression + ")";
         }
@@ -457,6 +461,8 @@ public class JdbcEventAnalyticsManager
 
     /**
      * Returns columns based on value dimension and output type.
+     * 
+     * @param params the {@link EventQueryParams}.
      */
     private List<String> getAggregateColumns( EventQueryParams params )
     {
@@ -464,23 +470,23 @@ public class JdbcEventAnalyticsManager
         
         if ( params.hasValueDimension() )
         {
-            return Lists.newArrayList( statementBuilder.columnQuote( params.getValue().getUid() ) );
+            return Lists.newArrayList( params.getValue().getUid() );
         }
         else if ( params.hasProgramIndicatorDimension() )
         {
             Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( params.getProgramIndicator().getExpression(),  params.getProgramIndicator().getAnalyticsType() );
             
-            return uids.stream().map( uid -> statementBuilder.columnQuote( uid ) ).collect( Collectors.toList() );
+            return Lists.newArrayList( uids );
         }
         else
         {
             if ( EventOutputType.TRACKED_ENTITY_INSTANCE.equals( outputType ) && params.isProgramRegistration() )
             {
-                return Lists.newArrayList( statementBuilder.columnQuote( "tei" ) );
+                return Lists.newArrayList( "tei" );
             }
             else if ( EventOutputType.ENROLLMENT.equals( outputType ) )
             {
-                return Lists.newArrayList( statementBuilder.columnQuote( "pi" ) );
+                return Lists.newArrayList( "pi" );
             }
         }
         
@@ -490,6 +496,8 @@ public class JdbcEventAnalyticsManager
     /**
      * Returns the dynamic select columns. Dimensions come first and query items
      * second. Program indicator expressions are converted to SQL expressions.
+     * 
+     * @param params the {@link EventQueryParams}.
      */
     private List<String> getSelectColumns( EventQueryParams params )
     {
@@ -508,7 +516,7 @@ public class JdbcEventAnalyticsManager
                 
                 String asClause = " as " + statementBuilder.columnQuote( in.getUid() );
                 
-                columns.add( "(" + programIndicatorService.getAnalyticsSQl( in.getExpression(), in.getAnalyticsType() ) + ")" + asClause );
+                columns.add( "(" + programIndicatorService.getAnalyticsSQl( in.getExpression(), in.getAnalyticsType(), params.getEarliestStartDate(), params.getLatestEndDate() ) + ")" + asClause );
             }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
             {
@@ -533,6 +541,8 @@ public class JdbcEventAnalyticsManager
      * Returns the dynamic select columns. Dimensions come first and query items
      * second. Program indicator expressions are exploded into attributes and
      * data element identifiers.
+     * 
+     * @param params the {@link EventQueryParams}.
      */
     private List<String> getPartitionSelectColumns( EventQueryParams params )
     {
@@ -540,7 +550,7 @@ public class JdbcEventAnalyticsManager
         
         for ( DimensionalObject dimension : params.getDimensions() )
         {
-            columns.add( statementBuilder.columnQuote( dimension.getDimensionName() ) );
+            columns.add( dimension.getDimensionName() );
         }
         
         for ( QueryItem queryItem : params.getItems() )
@@ -550,15 +560,12 @@ public class JdbcEventAnalyticsManager
                 ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
                 
                 Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( in.getExpression(), in.getAnalyticsType() );
-                
-                for ( String uid : uids )
-                {
-                    columns.add( statementBuilder.columnQuote( uid ) );
-                }
+
+                columns.addAll( uids );
             }
             else
             {
-                columns.add( statementBuilder.columnQuote( queryItem.getItemName() ) );
+                columns.add( queryItem.getItemName() );
             }
         }
         
@@ -568,7 +575,7 @@ public class JdbcEventAnalyticsManager
     /**
      * Returns a from and where SQL clause.
      * 
-     * @param params the event query parameters.
+     * @param params the {@link EventQueryParams}.
      * @param fixedColumns the list of fixed column names to include.
      */
     private String getFromWhereClause( EventQueryParams params, List<String> fixedColumns )
@@ -584,18 +591,33 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
+     * Returns a list of ascending or descending keywords for sorting.
+     * 
+     * @param params the {@link EventQueryParams}.
+     */
+    private List<String> getSortColumns( EventQueryParams params )
+    {
+       return ListUtils.distinctUnion( params.getAsc(), params.getDesc() ).stream().filter(
+                dimItObject -> DimensionItemType.PROGRAM_INDICATOR !=
+                    dimItObject.getDimensionItemType() ).map( IdentifiableObject::getUid ).collect( Collectors.toList());
+    }
+
+    /**
      * Returns a from and where SQL clause for all partitions part of the given
      * query parameters.
+     *
+     * Columns are quoted after distincUnion to reduce local column quotations.
      * 
-     * @param params the event query parameters.
+     * @param params the {@link EventQueryParams}.
      * @param fixedColumns the list of fixed column names to include.
      */
     private String getFromWhereMultiplePartitionsClause( EventQueryParams params, List<String> fixedColumns )
     {
-        List<String> cols = ListUtils.distinctUnion( fixedColumns, getAggregateColumns( params ), getPartitionSelectColumns( params ) );
-        
+        List<String> cols = ListUtils.distinctUnion( fixedColumns, getAggregateColumns( params ), getPartitionSelectColumns( params ), getSortColumns( params ));
+        cols = cols.stream().map( s -> statementBuilder.columnQuote( s ) ).collect( Collectors.toList());
+
         String selectCols = StringUtils.join( cols, "," );
-        
+
         String sql = "from (";
         
         for ( String partition : params.getPartitions().getPartitions() )
@@ -616,7 +638,7 @@ public class JdbcEventAnalyticsManager
      * Returns a from and where SQL clause for the given analytics table 
      * partition.
      * 
-     * @param params the event query parameters.
+     * @param params the {@link EventQueryParams}.
      * @param partition the partition name.
      */
     private String getFromWhereSinglePartitionClause( EventQueryParams params, String partition )
@@ -718,7 +740,7 @@ public class JdbcEventAnalyticsManager
         if ( params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasFilter() )
         {
             String filter = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getFilter(), 
-                params.getProgramIndicator().getAnalyticsType(), false );
+                params.getProgramIndicator().getAnalyticsType(), false, params.getEarliestStartDate(), params.getLatestEndDate() );
             
             String sqlFilter = ExpressionUtils.asSql( filter );
             
@@ -775,6 +797,8 @@ public class JdbcEventAnalyticsManager
     /**
      * Returns an encoded column name wrapped in lower directive if not numeric
      * or boolean.
+     * 
+     * @param item the {@link QueryItem}.
      */
     private String getColumn( QueryItem item )
     {
@@ -785,6 +809,9 @@ public class JdbcEventAnalyticsManager
     
     /**
      * Returns the filter value for the given query item.
+     * 
+     * @param filter the {@link QueryFilter}.
+     * @param item the {@link QueryItem}.
      */
     private String getSqlFilter( QueryFilter filter, QueryItem item )
     {
@@ -801,6 +828,10 @@ public class JdbcEventAnalyticsManager
      * the matching legend name. If the given query item has an option set, the 
      * item value is treated as a code and substituted with the matching option 
      * name.
+     * 
+     * @param params the {@link EventQueryParams}..
+     * @param item the {@link QueryItem}.
+     * @param itemValue the item value.
      */
     private String getCollapsedDataItemValue( EventQueryParams params, QueryItem item, String itemValue )
     {

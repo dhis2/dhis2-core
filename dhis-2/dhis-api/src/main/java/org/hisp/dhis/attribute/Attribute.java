@@ -35,7 +35,7 @@ import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
@@ -72,7 +72,7 @@ import java.util.Objects;
  */
 @JacksonXmlRootElement( localName = "attribute", namespace = DxfNamespaces.DXF_2_0 )
 public class Attribute
-    extends BaseNameableObject
+    extends BaseNameableObject implements MetadataObject
 {
     private ValueType valueType;
 
@@ -593,57 +593,6 @@ public class Attribute
         if ( categoryOptionComboAttribute ) klasses.add( DataElementCategoryOptionCombo.class );
 
         return klasses;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            Attribute attribute = (Attribute) other;
-
-            dataElementAttribute = attribute.isDataElementAttribute();
-            dataElementGroupAttribute = attribute.isDataElementGroupAttribute();
-            indicatorAttribute = attribute.isIndicatorAttribute();
-            indicatorGroupAttribute = attribute.isIndicatorGroupAttribute();
-            dataSetAttribute = attribute.isDataSetAttribute();
-            organisationUnitAttribute = attribute.isOrganisationUnitAttribute();
-            organisationUnitGroupAttribute = attribute.isOrganisationUnitGroupAttribute();
-            organisationUnitGroupSetAttribute = attribute.isOrganisationUnitGroupSetAttribute();
-            userAttribute = attribute.isUserAttribute();
-            userGroupAttribute = attribute.isUserGroupAttribute();
-            programAttribute = attribute.isProgramAttribute();
-            programStageAttribute = attribute.isProgramStageAttribute();
-            trackedEntityAttribute = attribute.isTrackedEntityAttribute();
-            trackedEntityAttributeAttribute = attribute.isTrackedEntityAttributeAttribute();
-            categoryOptionAttribute = attribute.isCategoryOptionAttribute();
-            categoryOptionGroupAttribute = attribute.isCategoryOptionGroupAttribute();
-            documentAttribute = attribute.isDocumentAttribute();
-            optionAttribute = attribute.isOptionAttribute();
-            optionSetAttribute = attribute.isOptionSetAttribute();
-            constantAttribute = attribute.isConstantAttribute();
-            legendSetAttribute = attribute.isLegendSetAttribute();
-            programIndicatorAttribute = attribute.isProgramIndicatorAttribute();
-            sqlViewAttribute = attribute.isSqlViewAttribute();
-            sectionAttribute = attribute.isSectionAttribute();
-            categoryOptionComboAttribute = attribute.isCategoryOptionComboAttribute();
-            mandatory = attribute.isMandatory();
-            unique = attribute.isUnique();
-            optionSet = attribute.getOptionSet();
-
-            if ( mergeMode.isReplace() )
-            {
-                valueType = attribute.getValueType();
-                sortOrder = attribute.getSortOrder();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                valueType = attribute.getValueType() == null ? valueType : attribute.getValueType();
-                sortOrder = attribute.getSortOrder() == null ? sortOrder : attribute.getSortOrder();
-            }
-        }
     }
 
     @Override

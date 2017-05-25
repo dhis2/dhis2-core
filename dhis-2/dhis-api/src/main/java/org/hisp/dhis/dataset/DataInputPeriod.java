@@ -27,6 +27,7 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -34,11 +35,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.LinkObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.period.Period;
@@ -49,9 +47,13 @@ import java.util.Date;
  * @author Stian Sandvold
  */
 @JacksonXmlRootElement( localName = "dataInputPeriods", namespace = DxfNamespaces.DXF_2_0 )
-public class DataInputPeriod
-    extends BaseIdentifiableObject implements LinkObject
+public class DataInputPeriod implements EmbeddedObject
 {
+    /**
+     * The database internal identifier for this Object.
+     */
+    private int id;
+
     /**
      * Period data must belong to
      */
@@ -69,7 +71,6 @@ public class DataInputPeriod
 
     public DataInputPeriod()
     {
-        setAutoFields();
     }
 
     /**
@@ -111,6 +112,17 @@ public class DataInputPeriod
         return isDateWithinOpenCloseDates( date ) && isPeriodEqual( period );
     }
 
+    @JsonIgnore
+    public int getId()
+    {
+        return id;
+    }
+
+    public void setId( int id )
+    {
+        this.id = id;
+    }
+
     @JsonProperty
     @JsonSerialize( using = JacksonPeriodSerializer.class )
     @JsonDeserialize( using = JacksonPeriodDeserializer.class )
@@ -150,28 +162,6 @@ public class DataInputPeriod
     }
 
     @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        DataInputPeriod dataInputPeriod = (DataInputPeriod) other;
-
-        if ( mergeMode.isReplace() )
-        {
-            closingDate = dataInputPeriod.closingDate;
-            openingDate = dataInputPeriod.openingDate;
-            period = dataInputPeriod.period;
-        }
-        else
-        {
-            closingDate = closingDate == null ? dataInputPeriod.getClosingDate() : null;
-            openingDate = openingDate == null ? dataInputPeriod.getOpeningDate() : null;
-            period = period == null ? dataInputPeriod.getPeriod() : null;
-        }
-
-    }
-
-    @Override
     public boolean equals( Object object )
     {
         if ( this == object )
@@ -198,7 +188,6 @@ public class DataInputPeriod
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-            .add( "uid", uid )
             .add( "period", period )
             .add( "openingDate", openingDate )
             .add( "closingDate", closingDate )

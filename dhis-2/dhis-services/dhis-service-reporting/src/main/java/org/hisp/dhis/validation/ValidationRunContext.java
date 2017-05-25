@@ -32,8 +32,10 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -53,9 +55,9 @@ public class ValidationRunContext
 
     private Map<String, Double> constantMap;
 
-    private Set<DimensionalItemObject> dimensionItems;
+    private Set<DimensionalItemObject> eventItems;
 
-    private Set<OrganisationUnitExtended> sourceXs;
+    private List<OrganisationUnit> orgUnits;
 
     private Set<CategoryOptionGroup> cogDimensionConstraints;
 
@@ -70,6 +72,8 @@ public class ValidationRunContext
     private int maxResults = 0;
 
     private boolean sendNotifications = false;
+
+    private boolean persistResults = false;
 
     public ValidationRunContext()
     {
@@ -92,7 +96,7 @@ public class ValidationRunContext
 
     public int getCountOfSourcesToValidate()
     {
-        return sourceXs.size();
+        return orgUnits.size();
     }
 
     public Map<PeriodType, PeriodTypeExtended> getPeriodTypeExtendedMap()
@@ -100,14 +104,14 @@ public class ValidationRunContext
         return periodTypeExtendedMap;
     }
 
-    public Set<DimensionalItemObject> getDimensionItems()
+    public Set<DimensionalItemObject> getEventItems()
     {
-        return dimensionItems;
+        return eventItems;
     }
 
-    public Set<OrganisationUnitExtended> getSourceXs()
+    public List<OrganisationUnit> getOrgUnits()
     {
-        return sourceXs;
+        return orgUnits;
     }
 
     public Map<String, Double> getConstantMap()
@@ -128,6 +132,11 @@ public class ValidationRunContext
     public boolean isSendNotifications()
     {
         return sendNotifications;
+    }
+
+    public boolean isPersistResults()
+    {
+        return persistResults;
     }
 
     // -------------------------------------------------------------------------
@@ -168,8 +177,8 @@ public class ValidationRunContext
             Validate
                 .notNull( this.context.periodTypeExtendedMap, "Missing required property 'periodTypeExtendedMap'" );
             Validate.notNull( this.context.constantMap, "Missing required property 'constantMap'" );
-            Validate.notNull( this.context.dimensionItems, "Missing required property 'dimensionItems'" );
-            Validate.notEmpty( this.context.sourceXs, "Missing required property 'sourceXs'" );
+            Validate.notNull( this.context.eventItems, "Missing required property 'eventItems'" );
+            Validate.notEmpty( this.context.orgUnits, "Missing required property 'orgUnits'" );
 
             return this.context;
         }
@@ -191,15 +200,15 @@ public class ValidationRunContext
             return this;
         }
 
-        public Builder withDimensionItems( Set<DimensionalItemObject> dimensionItems )
+        public Builder withEventItems( Set<DimensionalItemObject> eventItems )
         {
-            this.context.dimensionItems = dimensionItems;
+            this.context.eventItems = eventItems;
             return this;
         }
 
-        public Builder withSourceXs( Set<OrganisationUnitExtended> sourceXs )
+        public Builder withOrgUnits( List<OrganisationUnit> orgUnits )
         {
-            this.context.sourceXs = sourceXs;
+            this.context.orgUnits = orgUnits;
             return this;
         }
 
@@ -243,6 +252,12 @@ public class ValidationRunContext
             Set<DataElementCategoryOption> coDimensionConstraints )
         {
             this.context.coDimensionConstraints = coDimensionConstraints;
+            return this;
+        }
+
+        public Builder withPersistResults( boolean persistResults )
+        {
+            this.context.persistResults = persistResults;
             return this;
         }
     }

@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.webmessage;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -39,6 +38,7 @@ import org.hisp.dhis.dxf2.webmessage.responses.ObjectReportWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.TypeReportWebMessageResponse;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
 import org.springframework.http.HttpStatus;
 

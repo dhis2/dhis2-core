@@ -37,8 +37,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -50,7 +49,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0 )
 public class DataElementCategoryCombo
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     public static final String DEFAULT_CATEGORY_COMBO_NAME = "default";
 
@@ -201,7 +200,7 @@ public class DataElementCategoryCombo
             for ( DataElementCategoryOptionCombo optionCombo : optionCombos )
             {
                 Set<DataElementCategoryOption> persistedCategoryOptions = new HashSet<>( optionCombo.getCategoryOptions() );
-                
+
                 if ( categoryOptionSet.equals( persistedCategoryOptions ) )
                 {
                     list.add( optionCombo );
@@ -311,30 +310,5 @@ public class DataElementCategoryCombo
     public void setSkipTotal( boolean skipTotal )
     {
         this.skipTotal = skipTotal;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DataElementCategoryCombo categoryCombo = (DataElementCategoryCombo) other;
-
-            skipTotal = categoryCombo.isSkipTotal();
-
-            if ( mergeMode.isReplace() )
-            {
-                dataDimensionType = categoryCombo.getDataDimensionType();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                dataDimensionType = categoryCombo.getDataDimensionType() == null ? dataDimensionType : categoryCombo.getDataDimensionType();
-            }
-
-            removeAllCategories();
-            categoryCombo.getCategories().forEach( this::addDataElementCategory );
-        }
     }
 }

@@ -11,6 +11,8 @@
             <generator class="native"/>
         </id>
 
+        <property name="created" type="timestamp" not-null="true" />
+
         <property name="leftsideValue"/>
 
         <property name="rightsideValue"/>
@@ -30,6 +32,8 @@
                          column="attributeoptioncomboid" foreign-key="fk_validationresult_attributeoptioncomboid"/>
 
             <property name="dayInPeriod" column="dayInPeriod" />
+
+            <property name="notificationSent" column="notificationSent" />
 
         </properties>
 

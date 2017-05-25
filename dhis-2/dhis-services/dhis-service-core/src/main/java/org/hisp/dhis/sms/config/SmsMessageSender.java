@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.io.Serializable;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -53,6 +54,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
 
+import static org.hisp.dhis.commons.util.TextUtils.LN;
+
 /**
  * @author Nguyen Kim Lai
  */
@@ -62,6 +65,8 @@ public class SmsMessageSender
     private static final Log log = LogFactory.getLog( SmsMessageSender.class );
 
     private static final String NO_CONFIG = "No default gateway configured";
+
+    private static final Pattern SUMMARY_PATTERN = Pattern.compile( "\\s*High\\s*[0-9]*\\s*,\\s*medium\\s*[0-9]*\\s*,\\s*low\\s*[0-9]*\\s*" );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -110,6 +115,9 @@ public class SmsMessageSender
         }
 
         Set<String> phoneNumbers = SmsUtils.getRecipientsPhoneNumber( toSendList );
+
+        // Extract summary from text in case of COLLECTIVE_SUMMARY
+        text = SUMMARY_PATTERN.matcher( text ).find() ? StringUtils.substringBefore( text, LN ) : text;
 
         return sendMessage( subject, text, phoneNumbers );
     }

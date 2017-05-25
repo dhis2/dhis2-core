@@ -45,18 +45,14 @@ public class HibernateOutboundSmsStore
     implements OutboundSmsStore
 {
     // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveOutboundSms( OutboundSms sms )
+    public void saveOutboundSms( OutboundSms sms )
     {
         checkDate( sms );
-        return save( sms );
+        save( sms );
     }
 
     private void checkDate( OutboundSms sms )

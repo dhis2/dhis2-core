@@ -46,9 +46,6 @@ public class DataSetElementSchemaDescriptor implements SchemaDescriptor
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( DataSetElement.class, SINGULAR, PLURAL );
-        schema.setMetadata( false );
-
-        return schema;
+        return new Schema( DataSetElement.class, SINGULAR, PLURAL );
     }
 }

@@ -65,7 +65,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class TrackedEntityRegistrationSMSListener
     implements IncomingSmsListener
 {
-
     private static final String defaultPattern = "([a-zA-Z]+)\\s*(\\d+)";
 
     // -------------------------------------------------------------------------

@@ -28,7 +28,6 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
@@ -98,12 +97,6 @@ public abstract class GenericAnalyticalObjectDeletionHandler<T extends Analytica
     public void deleteOrganisationUnit( OrganisationUnit organisationUnit )
     {
         removeItem( getAnalyticalObjectService().getAnalyticalObjects( organisationUnit ), organisationUnit, ( ao, di ) -> ao.getOrganisationUnits().remove( di ) );
-    }
-
-    @Override
-    public void deleteCategoryOptionGroup( CategoryOptionGroup categoryOptionGroup )
-    {
-        removeItem( getAnalyticalObjectService().getAnalyticalObjects( categoryOptionGroup ), categoryOptionGroup, ( ao, di ) -> ao.getCategoryOptionGroups().remove( di ) );
     }
 
     protected void removeItem( List<T> analyticalObjects, DimensionalItemObject itemObject, BiConsumer<AnalyticalObject, DimensionalItemObject> updateOperation )

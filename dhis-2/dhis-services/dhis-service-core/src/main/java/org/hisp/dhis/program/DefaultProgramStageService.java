@@ -58,7 +58,8 @@ public class DefaultProgramStageService
     @Override
     public int saveProgramStage( ProgramStage programStage )
     {
-        return programStageStore.save( programStage );
+        programStageStore.save( programStage );
+        return programStage.getId();
     }
 
     @Override

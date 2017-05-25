@@ -44,7 +44,7 @@ import java.util.Set;
  * @author Lars Helge Overland
  */
 public interface IdentifiableObject
-    extends LinkableObject, Comparable<IdentifiableObject>, Mergeable<IdentifiableObject>, Serializable
+    extends LinkableObject, Comparable<IdentifiableObject>, Serializable
 {
     String[] I18N_PROPERTIES = { "name" };
 
@@ -61,6 +61,8 @@ public interface IdentifiableObject
     Date getCreated();
 
     Date getLastUpdated();
+
+    User getLastUpdatedBy();
 
     Set<AttributeValue> getAttributeValues();
 

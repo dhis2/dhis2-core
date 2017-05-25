@@ -38,13 +38,16 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Set;
 
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
@@ -113,5 +116,28 @@ public class EmailController
         emailService.sendSystemEmail( email );
 
         webMessageService.send( WebMessageUtils.ok( "System notification email sent" ), response, request );
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_SEND_EMAIL')" )
+    @RequestMapping( value = "/notification", method = RequestMethod.POST, produces = "application/json" )
+    public void sendEmailNotification( @RequestParam Set<String> recipients, @RequestParam String message,
+                                       @RequestParam ( defaultValue = "DHIS 2" ) String subject,
+                                       HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
+    {
+        boolean smtpConfigured = emailService.emailEnabled();
+
+        if ( !smtpConfigured )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Could not send email, SMTP server not configured" ) );
+        }
+
+        if ( !emailService.emailConfigured() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "SMTP server not configured" ) );
+        }
+
+        emailService.sendEmail( subject, message, recipients );
+
+        webMessageService.send( WebMessageUtils.ok( "Email sent" ), response, request );
     }
 }

@@ -69,7 +69,9 @@
               </form>
             #end
             #if( $failed == true )
-            <div id="loginMessage">Wrong username or password</div>
+            <div id="loginMessage">
+                $!{request.getSession().getAttribute("LOGIN_FAILED_MESSAGE")}
+            </div>
             #end
             #if ( $keyApplicationNotification )
             <div id="notificationArea">              

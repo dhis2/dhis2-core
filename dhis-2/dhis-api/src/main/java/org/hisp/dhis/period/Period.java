@@ -33,7 +33,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.schema.PropertyType;
@@ -393,17 +395,5 @@ public class Period
     public void setPeriodType( PeriodType periodType )
     {
         this.periodType = periodType;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject object, MergeMode mergeMode )
-    {
-        Period period = (Period) object;
-
-        startDate = period.getStartDate();
-        endDate = period.getEndDate();
-        periodType = period.getPeriodType();
-        isoPeriod = period.getIsoDate();
-
     }
 }

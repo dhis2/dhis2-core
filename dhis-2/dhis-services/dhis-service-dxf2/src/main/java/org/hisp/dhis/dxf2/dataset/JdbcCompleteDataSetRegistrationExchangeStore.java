@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2.dataset;
  */
 
 import com.google.common.collect.ImmutableMap;
-import org.amplecode.staxwax.factory.XMLFactory;
+import org.hisp.staxwax.factory.XMLFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.text.StrSubstitutor;

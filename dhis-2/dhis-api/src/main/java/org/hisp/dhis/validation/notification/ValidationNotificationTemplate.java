@@ -34,9 +34,9 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.notification.NotificationTemplate;
+import org.hisp.dhis.notification.SendStrategy;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.validation.ValidationRule;
@@ -49,7 +49,7 @@ import java.util.Set;
  */
 public class ValidationNotificationTemplate
     extends BaseIdentifiableObject
-    implements NotificationTemplate
+    implements NotificationTemplate, MetadataObject
 {
     private static final Set<DeliveryChannel> ALL_DELIVERY_CHANNELS = Sets.newHashSet( DeliveryChannel.values() );
 
@@ -66,6 +66,8 @@ public class ValidationNotificationTemplate
     private Boolean notifyUsersInHierarchyOnly;
 
     private Set<UserGroup> recipientUserGroups = new HashSet<>();
+
+    private SendStrategy sendStrategy = SendStrategy.COLLECTIVE_SUMMARY;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -158,38 +160,15 @@ public class ValidationNotificationTemplate
         this.recipientUserGroups = recipientUserGroups;
     }
 
-    // -------------------------------------------------------------------------
-    // IdentifiableObject overrides
-    // -------------------------------------------------------------------------
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public SendStrategy getSendStrategy()
     {
-        super.mergeWith( other, mergeMode );
+        return sendStrategy;
+    }
 
-        if ( other.getClass().isInstance( this ) )
-        {
-            ValidationNotificationTemplate that = (ValidationNotificationTemplate) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                subjectTemplate = that.getSubjectTemplate();
-                messageTemplate = that.getMessageTemplate();
-                notifyUsersInHierarchyOnly = that.notifyUsersInHierarchyOnly;
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                subjectTemplate = that.getSubjectTemplate() == null ? subjectTemplate : that.getSubjectTemplate();
-                messageTemplate = that.getMessageTemplate() == null ? messageTemplate : that.getMessageTemplate();
-                notifyUsersInHierarchyOnly =
-                    that.getNotifyUsersInHierarchyOnly() == null ? notifyUsersInHierarchyOnly : that.getNotifyUsersInHierarchyOnly();
-            }
-
-            validationRules.clear();
-            validationRules.addAll( that.getValidationRules() );
-
-            recipientUserGroups.clear();
-            recipientUserGroups.addAll( that.getRecipientUserGroups() );
-        }
+    public void setSendStrategy( SendStrategy sendStrategy )
+    {
+        this.sendStrategy = sendStrategy;
     }
 }

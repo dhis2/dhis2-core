@@ -28,14 +28,10 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorService;
 import org.hisp.dhis.schema.descriptors.PredictorSchemaDescriptor;
@@ -68,9 +64,6 @@ public class PredictorController
 
     @Autowired
     private WebMessageService webMessageService;
-
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
 
     @RequestMapping( value = "/{uid}/run", method = { RequestMethod.POST, RequestMethod.PUT } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_RUN')" )

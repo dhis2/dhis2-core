@@ -41,6 +41,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.schema.MergeParams;
+import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
@@ -118,6 +120,9 @@ public class DefaultGmlImportService
 
     @Autowired
     private Notifier notifier;
+
+    @Autowired
+    private MergeService mergeService;
 
     // -------------------------------------------------------------------------
     // GmlImportService implementation
@@ -294,7 +299,8 @@ public class DefaultGmlImportService
         String coordinates = target.getCoordinates();
         FeatureType featureType = target.getFeatureType();
 
-        target.mergeWith( source, MergeMode.MERGE );
+        mergeService.merge( new MergeParams<>( source, target )
+            .setMergeMode( MergeMode.MERGE ) );
 
         target.setCoordinates( coordinates );
         target.setFeatureType( featureType );

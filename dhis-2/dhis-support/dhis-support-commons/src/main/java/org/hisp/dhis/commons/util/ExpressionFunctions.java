@@ -132,4 +132,15 @@ public class ExpressionFunctions
         
         return ChronoUnit.DAYS.between( st, en );
     }
+    
+    /**
+     * Function will will return true only if the parameter value is not null.
+     * 
+     * @param value to check whether has a value.
+     * @return true if the parameter has a value.
+     */
+    public static boolean hasValue( Object value )
+    {
+        return value != null;
+    }
 }

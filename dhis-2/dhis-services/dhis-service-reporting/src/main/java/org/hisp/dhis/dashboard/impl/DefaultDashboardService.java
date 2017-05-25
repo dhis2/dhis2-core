@@ -276,7 +276,9 @@ public class DefaultDashboardService
     @Override
     public int saveDashboard( Dashboard dashboard )
     {
-        return dashboardStore.save( dashboard );
+        dashboardStore.save( dashboard );
+
+        return dashboard.getId();
     }
 
     @Override

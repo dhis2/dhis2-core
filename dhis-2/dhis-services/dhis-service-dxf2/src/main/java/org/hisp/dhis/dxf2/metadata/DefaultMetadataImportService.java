@@ -269,5 +269,6 @@ public class DefaultMetadataImportService implements MetadataImportService
         if ( object.getUser() == null ) object.setUser( bundle.getUser() );
         if ( object.getUserGroupAccesses() == null ) object.setUserGroupAccesses( new HashSet<>() );
         if ( object.getUserAccesses() == null ) object.setUserAccesses( new HashSet<>() );
+        object.setLastUpdatedBy( bundle.getUser() );
     }
 }

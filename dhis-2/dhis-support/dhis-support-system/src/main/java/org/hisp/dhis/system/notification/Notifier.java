@@ -42,7 +42,13 @@ public interface Notifier
     Notifier notify( TaskId id, NotificationLevel level, String message );
     
     Notifier notify( TaskId id, NotificationLevel level, String message, boolean completed );
-    
+
+    Notifier update( TaskId id, String message );
+
+    Notifier update( TaskId id, NotificationLevel level, String message );
+
+    Notifier update( TaskId id, NotificationLevel level, String message, boolean completed );
+
     List<Notification> getNotifications( TaskId id, String lastUid );
     
     Notifier clear( TaskId id );

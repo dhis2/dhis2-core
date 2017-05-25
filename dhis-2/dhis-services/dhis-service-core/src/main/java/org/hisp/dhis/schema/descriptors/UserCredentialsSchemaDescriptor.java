@@ -46,10 +46,6 @@ public class UserCredentialsSchemaDescriptor implements SchemaDescriptor
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( UserCredentials.class, SINGULAR, PLURAL );
-        schema.setMetadata( false );
-        schema.setOrder( 2000 );
-
-        return schema;
+        return new Schema( UserCredentials.class, SINGULAR, PLURAL );
     }
 }

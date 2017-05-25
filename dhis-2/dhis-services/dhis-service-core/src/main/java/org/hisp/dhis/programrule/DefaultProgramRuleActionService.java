@@ -28,9 +28,9 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * @author markusbekken
@@ -57,7 +57,9 @@ public class DefaultProgramRuleActionService
     @Override
     public int addProgramRuleAction( ProgramRuleAction programRuleAction )
     {
-        return programRuleActionStore.save( programRuleAction );
+        programRuleActionStore.save( programRuleAction );
+
+        return programRuleAction.getId();
     }
 
     @Override

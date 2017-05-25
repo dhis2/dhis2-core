@@ -34,13 +34,14 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
@@ -367,13 +368,15 @@ public class UserController
         }
 
         User userReplica = new User();
-        userReplica.mergeWith( existingUser, MergeMode.MERGE );
+        mergeService.merge( new MergeParams<>( existingUser, userReplica )
+            .setMergeMode( MergeMode.MERGE ) );
         userReplica.setUid( CodeGenerator.generateCode() );
         userReplica.setCode( null );
         userReplica.setCreated( new Date() );
 
         UserCredentials credentialsReplica = new UserCredentials();
-        credentialsReplica.mergeWith( existingUser.getUserCredentials(), MergeMode.MERGE );
+        mergeService.merge( new MergeParams<>( existingUser.getUserCredentials(), credentialsReplica )
+            .setMergeMode( MergeMode.MERGE ) );
         credentialsReplica.setUid( CodeGenerator.generateCode() );
         credentialsReplica.setCode( null );
         credentialsReplica.setCreated( new Date() );
@@ -399,11 +402,7 @@ public class UserController
         for ( UserSetting setting : settings )
         {
             Optional<UserSettingKey> key = UserSettingKey.getByName( setting.getName() );
-
-            if ( key.isPresent() )
-            {
-                userSettingService.saveUserSetting( key.get(), setting.getValue(), userReplica );
-            }
+            key.ifPresent( userSettingKey -> userSettingService.saveUserSetting( userSettingKey, setting.getValue(), userReplica ) );
         }
 
         response.addHeader( "Location", UserSchemaDescriptor.API_ENDPOINT + "/" + userReplica.getUid() );

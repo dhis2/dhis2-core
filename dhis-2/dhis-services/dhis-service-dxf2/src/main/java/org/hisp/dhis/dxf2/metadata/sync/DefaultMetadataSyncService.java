@@ -37,6 +37,7 @@ import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
+import org.hisp.dhis.exception.RemoteServerUnavailableException;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
@@ -46,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Performs the metadata sync related tasks in service layer
+ * Performs the meta data sync related tasks in service layer.
  *
  * @author vanyas
  */
@@ -152,7 +153,7 @@ public class DefaultMetadataSyncService
 
         metadataVersionSnapshot = getMetadataVersionSnapshotFromRemote( version );
 
-        if ( !(metadataVersionService.isMetadataPassingIntegrity( version, metadataVersionSnapshot )) )
+        if ( !(metadataVersionService.isMetadataPassingIntegrity( version, metadataVersionSnapshot ) ) )
         {
             throw new MetadataSyncServiceException( "Metadata snapshot is corrupted. Not saving it locally" );
         }
@@ -169,6 +170,10 @@ public class DefaultMetadataSyncService
             metadataVersionSnapshot = metadataVersionDelegate.downloadMetadataVersionSnapshot( version );
         }
         catch ( MetadataVersionServiceException e )
+        {
+            throw new MetadataSyncServiceException( e.getMessage(), e );
+        }
+        catch( RemoteServerUnavailableException e)
         {
             throw new MetadataSyncServiceException( e.getMessage(), e );
         }

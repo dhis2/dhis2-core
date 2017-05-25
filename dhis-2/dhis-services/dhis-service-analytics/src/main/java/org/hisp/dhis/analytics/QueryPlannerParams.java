@@ -120,6 +120,9 @@ public class QueryPlannerParams
     // Builder of immutable instances
     // -------------------------------------------------------------------------
 
+    /**
+     * Builder of {@link QueryPlannerParams} instances.
+     */
     public static class Builder
     {
         private QueryPlannerParams params;

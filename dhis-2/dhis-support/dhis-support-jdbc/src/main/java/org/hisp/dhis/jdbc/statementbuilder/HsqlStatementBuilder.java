@@ -53,6 +53,12 @@ public class HsqlStatementBuilder
     }
 
     @Override
+    public String getAnalyze( String table )
+    {
+        return null;
+    }
+
+    @Override
     public String getTableOptions( boolean autoVacuum )
     {
         return "";

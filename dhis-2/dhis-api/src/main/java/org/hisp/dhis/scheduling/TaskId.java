@@ -62,12 +62,17 @@ public class TaskId
         
         return id;
     }
-    
+
     public TaskCategory getCategory()
     {
         return category;
     }
-    
+
+    public User getUser()
+    {
+        return user;
+    }
+
     @Override
     public int hashCode()
     {

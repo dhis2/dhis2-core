@@ -37,6 +37,4 @@ public interface DataElementOperandStore
     extends GenericIdentifiableObjectStore<DataElementOperand>
 {
     String ID = DataElementOperand.class.getName();
-
-    DataElementOperand get( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo );
 }

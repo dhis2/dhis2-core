@@ -79,7 +79,8 @@ public class DefaultOutboundSmsService
     @Override
     public int saveOutboundSms( OutboundSms sms )
     {
-        return outboundSmsStore.saveOutboundSms( sms );
+        outboundSmsStore.saveOutboundSms( sms );
+        return sms.getId();
     }
 
     @Override

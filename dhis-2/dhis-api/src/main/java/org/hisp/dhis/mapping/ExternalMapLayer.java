@@ -33,8 +33,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.legend.LegendSet;
 
 /**
@@ -42,7 +41,7 @@ import org.hisp.dhis.legend.LegendSet;
  */
 @JacksonXmlRootElement( localName = "externalMapLayer", namespace = DxfNamespaces.DXF_2_0 )
 public class ExternalMapLayer
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     private MapService mapService;
 
@@ -171,43 +170,5 @@ public class ExternalMapLayer
     public void setLegendSetUrl( String legendSetUrl )
     {
         this.legendSetUrl = legendSetUrl;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            ExternalMapLayer mapLayer = (ExternalMapLayer) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                url = mapLayer.getUrl();
-                layers = mapLayer.getLayers();
-                mapService = mapLayer.getMapService();
-                attribution = mapLayer.getAttribution();
-                layers = mapLayer.getLayers();
-                imageFormat = mapLayer.getImageFormat();
-                mapLayerPosition = mapLayer.getMapLayerPosition();
-                legendSet = mapLayer.getLegendSet();
-                legendSetUrl = mapLayer.getLegendSetUrl();
-
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                url = mapLayer.getUrl() == null ? url : mapLayer.getUrl();
-                layers = mapLayer.getLayers() == null ? layers : mapLayer.getLayers();
-                mapService = mapLayer.getMapService() == null ? mapService : mapLayer.getMapService();
-                attribution = mapLayer.getAttribution() == null ? attribution : mapLayer.getAttribution();
-                layers = mapLayer.getLayers() == null ? layers : mapLayer.getLayers();
-                imageFormat = mapLayer.getImageFormat() == null ? imageFormat : mapLayer.getImageFormat();
-                mapLayerPosition = mapLayer.getMapLayerPosition() == null ? mapLayerPosition : mapLayer.getMapLayerPosition();
-                legendSet = mapLayer.getLegendSet() == null ? legendSet : mapLayer.getLegendSet();
-                legendSetUrl = mapLayer.getLegendSetUrl() == null ? legendSetUrl : mapLayer.getLegendSetUrl();
-
-            }
-        }
     }
 }

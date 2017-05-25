@@ -34,11 +34,9 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.expression.Expression;
@@ -57,7 +55,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "validationRule", namespace = DxfNamespaces.DXF_2_0 )
 public class ValidationRule
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     /**
      * A description of the ValidationRule.
@@ -321,41 +319,5 @@ public class ValidationRule
     public void setNotificationTemplates( Set<ValidationNotificationTemplate> notificationTemplates )
     {
         this.notificationTemplates = notificationTemplates;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            ValidationRule validationRule = (ValidationRule) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                description = validationRule.getDescription();
-                operator = validationRule.getOperator();
-                periodType = validationRule.getPeriodType();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                description = validationRule.getDescription() == null ? description : validationRule.getDescription();
-                operator = validationRule.getOperator() == null ? operator : validationRule.getOperator();
-                periodType = validationRule.getPeriodType() == null ? periodType : validationRule.getPeriodType();
-            }
-
-            if ( leftSide != null && validationRule.getLeftSide() != null )
-            {
-                leftSide.mergeWith( validationRule.getLeftSide() );
-            }
-
-            if ( rightSide != null && validationRule.getRightSide() != null )
-            {
-                rightSide.mergeWith( validationRule.getRightSide() );
-            }
-
-            groups.clear();
-        }
     }
 }

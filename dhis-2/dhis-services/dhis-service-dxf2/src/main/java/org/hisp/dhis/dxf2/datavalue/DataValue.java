@@ -105,6 +105,17 @@ public class DataValue
             .toString();
     }
     
+    public boolean isNullValue()
+    {
+        return getValue() == null && getComment() == null;
+    }
+    
+    public boolean isDeletedValue()
+    {
+        Boolean deleted = getDeleted();
+        return deleted != null && deleted;
+    }
+    
     @Override
     public String toString()
     {
@@ -192,6 +203,11 @@ public class DataValue
     }
 
     public void setValue( String value )
+    {
+        this.value = value;
+    }
+
+    public void setValueForced( String value )
     {
         this.value = value;
     }

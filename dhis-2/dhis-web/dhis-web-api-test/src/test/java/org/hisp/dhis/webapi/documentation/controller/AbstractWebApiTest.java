@@ -66,7 +66,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElement;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
@@ -312,7 +312,7 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
 
             return (T) erA;
         }
-        else if ( ProgramDataElement.class.isAssignableFrom( clazz ) )
+        else if ( ProgramDataElementDimensionItem.class.isAssignableFrom( clazz ) )
         {
             Program prA = createProgram( uniqueName );
             manager.save( prA );
@@ -320,7 +320,7 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
             DataElement deA = createDataElement( uniqueName );
             manager.save( deA );
 
-            return (T) new ProgramDataElement( prA, deA );
+            return (T) new ProgramDataElementDimensionItem( prA, deA );
         }
         else if ( ProgramIndicator.class.isAssignableFrom( clazz ) )
         {
@@ -427,11 +427,20 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
         }
         else if ( ProgramTrackedEntityAttributeGroup.class.isAssignableFrom( clazz ) )
         {
-            return (T) createProgramTrackedEntityAttributeGroup( uniqueName );
+            ProgramTrackedEntityAttributeGroup group = createProgramTrackedEntityAttributeGroup( uniqueName );
+
+            ProgramTrackedEntityAttribute attr = createProgramTrackedEntityAttribute( uniqueName );
+            group.addAttribute( attr );
+
+            return (T) group;
         }
         else if ( ProgramTrackedEntityAttribute.class.isAssignableFrom( clazz ))
         {
             return (T) createProgramTrackedEntityAttribute( uniqueName );
+        }
+        else if ( ProgramDataElementDimensionItem.class.isAssignableFrom( clazz ) )
+        {
+            return (T) createProgramDataElement( uniqueName );
         }
 
         return null;

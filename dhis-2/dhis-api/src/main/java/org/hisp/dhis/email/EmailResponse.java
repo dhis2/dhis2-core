@@ -36,7 +36,8 @@ public enum EmailResponse
 {
     SENT( "success" ),
     FAILED( "failed" ),
-    ABORTED( "aborted" );
+    ABORTED( "aborted" ),
+    NOT_CONFIGURED( "no configuration found" );
 
     private String responseMessage;
 

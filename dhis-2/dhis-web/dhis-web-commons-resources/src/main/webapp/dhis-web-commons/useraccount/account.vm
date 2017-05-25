@@ -10,6 +10,9 @@
     #if( !$keySelfRegistrationNoRecaptcha )
     <script type="text/javascript" src="https://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
     #end
+    <script type="text/javascript" >
+
+    </script>
     <link type="text/css" rel="stylesheet" href="../css/account.css">
 </head>
 <body>
@@ -58,7 +61,7 @@
     </tr>
     <tr>
         <td><label id="label_password" for="password">$i18n.getString( "password" )</label></td>
-        <td><input type="password" id="password" name="password" autocomplete="off" placeholder="$i18n.getString( 'password_hint' )"></td>
+        <td><input type="password" id="password" name="password"  onfocusout="checkPasswordForUsername()" autocomplete="off" placeholder="$i18n.getString( 'password_hint' )"></td>
     </tr>
     <tr>
         <td><label id="label_retypePassword" for="retypePassword">$i18n.getString( "confirm_password" )</label></td>
@@ -66,7 +69,7 @@
     </tr>
     <tr>
         <td><label id="label_email" for="email">$i18n.getString( "email" )</label></td>
-        <td><input type="text" id="email" name="email" #if( $accountAction == "invited" )value="$email" #end></td>
+        <td><input type="text" id="email" name="email" #if( $accountAction == "invited" )value="$email" #end onfocusout="checkPasswordForEmail()"></td>
     </tr>
     <tr>
         <td><label id="label_phoneNumber" for="phoneNumber">$i18n.getString( "mobile_phone" )</label></td>

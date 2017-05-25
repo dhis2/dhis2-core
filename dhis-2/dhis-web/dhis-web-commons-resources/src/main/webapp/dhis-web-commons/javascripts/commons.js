@@ -1374,6 +1374,20 @@ function checkValueIsExist( inputId, url, params )
 	});
 }
 
+function checkPassword( inputId, password ) {
+    var parameter = $("#" + inputId ).val();
+    var passWord = $("#" +  password).val();
+    if (passWord) {
+        if (parameter) {
+            if ((passWord.indexOf(parameter) !== -1) ||  (parameter.indexOf(passWord) !== -1)) {
+                alert("Username/Email cannot be part of password");
+                $("#" +  password).val("");
+            }
+        }
+    }
+
+}
+
 function checkValueIsExistWarning( inputId, url, params )
 {
 	jQuery("#" + inputId).rules("add",{

@@ -35,12 +35,12 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.UserGroup;
 
 import java.util.Set;
@@ -50,7 +50,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramNotificationTemplate
-    extends BaseIdentifiableObject implements NotificationTemplate
+    extends BaseIdentifiableObject implements NotificationTemplate, MetadataObject
 {
     private String subjectTemplate;
 
@@ -70,6 +70,8 @@ public class ProgramNotificationTemplate
 
     private UserGroup recipientUserGroup = null;
 
+    private TrackedEntityAttribute recipientProgramAttribute = null;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -80,7 +82,7 @@ public class ProgramNotificationTemplate
 
     public ProgramNotificationTemplate( String name, String subjectTemplate, String messageTemplate,
         NotificationTrigger notificationTrigger, ProgramNotificationRecipient notificationRecipient,
-        Set<DeliveryChannel> deliveryChannels, Integer relativeScheduledDays, UserGroup recipientUserGroup )
+        Set<DeliveryChannel> deliveryChannels, Integer relativeScheduledDays, UserGroup recipientUserGroup, TrackedEntityAttribute recipientProgramAttribute )
     {
         this.name = name;
         this.subjectTemplate = subjectTemplate;
@@ -90,6 +92,7 @@ public class ProgramNotificationTemplate
         this.deliveryChannels = deliveryChannels;
         this.relativeScheduledDays = relativeScheduledDays;
         this.recipientUserGroup = recipientUserGroup;
+        this.recipientProgramAttribute = recipientProgramAttribute;
     }
 
     // -------------------------------------------------------------------------
@@ -183,40 +186,15 @@ public class ProgramNotificationTemplate
         this.recipientUserGroup = recipientUserGroup;
     }
 
-    // -------------------------------------------------------------------------
-    // IdObject overrides
-    // -------------------------------------------------------------------------
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public TrackedEntityAttribute getRecipientProgramAttribute()
     {
-        super.mergeWith( other, mergeMode );
+        return recipientProgramAttribute;
+    }
 
-        if ( other.getClass().isInstance( this ) )
-        {
-            ProgramNotificationTemplate pnt = (ProgramNotificationTemplate) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                subjectTemplate = pnt.getSubjectTemplate();
-                messageTemplate = pnt.getMessageTemplate();
-                notificationTrigger = pnt.getNotificationTrigger();
-                notificationRecipient = pnt.getNotificationRecipient();
-                relativeScheduledDays = pnt.getRelativeScheduledDays();
-                recipientUserGroup = pnt.getRecipientUserGroup();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                subjectTemplate = pnt.getSubjectTemplate() == null ? subjectTemplate : pnt.getSubjectTemplate();
-                messageTemplate = pnt.getMessageTemplate() == null ? messageTemplate : pnt.getMessageTemplate();
-                notificationTrigger = pnt.getNotificationTrigger() == null ? notificationTrigger : pnt.getNotificationTrigger();
-                notificationRecipient = pnt.getNotificationRecipient() == null ? notificationRecipient : pnt.getNotificationRecipient();
-                relativeScheduledDays = pnt.getRelativeScheduledDays() == null ? relativeScheduledDays : pnt.getRelativeScheduledDays();
-                recipientUserGroup = pnt.getRecipientUserGroup() == null ? recipientUserGroup : pnt.getRecipientUserGroup();
-            }
-
-            deliveryChannels.clear();
-            deliveryChannels.addAll( pnt.getDeliveryChannels() );
-        }
+    public void setRecipientProgramAttribute( TrackedEntityAttribute recipientProgramAttribute )
+    {
+        this.recipientProgramAttribute = recipientProgramAttribute;
     }
 }

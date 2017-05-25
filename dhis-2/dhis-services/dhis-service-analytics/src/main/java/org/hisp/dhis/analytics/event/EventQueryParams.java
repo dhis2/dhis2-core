@@ -61,7 +61,13 @@ import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import com.google.common.collect.ImmutableMap;
@@ -115,12 +121,12 @@ public class EventQueryParams
     /**
      * Columns to sort ascending.
      */
-    private List<String> asc = new ArrayList<>();
+    private List<DimensionalItemObject> asc = new ArrayList<>();
 
     /**
      * Columns to sort descending.
      */
-    private List<String> desc = new ArrayList<>();
+    private List<DimensionalItemObject> desc = new ArrayList<>();
     
     /**
      * The organisation unit selection mode.
@@ -272,7 +278,7 @@ public class EventQueryParams
 
         for ( DimensionalItemObject object : dataQueryParams.getProgramDataElements() )
         {
-            ProgramDataElement element = (ProgramDataElement) object;
+            ProgramDataElementDimensionItem element = (ProgramDataElementDimensionItem) object;
             DataElement dataElement = element.getDataElement(); 
             QueryItem item = new QueryItem( dataElement, ( dataElement.getLegendSets().isEmpty() ? null : dataElement.getLegendSets().get( 0 ) ), dataElement.getValueType(), dataElement.getAggregationType(), dataElement.getOptionSet() );
             item.setProgram( element.getProgram() );
@@ -281,7 +287,7 @@ public class EventQueryParams
 
         for ( DimensionalItemObject object : dataQueryParams.getProgramAttributes() )
         {
-            ProgramTrackedEntityAttribute element = (ProgramTrackedEntityAttribute) object;
+            ProgramTrackedEntityAttributeDimensionItem element = (ProgramTrackedEntityAttributeDimensionItem) object;
             TrackedEntityAttribute attribute = element.getAttribute();
             QueryItem item = new QueryItem( attribute, ( attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get( 0 ) ), attribute.getValueType(), attribute.getAggregationType(), attribute.getOptionSet() );
             item.setProgram( element.getProgram() );
@@ -290,7 +296,7 @@ public class EventQueryParams
 
         for ( DimensionalItemObject object : dataQueryParams.getFilterProgramDataElements() )
         {
-            ProgramDataElement element = (ProgramDataElement) object;
+            ProgramDataElementDimensionItem element = (ProgramDataElementDimensionItem) object;
             DataElement dataElement = element.getDataElement(); 
             QueryItem item = new QueryItem( dataElement, ( dataElement.getLegendSets().isEmpty() ? null : dataElement.getLegendSets().get( 0 ) ), dataElement.getValueType(), dataElement.getAggregationType(), dataElement.getOptionSet() );
             item.setProgram( element.getProgram() );
@@ -299,7 +305,7 @@ public class EventQueryParams
 
         for ( DimensionalItemObject object : dataQueryParams.getFilterProgramAttributes() )
         {
-            ProgramTrackedEntityAttribute element = (ProgramTrackedEntityAttribute) object;
+            ProgramTrackedEntityAttributeDimensionItem element = (ProgramTrackedEntityAttributeDimensionItem) object;
             TrackedEntityAttribute attribute = element.getAttribute();
             QueryItem item = new QueryItem( attribute, ( attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get( 0 ) ), attribute.getValueType(), attribute.getAggregationType(), attribute.getOptionSet() );
             builder.addItemFilter( item );
@@ -651,7 +657,7 @@ public class EventQueryParams
         return programIndicator;
     }
 
-    public List<String> getAsc()
+    public List<DimensionalItemObject> getAsc()
     {
         return asc;
     }
@@ -662,7 +668,7 @@ public class EventQueryParams
         return dimensions;
     }
 
-    public List<String> getDesc()
+    public List<DimensionalItemObject> getDesc()
     {
         return desc;
     }
@@ -926,13 +932,13 @@ public class EventQueryParams
             return this;
         }
         
-        public Builder addAscSortItem( String sortItem )
+        public Builder addAscSortItem( DimensionalItemObject sortItem )
         {
             this.params.asc.add( sortItem );
             return this;
         }
         
-        public Builder addDescSortItem( String sortItem )
+        public Builder addDescSortItem( DimensionalItemObject sortItem )
         {
             this.params.desc.add( sortItem );
             return this;

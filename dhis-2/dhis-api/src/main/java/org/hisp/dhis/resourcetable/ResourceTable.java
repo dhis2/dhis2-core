@@ -28,12 +28,12 @@ package org.hisp.dhis.resourcetable;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Optional;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.CodeGenerator;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Lars Helge Overland
@@ -86,11 +86,6 @@ public abstract class ResourceTable<T>
         return "alter table " + getTempTableName() + " rename to " + getTableName() + ";";
     }
     
-    public final String getAnalyzeTableStatement()
-    {
-        return "analyze " + getTableName() + ";";
-    }
-
     // -------------------------------------------------------------------------
     // Protected methods
     // -------------------------------------------------------------------------
@@ -104,19 +99,40 @@ public abstract class ResourceTable<T>
     // Abstract methods
     // -------------------------------------------------------------------------
 
+    /**
+     * Provides the name of the resource database table.
+     * 
+     * @return the name of the resource database table.
+     */
     public abstract String getTableName();
     
+    /**
+     * Provides a create table SQL statement for the temporary resource table.
+     * 
+     * @return a create table statement.
+     */
     public abstract String getCreateTempTableStatement();
     
+    /**
+     * Provides an insert into select from SQL statement for populating the
+     * temporary resource table.
+     * 
+     * @return an insert into select from SQL statement.
+     */
     public abstract Optional<String> getPopulateTempTableStatement();
     
+    /**
+     * Provides content for the temporary resource table as a list of object arrays.
+     * 
+     * @return content for the temporary resource table.
+     */
     public abstract Optional<List<Object[]>> getPopulateTempTableContent();
     
     /**
-     * Returns SQL index create statements for the temp table. Note that the 
+     * Returns SQL create index statements for the temporary table. Note that the
      * indexes name must have a random component to avoid uniqueness conflicts.
      * 
-     * @return a SQL statement.
+     * @return a list of SQL create index statements.
      */
     public abstract List<String> getCreateIndexStatements();
 }

@@ -113,7 +113,8 @@ public class DefaultTrackedEntityAttributeService
     @Override
     public int addTrackedEntityAttribute( TrackedEntityAttribute attribute )
     {
-        return attributeStore.save( attribute );
+        attributeStore.save( attribute );
+        return attribute.getId();
     }
 
     @Override

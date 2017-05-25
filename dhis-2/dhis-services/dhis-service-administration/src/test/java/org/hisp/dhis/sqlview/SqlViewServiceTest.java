@@ -102,7 +102,6 @@ public class SqlViewServiceTest
 
         assertEquals( idE, sqlViewE.getId() );
         assertEq( 'E', sqlViewE, sqlE );
-
     }
 
     @Test
@@ -182,7 +181,6 @@ public class SqlViewServiceTest
         SqlView sqlView = new SqlView( "Name", "WITH foo as (delete FROM dataelement returning *) SELECT * FROM foo;", SqlViewType.QUERY );
 
         sqlViewService.validateSqlView( sqlView, null, null );
-
     }
 
     @Test (expected = IllegalQueryException.class)
@@ -191,7 +189,6 @@ public class SqlViewServiceTest
         SqlView sqlView = new SqlView( "Name", "WITH foo as (SELECT * FROM organisationunit) commit", SqlViewType.QUERY );
 
         sqlViewService.validateSqlView( sqlView, null, null );
-
     }
 
     @Test( expected = IllegalQueryException.class )
@@ -206,6 +203,14 @@ public class SqlViewServiceTest
     public void testValidateProtectedTables2()
     {
         SqlView sqlView = new SqlView( "Name", "select * from \"userinfo\" where userinfoid=1", SqlViewType.QUERY );
+
+        sqlViewService.validateSqlView( sqlView, null, null );
+    }
+
+    @Test( expected = IllegalQueryException.class )
+    public void testValidateProtectedTables3()
+    {
+        SqlView sqlView = new SqlView( "Name", "select users.username \n FROM \"public\".users;", SqlViewType.QUERY );
 
         sqlViewService.validateSqlView( sqlView, null, null );
     }
@@ -245,6 +250,16 @@ public class SqlViewServiceTest
         sqlViewService.validateSqlView( sqlView, null, null );
     }
 
+    @Test( expected = IllegalQueryException.class )
+    public void testGetGridValidationFailure()
+    {
+        SqlView sqlView = new SqlView( "Name", "select * from dataelement; delete from dataelement", SqlViewType.QUERY );
+        
+        sqlViewService.saveSqlView( sqlView );
+        
+        sqlViewService.getSqlViewGrid( sqlView, null, null, null, null );
+    }
+    
     @Test
     public void testValidateSuccessA()
     {
@@ -279,6 +294,4 @@ public class SqlViewServiceTest
 
         sqlViewService.validateSqlView( sqlView, null, null );
     }
-
-
 }

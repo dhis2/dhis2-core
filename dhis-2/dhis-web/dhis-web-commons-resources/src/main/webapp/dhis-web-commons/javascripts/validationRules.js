@@ -21,11 +21,6 @@ var validationRules = {
             "notequalto" : "#username",
             "rangelength" : [ 8, 35 ]
         },
-        "rawPassword" : {
-            "required" : true,
-            "password" : true,
-            "rangelength" : [ 8, 35 ]
-        },
         "retypePassword" : {
             "required" : true,
             "equalTo" : "#rawPassword"

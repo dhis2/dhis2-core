@@ -27,8 +27,11 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.validation.comparator.ValidationResultQuery;
+
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Stian Sandvold
@@ -48,8 +51,31 @@ public interface ValidationResultService
     List<ValidationResult> getAllValidationResults();
 
     /**
+     * Returns a list of al ValidationResults where notificationSent is false
+     * @return
+     */
+    List<ValidationResult> getAllUnReportedValidationResults();
+
+    /**
      * Deletes the validationResult
      * @param validationResult
      */
     void deleteValidationResult( ValidationResult validationResult );
+
+    /**
+     * Updates a list of ValidationResults
+     * @param validationResults validationResults to update
+     */
+    void updateValidationResults( Set<ValidationResult> validationResults );
+
+    /**
+     * Returns the ValidationResult with the given id, or null if no validation result exists with that id
+     * @param id
+     * @return
+     */
+    ValidationResult getById( int id );
+
+    List<ValidationResult> getValidationResults( ValidationResultQuery query );
+
+    int countValidationResults( ValidationResultQuery query );
 }

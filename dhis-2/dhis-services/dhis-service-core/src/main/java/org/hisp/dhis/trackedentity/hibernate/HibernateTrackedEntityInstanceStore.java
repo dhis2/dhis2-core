@@ -33,6 +33,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
+import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -53,12 +54,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -131,6 +127,16 @@ public class HibernateTrackedEntityInstanceStore
         if ( params.hasTrackedEntity() )
         {
             hql += hlp.whereAnd() + "tei.trackedEntity.uid='" + params.getTrackedEntity().getUid() + "'";
+        }
+
+        if ( params.hasLastUpdatedStartDate() )
+        {
+            hql += hlp.whereAnd() + "tei.lastUpdated >= '" + getMediumDateString( params.getLastUpdatedStartDate() ) + "'";
+        }
+
+        if ( params.hasLastUpdatedEndDate() )
+        {
+            hql += hlp.whereAnd() + "tei.lastUpdated < '" + getMediumDateString( params.getLastUpdatedEndDate() ) + "'";
         }
 
         if ( params.hasOrganisationUnits() )
@@ -229,8 +235,12 @@ public class HibernateTrackedEntityInstanceStore
                 hql += hlp.whereAnd() + "pi.incidentDate < '" + getMediumDateString( params.getProgramIncidentEndDate() ) + "'";
             }
 
+            hql += " and pi.deleted is false";
+
             hql += ")";
         }
+
+        hql += hlp.whereAnd() + " tei.deleted is false ";
 
         return hql;
     }
@@ -251,12 +261,13 @@ public class HibernateTrackedEntityInstanceStore
                 "ou.uid as " + ORG_UNIT_ID + ", " +
                 "ou.name as " + ORG_UNIT_NAME + ", " +
                 "te.uid as " + TRACKED_ENTITY_ID + ", " +
+                ( params.isIncludeDeleted() ? "tei.deleted as " + DELETED + ", " : "" ) +
                 "tei.inactive as " + INACTIVE_ID + ", ";
 
         for ( QueryItem item : params.getAttributes() )
         {
             String col = statementBuilder.columnQuote( item.getItemId() );
-            
+
             sql += item.isNumeric() ? "CAST( " + col + ".value AS NUMERIC ) as " : col + ".value as ";
 
             sql += col + ", ";
@@ -269,11 +280,11 @@ public class HibernateTrackedEntityInstanceStore
         // ---------------------------------------------------------------------
 
         sql += getFromWhereClause( params, hlp );
-        
+
         // ---------------------------------------------------------------------
         // Order clause
         // ---------------------------------------------------------------------
-        
+
         sql += getOrderClause( params );
 
         // ---------------------------------------------------------------------
@@ -288,6 +299,8 @@ public class HibernateTrackedEntityInstanceStore
         // ---------------------------------------------------------------------
         // Query
         // ---------------------------------------------------------------------
+
+        log.info( "Query: "+ sql );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -306,6 +319,11 @@ public class HibernateTrackedEntityInstanceStore
             map.put( ORG_UNIT_NAME, rowSet.getString( ORG_UNIT_NAME ) );
             map.put( TRACKED_ENTITY_ID, rowSet.getString( TRACKED_ENTITY_ID ) );
             map.put( INACTIVE_ID, rowSet.getString( INACTIVE_ID ) );
+
+            if ( params.isIncludeDeleted() )
+            {
+                map.put( DELETED, rowSet.getString( DELETED ) );
+            }
 
             for ( QueryItem item : params.getAttributes() )
             {
@@ -464,6 +482,11 @@ public class HibernateTrackedEntityInstanceStore
                 sql += getEventStatusWhereClause( params );
             }
 
+            if ( !params.isIncludeDeleted() )
+            {
+                sql += " and pi.deleted is false ";
+            }
+
             sql += ") ";
         }
 
@@ -495,9 +518,14 @@ public class HibernateTrackedEntityInstanceStore
             sql = removeLastAnd( sql ) + ") ";
         }
 
+        if ( !params.isIncludeDeleted() )
+        {
+            sql += hlp.whereAnd() + " tei.deleted is false ";
+        }
+
         return sql;
     }
-    
+
     private String getOrderClause( TrackedEntityInstanceQueryParams params )
     {
         List<String> cols = getStaticGridColumns();
@@ -544,10 +572,11 @@ public class HibernateTrackedEntityInstanceStore
 
         return "order by lastUpdated desc ";
     }
-    
-    private List<String> getStaticGridColumns(){
-        
-        return Arrays.asList( TRACKED_ENTITY_INSTANCE_ID, CREATED_ID, LAST_UPDATED_ID, ORG_UNIT_ID, ORG_UNIT_NAME, TRACKED_ENTITY_ID, INACTIVE_ID);
+
+    private List<String> getStaticGridColumns()
+    {
+
+        return Arrays.asList( TRACKED_ENTITY_INSTANCE_ID, CREATED_ID, LAST_UPDATED_ID, ORG_UNIT_ID, ORG_UNIT_NAME, TRACKED_ENTITY_ID, INACTIVE_ID );
     }
 
     private String getEventStatusWhereClause( TrackedEntityInstanceQueryParams params )
@@ -582,6 +611,8 @@ public class HibernateTrackedEntityInstanceStore
             sql = "and psi.duedate >= '" + start + "' and psi.duedate <= '" + end + "' " + "and psi.status = '"
                 + EventStatus.SKIPPED.name() + "' ";
         }
+
+        sql += "and psi.deleted is false ";
 
         return sql;
     }
@@ -638,7 +669,20 @@ public class HibernateTrackedEntityInstanceStore
     @Override
     public boolean exists( String uid )
     {
-        Integer result = jdbcTemplate.queryForObject( "select count(*) from trackedentityinstance where uid=?", Integer.class, uid );
+        Integer result = jdbcTemplate.queryForObject( "select count(*) from trackedentityinstance where uid=? and deleted is false", Integer.class, uid );
         return result != null && result > 0;
+    }
+
+    @Override
+    protected void preProcessDetachedCriteria( DetachedCriteria criteria )
+    {
+        // Filter out soft deleted values
+        criteria.add( Restrictions.eq( "deleted", false ) );
+    }
+
+    @Override
+    protected TrackedEntityInstance postProcessObject( TrackedEntityInstance trackedEntityInstance )
+    {
+        return ( trackedEntityInstance == null || trackedEntityInstance.isDeleted() ) ? null : trackedEntityInstance;
     }
 }

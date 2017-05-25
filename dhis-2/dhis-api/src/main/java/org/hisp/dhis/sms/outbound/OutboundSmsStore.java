@@ -32,7 +32,7 @@ import java.util.List;
 
 public interface OutboundSmsStore
 {
-    int saveOutboundSms( OutboundSms sms );
+    void saveOutboundSms( OutboundSms sms );
 
     List<OutboundSms> getAllOutboundSms();
 

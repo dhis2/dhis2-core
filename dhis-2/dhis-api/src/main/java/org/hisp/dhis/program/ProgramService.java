@@ -217,30 +217,11 @@ public interface ProgramService
     void mergeWithCurrentUserOrganisationUnits( Program program, Collection<OrganisationUnit> mergeOrganisationUnits );
     
     /**
-     * Gets or adds a program data element for the given program and data element.
-     * 
-     * @param programUid the program identifier.
-     * @param dataElementUid the data element identifier.
-     * @return a program data element.
-     */
-    ProgramDataElement getOrAddProgramDataElement(  String programUid, String dataElementUid  );
-    
-    /**
-     * Creates a program data element based on the program and data element with
-     * the given program and data element identifiers.
-     * 
-     * @param programUid the program identifier.
-     * @param dataElementUid the data element identifier.
-     * @return a program data element.
-     */
-    ProgramDataElement getProgramDataElement( String programUid, String dataElementUid );
-    
-    /**
      * Returns a list of generated, non-persisted program data elements for the
      * program with the given identifier.
      * 
      * @param programUid the program identifier.
      * @return a list of program data elements.
      */
-    List<ProgramDataElement> getGeneratedProgramDataElements( String programUid );
+    List<ProgramDataElementDimensionItem> getGeneratedProgramDataElements( String programUid );
 }

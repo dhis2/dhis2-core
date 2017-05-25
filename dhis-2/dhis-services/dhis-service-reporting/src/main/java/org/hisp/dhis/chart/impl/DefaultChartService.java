@@ -899,7 +899,9 @@ public class DefaultChartService
     @Override
     public int addChart( Chart chart )
     {
-        return chartStore.save( chart );
+        chartStore.save( chart );
+
+        return chart.getId();
     }
 
     @Override

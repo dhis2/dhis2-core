@@ -107,14 +107,10 @@ public class ValidationNotificationServiceTest
 
         // Stub MessageService.sendMessage(..) so that it appends any outgoing messages to our List
         when(
-            messageService.sendMessage(
+            messageService.sendValidationResultMessage(
                 anyString(),
                 anyString(),
-                anyString(),
-                anySetOf( User.class ),
-                any( User.class ),
-                anyBoolean(),
-                anyBoolean()
+                anySetOf( User.class )
             )
         ).then(
             invocation -> {
@@ -139,6 +135,8 @@ public class ValidationNotificationServiceTest
     private DataElementCategoryOptionCombo catOptCombo = createCategoryOptionCombo( 'A', 'r', 'i', 'b', 'a' );
     private ValidationRule valRuleA;
     private UserGroup userGroupA;
+
+    int idCounter = 0;
 
     private void setUpEntitiesA()
     {
@@ -166,7 +164,7 @@ public class ValidationNotificationServiceTest
     private ValidationResult createValidationResult( OrganisationUnit ou, ValidationRule rule )
     {
         Period period = createPeriod( "2017Q1" );
-        return new ValidationResult(
+        ValidationResult vr = new ValidationResult(
             rule,
             period,
             ou,
@@ -175,12 +173,16 @@ public class ValidationNotificationServiceTest
             RandomUtils.nextDouble( 10, 1000 ),
             periodService.getDayInPeriod( period, new Date() )
         );
+
+        vr.setId( idCounter++ );
+
+        return vr;
     }
 
     private ValidationResult createValidationResultA()
     {
         Period period = createPeriod( "2017Q1" );
-        return new ValidationResult(
+        ValidationResult vr = new ValidationResult(
             valRuleA,
             period,
             orgUnitA,
@@ -189,6 +191,10 @@ public class ValidationNotificationServiceTest
             RandomUtils.nextDouble( 10, 1000 ),
             periodService.getDayInPeriod( period, new Date() )
         );
+
+        vr.setId( idCounter++ );
+
+        return vr;
     }
 
     /*
@@ -271,7 +277,7 @@ public class ValidationNotificationServiceTest
         assertEquals( "The validation results should form a single summarized message", 1, sentMessages.size() );
 
         String text = sentMessages.iterator().next().text;
-
+        
         assertEquals(
             "Wrong number of messages in the summarized message", 10, StringUtils.countMatches( text, STATIC_MOCK_SUBJECT ) );
     }
@@ -393,7 +399,7 @@ public class ValidationNotificationServiceTest
     // -------------------------------------------------------------------------
 
     /**
-     * Mocks the input to MessageService.sendMessage(..)
+     * Mocks the input to MessageService.sendValidationResultMessage(..)
      */
     static class MockMessage
     {
@@ -410,11 +416,11 @@ public class ValidationNotificationServiceTest
         {
             this.subject = (String) args[0];
             this.text = (String) args[1];
-            this.metaData = (String) args[2];
-            this.users = (Set<User>) args[3];
-            this.sender = (User) args[4];
-            this.includeFeedbackRecipients = (boolean) args[5];
-            this.forceNotifications = (boolean) args[6];
+            this.metaData = null;
+            this.users = (Set<User>) args[2];
+            this.sender = null;
+            this.includeFeedbackRecipients = false;
+            this.forceNotifications = false;
         }
     }
 }

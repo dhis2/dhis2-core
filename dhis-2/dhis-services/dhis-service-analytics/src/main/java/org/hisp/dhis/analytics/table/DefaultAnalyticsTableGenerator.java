@@ -28,14 +28,6 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
-
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
@@ -52,6 +44,14 @@ import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
+
 /**
  * @author Lars Helge Overland
  */
@@ -59,62 +59,62 @@ public class DefaultAnalyticsTableGenerator
     implements AnalyticsTableGenerator
 {
     private static final Log log = LogFactory.getLog( DefaultAnalyticsTableGenerator.class );
-    
+
     @Autowired
     private List<AnalyticsTableService> analyticsTableServices;
 
     @Autowired
     private ResourceTableService resourceTableService;
-    
+
     @Autowired
     private MessageService messageService;
 
     @Autowired
     private SystemSettingManager systemSettingManager;
-    
+
     @Autowired
     private Notifier notifier;
 
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
-    
+
     @Override
     public void generateTables( Integer lastYears, TaskId taskId, Set<AnalyticsTableType> skipTableTypes, boolean skipResourceTables )
     {
         final Date startTime = new Date();
         final Clock clock = new Clock( log ).startClock();
         final Set<AnalyticsTableType> skipTypes = CollectionUtils.emptyIfNull( skipTableTypes );
-        final Set<AnalyticsTableType> availableTypes = analyticsTableServices
-            .stream().map( AnalyticsTableService::getAnalyticsTableType ).collect( Collectors.toSet() );
-        
+        final Set<AnalyticsTableType> availableTypes = analyticsTableServices.
+            stream().map( AnalyticsTableService::getAnalyticsTableType ).collect( Collectors.toSet() );
+
         log.info( String.format( "Found %d analytics table types: %s", availableTypes.size(), availableTypes ) );
         log.info( String.format( "Skip %d analytics table types: %s", skipTypes.size(), skipTypes ) );
-        
+
         try
         {
             notifier.clear( taskId ).notify( taskId, "Analytics table update process started" );
-            
+
             if ( !skipResourceTables )
             {
                 notifier.notify( taskId, "Updating resource tables" );
                 generateResourceTables();
             }
-            
+
             for ( AnalyticsTableService service : analyticsTableServices )
             {
                 AnalyticsTableType tableType = service.getAnalyticsTableType();
-                
+
                 if ( !skipTypes.contains( tableType ) )
                 {
                     notifier.notify( taskId, "Updating tables: " + tableType );
-                    
+
                     service.update( lastYears, taskId );
                 }
             }
-            
+
             clock.logTime( "Analytics tables updated" );
-            
+
             notifier.notify( taskId, INFO, "Analytics tables updated: " + clock.time(), true );
         }
         catch ( RuntimeException ex )
@@ -127,40 +127,49 @@ public class DefaultAnalyticsTableGenerator
         }
 
         systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, startTime );
-        systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME, DateUtils.getPrettyInterval( clock.getSplitTime() ) );        
+        systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME, DateUtils.getPrettyInterval( clock.getSplitTime() ) );
+    }
+
+    @Override
+    public void dropTables()
+    {
+        for ( AnalyticsTableService service : analyticsTableServices )
+        {
+            service.dropTables();
+        }
     }
 
     @Override
     public void generateResourceTables( TaskId taskId )
-    {        
+    {
         final Clock clock = new Clock().startClock();
-        
+
         notifier.notify( taskId, "Generating resource tables" );
-        
+
         try
         {
             generateResourceTables();
-            
+
             notifier.notify( taskId, NotificationLevel.INFO, "Resource tables generated: " + clock.time(), true );
         }
         catch ( RuntimeException ex )
         {
             notifier.notify( taskId, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
-            
+
             messageService.sendSystemErrorNotification( "Resource table process failed", ex );
-            
+
             throw ex;
         }
-    }   
+    }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-    
+
     private void generateResourceTables()
     {
         final Date startTime = new Date();
-        
+
         resourceTableService.dropAllSqlViews();
         resourceTableService.generateOrganisationUnitStructures();
         resourceTableService.generateDataSetOrganisationUnitCategoryTable();
@@ -172,9 +181,9 @@ public class DefaultAnalyticsTableGenerator
         resourceTableService.generateDataElementTable();
         resourceTableService.generatePeriodTable();
         resourceTableService.generateDatePeriodTable();
-        resourceTableService.generateDataElementCategoryOptionComboTable();        
+        resourceTableService.generateDataElementCategoryOptionComboTable();
         resourceTableService.createAllSqlViews();
-        
+
         systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, startTime );
     }
 }

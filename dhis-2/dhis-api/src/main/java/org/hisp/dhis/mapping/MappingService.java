@@ -73,8 +73,6 @@ public interface MappingService
 
     void deleteMap( Map map );
 
-    List<Map> getMapsBetweenLikeName( String name, int first, int max );
-
     List<Map> getAllMaps();
 
     // -------------------------------------------------------------------------
@@ -98,8 +96,6 @@ public interface MappingService
     List<MapView> getMapViewsByOrganisationUnitGroupSet( OrganisationUnitGroupSet groupSet );
     
     List<MapView> getAllMapViews();
-
-    List<MapView> getMapViewsBetweenByName( String name, int first, int max );
 
     int countMapViewMaps( MapView mapView );
 

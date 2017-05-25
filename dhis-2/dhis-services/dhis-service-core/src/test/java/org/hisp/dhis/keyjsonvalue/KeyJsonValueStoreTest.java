@@ -52,7 +52,8 @@ public class KeyJsonValueStoreTest extends DhisSpringTest
         keyJsonValue.setNamespace( "A" );
         keyJsonValue.setKey( "1" );
 
-        int id = keyJsonValueStore.save( keyJsonValue );
+        keyJsonValueStore.save( keyJsonValue );
+        int id = keyJsonValue.getId();
 
         assertNotNull( keyJsonValue );
         assertEquals( keyJsonValue, keyJsonValueStore.get( id ) );

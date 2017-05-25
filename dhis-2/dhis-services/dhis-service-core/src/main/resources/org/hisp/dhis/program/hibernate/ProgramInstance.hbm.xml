@@ -18,6 +18,10 @@
 
     <property name="lastUpdated" type="timestamp" not-null="true" />
 
+    <property name="createdAtClient" type="timestamp" />
+
+    <property name="lastUpdatedAtClient" type="timestamp" />
+
     <property name="incidentDate" column="incidentDate" />
 
     <property name="enrollmentDate" column="enrollmentdate" not-null="true" />
@@ -27,11 +31,13 @@
     <property name="followup" column="followup" />
 
     <property name="completedBy" />
-    
+
     <property name="longitude" />
 
     <property name="latitude" />
-    
+
+    <property name="deleted" column="deleted" />
+
     <property name="status" length="50">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.program.ProgramStatus</param>
@@ -60,10 +66,10 @@
     </list>
 
     <list name="comments" table="programinstancecomments" cascade="all,delete-orphan">
-      <key column="programinstanceid" foreign-key="fk_programinstancecomments_programinstanceid"/>
+      <key column="programinstanceid" foreign-key="fk_programinstancecomments_programinstanceid" />
       <list-index column="sort_order" base="1" />
-      <many-to-many class="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" column="trackedentitycommentid" 
-      	unique="true" foreign-key="fk_programinstancecomments_trackedentitycommentid"/>
+      <many-to-many class="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" column="trackedentitycommentid"
+        unique="true" foreign-key="fk_programinstancecomments_trackedentitycommentid" />
     </list>
 
     <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"

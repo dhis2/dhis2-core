@@ -35,8 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 
 import java.util.ArrayList;
@@ -47,7 +46,7 @@ import java.util.List;
  */
 @JacksonXmlRootElement( localName = "programStageSection", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramStageSection
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     private ProgramStage programStage;
 
@@ -141,33 +140,5 @@ public class ProgramStageSection
     public void setSortOrder( Integer sortOrder )
     {
         this.sortOrder = sortOrder;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            ProgramStageSection programStageSection = (ProgramStageSection) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                programStage = programStageSection.getProgramStage();
-                sortOrder = programStageSection.getSortOrder();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                programStage = programStageSection.getProgramStage() == null ? programStage : programStageSection.getProgramStage();
-                sortOrder = programStageSection.getSortOrder() == null ? sortOrder : programStageSection.getSortOrder();
-            }
-
-            dataElements.clear();
-            dataElements.addAll( programStageSection.getDataElements() );
-
-            programIndicators.clear();
-            programIndicators.addAll( programStageSection.getProgramIndicators() );
-        }
     }
 }

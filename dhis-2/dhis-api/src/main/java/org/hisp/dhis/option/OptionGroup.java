@@ -37,8 +37,7 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
 import java.util.HashSet;
@@ -49,7 +48,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "optionGroup", namespace = DxfNamespaces.DXF_2_0 )
 public class OptionGroup
-    extends BaseDimensionalItemObject
+    extends BaseDimensionalItemObject implements MetadataObject
 {
     private Set<Option> members = new HashSet<>();
 
@@ -142,20 +141,5 @@ public class OptionGroup
     public void removeAllOptions()
     {
         members.clear();
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            OptionGroup optionGroup = (OptionGroup) other;
-
-            removeAllOptions();
-
-            optionGroup.getMembers().forEach( this::addOption );
-        }
     }
 }

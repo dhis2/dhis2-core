@@ -196,7 +196,7 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/query", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_JAVASCRIPT } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD') or hasRole('F_TRACKED_ENTITY_DATAVALUE_READ')" )
     public @ResponseBody Grid getEventsGrid(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String programStage,
@@ -209,6 +209,7 @@ public class EventController
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) Date dueDateStart,
         @RequestParam( required = false ) Date dueDateEnd,
+        @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) Date lastUpdatedStartDate,
         @RequestParam( required = false ) Date lastUpdatedEndDate,
         @RequestParam( required = false ) EventStatus status,
@@ -246,6 +247,8 @@ public class EventController
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
 
+        lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
+
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
             idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter, dataElement, includeDeleted );
@@ -257,7 +260,7 @@ public class EventController
     }
 
     @RequestMapping( value = "", method = RequestMethod.GET )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD') or hasRole('F_TRACKED_ENTITY_DATAVALUE_READ')" )
     public @ResponseBody RootNode getEvents(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String programStage,
@@ -270,6 +273,7 @@ public class EventController
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) Date dueDateStart,
         @RequestParam( required = false ) Date dueDateEnd,
+        @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) Date lastUpdatedStartDate,
         @RequestParam( required = false ) Date lastUpdatedEndDate,
         @RequestParam( required = false ) EventStatus status,
@@ -306,6 +310,8 @@ public class EventController
         }
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+
+        lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
@@ -346,7 +352,7 @@ public class EventController
     }
 
     @RequestMapping( value = "", method = RequestMethod.GET, produces = { "application/csv", "application/csv+gzip", "text/csv" } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD') or hasRole('F_TRACKED_ENTITY_DATAVALUE_READ')" )
     public void getCsvEvents(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String programStage,
@@ -359,6 +365,7 @@ public class EventController
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) Date dueDateStart,
         @RequestParam( required = false ) Date dueDateEnd,
+        @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) Date lastUpdatedStartDate,
         @RequestParam( required = false ) Date lastUpdatedEndDate,
         @RequestParam( required = false ) EventStatus status,
@@ -383,6 +390,8 @@ public class EventController
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
         }
+
+        lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
@@ -409,7 +418,7 @@ public class EventController
     }
 
     @RequestMapping( value = "/eventRows", method = RequestMethod.GET )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD') or hasRole('F_TRACKED_ENTITY_DATAVALUE_READ')" )
     public @ResponseBody EventRows getEventRows(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String orgUnit,
@@ -437,7 +446,7 @@ public class EventController
     }
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.GET )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD') or hasRole('F_TRACKED_ENTITY_DATAVALUE_READ')" )
     public @ResponseBody Event getEvent( @PathVariable( "uid" ) String uid, @RequestParam Map<String, String> parameters,
         Model model, HttpServletRequest request ) throws Exception
     {
@@ -454,7 +463,7 @@ public class EventController
     }
 
     @RequestMapping( value = "/files", method = RequestMethod.GET )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD') or hasRole('F_TRACKED_ENTITY_DATAVALUE_READ')" )
     public void getEventDataValueFile( @RequestParam String eventUid, @RequestParam String dataElementUid,
         HttpServletResponse response, HttpServletRequest request ) throws Exception
     {
@@ -584,7 +593,7 @@ public class EventController
     {
         importOptions.setImportStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-        importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(),  contextService.getParameterValuesMap() ));
+        importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
 
         if ( !importOptions.isAsync() )
         {
@@ -630,7 +639,7 @@ public class EventController
     {
         importOptions.setImportStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-        importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(),  contextService.getParameterValuesMap() ));
+        importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
 
         if ( !importOptions.isAsync() )
         {
@@ -890,16 +899,16 @@ public class EventController
     private IdSchemes getIdSchemesFromParameters( IdSchemes idSchemes, Map<String, List<String>> params )
     {
 
-        String idScheme  = getParamValue( params, "idScheme" );
+        String idScheme = getParamValue( params, "idScheme" );
 
-        if( idScheme != null )
+        if ( idScheme != null )
         {
             idSchemes.setIdScheme( idScheme );
         }
 
         String programStageInstanceIdScheme = getParamValue( params, "programStageInstanceIdScheme" );
 
-        if( programStageInstanceIdScheme != null )
+        if ( programStageInstanceIdScheme != null )
         {
             idSchemes.setProgramStageInstanceIdScheme( programStageInstanceIdScheme );
         }
@@ -907,9 +916,9 @@ public class EventController
         return idSchemes;
     }
 
-    private String getParamValue(  Map<String, List<String>> params, String key )
+    private String getParamValue( Map<String, List<String>> params, String key )
     {
-        return  params.get( key ) != null ? params.get( key ).get( 0 ) : null;
+        return params.get( key ) != null ? params.get( key ).get( 0 ) : null;
     }
 
 }

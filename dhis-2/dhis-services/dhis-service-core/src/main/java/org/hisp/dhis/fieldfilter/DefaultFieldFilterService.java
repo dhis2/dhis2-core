@@ -34,7 +34,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.LinkObject;
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeTransformer;
@@ -328,7 +328,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
         for ( String fieldKey : Sets.newHashSet( fieldMap.keySet() ) )
         {
-            List<Property> properties = schema.getReadableProperties();
+            Collection<Property> properties = schema.getReadableProperties().values();
 
             if ( "*".equals( fieldKey ) )
             {
@@ -424,7 +424,7 @@ public class DefaultFieldFilterService implements FieldFilterService
     {
         FieldMap fieldMap = new FieldMap();
 
-        for ( Property property : schema.getReadableProperties() )
+        for ( Property property : schema.getReadableProperties().values() )
         {
             fieldMap.put( property.getName(), new FieldMap() );
         }
@@ -487,6 +487,6 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private boolean isProperIdObject( Class<?> klass )
     {
-        return !(UserCredentials.class.isAssignableFrom( klass ) || LinkObject.class.isAssignableFrom( klass ));
+        return !(UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass ));
     }
 }

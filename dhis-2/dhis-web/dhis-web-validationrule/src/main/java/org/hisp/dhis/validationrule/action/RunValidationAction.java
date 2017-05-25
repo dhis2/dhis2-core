@@ -192,7 +192,7 @@ public class RunValidationAction
     {
         organisationUnit = organisationUnitService.getOrganisationUnit( organisationUnitId );
 
-        Collection<OrganisationUnit> organisationUnits = organisationUnitService.getOrganisationUnitWithChildren( organisationUnit.getId() );
+        List<OrganisationUnit> organisationUnits = organisationUnitService.getOrganisationUnitWithChildren( organisationUnit.getId() );
 
         ValidationRuleGroup group = validationRuleGroupId == -1 ? null : validationRuleService.getValidationRuleGroup( validationRuleGroupId );
 

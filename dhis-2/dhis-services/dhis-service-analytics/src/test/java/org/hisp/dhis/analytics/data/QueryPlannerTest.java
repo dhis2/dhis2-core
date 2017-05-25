@@ -66,7 +66,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElement;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
@@ -131,8 +131,8 @@ public class QueryPlannerTest
     private DataElement deG;
     private DataElement deH;
     
-    private ProgramDataElement pdeA;
-    private ProgramDataElement pdeB;
+    private ProgramDataElementDimensionItem pdeA;
+    private ProgramDataElementDimensionItem pdeB;
 
     private ReportingRate rrA;
     private ReportingRate rrB;
@@ -191,11 +191,8 @@ public class QueryPlannerTest
         dataElementService.addDataElement( deG );
         dataElementService.addDataElement( deH );
 
-        pdeA = new ProgramDataElement( prA, deA );
-        pdeB = new ProgramDataElement( prA, deB );
-
-        idObjectManager.save( pdeA );
-        idObjectManager.save( pdeB );
+        pdeA = new ProgramDataElementDimensionItem( prA, deA );
+        pdeB = new ProgramDataElementDimensionItem( prA, deB );
 
         DataSet dsA = createDataSet( 'A', pt );
         DataSet dsB = createDataSet( 'B', pt );

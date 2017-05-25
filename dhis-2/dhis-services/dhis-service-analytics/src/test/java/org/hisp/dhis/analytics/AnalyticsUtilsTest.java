@@ -38,6 +38,7 @@ import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataelement.DataElementOperand.TotalType;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.indicator.Indicator;
@@ -46,7 +47,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElement;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -78,8 +79,8 @@ public class AnalyticsUtilsTest
         
         DataElement deA = createDataElement( 'A', new DataElementCategoryCombo() );
         DataElement deB = createDataElement( 'B', new DataElementCategoryCombo() );
-        ProgramDataElement pdeA = new ProgramDataElement( prA, deA );
-        ProgramDataElement pdeB = new ProgramDataElement( prA, deB );
+        ProgramDataElementDimensionItem pdeA = new ProgramDataElementDimensionItem( prA, deA );
+        ProgramDataElementDimensionItem pdeB = new ProgramDataElementDimensionItem( prA, deB );
         ProgramIndicator piA = createProgramIndicator( 'A', prA, null, null );
         
         List<DimensionalItemObject> list = Lists.newArrayList( deA, deB, pdeA, pdeB, piA );
@@ -91,18 +92,78 @@ public class AnalyticsUtilsTest
     }
     
     @Test
-    public void testConvertDxToOperand()
+    public void testConvertDxToOperandCocOnly()
     {
         Map<String, Double> map = new HashMap<>();
         map.put( "GauDLAiXPKT-kC1OT9Q1n1j-R9U8q7X1aJG", 10d );
         map.put( "YkRvCLedQa4-h1dJ9W4dWor-Zrd4DAf8M99", 11d );
         map.put( "PcfRp1HETO8-zqXKIEycBck-KBJBZopYMPV", 12d );
         
-        Map<String, Double> convertedMap = AnalyticsUtils.convertDxToOperand( map );
+        Map<String, Double> convertedMap = AnalyticsUtils.convertDxToOperand( map, TotalType.COC_ONLY );
         
         assertTrue( convertedMap.containsKey( "GauDLAiXPKT.kC1OT9Q1n1j-R9U8q7X1aJG" ) );
         assertTrue( convertedMap.containsKey( "YkRvCLedQa4.h1dJ9W4dWor-Zrd4DAf8M99" ) );
         assertTrue( convertedMap.containsKey( "PcfRp1HETO8.zqXKIEycBck-KBJBZopYMPV" ) );
+    }
+
+    @Test
+    public void testConvertDxToOperandCocOnlyNoDmensions()
+    {
+        Map<String, Double> map = new HashMap<>();
+        map.put( "GauDLAiXPKT-kC1OT9Q1n1j", 10d );
+        map.put( "YkRvCLedQa4-h1dJ9W4dWor", 11d );
+        map.put( "PcfRp1HETO8-zqXKIEycBck", 12d );
+        
+        Map<String, Double> convertedMap = AnalyticsUtils.convertDxToOperand( map, TotalType.COC_ONLY );
+
+        assertTrue( convertedMap.containsKey( "GauDLAiXPKT.kC1OT9Q1n1j" ) );
+        assertTrue( convertedMap.containsKey( "YkRvCLedQa4.h1dJ9W4dWor" ) );
+        assertTrue( convertedMap.containsKey( "PcfRp1HETO8.zqXKIEycBck" ) );
+    }
+
+    @Test
+    public void testConvertDxToOperandAocOnly()
+    {
+        Map<String, Double> map = new HashMap<>();
+        map.put( "GauDLAiXPKT-kC1OT9Q1n1j-2016", 10d );
+        map.put( "YkRvCLedQa4-h1dJ9W4dWor-2017", 11d );
+        map.put( "w1G4l0cSxOi-gQhAMdimKO4-2017", 12d );
+        
+        Map<String, Double> convertedMap = AnalyticsUtils.convertDxToOperand( map, TotalType.AOC_ONLY );
+        
+        assertTrue( convertedMap.containsKey( "GauDLAiXPKT.*.kC1OT9Q1n1j-2016" ) );
+        assertTrue( convertedMap.containsKey( "YkRvCLedQa4.*.h1dJ9W4dWor-2017" ) );
+        assertTrue( convertedMap.containsKey( "w1G4l0cSxOi.*.gQhAMdimKO4-2017" ) );
+    }
+
+    @Test
+    public void testConvertDxToOperandCocAndAoc()
+    {
+        Map<String, Double> map = new HashMap<>();
+        map.put( "GauDLAiXPKT-kC1OT9Q1n1j-R9U8q7X1aJG-201701", 10d );
+        map.put( "YkRvCLedQa4-h1dJ9W4dWor-Zrd4DAf8M99-201702", 11d );
+        map.put( "PcfRp1HETO8-zqXKIEycBck-KBJBZopYMPV-201703", 12d );
+                
+        Map<String, Double> convertedMap = AnalyticsUtils.convertDxToOperand( map, TotalType.COC_AND_AOC );
+        
+        assertTrue( convertedMap.containsKey( "GauDLAiXPKT.kC1OT9Q1n1j.R9U8q7X1aJG-201701" ) );
+        assertTrue( convertedMap.containsKey( "YkRvCLedQa4.h1dJ9W4dWor.Zrd4DAf8M99-201702" ) );
+        assertTrue( convertedMap.containsKey( "PcfRp1HETO8.zqXKIEycBck.KBJBZopYMPV-201703" ) );
+    }
+
+    @Test
+    public void testConvertDxToOperandNone()
+    {
+        Map<String, Double> map = new HashMap<>();
+        map.put( "GauDLAiXPKT-kC1OT9Q1n1j-R9U8q7X1aJG", 10d );
+        map.put( "YkRvCLedQa4-h1dJ9W4dWor-Zrd4DAf8M99", 11d );
+        map.put( "PcfRp1HETO8-zqXKIEycBck-KBJBZopYMPV", 12d );
+                
+        Map<String, Double> convertedMap = AnalyticsUtils.convertDxToOperand( map, TotalType.NONE );
+
+        assertTrue( convertedMap.containsKey( "GauDLAiXPKT-kC1OT9Q1n1j-R9U8q7X1aJG" ) );
+        assertTrue( convertedMap.containsKey( "YkRvCLedQa4-h1dJ9W4dWor-Zrd4DAf8M99" ) );
+        assertTrue( convertedMap.containsKey( "PcfRp1HETO8-zqXKIEycBck-KBJBZopYMPV" ) );
     }
     
     @Test
@@ -162,7 +223,7 @@ public class AnalyticsUtilsTest
         Indicator inA = createIndicator( 'A', null );
         DataSet dsA = createDataSet( 'A' );
 
-        DimensionalObject dx = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( deA, inA, dsA ) );
+        DimensionalObject dx = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, DimensionalObjectUtils.getList( deA, inA, dsA ) );
         
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( dx )
@@ -186,7 +247,7 @@ public class AnalyticsUtilsTest
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         OrganisationUnit ouB = createOrganisationUnit( 'B' );
         
-        DimensionalObject dx = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( deA, inA, dsA ) );
+        DimensionalObject dx = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, DimensionalObjectUtils.getList( deA, inA, dsA ) );
         DimensionalObject ou = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA, ouB ) );
         
         DataQueryParams params = DataQueryParams.newBuilder()

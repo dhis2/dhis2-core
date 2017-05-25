@@ -44,13 +44,12 @@ public class FileResourceSchemaDescriptor
 
     public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override 
+    @Override
     public Schema getSchema()
     {
         Schema schema = new Schema( FileResource.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setMetadata( false );
-        schema.setOrder( 1250 );
+
         return schema;
     }
 }

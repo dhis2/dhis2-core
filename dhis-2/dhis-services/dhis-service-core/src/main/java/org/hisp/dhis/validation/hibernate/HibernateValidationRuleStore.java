@@ -65,13 +65,13 @@ public class HibernateValidationRuleStore
     // -------------------------------------------------------------------------
 
     @Override
-    public int save( ValidationRule validationRule )
+    public void save( ValidationRule validationRule )
     {
         PeriodType periodType = periodService.reloadPeriodType( validationRule.getPeriodType() );
 
         validationRule.setPeriodType( periodType );
 
-        return super.save( validationRule );
+        super.save( validationRule );
     }
 
     @Override

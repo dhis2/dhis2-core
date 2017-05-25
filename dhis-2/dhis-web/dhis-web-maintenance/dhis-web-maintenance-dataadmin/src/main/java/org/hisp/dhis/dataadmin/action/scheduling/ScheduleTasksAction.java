@@ -545,7 +545,7 @@ public class ScheduleTasksAction
         lastAnalyticsTableSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
         lastMonitoringSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_MONITORING );
         lastDataStatisticSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_DATA_STATISTIC );
-        lastDataSyncSuccess = synchronizationManager.getLastSynchSuccess();
+        lastDataSyncSuccess = synchronizationManager.getLastDataSynchSuccess();
         lastMetaDataSyncSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_METADATA_SYNC );
         lastProgramNotificationSchedulerSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS );
 

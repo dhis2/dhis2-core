@@ -104,10 +104,11 @@ public class DataValue
     }
 
     /**
-     * @param dataElement         the data element.
-     * @param period              the period.
-     * @param source              the organisation unit.
-     * @param categoryOptionCombo the category option combo.
+     * @param dataElement          the data element.
+     * @param period               the period.
+     * @param source               the organisation unit.
+     * @param categoryOptionCombo  the category option combo.
+     * @param attributeOptionCombo the attribute option combo.
      */
     public DataValue( DataElement dataElement, Period period, OrganisationUnit source,
         DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo )
@@ -117,6 +118,27 @@ public class DataValue
         this.source = source;
         this.categoryOptionCombo = categoryOptionCombo;
         this.attributeOptionCombo = attributeOptionCombo;
+        this.created = new Date();
+        this.lastUpdated = new Date();
+    }
+
+    /**
+     * @param dataElement          the data element.
+     * @param period               the period.
+     * @param source               the organisation unit.
+     * @param categoryOptionCombo  the category option combo.
+     * @param attributeOptionCombo the attribute option combo.
+     * @param value                the value.
+     */
+    public DataValue( DataElement dataElement, Period period, OrganisationUnit source,
+        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo, String value )
+    {
+        this.dataElement = dataElement;
+        this.period = period;
+        this.source = source;
+        this.categoryOptionCombo = categoryOptionCombo;
+        this.attributeOptionCombo = attributeOptionCombo;
+        this.value = value;
         this.created = new Date();
         this.lastUpdated = new Date();
     }

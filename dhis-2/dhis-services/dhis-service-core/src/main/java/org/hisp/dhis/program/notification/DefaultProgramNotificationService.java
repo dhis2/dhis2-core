@@ -32,8 +32,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -270,7 +272,7 @@ public class DefaultProgramNotificationService
 
         return new ProgramMessage(
             message.getSubject(), message.getMessage(), resolveProgramMessageRecipients( template, psi.getOrganisationUnit(),
-            psi.getProgramInstance().getEntityInstance() ), template.getDeliveryChannels(), psi );
+            psi.getProgramInstance() ), template.getDeliveryChannels(), psi );
     }
 
     private ProgramMessage createProgramMessage( ProgramInstance programInstance, ProgramNotificationTemplate template )
@@ -279,7 +281,7 @@ public class DefaultProgramNotificationService
 
         return new ProgramMessage(
             message.getSubject(), message.getMessage(),
-            resolveProgramMessageRecipients( template, programInstance.getOrganisationUnit(), programInstance.getEntityInstance() ),
+            resolveProgramMessageRecipients( template, programInstance.getOrganisationUnit(), programInstance ),
             template.getDeliveryChannels(), programInstance );
     }
 
@@ -312,9 +314,11 @@ public class DefaultProgramNotificationService
     }
 
     private ProgramMessageRecipients resolveProgramMessageRecipients(
-        ProgramNotificationTemplate template, OrganisationUnit organisationUnit, TrackedEntityInstance trackedEntityInstance )
+            ProgramNotificationTemplate template, OrganisationUnit organisationUnit, ProgramInstance programInstance )
     {
         ProgramMessageRecipients recipients = new ProgramMessageRecipients();
+
+        TrackedEntityInstance trackedEntityInstance = programInstance.getEntityInstance();
 
         ProgramNotificationRecipient recipientType = template.getNotificationRecipient();
 
@@ -325,6 +329,22 @@ public class DefaultProgramNotificationService
         else if ( recipientType == ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE )
         {
             recipients.setTrackedEntityInstance( trackedEntityInstance );
+        }
+        else if ( recipientType == ProgramNotificationRecipient.PROGRAM_ATTRIBUTE )
+        {
+            List<String> recipientList = programInstance.getEntityInstance().getTrackedEntityAttributeValues().stream()
+                    .filter( av -> template.getRecipientProgramAttribute().getUid().equals( av.getAttribute().getUid() ) )
+                    .map( av -> av.getPlainValue() )
+                    .collect( Collectors.toList() );
+
+            if ( template.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
+            {
+                recipients.getPhoneNumbers().addAll( recipientList );
+            }
+            else if ( template.getDeliveryChannels().contains( DeliveryChannel.EMAIL ) )
+            {
+                recipients.getEmailAddresses().addAll( recipientList );
+            }
         }
 
         return recipients;
@@ -368,7 +388,8 @@ public class DefaultProgramNotificationService
     private void sendDhisMessages( Set<DhisMessage> messages )
     {
         messages.forEach( m ->
-            messageService.sendMessage( m.message.getSubject(), m.message.getMessage(), null, m.recipients, null, false, true )
+            messageService.sendMessage( m.message.getSubject(), m.message.getMessage(), null, m.recipients, null,
+                MessageType.SYSTEM, true )
         );
     }
 
@@ -421,6 +442,4 @@ public class DefaultProgramNotificationService
             return dhisMessages.size() + programMessages.size();
         }
     }
-
-
 }

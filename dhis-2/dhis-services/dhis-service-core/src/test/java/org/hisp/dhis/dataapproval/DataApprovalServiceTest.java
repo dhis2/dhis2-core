@@ -408,10 +408,10 @@ public class DataApprovalServiceTest
         groupSetEFGH.addCategoryOptionGroup( groupAB );
         groupSetEFGH.addCategoryOptionGroup( groupEF );
 
-        groupAB.setGroupSet( groupSetABCD );
-        groupCD.setGroupSet( groupSetABCD );
-        groupEF.setGroupSet( groupSetEFGH );
-        groupGH.setGroupSet( groupSetEFGH );
+        groupAB.getGroupSets().add( groupSetABCD );
+        groupCD.getGroupSets().add( groupSetABCD );
+        groupEF.getGroupSets().add( groupSetEFGH );
+        groupGH.getGroupSets().add( groupSetEFGH );
 
         level2ABCD = new DataApprovalLevel( "level2ABCD", 2, groupSetABCD );
         level2EFGH = new DataApprovalLevel( "level2EFGH", 2, groupSetEFGH );

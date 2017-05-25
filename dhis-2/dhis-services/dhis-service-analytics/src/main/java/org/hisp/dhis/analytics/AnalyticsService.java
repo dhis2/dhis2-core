@@ -28,12 +28,12 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Map;
-
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * This interface is responsible for retrieving aggregated data. Data will be
@@ -139,7 +139,7 @@ public interface AnalyticsService
      * @return a data value set representing aggregated data.
      */
     DataValueSet getAggregatedDataValueSet( DataQueryParams params );
-    
+
     /**
      * Generates an aggregated value grid for the given query based on the given
      * analytical object.

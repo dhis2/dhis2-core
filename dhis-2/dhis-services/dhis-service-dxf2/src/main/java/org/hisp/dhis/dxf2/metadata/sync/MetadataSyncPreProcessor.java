@@ -85,9 +85,11 @@ public class MetadataSyncPreProcessor
         ImportSummary importSummary = null;
         AvailabilityStatus remoteServerAvailable = synchronizationManager.isRemoteServerAvailable();
 
-        //TODO We are checking the Remote server availability here, as the executeDataPush()
-        //returns 'null' in two cases: "Nothing to sync" and "Server unavailable." We need greater control
-        //to understand the exact reason.
+        // -------------------------------------------------------------------------
+        // We are checking the Remote server availability here, as executeDataPush
+        // returns null in two cases: "Nothing to sync" and "Server unavailable
+        // -------------------------------------------------------------------------
+
         if ( !(remoteServerAvailable.isAvailable()) )
         {
             String message = remoteServerAvailable.getMessage();
@@ -106,7 +108,7 @@ public class MetadataSyncPreProcessor
             log.error( "Exception happened while trying to do data push " + ex.getMessage(), ex );
             if ( ex instanceof MetadataSyncServiceException )
             {
-                throw ex;
+                throw (MetadataSyncServiceException)ex;
             }
             context.updateRetryContext( MetadataSyncTask.DATA_PUSH_SUMMARY, ex.getMessage(), null, null );
             throw new MetadataSyncServiceException( ex.getMessage(), ex );
@@ -133,7 +135,7 @@ public class MetadataSyncPreProcessor
 
         try
         {
-            importSummary = synchronizationManager.executeAnonymousEventPush();
+            importSummary = synchronizationManager.executeEventPush();
             handleEventImportSummary( importSummary, context );
         }
         catch ( Exception ex )
@@ -142,7 +144,7 @@ public class MetadataSyncPreProcessor
 
             if ( ex instanceof MetadataSyncServiceException )
             {
-                throw ex;
+                throw (MetadataSyncServiceException)ex;
             }
 
             context.updateRetryContext( MetadataSyncTask.EVENT_PUSH_SUMMARY, ex.getMessage(), null, null );
@@ -255,7 +257,7 @@ public class MetadataSyncPreProcessor
         {
             ImportStatus status = importSummary.getStatus();
 
-            if ( ImportStatus.ERROR.equals( status ) )
+            if ( ImportStatus.ERROR.equals( status ) || ImportStatus.WARNING.equals( status ) )
             {
                 log.error( "Import Summary description: " + importSummary.getDescription() );
                 context.updateRetryContext( MetadataSyncTask.DATA_PUSH_SUMMARY, importSummary.getDescription(), null, null );
@@ -290,9 +292,7 @@ public class MetadataSyncPreProcessor
                 context.updateRetryContext( MetadataSyncTask.EVENT_PUSH_SUMMARY, summaryDescription.toString(), null, null );
                 throw new MetadataSyncServiceException( "The Event Data Push was not successful. " );
             }
-
         }
-
     }
 
     private MetadataVersion getLatestVersion( List<MetadataVersion> metadataVersionList )
@@ -313,6 +313,7 @@ public class MetadataSyncPreProcessor
                 return metadataVersion;
             }
         }
+        
         return null;
     }
 }

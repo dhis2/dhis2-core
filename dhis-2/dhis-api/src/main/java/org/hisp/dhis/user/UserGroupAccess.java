@@ -34,7 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.LinkObject;
+import org.hisp.dhis.common.EmbeddedObject;
 
 import java.io.Serializable;
 
@@ -43,7 +43,7 @@ import java.io.Serializable;
  */
 @JacksonXmlRootElement( localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0 )
 public class UserGroupAccess
-    implements Serializable, LinkObject
+    implements Serializable, EmbeddedObject
 {
     private int id;
 

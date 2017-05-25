@@ -112,7 +112,8 @@ public class DefaultDataEntryFormService
             dataEntryForm.setFormat( DataEntryForm.CURRENT_FORMAT );
         }
 
-        return dataEntryFormStore.save( dataEntryForm );
+        dataEntryFormStore.save( dataEntryForm );
+        return dataEntryForm.getId();
     }
 
     @Override

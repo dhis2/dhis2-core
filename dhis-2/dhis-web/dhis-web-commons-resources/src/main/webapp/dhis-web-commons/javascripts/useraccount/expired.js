@@ -33,9 +33,10 @@ var validationRules = {
     },
     password: {
       required: true,
-      rangelength: [8, 80],
+      rangelength: [8, 40],
       password: true,
       notequalto: "#oldPassword"
+
     },
     retypePassword: {
       required: true,

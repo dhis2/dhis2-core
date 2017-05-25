@@ -56,11 +56,11 @@ public class HibernatePredictorStore
     // -------------------------------------------------------------------------
 
     @Override
-    public int save( Predictor predictor )
+    public void save( Predictor predictor )
     {
         predictor.setPeriodType( periodService.reloadPeriodType( predictor.getPeriodType() ) );
 
-        return super.save( predictor );
+        super.save( predictor );
     }
 
     @Override

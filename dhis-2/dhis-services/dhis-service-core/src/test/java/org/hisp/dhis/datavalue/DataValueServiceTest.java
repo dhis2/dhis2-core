@@ -132,12 +132,9 @@ public class DataValueServiceTest
     @Test
     public void testAddDataValue()
     {
-        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo );
-        dataValueA.setValue( "1" );
-        DataValue dataValueB = new DataValue( dataElementB, periodA, sourceA, optionCombo, optionCombo );
-        dataValueB.setValue( "2" );
-        DataValue dataValueC = new DataValue( dataElementC, periodC, sourceA, optionCombo, optionCombo );
-        dataValueC.setValue( "3" );
+        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo, "1" );
+        DataValue dataValueB = new DataValue( dataElementB, periodA, sourceA, optionCombo, optionCombo, "2" );
+        DataValue dataValueC = new DataValue( dataElementC, periodC, sourceA, optionCombo, optionCombo, "3" );
 
         dataValueService.addDataValue( dataValueA );
         dataValueService.addDataValue( dataValueB );
@@ -171,10 +168,8 @@ public class DataValueServiceTest
     @Test
     public void testUpdataDataValue()
     {
-        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo );
-        dataValueA.setValue( "1" );
-        DataValue dataValueB = new DataValue( dataElementB, periodA, sourceB, optionCombo, optionCombo );
-        dataValueB.setValue( "2" );
+        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo, "1" );
+        DataValue dataValueB = new DataValue( dataElementB, periodA, sourceB, optionCombo, optionCombo, "2" );
 
         dataValueService.addDataValue( dataValueA );
         dataValueService.addDataValue( dataValueB );
@@ -197,14 +192,10 @@ public class DataValueServiceTest
     @Test
     public void testDeleteAndGetDataValue()
     {
-        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo );
-        dataValueA.setValue( "1" );
-        DataValue dataValueB = new DataValue( dataElementB, periodA, sourceA, optionCombo, optionCombo );
-        dataValueB.setValue( "2" );
-        DataValue dataValueC = new DataValue( dataElementC, periodC, sourceD, optionCombo, optionCombo );
-        dataValueC.setValue( "3" );
-        DataValue dataValueD = new DataValue( dataElementD, periodC, sourceB, optionCombo, optionCombo );
-        dataValueD.setValue( "4" );
+        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo, "1" );
+        DataValue dataValueB = new DataValue( dataElementB, periodA, sourceA, optionCombo, optionCombo, "2" );
+        DataValue dataValueC = new DataValue( dataElementC, periodC, sourceD, optionCombo, optionCombo, "3" );
+        DataValue dataValueD = new DataValue( dataElementD, periodC, sourceB, optionCombo, optionCombo, "4" );
 
         dataValueService.addDataValue( dataValueA );
         dataValueService.addDataValue( dataValueB );
@@ -248,26 +239,16 @@ public class DataValueServiceTest
     @Test
     public void testGetDataValuesDataExportParamsA()
     {
-        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo );
-        dataValueA.setValue( "1" );
-        DataValue dataValueB = new DataValue( dataElementA, periodA, sourceB, optionCombo, optionCombo );
-        dataValueB.setValue( "2" );
-        DataValue dataValueC = new DataValue( dataElementA, periodB, sourceA, optionCombo, optionCombo );
-        dataValueC.setValue( "3" );
-        DataValue dataValueD = new DataValue( dataElementA, periodB, sourceB, optionCombo, optionCombo );
-        dataValueD.setValue( "4" );
-        DataValue dataValueE = new DataValue( dataElementB, periodA, sourceA, optionCombo, optionCombo );
-        dataValueE.setValue( "5" );
-        DataValue dataValueF = new DataValue( dataElementB, periodA, sourceB, optionCombo, optionCombo );
-        dataValueF.setValue( "6" );
-        DataValue dataValueG = new DataValue( dataElementB, periodB, sourceA, optionCombo, optionCombo );
-        dataValueG.setValue( "7" );
-        DataValue dataValueH = new DataValue( dataElementB, periodB, sourceB, optionCombo, optionCombo );
-        dataValueH.setValue( "8" );
-        DataValue dataValueI = new DataValue( dataElementA, periodC, sourceA, optionCombo, optionCombo );
-        dataValueI.setValue( "9" );
-        DataValue dataValueJ = new DataValue( dataElementA, periodC, sourceB, optionCombo, optionCombo );
-        dataValueJ.setValue( "1" );
+        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo, "1" );
+        DataValue dataValueB = new DataValue( dataElementA, periodA, sourceB, optionCombo, optionCombo, "2" );
+        DataValue dataValueC = new DataValue( dataElementA, periodB, sourceA, optionCombo, optionCombo, "3" );
+        DataValue dataValueD = new DataValue( dataElementA, periodB, sourceB, optionCombo, optionCombo, "4" );
+        DataValue dataValueE = new DataValue( dataElementB, periodA, sourceA, optionCombo, optionCombo, "5" );
+        DataValue dataValueF = new DataValue( dataElementB, periodA, sourceB, optionCombo, optionCombo, "6" );
+        DataValue dataValueG = new DataValue( dataElementB, periodB, sourceA, optionCombo, optionCombo, "7" );
+        DataValue dataValueH = new DataValue( dataElementB, periodB, sourceB, optionCombo, optionCombo, "8" );
+        DataValue dataValueI = new DataValue( dataElementA, periodC, sourceA, optionCombo, optionCombo, "9" );
+        DataValue dataValueJ = new DataValue( dataElementA, periodC, sourceB, optionCombo, optionCombo, "10" );
 
         dataValueService.addDataValue( dataValueA );
         dataValueService.addDataValue( dataValueB );
@@ -307,7 +288,14 @@ public class DataValueServiceTest
 
         values = dataValueService.getDataValues( params );
         
-        assertEquals( 2, values.size() );        
+        assertEquals( 2, values.size() );
+        
+        params = new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementA, dataElementB ) );
+        
+        values = dataValueService.getDataValues( params );
+        
+        assertEquals( 10, values.size() );
         
         //TODO more tests
     }
@@ -315,26 +303,16 @@ public class DataValueServiceTest
     @Test
     public void testGetDataValuesDataExportParamsB()
     {
-        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo );
-        dataValueA.setValue( "1" );
-        DataValue dataValueB = new DataValue( dataElementA, periodA, sourceB, optionCombo, optionCombo );
-        dataValueB.setValue( "2" );
-        DataValue dataValueC = new DataValue( dataElementA, periodB, sourceA, optionCombo, optionCombo );
-        dataValueC.setValue( "3" );
-        DataValue dataValueD = new DataValue( dataElementA, periodB, sourceB, optionCombo, optionCombo );
-        dataValueD.setValue( "4" );
-        DataValue dataValueE = new DataValue( dataElementB, periodA, sourceA, optionCombo, optionCombo );
-        dataValueE.setValue( "5" );
-        DataValue dataValueF = new DataValue( dataElementB, periodA, sourceB, optionCombo, optionCombo );
-        dataValueF.setValue( "6" );
-        DataValue dataValueG = new DataValue( dataElementB, periodB, sourceA, optionCombo, optionCombo );
-        dataValueG.setValue( "7" );
-        DataValue dataValueH = new DataValue( dataElementB, periodB, sourceB, optionCombo, optionCombo );
-        dataValueH.setValue( "8" );
-        DataValue dataValueI = new DataValue( dataElementA, periodC, sourceA, optionCombo, optionCombo );
-        dataValueI.setValue( "9" );
-        DataValue dataValueJ = new DataValue( dataElementA, periodC, sourceB, optionCombo, optionCombo );
-        dataValueJ.setValue( "1" );
+        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo, "1" );
+        DataValue dataValueB = new DataValue( dataElementA, periodA, sourceB, optionCombo, optionCombo, "2" );
+        DataValue dataValueC = new DataValue( dataElementA, periodB, sourceA, optionCombo, optionCombo, "3" );
+        DataValue dataValueD = new DataValue( dataElementA, periodB, sourceB, optionCombo, optionCombo, "4" );
+        DataValue dataValueE = new DataValue( dataElementB, periodA, sourceA, optionCombo, optionCombo, "5" );
+        DataValue dataValueF = new DataValue( dataElementB, periodA, sourceB, optionCombo, optionCombo, "6" );
+        DataValue dataValueG = new DataValue( dataElementB, periodB, sourceA, optionCombo, optionCombo, "7" );
+        DataValue dataValueH = new DataValue( dataElementB, periodB, sourceB, optionCombo, optionCombo, "8" );
+        DataValue dataValueI = new DataValue( dataElementA, periodC, sourceA, optionCombo, optionCombo, "9" );
+        DataValue dataValueJ = new DataValue( dataElementA, periodC, sourceB, optionCombo, optionCombo, "10" );
 
         dataValueService.addDataValue( dataValueA );
         dataValueService.addDataValue( dataValueB );
@@ -393,26 +371,16 @@ public class DataValueServiceTest
     @Test
     public void testGetDataValuesDataElementsPeriodsOrgUnits()
     {
-        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo );
-        dataValueA.setValue( "1" );
-        DataValue dataValueB = new DataValue( dataElementA, periodA, sourceB, optionCombo, optionCombo );
-        dataValueB.setValue( "2" );
-        DataValue dataValueC = new DataValue( dataElementA, periodB, sourceA, optionCombo, optionCombo );
-        dataValueC.setValue( "3" );
-        DataValue dataValueD = new DataValue( dataElementA, periodB, sourceB, optionCombo, optionCombo );
-        dataValueD.setValue( "4" );
-        DataValue dataValueE = new DataValue( dataElementB, periodA, sourceA, optionCombo, optionCombo );
-        dataValueE.setValue( "5" );
-        DataValue dataValueF = new DataValue( dataElementB, periodA, sourceB, optionCombo, optionCombo );
-        dataValueF.setValue( "6" );
-        DataValue dataValueG = new DataValue( dataElementB, periodB, sourceA, optionCombo, optionCombo );
-        dataValueG.setValue( "7" );
-        DataValue dataValueH = new DataValue( dataElementB, periodB, sourceB, optionCombo, optionCombo );
-        dataValueH.setValue( "8" );
-        DataValue dataValueI = new DataValue( dataElementA, periodC, sourceA, optionCombo, optionCombo );
-        dataValueI.setValue( "9" );
-        DataValue dataValueJ = new DataValue( dataElementA, periodC, sourceB, optionCombo, optionCombo );
-        dataValueJ.setValue( "1" );
+        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo, "1" );
+        DataValue dataValueB = new DataValue( dataElementA, periodA, sourceB, optionCombo, optionCombo, "2" );
+        DataValue dataValueC = new DataValue( dataElementA, periodB, sourceA, optionCombo, optionCombo, "3" );
+        DataValue dataValueD = new DataValue( dataElementA, periodB, sourceB, optionCombo, optionCombo, "4" );
+        DataValue dataValueE = new DataValue( dataElementB, periodA, sourceA, optionCombo, optionCombo, "5" );
+        DataValue dataValueF = new DataValue( dataElementB, periodA, sourceB, optionCombo, optionCombo, "6" );
+        DataValue dataValueG = new DataValue( dataElementB, periodB, sourceA, optionCombo, optionCombo, "7" );
+        DataValue dataValueH = new DataValue( dataElementB, periodB, sourceB, optionCombo, optionCombo, "8" );
+        DataValue dataValueI = new DataValue( dataElementA, periodC, sourceA, optionCombo, optionCombo, "9" );
+        DataValue dataValueJ = new DataValue( dataElementA, periodC, sourceB, optionCombo, optionCombo, "10" );
 
         dataValueService.addDataValue( dataValueA );
         dataValueService.addDataValue( dataValueB );
@@ -471,14 +439,25 @@ public class DataValueServiceTest
     @Test
     public void testGetDataValueCountLastUpdatedBetween()
     {
-        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo );
-        dataValueA.setValue( "1" );
-        DataValue dataValueB = new DataValue( dataElementA, periodA, sourceB, optionCombo, optionCombo );
-        dataValueB.setValue( "2" );
+        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo, "1" );
+        DataValue dataValueB = new DataValue( dataElementA, periodA, sourceB, optionCombo, optionCombo, "2" );
+        DataValue dataValueC = new DataValue( dataElementB, periodA, sourceB, optionCombo, optionCombo, "3" );
         
         dataValueService.addDataValue( dataValueA );
         dataValueService.addDataValue( dataValueB );
+        dataValueService.addDataValue( dataValueC );
         
-        assertEquals( 2, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null ) );
+        assertEquals( 3, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null, false ) );
+        assertEquals( 3, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null, true ) );
+        
+        dataValueService.deleteDataValue( dataValueC );
+
+        assertEquals( 3, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null, true ) );
+        assertEquals( 2, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null, false ) );
+        
+        dataValueService.deleteDataValue( dataValueB );
+
+        assertEquals( 3, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null, true ) );
+        assertEquals( 1, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null, false ) );
     }
 }

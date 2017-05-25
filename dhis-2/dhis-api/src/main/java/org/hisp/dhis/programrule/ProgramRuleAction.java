@@ -34,8 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
@@ -47,7 +46,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
  */
 @JacksonXmlRootElement( localName = "programRuleAction", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramRuleAction
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     /**
      * The programRule that the action belongs to
@@ -304,41 +303,5 @@ public class ProgramRuleAction
     public void setData( String data )
     {
         this.data = data;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            ProgramRuleAction programRuleAction = (ProgramRuleAction) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                programRule = programRuleAction.getProgramRule();
-                programRuleActionType = programRuleAction.getProgramRuleActionType();
-                dataElement = programRuleAction.getDataElement();
-                programStageSection = programRuleAction.getProgramStageSection();
-                programStage = programRuleAction.getProgramStage();
-                location = programRuleAction.getLocation();
-                content = programRuleAction.getContent();
-                data = programRuleAction.getData();
-                attribute = programRuleAction.getAttribute();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                programRule = programRuleAction.getProgramRule() == null ? programRule : programRuleAction.getProgramRule();
-                programRuleActionType = programRuleAction.getProgramRuleActionType() == null ? programRuleActionType : programRuleAction.getProgramRuleActionType();
-                dataElement = programRuleAction.getDataElement() == null ? dataElement : programRuleAction.getDataElement();
-                programStageSection = programRuleAction.getProgramStageSection() == null ? programStageSection : programRuleAction.getProgramStageSection();
-                programStage = programRuleAction.getProgramStage() == null ? programStage : programRuleAction.getProgramStage();
-                location = programRuleAction.getLocation() == null ? location : programRuleAction.getLocation();
-                content = programRuleAction.getContent() == null ? content : programRuleAction.getContent();
-                data = programRuleAction.getData() == null ? data : programRuleAction.getData();
-                attribute = programRuleAction.getAttribute() == null ? attribute : programRuleAction.getAttribute();
-            }
-        }
     }
 }

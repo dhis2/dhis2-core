@@ -65,9 +65,9 @@ public class DefaultSectionService
     @Override
     public int addSection( Section section )
     {
-        int id = sectionStore.save( section );
+        sectionStore.save( section );
 
-        return id;
+        return section.getId();
     }
 
     @Override

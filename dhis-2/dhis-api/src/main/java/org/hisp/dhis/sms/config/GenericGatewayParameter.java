@@ -40,6 +40,8 @@ public class GenericGatewayParameter
 {
     private static final long serialVersionUID = -863990758156009672L;
 
+    private boolean header;
+
     private String key;
 
     private String value;
@@ -94,5 +96,16 @@ public class GenericGatewayParameter
     public void setClassified( boolean classified )
     {
         this.classified = classified;
+    }
+
+    @JsonProperty
+    public boolean isHeader()
+    {
+        return header;
+    }
+
+    public void setHeader( boolean header )
+    {
+        this.header = header;
     }
 }

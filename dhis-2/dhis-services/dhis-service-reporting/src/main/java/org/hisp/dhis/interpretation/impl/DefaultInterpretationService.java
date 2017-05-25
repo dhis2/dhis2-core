@@ -109,7 +109,9 @@ public class DefaultInterpretationService
             interpretation.updateSharing();
         }
 
-        return interpretationStore.save( interpretation );
+        interpretationStore.save( interpretation );
+
+        return interpretation.getId();
     }
 
     @Override

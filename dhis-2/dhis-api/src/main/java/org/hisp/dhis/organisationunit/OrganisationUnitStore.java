@@ -51,14 +51,6 @@ public interface OrganisationUnitStore
     // -------------------------------------------------------------------------
 
     /**
-     * Retrieves the object with the given uid.
-     *
-     * @param uuid the uid.
-     * @return the object with the given uid.
-     */
-    OrganisationUnit getByUuid( String uuid );
-
-    /**
      * Returns all OrganisationUnits by lastUpdated.
      *
      * @param lastUpdated OrganisationUnits from this date
@@ -66,14 +58,6 @@ public interface OrganisationUnitStore
      *         there are no OrganisationUnits.
      */
     List<OrganisationUnit> getAllOrganisationUnitsByLastUpdated( Date lastUpdated );
-
-    /**
-     * Returns an OrganisationUnit with a given name. Case is ignored.
-     *
-     * @param name the name of the OrganisationUnit to return.
-     * @return the OrganisationUnit with the given name, or null if not match.
-     */
-    OrganisationUnit getOrganisationUnitByNameIgnoreCase( String name );
 
     /**
      * Returns all root OrganisationUnits. A root OrganisationUnit is an
@@ -90,13 +74,6 @@ public interface OrganisationUnitStore
      * @return all OrganisationUnits which are not a member of any OrganisationUnitGroups.
      */
     List<OrganisationUnit> getOrganisationUnitsWithoutGroups();
-    
-    /**
-     * Returns all OrganisationUnits with at least one CategoryOption.
-     * 
-     * @return all OrganisationUnits with at least one CategoryOption.
-     */
-    List<OrganisationUnit> getOrganisationUnitsWithCategoryOptions();
     
     /**
      * Returns the count of OrganisationUnits which are part of the
@@ -125,17 +102,6 @@ public interface OrganisationUnitStore
      * @return a map of sets.
      */
     Map<String, Set<String>> getOrganisationUnitDataSetAssocationMap();
-
-    /**
-     * Retrieves the objects determined by the given first result and max result
-     * which lastUpdated is larger or equal.
-     *
-     * @param lastUpdated the name which result object names must be like.
-     * @param first       the first result object to return.
-     * @param max         the max number of result objects to return.
-     * @return a list of objects.
-     */
-    List<OrganisationUnit> getBetweenByLastUpdated( Date lastUpdated, int first, int max );
 
     /**
      * Retrieves the objects where its coordinate is within the 4 area points.

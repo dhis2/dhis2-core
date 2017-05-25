@@ -28,13 +28,6 @@ package org.hisp.dhis.dataentryform;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -42,6 +35,10 @@ import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Bharath
@@ -80,7 +77,8 @@ public class DataEntryFormStoreTest
 
         DataEntryForm dataEntryFormA = createDataEntryForm( 'A' );
 
-        int dataEntryFormAid = dataEntryFormStore.save(dataEntryFormA );
+        dataEntryFormStore.save( dataEntryFormA );
+        int dataEntryFormAid = dataEntryFormA.getId();
 
         dataEntryFormA = dataEntryFormStore.get( dataEntryFormAid );
 
@@ -93,7 +91,8 @@ public class DataEntryFormStoreTest
     {
         DataEntryForm dataEntryForm = createDataEntryForm( 'A' );
 
-        int id = dataEntryFormStore.save( dataEntryForm );
+        dataEntryFormStore.save( dataEntryForm );
+        int id = dataEntryForm.getId();
 
         dataEntryForm = dataEntryFormStore.get( id );
 
@@ -113,7 +112,8 @@ public class DataEntryFormStoreTest
     {
         DataEntryForm dataEntryForm = createDataEntryForm( 'A' );
 
-        int id = dataEntryFormStore.save( dataEntryForm );
+        dataEntryFormStore.save( dataEntryForm );
+        int id = dataEntryForm.getId();
 
         dataEntryForm = dataEntryFormStore.get( id );
 
@@ -129,7 +129,8 @@ public class DataEntryFormStoreTest
     {
         DataEntryForm dataEntryForm = createDataEntryForm( 'A' );
 
-        int id = dataEntryFormStore.save( dataEntryForm );
+        dataEntryFormStore.save( dataEntryForm );
+        int id = dataEntryForm.getId();
 
         dataEntryForm = dataEntryFormStore.get( id );
 

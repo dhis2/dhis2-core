@@ -28,17 +28,17 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DimensionalItemObject;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.expression.ExpressionService;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Margrethe Store
@@ -81,7 +81,9 @@ public class DefaultValidationRuleService
     @Override
     public int saveValidationRule( ValidationRule validationRule )
     {
-        return validationRuleStore.save( validationRule );
+        validationRuleStore.save( validationRule );
+
+        return validationRule.getId();
     }
 
     @Override
@@ -155,13 +157,14 @@ public class DefaultValidationRuleService
     {
         Set<ValidationRule> rulesForDataElements = new HashSet<>();
 
-        for ( ValidationRule validationRule : getAllValidationRules() )
-        {
-            Set<DataElement> validationRuleElements = getDataElements( validationRule );
+        Set<String> deIds = dataElements.stream().map( DataElement::getUid ).collect( Collectors.toSet() );
 
-            if ( dataElements.containsAll( validationRuleElements ) )
+        for ( ValidationRule rule : getAllValidationRules() )
+        {
+            if ( !Sets.intersection( expressionService.getDataElementIdsInExpression( rule.getLeftSide().getExpression() ), deIds ).isEmpty() ||
+                !Sets.intersection( expressionService.getDataElementIdsInExpression( rule.getRightSide().getExpression() ), deIds ).isEmpty() )
             {
-                rulesForDataElements.add( validationRule );
+                rulesForDataElements.add( rule );
             }
         }
 
@@ -178,15 +181,6 @@ public class DefaultValidationRuleService
     }
 
     @Override
-    public Set<DimensionalItemObject> getDimensionalItemObjects( ValidationRule validationRule, Set<DimensionItemType> dimensionItemTypes )
-    {
-        Set<DimensionalItemObject> objects = new HashSet<>();
-        objects.addAll( expressionService.getDimensionalItemObjectsInExpression( validationRule.getLeftSide().getExpression(), dimensionItemTypes ) );
-        objects.addAll( expressionService.getDimensionalItemObjectsInExpression( validationRule.getRightSide().getExpression(), dimensionItemTypes ) );
-        return objects;
-    }
-    
-    @Override
     public List<ValidationRule> getValidationRulesWithNotificationTemplates()
     {
         return validationRuleStore.getValidationRulesWithNotificationTemplates();
@@ -199,7 +193,9 @@ public class DefaultValidationRuleService
     @Override
     public int addValidationRuleGroup( ValidationRuleGroup validationRuleGroup )
     {
-        return validationRuleGroupStore.save( validationRuleGroup );
+        validationRuleGroupStore.save( validationRuleGroup );
+
+        return validationRuleGroup.getId();
     }
 
     @Override

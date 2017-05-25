@@ -14,7 +14,7 @@
         $('#ouwtSelected').val( ouwtSelected[0] );
         selection.setSelected( ouwtSelected !== undefined ? ouwtSelected : [] );
         
-        validateInvite().done(function(val) {        
+        validateInvite().done(function(val) {
         	form.submit();
         });
       }
@@ -30,7 +30,7 @@
     checkValueIsExist("openId", "validateUser.action");
     checkValueIsExist("ldapId", "validateUser.action");
     checkValueIsExist("inviteUsername", "validateUser.action");
-      checkValueIsExist("rawPassword", "validateUser.action",{ newUser: true });
+    checkValueIsExist("rawPassword", "validateUser.action",{ newUser: true });
 
       ouwtSelected = selection.getSelected();
     selection.setOfflineLevel( 1 );
@@ -118,7 +118,7 @@ div#orgUnitTree
 
     <tr class="account">
 		<td><label for="rawPassword">$i18n.getString( "password" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
-		<td colspan="3"><input type="password" id="rawPassword" name="rawPassword" autocomplete="off"></td>			
+		<td colspan="3"><input type="password" id="rawPassword" name="rawPassword" autocomplete="off" onfocusout="checkPasswordForUsername()"></td>
 	</tr>
 
     <tr class="account">
@@ -138,7 +138,7 @@ div#orgUnitTree
 
 	<tr class="account">
 		<td><label for="email">$i18n.getString( "email" )</label></td>
-		<td colspan="3"><input type="text" id="email" name="email"></td>
+		<td colspan="3"><input type="text" id="email" name="email" onfocusout="checkPasswordForEmail()"></td>
 	</tr>
 
 	<tr class="account">

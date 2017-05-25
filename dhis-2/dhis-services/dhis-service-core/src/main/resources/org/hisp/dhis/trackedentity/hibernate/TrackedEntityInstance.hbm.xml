@@ -12,7 +12,13 @@
     </id>
     &identifiableProperties;
 
+    <property name="createdAtClient" type="timestamp" />
+
+    <property name="lastUpdatedAtClient" type="timestamp" />
+
     <property name="inactive" column="inactive" />
+
+    <property name="deleted" column="deleted" />
 
     <set name="trackedEntityAttributeValues" inverse="true">
       <key column="trackedentityinstanceid" />
