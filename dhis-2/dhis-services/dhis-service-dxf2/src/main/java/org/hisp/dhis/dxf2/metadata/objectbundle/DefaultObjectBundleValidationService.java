@@ -33,6 +33,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
@@ -318,9 +319,11 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
             }
             else
             {
+                IdentifiableObject persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
+
                 if ( importMode.isUpdate() )
                 {
-                    if ( !aclService.canUpdate( bundle.getUser(), object ) )
+                    if ( !aclService.canUpdate( bundle.getUser(), persistedObject ) )
                     {
                         ObjectReport objectReport = new ObjectReport( klass, idx, object.getUid() );
                         objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
@@ -336,7 +339,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                 }
                 else if ( importMode.isDelete() )
                 {
-                    if ( !aclService.canDelete( bundle.getUser(), object ) )
+                    if ( !aclService.canDelete( bundle.getUser(), persistedObject ) )
                     {
                         ObjectReport objectReport = new ObjectReport( klass, idx, object.getUid() );
                         objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
