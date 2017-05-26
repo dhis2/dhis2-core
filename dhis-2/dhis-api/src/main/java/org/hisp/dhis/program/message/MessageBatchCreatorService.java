@@ -31,7 +31,6 @@ package org.hisp.dhis.program.message;
 import java.util.List;
 
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 
 /**
 * @author Zubair <rajazubair.asghar@gmail.com>

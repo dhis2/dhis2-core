@@ -80,9 +80,9 @@ public class SimplisticHttpGetGateWay
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
         return batch.getMessages()
-                .stream()
-                .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), gatewayConfig ) )
-                .collect( Collectors.toList() );
+            .stream()
+            .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), gatewayConfig ) )
+            .collect( Collectors.toList() );
     }
 
     @Override
@@ -126,9 +126,7 @@ public class SimplisticHttpGetGateWay
 
     private UriComponentsBuilder buildUrl( GenericHttpGatewayConfig config, String text, Set<String> recipients )
     {
-        UriComponentsBuilder uriBuilder = null;
-
-        uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
         uriBuilder = getUrlParameters( config.getParameters(), uriBuilder );
         uriBuilder.queryParam( config.getMessageParameter(), text );
         uriBuilder.queryParam( config.getRecipientParameter(),
@@ -140,7 +138,7 @@ public class SimplisticHttpGetGateWay
     private UriComponentsBuilder getUrlParameters( List<GenericGatewayParameter> parameters,
         UriComponentsBuilder uriBuilder )
     {
-        parameters.stream().filter( p -> p.isHeader() == false ).forEach( p -> uriBuilder.queryParam( p.getKey(), p.getValue() ) );
+        parameters.stream().filter( p -> !p.isHeader() ).forEach( p -> uriBuilder.queryParam( p.getKey(), p.getValue() ) );
 
         return uriBuilder;
     }

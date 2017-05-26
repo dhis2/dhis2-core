@@ -28,7 +28,6 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,18 +47,16 @@ public class SmsMessageBatchCreatorService
     public OutboundMessageBatch getMessageBatch( List<ProgramMessage> programMessages )
     {
         List<OutboundMessage> messages = programMessages.parallelStream()
-                .filter( pm -> pm.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
-                .map( pm -> createSmsMessage( pm ) )
-                .collect( Collectors.toList() );
+            .filter( pm -> pm.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
+            .map( pm -> createSmsMessage( pm ) )
+            .collect( Collectors.toList() );
 
         return new OutboundMessageBatch( messages, DeliveryChannel.SMS );
     }
 
     private OutboundMessage createSmsMessage( ProgramMessage programMessage )
     {
-        OutboundMessage sms = new OutboundMessage( programMessage.getSubject(), programMessage.getText(),
+        return new OutboundMessage( programMessage.getSubject(), programMessage.getText(),
                 programMessage.getRecipients().getPhoneNumbers() );
-
-        return sms;
     }
 }

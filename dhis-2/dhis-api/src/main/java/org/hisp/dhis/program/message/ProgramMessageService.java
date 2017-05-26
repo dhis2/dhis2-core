@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.user.User;
 
 /**
@@ -69,7 +69,7 @@ public interface ProgramMessageService
     // -------------------------------------------------------------------------
 
     /**
-     * Send message batch based on their {@link org.hisp.dhis.common.DeliveryChannel channel}.
+     * Send message batch based on their {@link DeliveryChannel channel}.
      * If the DeliveryChannel is not configured with suitable value, batch will be
      * invalidated.
      *

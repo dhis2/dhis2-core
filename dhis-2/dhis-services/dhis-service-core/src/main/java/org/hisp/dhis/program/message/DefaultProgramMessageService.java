@@ -49,7 +49,6 @@ import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -307,9 +306,9 @@ public class DefaultProgramMessageService
     private void saveProgramMessages( List<ProgramMessage> messageBatch, BatchResponseStatus status )
     {
         messageBatch.parallelStream()
-                .filter( pm -> pm.isStoreCopy() )
-                .map( pm -> setParameters( pm, status ) )
-                .map( pm -> saveProgramMessage( pm ) );
+            .filter( pm -> pm.isStoreCopy() )
+            .map( pm -> setParameters( pm, status ) )
+            .map( pm -> saveProgramMessage( pm ) );
     }
 
     private ProgramMessage setParameters( ProgramMessage message, BatchResponseStatus status )
@@ -325,9 +324,9 @@ public class DefaultProgramMessageService
     private List<OutboundMessageBatch> createBatches( List<ProgramMessage> programMessages )
     {
         return batchCreators.stream()
-                            .map( bc -> bc.getMessageBatch( programMessages ) )
-                            .filter( bc -> !bc.getMessages().isEmpty() )
-                            .collect( Collectors.toList() );
+            .map( bc -> bc.getMessageBatch( programMessages ) )
+            .filter( bc -> !bc.getMessages().isEmpty() )
+            .collect( Collectors.toList() );
     }
 
     private ProgramInstance getProgramInstance( ProgramMessage programMessage )
@@ -358,8 +357,8 @@ public class DefaultProgramMessageService
         for ( DeliveryChannel channel : channels )
         {
             strategies.stream()
-                      .filter( st -> st.getDeliveryChannel().equals( channel ) )
-                      .map( st -> st.setAttributes( message ) );
+                .filter( st -> st.getDeliveryChannel().equals( channel ) )
+                .map( st -> st.setAttributes( message ) );
         }
 
         return message;

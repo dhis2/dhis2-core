@@ -28,7 +28,6 @@ package org.hisp.dhis.email;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,18 +48,16 @@ public class EmailMessageBatchCreatorService
     public OutboundMessageBatch getMessageBatch( List<ProgramMessage> programMessages )
     {
         List<OutboundMessage> messages = programMessages.parallelStream()
-                .filter( pm -> pm.getDeliveryChannels().contains( DeliveryChannel.EMAIL ) )
-                .map( pm -> createEmailMessage( pm ) )
-                .collect( Collectors.toList() );
+            .filter( pm -> pm.getDeliveryChannels().contains( DeliveryChannel.EMAIL ) )
+            .map( pm -> createEmailMessage( pm ) )
+            .collect( Collectors.toList() );
         
         return new OutboundMessageBatch( messages, DeliveryChannel.EMAIL );
     }
 
     private OutboundMessage createEmailMessage( ProgramMessage programMessage )
     {
-        OutboundMessage email = new OutboundMessage( programMessage.getSubject(), programMessage.getText(),
+        return new OutboundMessage( programMessage.getSubject(), programMessage.getText(),
                 programMessage.getRecipients().getEmailAddresses() );
-
-        return email;
     }
 }
