@@ -801,8 +801,6 @@ public abstract class AbstractEventService
             programStageInstance.setAttributeOptionCombo( attributeOptionCombo );
         }
 
-        programStageInstance.setDeleted( event.isDeleted() );
-
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
 
         saveTrackedEntityComment( programStageInstance, event, storedBy );
