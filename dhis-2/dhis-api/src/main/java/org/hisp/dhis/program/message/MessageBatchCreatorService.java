@@ -31,11 +31,18 @@ package org.hisp.dhis.program.message;
 import java.util.List;
 
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 
 /**
 * @author Zubair <rajazubair.asghar@gmail.com>
 */
 public interface MessageBatchCreatorService
 {
+    /**
+     * Create batch of messages based on DeliveryChannel. It also populates
+     * required fields for that DeliveryChannel.
+     *
+     * @param programMessages list of ProgramMessages.
+     */
     OutboundMessageBatch getMessageBatch( List<ProgramMessage> programMessages );
 }
