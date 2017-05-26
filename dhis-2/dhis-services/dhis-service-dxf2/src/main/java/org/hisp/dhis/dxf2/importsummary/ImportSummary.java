@@ -62,7 +62,6 @@ public class ImportSummary extends AbstractWebMessageResponse
 
     public ImportSummary()
     {
-
     }
 
     public ImportSummary( ImportStatus status )
@@ -76,6 +75,14 @@ public class ImportSummary extends AbstractWebMessageResponse
         this();
         this.status = status;
         this.description = description;
+    }
+
+    public ImportSummary( ImportStatus status, String description, ImportCount importCount )
+    {
+        this();
+        this.status = status;
+        this.description = description;
+        this.importCount = importCount;
     }
 
     // -------------------------------------------------------------------------
