@@ -93,6 +93,13 @@ public class ImportSummaries extends AbstractWebMessageResponse
         return String.format( "Imported %d, updated %d, deleted %d, ignored %d", imported, updated, deleted, ignored );
     }
 
+    public boolean isStatus( ImportStatus status )
+    {
+        ImportStatus st = getStatus();
+        
+        return st != null && st.equals( status );
+    }
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ImportStatus getStatus()
