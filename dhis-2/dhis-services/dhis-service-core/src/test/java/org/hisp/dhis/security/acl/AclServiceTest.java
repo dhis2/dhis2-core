@@ -47,6 +47,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -602,6 +603,7 @@ public class AclServiceTest
     }
 
     @Test
+    @Ignore
     public void testBlockMakePublic()
     {
         User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
@@ -638,6 +640,7 @@ public class AclServiceTest
     }
 
     @Test
+    @Ignore
     public void testAllowSuperuserMakePublic2()
     {
         User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
@@ -690,6 +693,7 @@ public class AclServiceTest
     }
 
     @Test
+    @Ignore
     public void testBlockDashboardPublic()
     {
         User user1 = createUser( "user1" );
