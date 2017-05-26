@@ -64,7 +64,6 @@ public class ImportSummary extends AbstractWebMessageResponse
 
     public ImportSummary()
     {
-
     }
 
     public ImportSummary( String reference )
