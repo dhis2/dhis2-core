@@ -57,8 +57,15 @@ public interface MessageSender
     OutboundMessageResponse sendMessage( String subject, String text, Set<String> recipient );
 
     OutboundMessageResponse sendMessage( String subject, String text, String recipient );
-   
+
+    /**
+     * Sends message batch based on DeliveryChannels configured.
+     * @param batch batch of messages to be processed.
+     */
     OutboundMessageResponseSummary sendMessageBatch( OutboundMessageBatch batch );
 
+    /**
+     * To check if given service is configured and ready to use.
+     */
     boolean isConfigured();
 }

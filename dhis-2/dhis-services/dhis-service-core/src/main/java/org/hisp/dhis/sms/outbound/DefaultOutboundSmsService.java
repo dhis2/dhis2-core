@@ -35,7 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Simple {@link OutboundSmsService sms service} storing the sms in a store and
- * forwards the request to a {@link OutboundSmsTransportService sms transport
+ * forwards the request to a {@link org.hisp.dhis.sms.config.SmsMessageSender sms transport
  * service} for sending.
  */
 
