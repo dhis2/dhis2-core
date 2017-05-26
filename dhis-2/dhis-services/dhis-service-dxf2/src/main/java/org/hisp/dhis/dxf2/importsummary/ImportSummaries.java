@@ -46,9 +46,7 @@ import java.util.List;
  */
 @JacksonXmlRootElement( localName = "importSummaries", namespace = DxfNamespaces.DXF_2_0 )
 public class ImportSummaries extends AbstractWebMessageResponse
-{
-    private ImportStatus status = ImportStatus.SUCCESS;
-    
+{    
     private int imported;
 
     private int updated;
@@ -63,7 +61,6 @@ public class ImportSummaries extends AbstractWebMessageResponse
 
     public ImportSummaries()
     {
-
     }
 
     public void addImportSummaries( ImportSummaries importSummaries )
@@ -73,7 +70,10 @@ public class ImportSummaries extends AbstractWebMessageResponse
 
     public ImportSummaries addImportSummary( ImportSummary importSummary )
     {
-        if ( importSummary == null ) return this;
+        if ( importSummary == null )
+        {
+            return this;
+        }
 
         if ( importSummary.getImportCount() != null )
         {
@@ -97,12 +97,23 @@ public class ImportSummaries extends AbstractWebMessageResponse
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ImportStatus getStatus()
     {
-        return status;
+        return getHighestOrderImportStatus();
     }
     
-    public void setStatus( ImportStatus status )
+    /**
+     * Returns the {@link ImportStatus} with the highest order from the list
+     * of import summaries, where {@link ImportStatus#ERROR} is the highest.
+     * If no import summaries are present, {@link ImportStatus#SUCCESS} is
+     * returned.
+     * 
+     * @return import status with highest order.
+     */
+    private ImportStatus getHighestOrderImportStatus()
     {
-        this.status = status;
+        return importSummaries.stream()
+            .map( ImportSummary::getStatus )
+            .max( ( s1, s2 ) -> s1.getOrder() - s2.getOrder() )
+            .orElse( ImportStatus.SUCCESS );
     }
 
     @JsonProperty
