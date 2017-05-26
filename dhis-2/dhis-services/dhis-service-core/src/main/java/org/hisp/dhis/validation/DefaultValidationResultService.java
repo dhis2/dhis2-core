@@ -27,6 +27,7 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,5 +72,23 @@ public class DefaultValidationResultService
     public void updateValidationResults( Set<ValidationResult> validationResults )
     {
         validationResults.forEach( vr -> validationResultStore.update( vr ) );
+    }
+
+    @Override
+    public ValidationResult getById( int id )
+    {
+        return validationResultStore.getById( id );
+    }
+
+    @Override
+    public List<ValidationResult> getValidationResults( ValidationResultQuery query )
+    {
+        return validationResultStore.query( query );
+    }
+
+    @Override
+    public int countValidationResults( ValidationResultQuery query )
+    {
+        return validationResultStore.count( query );
     }
 }
