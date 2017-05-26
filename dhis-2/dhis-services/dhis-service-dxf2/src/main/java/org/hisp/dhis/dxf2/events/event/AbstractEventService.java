@@ -896,6 +896,8 @@ public abstract class AbstractEventService
             programStageInstance.setAttributeOptionCombo( attributeOptionCombo );
         }
 
+        programStageInstance.setDeleted( event.isDeleted() );
+
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
         updateTrackedEntityInstance( programStageInstance );
 
@@ -944,7 +946,9 @@ public abstract class AbstractEventService
         {
             dataValues.forEach( dataValueService::deleteTrackedEntityDataValue );
         }
-
+        
+        importSummary.setStatus( importSummary.getConflicts().isEmpty() ? ImportStatus.SUCCESS : ImportStatus.WARNING );
+        
         return importSummary;
     }
 
@@ -1244,7 +1248,6 @@ public abstract class AbstractEventService
         Assert.notNull( programStage, "Program stage cannot be null" );
 
         ImportSummary importSummary = new ImportSummary( event.getEvent() );
-        importSummary.setStatus( ImportStatus.SUCCESS );
 
         if ( importOptions == null )
         {
@@ -1360,6 +1363,8 @@ public abstract class AbstractEventService
             }
         }
 
+        importSummary.setStatus( importSummary.getConflicts().isEmpty() ? ImportStatus.SUCCESS : ImportStatus.WARNING );
+        
         return importSummary;
     }
 

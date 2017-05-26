@@ -206,7 +206,7 @@ public class DefaultAnalyticsService
                 
         return AnalyticsUtils.getDataValueSetFromGrid( params, grid );
     }
-        
+    
     @Override
     public Grid getAggregatedDataValues( AnalyticalObject object )
     {

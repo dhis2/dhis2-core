@@ -37,9 +37,11 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -49,6 +51,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -775,5 +778,29 @@ public class AclServiceTest
         assertTrue( aclService.canUpdate( user3, dataElement ) );
         assertTrue( aclService.canDelete( user3, dataElement ) );
         assertTrue( aclService.canManage( user3, dataElement ) );
+    }
+
+    @Test
+    public void testUpdatePrivateProgram()
+    {
+        User user = createUser( "user1", "F_PROGRAM_PRIVATE_ADD", "F_PROGRAMSTAGE_ADD" );
+
+        Program program = createProgram( 'A' );
+        program.setUser( user );
+        program.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        manager.save( program );
+
+        Access access = aclService.getAccess( program, user );
+        assertTrue( access.isRead() );
+        assertTrue( access.isWrite() );
+        assertTrue( access.isUpdate() );
+        assertFalse( access.isDelete() );
+        assertTrue( access.isManage() );
+
+        List<ErrorReport> errorReports = aclService.verifySharing( program, user );
+        assertTrue( errorReports.isEmpty() );
+
+        manager.update( program );
     }
 }

@@ -399,11 +399,7 @@ public class DefaultEventAnalyticsService
             
             for ( QueryItem item : params.getItems() )
             {
-                if ( item.hasLegendSet() )
-                {
-                    dimensionItems.put( item.getItemId(), IdentifiableObjectUtils.getUids( item.getLegendSet().getSortedLegends() ) );
-                }
-                else if ( item.hasOptionSet() )
+                if ( item.hasOptionSet() || item.hasLegendSet() )
                 {
                     dimensionItems.put( item.getItemId(), item.getQueryFilterItems() );
                 }
@@ -415,11 +411,7 @@ public class DefaultEventAnalyticsService
 
             for ( QueryItem item : params.getItemFilters() )
             {
-                if ( item.hasLegendSet() )
-                {
-                    dimensionItems.put( item.getItemId(), IdentifiableObjectUtils.getUids( item.getLegendSet().getSortedLegends() ) );
-                }
-                else if ( item.hasOptionSet() )
+                if ( item.hasOptionSet() || item.hasLegendSet() )
                 {
                     dimensionItems.put( item.getItemId(), item.getQueryFilterItems() );
                 }

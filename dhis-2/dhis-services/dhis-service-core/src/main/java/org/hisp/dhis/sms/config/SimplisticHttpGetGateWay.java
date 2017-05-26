@@ -80,10 +80,10 @@ public class SimplisticHttpGetGateWay
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
         return batch.getMessages()
-            .stream()
-            .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), gatewayConfig ) )
-            .collect( Collectors.toList() );
-    }
+          .stream()
+          .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), gatewayConfig ) )
+          .collect( Collectors.toList() );
+     }
 
     @Override
     public boolean accept( SmsGatewayConfig gatewayConfig )
