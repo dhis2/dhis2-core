@@ -306,35 +306,28 @@ public class DefaultProgramMessageService
 
     private void saveProgramMessages( List<ProgramMessage> messageBatch, BatchResponseStatus status )
     {
-        for ( ProgramMessage message : messageBatch )
-        {
-            if ( message.isStoreCopy() )
-            {
-                message.setProgramInstance( getProgramInstance( message ) );
-                message.setProgramStageInstance( getProgramStageInstance( message ) );
-                message.setProcessedDate( new Date() );
-                message.setMessageStatus( status.isOk() ? ProgramMessageStatus.SENT : ProgramMessageStatus.FAILED );
+        messageBatch.parallelStream()
+                .filter( pm -> pm.isStoreCopy() )
+                .map( pm -> setParameters( pm, status ) )
+                .map( pm -> saveProgramMessage( pm ) );
+    }
 
-                saveProgramMessage( message );
-            }
-        }
+    private ProgramMessage setParameters( ProgramMessage message, BatchResponseStatus status )
+    {
+        message.setProgramInstance( getProgramInstance( message ) );
+        message.setProgramStageInstance( getProgramStageInstance( message ) );
+        message.setProcessedDate( new Date() );
+        message.setMessageStatus( status.isOk() ? ProgramMessageStatus.SENT : ProgramMessageStatus.FAILED );
+
+        return message;
     }
 
     private List<OutboundMessageBatch> createBatches( List<ProgramMessage> programMessages )
     {
-        List<OutboundMessageBatch> batches = new ArrayList<>();
-
-        for ( MessageBatchCreatorService batchCreator : batchCreators )
-        {
-            OutboundMessageBatch tmpBatch = batchCreator.getMessageBatch( programMessages );
-
-            if ( !tmpBatch.getMessages().isEmpty() )
-            {
-                batches.add( tmpBatch );
-            }
-        }
-
-        return batches;
+        return batchCreators.stream()
+                            .map( bc -> bc.getMessageBatch( programMessages ) )
+                            .filter( bc -> !bc.getMessages().isEmpty() )
+                            .collect( Collectors.toList() );
     }
 
     private ProgramInstance getProgramInstance( ProgramMessage programMessage )
@@ -364,13 +357,9 @@ public class DefaultProgramMessageService
 
         for ( DeliveryChannel channel : channels )
         {
-            for ( DeliveryChannelStrategy strategy : strategies )
-            {
-                if ( strategy.getDeliveryChannel().equals( channel ) )
-                {
-                    strategy.setAttributes( message );
-                }
-            }
+            strategies.stream()
+                      .filter( st -> st.getDeliveryChannel().equals( channel ) )
+                      .map( st -> st.setAttributes( message ) );
         }
 
         return message;
