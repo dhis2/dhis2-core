@@ -1,4 +1,5 @@
 package org.hisp.dhis.validation.hibernate;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -61,6 +62,7 @@ public class HibernateValidationResultStore
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public List<ValidationResult> query( ValidationResultQuery query )
     {
 
