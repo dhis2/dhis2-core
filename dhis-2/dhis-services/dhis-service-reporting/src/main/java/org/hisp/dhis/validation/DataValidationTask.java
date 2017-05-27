@@ -126,6 +126,8 @@ public class DataValidationTask
         {
             for ( PeriodTypeExtended periodTypeX : context.getPeriodTypeExtendedMap().values() )
             {
+                log.trace("Validation PeriodType " + periodTypeX.getPeriodType().getName() );
+
                 Set<ValidationRuleExtended> ruleXs = getRulesBySourceAndPeriodType( orgUnit, periodTypeX );
 
                 SetMap<String, DataElementOperand> dataElementOperandsToGet = getDataElementOperands( ruleXs );
@@ -157,6 +159,8 @@ public class DataValidationTask
                         {
                             ValidationRule rule = ruleX.getRule();
 
+                            log.trace("Validation rule " + rule.getUid() + " " + rule.getName() );
+
                             Map<String, Double> leftSideValues;
 
                             if ( rule.getLeftSide() != null && rule.getLeftSide().getSlidingWindow() )
@@ -186,6 +190,8 @@ public class DataValidationTask
 
                             for ( String optionCombo : attributeOptionCombos )
                             {
+                                log.trace("Validation attributeOptionCombo " + optionCombo );
+
                                 Double leftSide = leftSideValues.get( optionCombo );
                                 Double rightSide = rightSideValues.get( optionCombo );
                                 boolean violation = false;
