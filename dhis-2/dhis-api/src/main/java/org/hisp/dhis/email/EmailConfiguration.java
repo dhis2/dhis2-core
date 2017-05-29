@@ -28,44 +28,69 @@ package org.hisp.dhis.email;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
 /**
- * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
+ * Created by zubair on 29.05.17.
  */
-public interface EmailService
+public class EmailConfiguration
 {
-    /**
-     * Checks whether email is configured for the system or not.
-     * @return true if all necessary email configurations are set.
-     */
-    boolean emailEnabled();
+    private String hostName;
 
-    boolean emailConfigured();
+    private String username;
 
-    /**
-     * Sends an email to the recipient user from the sender.
-     *
-     * @param email the email to send.
-     */
-    void sendEmail( Email email );
+    private String password;
 
-    void sendEmail( String subject, String message, Set<String> recipients );
+    private String from;
 
-    /**
-     * Sends an automatically generated email message to the current user.
-     * Useful for testing the SMTP configuration of the system.
-     */
-    void sendTestEmail();
-    
-    /**
-     * Sends an email using the system notification email as recipient. Requires
-     * that a valid system notification email address has been specified. Only
-     * the subject and text properties of the given email are read.
-     * 
-     * @param subject the subject text of the email.
-     * @param text the text (body) of the email.
-     * @return true if an email was sent, false if not.
-     */
-    boolean sendSystemEmail( Email email );
+    private int port;
+
+    private boolean tls;
+
+    protected EmailConfiguration()
+    {
+    }
+
+    public EmailConfiguration( String hostName, String username, String password, String from, int port, boolean tls )
+    {
+        this.hostName = hostName;
+        this.username = username;
+        this.password = password;
+        this.from = from;
+        this.port = port;
+        this.tls = tls;
+    }
+
+    public boolean isOk()
+    {
+        return hostName != null && username != null && password != null;
+    }
+
+    public String getHostName()
+    {
+        return hostName;
+    }
+
+    public String getUsername()
+    {
+        return username;
+    }
+
+    public String getPassword()
+    {
+        return password;
+    }
+
+    public String getFrom()
+    {
+        return from;
+    }
+
+    public int getPort()
+    {
+        return port;
+    }
+
+    public boolean isTls()
+    {
+        return tls;
+    }
 }
