@@ -535,7 +535,7 @@ public class DataValueSetServiceTest
         in = new ClassPathResource( "datavalueset/dataValueSetBooleanTest.csv" ).getInputStream();
 
         ImportSummary summary = dataValueSetService.saveDataValueSetCsv( in, null, null );
-        assertEquals( summary.getConflicts().toString(), 5, summary.getConflicts().size() ); // Header row
+        assertEquals( summary.getConflicts().toString(), 5, summary.getConflicts().size() ); // False rows
 
         List<String> expectedBools = Lists.newArrayList( "true", "false" );
         List<DataValue> resultBools = mockDataValueBatchHandler.getInserts();
