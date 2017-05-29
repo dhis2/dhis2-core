@@ -29,6 +29,7 @@ package org.hisp.dhis.i18n.action;
  */
 
 import com.opensymphony.xwork2.Action;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -150,13 +151,17 @@ public class TranslateAction
         for ( TranslationProperty p :  TranslationProperty.values()  )
         {
             Enumeration<String> paramNames = request.getParameterNames();
-            Collections.list(paramNames).forEach( paramName -> {
-                if ( paramName.equalsIgnoreCase( p.name().toString().replace( "_", "" ) ) )
+
+            Collections.list( paramNames ).forEach( paramName -> {
+
+                if ( paramName.equalsIgnoreCase( p.getName() ) )
                 {
                     String[] paramValues = request.getParameterValues( paramName );
-                    if ( paramValues != null && paramValues.length > 0 && StringUtils.isNotEmpty( paramValues[0]) )
+
+                    if ( !ArrayUtils.isEmpty( paramValues ) && StringUtils.isNotEmpty( paramValues[0]) )
                     {
-                        listObjectTranslation.removeIf( o -> o.getProperty().name().equalsIgnoreCase( p.name() ) && o.getLocale().equalsIgnoreCase( loc )  );
+                        listObjectTranslation.removeIf( o -> o.getProperty().equals( p ) && o.getLocale().equalsIgnoreCase( loc )  );
+
                         listObjectTranslation.add( new ObjectTranslation( loc, p, paramValues[0] ) );
                     }
                 }

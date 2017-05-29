@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.ObjectTranslation;
+import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
@@ -46,7 +47,7 @@ import java.util.Set;
 public interface IdentifiableObject
     extends LinkableObject, Comparable<IdentifiableObject>, Mergeable<IdentifiableObject>, Serializable
 {
-    String[] I18N_PROPERTIES = { "name" };
+    String[] I18N_PROPERTIES = { TranslationProperty.NAME.getName() };
 
     int getId();
 
