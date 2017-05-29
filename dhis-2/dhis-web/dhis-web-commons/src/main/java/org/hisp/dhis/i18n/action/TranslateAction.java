@@ -28,15 +28,8 @@ package org.hisp.dhis.i18n.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.CLASS_ALIAS;
-
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-
+import com.opensymphony.xwork2.Action;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.struts2.ServletActionContext;
@@ -45,7 +38,13 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.translation.ObjectTranslation;
 import org.hisp.dhis.translation.TranslationProperty;
 
-import com.opensymphony.xwork2.Action;
+import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.hisp.dhis.common.IdentifiableObjectUtils.CLASS_ALIAS;
 
 /**
  * @author Oyvind Brucker
@@ -155,7 +154,7 @@ public class TranslateAction
                 if ( paramName.equalsIgnoreCase( p.name().toString().replace( "_", "" ) ) )
                 {
                     String[] paramValues = request.getParameterValues( paramName );
-                    if ( paramValues != null && paramValues.length > 0 )
+                    if ( paramValues != null && paramValues.length > 0 && StringUtils.isNotEmpty( paramValues[0]) )
                     {
                         listObjectTranslation.removeIf( o -> o.getProperty().name().equalsIgnoreCase( p.name() ) && o.getLocale().equalsIgnoreCase( loc )  );
                         listObjectTranslation.add( new ObjectTranslation( loc, p, paramValues[0] ) );
