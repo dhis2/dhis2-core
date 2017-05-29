@@ -64,10 +64,9 @@ public class DefaultMessageService
     private static final Log log = LogFactory.getLog( DefaultMessageService.class );
 
     private static final String COMPLETE_SUBJECT = "Form registered as complete";
-
     private static final String COMPLETE_TEMPLATE = "completeness_message";
-
     private static final String MESSAGE_EMAIL_FOOTER_TEMPLATE = "message_email_footer";
+    private static final String MESSAGE_PATH = "/dhis-web-messaging/readMessage.action";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -468,8 +467,7 @@ public class DefaultMessageService
 
         locale = ObjectUtils.firstNonNull( locale, LocaleManager.DEFAULT_LOCALE );
 
-        values.put( "responseUrl",
-            baseUrl + "/dhis-web-dashboard-integration/readMessage.action?id=" + conversation.getUid() );
+        values.put( "responseUrl", baseUrl + MESSAGE_PATH + "?id=" + conversation.getUid() );
         values.put( "i18n", i18nManager.getI18n( locale ) );
 
         return new VelocityManager().render( values, MESSAGE_EMAIL_FOOTER_TEMPLATE );
