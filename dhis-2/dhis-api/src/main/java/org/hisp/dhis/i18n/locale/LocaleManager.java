@@ -33,13 +33,12 @@ import java.util.Locale;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: LocaleManager.java 3151 2007-03-23 20:16:20Z oyvinfb $
  */
 public interface LocaleManager
 {
     String ID = LocaleManager.class.getName();
 
-    Locale DEFAULT_LOCALE = new Locale( "en" );
+    Locale DEFAULT_LOCALE = Locale.ENGLISH;
 
     Locale getCurrentLocale();
 
