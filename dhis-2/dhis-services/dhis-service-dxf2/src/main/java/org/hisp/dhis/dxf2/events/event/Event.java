@@ -95,6 +95,7 @@ public class Event
 
     public Event()
     {
+        deleted = false;
     }
 
     @JsonProperty( required = true )

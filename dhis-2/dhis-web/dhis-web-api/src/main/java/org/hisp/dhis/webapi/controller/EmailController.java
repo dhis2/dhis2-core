@@ -38,13 +38,16 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Set;
 
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
@@ -55,6 +58,10 @@ import javax.servlet.http.HttpServletResponse;
 public class EmailController
 {
     public static final String RESOURCE_PATH = "/email";
+
+    private static final String SMTP_ERROR = "SMTP server not configured";
+
+    private static final String EMAIL_DISABLED = "Email message notifications disabled";
 
     //--------------------------------------------------------------------------
     // Dependencies
@@ -75,14 +82,10 @@ public class EmailController
     @RequestMapping( value = "/test", method = RequestMethod.POST )
     public void sendTestEmail( HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
     {
-        String userEmail = currentUserService.getCurrentUser().getEmail();
-        boolean smtpConfigured = emailService.emailEnabled();
-        boolean userEmailConfigured = userEmail != null && !userEmail.isEmpty();
+        checkEmailSettings();
 
-        if ( !smtpConfigured )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Could not send test email, SMTP server not configured" ) );
-        }
+        String userEmail = currentUserService.getCurrentUser().getEmail();
+        boolean userEmailConfigured = userEmail != null && !userEmail.isEmpty();
 
         if ( !userEmailConfigured )
         {
@@ -97,13 +100,9 @@ public class EmailController
     @RequestMapping( value = "/notification", method = RequestMethod.POST )
     public void sendSystemNotificationEmail( @RequestBody Email email, HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
     {
-        boolean smtpConfigured = emailService.emailEnabled();
-        boolean systemNotificationEmailValid = systemSettingManager.systemNotificationEmailValid();
+        checkEmailSettings();
 
-        if ( !smtpConfigured )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Could not send email, SMTP server not configured" ) );
-        }
+        boolean systemNotificationEmailValid = systemSettingManager.systemNotificationEmailValid();
 
         if ( !systemNotificationEmailValid )
         {
@@ -113,5 +112,35 @@ public class EmailController
         emailService.sendSystemEmail( email );
 
         webMessageService.send( WebMessageUtils.ok( "System notification email sent" ), response, request );
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_SEND_EMAIL')" )
+    @RequestMapping( value = "/notification", method = RequestMethod.POST, produces = "application/json" )
+    public void sendEmailNotification( @RequestParam Set<String> recipients, @RequestParam String message,
+                                       @RequestParam ( defaultValue = "DHIS 2" ) String subject,
+                                       HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
+    {
+        checkEmailSettings();
+
+        emailService.sendEmail( subject, message, recipients );
+
+        webMessageService.send( WebMessageUtils.ok( "Email sent" ), response, request );
+    }
+
+    // ---------------------------------------------------------------------
+    // Supportive methods
+    // ---------------------------------------------------------------------
+
+    private void checkEmailSettings() throws WebMessageException
+    {
+        if ( !emailService.emailEnabled() )
+        {
+            throw new WebMessageException( WebMessageUtils.error( EMAIL_DISABLED ) );
+        }
+
+        if ( !emailService.emailConfigured() )
+        {
+            throw new WebMessageException( WebMessageUtils.error( SMTP_ERROR ) );
+        }
     }
 }

@@ -38,6 +38,7 @@ import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.email.EmailConfiguration;
 import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -282,8 +283,7 @@ public class EmailMessageSender
     @Override
     public boolean isConfigured()
     {
-        // TODO Check if SMTP is configured
-        return true;
+        return getEmailConfiguration().isOk();
     }
 
     // -------------------------------------------------------------------------
@@ -370,6 +370,18 @@ public class EmailMessageSender
     private boolean isEmailValid( String email )
     {
         return ValidationUtils.emailIsValid( email );
+    }
+
+    private EmailConfiguration getEmailConfiguration()
+    {
+        String hostName = (String) systemSettingManager.getSystemSetting( SettingKey.EMAIL_HOST_NAME );
+        String username = (String) systemSettingManager.getSystemSetting( SettingKey.EMAIL_USERNAME );
+        String password = (String) systemSettingManager.getSystemSetting( SettingKey.EMAIL_PASSWORD );
+        String from = (String) systemSettingManager.getSystemSetting( SettingKey.EMAIL_SENDER );
+        int port = (int) systemSettingManager.getSystemSetting( SettingKey.EMAIL_PORT );
+        boolean tls = (boolean) systemSettingManager.getSystemSetting( SettingKey.EMAIL_TLS );
+
+        return new EmailConfiguration( hostName, username, password, from, port, tls );
     }
 
     private OutboundMessageResponseSummary generateSummary( List<OutboundMessageResponse> statuses )

@@ -45,6 +45,7 @@ $( function() {
         url += "&endDate=" + endDate;
         url += "&links=false";
         url += "&skipPaging=true";
+        url += "&includeDeleted=true";
 
         window.location = url;
     });
