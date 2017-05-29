@@ -1,5 +1,7 @@
 package org.hisp.dhis.common;
 
+import org.apache.commons.lang.StringUtils;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -38,6 +40,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Class which encapsulates a query parameter and value. Operator and filter
@@ -111,6 +114,21 @@ public class QueryItem
         }
 
         return itemName;
+    }
+    
+    /**
+     * Returns a string representation of the query filters. Returns null if item
+     * has no query items.
+     */
+    public String getFiltersAsString()
+    {
+        if ( filters.isEmpty() )
+        {
+            return null;
+        }
+        
+        List<String> filterStrings = filters.stream().map( QueryFilter::getFilterAsString ).collect( Collectors.toList() );
+        return StringUtils.join( filterStrings, ", " );
     }
 
     public String getTypeAsString()

@@ -853,7 +853,7 @@ public abstract class BaseAnalyticalObject
     }
 
     @JsonProperty( value = "relativePeriods" )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName="relativePeriods", namespace = DxfNamespaces.DXF_2_0 )
     public RelativePeriods getRelatives()
     {
         return relatives;

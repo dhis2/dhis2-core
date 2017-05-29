@@ -31,16 +31,15 @@ package org.hisp.dhis.sms.config;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.springframework.http.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Simplistic http gateway sending smses through a get to a url constructed from
@@ -80,15 +79,11 @@ public class SimplisticHttpGetGateWay
     @Override
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
-        List<OutboundMessageResponse> statuses = new ArrayList<>();
-
-        for ( OutboundMessage message : batch.getMessages() )
-        {
-            statuses.add( send( message.getSubject(), message.getText(), message.getRecipients(), gatewayConfig ) );
-        }
-
-        return statuses;
-    }
+        return batch.getMessages()
+          .stream()
+          .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), gatewayConfig ) )
+          .collect( Collectors.toList() );
+     }
 
     @Override
     public boolean accept( SmsGatewayConfig gatewayConfig )
@@ -131,9 +126,7 @@ public class SimplisticHttpGetGateWay
 
     private UriComponentsBuilder buildUrl( GenericHttpGatewayConfig config, String text, Set<String> recipients )
     {
-        UriComponentsBuilder uriBuilder = null;
-
-        uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
         uriBuilder = getUrlParameters( config.getParameters(), uriBuilder );
         uriBuilder.queryParam( config.getMessageParameter(), text );
         uriBuilder.queryParam( config.getRecipientParameter(),
@@ -145,7 +138,7 @@ public class SimplisticHttpGetGateWay
     private UriComponentsBuilder getUrlParameters( List<GenericGatewayParameter> parameters,
         UriComponentsBuilder uriBuilder )
     {
-        parameters.stream().filter( p -> p.isHeader() == false ).forEach( p -> uriBuilder.queryParam( p.getKey(), p.getValue() ) );
+        parameters.stream().filter( p -> !p.isHeader() ).forEach( p -> uriBuilder.queryParam( p.getKey(), p.getValue() ) );
 
         return uriBuilder;
     }

@@ -29,7 +29,11 @@ package org.hisp.dhis.resourcetable;
  */
 
 import com.google.common.collect.Lists;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.DataSet;
@@ -54,6 +58,8 @@ import java.util.List;
 public class DefaultResourceTableService
     implements ResourceTableService
 {
+    private static final Log log = LogFactory.getLog( DefaultResourceTableService.class );
+    
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -241,7 +247,15 @@ public class DefaultResourceTableService
         {
             if ( !view.isQuery() )
             {
-                sqlViewService.createViewTable( view );
+                try
+                {
+                    sqlViewService.createViewTable( view );
+                }
+                catch ( IllegalQueryException ex )
+                {
+                    log.warn( String.format( "Ignoring SQL view which failed validation: %s, %s, message: %s", 
+                        view.getUid(), view.getName(), ex.getMessage() ) );
+                }
             }
         }
     }

@@ -189,7 +189,7 @@ public class DefaultQueryParser implements QueryParser
             }
             case "in":
             {
-                Collection values = QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg );
+                Collection<?> values = QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg );
 
                 if ( values == null || values.isEmpty() )
                 {
@@ -200,7 +200,7 @@ public class DefaultQueryParser implements QueryParser
             }
             case "!in":
             {
-                Collection values = QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg );
+                Collection<?> values = QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg );
 
                 if ( values == null || values.isEmpty() )
                 {

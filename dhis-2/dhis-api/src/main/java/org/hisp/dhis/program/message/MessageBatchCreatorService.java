@@ -37,5 +37,11 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 */
 public interface MessageBatchCreatorService
 {
+    /**
+     * Create batch of messages based on DeliveryChannel. It also populates
+     * required fields for that DeliveryChannel.
+     *
+     * @param programMessages list of ProgramMessages.
+     */
     OutboundMessageBatch getMessageBatch( List<ProgramMessage> programMessages );
 }

@@ -303,7 +303,7 @@ public abstract class AbstractTrackedEntityInstanceService
             importOptions = new ImportOptions();
         }
 
-        ImportSummary importSummary = new ImportSummary();
+        ImportSummary importSummary = new ImportSummary( trackedEntityInstance.getTrackedEntityInstance() );
 
         trackedEntityInstance.trimValuesToNull();
 
@@ -382,7 +382,7 @@ public abstract class AbstractTrackedEntityInstanceService
             importOptions = new ImportOptions();
         }
 
-        ImportSummary importSummary = new ImportSummary();
+        ImportSummary importSummary = new ImportSummary( trackedEntityInstance.getTrackedEntityInstance() );
 
         trackedEntityInstance.trimValuesToNull();
 

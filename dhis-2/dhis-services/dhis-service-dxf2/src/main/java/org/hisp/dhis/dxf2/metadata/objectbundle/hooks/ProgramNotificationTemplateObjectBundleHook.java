@@ -133,7 +133,7 @@ public class ProgramNotificationTemplateObjectBundleHook
 
         ValueType valueType = null;
 
-        if ( resolver != null )
+        if ( resolver != null && pnt.getRecipientProgramAttribute() != null )
         {
             valueType = resolver.apply( pnt );
         }

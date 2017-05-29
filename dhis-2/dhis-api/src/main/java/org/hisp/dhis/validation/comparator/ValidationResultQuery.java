@@ -1,7 +1,6 @@
-package org.hisp.dhis.period;
-
+package org.hisp.dhis.validation.comparator;
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,20 +27,81 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * PeriodType for weekly Periods. A valid weekly Period has startDate set to
- * Wednesday and endDate set to Tuesday the same week, assuming Wednesday is the first
- * day and Tuesday is the last day of the week.
- *
- * @author Torgeir Lorange Ostby
- */
-public class WeeklyWednesdayPeriodType
-    extends WeeklyAbstractPeriodType
-{
-    public static final String NAME = "WeeklyWednesday";
+import com.google.common.base.MoreObjects;
+import org.hisp.dhis.common.Pager;
 
-    public WeeklyWednesdayPeriodType()
+/**
+ * @author Stian Sandvold
+ */
+public class ValidationResultQuery
+{
+
+    public static final ValidationResultQuery EMPTY = new ValidationResultQuery();
+
+    private boolean skipPaging;
+
+    private int page = 1;
+
+    private int pageSize = Pager.DEFAULT_PAGE_SIZE;
+
+    private int total;
+
+    public ValidationResultQuery()
     {
-        super( NAME, 3, "yyyyWedWn", "P7D", 7, "WedW" );
+    }
+
+    public boolean isSkipPaging()
+    {
+        return skipPaging;
+    }
+
+    public void setSkipPaging( boolean skipPaging )
+    {
+        this.skipPaging = skipPaging;
+    }
+
+    public int getPage()
+    {
+        return page;
+    }
+
+    public void setPage( int page )
+    {
+        this.page = page;
+    }
+
+    public int getPageSize()
+    {
+        return pageSize;
+    }
+
+    public void setPageSize( int pageSize )
+    {
+        this.pageSize = pageSize;
+    }
+
+    public int getTotal()
+    {
+        return total;
+    }
+
+    public void setTotal( int total )
+    {
+        this.total = total;
+    }
+
+    public Pager getPager()
+    {
+        return skipPaging ? null : new Pager( page, total, pageSize );
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "page", page )
+            .add( "pageSize", pageSize )
+            .add( "total", total )
+            .toString();
     }
 }

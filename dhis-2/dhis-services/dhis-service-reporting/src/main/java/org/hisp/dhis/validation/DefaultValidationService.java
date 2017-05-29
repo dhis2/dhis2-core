@@ -201,6 +201,7 @@ public class DefaultValidationService
         systemSettingManager.saveSystemSetting( SettingKey.LAST_MONITORING_RUN, new Date() );
 
         ValidationRunContext context = getValidationContext( orgUnits, periods, rules )
+            .withPersistResults( true )
             .withMaxResults( MAX_SCHEDULED_ALERTS )
             .withSendNotifications( false )
             .build();

@@ -40,6 +40,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.collect.Lists;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -395,15 +397,27 @@ public class DefaultEventAnalyticsService
                 }
             }
             
-            for ( QueryItem item : params.getItemsAndItemFilters() )
+            for ( QueryItem item : params.getItems() )
             {
-                if ( item.hasLegendSet() )
-                {
-                    dimensionItems.put( item.getItemId(), IdentifiableObjectUtils.getUids( item.getLegendSet().getSortedLegends() ) );
-                }
-                else if ( item.hasOptionSet() )
+                if ( item.hasOptionSet() || item.hasLegendSet() )
                 {
                     dimensionItems.put( item.getItemId(), item.getQueryFilterItems() );
+                }
+                else
+                {
+                    dimensionItems.put( item.getItemId(), Lists.newArrayList() );
+                }
+            }
+
+            for ( QueryItem item : params.getItemFilters() )
+            {
+                if ( item.hasOptionSet() || item.hasLegendSet() )
+                {
+                    dimensionItems.put( item.getItemId(), item.getQueryFilterItems() );
+                }
+                else
+                {
+                    dimensionItems.put( item.getItemId(), Lists.newArrayList( item.getFiltersAsString() ) );
                 }
             }
 
