@@ -68,6 +68,8 @@ import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -1675,7 +1677,8 @@ public abstract class DhisConvenienceTest
     protected static ValidationNotificationTemplate createValidationNotificationTemplate( String name )
     {
         ValidationNotificationTemplate template = new ValidationNotificationTemplate();
-
+        template.setAutoFields();
+        
         template.setName( name );
         template.setSubjectTemplate( "Subject" );
         template.setMessageTemplate( "Message" );
@@ -1684,6 +1687,28 @@ public abstract class DhisConvenienceTest
         return template;
     }
 
+    protected static OptionSet createOptionSet( char uniqueCharacter )
+    {
+        OptionSet optionSet = new OptionSet();
+        optionSet.setAutoFields();
+        
+        optionSet.setName( "OptionSet" + uniqueCharacter );
+        optionSet.setCode( "OptionSetCode" + uniqueCharacter );
+        
+        return optionSet;
+    }
+    
+    protected static Option createOption( char uniqueCharacter )
+    {
+        Option option = new Option();
+        option.setAutoFields();
+        
+        option.setName( "Option" + uniqueCharacter );
+        option.setCode( "OptionCode" + uniqueCharacter );
+        
+        return option;
+    }
+    
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------

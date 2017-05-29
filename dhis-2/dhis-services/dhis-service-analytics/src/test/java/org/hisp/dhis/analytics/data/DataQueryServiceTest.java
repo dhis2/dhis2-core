@@ -287,6 +287,10 @@ public class DataQueryServiceTest
         saveAndInjectUserSecurityContext( user );
     }
 
+    // -------------------------------------------------------------------------
+    // Tests
+    // -------------------------------------------------------------------------
+
     @Test
     public void testGetDimensionalObjects()
     {

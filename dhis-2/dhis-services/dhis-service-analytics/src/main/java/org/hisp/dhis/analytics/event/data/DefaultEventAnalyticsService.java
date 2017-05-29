@@ -399,9 +399,13 @@ public class DefaultEventAnalyticsService
             
             for ( QueryItem item : params.getItems() )
             {
-                if ( item.hasOptionSet() || item.hasLegendSet() )
+                if ( item.hasOptionSet() )
                 {
                     dimensionItems.put( item.getItemId(), item.getQueryFilterItems() );
+                }
+                else if ( item.hasLegendSet() )
+                {
+                    dimensionItems.put( item.getItemId(), item.getLegendSetFilterItemsOrAll() );
                 }
                 else
                 {
@@ -411,9 +415,13 @@ public class DefaultEventAnalyticsService
 
             for ( QueryItem item : params.getItemFilters() )
             {
-                if ( item.hasOptionSet() || item.hasLegendSet() )
+                if ( item.hasOptionSet() )
                 {
                     dimensionItems.put( item.getItemId(), item.getQueryFilterItems() );
+                }
+                else if ( item.hasLegendSet() )
+                {
+                    dimensionItems.put( item.getItemId(), item.getLegendSetFilterItemsOrAll() );
                 }
                 else
                 {
