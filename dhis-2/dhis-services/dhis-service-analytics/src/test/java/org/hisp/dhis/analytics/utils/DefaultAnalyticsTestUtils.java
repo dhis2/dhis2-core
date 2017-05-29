@@ -2,6 +2,8 @@ package org.hisp.dhis.analytics.utils;
 
 import com.csvreader.CsvReader;
 import com.google.common.collect.Sets;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.core.io.ClassPathResource;
 
@@ -9,12 +11,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Map;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
- * Created by henninghakonsen on 23/05/2017.
- * Project: dhis-2.
+ * @author Henning Haakonsen
  */
 public class DefaultAnalyticsTestUtils
     implements AnalyticsTestUtils
@@ -48,5 +50,64 @@ public class DefaultAnalyticsTestUtils
         }
 
         return lines;
+    }
+
+    public void assertResultGrid( Grid aggregatedResultData, Map<String, Double> keyValue )
+    {
+        assertNotNull( aggregatedResultData );
+        for ( int i = 0; i < aggregatedResultData.getRows().size(); i++ )
+        {
+            int numberOfDimensions = aggregatedResultData.getRows().get( 0 ).size() - 1;
+
+            StringBuilder key = new StringBuilder();
+            for ( int j = 0; j < numberOfDimensions; j++ )
+            {
+                key.append( aggregatedResultData.getValue( i, j ).toString() );
+                if ( j != numberOfDimensions - 1 )
+                    key.append( "-" );
+            }
+
+            Double expected = keyValue.get( key.toString() );
+            Double actual = Double.parseDouble( aggregatedResultData.getValue( i, numberOfDimensions ).toString() );
+
+            assertNotNull( "Did not find '" + key + "' in provided results", expected );
+            assertNotNull( aggregatedResultData.getRow( i ) );
+            assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected,
+                actual );
+        }
+    }
+
+    public void assertResultMapping( Map<String, Object> aggregatedResultMapping,
+        Map<String, Double> keyValue )
+    {
+        assertNotNull( aggregatedResultMapping );
+        assertNull( aggregatedResultMapping.get( "testNull" ) );
+        assertNull( aggregatedResultMapping.get( "" ) );
+
+        for ( Map.Entry<String, Object> entry : aggregatedResultMapping.entrySet() )
+        {
+            String key = entry.getKey();
+            Double expected = keyValue.get( key );
+            Double actual = (Double) entry.getValue();
+
+            assertNotNull( "Did not find '" + key + "' in provided results", expected );
+            assertEquals( "Value for key:'" + key + "' not matching expected value: '" + expected + "'", expected,
+                actual );
+        }
+    }
+
+    public void assertResultSet( DataValueSet aggregatedResultSet, Map<String, Double> keyValue )
+    {
+        for ( org.hisp.dhis.dxf2.datavalue.DataValue dataValue : aggregatedResultSet.getDataValues() )
+        {
+            String key = dataValue.getDataElement() + "-" + dataValue.getOrgUnit() + "-" + dataValue.getPeriod();
+
+            assertNotNull( keyValue.get( key ) );
+            Double actual = Double.parseDouble( dataValue.getValue() );
+            Double expected = keyValue.get( key );
+
+            assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected,
+                actual );
+        }
     }
 }

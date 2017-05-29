@@ -105,12 +105,9 @@ public class DefaultAnalyticsTableGenerator
             {
                 AnalyticsTableType tableType = service.getAnalyticsTableType();
 
-                System.out.println("skiptypes: " + skipTypes + ", tableType: " + tableType + ", !true? " + !skipTypes.contains( tableType ));
                 if ( !skipTypes.contains( tableType ) )
                 {
                     notifier.notify( taskId, "Updating tables: " + tableType );
-                    System.out.println("TableType: " + tableType.getTableName() + ", lastYears: " + lastYears);
-
 
                     service.update( lastYears, taskId );
                 }
@@ -122,7 +119,6 @@ public class DefaultAnalyticsTableGenerator
         }
         catch ( RuntimeException ex )
         {
-            System.out.println("Error in table generator: " + ex);
             notifier.notify( taskId, ERROR, "Process failed: " + ex.getMessage(), true );
 
             messageService.sendSystemErrorNotification( "Analytics table process failed", ex );

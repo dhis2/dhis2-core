@@ -108,7 +108,6 @@ public class DefaultAnalyticsTableService
         
         String validState = tableManager.validState();
 
-        System.out.println("'" + tableName + "', Validstate: " + validState);
         if ( validState != null )
         {
             notifier.notify( taskId, validState );

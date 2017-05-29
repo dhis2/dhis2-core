@@ -63,7 +63,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.IOException;
 import java.util.*;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests aggregation of data in analytics tables.
@@ -676,7 +676,7 @@ public class AnalyticsServiceTest
 
             aggregatedDataValueMapping = analyticsService.getAggregatedDataValueMapping( params );
 
-            assertDataValueMapping( aggregatedDataValueMapping, results.get( key ) );
+            analyticsTestUtils.assertResultMapping( aggregatedDataValueMapping, results.get( key ) );
         }
 
         for ( Map.Entry<String, AnalyticalObject> entry : analyticalObjectHashMap.entrySet() )
@@ -686,7 +686,7 @@ public class AnalyticsServiceTest
 
             aggregatedDataValueMapping = analyticsService.getAggregatedDataValueMapping( params );
 
-            assertDataValueMapping( aggregatedDataValueMapping, results.get( key ) );
+            analyticsTestUtils.assertResultMapping( aggregatedDataValueMapping, results.get( key ) );
         }
     }
 
@@ -701,7 +701,7 @@ public class AnalyticsServiceTest
 
             aggregatedDataValueGrid = analyticsService.getAggregatedDataValues( params );
 
-            assertDataValueGrid( aggregatedDataValueGrid, results.get( key ) );
+            analyticsTestUtils.assertResultGrid( aggregatedDataValueGrid, results.get( key ) );
         }
     }
 
@@ -712,13 +712,13 @@ public class AnalyticsServiceTest
         DataValueSet aggregatedDataValueSet = analyticsService
             .getAggregatedDataValueSet( dataQueryParams.get( "deC_ouB_2017_03" ) );
 
-        assertDataValueSet( aggregatedDataValueSet, results.get( "deC_ouB_2017_03" ) );
+        analyticsTestUtils.assertResultSet( aggregatedDataValueSet, results.get( "deC_ouB_2017_03" ) );
 
         // Params: Sum for all org unit A, in data element a in Q1 2017
         aggregatedDataValueSet = analyticsService
             .getAggregatedDataValueSet( dataQueryParams.get( "deA_ouA_2017_Q01" ) );
 
-        assertDataValueSet( aggregatedDataValueSet, results.get( "deA_ouA_2017_Q01" ) );
+        analyticsTestUtils.assertResultSet( aggregatedDataValueSet, results.get( "deA_ouA_2017_Q01" ) );
     }
 
     // -------------------------------------------------------------------------
@@ -772,88 +772,5 @@ public class AnalyticsServiceTest
 
         assertEquals( "Import of data set registrations failed, number of imports are wrong",
             completeDataSetRegistrationService.getAllCompleteDataSetRegistrations().size(), 15 );
-    }
-
-
-
-    /**
-     * Test if values from keyValue corresponds with values in
-     * aggregatedDataValueMapping. Also test for null values, and "" as key in
-     * aggregatedDataValueMapping
-     *
-     * @param aggregatedDataValueMapping aggregated values
-     * @param keyValue expected results
-     */
-    private void assertDataValueMapping( Map<String, Object> aggregatedDataValueMapping,
-        Map<String, Double> keyValue )
-    {
-        assertNotNull( aggregatedDataValueMapping );
-        assertNull( aggregatedDataValueMapping.get( "testNull" ) );
-        assertNull( aggregatedDataValueMapping.get( "" ) );
-
-        for ( Map.Entry<String, Object> entry : aggregatedDataValueMapping.entrySet() )
-        {
-            String key = entry.getKey();
-            Double expected = keyValue.get( key );
-            Double actual = (Double) entry.getValue();
-
-            assertNotNull( "Did not find '" + key + "' in provided results", expected );
-            assertEquals( "Value for key:'" + key + "' not matching expected value: '" + expected + "'", expected,
-                actual );
-        }
-    }
-
-    /**
-     * Test if values from keyValue corresponds with values in
-     * aggregatedDataValueMapping. Also test for null values.
-     *
-     * @param aggregatedDataValueGrid aggregated values
-     * @param keyValue expected results
-     */
-    private void assertDataValueGrid( Grid aggregatedDataValueGrid, Map<String, Double> keyValue )
-    {
-        assertNotNull( aggregatedDataValueGrid );
-        for ( int i = 0; i < aggregatedDataValueGrid.getRows().size(); i++ )
-        {
-            int numberOfDimensions = aggregatedDataValueGrid.getRows().get( 0 ).size() - 1;
-
-            StringBuilder key = new StringBuilder();
-            for ( int j = 0; j < numberOfDimensions; j++ )
-            {
-                key.append( aggregatedDataValueGrid.getValue( i, j ).toString() );
-                if ( j != numberOfDimensions - 1 )
-                    key.append( "-" );
-            }
-
-            Double expected = keyValue.get( key.toString() );
-            Double actual = (Double) aggregatedDataValueGrid.getValue( i, numberOfDimensions );
-
-            assertNotNull( "Did not find '" + key + "' in provided results", expected );
-            assertNotNull( aggregatedDataValueGrid.getRow( i ) );
-            assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected,
-                actual );
-        }
-    }
-
-    /**
-     * Test if values from keyValue corresponds with values in
-     * aggregatedDataValueSet. Also test for null values.
-     *
-     * @param aggregatedDataValueSet aggregated values
-     * @param keyValue               expected results
-     */
-    private void assertDataValueSet( DataValueSet aggregatedDataValueSet, Map<String, Double> keyValue )
-    {
-        for ( org.hisp.dhis.dxf2.datavalue.DataValue dataValue : aggregatedDataValueSet.getDataValues() )
-        {
-            String key = dataValue.getDataElement() + "-" + dataValue.getOrgUnit() + "-" + dataValue.getPeriod();
-
-            assertNotNull( keyValue.get( key ) );
-            Double actual = Double.parseDouble( dataValue.getValue() );
-            Double expected = keyValue.get( key );
-
-            assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected,
-                actual );
-        }
     }
 }
