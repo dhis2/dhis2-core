@@ -29,43 +29,51 @@ package org.hisp.dhis.analytics.event.data;
  */
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.utils.AnalyticsTestUtils;
 import org.hisp.dhis.analytics.utils.DefaultAnalyticsTestUtils;
+import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dbms.HibernateDbmsManager;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.legend.Legend;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 /**
- * Created by henninghakonsen on 23/05/2017.
- * Project: dhis-2.
+ *
+ * @author Henning Haakonsen
  */
 public class EventAnalyticsServiceTest
     extends DhisTest
@@ -82,6 +90,16 @@ public class EventAnalyticsServiceTest
     private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleA;
     private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB;
 
+    private Program prA;
+    private ProgramStage psA;
+
+    private TrackedEntityAttribute atA;
+    private TrackedEntityAttribute atB;
+
+    private LegendSet legendSetA;
+
+    private Legend legendA;
+    private Legend legendB;
 
     @Autowired
     private AnalyticsTableGenerator analyticsTableGenerator;
@@ -105,13 +123,16 @@ public class EventAnalyticsServiceTest
     private ProgramInstanceService programInstanceService;
 
     @Autowired
-    private DataElementService dataElementService;
+    private AttributeService attributeService;
 
     @Autowired
     private TrackedEntityService trackedEntityService;
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
+
+    @Autowired
+    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
     @Autowired
     private EventService eventService;
@@ -128,44 +149,20 @@ public class EventAnalyticsServiceTest
         Period peApril = createPeriod( "2017-04" );
         Period quarter = createPeriod( "2017Q1" );
 
-        periodService.addPeriod( peJan );
-        periodService.addPeriod( peFeb );
-        periodService.addPeriod( peMar );
-        periodService.addPeriod( peApril );
+        idObjectManager.save( peJan );
+        idObjectManager.save( peFeb );
+        idObjectManager.save( peMar );
+        idObjectManager.save( peApril );
 
         DataElement deA = createDataElement( 'A' );
         DataElement deB = createDataElement( 'B' );
         DataElement deC = createDataElement( 'C' );
         DataElement deD = createDataElement( 'D' );
 
-        dataElementService.addDataElement( deA );
-        dataElementService.addDataElement( deB );
-        dataElementService.addDataElement( deC );
-        dataElementService.addDataElement( deD );
-
-
-        Program programA = createProgram( 'A' );
-        programA.setLastUpdated( getDate( 2017, 5, 23 ) );
-        programA.setUid( "programA123" );
-        Program programB = createProgram( 'B' );
-        programB.setUid( "programB123" );
-        Program programC = createProgram( 'C' );
-        programC.setUid( "programC123" );
-        Program programD = createProgram( 'D' );
-        programD.setUid( "programD123" );
-
-        programService.addProgram( programA );
-        programService.addProgram( programB );
-        programService.addProgram( programC );
-        programService.addProgram( programD );
-
-        ProgramStage programStageA = createProgramStage( 'A', programA );
-        programStageA.setUid( "programStgA" );
-        ProgramStage programStageB = createProgramStage( 'B', programA );
-        programStageA.setUid( "programStgB" );
-
-        programStageService.saveProgramStage( programStageA );
-        programStageService.saveProgramStage( programStageB );
+        idObjectManager.save( deA );
+        idObjectManager.save( deB );
+        idObjectManager.save( deC );
+        idObjectManager.save( deD );
 
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         OrganisationUnit ouB = createOrganisationUnit( 'B' );
@@ -181,17 +178,65 @@ public class EventAnalyticsServiceTest
 
         analyticsTestUtils.configureHierarchy( ouA, ouB, ouC, ouD, ouE );
 
-        organisationUnitService.addOrganisationUnit( ouA );
-        organisationUnitService.addOrganisationUnit( ouB );
-        organisationUnitService.addOrganisationUnit( ouC );
-        organisationUnitService.addOrganisationUnit( ouD );
-        organisationUnitService.addOrganisationUnit( ouE );
-
         idObjectManager.save( ouA );
         idObjectManager.save( ouB );
         idObjectManager.save( ouC );
         idObjectManager.save( ouD );
         idObjectManager.save( ouE );
+
+        atA = createTrackedEntityAttribute( 'A' );
+        atB = createTrackedEntityAttribute( 'B' );
+
+        idObjectManager.save( atA );
+        idObjectManager.save( atB );
+
+        prA = createProgram( 'A', null, Sets.newHashSet( atA, atB ), Sets.newHashSet( ouA, ouB ), null );
+        prA.setUid( "programA123" );
+        idObjectManager.save( prA );
+
+        psA = createProgramStage( 'A', 0 );
+        psA.setUid( "programStgA" );
+        psA.addDataElement( deA, 0 );
+        psA.addDataElement( deB, 1 );
+        prA.getProgramStages().add( psA );
+
+        legendA = createLegend( 'A', 0d, 10d );
+        legendB = createLegend( 'B', 10d, 20d );
+
+        legendSetA = createLegendSet( 'A' );
+
+        legendSetA.getLegends().add( legendA );
+        legendSetA.getLegends().add( legendB );
+
+        idObjectManager.save( legendSetA );
+
+
+        /*Program programA = createProgram( 'A' );
+        programA.setLastUpdated( getDate( 2017, 5, 23 ) );
+        programA.setUid( "programA123" );
+        Program programB = createProgram( 'B' );
+        programB.setUid( "programB123" );
+        Program programC = createProgram( 'C' );
+        programC.setUid( "programC123" );
+        Program programD = createProgram( 'D' );
+        programD.setUid( "programD123" );
+
+        idObjectManager.save( programA );
+        idObjectManager.save( programB );
+        idObjectManager.save( programC );
+        idObjectManager.save( programD );
+
+        ProgramStage programStageA = createProgramStage( 'A', programA );
+        programA.addOrganisationUnit( ouA );
+        programStageA.setUid( "programStgA" );
+        ProgramStage programStageB = createProgramStage( 'B', programA );
+        programA.addOrganisationUnit( ouA );
+        programStageA.setUid( "programStgB" );
+
+        idObjectManager.save( programStageA );
+        idObjectManager.save( programStageB );*/
+
+
 
         TrackedEntity trackedEntity = createTrackedEntity( 'A' );
         trackedEntityService.addTrackedEntity( trackedEntity );
@@ -210,10 +255,11 @@ public class EventAnalyticsServiceTest
         idObjectManager.save( maleB );
         idObjectManager.save( femaleA );
         idObjectManager.save( femaleB );
-        idObjectManager.save( programA );
 
-        programInstanceService.enrollTrackedEntityInstance( maleA, programA, null, null, ouA );
-        programInstanceService.enrollTrackedEntityInstance( femaleA, programA, null, null, ouA );
+
+
+        programInstanceService.enrollTrackedEntityInstance( maleA, prA, null, null, ouA );
+        programInstanceService.enrollTrackedEntityInstance( femaleA, prA, null, null, ouA );
 
         // Read event data from CSV file
         // --------------------------------------------------------------------
@@ -234,7 +280,7 @@ public class EventAnalyticsServiceTest
             .withOrganisationUnits( Lists.newArrayList( ouA ) )
             .withStartDate( getDate( 2017, 1, 1 ) )
             .withEndDate( getDate( 2017, 12, 31 ) )
-            .withProgram( programA )
+            .withProgram( prA )
             .build();
 
         eventQueryParams.put( "events_2017", events_2017_params );
@@ -265,19 +311,46 @@ public class EventAnalyticsServiceTest
     @Autowired
     private HibernateDbmsManager hibernateDbmsManager;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
     @Test
     public void testGetAggregatedEvents()
     {
-        /*List<List<Object>> rows = hibernateDbmsManager.getTableContent( "analytics_completenesstarget_2017" );
+        List<List<Object>> tableContent = new ArrayList<>();
 
-        for ( List<Object> row : rows )
+        SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet( "SHOW TABLES;" );
+        int cols = sqlRowSet.getMetaData().getColumnCount() + 1;
+
+        List<Object> headers = new ArrayList<>();
+
+        for ( int i = 1; i < cols; i++ )
+        {
+            headers.add( sqlRowSet.getMetaData().getColumnName( i ) );
+        }
+
+        tableContent.add( headers );
+
+        while ( sqlRowSet.next() )
+        {
+            List<Object> row = new ArrayList<>();
+
+            for ( int i = 1; i < cols; i++ )
+            {
+                row.add( sqlRowSet.getObject( i ) );
+
+            }
+
+            tableContent.add( row );
+        }
+
+        for ( List<Object> row : tableContent )
         {
             for ( Object line : row )
             {
                 System.out.print(line + ", ");
             }
             System.out.println();
-        }*/
+        }
 
         Grid aggregatedEventData;
         for ( Map.Entry<String, EventQueryParams> entry : eventQueryParams.entrySet() )
@@ -321,9 +394,7 @@ public class EventAnalyticsServiceTest
             event.setStatus( EventStatus.COMPLETED );
             event.setTrackedEntityInstance( maleA.getUid() );
 
-            
-
-            System.out.println("Event: " + event);
+            System.out.println("Event: " + event + "\nmale a: " + maleA);
 
             eventService.addEvent( event, null );
         }
