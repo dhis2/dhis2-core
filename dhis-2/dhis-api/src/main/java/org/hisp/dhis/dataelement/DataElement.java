@@ -85,7 +85,8 @@ import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
 public class DataElement
     extends BaseDimensionalItemObject implements MetadataObject
 {
-    public static final String[] I18N_PROPERTIES = { "name", "shortName", "description", "formName" };
+    public static final String[] I18N_PROPERTIES = { TranslationProperty.NAME.getName(), TranslationProperty.SHORT_NAME.getName(),
+        TranslationProperty.DESCRIPTION.getName(), TranslationProperty.FORM_NAME.getName() };
 
     /**
      * Data element value type (int, boolean, etc)

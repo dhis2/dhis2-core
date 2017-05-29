@@ -58,6 +58,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
@@ -270,12 +271,9 @@ public class EmailMessageSender
     @Override
     public OutboundMessageResponseSummary sendMessageBatch( OutboundMessageBatch batch )
     {
-        List<OutboundMessageResponse> statuses = new ArrayList<>();
-
-        for ( OutboundMessage email : batch.getMessages() )
-        {
-            statuses.add( sendMessage( email.getSubject(), email.getText(), email.getRecipients() ) );
-        }
+        List<OutboundMessageResponse> statuses = batch.getMessages().stream()
+            .map( m -> sendMessage( m.getSubject(), m.getText(), m.getRecipients() ) )
+            .collect( Collectors.toList() );
 
         return generateSummary( statuses );
     }

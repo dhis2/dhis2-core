@@ -30,6 +30,8 @@ package org.hisp.dhis.datavalue.hibernate;
 
 import org.apache.commons.lang3.StringUtils;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -77,6 +79,8 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 public class HibernateDataValueStore
     implements DataValueStore
 {
+    private static final Log log = LogFactory.getLog( HibernateDataValueStore.class );
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -543,8 +547,11 @@ public class HibernateDataValueStore
 
         MapMap<String, DataElementOperand, Long> checkForDuplicates = new MapMap<>();
 
+        int rowCount = 0;
+
         while ( rowSet.next() )
         {
+            rowCount++;
             String dataElement = rowSet.getString( 1 );
             String categoryOptionCombo = rowSet.getString( 2 );
             String attributeOptionCombo = rowSet.getString( 3 );
@@ -560,7 +567,7 @@ public class HibernateDataValueStore
 
                 for ( DataElementOperand deo : deos )
                 {
-                    if ( deo.getCategoryOptionCombo() == null || deo.getCategoryOptionCombo().getUid() == categoryOptionCombo )
+                    if ( deo.getCategoryOptionCombo() == null || deo.getCategoryOptionCombo().getUid().equals( categoryOptionCombo ) )
                     {
                         Double existingValue = map.getValue(attributeOptionCombo, deo);
 
@@ -605,6 +612,8 @@ public class HibernateDataValueStore
                 }
             }
         }
+
+        log.trace( "getDataValueMapByAttributeCombo: " + rowCount + " rows into " + map.size() + " map entries from \"" + sql + "\"" );
 
         return map;
     }

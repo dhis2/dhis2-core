@@ -28,10 +28,13 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.translation.TranslationProperty;
+
 public interface NameableObject
     extends IdentifiableObject
 {
-    String[] I18N_PROPERTIES = { "name", "shortName", "description" };
+    String[] I18N_PROPERTIES = { TranslationProperty.NAME.getName(), TranslationProperty.SHORT_NAME.getName(), TranslationProperty
+        .DESCRIPTION.getName() };
 
     String getShortName();
 
