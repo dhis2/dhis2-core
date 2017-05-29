@@ -49,6 +49,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * The superclass of all PeriodTypes.
@@ -59,6 +61,9 @@ import java.util.concurrent.TimeUnit;
 public abstract class PeriodType
     implements Serializable
 {
+    
+    private static final Log log = LogFactory.getLog( PeriodType.class );
+    
     // Cache for period lookup, uses calendar.name() + periodType.getName() + date.getTime() as key
     private static Cache<String, Period> PERIOD_CACHE = Caffeine.newBuilder()
         .expireAfterAccess( 1, TimeUnit.SECONDS )

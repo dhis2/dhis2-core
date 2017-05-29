@@ -186,24 +186,11 @@ public class QuarterlyPeriodType
     public String getIsoDate( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar  )
     {
 
-        log.info("getIsoDate " + dateTimeUnit.getYear() + " " + dateTimeUnit.getMonth() + " " + dateTimeUnit.isIso8601() );
-        
         if (calendar.name() == "persian" && dateTimeUnit.isIso8601()) {
-            switch ( dateTimeUnit.getMonth() )
-            {
-                case 3:
-                    return dateTimeUnit.getYear() + "Q1";
-                case 6:
-                    return dateTimeUnit.getYear() + "Q2";
-                case 9:
-                    return dateTimeUnit.getYear() + "Q3";
-                case 12:
-                    return dateTimeUnit.getYear() + "Q4";
-                default:
-                    throw new IllegalArgumentException( "Month not valid for persian calendar[3,6,9,12], was given " + dateTimeUnit.getMonth() );
-            }
+            dateTimeUnit = calendar.fromIso(dateTimeUnit);
+            log.warn("Forced conversion of ISO date to persian: " + + dateTimeUnit.getYear() + " " + dateTimeUnit.getMonth());
         }
-           
+
         switch ( dateTimeUnit.getMonth() )
         {
             case 1:
