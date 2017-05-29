@@ -35,6 +35,7 @@ import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import org.junit.Before;
@@ -129,6 +130,17 @@ public class PersianCalendarTest
         assertEquals( 13, monthly.size() );
     }
     
+    /*
+    @Test
+    public void testGenerateQuarterlyPeriods()
+    {
+        Date startDate = new Cal( 1997, 1, 1, true ).time();
+        Date endDate = new Cal( 1997, 2, 31, true ).time();
+
+        List<Period> monthly = new QuarterlyPeriodType().generatePeriods( calendar, startDate, endDate );
+        assertEquals( 1, monthly.size() );
+    }    
+    */
     @Test
     public void testToInterval()
     {     

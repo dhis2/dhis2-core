@@ -34,6 +34,9 @@ import org.hisp.dhis.calendar.DateTimeUnit;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.calendar.impl.PersianCalendar;
 
 /**
  * PeriodType for quarterly Periods. A valid quarterly Period has startDate set
@@ -54,6 +57,8 @@ public class QuarterlyPeriodType
     private static final String ISO_FORMAT = "yyyyQn";
 
     private static final String ISO8601_DURATION = "P1Q";
+    
+    private static final Log log = LogFactory.getLog( QuarterlyPeriodType.class );
 
     /**
      * The name of the QuarterlyPeriodType, which is "Quarterly".
@@ -180,6 +185,25 @@ public class QuarterlyPeriodType
     @Override
     public String getIsoDate( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar  )
     {
+
+        log.info("getIsoDate " + dateTimeUnit.getYear() + " " + dateTimeUnit.getMonth() + " " + dateTimeUnit.isIso8601() );
+        
+        if (calendar.name() == "persian" && dateTimeUnit.isIso8601()) {
+            switch ( dateTimeUnit.getMonth() )
+            {
+                case 3:
+                    return dateTimeUnit.getYear() + "Q1";
+                case 6:
+                    return dateTimeUnit.getYear() + "Q2";
+                case 9:
+                    return dateTimeUnit.getYear() + "Q3";
+                case 12:
+                    return dateTimeUnit.getYear() + "Q4";
+                default:
+                    throw new IllegalArgumentException( "Month not valid for persian calendar[3,6,9,12], was given " + dateTimeUnit.getMonth() );
+            }
+        }
+           
         switch ( dateTimeUnit.getMonth() )
         {
             case 1:

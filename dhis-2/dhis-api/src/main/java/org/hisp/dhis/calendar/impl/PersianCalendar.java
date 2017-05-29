@@ -118,7 +118,11 @@ public class PersianCalendar extends AbstractCalendar
 
         dateTime = dateTime.plusDays( totalDays );
 
-        return new DateTimeUnit( DateTimeUnit.fromJodaDateTime( dateTime ), true );
+        DateTimeUnit result = new DateTimeUnit( DateTimeUnit.fromJodaDateTime( dateTime ), true );
+        
+        if (logging) log.info("toIso. res=" + sweat(result));
+        
+        return result;
     }
 
     @Override
@@ -316,21 +320,24 @@ public class PersianCalendar extends AbstractCalendar
     @Override
     public int isoWeekday( DateTimeUnit dateTimeUnit )
     {
-        if (logging) log.info("isoWeekday = " + dateTimeUnit);
+
         DateTime dateTime = toIso( dateTimeUnit ).toJodaDateTime( ISOChronology.getInstance( DateTimeZone.getDefault() ) );
+        if (logging) log.info("isoWeekday. " + sweat(dateTimeUnit) + " res=" + dateTimeUnit.getDayOfWeek());        
         return dateTime.getDayOfWeek();
     }
 
     @Override
     public int weekday( DateTimeUnit dateTimeUnit )
     {
-        if (logging) log.info("weekday = " + dateTimeUnit);
+        
         int dayOfWeek = (isoWeekday( dateTimeUnit ) + 1);
 
         if ( dayOfWeek > 7 )
         {
             return 1;
         }
+        
+        if (logging) log.info("weekday. " + sweat(dateTimeUnit) + " res=" + dayOfWeek);
 
         return dayOfWeek;
     }
@@ -491,7 +498,6 @@ public class PersianCalendar extends AbstractCalendar
     @Override
     public DateTimeUnit plusMonths( DateTimeUnit dateTimeUnit, int months )
     {
-        if (logging) log.info("plusMonths = " + dateTimeUnit.getYear() + ' ' + months);
         DateTimeUnit result = new DateTimeUnit( dateTimeUnit );
 
         while ( months != 0 )
@@ -508,6 +514,8 @@ public class PersianCalendar extends AbstractCalendar
         }
 
         updateDateUnit( result );
+        
+        if (logging) log.info("plusMonths. " + sweat(dateTimeUnit) + " res=" + sweat(result));
 
         return result;
     }
@@ -573,6 +581,13 @@ public class PersianCalendar extends AbstractCalendar
         }
         
         return CONVERSION_MAP.get( year )[month];               
+    }
+    
+
+    private String sweat(DateTimeUnit dateTimeUnit) {
+        
+        return "ISO: " + dateTimeUnit.isIso8601() + " " + dateTimeUnit.getYear() + ' ' + dateTimeUnit.getMonth() + ' ' + dateTimeUnit.getDay();
+       
     }
 
 
