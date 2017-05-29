@@ -446,15 +446,15 @@ public class JdbcEventAnalyticsManager
         {
             if ( EventOutputType.TRACKED_ENTITY_INSTANCE.equals( outputType ) && params.isProgramRegistration() )
             {
-                return "count(distinct \"tei\")";
+                return "count(distinct " + statementBuilder.columnQuote( "tei") + ")";
             }
             else if ( EventOutputType.ENROLLMENT.equals( outputType ) )
             {
-                return "count(distinct \"pi\")";
+                return "count(distinct " + statementBuilder.columnQuote( "pi") + ")";
             }
             else // EVENT
             {
-                return "count(\"psi\")";
+                return "count(" + statementBuilder.columnQuote( "psi") + ")";
             }
         }
     }
@@ -651,8 +651,8 @@ public class JdbcEventAnalyticsManager
 
         if ( params.hasStartEndDate() )
         {        
-            sql += "where \"executiondate\" >= '" + getMediumDateString( params.getStartDate() ) + "' ";
-            sql += "and \"executiondate\" <= '" + getMediumDateString( params.getEndDate() ) + "' ";
+            sql += "where " + statementBuilder.columnQuote( "executiondate") + " >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+            sql += "and " + statementBuilder.columnQuote( "executiondate") + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
         }
         else // Periods
         {
@@ -678,7 +678,7 @@ public class JdbcEventAnalyticsManager
             for ( DimensionalItemObject object : params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) )
             {
                 OrganisationUnit unit = (OrganisationUnit) object;
-                sql += "\"uidlevel" + unit.getLevel() + "\" = '" + unit.getUid() + "' or ";
+                sql += statementBuilder.columnQuote( "uidlevel" + unit.getLevel() ) + " = '" + unit.getUid() + "' or ";
             }
             
             sql = removeLastOr( sql ) + ") ";
@@ -704,7 +704,7 @@ public class JdbcEventAnalyticsManager
 
         if ( params.hasProgramStage() )
         {
-            sql += "and \"ps\" = '" + params.getProgramStage().getUid() + "' ";
+            sql += "and " + statementBuilder.columnQuote( "ps" ) + " = '" + params.getProgramStage().getUid() + "' ";
         }
 
         // ---------------------------------------------------------------------

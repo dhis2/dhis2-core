@@ -33,7 +33,6 @@ import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.utils.AnalyticsTestUtils;
-import org.hisp.dhis.analytics.utils.DefaultAnalyticsTestUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -126,8 +125,6 @@ public class AnalyticsServiceTest
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
-    private AnalyticsTestUtils analyticsTestUtils = new DefaultAnalyticsTestUtils();
-
     // Database (value, data element, period)
     // --------------------------------------------------------------------
     //
@@ -193,7 +190,7 @@ public class AnalyticsServiceTest
         ouD.setClosedDate( null );
 
         OrganisationUnit ouE = createOrganisationUnit( 'E' );
-        analyticsTestUtils.configureHierarchy( ouA, ouB, ouC, ouD, ouE );
+        AnalyticsTestUtils.configureHierarchy( ouA, ouB, ouC, ouD, ouE );
 
         organisationUnitService.addOrganisationUnit( ouA );
         organisationUnitService.addOrganisationUnit( ouB );
@@ -264,10 +261,10 @@ public class AnalyticsServiceTest
 
         // Read data values from CSV files
         // --------------------------------------------------------------------
-        ArrayList<String[]> dataValueLines = analyticsTestUtils.readInputFile( "csv/dataValues.csv" );
+        ArrayList<String[]> dataValueLines = AnalyticsTestUtils.readInputFile( "csv/dataValues.csv" );
         parseDataValues( dataValueLines );
 
-        ArrayList<String[]> dataSetRegistrationLines = analyticsTestUtils.readInputFile( "csv/dataSetRegistrations.csv" );
+        ArrayList<String[]> dataSetRegistrationLines = AnalyticsTestUtils.readInputFile( "csv/dataSetRegistrations.csv" );
         parseDataSetRegistrations( dataSetRegistrationLines );
 
         // Make indicators
@@ -676,7 +673,7 @@ public class AnalyticsServiceTest
 
             aggregatedDataValueMapping = analyticsService.getAggregatedDataValueMapping( params );
 
-            analyticsTestUtils.assertResultMapping( aggregatedDataValueMapping, results.get( key ) );
+            AnalyticsTestUtils.assertResultMapping( aggregatedDataValueMapping, results.get( key ) );
         }
 
         for ( Map.Entry<String, AnalyticalObject> entry : analyticalObjectHashMap.entrySet() )
@@ -686,7 +683,7 @@ public class AnalyticsServiceTest
 
             aggregatedDataValueMapping = analyticsService.getAggregatedDataValueMapping( params );
 
-            analyticsTestUtils.assertResultMapping( aggregatedDataValueMapping, results.get( key ) );
+            AnalyticsTestUtils.assertResultMapping( aggregatedDataValueMapping, results.get( key ) );
         }
     }
 
@@ -701,7 +698,7 @@ public class AnalyticsServiceTest
 
             aggregatedDataValueGrid = analyticsService.getAggregatedDataValues( params );
 
-            analyticsTestUtils.assertResultGrid( aggregatedDataValueGrid, results.get( key ) );
+            AnalyticsTestUtils.assertResultGrid( aggregatedDataValueGrid, results.get( key ) );
         }
     }
 
@@ -712,13 +709,13 @@ public class AnalyticsServiceTest
         DataValueSet aggregatedDataValueSet = analyticsService
             .getAggregatedDataValueSet( dataQueryParams.get( "deC_ouB_2017_03" ) );
 
-        analyticsTestUtils.assertResultSet( aggregatedDataValueSet, results.get( "deC_ouB_2017_03" ) );
+        AnalyticsTestUtils.assertResultSet( aggregatedDataValueSet, results.get( "deC_ouB_2017_03" ) );
 
         // Params: Sum for all org unit A, in data element a in Q1 2017
         aggregatedDataValueSet = analyticsService
             .getAggregatedDataValueSet( dataQueryParams.get( "deA_ouA_2017_Q01" ) );
 
-        analyticsTestUtils.assertResultSet( aggregatedDataValueSet, results.get( "deA_ouA_2017_Q01" ) );
+        AnalyticsTestUtils.assertResultSet( aggregatedDataValueSet, results.get( "deA_ouA_2017_Q01" ) );
     }
 
     // -------------------------------------------------------------------------

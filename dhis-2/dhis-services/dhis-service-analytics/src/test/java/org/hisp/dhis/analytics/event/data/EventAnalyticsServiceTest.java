@@ -35,7 +35,7 @@ import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.utils.DefaultAnalyticsTestUtils;
+import org.hisp.dhis.analytics.utils.AnalyticsTestUtils;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -90,8 +90,6 @@ public class EventAnalyticsServiceTest
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
-    private DefaultAnalyticsTestUtils analyticsTestUtils = new DefaultAnalyticsTestUtils();
-
     @Override
     public void setUpTest()
         throws IOException
@@ -128,7 +126,7 @@ public class EventAnalyticsServiceTest
 
         OrganisationUnit ouE = createOrganisationUnit( 'E' );
 
-        analyticsTestUtils.configureHierarchy( ouA, ouB, ouC, ouD, ouE );
+        AnalyticsTestUtils.configureHierarchy( ouA, ouB, ouC, ouD, ouE );
 
         idObjectManager.save( ouA );
         idObjectManager.save( ouB );
@@ -179,7 +177,7 @@ public class EventAnalyticsServiceTest
 
         // Read event data from CSV file
         // --------------------------------------------------------------------
-        ArrayList<String[]> eventDataLines = analyticsTestUtils.readInputFile( "csv/eventData.csv" );
+        ArrayList<String[]> eventDataLines = AnalyticsTestUtils.readInputFile( "csv/eventData.csv" );
         parseEventData( eventDataLines );
 
         // Generate analytics tables
@@ -226,14 +224,13 @@ public class EventAnalyticsServiceTest
 
             aggregatedDataValueGrid = eventAnalyticsService.getAggregatedEventData( params );
 
-            analyticsTestUtils.assertResultGrid( aggregatedDataValueGrid, results.get( key ) );
+            AnalyticsTestUtils.assertResultGrid( aggregatedDataValueGrid, results.get( key ) );
         }
     }
 
     // -------------------------------------------------------------------------
     // Internal Logic
     // -------------------------------------------------------------------------
-
     private void parseEventData( ArrayList<String[]> lines )
     {
         String storedBy = "johndoe";
