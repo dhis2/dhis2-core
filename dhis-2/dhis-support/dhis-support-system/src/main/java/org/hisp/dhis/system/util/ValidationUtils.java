@@ -573,18 +573,16 @@ public class ValidationUtils
      */
     public static String normalizeBoolean( String bool, ValueType valueType )
     {
-        if ( valueType != ValueType.BOOLEAN )
+        if( valueType == ValueType.BOOLEAN || valueType == ValueType.TRUE_ONLY)
         {
-            return bool;
-        }
-
-        if ( BOOL_FALSE_VARIANTS.contains( bool ) )
-        {
-            return DataValue.FALSE;
-        }
-        else if ( BOOL_TRUE_VARIANTS.contains( bool ) )
-        {
-            return DataValue.TRUE;
+            if ( BOOL_FALSE_VARIANTS.contains( bool ) && valueType != ValueType.TRUE_ONLY)
+            {
+                return DataValue.FALSE;
+            }
+            else if ( BOOL_TRUE_VARIANTS.contains( bool ) )
+            {
+                return DataValue.TRUE;
+            }
         }
 
         return bool;

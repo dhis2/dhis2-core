@@ -131,6 +131,7 @@ public class DataValueSetServiceTest
     private DataElement deD;
     private DataElement deE;
     private DataElement deF;
+    private DataElement deG;
     private DataSet dsA;
     private OrganisationUnit ouA;
     private OrganisationUnit ouB;
@@ -189,6 +190,8 @@ public class DataValueSetServiceTest
         deE.setOptionSet( osA );
         deF = createDataElement( 'F', categoryComboDef );
         deF.setValueType( ValueType.BOOLEAN );
+        deG = createDataElement( 'G', categoryComboDef );
+        deG.setValueType( ValueType.TRUE_ONLY );
         dsA = createDataSet( 'A', new MonthlyPeriodType() );
         dsA.setCategoryCombo( categoryComboDef );
         ouA = createOrganisationUnit( 'A' );
@@ -205,6 +208,7 @@ public class DataValueSetServiceTest
         deC.setUid( "eY5ehpbEsB7" );
         deE.setUid( "jH26dja2f28" );
         deF.setUid( "jH26dja2f30" );
+        deG.setUid( "jH26dja2f31" );
         dsA.setUid( "pBOMPrpg1QX" );
         ouA.setUid( "DiszpKrYNg8" );
         ouB.setUid( "BdfsJfj87js" );
@@ -237,6 +241,7 @@ public class DataValueSetServiceTest
         attributeService.addAttributeValue( deD, createAttributeValue( attribute, "DE4" ) );
         dataElementService.addDataElement( deD );
         dataElementService.addDataElement( deF );
+        dataElementService.addDataElement( deG );
 
         idObjectManager.save( osA );
 
@@ -530,7 +535,7 @@ public class DataValueSetServiceTest
         in = new ClassPathResource( "datavalueset/dataValueSetBooleanTest.csv" ).getInputStream();
 
         ImportSummary summary = dataValueSetService.saveDataValueSetCsv( in, null, null );
-        assertEquals( summary.getConflicts().toString(), 1, summary.getConflicts().size() ); // Header row
+        assertEquals( summary.getConflicts().toString(), 5, summary.getConflicts().size() ); // Header row
 
         List<String> expectedBools = Lists.newArrayList( "true", "false" );
         List<DataValue> resultBools = mockDataValueBatchHandler.getInserts();
