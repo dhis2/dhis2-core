@@ -51,6 +51,7 @@ import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StreamUtils;
@@ -81,6 +82,8 @@ public class AppController
 {
     public static final String RESOURCE_PATH = "/apps";
 
+    private final ResourceLoader resourceLoader = new DefaultResourceLoader();
+
     @Autowired
     private AppManager appManager;
 
@@ -90,10 +93,8 @@ public class AppController
     @Autowired
     private I18nManager i18nManager;
 
-    private final ResourceLoader resourceLoader = new DefaultResourceLoader();
-
     @Autowired
-    protected ContextService contextService;
+    private ContextService contextService;
 
     // -------------------------------------------------------------------------
     // Resources
@@ -130,6 +131,7 @@ public class AppController
             apps = appManager.getApps( contextPath );
         }
 
+        response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
         renderService.toJson( response.getOutputStream(), apps );
     }
 
