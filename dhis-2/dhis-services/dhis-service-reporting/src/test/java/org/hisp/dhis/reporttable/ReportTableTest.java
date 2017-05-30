@@ -349,6 +349,32 @@ public class ReportTableTest
     }
 
     @Test
+    public void testGetGridHideEmptyColumns()
+    {
+        ReportTable reportTable = new ReportTable( "Grid table",
+            dataElements, new ArrayList<>(), new ArrayList<>(), periods, Lists.newArrayList( unitA, unitB ),
+            true, true, false, null, null, null );
+        
+        Map<String, Object> valueMap = new HashMap<>();
+        valueMap.put( dataElementA.getDimensionItem() + DIMENSION_SEP + periodA.getDimensionItem() + DIMENSION_SEP + unitA.getDimensionItem(), 11 );
+        valueMap.put( dataElementA.getDimensionItem() + DIMENSION_SEP + periodA.getDimensionItem() + DIMENSION_SEP + unitB.getDimensionItem(), 21 );
+        valueMap.put( dataElementB.getDimensionItem() + DIMENSION_SEP + periodA.getDimensionItem() + DIMENSION_SEP + unitA.getDimensionItem(), 13 );
+        valueMap.put( dataElementB.getDimensionItem() + DIMENSION_SEP + periodA.getDimensionItem() + DIMENSION_SEP + unitB.getDimensionItem(), 23 );
+
+        reportTable.init( null, null, null, null, null, i18nFormat );
+
+        Grid grid = reportTable.getGrid( new ListGrid(), valueMap, DisplayProperty.NAME, false );
+        
+        assertEquals( 8, grid.getWidth() );
+        
+        reportTable.setHideEmptyColumns( true );
+        
+        grid = reportTable.getGrid( new ListGrid(), valueMap, DisplayProperty.NAME, false );
+
+        assertEquals( 5, grid.getWidth() ); // Removed description column and two data columns
+    }
+    
+    @Test
     public void testGetGridShowHierarchy()
     {
         ReportTable reportTable = new ReportTable( "Grid table",

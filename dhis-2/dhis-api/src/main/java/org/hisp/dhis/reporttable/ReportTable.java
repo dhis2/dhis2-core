@@ -656,6 +656,11 @@ public class ReportTable
             
             // TODO hide empty columns
         }
+        
+        if ( hideEmptyColumns )
+        {
+            grid.removeEmptyColumns();
+        }
 
         if ( regression )
         {
