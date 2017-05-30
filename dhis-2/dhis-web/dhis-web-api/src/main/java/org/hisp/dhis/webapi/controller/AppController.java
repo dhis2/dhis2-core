@@ -63,7 +63,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
@@ -96,9 +95,6 @@ public class AppController
 
     @Autowired
     private ContextService contextService;
-
-    @Autowired
-    private ServletContext servletContext;
 
     // -------------------------------------------------------------------------
     // Resources
