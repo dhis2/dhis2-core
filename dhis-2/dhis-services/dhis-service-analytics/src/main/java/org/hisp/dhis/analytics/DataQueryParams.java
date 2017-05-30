@@ -48,12 +48,9 @@ import org.springframework.util.Assert;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE_INT_DISAGGREGATION;
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE_SUM_INT_DISAGGREGATION;
-import org.hisp.dhis.calendar.impl.PersianCalendar;
 import static org.hisp.dhis.common.DimensionType.*;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
@@ -77,9 +74,6 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
  */
 public class DataQueryParams
 {
-    
-    private static final Log log = LogFactory.getLog( DataQueryParams.class );
-    
     public static final String VALUE_ID = "value";
     public static final String NUMERATOR_ID = "numerator";
     public static final String DENOMINATOR_ID = "denominator";
@@ -480,7 +474,7 @@ public class DataQueryParams
      * @return the latest endDate present.
      */
     public Date getLatestEndDate()
-    {
+    {       
         // Set to minimum value
         Date latestEndDate = new Date(Long.MIN_VALUE);
 
@@ -498,9 +492,7 @@ public class DataQueryParams
 
         for ( DimensionalItemObject object : getPeriods() )
         {
-            log.info("object.getDimensionItem() " + object.getDimensionItem());
             Period period = PeriodType.getPeriodFromIsoString( object.getDimensionItem() );
-            log.info("period = " + period);
             latestEndDate = ( period.getEndDate().after( latestEndDate ) ? period.getEndDate() : latestEndDate );
         }
 
