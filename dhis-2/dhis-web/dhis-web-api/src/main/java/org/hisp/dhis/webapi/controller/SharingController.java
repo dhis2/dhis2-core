@@ -174,6 +174,7 @@ public class SharingController
 
         Collections.sort( sharing.getObject().getUserGroupAccesses(), SharingUserGroupAccessNameComparator.INSTANCE );
 
+        response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
         renderService.toJson( response.getOutputStream(), sharing );
     }
 
@@ -296,6 +297,7 @@ public class SharingController
             sharingUserGroups.getUserGroups().add( sharingUserGroupAccess );
         }
 
+        response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
         renderService.toJson( response.getOutputStream(), sharingUserGroups );
     }
 
