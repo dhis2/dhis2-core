@@ -885,6 +885,7 @@ public class DefaultAnalyticsService
         addListIfEmpty( reportTable.getGridRows() );
         
         reportTable.setHideEmptyRows( params.isHideEmptyRows() );
+        reportTable.setHideEmptyColumns( params.isHideEmptyColumns() );
         reportTable.setShowHierarchy( params.isShowHierarchy() );
 
         Map<String, Object> valueMap = AnalyticsUtils.getAggregatedDataValueMapping( grid );

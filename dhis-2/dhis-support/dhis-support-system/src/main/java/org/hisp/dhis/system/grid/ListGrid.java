@@ -1,7 +1,5 @@
 package org.hisp.dhis.system.grid;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -30,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.collect.Iterables;
@@ -378,6 +377,12 @@ public class ListGrid
     }
 
     @Override
+    public Grid addValuesVar( Object... values )
+    {
+        return addValues( values );        
+    }
+
+    @Override
     public Grid addValuesAsList( List<Object> values )
     {
         return addValues( values.toArray() );        
@@ -426,7 +431,7 @@ public class ListGrid
     {
         return grid;
     }
-
+    
     @Override
     public List<List<Object>> getVisibleRows()
     {
@@ -457,17 +462,17 @@ public class ListGrid
 
     @Override
     public List<Object> getColumn( int columnIndex )
-    {
+    {        
         List<Object> column = new ArrayList<>();
-
+        
         for ( List<Object> row : grid )
         {
             column.add( row.get( columnIndex ) );
         }
-
+        
         return column;
     }
-
+    
     @Override
     public Object getValue( int rowIndex, int columnIndex )
     {
@@ -544,6 +549,45 @@ public class ListGrid
         return this;
     }
 
+    @Override
+    public Grid removeEmptyColumns()
+    {
+        if ( getWidth() == 0 )
+        {
+            return this;
+        }
+        
+        int lastCol = getWidth() - 1;
+        
+        for ( int i = lastCol; i >= 0; i-- )
+        {
+            if ( columnIsEmpty( i ) )
+            {
+                removeColumn( i );
+            }
+        }
+        
+        return this;
+    }
+
+    @Override
+    public boolean columnIsEmpty( int columnIndex )
+    {
+        verifyGridState();
+        
+        for ( List<Object> row : grid )
+        {
+            Object val = row.get( columnIndex );
+            
+            if ( val != null )
+            {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
     @Override
     public Grid removeColumn( int columnIndex )
     {
@@ -647,7 +691,7 @@ public class ListGrid
 
         return this;
     }
-
+    
     @Override
     public Grid addRegressionColumn( int columnIndex, boolean addHeader )
     {
