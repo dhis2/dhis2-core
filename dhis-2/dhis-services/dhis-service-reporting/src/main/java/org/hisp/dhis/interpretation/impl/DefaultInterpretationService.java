@@ -165,7 +165,7 @@ public class DefaultInterpretationService
 
         InterpretationComment comment = new InterpretationComment( text );
         comment.setLastUpdated( new Date() );
-        comment.setUid( CodeGenerator.generateCode() );
+        comment.setUid( CodeGenerator.generateUid() );
 
         if ( user != null )
         {

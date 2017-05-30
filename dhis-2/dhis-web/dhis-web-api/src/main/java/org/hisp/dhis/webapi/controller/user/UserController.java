@@ -370,14 +370,14 @@ public class UserController
         User userReplica = new User();
         mergeService.merge( new MergeParams<>( existingUser, userReplica )
             .setMergeMode( MergeMode.MERGE ) );
-        userReplica.setUid( CodeGenerator.generateCode() );
+        userReplica.setUid( CodeGenerator.generateUid() );
         userReplica.setCode( null );
         userReplica.setCreated( new Date() );
 
         UserCredentials credentialsReplica = new UserCredentials();
         mergeService.merge( new MergeParams<>( existingUser.getUserCredentials(), credentialsReplica )
             .setMergeMode( MergeMode.MERGE ) );
-        credentialsReplica.setUid( CodeGenerator.generateCode() );
+        credentialsReplica.setUid( CodeGenerator.generateUid() );
         credentialsReplica.setCode( null );
         credentialsReplica.setCreated( new Date() );
         credentialsReplica.setLdapId( null );

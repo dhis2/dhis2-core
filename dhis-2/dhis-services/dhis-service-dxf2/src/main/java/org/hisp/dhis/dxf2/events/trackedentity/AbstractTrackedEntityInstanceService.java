@@ -259,8 +259,8 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         entityInstance.setTrackedEntity( trackedEntity );
-        entityInstance.setUid( CodeGenerator.isValidCode( trackedEntityInstance.getTrackedEntityInstance() ) ?
-            trackedEntityInstance.getTrackedEntityInstance() : CodeGenerator.generateCode() );
+        entityInstance.setUid( CodeGenerator.isValidUid( trackedEntityInstance.getTrackedEntityInstance() ) ?
+            trackedEntityInstance.getTrackedEntityInstance() : CodeGenerator.generateUid() );
 
         return entityInstance;
     }

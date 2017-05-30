@@ -135,7 +135,7 @@ public class DefaultPreheatService implements PreheatService
         {
             params.getObjects().get( klass ).stream()
                 .filter( identifiableObject -> StringUtils.isEmpty( identifiableObject.getUid() ) )
-                .forEach( identifiableObject -> ((BaseIdentifiableObject) identifiableObject).setUid( CodeGenerator.generateCode() ) );
+                .forEach( identifiableObject -> ((BaseIdentifiableObject) identifiableObject).setUid( CodeGenerator.generateUid() ) );
         }
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> uniqueCollectionMap = new HashMap<>();

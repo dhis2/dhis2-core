@@ -364,7 +364,7 @@ public abstract class AbstractEventService
                     
                     if ( programStageInstance == null )
                     {
-                        if ( !CodeGenerator.isValidCode( event.getEvent() ) )
+                        if ( !CodeGenerator.isValidUid( event.getEvent() ) )
                         {
                             return new ImportSummary( ImportStatus.ERROR,
                                 "Event.event did not point to a valid event: " + event.getEvent() ).incrementIgnored();
@@ -405,7 +405,7 @@ public abstract class AbstractEventService
 
                 if ( programStageInstance == null )
                 {
-                    if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.UID ) && !CodeGenerator.isValidCode( event.getEvent() ) )
+                    if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.UID ) && !CodeGenerator.isValidUid( event.getEvent() ) )
                     {
                         return new ImportSummary( ImportStatus.ERROR,
                             "Event.event did not point to a valid event: " + event.getEvent() ).incrementIgnored();
@@ -1424,12 +1424,12 @@ public abstract class AbstractEventService
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
         if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.UID ) )
         {
-            programStageInstance.setUid( CodeGenerator.isValidCode( programStageInstanceIdentifier ) ? programStageInstanceIdentifier
-                : CodeGenerator.generateCode() );
+            programStageInstance.setUid( CodeGenerator.isValidUid( programStageInstanceIdentifier ) ? programStageInstanceIdentifier
+                : CodeGenerator.generateUid() );
         }
         else if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.CODE ) )
         {
-            programStageInstance.setUid( CodeGenerator.generateCode() );
+            programStageInstance.setUid( CodeGenerator.generateUid() );
             programStageInstance.setCode( programStageInstanceIdentifier );
         }
 
