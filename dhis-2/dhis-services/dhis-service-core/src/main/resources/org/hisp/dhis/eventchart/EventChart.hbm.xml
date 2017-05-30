@@ -38,6 +38,14 @@
     <many-to-one name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
       cascade="all-delete-orphan" foreign-key="fk_eventchart_relativeperiodsid" />
 
+    <list name="categoryDimensions" table="eventchart_categorydimensions" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="eventchartid" foreign-key="fk_eventchart_categorydimensions_eventchartid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="categorydimensionid" class="org.hisp.dhis.dataelement.CategoryDimension"
+        foreign-key="fk_eventchart_categorydimensions_categorydimensionid" />
+    </list>
+    
     <list name="organisationUnitGroupSetDimensions" table="eventchart_orgunitgroupsetdimensions" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="eventchartid" foreign-key="fk_eventchart_orgunitgroupsetdimensions_eventchartid" />
