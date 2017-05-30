@@ -86,7 +86,7 @@ public abstract class AbstractAutomaticAccessProvider
 
     private boolean isEnabled()
     {
-        return ( userService.getAllUsers().size() == 0);
+        return userService.getUserCount() == 0;
     }
 
     protected Collection<String> getAuthorities()
