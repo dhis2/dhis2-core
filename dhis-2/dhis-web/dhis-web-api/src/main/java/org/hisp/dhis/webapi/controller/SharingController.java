@@ -54,6 +54,7 @@ import org.hisp.dhis.webapi.webdomain.sharing.Sharing;
 import org.hisp.dhis.webapi.webdomain.sharing.SharingUserAccess;
 import org.hisp.dhis.webapi.webdomain.sharing.SharingUserGroupAccess;
 import org.hisp.dhis.webapi.webdomain.sharing.comparator.SharingUserGroupAccessNameComparator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
@@ -82,38 +83,32 @@ public class SharingController
 
     public static final String RESOURCE_PATH = "/sharing";
 
-    private final CurrentUserService currentUserService;
+    @Autowired
+    private CurrentUserService currentUserService;
 
-    private final IdentifiableObjectManager manager;
+    @Autowired
+    private IdentifiableObjectManager manager;
 
-    private final UserGroupService userGroupService;
+    @Autowired
+    private UserGroupService userGroupService;
 
-    private final UserService userService;
+    @Autowired
+    private UserService userService;
 
-    private final UserGroupAccessService userGroupAccessService;
+    @Autowired
+    private UserGroupAccessService userGroupAccessService;
 
-    private final UserAccessService userAccessService;
+    @Autowired
+    private UserAccessService userAccessService;
 
-    private final AclService aclService;
+    @Autowired
+    private AclService aclService;
 
-    private final WebMessageService webMessageService;
+    @Autowired
+    private WebMessageService webMessageService;
 
-    private final RenderService renderService;
-
-    public SharingController( CurrentUserService currentUserService, IdentifiableObjectManager manager, UserGroupService userGroupService,
-        UserService userService, UserGroupAccessService userGroupAccessService, UserAccessService userAccessService, AclService aclService,
-        WebMessageService webMessageService, RenderService renderService )
-    {
-        this.currentUserService = currentUserService;
-        this.manager = manager;
-        this.userGroupService = userGroupService;
-        this.userService = userService;
-        this.userGroupAccessService = userGroupAccessService;
-        this.userAccessService = userAccessService;
-        this.aclService = aclService;
-        this.webMessageService = webMessageService;
-        this.renderService = renderService;
-    }
+    @Autowired
+    private RenderService renderService;
 
     // -------------------------------------------------------------------------
     // Resources
