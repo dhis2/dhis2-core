@@ -69,4 +69,15 @@ public class CodeGeneratorTest
         assertFalse( CodeGenerator.isValidUid( "QX4LpiTZmUHg" ) );
         assertFalse( CodeGenerator.isValidUid( "1T1hdS_WjfD" ) );
     }
+    
+    @Test
+    public void testGetRandomUrlToken()
+    {
+        assertNotNull( CodeGenerator.getRandomUrlToken() );
+        assertNotNull( CodeGenerator.getRandomUrlToken() );
+        assertNotNull( CodeGenerator.getRandomUrlToken() );
+        assertEquals( 32, CodeGenerator.getRandomUrlToken().length() );
+        assertEquals( 32, CodeGenerator.getRandomUrlToken().length() );
+        assertEquals( 32, CodeGenerator.getRandomUrlToken().length() );
+    }
 }
