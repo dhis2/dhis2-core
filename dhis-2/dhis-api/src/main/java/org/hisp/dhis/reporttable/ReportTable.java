@@ -161,9 +161,14 @@ public class ReportTable
     private boolean colSubTotals;
 
     /**
-     * Indicates rendering of empty rows for the table.
+     * Indicates whether to hide rows with no data values in the table.
      */
     private boolean hideEmptyRows;
+    
+    /**
+     * Indicates whether to hide columns with no data values in the table.
+     */
+    private boolean hideEmptyColumns;
 
     /**
      * The display density of the text in the table.
@@ -648,6 +653,8 @@ public class ReportTable
             {
                 grid.removeCurrentWriteRow();
             }
+            
+            // TODO hide empty columns
         }
 
         if ( regression )
@@ -928,6 +935,18 @@ public class ReportTable
     public void setHideEmptyRows( boolean hideEmptyRows )
     {
         this.hideEmptyRows = hideEmptyRows;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isHideEmptyColumns()
+    {
+        return hideEmptyColumns;
+    }
+
+    public void setHideEmptyColumns( boolean hideEmptyColumns )
+    {
+        this.hideEmptyColumns = hideEmptyColumns;
     }
 
     @JsonProperty
