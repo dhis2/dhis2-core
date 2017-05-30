@@ -63,9 +63,9 @@ public class CategoryDimension
         this.id = id;
     }
 
-    @JsonProperty( "dataElementCategory" )
+    @JsonProperty( "category" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( localName = "dataElementCategory", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "category", namespace = DxfNamespaces.DXF_2_0 )
     public DataElementCategory getDimension()
     {
         return dimension;
@@ -93,7 +93,7 @@ public class CategoryDimension
     @Override
     public String toString()
     {
-        final StringBuilder sb = new StringBuilder( "DataElementCategoryDimension{" );
+        final StringBuilder sb = new StringBuilder( "CategoryDimension{" );
         sb.append( "id=" ).append( id );
         sb.append( ", dimension=" ).append( dimension );
         sb.append( ", items=" ).append( items );
