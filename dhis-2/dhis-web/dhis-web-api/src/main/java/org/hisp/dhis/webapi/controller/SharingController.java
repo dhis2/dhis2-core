@@ -54,7 +54,6 @@ import org.hisp.dhis.webapi.webdomain.sharing.Sharing;
 import org.hisp.dhis.webapi.webdomain.sharing.SharingUserAccess;
 import org.hisp.dhis.webapi.webdomain.sharing.SharingUserGroupAccess;
 import org.hisp.dhis.webapi.webdomain.sharing.comparator.SharingUserGroupAccessNameComparator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
@@ -66,7 +65,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -84,32 +82,38 @@ public class SharingController
 
     public static final String RESOURCE_PATH = "/sharing";
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+    private final IdentifiableObjectManager manager;
 
-    @Autowired
-    private UserGroupService userGroupService;
+    private final UserGroupService userGroupService;
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    @Autowired
-    private UserGroupAccessService userGroupAccessService;
+    private final UserGroupAccessService userGroupAccessService;
 
-    @Autowired
-    private UserAccessService userAccessService;
+    private final UserAccessService userAccessService;
 
-    @Autowired
-    private AclService aclService;
+    private final AclService aclService;
 
-    @Autowired
-    private WebMessageService webMessageService;
+    private final WebMessageService webMessageService;
 
-    @Autowired
-    private RenderService renderService;
+    private final RenderService renderService;
+
+    public SharingController( CurrentUserService currentUserService, IdentifiableObjectManager manager, UserGroupService userGroupService,
+        UserService userService, UserGroupAccessService userGroupAccessService, UserAccessService userAccessService, AclService aclService,
+        WebMessageService webMessageService, RenderService renderService )
+    {
+        this.currentUserService = currentUserService;
+        this.manager = manager;
+        this.userGroupService = userGroupService;
+        this.userService = userService;
+        this.userGroupAccessService = userGroupAccessService;
+        this.userAccessService = userAccessService;
+        this.aclService = aclService;
+        this.webMessageService = webMessageService;
+        this.renderService = renderService;
+    }
 
     // -------------------------------------------------------------------------
     // Resources
@@ -197,8 +201,9 @@ public class SharingController
             sharing.getObject().getUserAccesses().add( sharingUserAccess );
         }
 
-        Collections.sort( sharing.getObject().getUserGroupAccesses(), SharingUserGroupAccessNameComparator.INSTANCE );
+        sharing.getObject().getUserGroupAccesses().sort( SharingUserGroupAccessNameComparator.INSTANCE );
 
+        response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
         renderService.toJson( response.getOutputStream(), sharing );
     }
 
@@ -345,6 +350,7 @@ public class SharingController
         output.put( "userGroups", userGroupAccesses );
         output.put( "users", userAccesses );
 
+        response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
         renderService.toJson( response.getOutputStream(), output );
     }
 

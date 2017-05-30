@@ -35,7 +35,6 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,11 +55,15 @@ import java.util.Map;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class I18nController
 {
-    @Autowired
-    private I18nManager i18nManager;
+    private final I18nManager i18nManager;
 
-    @Autowired
-    private RenderService renderService;
+    private final RenderService renderService;
+
+    public I18nController( I18nManager i18nManager, RenderService renderService )
+    {
+        this.i18nManager = i18nManager;
+        this.renderService = renderService;
+    }
 
     @RequestMapping( method = RequestMethod.POST )
     public void postI18n( @RequestParam( value = "package", required = false, defaultValue = "org.hisp.dhis" ) String searchPackage,
