@@ -29,20 +29,21 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +64,7 @@ public class I18nController
 
     @RequestMapping( method = RequestMethod.POST )
     public void postI18n( @RequestParam( value = "package", required = false, defaultValue = "org.hisp.dhis" ) String searchPackage,
-        OutputStream outputStream, InputStream inputStream ) throws Exception
+        HttpServletResponse response, InputStream inputStream ) throws Exception
     {
         I18n i18n = i18nManager.getI18n( searchPackage );
         Map<String, String> output = new HashMap<>();
@@ -82,6 +83,7 @@ public class I18nController
             }
         }
 
-        renderService.toJson( outputStream, output );
+        response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
+        renderService.toJson( response.getOutputStream(), output );
     }
 }
