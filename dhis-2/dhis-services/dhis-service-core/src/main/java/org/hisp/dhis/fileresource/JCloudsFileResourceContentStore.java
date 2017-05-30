@@ -127,8 +127,6 @@ public class JCloudsFileResourceContentStore
             configurationProvider.getProperty( ConfigurationKey.FILESTORE_CONTAINER )
         );
 
-
-
         Pair<Credentials, Properties> providerConfig = configureForProvider(
             config.provider,
             configurationProvider.getProperty( ConfigurationKey.FILESTORE_IDENTITY ),
@@ -221,7 +219,8 @@ public class JCloudsFileResourceContentStore
         return isEmptyOrFailed ? null : byteSource;
     }
 
-    @Override public String saveFileResourceContent( FileResource fileResource, byte[] bytes )
+    @Override 
+    public String saveFileResourceContent( FileResource fileResource, byte[] bytes )
     {
         Blob blob = createBlob( fileResource, bytes );
 

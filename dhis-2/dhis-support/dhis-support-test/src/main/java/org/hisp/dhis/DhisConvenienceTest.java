@@ -854,7 +854,7 @@ public abstract class DhisConvenienceTest
         OrganisationUnit unit = new OrganisationUnit();
         unit.setAutoFields();
 
-        unit.setUid( CodeGenerator.generateCode() );
+        unit.setUid( CodeGenerator.generateUid() );
         unit.setName( name );
         unit.setShortName( name );
         unit.setCode( name );

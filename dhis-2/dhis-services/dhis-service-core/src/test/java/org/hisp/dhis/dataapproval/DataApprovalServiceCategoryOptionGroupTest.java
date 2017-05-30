@@ -199,7 +199,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
 
         for ( UserAuthorityGroup role : credentials.getUserAuthorityGroups() )
         {
-            role.setName( CodeGenerator.generateCode() ); // Give the role an arbitrary name
+            role.setName( CodeGenerator.generateUid() ); // Give the role an arbitrary name
 
             userService.addUserAuthorityGroup( role );
         }

@@ -54,6 +54,14 @@
         foreign-key="fk_eventchart_dimensions_ogunitgroupsetdimensionid" />
     </list>
     
+    <list name="categoryOptionGroupSetDimensions" table="eventchart_categoryoptiongroupsetdimensions" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="eventchartid" foreign-key="fk_eventchart_catoptiongroupsetdimensions_eventchartid" />
+      <list-index column="sort_order" />
+      <many-to-many column="categoryoptiongroupsetdimensionid" class="org.hisp.dhis.dataelement.CategoryOptionGroupSetDimension"
+        foreign-key="fk_eventchart_dimensions_catoptiongroupsetdimensionid" />
+    </list>
+    
     <list name="organisationUnitLevels" table="eventchart_orgunitlevels">
       <cache usage="read-write" />
       <key column="eventchartid" foreign-key="fk_eventchart_orgunitlevels_eventchartid" />

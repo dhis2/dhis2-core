@@ -47,19 +47,22 @@ public class CodeGenerator
     private static final Pattern CODE_PATTERN = Pattern.compile( "^[a-zA-Z]{1}[a-zA-Z0-9]{10}$" );
     
     /**
-     * Generates a pseudo random string using the allowed characters. Code is
-     * 11 characters long.
+     * Generates a UID according to the following rules:
+     * <ul>
+     * <li>Alphanumeric characters only.</li>
+     * <li>Exactly 11 characters long.</li>
+     * <li>First character is alphabetic.</li>
+     * </ul>
      * 
-     * @param codeSize the number of characters in the code.
-     * @return the code.
+     * @return a UID.
      */
-    public static String generateCode()
+    public static String generateUid()
     {
         return generateCode( CODESIZE );
     }
         
     /**
-     * Generates a pseudo random string using the allowed characters.
+     * Generates a pseudo random string with alphanumeric characters.
      * 
      * @param codeSize the number of characters in the code.
      * @return the code.
@@ -82,12 +85,12 @@ public class CodeGenerator
     }
     
     /**
-     * Tests whether the given code is valid.
+     * Tests whether the given code is a valid UID.
      * 
      * @param code the code to validate.
      * @return true if the code is valid.
      */
-    public static boolean isValidCode( String code )
+    public static boolean isValidUid( String code )
     {
         return code != null && CODE_PATTERN.matcher( code ).matches();
     }

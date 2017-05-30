@@ -68,14 +68,14 @@ public class Message
 
     public Message()
     {
-        this.uid = CodeGenerator.generateCode();
+        this.uid = CodeGenerator.generateUid();
         this.lastUpdated = new Date();
         this.internal = false;
     }
 
     public Message( String text, String metaData, User sender )
     {
-        this.uid = CodeGenerator.generateCode();
+        this.uid = CodeGenerator.generateUid();
         this.lastUpdated = new Date();
         this.text = text;
         this.metaData = metaData;
@@ -85,7 +85,7 @@ public class Message
 
     public Message( String text, String metaData, User sender, boolean internal )
     {
-        this.uid = CodeGenerator.generateCode();
+        this.uid = CodeGenerator.generateUid();
         this.lastUpdated = new Date();
         this.text = text;
         this.metaData = metaData;

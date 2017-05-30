@@ -146,7 +146,7 @@ public class SaveDocumentAction
     public String execute()
         throws Exception
     {
-        Document document = (id == null ? new Document() : documentService.getDocument( id ));
+        Document document = id == null ? new Document() : documentService.getDocument( id );
 
         if ( document == null )
         {
@@ -155,7 +155,6 @@ public class SaveDocumentAction
 
         if ( file != null )
         {
-
             if ( document.getFileResource() != null )
             {
                 documentService.deleteFileFromDocument( document );
@@ -188,7 +187,7 @@ public class SaveDocumentAction
 
     private String getValidUrl( String url )
     {
-        if ( !(url.startsWith( HTTP_PREFIX ) || url.startsWith( HTTPS_PREFIX )) )
+        if ( !( url.startsWith( HTTP_PREFIX ) || url.startsWith( HTTPS_PREFIX ) ) )
         {
             url = HTTP_PREFIX + url;
         }

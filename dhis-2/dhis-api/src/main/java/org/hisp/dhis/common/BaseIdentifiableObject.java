@@ -580,7 +580,7 @@ public class BaseIdentifiableObject
     {
         if ( uid == null || uid.length() == 0 )
         {
-            setUid( CodeGenerator.generateCode() );
+            setUid( CodeGenerator.generateUid() );
         }
 
         Date date = new Date();

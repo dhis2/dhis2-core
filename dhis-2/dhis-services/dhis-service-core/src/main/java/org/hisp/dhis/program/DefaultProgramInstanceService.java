@@ -358,7 +358,7 @@ public class DefaultProgramInstanceService
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit )
     {
         return enrollTrackedEntityInstance( trackedEntityInstance, program, enrollmentDate,
-            incidentDate, organisationUnit, CodeGenerator.generateCode() );
+            incidentDate, organisationUnit, CodeGenerator.generateUid() );
     }
 
     @Override
@@ -375,7 +375,7 @@ public class DefaultProgramInstanceService
         }
 
         ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( CodeGenerator.isValidCode( uid ) ? uid : CodeGenerator.generateCode() );
+        programInstance.setUid( CodeGenerator.isValidUid( uid ) ? uid : CodeGenerator.generateUid() );
         programInstance.setOrganisationUnit( organisationUnit );
         programInstance.enrollTrackedEntityInstance( trackedEntityInstance, program );
 
