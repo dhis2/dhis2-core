@@ -121,7 +121,6 @@ public class DefaultPreheatService implements PreheatService
         Preheat preheat = new Preheat();
         preheat.setUser( params.getUser() );
         preheat.setDefaults( manager.getDefaults() );
-        preheat.setUsernames( getUsernames() );
 
         if ( preheat.getUser() == null )
         {
@@ -948,21 +947,6 @@ public class DefaultPreheatService implements PreheatService
         }
 
         return preheat.get( identifier, ref );
-    }
-
-    @SuppressWarnings( "unchecked" )
-    private Map<String, UserCredentials> getUsernames()
-    {
-        Map<String, UserCredentials> userCredentialsMap = new HashMap<>();
-        Query query = Query.from( schemaService.getDynamicSchema( UserCredentials.class ) );
-        List<UserCredentials> userCredentials = (List<UserCredentials>) queryService.query( query );
-
-        for ( UserCredentials uc : userCredentials )
-        {
-            userCredentialsMap.put( uc.getUsername(), uc );
-        }
-
-        return userCredentialsMap;
     }
 
     private boolean skipConnect( Class<?> klass )
