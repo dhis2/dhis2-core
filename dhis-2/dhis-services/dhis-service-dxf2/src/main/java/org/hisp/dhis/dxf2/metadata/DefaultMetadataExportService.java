@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.commons.timer.SystemTimer;
@@ -340,6 +341,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleDataSet( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, DataSet dataSet )
     {
         metadata.putValue( DataSet.class, dataSet );
+        handleAttributes( metadata, dataSet );
 
         dataSet.getDataSetElements().forEach( dataSetElement -> handleDataSetElement( metadata, dataSetElement ) );
         dataSet.getSections().forEach( section -> handleSection( metadata, section ) );
@@ -370,6 +372,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         if ( categoryOptionCombo == null ) return metadata;
         metadata.putValue( DataElementCategoryOptionCombo.class, categoryOptionCombo );
+        handleAttributes( metadata, categoryOptionCombo );
 
         categoryOptionCombo.getCategoryOptions().forEach( categoryOption -> handleCategoryOption( metadata, categoryOption ) );
 
@@ -380,6 +383,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         if ( categoryCombo == null ) return metadata;
         metadata.putValue( DataElementCategoryCombo.class, categoryCombo );
+        handleAttributes( metadata, categoryCombo );
 
         categoryCombo.getCategories().forEach( category -> handleCategory( metadata, category ) );
         categoryCombo.getOptionCombos().forEach( optionCombo -> handleCategoryOptionCombo( metadata, optionCombo ) );
@@ -391,6 +395,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         if ( category == null ) return metadata;
         metadata.putValue( DataElementCategory.class, category );
+        handleAttributes( metadata, category );
 
         category.getCategoryOptions().forEach( categoryOption -> handleCategoryOption( metadata, categoryOption ) );
 
@@ -401,6 +406,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         if ( categoryOption == null ) return metadata;
         metadata.putValue( DataElementCategoryOption.class, categoryOption );
+        handleAttributes( metadata, categoryOption );
 
         return metadata;
     }
@@ -412,6 +418,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         for ( LegendSet legendSet : legendSets )
         {
             metadata.putValue( LegendSet.class, legendSet );
+            handleAttributes( metadata, legendSet );
             legendSet.getLegends().forEach( legend -> handleLegend( metadata, legend ) );
         }
 
@@ -422,6 +429,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         if ( legend == null ) return metadata;
         metadata.putValue( Legend.class, legend );
+        handleAttributes( metadata, legend );
 
         return metadata;
     }
@@ -430,6 +438,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         if ( dataEntryForm == null ) return metadata;
         metadata.putValue( DataEntryForm.class, dataEntryForm );
+        handleAttributes( metadata, dataEntryForm );
 
         return metadata;
     }
@@ -448,6 +457,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         if ( dataElement == null ) return metadata;
         metadata.putValue( DataElement.class, dataElement );
+        handleAttributes( metadata, dataElement );
 
         handleCategoryCombo( metadata, dataElement.getDataElementCategoryCombo() );
         handleOptionSet( metadata, dataElement.getOptionSet() );
@@ -460,6 +470,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         if ( optionSet == null ) return metadata;
         metadata.putValue( OptionSet.class, optionSet );
+        handleAttributes( metadata, optionSet );
 
         optionSet.getOptions().forEach( o -> handleOption( metadata, o ) );
 
@@ -470,6 +481,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         if ( option == null ) return metadata;
         metadata.putValue( Option.class, option );
+        handleAttributes( metadata, option );
 
         return metadata;
     }
@@ -478,6 +490,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         if ( section == null ) return metadata;
         metadata.putValue( Section.class, section );
+        handleAttributes( metadata, section );
 
         section.getGreyedFields().forEach( dataElementOperand -> handleDataElementOperand( metadata, dataElementOperand ) );
         section.getIndicators().forEach( indicator -> handleIndicator( metadata, indicator ) );
@@ -490,6 +503,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         if ( indicator == null ) return metadata;
         metadata.putValue( Indicator.class, indicator );
+        handleAttributes( metadata, indicator );
 
         handleIndicatorType( metadata, indicator.getIndicatorType() );
 
@@ -500,6 +514,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         if ( indicatorType == null ) return metadata;
         metadata.putValue( IndicatorType.class, indicatorType );
+        handleAttributes( metadata, indicatorType );
 
         return metadata;
     }
@@ -508,6 +523,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         if ( program == null ) return metadata;
         metadata.putValue( Program.class, program );
+        handleAttributes( metadata, program );
 
         handleCategoryCombo( metadata, program.getCategoryCombo() );
         handleDataEntryForm( metadata, program.getDataEntryForm() );
@@ -530,6 +546,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         if ( programRuleVariable == null ) return metadata;
         metadata.putValue( ProgramRuleVariable.class, programRuleVariable );
+        handleAttributes( metadata, programRuleVariable );
 
         handleTrackedEntityAttribute( metadata, programRuleVariable.getAttribute() );
         handleDataElement( metadata, programRuleVariable.getDataElement() );
@@ -542,6 +559,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         if ( trackedEntityAttribute == null ) return metadata;
         metadata.putValue( TrackedEntityAttribute.class, trackedEntityAttribute );
+        handleAttributes( metadata, trackedEntityAttribute );
 
         handleOptionSet( metadata, trackedEntityAttribute.getOptionSet() );
 
@@ -552,6 +570,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         if ( programRule == null ) return metadata;
         metadata.putValue( ProgramRule.class, programRule );
+        handleAttributes( metadata, programRule );
 
         programRule.getProgramRuleActions().forEach( programRuleAction -> handleProgramRuleAction( metadata, programRuleAction ) );
 
@@ -562,6 +581,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         if ( programRuleAction == null ) return metadata;
         metadata.putValue( ProgramRuleAction.class, programRuleAction );
+        handleAttributes( metadata, programRuleAction );
 
         handleDataElement( metadata, programRuleAction.getDataElement() );
         handleTrackedEntityAttribute( metadata, programRuleAction.getAttribute() );
@@ -576,6 +596,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         if ( programTrackedEntityAttribute == null ) return metadata;
         metadata.putValue( ProgramTrackedEntityAttribute.class, programTrackedEntityAttribute );
+        handleAttributes( metadata, programTrackedEntityAttribute );
 
         handleTrackedEntityAttribute( metadata, programTrackedEntityAttribute.getAttribute() );
 
@@ -586,9 +607,11 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         if ( programStage == null ) return metadata;
         metadata.putValue( ProgramStage.class, programStage );
+        handleAttributes( metadata, programStage );
 
         programStage.getProgramStageDataElements().forEach( programStageDataElement -> handleProgramStageDataElement( metadata, programStageDataElement ) );
         programStage.getProgramStageSections().forEach( programStageSection -> handleProgramStageSection( metadata, programStageSection ) );
+
         handleDataEntryForm( metadata, programStage.getDataEntryForm() );
 
         return metadata;
@@ -598,6 +621,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         if ( programStageSection == null ) return metadata;
         metadata.putValue( ProgramStageSection.class, programStageSection );
+        handleAttributes( metadata, programStageSection );
 
         programStageSection.getProgramStageDataElements().forEach( programStageDataElement -> handleProgramStageDataElement( metadata, programStageDataElement ) );
         programStageSection.getProgramIndicators().forEach( programIndicator -> handleProgramIndicator( metadata, programIndicator ) );
@@ -609,6 +633,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         if ( programIndicator == null ) return metadata;
         metadata.putValue( ProgramIndicator.class, programIndicator );
+        handleAttributes( metadata, programIndicator );
 
         return metadata;
     }
@@ -618,6 +643,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         if ( programStageDataElement == null ) return metadata;
         metadata.putValue( ProgramStageDataElement.class, programStageDataElement );
 
+        handleAttributes( metadata, programStageDataElement );
         handleDataElement( metadata, programStageDataElement.getDataElement() );
 
         return metadata;
@@ -627,6 +653,15 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         if ( trackedEntity == null ) return metadata;
         metadata.putValue( TrackedEntity.class, trackedEntity );
+        handleAttributes( metadata, trackedEntity );
+
+        return metadata;
+    }
+
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleAttributes( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, IdentifiableObject identifiableObject )
+    {
+        if ( identifiableObject == null ) return metadata;
+        identifiableObject.getAttributeValues().forEach( av -> metadata.putValue( Attribute.class, av.getAttribute() ) );
 
         return metadata;
     }
