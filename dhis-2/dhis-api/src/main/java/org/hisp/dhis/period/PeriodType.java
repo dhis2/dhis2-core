@@ -59,8 +59,6 @@ import java.util.concurrent.TimeUnit;
 public abstract class PeriodType
     implements Serializable
 {
-    
-
     // Cache for period lookup, uses calendar.name() + periodType.getName() + date.getTime() as key
     private static Cache<String, Period> PERIOD_CACHE = Caffeine.newBuilder()
         .expireAfterAccess( 1, TimeUnit.SECONDS )
