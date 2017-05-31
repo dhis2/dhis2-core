@@ -54,7 +54,7 @@ public class QuarterlyPeriodType
     private static final String ISO_FORMAT = "yyyyQn";
 
     private static final String ISO8601_DURATION = "P1Q";
-
+    
     /**
      * The name of the QuarterlyPeriodType, which is "Quarterly".
      */
@@ -180,6 +180,11 @@ public class QuarterlyPeriodType
     @Override
     public String getIsoDate( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar  )
     {
+
+        if (calendar.name() == "persian" && dateTimeUnit.isIso8601()) {
+            dateTimeUnit = calendar.fromIso(dateTimeUnit);
+        }
+
         switch ( dateTimeUnit.getMonth() )
         {
             case 1:

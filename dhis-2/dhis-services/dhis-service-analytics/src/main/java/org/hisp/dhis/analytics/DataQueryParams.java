@@ -480,7 +480,7 @@ public class DataQueryParams
      * @return the latest endDate present.
      */
     public Date getLatestEndDate()
-    {
+    {       
         // Set to minimum value
         Date latestEndDate = new Date(Long.MIN_VALUE);
 
@@ -499,7 +499,6 @@ public class DataQueryParams
         for ( DimensionalItemObject object : getPeriods() )
         {
             Period period = PeriodType.getPeriodFromIsoString( object.getDimensionItem() );
-
             latestEndDate = ( period.getEndDate().after( latestEndDate ) ? period.getEndDate() : latestEndDate );
         }
 
