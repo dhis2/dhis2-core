@@ -348,6 +348,11 @@ public class DefaultAclService implements AclService
     @Override
     public <T extends IdentifiableObject> Access getAccess( T object, User user )
     {
+        if ( user.isSuper() )
+        {
+            return new Access( true );
+        }
+
         Access access = new Access();
         access.setManage( canManage( user, object ) );
         access.setExternalize( canMakeExternal( user, object.getClass() ) );
