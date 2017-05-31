@@ -482,8 +482,17 @@ public abstract class AbstractEnrollmentService
 
         programInstance.setProgram( program );
         programInstance.setEntityInstance( entityInstance );
-        programInstance.setIncidentDate( enrollment.getIncidentDate() );
-        programInstance.setEnrollmentDate( enrollment.getEnrollmentDate() );
+
+        if ( enrollment.getIncidentDate() != null )
+        {
+            programInstance.setIncidentDate( enrollment.getIncidentDate() );
+        }
+
+        if ( enrollment.getEnrollmentDate() != null )
+        {
+            programInstance.setEnrollmentDate( enrollment.getEnrollmentDate() );
+        }
+
         programInstance.setFollowup( enrollment.getFollowup() );
 
         if ( program.getDisplayIncidentDate() && programInstance.getIncidentDate() == null )

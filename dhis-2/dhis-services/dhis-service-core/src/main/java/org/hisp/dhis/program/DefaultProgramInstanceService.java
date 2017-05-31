@@ -53,9 +53,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
 
 /**
  * @author Abyot Asalefew
@@ -72,7 +70,7 @@ public class DefaultProgramInstanceService
 
     @Autowired
     private ProgramInstanceStore programInstanceStore;
-    
+
     @Autowired
     private ProgramStageInstanceStore programStageInstanceStore;
 
@@ -292,7 +290,7 @@ public class DefaultProgramInstanceService
 
         User user = currentUserService.getCurrentUser();
 
-        if ( !params.hasOrganisationUnits() && !( params.isOrganisationUnitMode( ALL ) || params.isOrganisationUnitMode( ACCESSIBLE ) ) )
+        if ( !params.hasOrganisationUnits() && !(params.isOrganisationUnitMode( ALL ) || params.isOrganisationUnitMode( ACCESSIBLE )) )
         {
             violation = "At least one organisation unit must be specified";
         }
@@ -368,10 +366,10 @@ public class DefaultProgramInstanceService
         // ---------------------------------------------------------------------
         // Add program instance
         // ---------------------------------------------------------------------
-        
+
         if ( program.getTrackedEntity() != null && !program.getTrackedEntity().equals( trackedEntityInstance.getTrackedEntity() ) )
         {
-            throw new IllegalQueryException( "Tracked entitiy instance must have same tracked entity as program: " + program.getUid() );
+            throw new IllegalQueryException( "Tracked entity instance must have same tracked entity as program: " + program.getUid() );
         }
 
         ProgramInstance programInstance = new ProgramInstance();
@@ -424,7 +422,7 @@ public class DefaultProgramInstanceService
 
         for ( ProgramStageInstance programStageInstance : programStageInstances )
         {
-            if ( ( !programStageInstance.isCompleted() && programStageInstance.getStatus() != EventStatus.SKIPPED )
+            if ( (!programStageInstance.isCompleted() && programStageInstance.getStatus() != EventStatus.SKIPPED)
                 || programStageInstance.getProgramStage().getRepeatable() )
             {
                 return false;
@@ -482,7 +480,7 @@ public class DefaultProgramInstanceService
                 // -------------------------------------------------------------
                 // Set status as skipped for overdue events, or delete
                 // -------------------------------------------------------------
-                
+
                 if ( programStageInstance.getDueDate().before( currentDate ) )
                 {
                     programStageInstance.setStatus( EventStatus.SKIPPED );
@@ -495,27 +493,27 @@ public class DefaultProgramInstanceService
             }
         }
     }
-    
+
     @Override
     public void incompleteProgramInstanceStatus( ProgramInstance programInstance )
-    {        
+    {
         Program program = programInstance.getProgram();
-        
+
         TrackedEntityInstance tei = programInstance.getEntityInstance();
-        
-        if( getProgramInstances( tei, program, ProgramStatus.ACTIVE).size() > 0 )
+
+        if ( getProgramInstances( tei, program, ProgramStatus.ACTIVE ).size() > 0 )
         {
             log.warn( "Program has another active enrollment going on. Not possible to incomplete" );
 
             throw new IllegalQueryException( "Program has another active enrollment going on. Not possible to incomplete" );
         }
-        
+
         // -----------------------------------------------------------------
         // Update program-instance
         // -----------------------------------------------------------------
 
         programInstance.setStatus( ProgramStatus.ACTIVE );
-        
+
         updateProgramInstance( programInstance );
     }
 }

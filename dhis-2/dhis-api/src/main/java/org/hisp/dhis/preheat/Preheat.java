@@ -68,11 +68,6 @@ public class Preheat
     private Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = new HashMap<>();
 
     /**
-     * All usernames in the system mapped by username => userCredentials.
-     */
-    private Map<String, UserCredentials> usernames = new HashMap<>();
-
-    /**
      * Map of unique columns, mapped by class type => uid => value.
      */
     private Map<Class<? extends IdentifiableObject>, Map<String, Map<Object, String>>> uniquenessMap = new HashMap<>();
@@ -408,16 +403,6 @@ public class Preheat
     public void setDefaults( Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults )
     {
         this.defaults = defaults;
-    }
-
-    public Map<String, UserCredentials> getUsernames()
-    {
-        return usernames;
-    }
-
-    public void setUsernames( Map<String, UserCredentials> usernames )
-    {
-        this.usernames = usernames;
     }
 
     public void setUniquenessMap( Map<Class<? extends IdentifiableObject>, Map<String, Map<Object, String>>> uniquenessMap )
