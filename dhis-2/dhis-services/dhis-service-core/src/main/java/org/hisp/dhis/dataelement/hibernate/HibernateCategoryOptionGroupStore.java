@@ -48,7 +48,9 @@ public class HibernateCategoryOptionGroupStore
     @SuppressWarnings("unchecked")
     public List<CategoryOptionGroup> getCategoryOptionGroups( CategoryOptionGroupSet groupSet )
     {
-        return getSharingDetachedCriteria( Restrictions.eq( "groupSet", groupSet ) ).list();
+        return getSharingCriteria()
+            .createAlias( "groupSets", "groupSet" )
+            .add( Restrictions.eqOrIsNull( "groupSet.id", groupSet.getId() ) ).list();
     }
 
     @Override

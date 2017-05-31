@@ -502,6 +502,7 @@ public class TableAlteror
         executeSql( "update reporttable set userorganisationunitgrandchildren = false where userorganisationunitgrandchildren is null" );
         executeSql( "update reporttable set subtotals = true where subtotals is null" );
         executeSql( "update reporttable set hideemptyrows = false where hideemptyrows is null" );
+        executeSql( "update reporttable set hideemptycolumns = false where hideemptycolumns is null" );
         executeSql( "update reporttable set displaydensity = 'normal' where displaydensity is null" );
         executeSql( "update reporttable set fontsize = 'normal' where fontsize is null" );
         executeSql( "update reporttable set digitgroupseparator = 'space' where digitgroupseparator is null" );

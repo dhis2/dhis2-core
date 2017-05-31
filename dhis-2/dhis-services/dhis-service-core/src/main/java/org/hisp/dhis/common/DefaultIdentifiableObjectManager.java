@@ -172,8 +172,11 @@ public class DefaultIdentifiableObjectManager
 
         translations.forEach( translation ->
         {
-            session.save( translation );
-            persistedObject.getTranslations().add( translation );
+            if ( StringUtils.isNotEmpty( translation.getValue() ) )
+            {
+                session.save( translation );
+                persistedObject.getTranslations().add( translation );
+            }
         } );
 
         BaseIdentifiableObject translatedObject = (BaseIdentifiableObject) persistedObject;

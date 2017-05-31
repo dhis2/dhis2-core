@@ -73,6 +73,8 @@ public class ValidationRunContext
 
     private boolean sendNotifications = false;
 
+    private boolean persistResults = false;
+
     public ValidationRunContext()
     {
         validationResults = new ConcurrentLinkedQueue<>();
@@ -130,6 +132,11 @@ public class ValidationRunContext
     public boolean isSendNotifications()
     {
         return sendNotifications;
+    }
+
+    public boolean isPersistResults()
+    {
+        return persistResults;
     }
 
     // -------------------------------------------------------------------------
@@ -245,6 +252,12 @@ public class ValidationRunContext
             Set<DataElementCategoryOption> coDimensionConstraints )
         {
             this.context.coDimensionConstraints = coDimensionConstraints;
+            return this;
+        }
+
+        public Builder withPersistResults( boolean persistResults )
+        {
+            this.context.persistResults = persistResults;
             return this;
         }
     }

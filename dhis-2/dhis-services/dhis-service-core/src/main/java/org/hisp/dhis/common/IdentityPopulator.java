@@ -95,7 +95,7 @@ public class IdentityPopulator
                     ++count;
                     String idColumn = getIdColumn( table );
                     int id = resultSet.getInt( idColumn );
-                    String sql = "update " + table + " set uid = '" + CodeGenerator.generateCode() + "' where " + idColumn + " = " + id;
+                    String sql = "update " + table + " set uid = '" + CodeGenerator.generateUid() + "' where " + idColumn + " = " + id;
                     jdbcTemplate.update( sql );
                 }
 

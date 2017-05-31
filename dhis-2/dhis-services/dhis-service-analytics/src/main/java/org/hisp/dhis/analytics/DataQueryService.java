@@ -64,6 +64,8 @@ public interface DataQueryService
      * @param ignoreLimit whether to ignore the max number of cells limit.
      * @param hideEmptyRows whether to hide rows without data values, applies to
      *        table layout.
+     * @param hideEmptyColumns whether to hide columns without data values, applies
+     *        to table layout.
      * @param showHierarchy whether to show the organisation unit hierarchy
      *        together with the name.
      * @param includeNumDen whether to include the numerator and denominator of
@@ -84,7 +86,7 @@ public interface DataQueryService
      */
     DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType, String measureCriteria,
         String preAggregationMeasureCriteria, Date startDate, Date endDate, boolean skipMeta, boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta,
-        boolean ignoreLimit, boolean hideEmptyRows, boolean showHierarchy, boolean includeNumDen, DisplayProperty displayProperty,
+        boolean ignoreLimit, boolean hideEmptyRows, boolean hideEmptyColumns, boolean showHierarchy, boolean includeNumDen, DisplayProperty displayProperty,
         IdScheme outputIdScheme, IdScheme inputIdScheme, boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit, boolean allowAllPeriods, DhisApiVersion apiVersion );
 
     /**

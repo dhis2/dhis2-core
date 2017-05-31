@@ -24,8 +24,8 @@
     <td>$i18n.getString( "format" )</td>
     <td>
       <select id="format" style="width:280px">
-        <option value="json">JSON</option>
-        <option value="xml">XML</option>
+        <option value=".json">JSON</option>
+        <option value=".xml">XML</option>
       </select>
     </td>
   </tr>

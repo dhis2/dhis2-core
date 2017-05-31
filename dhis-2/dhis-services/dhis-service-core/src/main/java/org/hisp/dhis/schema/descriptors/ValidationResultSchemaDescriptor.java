@@ -36,9 +36,9 @@ import org.hisp.dhis.validation.ValidationResult;
  */
 public class ValidationResultSchemaDescriptor implements SchemaDescriptor
 {
-    public static final String SINGULAR = "validationresult";
+    public static final String SINGULAR = "validationResult";
 
-    public static final String PLURAL = "validationresults";
+    public static final String PLURAL = "validationResults";
 
     public static final String API_ENDPOINT = "/" + PLURAL;
 

@@ -134,9 +134,10 @@ public class Query extends Criteria
         return user;
     }
 
-    public void setUser( User user )
+    public Query setUser( User user )
     {
         this.user = user;
+        return this;
     }
 
     public String getLocale()

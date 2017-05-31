@@ -179,6 +179,7 @@ public class HibernateDbmsManager
         emptyTable( "orgunitgroupsetdimension" );
 
         emptyTable( "users_catdimensionconstraints" );
+        emptyTable( "users_cogsdimensionconstraints" );
         emptyTable( "userrolemembers" );
         emptyTable( "userroledataset" );
         emptyTable( "userroleauthorities" );
@@ -215,6 +216,7 @@ public class HibernateDbmsManager
         emptyTable( "datasetusergroupaccesses" );
         emptyTable( "dataset" );
 
+        emptyTable( "dataapprovalaudit" );
         emptyTable( "dataapprovalworkflowlevels" );
         emptyTable( "dataapprovalworkflow" );
         emptyTable( "dataapprovallevel" );

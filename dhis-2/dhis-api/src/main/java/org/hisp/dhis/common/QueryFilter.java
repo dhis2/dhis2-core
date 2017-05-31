@@ -147,6 +147,14 @@ public class QueryFilter
         return Lists.newArrayList( encodedFilter.split( OPTION_SEP ) );
     }
     
+    /**
+     * Returns a string representation of the query operator and filter.
+     */
+    public String getFilterAsString()
+    {
+        return operator.getValue() + " " + filter;
+    }
+    
     // -------------------------------------------------------------------------
     // hashCode, equals and toString
     // -------------------------------------------------------------------------

@@ -35,6 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
+import org.hisp.dhis.analytics.NumberType;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -160,9 +161,14 @@ public class ReportTable
     private boolean colSubTotals;
 
     /**
-     * Indicates rendering of empty rows for the table.
+     * Indicates whether to hide rows with no data values in the table.
      */
     private boolean hideEmptyRows;
+    
+    /**
+     * Indicates whether to hide columns with no data values in the table.
+     */
+    private boolean hideEmptyColumns;
 
     /**
      * The display density of the text in the table.
@@ -189,6 +195,11 @@ public class ReportTable
      */
     private LegendDisplayStyle legendDisplayStyle;
 
+    /**
+     * The number type.
+     */
+    private NumberType numberType;
+    
     /**
      * Indicates showing organisation unit hierarchy names.
      */
@@ -642,6 +653,13 @@ public class ReportTable
             {
                 grid.removeCurrentWriteRow();
             }
+            
+            // TODO hide empty columns
+        }
+        
+        if ( hideEmptyColumns )
+        {
+            grid.removeEmptyColumns();
         }
 
         if ( regression )
@@ -926,6 +944,18 @@ public class ReportTable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isHideEmptyColumns()
+    {
+        return hideEmptyColumns;
+    }
+
+    public void setHideEmptyColumns( boolean hideEmptyColumns )
+    {
+        this.hideEmptyColumns = hideEmptyColumns;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public DisplayDensity getDisplayDensity()
     {
         return displayDensity;
@@ -982,6 +1012,18 @@ public class ReportTable
     public void setLegendDisplayStyle( LegendDisplayStyle legendDisplayStyle )
     {
         this.legendDisplayStyle = legendDisplayStyle;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public NumberType getNumberType()
+    {
+        return numberType;
+    }
+
+    public void setNumberType( NumberType numberType )
+    {
+        this.numberType = numberType;
     }
 
     @JsonProperty

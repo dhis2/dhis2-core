@@ -180,6 +180,12 @@ public class DataQueryParams
     protected boolean hideEmptyRows;
     
     /**
+     * Indicates whether columns with no values should be hidden in the response.
+     * Applies to responses with table layout only. 
+     */
+    protected boolean hideEmptyColumns;
+    
+    /**
      * Indicates whether the org unit hierarchy path should be displayed with the
      * org unit names on rows.
      */
@@ -1636,6 +1642,11 @@ public class DataQueryParams
         return hideEmptyRows;
     }
 
+    public boolean isHideEmptyColumns()
+    {
+        return hideEmptyColumns;
+    }
+
     public boolean isShowHierarchy()
     {
         return showHierarchy;
@@ -2242,6 +2253,12 @@ public class DataQueryParams
         public Builder withHideEmptyRows( boolean hideEmptyRows )
         {
             this.params.hideEmptyRows = hideEmptyRows;
+            return this;
+        }
+        
+        public Builder withHideEmptyColumns( boolean hideEmptyColumns )
+        {
+            this.params.hideEmptyColumns = hideEmptyColumns;
             return this;
         }
 

@@ -182,7 +182,7 @@ public final class WebMessageUtils
             webMessage.setStatus( Status.ERROR );
             webMessage.setHttpStatus( HttpStatus.CONFLICT );
         }
-        else if ( !importSummary.getConflicts().isEmpty() )
+        else if ( importSummary.isStatus( ImportStatus.WARNING ) )
         {
             webMessage.setMessage( "One more conflicts encountered, please check import summary." );
             webMessage.setStatus( Status.WARNING );
@@ -203,8 +203,14 @@ public final class WebMessageUtils
     public static WebMessage importSummaries( ImportSummaries importSummaries )
     {
         WebMessage webMessage = new WebMessage();
-
-        if ( importSummaries.getIgnored() > 0 )
+        
+        if ( importSummaries.isStatus( ImportStatus.ERROR ) )
+        {
+            webMessage.setMessage( "An error occurred, please check import summary." );
+            webMessage.setStatus( Status.ERROR );
+            webMessage.setHttpStatus( HttpStatus.CONFLICT );
+        }
+        else if ( importSummaries.isStatus( ImportStatus.WARNING ) )
         {
             webMessage.setMessage( "One more conflicts encountered, please check import summary." );
             webMessage.setStatus( Status.WARNING );

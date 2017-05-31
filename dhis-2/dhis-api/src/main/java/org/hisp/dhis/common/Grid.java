@@ -146,7 +146,7 @@ public interface Grid
      * @param number the number of columns to add.
      */
     Grid addEmptyHeaders( int number );
-
+    
     /**
      * Returns the current height / number of rows in the grid.
      */
@@ -188,6 +188,14 @@ public interface Grid
      * @param values the values to add.
      */
     Grid addValues( Object[] values );
+
+    /**
+     * Adds the given values to the end of the current row in the specified 
+     * order.
+     *
+     * @param values the values to add.
+     */
+    Grid addValuesVar( Object... values );
 
     /**
      * Adds values in the given array to the end of the current row in the
@@ -289,6 +297,19 @@ public interface Grid
      * @param columnIndex the column index.
      */
     Grid removeColumn( int columnIndex );
+    
+    /**
+     * Removes from the grid columns with corresponding headers which only contain 
+     * null values.
+     */
+    Grid removeEmptyColumns();
+    
+    /**
+     * Indicates whether the column with the given index only contains null values.
+     * 
+     * @param columnIndex the column index.
+     */
+    boolean columnIsEmpty( int columnIndex );
 
     /**
      * Removes the header and the column at the index of the given header if it

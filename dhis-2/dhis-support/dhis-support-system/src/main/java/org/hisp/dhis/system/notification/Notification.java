@@ -62,12 +62,12 @@ public class Notification
 
     public Notification()
     {
-        this.uid = CodeGenerator.generateCode();
+        this.uid = CodeGenerator.generateUid();
     }
 
     public Notification( NotificationLevel level, TaskCategory category, Date time, String message, boolean completed )
     {
-        this.uid = CodeGenerator.generateCode();
+        this.uid = CodeGenerator.generateUid();
         this.level = level;
         this.category = category;
         this.time = time;

@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+<hibernate-mapping>
+  <class name="org.hisp.dhis.dataapproval.DataApprovalAudit" table="dataapprovalaudit">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="dataapprovalauditid">
+      <generator class="native" />
+    </id>
+
+    <many-to-one name="level" class="org.hisp.dhis.dataapproval.DataApprovalLevel" column="levelid" not-null="true" foreign-key="fk_dataapprovalaudit_levelid" />
+    <many-to-one name="workflow" class="org.hisp.dhis.dataapproval.DataApprovalWorkflow" column="workflowid" not-null="true" foreign-key="fk_dataapprovalaudit_workflowid" />
+    <many-to-one name="period" class="org.hisp.dhis.period.Period" column="periodid" not-null="true" foreign-key="fk_dataapprovalaudit_periodid" />
+    <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" not-null="true" column="organisationunitid" foreign-key="fk_dataapprovalaudit_organisationunitid" />
+    <many-to-one name="attributeOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo" not-null="true" column="attributeoptioncomboid" foreign-key="fk_dataapprovalaudit_attributeoptioncomboid" />
+
+    <property name="action" length="100" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.dataapproval.DataApprovalAction</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="created" column="created" not-null="true" type="timestamp" />
+
+    <many-to-one name="creator" class="org.hisp.dhis.user.User" column="creator" not-null="true" foreign-key="fk_dataapproval_creator" />
+
+  </class>
+
+</hibernate-mapping>

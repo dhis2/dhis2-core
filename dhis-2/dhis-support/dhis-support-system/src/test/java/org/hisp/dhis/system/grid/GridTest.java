@@ -133,6 +133,58 @@ public class GridTest
         assertEquals( headerC, grid.getHeaders().get( 1 ) );
         assertEquals( headerB, grid.getHeaders().get( 2 ) );
     }
+
+    @Test
+    public void testColumnIsEmpty()
+    {
+        Grid grid = new ListGrid()
+            .addRow().addValuesVar( "A1", null, "A3", null )
+            .addRow().addValuesVar( "B1", null, "B3", null )
+            .addRow().addValuesVar( null, null, "C3", null )
+            .addRow().addValuesVar( "D1", null, null, null );
+        
+        assertFalse( grid.columnIsEmpty( 0 ) );
+        assertTrue( grid.columnIsEmpty( 1 ) );
+        assertFalse( grid.columnIsEmpty( 2 ) );
+        assertTrue( grid.columnIsEmpty( 3 ) );        
+    }
+    
+    @Test
+    public void testRemoveEmptyColumns()
+    {
+        Grid grid = new ListGrid()
+            .addHeader( new GridHeader( "H1" ) )
+            .addHeader( new GridHeader( "H2" ) )
+            .addHeader( new GridHeader( "H3" ) )
+            .addHeader( new GridHeader( "H4" ) )
+            .addRow().addValuesVar( "A1", null, "A3", null )
+            .addRow().addValuesVar( "B1", null, "B3", null )
+            .addRow().addValuesVar( null, null, "C3", null )
+            .addRow().addValuesVar( "D1", null, null, null );
+        
+        assertEquals( 4, grid.getHeaders().size() );
+        assertEquals( 4, grid.getWidth() );
+        
+        grid.removeEmptyColumns();
+        
+        assertEquals( 2, grid.getWidth() );        
+    }
+
+    @Test
+    public void testRemoveEmptyColumnsWithoutHeaders()
+    {
+        Grid grid = new ListGrid()
+            .addRow().addValuesVar( "A1", null, "A3", null )
+            .addRow().addValuesVar( "B1", null, "B3", null )
+            .addRow().addValuesVar( null, null, "C3", null )
+            .addRow().addValuesVar( "D1", null, null, null );
+        
+        assertEquals( 4, grid.getWidth() );
+        
+        grid.removeEmptyColumns();
+        
+        assertEquals( 2, grid.getWidth() );        
+    }
     
     @Test
     public void testAddHeaderList()

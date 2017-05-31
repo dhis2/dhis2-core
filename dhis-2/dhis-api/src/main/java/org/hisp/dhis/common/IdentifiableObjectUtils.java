@@ -101,6 +101,17 @@ public class IdentifiableObjectUtils
     }
 
     /**
+     * Returns a list of codes for the given collection of IdentifiableObjects.
+     *
+     * @param objects the list of IdentifiableObjects.
+     * @return a list of codes.
+     */
+    public static <T extends IdentifiableObject> List<String> getCodes( Collection<T> objects )
+    {
+        return objects != null ? objects.stream().map( o -> o.getCode() ).collect( Collectors.toList() ) : null;
+    }
+
+    /**
      * Returns a list of internal identifiers for the given collection of IdentifiableObjects.
      *
      * @param objects the list of IdentifiableObjects.

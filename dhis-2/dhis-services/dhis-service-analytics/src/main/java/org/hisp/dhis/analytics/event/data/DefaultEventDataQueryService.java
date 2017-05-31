@@ -350,7 +350,7 @@ public class DefaultEventDataQueryService
             {
                 QueryOperator operator = QueryOperator.fromString( split[i] );
                 QueryFilter filter = new QueryFilter( operator, split[i + 1] );
-                queryItem.getFilters().add( filter );
+                queryItem.addFilter( filter );
             }
         }
 

@@ -449,7 +449,7 @@ public class ValidationUtils
             return "value_not_valid_datetime";
         }
 
-        if ( ValueType.FILE_RESOURCE == valueType && !CodeGenerator.isValidCode( value ) )
+        if ( ValueType.FILE_RESOURCE == valueType && !CodeGenerator.isValidUid( value ) )
         {
             return "value_not_valid_file_resource_uid";
         }
@@ -573,18 +573,16 @@ public class ValidationUtils
      */
     public static String normalizeBoolean( String bool, ValueType valueType )
     {
-        if ( valueType != ValueType.BOOLEAN )
+        if( ValueType.BOOLEAN_TYPES.contains( valueType ) )
         {
-            return bool;
-        }
-
-        if ( BOOL_FALSE_VARIANTS.contains( bool ) )
-        {
-            return DataValue.FALSE;
-        }
-        else if ( BOOL_TRUE_VARIANTS.contains( bool ) )
-        {
-            return DataValue.TRUE;
+            if ( BOOL_FALSE_VARIANTS.contains( bool ) && valueType != ValueType.TRUE_ONLY)
+            {
+                return DataValue.FALSE;
+            }
+            else if ( BOOL_TRUE_VARIANTS.contains( bool ) )
+            {
+                return DataValue.TRUE;
+            }
         }
 
         return bool;
