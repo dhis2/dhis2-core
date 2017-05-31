@@ -53,7 +53,6 @@ import org.hisp.dhis.user.User;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
