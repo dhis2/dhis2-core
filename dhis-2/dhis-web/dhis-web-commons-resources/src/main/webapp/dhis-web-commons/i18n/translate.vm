@@ -31,7 +31,7 @@
 	#foreach ( $propertyName in $propertyNames )
 	<tr>
 		<td style="width:10em"><label style="width:20em">$i18n.getString( "translation_label_$propertyName" )</label></td>
-		<td><input type="text" id="$propertyName" name="$propertyName" value="$!encoder.htmlEncode( $translations.get( $propertyName.toLowerCase() ) )" style="width:20em"/></td>
+		<td><input type="text" id="$propertyName" name="$propertyName" value="$!encoder.htmlEncode( $translations.get( $propertyName ) )" style="width:20em"/></td>
 		<td><span style="width:20em">$!encoder.htmlEncode( $referenceTranslations.get( $propertyName ) )</span></td>
 	</tr>
 	#end

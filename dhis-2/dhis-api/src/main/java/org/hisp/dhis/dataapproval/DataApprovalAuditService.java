@@ -1,4 +1,4 @@
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.dataapproval;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,32 +28,29 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.util.Base64Utils;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-import java.security.SecureRandom;
+import java.util.List;
 
 /**
- * Generates a base64-encoded string based on a 192-bit random number.
- *
- * @author Halvdan Hoem Grelland
+ * @author Jim Grace
  */
-public class ExternalFileResourceTokenGenerator
+public interface DataApprovalAuditService
 {
+    String ID = DataApprovalAuditService.class.getName();
 
-    private ExternalFileResourceTokenGenerator()
-    {
-    }
+    /**
+     * Deletes all data approval audits for the given organisation unit.
+     *
+     * @param organisationUnit the organisation unit.
+     */
+    void deleteDataApprovalAudits( OrganisationUnit organisationUnit );
 
-    // 192 bit; must be dividable by 3 to avoid padding "="
-    private static final int RANDOM_LENGTH = 24;
-
-    public static String generate()
-    {
-        SecureRandom sr = new SecureRandom();
-        byte[] tokenBytes = new byte[ RANDOM_LENGTH ];
-
-        sr.nextBytes( tokenBytes );
-
-        return Base64Utils.encodeToUrlSafeString( tokenBytes );
-    }
+    /**
+     * Returns DataApprovalAudit objects for query parameters.
+     *
+     * @param params Data approval audit query parameters.
+     * @return matching DataApproval object, if any
+     */
+    public List<DataApprovalAudit> getDataApprovalAudits( DataApprovalAuditQueryParams params );
 }

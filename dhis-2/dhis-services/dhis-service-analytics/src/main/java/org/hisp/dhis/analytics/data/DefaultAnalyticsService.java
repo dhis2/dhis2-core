@@ -206,7 +206,7 @@ public class DefaultAnalyticsService
                 
         return AnalyticsUtils.getDataValueSetFromGrid( params, grid );
     }
-        
+    
     @Override
     public Grid getAggregatedDataValues( AnalyticalObject object )
     {
@@ -522,7 +522,7 @@ public class DefaultAnalyticsService
 
         Map<String, Object> aggregatedDataMap = getAggregatedDataValueMapObjectTyped( operandParams );
         
-        aggregatedDataMap = AnalyticsUtils.convertDxToOperand( aggregatedDataMap, totalType.getPropertyCount() );
+        aggregatedDataMap = AnalyticsUtils.convertDxToOperand( aggregatedDataMap, totalType );
         
         for ( Map.Entry<String, Object> entry : aggregatedDataMap.entrySet() )
         {
@@ -885,6 +885,7 @@ public class DefaultAnalyticsService
         addListIfEmpty( reportTable.getGridRows() );
         
         reportTable.setHideEmptyRows( params.isHideEmptyRows() );
+        reportTable.setHideEmptyColumns( params.isHideEmptyColumns() );
         reportTable.setShowHierarchy( params.isShowHierarchy() );
 
         Map<String, Object> valueMap = AnalyticsUtils.getAggregatedDataValueMapping( grid );

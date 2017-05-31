@@ -299,7 +299,7 @@ public abstract class AbstractEnrollmentService
             importOptions = new ImportOptions();
         }
 
-        ImportSummary importSummary = new ImportSummary();
+        ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
 
         org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance = getTrackedEntityInstance( enrollment.getTrackedEntityInstance() );
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( entityInstance );
@@ -450,12 +450,12 @@ public abstract class AbstractEnrollmentService
             importOptions = new ImportOptions();
         }
 
-        ImportSummary importSummary = new ImportSummary();
-
         if ( enrollment == null || enrollment.getEnrollment() == null )
         {
             return new ImportSummary( ImportStatus.ERROR, "No enrollment or enrollment ID was supplied" ).incrementIgnored();
         }
+
+        ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
 
         ProgramInstance programInstance = programInstanceService.getProgramInstance( enrollment.getEnrollment() );
 
@@ -482,8 +482,17 @@ public abstract class AbstractEnrollmentService
 
         programInstance.setProgram( program );
         programInstance.setEntityInstance( entityInstance );
-        programInstance.setIncidentDate( enrollment.getIncidentDate() );
-        programInstance.setEnrollmentDate( enrollment.getEnrollmentDate() );
+
+        if ( enrollment.getIncidentDate() != null )
+        {
+            programInstance.setIncidentDate( enrollment.getIncidentDate() );
+        }
+
+        if ( enrollment.getEnrollmentDate() != null )
+        {
+            programInstance.setEnrollmentDate( enrollment.getEnrollmentDate() );
+        }
+
         programInstance.setFollowup( enrollment.getFollowup() );
 
         if ( program.getDisplayIncidentDate() && programInstance.getIncidentDate() == null )
@@ -497,7 +506,7 @@ public abstract class AbstractEnrollmentService
 
         if ( program.getCaptureCoordinates() )
         {
-            if ( enrollment.getCoordinate().isValid() )
+            if ( enrollment.getCoordinate() != null && enrollment.getCoordinate().isValid() )
             {
                 programInstance.setLatitude( enrollment.getCoordinate().getLatitude() );
                 programInstance.setLongitude( enrollment.getCoordinate().getLongitude() );
@@ -545,12 +554,12 @@ public abstract class AbstractEnrollmentService
     @Override
     public ImportSummary updateEnrollmentForNote( Enrollment enrollment )
     {
-        ImportSummary importSummary = new ImportSummary();
-
         if ( enrollment == null || enrollment.getEnrollment() == null )
         {
             return new ImportSummary( ImportStatus.ERROR, "No enrollment or enrollment ID was supplied" ).incrementIgnored();
         }
+
+        ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
 
         ProgramInstance programInstance = programInstanceService.getProgramInstance( enrollment.getEnrollment() );
 

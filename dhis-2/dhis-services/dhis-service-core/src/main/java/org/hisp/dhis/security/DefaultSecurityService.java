@@ -192,7 +192,7 @@ public class DefaultSecurityService
 
         if ( user.getUsername() == null || user.getUsername().isEmpty() )
         {
-            String username = "invite-" + user.getEmail() + "-" + CodeGenerator.generateCode();
+            String username = "invite-" + user.getEmail() + "-" + CodeGenerator.generateUid();
 
             user.getUserCredentials().setUsername( username );
         }

@@ -401,7 +401,7 @@ public class DefaultCsvImportService
 
                 Option option = new Option();
                 option.setName( getSafe( values, 3, null, 230 ) );
-                option.setUid( getSafe( values, 4, CodeGenerator.generateCode(), 11 ) );
+                option.setUid( getSafe( values, 4, CodeGenerator.generateUid(), 11 ) );
                 option.setCode( getSafe( values, 5, null, 50 ) );
                 option.setAutoFields();
 
@@ -445,7 +445,7 @@ public class DefaultCsvImportService
     private static void setIdentifiableObject( BaseIdentifiableObject object, String[] values )
     {
         object.setName( getSafe( values, 0, null, 230 ) );
-        object.setUid( getSafe( values, 1, CodeGenerator.generateCode(), 11 ) );
+        object.setUid( getSafe( values, 1, CodeGenerator.generateUid(), 11 ) );
         object.setCode( getSafe( values, 2, null, 50 ) );
     }
 

@@ -39,14 +39,22 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.scheduling.TaskCategory;
+import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.system.scheduling.Scheduler;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.ValidationSummary;
+import org.hisp.dhis.validation.notification.ValidationResultNotificationTask;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 
@@ -69,6 +77,18 @@ public class ValidationController
 
     @Autowired
     private DataElementCategoryService categoryService;
+
+    @Autowired
+    private ValidationResultNotificationTask validationResultNotificationTask;
+
+    @Autowired
+    private Scheduler scheduler;
+
+    @Autowired
+    private CurrentUserService currentUserService;
+
+    @Autowired
+    private WebMessageService webMessageService;
 
     @RequestMapping( value = "/dataSet/{ds}", method = RequestMethod.GET )
     public @ResponseBody ValidationSummary validate( @PathVariable String ds, @RequestParam String pe,
@@ -109,5 +129,16 @@ public class ValidationController
         summary.setCommentRequiredViolations( validationService.validateRequiredComments( dataSet, period, orgUnit, attributeOptionCombo ) );
 
         return summary;
+    }
+
+
+    @RequestMapping( value = "/sendNotifications", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
+    public void runValidationNotificationsTask( HttpServletResponse response, HttpServletRequest request )
+    {
+        validationResultNotificationTask.setTaskId( new TaskId( TaskCategory.SENDING_VALIDATION_RESULT, currentUserService.getCurrentUser() ) );
+        scheduler.executeTask( validationResultNotificationTask );
+
+        webMessageService.send( WebMessageUtils.ok( "Initiated validation result notification" ), response, request );
     }
 }

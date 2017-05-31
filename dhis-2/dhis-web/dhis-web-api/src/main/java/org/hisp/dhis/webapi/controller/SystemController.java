@@ -128,7 +128,7 @@ public class SystemController
 
         for ( int i = 0; i < limit; i++ )
         {
-            collectionNode.addChild( new SimpleNode( "code", CodeGenerator.generateCode() ) );
+            collectionNode.addChild( new SimpleNode( "code", CodeGenerator.generateUid() ) );
         }
 
         return rootNode;
@@ -151,7 +151,7 @@ public class SystemController
         for ( int i = 0; i < limit; i++ )
         {
             csvGenerator.writeStartObject();
-            csvGenerator.writeStringField( "uid", CodeGenerator.generateCode() );
+            csvGenerator.writeStringField( "uid", CodeGenerator.generateUid() );
             csvGenerator.writeEndObject();
         }
 

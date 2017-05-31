@@ -111,7 +111,7 @@ public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation
                 {
                     String uid = getUidPart( urlSplit[3] );
 
-                    if ( CodeGenerator.isValidCode( uid ) )
+                    if ( CodeGenerator.isValidUid( uid ) )
                     {
                         IdentifiableObject identifiableObject = manager.get( externalClasses.get( type ), uid );
 

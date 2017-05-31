@@ -33,10 +33,17 @@ package org.hisp.dhis.translation;
  */
 public enum TranslationProperty
 {
-    NAME, 
-    SHORT_NAME, 
-    DESCRIPTION, 
-    FORM_NAME;
+    NAME ( "name" ),
+    SHORT_NAME ( "shortName" ),
+    DESCRIPTION ("description" ),
+    FORM_NAME ( "formName" );
+
+    private String name;
+
+    TranslationProperty( String name )
+    {
+        this.name = name;
+    }
 
     public static TranslationProperty fromValue( String value )
     {
@@ -51,4 +58,8 @@ public enum TranslationProperty
         return null;
     }
 
+    public String getName()
+    {
+        return name;
+    }
 }

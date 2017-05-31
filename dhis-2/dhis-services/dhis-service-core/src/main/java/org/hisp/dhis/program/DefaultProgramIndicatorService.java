@@ -206,13 +206,6 @@ public class DefaultProgramIndicatorService
 
     @Override
     @Transactional
-    public ProgramIndicator getProgramIndicatorByShortName( String shortName )
-    {
-        return programIndicatorStore.getByShortName( shortName );
-    }
-
-    @Override
-    @Transactional
     public List<ProgramIndicator> getAllProgramIndicators()
     {
         return programIndicatorStore.getAll();
@@ -409,9 +402,8 @@ public class DefaultProgramIndicatorService
                     columnName = AnalyticsType.ENROLLMENT == analyticsType ? 
                         statementBuilder.columnQuote( el1 + ProgramIndicator.DB_SEPARATOR_ID + el2 ) : statementBuilder.columnQuote( el2 );
                 }
-                else
-                {
-                    //For KEY_ATTRIBUTE:
+                else // ProgramIndicator.KEY_ATTRIBUTE
+                {                    
                     columnName = statementBuilder.columnQuote( el1 );
                 }
                     
@@ -756,35 +748,5 @@ public class DefaultProgramIndicatorService
     public List<ProgramIndicatorGroup> getAllProgramIndicatorGroups()
     {
         return programIndicatorGroupStore.getAll();
-    }
-
-    @Override
-    public ProgramIndicatorGroup getProgramIndicatorGroupByName( String name )
-    {
-        return programIndicatorGroupStore.getByName( name );
-    }
-
-    @Override
-    public int getProgramIndicatorGroupCount()
-    {
-        return programIndicatorGroupStore.getCount();
-    }
-
-    @Override
-    public int getProgramIndicatorGroupCountByName( String name )
-    {
-        return programIndicatorGroupStore.getCountLikeName( name );
-    }
-
-    @Override
-    public List<ProgramIndicatorGroup> getProgramIndicatorGroupsBetween( int first, int max )
-    {
-        return  programIndicatorGroupStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    public List<ProgramIndicatorGroup> getProgramIndicatorGroupsBetweenByName( String name, int first, int max )
-    {
-        return programIndicatorGroupStore.getAllLikeName( name, first, max );
     }
 }
