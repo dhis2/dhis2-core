@@ -181,7 +181,7 @@ public class QuarterlyPeriodType
     public String getIsoDate( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar  )
     {
 
-        if (calendar.name() == "persian" && dateTimeUnit.isIso8601()) {
+        if (calendar.name() != "iso8601" && dateTimeUnit.isIso8601()) {
             dateTimeUnit = calendar.fromIso(dateTimeUnit);
         }
 
