@@ -40,7 +40,6 @@ import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.QuarterlyPeriodType;
-import org.junit.Assert;
 
 
 import static org.junit.Assert.assertEquals;
