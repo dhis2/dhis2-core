@@ -230,7 +230,7 @@ public class JCloudsFileResourceContentStore
         }
 
         putBlob( blob );
-        
+
         log.debug( String.format( "File resource saved with key: %s", fileResource.getStorageKey() ) );
 
         return fileResource.getStorageKey();
