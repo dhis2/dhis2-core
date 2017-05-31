@@ -233,8 +233,6 @@ public class JCloudsFileResourceContentStore
         
         log.debug( String.format( "File resource saved with key: %s", fileResource.getStorageKey() ) );
 
-        log.debug( String.format( "File resource saved with key: %s", fileResource.getStorageKey() ) );
-
         return fileResource.getStorageKey();
     }
 
