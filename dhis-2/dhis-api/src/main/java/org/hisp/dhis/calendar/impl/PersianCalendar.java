@@ -46,6 +46,7 @@ import org.joda.time.Days;
 import org.joda.time.chrono.ISOChronology;
 import org.springframework.stereotype.Component;
 
+
 /**
  * @author Hans Jacobson <jacobson.hans@gmail.com>
  */
@@ -113,9 +114,8 @@ public class PersianCalendar
 
         dateTime = dateTime.plusDays( totalDays );
 
-        DateTimeUnit result = new DateTimeUnit( DateTimeUnit.fromJodaDateTime( dateTime ), true );
+        return new DateTimeUnit( DateTimeUnit.fromJodaDateTime( dateTime ), true );
 
-        return result;
     }
 
     @Override
@@ -144,9 +144,8 @@ public class PersianCalendar
         DateTime start = START_ISO.toJodaDateTime();
         DateTime end = dateTimeUnit.toJodaDateTime();
 
-        DateTimeUnit result = plusDays( START_PERSIAN, Days.daysBetween( start, end ).getDays() );
+        return plusDays( START_PERSIAN, Days.daysBetween( start, end ).getDays() );
 
-        return result;
     }
 
     @Override
