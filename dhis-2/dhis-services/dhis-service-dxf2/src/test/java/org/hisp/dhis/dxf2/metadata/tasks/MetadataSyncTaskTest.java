@@ -116,9 +116,10 @@ public class MetadataSyncTaskTest
         when( metadataSyncService.doMetadataSync( any( MetadataSyncParams.class ) ) ).thenReturn( metadataSyncSummary );
         when( metadataSyncPreProcessor.handleCurrentMetadataVersion( metadataRetryContext ) ).thenReturn( metadataVersion );
         when( metadataSyncPreProcessor.handleMetadataVersionsList( metadataRetryContext, metadataVersion ) ).thenReturn( metadataVersions );
+        when( metadataSyncService.isSyncRequired( any( MetadataSyncParams.class ) ) ).thenReturn( true );
         metadataSyncTask.runSyncTask( metadataRetryContext );
 
-        verify (metadataSyncPreProcessor).setUp( metadataRetryContext );
+        verify( metadataSyncPreProcessor ).setUp( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleAggregateDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleEventDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleCurrentMetadataVersion( metadataRetryContext );
@@ -134,9 +135,10 @@ public class MetadataSyncTaskTest
         when( metadataSyncPreProcessor.handleCurrentMetadataVersion( metadataRetryContext ) ).thenReturn( metadataVersion );
         when( metadataSyncPreProcessor.handleMetadataVersionsList( metadataRetryContext, metadataVersion ) ).thenReturn( metadataVersions );
         doNothing().when( metadataRetryContext ).updateRetryContext( any( String.class ), any( String.class ), eq( metadataVersion ) );
+        when( metadataSyncService.isSyncRequired( any( MetadataSyncParams.class ) ) ).thenReturn( true );
         metadataSyncTask.runSyncTask( metadataRetryContext );
 
-        verify (metadataSyncPreProcessor).setUp( metadataRetryContext );
+        verify( metadataSyncPreProcessor ).setUp( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleAggregateDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleEventDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleCurrentMetadataVersion( metadataRetryContext );
@@ -153,9 +155,10 @@ public class MetadataSyncTaskTest
         when( metadataSyncPreProcessor.handleCurrentMetadataVersion( metadataRetryContext ) ).thenReturn( metadataVersion );
         when( metadataSyncPreProcessor.handleMetadataVersionsList( metadataRetryContext, metadataVersion ) ).thenReturn( metadataVersions );
         when( metadataSyncService.doMetadataSync( any( MetadataSyncParams.class ) ) ).thenThrow( new DhisVersionMismatchException( "" ) );
+        when( metadataSyncService.isSyncRequired( any( MetadataSyncParams.class ) ) ).thenReturn( true );
         metadataSyncTask.runSyncTask( metadataRetryContext );
 
-        verify (metadataSyncPreProcessor, times( 1 ) ).setUp( metadataRetryContext );
+        verify( metadataSyncPreProcessor, times( 1 ) ).setUp( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleAggregateDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleEventDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleCurrentMetadataVersion( metadataRetryContext );
@@ -172,9 +175,10 @@ public class MetadataSyncTaskTest
         when( metadataSyncPreProcessor.handleMetadataVersionsList( metadataRetryContext, metadataVersion ) ).thenReturn( metadataVersions );
         when( metadataSyncService.doMetadataSync( any( MetadataSyncParams.class ) ) ).thenReturn( metadataSyncSummary );
         when( metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus( metadataSyncSummary, metadataRetryContext, metadataVersion ) ).thenReturn( true );
+        when( metadataSyncService.isSyncRequired( any( MetadataSyncParams.class ) ) ).thenReturn( true );
         metadataSyncTask.runSyncTask( metadataRetryContext );
 
-        verify (metadataSyncPreProcessor, times( 1 ) ).setUp( metadataRetryContext );
+        verify( metadataSyncPreProcessor, times( 1 ) ).setUp( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleAggregateDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleEventDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleCurrentMetadataVersion( metadataRetryContext );
