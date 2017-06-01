@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.metadata.sync;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.IntegrationTest;
+import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncImportException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
@@ -121,13 +122,13 @@ public class MetadataSyncImportHandlerTest
     }
 
     @Test
-    public void testShouldNotThrowExceptionWhenImportServiceFails()
+    public void testShouldThrowExceptionWhenImportServiceFails()
     {
         syncParams.setImportParams( new MetadataImportParams() );
         syncParams.setVersion( metadataVersion );
 
         when( metadataImportService.importMetadata( syncParams.getImportParams() ) ).thenThrow( new MetadataSyncServiceException( "" ) );
-
+        expectedException.expect( MetadataSyncImportException.class );
         metadataSyncImportHandler.importMetadata( syncParams, expectedMetadataSnapshot );
         verify( metadataVersionDelegate, never() ).addNewMetadataVersion( metadataVersion );
     }

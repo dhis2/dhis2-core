@@ -293,7 +293,7 @@ public class RegistrationMultiEventsServiceTest
         event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA.getUid() );
         importSummary = eventService.addEvent( event, null );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
 
         assertEquals( 2, eventService.getEvents( params ).getEvents().size() );
     }
