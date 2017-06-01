@@ -26,43 +26,58 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.system.util.ReflectionUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DataSetObjectBundleHook extends AbstractObjectBundleHook
+public class PeriodTypeObjectBundleHook extends AbstractObjectBundleHook
 {
     @Override
-    public void preCreate( IdentifiableObject object, ObjectBundle bundle )
+    public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
     {
-        if ( !DataSet.class.isInstance( object ) ) return;
-        DataSet dataSet = (DataSet) object;
+        Schema schema = schemaService.getDynamicSchema( object.getClass() );
 
-        if ( dataSet.getPeriodType() != null )
+        for ( Property property : schema.getPropertyMap().values() )
         {
-            PeriodType periodType = bundle.getPreheat().getPeriodTypeMap().get( dataSet.getPeriodType().getName() );
-            dataSet.setPeriodType( periodType );
+            if ( PeriodType.class.isAssignableFrom( property.getKlass() ) )
+            {
+                PeriodType periodType = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+
+                if ( periodType != null )
+                {
+                    periodType = bundle.getPreheat().getPeriodTypeMap().get( periodType.getName() );
+                    ReflectionUtils.invokeMethod( object, property.getSetterMethod(), periodType );
+                }
+            }
         }
     }
 
     @Override
-    public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
+    public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
     {
-        if ( !DataSet.class.isInstance( object ) ) return;
-        DataSet dataSet = (DataSet) object;
+        Schema schema = schemaService.getDynamicSchema( object.getClass() );
 
-        if ( dataSet.getPeriodType() != null )
+        for ( Property property : schema.getPropertyMap().values() )
         {
-            PeriodType periodType = bundle.getPreheat().getPeriodTypeMap().get( dataSet.getPeriodType().getName() );
-            dataSet.setPeriodType( periodType );
-        }
+            if ( PeriodType.class.isAssignableFrom( property.getKlass() ) )
+            {
+                PeriodType periodType = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
 
-        sessionFactory.getCurrentSession().flush();
+                if ( periodType != null )
+                {
+                    periodType = bundle.getPreheat().getPeriodTypeMap().get( periodType.getName() );
+                    ReflectionUtils.invokeMethod( object, property.getSetterMethod(), periodType );
+                }
+            }
+        }
     }
 }
