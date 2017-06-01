@@ -142,11 +142,11 @@ public class PersianCalendarTest
     }
 
 
-    @Ignore
+    @Test
     public void testGenerateQuarterlyPeriods()
     {
-        Date startDate = new Cal( 1997, 1, 1, true ).time();
-        Date endDate = new Cal( 1997, 2, 31, true ).time();
+        Date startDate = new Cal( 2017, 3, 21, true ).time();
+        Date endDate = new Cal( 2017, 6, 21, true ).time();
 
         List<Period> monthly = new QuarterlyPeriodType().generatePeriods( calendar, startDate, endDate );
         assertEquals( 1, monthly.size() );
@@ -243,7 +243,6 @@ public class PersianCalendarTest
     public void testMinusWeeks()
     {
         DateTimeUnit dateTimeUnit = new DateTimeUnit( 1382, 1, 10 );
-
         DateTimeUnit testDateTimeUnit = calendar.minusWeeks( dateTimeUnit, 2 );
         assertEquals( 1381, testDateTimeUnit.getYear() );
         assertEquals( 12, testDateTimeUnit.getMonth() );
@@ -255,7 +254,6 @@ public class PersianCalendarTest
     public void testMinusMonths()
     {
         DateTimeUnit dateTimeUnit = new DateTimeUnit( 1382, 1, 20 );
-
         DateTimeUnit testDateTimeUnit = calendar.minusMonths( dateTimeUnit, 1 );
         assertEquals( 1381, testDateTimeUnit.getYear() );
         assertEquals( 12, testDateTimeUnit.getMonth() );
