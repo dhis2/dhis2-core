@@ -330,12 +330,13 @@ public class DefaultProgramNotificationService
         {
             recipients.setTrackedEntityInstance( trackedEntityInstance );
         }
-        else if ( recipientType == ProgramNotificationRecipient.PROGRAM_ATTRIBUTE )
+        else if ( recipientType == ProgramNotificationRecipient.PROGRAM_ATTRIBUTE
+            && template.getRecipientProgramAttribute() != null )
         {
             List<String> recipientList = programInstance.getEntityInstance().getTrackedEntityAttributeValues().stream()
-                    .filter( av -> template.getRecipientProgramAttribute().getUid().equals( av.getAttribute().getUid() ) )
-                    .map( av -> av.getPlainValue() )
-                    .collect( Collectors.toList() );
+                .filter( av -> template.getRecipientProgramAttribute().getUid().equals( av.getAttribute().getUid() ) )
+                .map( av -> av.getPlainValue() )
+                .collect( Collectors.toList() );
 
             if ( template.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
             {

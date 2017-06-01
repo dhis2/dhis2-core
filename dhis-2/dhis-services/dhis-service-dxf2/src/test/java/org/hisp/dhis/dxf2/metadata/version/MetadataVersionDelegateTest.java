@@ -165,8 +165,6 @@ public class MetadataVersionDelegateTest
         PowerMockito.when( HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) ).thenThrow( new Exception( "" ) );
 
         expectedException.expect( MetadataVersionServiceException.class );
-        expectedException.expectMessage( "Exception occurred while trying to make the GET call to" + versionUrl );
-
         metadataVersionDelegate.getRemoteMetadataVersion( "testVersion" );
     }
 
