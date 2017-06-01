@@ -32,6 +32,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
+
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
@@ -44,7 +46,9 @@ import java.util.List;
  */
 @JacksonXmlRootElement( localName = "importSummaries", namespace = DxfNamespaces.DXF_2_0 )
 public class ImportSummaries extends AbstractWebMessageResponse
-{    
+{
+    private ImportStatus status = ImportStatus.SUCCESS;
+    
     private int imported;
 
     private int updated;
@@ -82,6 +86,8 @@ public class ImportSummaries extends AbstractWebMessageResponse
         }
 
         importSummaries.add( importSummary );
+        
+        status = getHighestOrderImportStatus();
 
         return this;
     }
@@ -98,13 +104,6 @@ public class ImportSummaries extends AbstractWebMessageResponse
         return st != null && st.equals( status );
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ImportStatus getStatus()
-    {
-        return getHighestOrderImportStatus();
-    }
-    
     /**
      * Returns the {@link ImportStatus} with the highest order from the list
      * of import summaries, where {@link ImportStatus#ERROR} is the highest.
@@ -113,7 +112,7 @@ public class ImportSummaries extends AbstractWebMessageResponse
      * 
      * @return import status with highest order.
      */
-    private ImportStatus getHighestOrderImportStatus()
+    public ImportStatus getHighestOrderImportStatus()
     {
         return importSummaries.stream()
             .map( ImportSummary::getStatus )
@@ -122,16 +121,15 @@ public class ImportSummaries extends AbstractWebMessageResponse
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "importSummaryList", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "importSummary", namespace = DxfNamespaces.DXF_2_0 )
-    public List<ImportSummary> getImportSummaries()
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ImportStatus getStatus()
     {
-        return importSummaries;
+        return status;
     }
 
-    public void setImportSummaries( List<ImportSummary> importSummaries )
+    public void setStatus( ImportStatus status )
     {
-        this.importSummaries = importSummaries;
+        this.status = status;
     }
 
     @JsonProperty
@@ -174,6 +172,28 @@ public class ImportSummaries extends AbstractWebMessageResponse
         this.importOptions = importOptions;
     }
 
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "importSummaryList", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "importSummary", namespace = DxfNamespaces.DXF_2_0 )
+    public List<ImportSummary> getImportSummaries()
+    {
+        return importSummaries;
+    }
+
+    public void setImportSummaries( List<ImportSummary> importSummaries )
+    {
+        this.importSummaries = importSummaries;
+    }
+
+    public String toMinimalString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "imported", imported )
+            .add( "updated", updated )
+            .add( "deleted", deleted )
+            .add( "ignored", ignored ).toString();
+    }
+    
     @Override
     public String toString()
     {
