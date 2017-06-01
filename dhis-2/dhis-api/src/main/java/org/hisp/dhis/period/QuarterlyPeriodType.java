@@ -31,6 +31,7 @@ package org.hisp.dhis.period;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -54,6 +55,8 @@ public class QuarterlyPeriodType
     private static final String ISO_FORMAT = "yyyyQn";
 
     private static final String ISO8601_DURATION = "P1Q";
+
+    private static final String ISO_CALENDAR_NAME = org.hisp.dhis.calendar.impl.Iso8601Calendar.getInstance().name();
     
     /**
      * The name of the QuarterlyPeriodType, which is "Quarterly".
@@ -181,8 +184,9 @@ public class QuarterlyPeriodType
     public String getIsoDate( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar  )
     {
 
-        if (calendar.name() != "iso8601" && dateTimeUnit.isIso8601()) {
-            dateTimeUnit = calendar.fromIso(dateTimeUnit);
+        if ( !calendar.name().equals( ISO_CALENDAR_NAME ) && dateTimeUnit.isIso8601() )
+        {
+            dateTimeUnit = calendar.fromIso( dateTimeUnit );
         }
 
         switch ( dateTimeUnit.getMonth() )
