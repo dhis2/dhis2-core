@@ -6,6 +6,8 @@
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.IdentifiableObjectBundleHook" />
 
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.PeriodTypeObjectBundleHook" />
+
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.EmbeddedObjectObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.VersionedObjectObjectBundleHook" />
@@ -21,8 +23,6 @@
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.UserObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.UserRoleObjectBundleHook" />
-
-  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataSetObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataInputPeriodObjectBundleHook" />
 
