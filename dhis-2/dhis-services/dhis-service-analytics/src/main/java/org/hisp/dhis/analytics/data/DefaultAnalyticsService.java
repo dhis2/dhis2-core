@@ -410,9 +410,18 @@ public class DefaultAnalyticsService
 
                         row.add( DX_INDEX, new DimensionItem( DATA_X_DIM_ID, indicator ) );
 
-                        grid.addRow()
-                            .addValues( DimensionItem.getItemIdentifiers( row ) )
-                            .addValue( AnalyticsUtils.getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getValue() ) );
+                        if ( indicator.getDecimals() != null && indicator.getDecimals() == 0)
+                        {
+                            grid.addRow()
+                                .addValues( DimensionItem.getItemIdentifiers( row ) )
+                                .addValue( ((int) value.getValue()) );
+                        }
+                        else
+                        {
+                            grid.addRow()
+                                .addValues( DimensionItem.getItemIdentifiers( row ) )
+                                .addValue( AnalyticsUtils.getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getValue() ) );
+                        }
 
                         if ( params.isIncludeNumDen() )
                         {
