@@ -45,7 +45,7 @@ import org.joda.time.Days;
 import org.joda.time.chrono.ISOChronology;
 import org.springframework.stereotype.Component;
 
-
+import org.hisp.dhis.calendar.exception.InvalidCalendarParamatersException;
 /**
  * @author Hans Jacobson <jacobson.hans@gmail.com>
  */
@@ -172,7 +172,7 @@ public class PersianCalendar
         if ( dateTimeUnit.getYear() > STOP_PERSIAN.getYear() ||
             dateTimeUnit.getYear() < START_PERSIAN.getYear() )
         {
-            throw new RuntimeException(
+            throw new InvalidCalendarParamatersException(
                 "Illegal PERSIAN year, must be between " + START_PERSIAN.getYear() + " and " +
                     STOP_PERSIAN.getYear() + ", was given " + dateTimeUnit.getYear() );
         }
@@ -217,7 +217,7 @@ public class PersianCalendar
 
         if ( dateTimeUnit.getYear() < START_ISO.getYear() || dateTimeUnit.getYear() > STOP_ISO.getYear() )
         {
-            throw new RuntimeException(
+            throw new InvalidCalendarParamatersException(
                 "Illegal ISO year, must be between " + START_ISO.getYear() + " and " + STOP_ISO.getYear() +
                     ", was given " + dateTimeUnit.getYear() );
         }
@@ -460,7 +460,7 @@ public class PersianCalendar
 
         if ( CONVERSION_MAP.get( year ) == null )
         {
-            throw new RuntimeException(
+            throw new InvalidCalendarParamatersException(
                 "Illegal PERSIAN year, must be between " + START_PERSIAN.getYear() + " and " +
                     STOP_PERSIAN.getYear() + " was given " + year );
         }
@@ -651,7 +651,7 @@ public class PersianCalendar
 
         if ( CONVERSION_MAP.get( year ) == null )
         {
-            throw new RuntimeException(
+            throw new InvalidCalendarParamatersException(
                 "Illegal PERSIAN year, must be between " + START_PERSIAN.getYear() + " and " +
                     STOP_PERSIAN.getYear() + ", was given " + year );
         }
