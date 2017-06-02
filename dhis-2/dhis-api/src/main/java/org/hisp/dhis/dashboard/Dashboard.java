@@ -35,8 +35,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 
 import java.util.ArrayList;
@@ -170,19 +168,5 @@ public class Dashboard
     public void setItems( List<DashboardItem> items )
     {
         this.items = items;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            Dashboard dashboard = (Dashboard) other;
-
-            items.clear();
-            items.addAll( dashboard.getItems() );
-        }
     }
 }

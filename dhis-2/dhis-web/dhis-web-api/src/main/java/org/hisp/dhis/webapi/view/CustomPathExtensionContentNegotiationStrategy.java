@@ -33,7 +33,6 @@ import org.springframework.http.MediaType;
 import org.springframework.web.accept.PathExtensionContentNegotiationStrategy;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.util.UrlPathHelper;
-import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Locale;
@@ -50,6 +49,10 @@ import java.util.Map;
 public class CustomPathExtensionContentNegotiationStrategy extends PathExtensionContentNegotiationStrategy
 {
     private static final UrlPathHelper URL_PATH_HELPER = new UrlPathHelper();
+
+    private static final char EXTENSION_SEPARATOR = '.';
+
+    private static final String FOLDER_SEPARATOR = "/";
 
     static
     {
@@ -72,15 +75,10 @@ public class CustomPathExtensionContentNegotiationStrategy extends PathExtension
         }
 
         String path = URL_PATH_HELPER.getLookupPathForRequest( servletRequest );
-        String filename = WebUtils.extractFullFilenameFromUrlPath( path );
-        String extension = getFilenameExtension( filename );
+        String extension = getFilenameExtension( path );
 
         return !StringUtils.isBlank( extension ) ? extension.toLowerCase( Locale.ENGLISH ) : null;
     }
-
-    private static final char EXTENSION_SEPARATOR = '.';
-
-    private static final String FOLDER_SEPARATOR = "/";
 
     private static String getFilenameExtension( String path )
     {

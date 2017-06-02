@@ -23,7 +23,7 @@ mde.exportMetadata = function() {
 			objectId = $( "#objectList" ).val(),
 			format = $( "#format" ).val(),
 			compression = $("#compression").val(),
-			url = "../api/" + objectType + "/" + objectId + "/metadata." + format + (compression ?  compression : "" );
+			url = "../api/" + objectType + "/" + objectId + "/metadata" + format + (compression ?  compression : "" );
 
 	url += "?attachment=" + "metadataDependency" + format + compression;;
 	window.open( url, "_blank" );

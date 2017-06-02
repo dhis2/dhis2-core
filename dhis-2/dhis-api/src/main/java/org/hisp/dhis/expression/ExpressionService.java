@@ -31,6 +31,7 @@ package org.hisp.dhis.expression;
 import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -77,7 +78,7 @@ public interface ExpressionService
     String SYMBOL_DAYS = "[days]";
     String SYMBOL_WILDCARD = "*";
 
-    String VARIABLE_EXPRESSION = "(?<key>#|D|A|I)\\{(?<id>(?<id1>[a-zA-Z]\\w{10})(\\.(?<id2>[a-zA-Z]\\w{10}|\\*))?(\\.(?<id3>[a-zA-Z]\\w{10}|\\*))?)\\}";
+    String VARIABLE_EXPRESSION = "(?<key>#|D|A|I|R)\\{(?<id>(?<id1>[a-zA-Z]\\w{10})(\\.(?<id2>[a-zA-Z]\\w{5,40}|\\*))?(\\.(?<id3>[a-zA-Z]\\w{10}|\\*))?)\\}";
     String OPERAND_EXPRESSION = "#\\{(?<de>[a-zA-Z]\\w{10})(\\.(?<coc>[a-zA-Z]\\w{10}|\\*))?(\\.(?<aoc>[a-zA-Z]\\w{10}|\\*))?\\}";
     String DATA_ELEMENT_TOTAL_EXPRESSION = "#\\{(?<id>[a-zA-Z]\\w{10})\\}";
     String CATEGORY_OPTION_COMBO_OPERAND_EXPRESSION = "#\\{(?<de>[a-zA-Z]\\w{10})\\.(?<coc>[a-zA-Z]\\w{10})\\}";
@@ -125,7 +126,8 @@ public interface ExpressionService
         "#", DataElementOperand.class,
         "D", ProgramDataElementDimensionItem.class,
         "A", ProgramTrackedEntityAttributeDimensionItem.class,
-        "I", ProgramIndicator.class
+        "I", ProgramIndicator.class,
+        "R", ReportingRate.class
     );
 
     /**

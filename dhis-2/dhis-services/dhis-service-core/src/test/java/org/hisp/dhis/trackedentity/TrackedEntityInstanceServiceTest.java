@@ -28,15 +28,6 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -45,6 +36,13 @@ import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Chau Thu Tran
@@ -103,7 +101,27 @@ public class TrackedEntityInstanceServiceTest
     }
 
     @Test
-    public void testDeleteTrackedEntityInstance()
+    public void testHardDeleteTrackedEntityInstance()
+    {
+        int idA = entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
+        int idB = entityInstanceService.addTrackedEntityInstance( entityInstanceB1 );
+
+        assertNotNull( entityInstanceService.getTrackedEntityInstance( idA ) );
+        assertNotNull( entityInstanceService.getTrackedEntityInstance( idB ) );
+
+        entityInstanceService.deleteTrackedEntityInstance( entityInstanceA1, true );
+
+        assertNull( entityInstanceService.getTrackedEntityInstance( idA ) );
+        assertNotNull( entityInstanceService.getTrackedEntityInstance( idB ) );
+
+        entityInstanceService.deleteTrackedEntityInstance( entityInstanceB1, true );
+
+        assertNull( entityInstanceService.getTrackedEntityInstance( idA ) );
+        assertNull( entityInstanceService.getTrackedEntityInstance( idB ) );
+    }
+
+    @Test
+    public void testSoftDeleteTrackedEntityInstance()
     {
         int idA = entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
         int idB = entityInstanceService.addTrackedEntityInstance( entityInstanceB1 );
@@ -113,13 +131,13 @@ public class TrackedEntityInstanceServiceTest
 
         entityInstanceService.deleteTrackedEntityInstance( entityInstanceA1 );
 
-        assertNull( entityInstanceService.getTrackedEntityInstance( idA ) );
-        assertNotNull( entityInstanceService.getTrackedEntityInstance( idB ) );
+        assertTrue( entityInstanceService.getTrackedEntityInstance( idA ) == null );
+        assertFalse( entityInstanceService.getTrackedEntityInstance( idB ) == null );
 
         entityInstanceService.deleteTrackedEntityInstance( entityInstanceB1 );
 
-        assertNull( entityInstanceService.getTrackedEntityInstance( idA ) );
-        assertNull( entityInstanceService.getTrackedEntityInstance( idB ) );
+        assertTrue( entityInstanceService.getTrackedEntityInstance( idA ) == null );
+        assertTrue( entityInstanceService.getTrackedEntityInstance( idB ) == null );
     }
 
     @Test

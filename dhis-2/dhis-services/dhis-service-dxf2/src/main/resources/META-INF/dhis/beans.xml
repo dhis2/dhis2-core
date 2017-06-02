@@ -6,6 +6,8 @@
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.IdentifiableObjectBundleHook" />
 
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.PeriodTypeObjectBundleHook" />
+
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.EmbeddedObjectObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.VersionedObjectObjectBundleHook" />
@@ -22,8 +24,6 @@
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.UserRoleObjectBundleHook" />
 
-  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataSetObjectBundleHook" />
-
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataInputPeriodObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ValidationRuleObjectBundleHook" />
@@ -39,8 +39,6 @@
   <bean id="org.hisp.dhis.dxf2.metadata.MetadataExportService" class="org.hisp.dhis.dxf2.metadata.DefaultMetadataExportService" />
 
   <bean id="org.hisp.dhis.dxf2.metadata.MetadataImportService" class="org.hisp.dhis.dxf2.metadata.DefaultMetadataImportService" />
-
-  <bean id="org.hisp.dhis.dxf2.metadata.MergeService" class="org.hisp.dhis.dxf2.metadata.DefaultMergeService" />
 
   <bean id="org.hisp.dhis.dxf2.gml.GmlImportService" class="org.hisp.dhis.dxf2.gml.DefaultGmlImportService" />
 

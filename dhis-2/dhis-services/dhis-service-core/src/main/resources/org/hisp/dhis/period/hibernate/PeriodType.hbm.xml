@@ -4,7 +4,7 @@
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.period.PeriodType" table="periodtype" >
+  <class name="org.hisp.dhis.period.PeriodType" table="periodtype">
 
     <cache usage="read-write" />
 
@@ -16,6 +16,10 @@
 
     <subclass name="org.hisp.dhis.period.DailyPeriodType" discriminator-value="Daily" />
     <subclass name="org.hisp.dhis.period.WeeklyPeriodType" discriminator-value="Weekly" />
+    <subclass name="org.hisp.dhis.period.WeeklyWednesdayPeriodType" discriminator-value="WeeklyWednesday" />
+    <subclass name="org.hisp.dhis.period.WeeklyThursdayPeriodType" discriminator-value="WeeklyThursday" />
+    <subclass name="org.hisp.dhis.period.WeeklySaturdayPeriodType" discriminator-value="WeeklySaturday" />
+    <subclass name="org.hisp.dhis.period.WeeklySundayPeriodType" discriminator-value="WeeklySunday" />
     <subclass name="org.hisp.dhis.period.MonthlyPeriodType" discriminator-value="Monthly" />
     <subclass name="org.hisp.dhis.period.BiMonthlyPeriodType" discriminator-value="BiMonthly" />
     <subclass name="org.hisp.dhis.period.QuarterlyPeriodType" discriminator-value="Quarterly" />

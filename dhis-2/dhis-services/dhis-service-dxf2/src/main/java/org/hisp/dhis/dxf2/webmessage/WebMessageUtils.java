@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.webmessage;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -39,6 +38,7 @@ import org.hisp.dhis.dxf2.webmessage.responses.ObjectReportWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.TypeReportWebMessageResponse;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
 import org.springframework.http.HttpStatus;
 
@@ -182,7 +182,7 @@ public final class WebMessageUtils
             webMessage.setStatus( Status.ERROR );
             webMessage.setHttpStatus( HttpStatus.CONFLICT );
         }
-        else if ( !importSummary.getConflicts().isEmpty() )
+        else if ( importSummary.isStatus( ImportStatus.WARNING ) )
         {
             webMessage.setMessage( "One more conflicts encountered, please check import summary." );
             webMessage.setStatus( Status.WARNING );
@@ -203,8 +203,14 @@ public final class WebMessageUtils
     public static WebMessage importSummaries( ImportSummaries importSummaries )
     {
         WebMessage webMessage = new WebMessage();
-
-        if ( importSummaries.getIgnored() > 0 )
+        
+        if ( importSummaries.isStatus( ImportStatus.ERROR ) )
+        {
+            webMessage.setMessage( "An error occurred, please check import summary." );
+            webMessage.setStatus( Status.ERROR );
+            webMessage.setHttpStatus( HttpStatus.CONFLICT );
+        }
+        else if ( importSummaries.isStatus( ImportStatus.WARNING ) )
         {
             webMessage.setMessage( "One more conflicts encountered, please check import summary." );
             webMessage.setStatus( Status.WARNING );

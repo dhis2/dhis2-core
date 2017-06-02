@@ -33,8 +33,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.fileresource.FileResource;
 
@@ -145,31 +143,5 @@ public class Document
     public void setFileResource( FileResource fileResource )
     {
         this.fileResource = fileResource;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            Document document = (Document) other;
-
-            external = document.isExternal();
-
-            if ( mergeMode.isReplace() )
-            {
-                url = document.getUrl();
-                fileResource = document.getFileResource();
-                contentType = document.getContentType();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                url = document.getUrl() == null ? url : document.getUrl();
-                fileResource = document.getFileResource() == null ? fileResource : document.getFileResource();
-                contentType = document.getContentType() == null ? contentType : document.getContentType();
-            }
-        }
     }
 }

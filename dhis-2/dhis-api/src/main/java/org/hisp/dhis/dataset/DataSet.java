@@ -40,8 +40,6 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.VersionedObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
@@ -838,61 +836,5 @@ public class DataSet
     public void setDataElementDecoration( boolean dataElementDecoration )
     {
         this.dataElementDecoration = dataElementDecoration;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DataSet dataSet = (DataSet) other;
-
-            dataElementDecoration = dataSet.isDataElementDecoration();
-            skipOffline = dataSet.isSkipOffline();
-            renderAsTabs = dataSet.isRenderAsTabs();
-            renderHorizontally = dataSet.isRenderHorizontally();
-            expiryDays = dataSet.getExpiryDays();
-            openFuturePeriods = dataSet.getOpenFuturePeriods();
-            fieldCombinationRequired = dataSet.isFieldCombinationRequired();
-            mobile = dataSet.isMobile();
-            validCompleteOnly = dataSet.isValidCompleteOnly();
-            version = dataSet.getVersion();
-            timelyDays = dataSet.getTimelyDays();
-            notifyCompletingUser = dataSet.isNotifyCompletingUser();
-
-            if ( mergeMode.isReplace() )
-            {
-                periodType = dataSet.getPeriodType();
-                categoryCombo = dataSet.getCategoryCombo();
-                dataEntryForm = dataSet.getDataEntryForm();
-                notificationRecipients = dataSet.getNotificationRecipients();
-                workflow = dataSet.getWorkflow();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                periodType = dataSet.getPeriodType() == null ? periodType : dataSet.getPeriodType();
-                categoryCombo = dataSet.getCategoryCombo() == null ? categoryCombo : dataSet.getCategoryCombo();
-                dataEntryForm = dataSet.getDataEntryForm() == null ? dataEntryForm : dataSet.getDataEntryForm();
-                notificationRecipients = dataSet.getNotificationRecipients() == null ? notificationRecipients : dataSet.getNotificationRecipients();
-                workflow = dataSet.getWorkflow() == null ? workflow : dataSet.getWorkflow();
-            }
-
-            dataInputPeriods.clear();
-            dataSet.getDataInputPeriods().forEach( this::addDataInputPeriod );
-
-            removeAllDataSetElements();
-            dataSet.getDataSetElements().forEach( this::addDataSetElement );
-
-            indicators.clear();
-            dataSet.getIndicators().forEach( this::addIndicator );
-
-            compulsoryDataElementOperands.clear();
-            dataSet.getCompulsoryDataElementOperands().forEach( this::addCompulsoryDataElementOperand );
-
-            removeAllOrganisationUnits();
-            dataSet.getSources().forEach( this::addOrganisationUnit );
-        }
     }
 }

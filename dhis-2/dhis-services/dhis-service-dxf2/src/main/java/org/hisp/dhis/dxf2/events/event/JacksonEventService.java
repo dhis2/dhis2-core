@@ -58,7 +58,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Implementation of EventService that uses Jackson for serialization and deserialization.
+ * Implementation of EventService that uses Jackson for serialization and 
+ * deserialization. This class has the prototype scope and can hence have
+ * class scoped variables such as caches.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -231,7 +233,7 @@ public class JacksonEventService extends AbstractEventService
                 {
                     ProgramStageInstance programStageInstance = manager.getObject( ProgramStageInstance.class, importOptions.getIdSchemes().getProgramStageInstanceIdScheme(), event.getEvent() );
 
-                    if( programStageInstance == null )
+                    if ( programStageInstance == null )
                     {
                         create.add( event );
                     }

@@ -2,7 +2,6 @@
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:aop="http://www.springframework.org/schema/aop"
   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
-
     http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd">
 
   <bean id="org.hisp.dhis.preheat.PreheatService" class="org.hisp.dhis.preheat.DefaultPreheatService" scope="prototype">
@@ -10,6 +9,8 @@
   </bean>
 
   <bean id="org.hisp.dhis.calendar.CalendarService" class="org.hisp.dhis.calendar.DefaultCalendarService" />
+
+  <bean id="org.hisp.dhis.schema.MergeService" class="org.hisp.dhis.schema.DefaultMergeService" />
 
   <bean class="org.hisp.dhis.calendar.impl.Iso8601Calendar" />
 
@@ -24,6 +25,8 @@
   <bean class="org.hisp.dhis.calendar.impl.NepaliCalendar" />
 
   <bean class="org.hisp.dhis.calendar.impl.ThaiCalendar" />
+
+  <bean class="org.hisp.dhis.calendar.impl.PersianCalendar" />
 
   <bean id="org.hisp.dhis.schema.SchemaService" class="org.hisp.dhis.schema.DefaultSchemaService" />
 
@@ -173,6 +176,13 @@
     <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
     <property name="dataApprovalLevelService" ref="org.hisp.dhis.dataapproval.DataApprovalLevelService" />
     <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataapproval.DataApprovalAuditStore" class="org.hisp.dhis.dataapproval.hibernate.HibernateDataApprovalAuditStore">
+    <property name="clazz" value="org.hisp.dhis.dataapproval.DataApprovalAudit" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
   </bean>
 
   <bean id="org.hisp.dhis.dataapproval.DataApprovalLevelStore" class="org.hisp.dhis.dataapproval.hibernate.HibernateDataApprovalLevelStore">
@@ -823,12 +833,20 @@
 
   <bean id="org.hisp.dhis.dataapproval.DataApprovalService" class="org.hisp.dhis.dataapproval.DefaultDataApprovalService">
     <property name="dataApprovalStore" ref="org.hisp.dhis.dataapproval.DataApprovalStore" />
+    <property name="dataApprovalAuditStore" ref="org.hisp.dhis.dataapproval.DataApprovalAuditStore" />
     <property name="workflowStore" ref="org.hisp.dhis.dataapproval.DataApprovalWorkflowStore" />
     <property name="dataApprovalLevelService" ref="org.hisp.dhis.dataapproval.DataApprovalLevelService" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
     <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataapproval.DataApprovalAuditService" class="org.hisp.dhis.dataapproval.DefaultDataApprovalAuditService">
+    <property name="dataApprovalAuditStore" ref="org.hisp.dhis.dataapproval.DataApprovalAuditStore" />
+    <property name="dataApprovalLevelService" ref="org.hisp.dhis.dataapproval.DataApprovalLevelService" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="aclService" ref="org.hisp.dhis.security.acl.AclService" />
   </bean>
 
   <bean id="org.hisp.dhis.dataapproval.DataApprovalLevelService" class="org.hisp.dhis.dataapproval.DefaultDataApprovalLevelService">
@@ -1119,6 +1137,7 @@
         <value>gambia</value>
         <value>ghana</value>
         <value>global_fund</value>
+        <value>grenada</value>
         <value>guinea</value>
         <value>guinea_bissau</value>
         <value>haiti</value>
@@ -1516,12 +1535,12 @@
   <!-- Scheduled task for scheduled program notifications -->
 
   <bean id="scheduledProgramNotificationsTask"
-        class="org.hisp.dhis.program.notification.ProgramNotificationTask" scope="prototype" />
+    class="org.hisp.dhis.program.notification.ProgramNotificationTask" scope="prototype" />
 
   <!-- Scheduled task for validation result notifications -->
 
   <bean id="validationResultNotificationTask"
-        class="org.hisp.dhis.validation.notification.ValidationResultNotificationTask" scope="prototype" />
+    class="org.hisp.dhis.validation.notification.ValidationResultNotificationTask" scope="prototype" />
 
   <!-- Startup routine definitions -->
 
@@ -1637,6 +1656,11 @@
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
+  <bean id="org.hisp.dhis.startup.AnalyticalObjectEmbeddedDimensionUpgrader" class="org.hisp.dhis.startup.AnalyticalObjectEmbeddedDimensionUpgrader">
+    <property name="runlevel" value="9" />
+    <property name="skipInTests" value="true" />
+  </bean>
+
   <bean id="org.hisp.dhis.dataentryform.DataEntryFormUpgrader" class="org.hisp.dhis.dataentryform.DataEntryFormUpgrader">
     <property name="name" value="FavoriteDataItemUpgrader" />
     <property name="dataEntryFormService" ref="org.hisp.dhis.dataentryform.DataEntryFormService" />
@@ -1692,8 +1716,8 @@
     <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
   </bean>
 
-  <bean id="org.hisp.dhis.dataelement.DataElementCategoryDimensionDeletionHandler"
-    class="org.hisp.dhis.dataelement.DataElementCategoryDimensionDeletionHandler">
+  <bean id="org.hisp.dhis.dataelement.CategoryDimensionDeletionHandler"
+    class="org.hisp.dhis.dataelement.CategoryDimensionDeletionHandler">
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
@@ -1850,6 +1874,7 @@
   <bean id="org.hisp.dhis.programrule.ProgramRuleActionDeletionHandler"
     class="org.hisp.dhis.programrule.ProgramRuleActionDeletionHandler">
     <property name="programRuleActionService" ref="org.hisp.dhis.programrule.ProgramRuleActionService" />
+    <property name="programRuleService" ref="org.hisp.dhis.programrule.ProgramRuleService" />
   </bean>
 
   <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueDeletionHandler"

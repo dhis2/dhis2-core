@@ -32,6 +32,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
+
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
@@ -61,7 +63,6 @@ public class ImportSummaries extends AbstractWebMessageResponse
 
     public ImportSummaries()
     {
-
     }
 
     public void addImportSummaries( ImportSummaries importSummaries )
@@ -71,7 +72,10 @@ public class ImportSummaries extends AbstractWebMessageResponse
 
     public ImportSummaries addImportSummary( ImportSummary importSummary )
     {
-        if ( importSummary == null ) return this;
+        if ( importSummary == null )
+        {
+            return this;
+        }
 
         if ( importSummary.getImportCount() != null )
         {
@@ -82,6 +86,8 @@ public class ImportSummaries extends AbstractWebMessageResponse
         }
 
         importSummaries.add( importSummary );
+        
+        status = getHighestOrderImportStatus();
 
         return this;
     }
@@ -91,29 +97,39 @@ public class ImportSummaries extends AbstractWebMessageResponse
         return String.format( "Imported %d, updated %d, deleted %d, ignored %d", imported, updated, deleted, ignored );
     }
 
+    public boolean isStatus( ImportStatus status )
+    {
+        ImportStatus st = getStatus();
+        
+        return st != null && st.equals( status );
+    }
+
+    /**
+     * Returns the {@link ImportStatus} with the highest order from the list
+     * of import summaries, where {@link ImportStatus#ERROR} is the highest.
+     * If no import summaries are present, {@link ImportStatus#SUCCESS} is
+     * returned.
+     * 
+     * @return import status with highest order.
+     */
+    public ImportStatus getHighestOrderImportStatus()
+    {
+        return importSummaries.stream()
+            .map( ImportSummary::getStatus )
+            .max( ( s1, s2 ) -> s1.getOrder() - s2.getOrder() )
+            .orElse( ImportStatus.SUCCESS );
+    }
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ImportStatus getStatus()
     {
         return status;
     }
-    
+
     public void setStatus( ImportStatus status )
     {
         this.status = status;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "importSummaryList", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "importSummary", namespace = DxfNamespaces.DXF_2_0 )
-    public List<ImportSummary> getImportSummaries()
-    {
-        return importSummaries;
-    }
-
-    public void setImportSummaries( List<ImportSummary> importSummaries )
-    {
-        this.importSummaries = importSummaries;
     }
 
     @JsonProperty
@@ -156,6 +172,28 @@ public class ImportSummaries extends AbstractWebMessageResponse
         this.importOptions = importOptions;
     }
 
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "importSummaryList", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "importSummary", namespace = DxfNamespaces.DXF_2_0 )
+    public List<ImportSummary> getImportSummaries()
+    {
+        return importSummaries;
+    }
+
+    public void setImportSummaries( List<ImportSummary> importSummaries )
+    {
+        this.importSummaries = importSummaries;
+    }
+
+    public String toMinimalString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "imported", imported )
+            .add( "updated", updated )
+            .add( "deleted", deleted )
+            .add( "ignored", ignored ).toString();
+    }
+    
     @Override
     public String toString()
     {

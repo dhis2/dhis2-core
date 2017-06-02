@@ -53,10 +53,8 @@ public class CategoryOptionGroupSetDeletionHandler
 
     @Override
     public void deleteCategoryOptionGroup( CategoryOptionGroup categoryOptionGroup )
-    {
-        CategoryOptionGroupSet groupSet = categoryOptionGroup.getGroupSet();
-        
-        if ( groupSet != null )
+    {        
+        for ( CategoryOptionGroupSet groupSet : categoryOptionGroup.getGroupSets() )
         {
             groupSet.getMembers().remove( categoryOptionGroup );
             idObjectManager.updateNoAcl( groupSet );

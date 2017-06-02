@@ -27,9 +27,7 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.jdbc.batchhandler.ValidationResultBatchHandler;
-import org.hisp.quick.BatchHandler;
-import org.hisp.quick.BatchHandlerFactory;
+import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,24 +45,10 @@ public class DefaultValidationResultService
     @Autowired
     private ValidationResultStore validationResultStore;
 
-    @Autowired
-    private BatchHandlerFactory batchHandlerFactory;
-
     @Override
     public void saveValidationResults( Collection<ValidationResult> validationResults )
     {
-        BatchHandler<ValidationResult> validationResultBatchHandler = batchHandlerFactory
-            .createBatchHandler( ValidationResultBatchHandler.class ).init();
-
-        validationResults.forEach( validationResult ->
-        {
-            if ( !validationResultBatchHandler.objectExists( validationResult ) )
-            {
-                validationResultBatchHandler.addObject( validationResult );
-            }
-        } );
-
-        validationResultBatchHandler.flush();
+        validationResults.forEach( validationResult -> validationResultStore.save( validationResult ) );
     }
 
     public List<ValidationResult> getAllValidationResults()
@@ -88,5 +72,23 @@ public class DefaultValidationResultService
     public void updateValidationResults( Set<ValidationResult> validationResults )
     {
         validationResults.forEach( vr -> validationResultStore.update( vr ) );
+    }
+
+    @Override
+    public ValidationResult getById( int id )
+    {
+        return validationResultStore.getById( id );
+    }
+
+    @Override
+    public List<ValidationResult> getValidationResults( ValidationResultQuery query )
+    {
+        return validationResultStore.query( query );
+    }
+
+    @Override
+    public int countValidationResults( ValidationResultQuery query )
+    {
+        return validationResultStore.count( query );
     }
 }

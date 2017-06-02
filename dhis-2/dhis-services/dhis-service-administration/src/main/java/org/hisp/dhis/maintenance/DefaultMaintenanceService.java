@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.commons.util.PageRange;
+import org.hisp.dhis.dataapproval.DataApprovalAuditService;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
@@ -91,9 +92,12 @@ public class DefaultMaintenanceService
     
     @Autowired
     private CompleteDataSetRegistrationService completeRegistrationService;
-    
+
     @Autowired
     private DataApprovalService dataApprovalService;
+
+    @Autowired
+    private DataApprovalAuditService dataApprovalAuditService;
 
     // -------------------------------------------------------------------------
     // MaintenanceService implementation
@@ -130,6 +134,26 @@ public class DefaultMaintenanceService
     }
 
     @Override
+    public int deleteSoftDeletedProgramInstances()
+    {
+        int result = maintenanceStore.deleteSoftDeletedProgramInstances();
+
+        log.info( "Permanently deleted soft deleted enrollments: " + result );
+
+        return result;
+    }
+
+    @Override
+    public int deleteSoftDeletedTrackedEntityInstances()
+    {
+        int result = maintenanceStore.deleteSoftDeletedTrackedEntityInstances();
+
+        log.info( "Permanently deleted soft deleted tracked entity instances: " + result );
+
+        return result;
+    }
+
+    @Override
     public void prunePeriods()
     {
         for ( Period period : periodService.getAllPeriods() )
@@ -159,8 +183,9 @@ public class DefaultMaintenanceService
         {
             return false;
         }
-        
+
         dataApprovalService.deleteDataApprovals( organisationUnit );
+        dataApprovalAuditService.deleteDataApprovalAudits( organisationUnit );
         completeRegistrationService.deleteCompleteDataSetRegistrations( organisationUnit );
         dataValueAuditService.deleteDataValueAudits( organisationUnit );
         dataValueService.deleteDataValues( organisationUnit );

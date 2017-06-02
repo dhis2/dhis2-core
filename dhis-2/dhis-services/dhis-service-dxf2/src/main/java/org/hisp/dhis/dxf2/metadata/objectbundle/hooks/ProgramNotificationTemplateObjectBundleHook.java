@@ -28,11 +28,17 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+
+import java.util.Set;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -40,6 +46,17 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 public class ProgramNotificationTemplateObjectBundleHook
     extends AbstractObjectBundleHook
 {
+    private ImmutableMap<ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>>
+            RECIPIENT_RESOLVER = new ImmutableMap.Builder<ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>>()
+            .put( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE, template -> template.getRecipientProgramAttribute().getValueType() )
+            .build();
+
+    private static  final  ImmutableMap<ValueType,Set<DeliveryChannel>>
+            CHANNEL_MAPPER = new ImmutableMap.Builder<ValueType, Set<DeliveryChannel>>()
+            .put( ValueType.PHONE_NUMBER, Sets.newHashSet( DeliveryChannel.SMS ) )
+            .put( ValueType.EMAIL, Sets.newHashSet( DeliveryChannel.EMAIL ) )
+            .build();
+
     @Override
     public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
     {
@@ -58,6 +75,24 @@ public class ProgramNotificationTemplateObjectBundleHook
         preProcess( template );
     }
 
+    @Override
+    public <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle )
+    {
+        if ( !ProgramNotificationTemplate.class.isInstance( persistedObject ) ) return;
+        ProgramNotificationTemplate template = (ProgramNotificationTemplate) persistedObject;
+
+        postProcess( template );
+    }
+
+    @Override
+    public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
+    {
+        if ( !ProgramNotificationTemplate.class.isInstance( persistedObject ) ) return;
+        ProgramNotificationTemplate template = (ProgramNotificationTemplate) persistedObject;
+
+        postProcess( template );
+    }
+
     /**
      * Removes any non-valid combinations of properties on the template object.
      */
@@ -73,9 +108,36 @@ public class ProgramNotificationTemplateObjectBundleHook
             template.setRecipientUserGroup( null );
         }
 
+        if ( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE != template.getNotificationRecipient() )
+        {
+            template.setRecipientProgramAttribute( null );
+        }
+
         if ( ! ( template.getNotificationRecipient().isExternalRecipient() ) )
         {
             template.setDeliveryChannels( Sets.newHashSet() );
         }
+    }
+
+    private void postProcess( ProgramNotificationTemplate template )
+    {
+        if ( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE == template.getNotificationRecipient() )
+        {
+            resolveTemplateRecipients( template, ProgramNotificationRecipient.PROGRAM_ATTRIBUTE );
+        }
+    }
+
+    private void resolveTemplateRecipients( ProgramNotificationTemplate pnt, ProgramNotificationRecipient pnr )
+    {
+        Function<ProgramNotificationTemplate,ValueType> resolver = RECIPIENT_RESOLVER.get( pnr );
+
+        ValueType valueType = null;
+
+        if ( resolver != null && pnt.getRecipientProgramAttribute() != null )
+        {
+            valueType = resolver.apply( pnt );
+        }
+
+        pnt.setDeliveryChannels( CHANNEL_MAPPER.getOrDefault( valueType, Sets.newHashSet() ) );
     }
 }

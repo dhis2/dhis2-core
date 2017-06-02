@@ -38,6 +38,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Class which encapsulates a query parameter and value. Operator and filter
@@ -112,6 +115,26 @@ public class QueryItem
 
         return itemName;
     }
+    
+    public boolean addFilter( QueryFilter filter )
+    {
+        return filters.add( filter );
+    }
+    
+    /**
+     * Returns a string representation of the query filters. Returns null if item
+     * has no query items.
+     */
+    public String getFiltersAsString()
+    {
+        if ( filters.isEmpty() )
+        {
+            return null;
+        }
+        
+        List<String> filterStrings = filters.stream().map( QueryFilter::getFilterAsString ).collect( Collectors.toList() );
+        return StringUtils.join( filterStrings, ", " );
+    }
 
     public String getTypeAsString()
     {
@@ -161,6 +184,23 @@ public class QueryItem
     public boolean isProgramIndicator()
     {
         return DimensionItemType.PROGRAM_INDICATOR.equals( item.getDimensionItemType() );
+    }
+    
+    /**
+     * Returns filter items for all filters associated with this
+     * query item. If no filter items are specified, return all
+     * items part of the legend set. If not legend set is specified,
+     * returns null.
+     */
+    public List<String> getLegendSetFilterItemsOrAll()
+    {
+        if ( !hasLegendSet() )
+        {
+            return null;
+        }
+        
+        return hasFilter() ? getQueryFilterItems() : 
+            IdentifiableObjectUtils.getUids( legendSet.getSortedLegends() );
     }
     
     /**

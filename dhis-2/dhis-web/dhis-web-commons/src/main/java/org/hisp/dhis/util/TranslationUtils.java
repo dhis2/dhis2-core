@@ -28,6 +28,7 @@ package org.hisp.dhis.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.dataelement.DataElement;
@@ -65,7 +66,7 @@ public class TranslationUtils
             return Arrays.asList( DataElement.I18N_PROPERTIES );
         }
 
-        return (object instanceof NameableObject) ? Arrays.asList( NameableObject.I18N_PROPERTIES ) :
+        return ( object instanceof NameableObject ) ? Arrays.asList( NameableObject.I18N_PROPERTIES ) :
             Arrays.asList( IdentifiableObject.I18N_PROPERTIES );
     }
 
@@ -91,7 +92,7 @@ public class TranslationUtils
     public static Map<String, String> convertTranslations( Set<ObjectTranslation> translations, Locale locale )
     {
 
-        if ( translations == null || locale == null )
+        if ( !ObjectUtils.allNonNull( translations, locale ) )
         {
             return null;
         }
@@ -100,9 +101,9 @@ public class TranslationUtils
 
         for ( ObjectTranslation translation : translations )
         {
-            if ( translation.getValue() != null && translation.getLocale().equals( locale.toString() ) )
+            if ( StringUtils.isNotEmpty( translation.getValue() ) && translation.getLocale().equalsIgnoreCase( locale.toString() ) )
             {
-                translationMap.put( translation.getProperty().name().replace( "_","" ).toLowerCase(), translation.getValue() );
+                translationMap.put( translation.getProperty().getName(), translation.getValue() );
             }
         }
 

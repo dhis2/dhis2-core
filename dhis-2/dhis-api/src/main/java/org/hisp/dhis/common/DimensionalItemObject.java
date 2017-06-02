@@ -64,7 +64,7 @@ public interface DimensionalItemObject
 
     /**
      * Gets the first legend set in the legend set list. This
-     * field is derived from <pre>getLegendSets()</pre> and
+     * field is derived from {@link DimensionalObject#getLegendSet()} and
      * is not persisted.
      * 
      * Will be removed from serialization in 2.28.

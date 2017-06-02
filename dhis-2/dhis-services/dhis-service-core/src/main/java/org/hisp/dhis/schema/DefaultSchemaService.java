@@ -149,6 +149,8 @@ public class DefaultSchemaService
         add( new ReportingRateSchemaDescriptor() ).
         add( new UserAccessSchemaDescriptor() ).
         add( new UserGroupAccessSchemaDescriptor() ).
+        add( new MinMaxDataElementSchemaDescriptor() ).
+        add( new ValidationResultSchemaDescriptor() ).
         build();
 
     private Map<Class<?>, Schema> classSchemaMap = new HashMap<>();
@@ -240,14 +242,12 @@ public class DefaultSchemaService
             return schema;
         }
 
-        I18n i18n = i18nManager.getI18n();
-
         klass = propertyIntrospectorService.getConcreteClass( ReflectionUtils.getRealClass( klass ) );
 
         String name = getName( klass );
 
         schema = new Schema( klass, name, name + "s" );
-        schema.setDisplayName( i18n.getString( "schema_class_" + schema.getKlass().getName() ) );
+        schema.setDisplayName( beautify( schema ));
         schema.setPropertyMap( new HashMap<>( propertyIntrospectorService.getPropertiesMap( schema.getKlass() ) ) );
 
         updateSelf( schema );
@@ -330,5 +330,11 @@ public class DefaultSchemaService
 
             schema.getPropertyMap().remove( "__self__" );
         }
+    }
+
+    private String beautify( Schema schema )
+    {
+        String[] camelCaseWords = org.apache.commons.lang3.StringUtils.capitalize( schema.getPlural() ).split( "(?=[A-Z])" );
+        return org.apache.commons.lang3.StringUtils.join( camelCaseWords, " " ).trim();
     }
 }

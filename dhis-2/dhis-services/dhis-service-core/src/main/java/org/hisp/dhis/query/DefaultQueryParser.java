@@ -32,7 +32,6 @@ import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
 import java.util.List;
@@ -44,7 +43,6 @@ public class DefaultQueryParser implements QueryParser
 {
     private final SchemaService schemaService;
 
-    @Autowired
     public DefaultQueryParser( SchemaService schemaService )
     {
         this.schemaService = schemaService;
@@ -87,7 +85,8 @@ public class DefaultQueryParser implements QueryParser
         return query;
     }
 
-    private Restriction getRestriction( Schema schema, String path, String operator, Object arg ) throws QueryParserException
+    @Override
+    public Restriction getRestriction( Schema schema, String path, String operator, Object arg ) throws QueryParserException
     {
         Property property = getProperty( schema, path );
 
@@ -190,11 +189,25 @@ public class DefaultQueryParser implements QueryParser
             }
             case "in":
             {
-                return Restrictions.in( path, QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg ) );
+                Collection<?> values = QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg );
+
+                if ( values == null || values.isEmpty() )
+                {
+                    throw new QueryParserException( "Invalid argument `" + arg + "` for in operator." );
+                }
+
+                return Restrictions.in( path, values );
             }
             case "!in":
             {
-                return Restrictions.notIn( path, QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg ) );
+                Collection<?> values = QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg );
+
+                if ( values == null || values.isEmpty() )
+                {
+                    throw new QueryParserException( "Invalid argument `" + arg + "` for in operator." );
+                }
+
+                return Restrictions.notIn( path, values );
             }
             case "null":
             {
@@ -211,7 +224,8 @@ public class DefaultQueryParser implements QueryParser
         }
     }
 
-    private Property getProperty( Schema schema, String path ) throws QueryParserException
+    @Override
+    public Property getProperty( Schema schema, String path ) throws QueryParserException
     {
         String[] paths = path.split( "\\." );
         Schema currentSchema = schema;

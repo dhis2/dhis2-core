@@ -224,7 +224,7 @@ public abstract class AbstractEnrollmentService
         enrollment.setCreated( DateUtils.getIso8601NoTz( programInstance.getCreated() ) );
         enrollment.setCreatedAtClient( DateUtils.getIso8601NoTz( programInstance.getCreatedAtClient() ) );
         enrollment.setLastUpdated( DateUtils.getIso8601NoTz( programInstance.getLastUpdated() ) );
-        enrollment.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programInstance.getLastUpdatedAtAtClient() ) );
+        enrollment.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programInstance.getLastUpdatedAtClient() ) );
         enrollment.setProgram( programInstance.getProgram().getUid() );
         enrollment.setStatus( EnrollmentStatus.fromProgramStatus( programInstance.getStatus() ) );
         enrollment.setEnrollmentDate( programInstance.getEnrollmentDate() );
@@ -299,7 +299,7 @@ public abstract class AbstractEnrollmentService
             importOptions = new ImportOptions();
         }
 
-        ImportSummary importSummary = new ImportSummary();
+        ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
 
         org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance = getTrackedEntityInstance( enrollment.getTrackedEntityInstance() );
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( entityInstance );
@@ -399,6 +399,7 @@ public abstract class AbstractEnrollmentService
         programInstance.setFollowup( enrollment.getFollowup() );
 
         programInstanceService.updateProgramInstance( programInstance );
+        manager.update( programInstance.getEntityInstance() );
 
         saveTrackedEntityComment( programInstance, enrollment );
 
@@ -449,12 +450,12 @@ public abstract class AbstractEnrollmentService
             importOptions = new ImportOptions();
         }
 
-        ImportSummary importSummary = new ImportSummary();
-
         if ( enrollment == null || enrollment.getEnrollment() == null )
         {
             return new ImportSummary( ImportStatus.ERROR, "No enrollment or enrollment ID was supplied" ).incrementIgnored();
         }
+
+        ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
 
         ProgramInstance programInstance = programInstanceService.getProgramInstance( enrollment.getEnrollment() );
 
@@ -481,8 +482,17 @@ public abstract class AbstractEnrollmentService
 
         programInstance.setProgram( program );
         programInstance.setEntityInstance( entityInstance );
-        programInstance.setIncidentDate( enrollment.getIncidentDate() );
-        programInstance.setEnrollmentDate( enrollment.getEnrollmentDate() );
+
+        if ( enrollment.getIncidentDate() != null )
+        {
+            programInstance.setIncidentDate( enrollment.getIncidentDate() );
+        }
+
+        if ( enrollment.getEnrollmentDate() != null )
+        {
+            programInstance.setEnrollmentDate( enrollment.getEnrollmentDate() );
+        }
+
         programInstance.setFollowup( enrollment.getFollowup() );
 
         if ( program.getDisplayIncidentDate() && programInstance.getIncidentDate() == null )
@@ -496,7 +506,7 @@ public abstract class AbstractEnrollmentService
 
         if ( program.getCaptureCoordinates() )
         {
-            if ( enrollment.getCoordinate().isValid() )
+            if ( enrollment.getCoordinate() != null && enrollment.getCoordinate().isValid() )
             {
                 programInstance.setLatitude( enrollment.getCoordinate().getLatitude() );
                 programInstance.setLongitude( enrollment.getCoordinate().getLongitude() );
@@ -528,6 +538,7 @@ public abstract class AbstractEnrollmentService
         updateDateFields( enrollment, programInstance );
 
         programInstanceService.updateProgramInstance( programInstance );
+        manager.update( programInstance.getEntityInstance() );
 
         saveTrackedEntityComment( programInstance, enrollment );
 
@@ -543,12 +554,12 @@ public abstract class AbstractEnrollmentService
     @Override
     public ImportSummary updateEnrollmentForNote( Enrollment enrollment )
     {
-        ImportSummary importSummary = new ImportSummary();
-
         if ( enrollment == null || enrollment.getEnrollment() == null )
         {
             return new ImportSummary( ImportStatus.ERROR, "No enrollment or enrollment ID was supplied" ).incrementIgnored();
         }
+
+        ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
 
         ProgramInstance programInstance = programInstanceService.getProgramInstance( enrollment.getEnrollment() );
 
@@ -577,6 +588,7 @@ public abstract class AbstractEnrollmentService
         if ( programInstance != null )
         {
             programInstanceService.deleteProgramInstance( programInstance );
+            manager.update( programInstance.getEntityInstance() );
             return new ImportSummary( ImportStatus.SUCCESS, "Deletion of enrollment " + uid + " was successful." ).incrementDeleted();
         }
 
@@ -609,6 +621,7 @@ public abstract class AbstractEnrollmentService
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
         programInstanceService.cancelProgramInstanceStatus( programInstance );
+        manager.update( programInstance.getEntityInstance() );
     }
 
     @Override
@@ -616,6 +629,7 @@ public abstract class AbstractEnrollmentService
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
         programInstanceService.completeProgramInstanceStatus( programInstance );
+        manager.update( programInstance.getEntityInstance() );
     }
 
     @Override
@@ -623,6 +637,7 @@ public abstract class AbstractEnrollmentService
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
         programInstanceService.incompleteProgramInstanceStatus( programInstance );
+        manager.update( programInstance.getEntityInstance() );
     }
 
     // -------------------------------------------------------------------------
@@ -868,7 +883,7 @@ public abstract class AbstractEnrollmentService
 
         if ( lastUpdatedAtClient != null )
         {
-            programInstance.setLastUpdatedAtAtClient( DateUtils.parseDate( lastUpdatedAtClient ) );
+            programInstance.setLastUpdatedAtClient( DateUtils.parseDate( lastUpdatedAtClient ) );
         }
     }
 }

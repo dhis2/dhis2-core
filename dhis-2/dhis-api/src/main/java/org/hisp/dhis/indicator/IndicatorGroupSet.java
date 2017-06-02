@@ -35,8 +35,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
@@ -212,34 +210,5 @@ public class IndicatorGroupSet
     public void setMembers( List<IndicatorGroup> members )
     {
         this.members = members;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            IndicatorGroupSet indicatorGroupSet = (IndicatorGroupSet) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                compulsory = indicatorGroupSet.isCompulsory();
-                description = indicatorGroupSet.getDescription();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                compulsory = indicatorGroupSet.isCompulsory() == null ? compulsory : indicatorGroupSet.isCompulsory();
-                description = indicatorGroupSet.getDescription() == null ? description : indicatorGroupSet.getDescription();
-            }
-
-            removeAllIndicatorGroups();
-
-            for ( IndicatorGroup indicatorGroup : indicatorGroupSet.getMembers() )
-            {
-                addIndicatorGroup( indicatorGroup );
-            }
-        }
     }
 }

@@ -25,6 +25,8 @@
   #if ( $currentUserIsSuper )
   <dt>$i18n.getString( "external_configuration_directory" ):</dt><dd>$!info.externalDirectory</dd>
   <dt>$i18n.getString( "file_store_provider" ):</dt><dd>$!info.fileStoreProvider</dd>
+  <dt>$i18n.getString( "node_id" ):</dt><dd>$!info.nodeId</dd>
+  <dt>$i18n.getString( "cache_provider" ):</dt><dd>$!info.cacheProvider</dd>
   <dt>$i18n.getString( "database_type" ):</dt><dd>$!info.databaseInfo.type</dd>
   <dt>$i18n.getString( "database_name" ):</dt><dd>$!info.databaseInfo.name</dd>
   <dt>$i18n.getString( "database_user" ):</dt><dd>$!info.databaseInfo.user</dd>

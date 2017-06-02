@@ -28,13 +28,13 @@ package org.hisp.dhis.trackedentity.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.quick.StatementHolder;
-import org.hisp.quick.StatementManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.quick.StatementHolder;
+import org.hisp.quick.StatementManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
@@ -114,7 +114,7 @@ public class TableAlteror
 
         executeSql( "update programstage set executiondatelabel = excecutiondatelabel where executiondatelabel is null" );
         executeSql( "alter table programstage drop column excecutiondatelabel" );
-        
+
         executeSql( "UPDATE program SET generatedByEnrollmentDate=false WHERE generatedByEnrollmentDate is null" );
 
         executeSql( "ALTER TABLE programstage DROP COLUMN stageinprogram" );
@@ -256,7 +256,7 @@ public class TableAlteror
         executeSql( "update program_attributes set mandatory = false where mandatory is null" );
 
         executeSql( "update trackedentityattribute set confidential = false where confidential is null;" );
-        
+
         executeSql( "update trackedentityattribute set aggregationtype = 'NONE' where aggregationtype is null" );
         executeSql( "alter table trackedentityattribute alter column aggregationtype set not null" );
 
@@ -299,6 +299,15 @@ public class TableAlteror
 
         // TODO fix
         // executeSql( "DROP TABLE programstage_programindicators" );
+
+        executeSql( "update trackedentityinstance set createdatclient=created where createdatclient is null" );
+        executeSql( "update trackedentityinstance set lastUpdatedAtAtClient=lastupdated where createdatclient is null" );
+
+        executeSql( "update programinstance set createdatclient=created where createdatclient is null" );
+        executeSql( "update programinstance set lastUpdatedAtAtClient=lastupdated where createdatclient is null" );
+
+        executeSql( "update programstageinstance set createdatclient=created where createdatclient is null" );
+        executeSql( "update programstageinstance set lastUpdatedAtAtClient=lastupdated where createdatclient is null" );
     }
 
     // -------------------------------------------------------------------------
@@ -309,17 +318,17 @@ public class TableAlteror
     {
         String sql =
             "insert into programstagesection_dataelements (programstagesectionid, sort_order, dataelementid) " +
-            "select programstagesectionid, section_sort_order, dataelementid " +
-            "from programstagedataelement " +
-            "where programstagesectionid is not null " +
-            "and section_sort_order is not null;" +
-            
-            "alter table programstagedataelement drop column programstagesectionid;" +
-            "alter table programstagedataelement drop column section_sort_order;";
-        
+                "select programstagesectionid, section_sort_order, dataelementid " +
+                "from programstagedataelement " +
+                "where programstagesectionid is not null " +
+                "and section_sort_order is not null;" +
+
+                "alter table programstagedataelement drop column programstagesectionid;" +
+                "alter table programstagedataelement drop column section_sort_order;";
+
         executeSql( sql );
     }
-    
+
     private void updateProgramInstanceStatus()
     {
         // Set active status for events

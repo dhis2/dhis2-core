@@ -27,7 +27,7 @@
       <cache usage="read-write" />
       <key column="dataelementgroupsetid" foreign-key="fk_dataelementgroupsetmembers_dataelementgroupsetid" />
       <list-index column="sort_order" base="1" />
-      <many-to-many class="org.hisp.dhis.dataelement.DataElementGroup" column="dataelementgroupid" unique="true"
+      <many-to-many class="org.hisp.dhis.dataelement.DataElementGroup" column="dataelementgroupid"
         foreign-key="fk_dataelementgroupset_dataelementgroupid" />
     </list>
 

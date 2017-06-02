@@ -55,6 +55,16 @@ public class Access
     {
     }
 
+    public Access( boolean value )
+    {
+        this.manage = value;
+        this.externalize = value;
+        this.write = value;
+        this.read = value;
+        this.update = value;
+        this.delete = value;
+    }
+
     @JsonProperty
     @JacksonXmlProperty( localName = "manage", namespace = DxfNamespaces.DXF_2_0 )
     public boolean isManage()

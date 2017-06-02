@@ -66,7 +66,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -197,8 +196,9 @@ public class SharingController
             sharing.getObject().getUserAccesses().add( sharingUserAccess );
         }
 
-        Collections.sort( sharing.getObject().getUserGroupAccesses(), SharingUserGroupAccessNameComparator.INSTANCE );
+        sharing.getObject().getUserGroupAccesses().sort( SharingUserGroupAccessNameComparator.INSTANCE );
 
+        response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
         renderService.toJson( response.getOutputStream(), sharing );
     }
 
@@ -345,6 +345,7 @@ public class SharingController
         output.put( "userGroups", userGroupAccesses );
         output.put( "users", userAccesses );
 
+        response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
         renderService.toJson( response.getOutputStream(), output );
     }
 

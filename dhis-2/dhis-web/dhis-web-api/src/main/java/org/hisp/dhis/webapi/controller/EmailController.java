@@ -59,6 +59,10 @@ public class EmailController
 {
     public static final String RESOURCE_PATH = "/email";
 
+    private static final String SMTP_ERROR = "SMTP server not configured";
+
+    private static final String EMAIL_DISABLED = "Email message notifications disabled";
+
     //--------------------------------------------------------------------------
     // Dependencies
     //--------------------------------------------------------------------------
@@ -78,14 +82,10 @@ public class EmailController
     @RequestMapping( value = "/test", method = RequestMethod.POST )
     public void sendTestEmail( HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
     {
-        String userEmail = currentUserService.getCurrentUser().getEmail();
-        boolean smtpConfigured = emailService.emailEnabled();
-        boolean userEmailConfigured = userEmail != null && !userEmail.isEmpty();
+        checkEmailSettings();
 
-        if ( !smtpConfigured )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Could not send test email, SMTP server not configured" ) );
-        }
+        String userEmail = currentUserService.getCurrentUser().getEmail();
+        boolean userEmailConfigured = userEmail != null && !userEmail.isEmpty();
 
         if ( !userEmailConfigured )
         {
@@ -100,13 +100,9 @@ public class EmailController
     @RequestMapping( value = "/notification", method = RequestMethod.POST )
     public void sendSystemNotificationEmail( @RequestBody Email email, HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
     {
-        boolean smtpConfigured = emailService.emailEnabled();
-        boolean systemNotificationEmailValid = systemSettingManager.systemNotificationEmailValid();
+        checkEmailSettings();
 
-        if ( !smtpConfigured )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Could not send email, SMTP server not configured" ) );
-        }
+        boolean systemNotificationEmailValid = systemSettingManager.systemNotificationEmailValid();
 
         if ( !systemNotificationEmailValid )
         {
@@ -124,20 +120,27 @@ public class EmailController
                                        @RequestParam ( defaultValue = "DHIS 2" ) String subject,
                                        HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
     {
-        boolean smtpConfigured = emailService.emailEnabled();
-
-        if ( !smtpConfigured )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Could not send email, SMTP server not configured" ) );
-        }
-
-        if ( !emailService.emailConfigured() )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "SMTP server not configured" ) );
-        }
+        checkEmailSettings();
 
         emailService.sendEmail( subject, message, recipients );
 
         webMessageService.send( WebMessageUtils.ok( "Email sent" ), response, request );
+    }
+
+    // ---------------------------------------------------------------------
+    // Supportive methods
+    // ---------------------------------------------------------------------
+    
+    private void checkEmailSettings() throws WebMessageException
+    {
+        if ( !emailService.emailEnabled() )
+        {
+            throw new WebMessageException( WebMessageUtils.error( EMAIL_DISABLED ) );
+        }
+
+        if ( !emailService.emailConfigured() )
+        {
+            throw new WebMessageException( WebMessageUtils.error( SMTP_ERROR ) );
+        }
     }
 }

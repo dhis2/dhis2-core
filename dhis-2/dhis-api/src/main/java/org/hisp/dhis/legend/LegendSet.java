@@ -34,8 +34,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.legend.comparator.LegendValueComparator;
 
@@ -120,28 +118,5 @@ public class LegendSet
     public void setLegends( Set<Legend> legends )
     {
         this.legends = legends;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            LegendSet legendSet = (LegendSet) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                symbolizer = legendSet.getSymbolizer();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                symbolizer = legendSet.getSymbolizer() == null ? symbolizer : legendSet.getSymbolizer();
-            }
-
-            removeAllLegends();
-            legends.addAll( legendSet.getLegends() );
-        }
     }
 }

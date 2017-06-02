@@ -127,8 +127,6 @@ public class JCloudsFileResourceContentStore
             configurationProvider.getProperty( ConfigurationKey.FILESTORE_CONTAINER )
         );
 
-
-
         Pair<Credentials, Properties> providerConfig = configureForProvider(
             config.provider,
             configurationProvider.getProperty( ConfigurationKey.FILESTORE_IDENTITY ),
@@ -221,7 +219,8 @@ public class JCloudsFileResourceContentStore
         return isEmptyOrFailed ? null : byteSource;
     }
 
-    @Override public String saveFileResourceContent( FileResource fileResource, byte[] bytes )
+    @Override 
+    public String saveFileResourceContent( FileResource fileResource, byte[] bytes )
     {
         Blob blob = createBlob( fileResource, bytes );
 
@@ -231,6 +230,8 @@ public class JCloudsFileResourceContentStore
         }
 
         putBlob( blob );
+
+        log.debug( String.format( "File resource saved with key: %s", fileResource.getStorageKey() ) );
 
         return fileResource.getStorageKey();
     }
@@ -255,6 +256,8 @@ public class JCloudsFileResourceContentStore
         {
             log.warn( String.format( "Temporary file '%s' could not be deleted.", file.toPath() ), ioe );
         }
+
+        log.debug( String.format( "File resource saved with key: %s", fileResource.getStorageKey() ) );
 
         return fileResource.getStorageKey();
     }

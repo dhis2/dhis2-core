@@ -38,17 +38,16 @@ import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Controller
+@RestController
 @RequestMapping( value = "/deletedObjects" )
 public class DeletedObjectController
 {
@@ -65,7 +64,7 @@ public class DeletedObjectController
     }
 
     @GetMapping
-    public @ResponseBody RootNode getDeletedObjects( DeletedObjectQuery query )
+    public RootNode getDeletedObjects( DeletedObjectQuery query )
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 

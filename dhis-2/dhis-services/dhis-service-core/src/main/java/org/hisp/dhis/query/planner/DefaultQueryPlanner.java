@@ -37,7 +37,6 @@ import org.hisp.dhis.query.Restriction;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,8 +48,12 @@ import java.util.List;
  */
 public class DefaultQueryPlanner implements QueryPlanner
 {
-    @Autowired
-    private SchemaService schemaService;
+    private final SchemaService schemaService;
+
+    public DefaultQueryPlanner( SchemaService schemaService )
+    {
+        this.schemaService = schemaService;
+    }
 
     @Override
     public QueryPlan planQuery( Query query )
@@ -62,7 +65,8 @@ public class DefaultQueryPlanner implements QueryPlanner
     public QueryPlan planQuery( Query query, boolean persistedOnly )
     {
         Query npQuery = Query.from( query ).setPlannedQuery( true );
-        Query pQuery = getQuery( npQuery, persistedOnly ).setPlannedQuery( true );
+        Query pQuery = getQuery( npQuery, persistedOnly )
+            .setUser( query.getUser() ).setPlannedQuery( true );
 
         // if there are any non persisted criterions left, we leave the paging to the in-memory engine
         if ( !npQuery.getCriterions().isEmpty() )
@@ -76,6 +80,59 @@ public class DefaultQueryPlanner implements QueryPlanner
         }
 
         return new QueryPlan( pQuery, npQuery );
+    }
+
+    @Override
+    public QueryPath getQueryPath( Schema schema, String path )
+    {
+        Schema curSchema = schema;
+        Property curProperty = null;
+        boolean persisted = true;
+        List<String> alias = new ArrayList<>();
+        String[] pathComponents = path.split( "\\." );
+
+        if ( pathComponents.length == 0 )
+        {
+            return null;
+        }
+
+        for ( int idx = 0; idx < pathComponents.length; idx++ )
+        {
+            String name = pathComponents[idx];
+            curProperty = curSchema.getProperty( name );
+
+            if ( curProperty == null )
+            {
+                throw new RuntimeException( "Invalid path property: " + name );
+            }
+
+            if ( !curProperty.isPersisted() )
+            {
+                persisted = false;
+            }
+
+            if ( (!curProperty.isSimple() && idx == pathComponents.length - 1) )
+            {
+                return new QueryPath( curProperty, persisted, alias.toArray( new String[]{} ) );
+            }
+
+            if ( curProperty.isCollection() )
+            {
+                curSchema = schemaService.getDynamicSchema( curProperty.getItemKlass() );
+                alias.add( curProperty.getFieldName() );
+            }
+            else if ( !curProperty.isSimple() )
+            {
+                curSchema = schemaService.getDynamicSchema( curProperty.getKlass() );
+                alias.add( curProperty.getFieldName() );
+            }
+            else
+            {
+                return new QueryPath( curProperty, persisted, alias.toArray( new String[]{} ) );
+            }
+        }
+
+        return new QueryPath( curProperty, persisted, alias.toArray( new String[]{} ) );
     }
 
     /**
@@ -174,57 +231,5 @@ public class DefaultQueryPlanner implements QueryPlanner
         }
 
         return criteriaJunction;
-    }
-
-    private QueryPath getQueryPath( Schema schema, String path )
-    {
-        Schema curSchema = schema;
-        Property curProperty = null;
-        boolean persisted = true;
-        List<String> alias = new ArrayList<>();
-        String[] pathComponents = path.split( "\\." );
-
-        if ( pathComponents.length == 0 )
-        {
-            return null;
-        }
-
-        for ( int idx = 0; idx < pathComponents.length; idx++ )
-        {
-            String name = pathComponents[idx];
-            curProperty = curSchema.getProperty( name );
-
-            if ( curProperty == null )
-            {
-                throw new RuntimeException( "Invalid path property: " + name );
-            }
-
-            if ( !curProperty.isPersisted() )
-            {
-                persisted = false;
-            }
-
-            if ( (!curProperty.isSimple() && idx == pathComponents.length - 1) )
-            {
-                return new QueryPath( curProperty, persisted, alias.toArray( new String[]{} ) );
-            }
-
-            if ( curProperty.isCollection() )
-            {
-                curSchema = schemaService.getDynamicSchema( curProperty.getItemKlass() );
-                alias.add( curProperty.getFieldName() );
-            }
-            else if ( !curProperty.isSimple() )
-            {
-                curSchema = schemaService.getDynamicSchema( curProperty.getKlass() );
-                alias.add( curProperty.getFieldName() );
-            }
-            else
-            {
-                return new QueryPath( curProperty, persisted, alias.toArray( new String[]{} ) );
-            }
-        }
-
-        return new QueryPath( curProperty, persisted, alias.toArray( new String[]{} ) );
     }
 }

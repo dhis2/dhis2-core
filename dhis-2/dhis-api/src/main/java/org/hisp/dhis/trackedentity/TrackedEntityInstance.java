@@ -35,8 +35,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -56,7 +54,7 @@ public class TrackedEntityInstance
 
     private Date createdAtClient;
 
-    private Date lastUpdatedAtAtClient;
+    private Date lastUpdatedAtClient;
 
     private Set<TrackedEntityAttributeValue> trackedEntityAttributeValues = new HashSet<>();
 
@@ -69,6 +67,8 @@ public class TrackedEntityInstance
     private TrackedEntity trackedEntity;
 
     private Boolean inactive = false;
+
+    private Boolean deleted = false;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -88,7 +88,7 @@ public class TrackedEntityInstance
             createdAtClient = created;
         }
 
-        lastUpdatedAtAtClient = lastUpdated;
+        lastUpdatedAtClient = lastUpdated;
     }
 
     // -------------------------------------------------------------------------
@@ -125,14 +125,14 @@ public class TrackedEntityInstance
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getLastUpdatedAtAtClient()
+    public Date getLastUpdatedAtClient()
     {
-        return lastUpdatedAtAtClient;
+        return lastUpdatedAtClient;
     }
 
-    public void setLastUpdatedAtAtClient( Date lastUpdatedAtAtClient )
+    public void setLastUpdatedAtClient( Date lastUpdatedAtClient )
     {
-        this.lastUpdatedAtAtClient = lastUpdatedAtAtClient;
+        this.lastUpdatedAtClient = lastUpdatedAtClient;
     }
 
     @JsonProperty
@@ -212,37 +212,15 @@ public class TrackedEntityInstance
         this.inactive = inactive;
     }
 
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
+    @JsonProperty
+    @JacksonXmlProperty( localName = "deleted", namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean isDeleted()
     {
-        super.mergeWith( other, mergeMode );
+        return deleted;
+    }
 
-        if ( other.getClass().isInstance( this ) )
-        {
-            TrackedEntityInstance trackedEntityInstance = (TrackedEntityInstance) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                organisationUnit = trackedEntityInstance.getOrganisationUnit();
-                inactive = trackedEntityInstance.isInactive();
-                trackedEntity = trackedEntityInstance.getTrackedEntity();
-                representative = trackedEntityInstance.getRepresentative();
-                createdAtClient = trackedEntityInstance.getCreatedAtClient();
-                lastUpdatedAtAtClient = trackedEntityInstance.getLastUpdatedAtAtClient();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                organisationUnit = trackedEntityInstance.getOrganisationUnit() == null ? organisationUnit : trackedEntityInstance.getOrganisationUnit();
-                inactive = trackedEntityInstance.isInactive() == null ? inactive : trackedEntityInstance.isInactive();
-                trackedEntity = trackedEntityInstance.getTrackedEntity() == null ? trackedEntity : trackedEntityInstance.getTrackedEntity();
-                representative = trackedEntityInstance.getRepresentative() == null ? representative : trackedEntityInstance.getRepresentative();
-            }
-
-            trackedEntityAttributeValues.clear();
-            trackedEntityAttributeValues.addAll( trackedEntityInstance.getTrackedEntityAttributeValues() );
-
-            programInstances.clear();
-            programInstances.addAll( trackedEntityInstance.getProgramInstances() );
-        }
+    public void setDeleted( Boolean deleted )
+    {
+        this.deleted = deleted;
     }
 }

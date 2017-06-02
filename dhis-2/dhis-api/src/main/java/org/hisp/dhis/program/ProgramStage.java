@@ -36,8 +36,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
@@ -481,95 +479,5 @@ public class ProgramStage
     public void setHideDueDate( Boolean hideDueDate )
     {
         this.hideDueDate = hideDueDate;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            ProgramStage programStage = (ProgramStage) other;
-
-            minDaysFromStart = programStage.getMinDaysFromStart();
-            autoGenerateEvent = programStage.getAutoGenerateEvent();
-            repeatable = programStage.getRepeatable();
-
-            if ( mergeMode.isReplace() )
-            {
-                description = programStage.getDescription();
-                repeatable = programStage.getRepeatable();
-                program = programStage.getProgram();
-                dataEntryForm = programStage.getDataEntryForm();
-                standardInterval = programStage.getStandardInterval();
-                executionDateLabel = programStage.getExecutionDateLabel();
-                dueDateLabel = programStage.getDueDateLabel();
-                validCompleteOnly = programStage.getValidCompleteOnly();
-                displayGenerateEventBox = programStage.getDisplayGenerateEventBox();
-                captureCoordinates = programStage.getCaptureCoordinates();
-                blockEntryForm = programStage.getBlockEntryForm();
-                remindCompleted = programStage.getRemindCompleted();
-                generatedByEnrollmentDate = programStage.getGeneratedByEnrollmentDate();
-                allowGenerateNextVisit = programStage.getAllowGenerateNextVisit();
-                openAfterEnrollment = programStage.getOpenAfterEnrollment();
-                reportDateToUse = programStage.getReportDateToUse();
-                preGenerateUID = programStage.getPreGenerateUID();
-                hideDueDate = programStage.getHideDueDate();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                description = programStage.getDescription() == null ? description : programStage.getDescription();
-                program = programStage.getProgram() == null ? program : programStage.getProgram();
-                dataEntryForm = programStage.getDataEntryForm() == null ? dataEntryForm : programStage
-                    .getDataEntryForm();
-                standardInterval = programStage.getStandardInterval() == null ? standardInterval : programStage
-                    .getStandardInterval();
-                executionDateLabel = programStage.getExecutionDateLabel() == null ? executionDateLabel
-                    : programStage.getExecutionDateLabel();
-                dueDateLabel = programStage.getDueDateLabel() == null ? dueDateLabel
-                    : programStage.getDueDateLabel();
-                validCompleteOnly = programStage.getValidCompleteOnly() == null ? validCompleteOnly : programStage
-                    .getValidCompleteOnly();
-                displayGenerateEventBox = programStage.getDisplayGenerateEventBox() == null ? displayGenerateEventBox
-                    : programStage.getDisplayGenerateEventBox();
-                captureCoordinates = programStage.getCaptureCoordinates() == null ? captureCoordinates : programStage
-                    .getCaptureCoordinates();
-                blockEntryForm = programStage.getBlockEntryForm() == null ? blockEntryForm : programStage
-                    .getBlockEntryForm();
-                remindCompleted = programStage.getRemindCompleted() == null ? remindCompleted : programStage
-                    .getRemindCompleted();
-                generatedByEnrollmentDate = programStage.getGeneratedByEnrollmentDate() == null ? generatedByEnrollmentDate
-                    : programStage.getGeneratedByEnrollmentDate();
-                allowGenerateNextVisit = programStage.getAllowGenerateNextVisit() == null ? allowGenerateNextVisit
-                    : programStage.getAllowGenerateNextVisit();
-                openAfterEnrollment = programStage.getOpenAfterEnrollment() == null ? openAfterEnrollment
-                    : programStage.getOpenAfterEnrollment();
-                reportDateToUse = programStage.getReportDateToUse() == null ? reportDateToUse : programStage
-                    .getReportDateToUse();
-                preGenerateUID = programStage.getPreGenerateUID() == null ? preGenerateUID : programStage
-                    .getPreGenerateUID();
-                hideDueDate = programStage.getHideDueDate() == null ? hideDueDate : programStage.getHideDueDate();
-            }
-
-            programStageDataElements.clear();
-
-            for ( ProgramStageDataElement programStageDataElement : programStage.getProgramStageDataElements() )
-            {
-                programStageDataElements.add( programStageDataElement );
-                programStageDataElement.setProgramStage( this );
-            }
-
-            programStageSections.clear();
-
-            for ( ProgramStageSection programStageSection : programStage.getProgramStageSections() )
-            {
-                programStageSections.add( programStageSection );
-                programStageSection.setProgramStage( this );
-            }
-
-            notificationTemplates.clear();
-            notificationTemplates.addAll( programStage.getNotificationTemplates() );
-        }
     }
 }

@@ -28,25 +28,13 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.analytics.AnalyticsIndex;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
-import org.hisp.dhis.analytics.AnalyticsTableManager;
-import org.hisp.dhis.analytics.AnalyticsTableService;
+import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.commons.util.ConcurrentUtils;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -54,8 +42,12 @@ import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.system.util.Clock;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Future;
 
 /**
  * @author Lars Helge Overland
@@ -107,6 +99,7 @@ public class DefaultAnalyticsTableService
         int orgUnitLevelNo = organisationUnitService.getNumberOfOrganisationalLevels();
         
         String tableName = tableManager.getAnalyticsTableType().getTableName();
+
         Date earliest = PartitionUtils.getEarliestDate( lastYears );
         
         Clock clock = new Clock( log )
@@ -114,7 +107,7 @@ public class DefaultAnalyticsTableService
             .logTime( String.format( "Starting update: %s, processes: %d, org unit levels: %d", tableName, processNo, orgUnitLevelNo ) );
         
         String validState = tableManager.validState();
-        
+
         if ( validState != null )
         {
             notifier.notify( taskId, validState );

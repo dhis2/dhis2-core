@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.dataelement.CategoryDimension" table="categorydimension">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="categorydimensionid">
+      <generator class="native" />
+    </id>
+    
+    <many-to-one name="dimension" class="org.hisp.dhis.dataelement.DataElementCategory" column="categoryid"
+      foreign-key="fk_categorydimension_category" />
+    
+    <list name="items" table="categorydimension_items">
+      <cache usage="read-write" />
+      <key column="categorydimensionid" foreign-key="fk_categorydimension_items_categorydimensionid" />
+      <list-index column="sort_order" />
+      <many-to-many class="org.hisp.dhis.dataelement.DataElementCategoryOption" column="categoryoptionid"
+        foreign-key="fk_categorydimension_items_categoryoptionid" />
+    </list>
+  </class>
+</hibernate-mapping>

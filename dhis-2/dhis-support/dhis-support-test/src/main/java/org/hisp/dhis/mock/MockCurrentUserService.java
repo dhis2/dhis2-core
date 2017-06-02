@@ -72,6 +72,8 @@ public class MockCurrentUserService
         credentials.setAutoFields();
         
         User user = new User();
+        user.setFirstName( "Current" );
+        user.setSurname( "User" );
         user.setOrganisationUnits( organisationUnits );
         user.setDataViewOrganisationUnits( dataViewOrganisationUnits );
         user.setUserCredentials( credentials );

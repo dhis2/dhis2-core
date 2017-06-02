@@ -33,8 +33,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 
 /**
@@ -73,25 +71,5 @@ public class Color
     public void setColor( String color )
     {
         this.color = color;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            Color colorObj = (Color) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                color = colorObj.getColor();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                color = colorObj.getColor() == null ? color : colorObj.getColor();
-            }
-        }
     }
 }

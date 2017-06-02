@@ -32,31 +32,28 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.apache.commons.lang.builder.CompareToBuilder;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
-import java.io.Serializable;
+import java.util.Date;
 
 /**
  * Class representing a validation violation. The validationRule, period and org unit
  * properties make up a composite unique key.
- * 
+ *
  * @author Margrethe Store
  */
 @JacksonXmlRootElement( localName = "validationResult", namespace = DxfNamespaces.DXF_2_0 )
-public class ValidationResult
-    implements Serializable, Comparable<ValidationResult>
+public class ValidationResult implements Comparable<ValidationResult>
 {
 
     private int id;
 
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = -4118317796752962296L;
+    private Date created;
 
     private ValidationRule validationRule;
 
@@ -98,8 +95,8 @@ public class ValidationResult
     {
     }
 
-    public ValidationResult( ValidationRule validationRule, Period period, 
-        OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo, 
+    public ValidationResult( ValidationRule validationRule, Period period,
+        OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo,
         Double leftsideValue, Double rightsideValue, int dayInPeriod )
     {
         this.validationRule = validationRule;
@@ -113,7 +110,7 @@ public class ValidationResult
 
     // -------------------------------------------------------------------------
     // Equals, compareTo, hashCode and toString
-    // -------------------------------------------------------------------------     
+    // -------------------------------------------------------------------------
 
     @Override
     public int hashCode()
@@ -235,107 +232,40 @@ public class ValidationResult
         return true;
     }
 
-    /**
-     * Note: this method is called from threads in which it may not be possible
-     * to initialize lazy Hibernate properties. So object properties to compare
-     * must be chosen accordingly.
-     */
-    @Override
-    public int compareTo( ValidationResult other )
-    {
-        int result = organisationUnit.getName().compareTo( other.organisationUnit.getName() );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = period.getStartDate().compareTo( other.period.getStartDate() );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = period.getEndDate().compareTo( other.period.getEndDate() );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = attributeOptionCombo.getId() - other.attributeOptionCombo.getId();
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = validationImportanceOrder( validationRule.getImportance() ) - validationImportanceOrder( other.validationRule.getImportance() );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = validationRule.getLeftSide().getDescription().compareTo( other.validationRule.getLeftSide().getDescription() );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = validationRule.getOperator().compareTo( other.validationRule.getOperator() );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = validationRule.getRightSide().getDescription().compareTo( other.validationRule.getRightSide().getDescription() );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = (int) Math.signum( Math.round( 100.0 * leftsideValue ) - Math.round( 100.0 * other.leftsideValue ) );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = (int) Math.signum( Math.round( 100.0 * rightsideValue ) - Math.round( 100.0 * other.rightsideValue ) );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        return 0;
-    }
-
-    private int validationImportanceOrder( Importance importance )
-    {
-        return importance == Importance.HIGH ? 0 : importance == Importance.MEDIUM ? 1 : 2;
-    }
-
     @Override
     public String toString()
     {
         return "[Org unit: " + organisationUnit.getUid() +
             ", period: " + period.getUid() +
             ", validation rule: " + validationRule.getUid() +
-            "(" + validationRule.getDisplayName() + ")"+
+            "(" + validationRule.getDisplayName() + ")" +
             ", left side value: " + leftsideValue +
             ", right side value: " + rightsideValue + "]";
+    }
+
+    /**
+     * Comparing validation results is done by priority, then time
+     *
+     * @param identifiableObject
+     * @return
+     */
+    public int compareTo( ValidationResult other )
+    {
+        return new CompareToBuilder()
+            .append( this.validationRule, other.getValidationRule() )
+            .append( this.period, other.getPeriod() )
+            .append( this.attributeOptionCombo, other.getAttributeOptionCombo() )
+            .append( this.organisationUnit, other.getOrganisationUnit() )
+            .append( this.id, other.getId() )
+            .toComparison();
     }
 
     // -------------------------------------------------------------------------
     // Set and get methods
     // -------------------------------------------------------------------------     
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getId()
     {
         return id;
@@ -432,6 +362,8 @@ public class ValidationResult
         this.dayInPeriod = dayInPeriod;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getNotificationSent()
     {
         return notificationSent;
@@ -440,5 +372,17 @@ public class ValidationResult
     public void setNotificationSent( Boolean notificationSent )
     {
         this.notificationSent = notificationSent;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty
+    public Date getCreated()
+    {
+        return created;
+    }
+
+    public void setCreated( Date created )
+    {
+        this.created = created;
     }
 }

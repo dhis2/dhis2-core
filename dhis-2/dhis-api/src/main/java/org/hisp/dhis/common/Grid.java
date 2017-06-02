@@ -96,6 +96,16 @@ public interface Grid
     Grid addMetaData( String key, Object value );
 
     /**
+     * Returns a map of internal meta-data.
+     */
+    Map<String, Object> getInternalMetaData();
+
+    /**
+     * Sets a map of internal meta-data.
+     */
+    Grid setInternalMetaData( Map<String, Object> internalMetaData );
+    
+    /**
      * Returns all visible headers, ie. headers which are not hidden.
      */
     List<GridHeader> getVisibleHeaders();
@@ -108,19 +118,27 @@ public interface Grid
     int getIndexOfHeader( String name );
 
     /**
-     * Adds a header value.
+     * Adds a header.
      *
      * @param header the grid header.
      */
     Grid addHeader( GridHeader header );
-
+    
     /**
      * Adds a header value at the given column index.
      *
-     * @param columnIndex the column index to insert the grid header at.
-     * @param header      the grid header.
+     * @param headerIndex the index to insert the grid header at.
+     * @param header the grid header.
      */
-    Grid addHeader( int columnIndex, GridHeader header );
+    Grid addHeader( int headerIndex, GridHeader header );
+
+    /**
+     * Adds a list of headers.
+     * 
+     * @param headerIndex the index to insert the first grid header at.
+     * @param headers list of headers.
+     */
+    Grid addHeaders( int headerIndex, List<GridHeader> headers );
 
     /**
      * Adds a number of empty values to the Grid.
@@ -128,7 +146,7 @@ public interface Grid
      * @param number the number of columns to add.
      */
     Grid addEmptyHeaders( int number );
-
+    
     /**
      * Returns the current height / number of rows in the grid.
      */
@@ -170,6 +188,14 @@ public interface Grid
      * @param values the values to add.
      */
     Grid addValues( Object[] values );
+
+    /**
+     * Adds the given values to the end of the current row in the specified 
+     * order.
+     *
+     * @param values the values to add.
+     */
+    Grid addValuesVar( Object... values );
 
     /**
      * Adds values in the given array to the end of the current row in the
@@ -253,20 +279,17 @@ public interface Grid
     Grid addColumn( int columnIndex, List<Object> columnValues );
 
     /**
-     * Adds a new column at the end of the grid and populates it with the given
-     * value.
-     *
-     * @param columnValue the value to populate the grid column with.
+     * Adds and populates the given number of columns before the given reference
+     * column index. The given value map is to populate each row, where they key
+     * is matched against the values in the reference column, and the list of values
+     * is used to populate the row values left to right. Where there is no match,
+     * null values are inserted.
+     * 
+     * @param referenceColumnIndex the reference column index.
+     * @param valueMap the map of values to list of values.
+     * @param newColumns the number of new columns to add.
      */
-    Grid addAndPopulateColumn( Object columnValue );
-
-    /**
-     * Adds the given number of columns at the end of the grid and populates
-     * them with the given value.
-     *
-     * @param columnValue the value to populate the grid column with.
-     */
-    Grid addAndPopulateColumns( int columns, Object columnValue );
+    Grid addAndPopulateColumnsBefore( int referenceColumnIndex, Map<Object, List<?>> valueMap, int newColumns );
 
     /**
      * Removes the header and column at the given index.
@@ -274,6 +297,19 @@ public interface Grid
      * @param columnIndex the column index.
      */
     Grid removeColumn( int columnIndex );
+    
+    /**
+     * Removes from the grid columns with corresponding headers which only contain 
+     * null values.
+     */
+    Grid removeEmptyColumns();
+    
+    /**
+     * Indicates whether the column with the given index only contains null values.
+     * 
+     * @param columnIndex the column index.
+     */
+    boolean columnIsEmpty( int columnIndex );
 
     /**
      * Removes the header and the column at the index of the given header if it
@@ -294,6 +330,13 @@ public interface Grid
      * @param key the meta data key.
      */
     boolean hasMetaDataKey( String key );
+
+    /**
+     * Indicates whether the internal meta data exists and contains the given key.
+     *
+     * @param key the internal meta data key.
+     */
+    boolean hasInternalMetaDataKey( String key );
 
     /**
      * Limits the grid from top by the given argument number.

@@ -28,11 +28,15 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.mock.MockCurrentUserService;
@@ -46,8 +50,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 
-import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertFalse;
+import static junit.framework.TestCase.assertTrue;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
@@ -59,6 +63,8 @@ import static org.hisp.dhis.expression.Operator.*;
 public class ValidationServiceTest
     extends DhisTest
 {
+    private static final Log log = LogFactory.getLog( ValidationServiceTest.class );
+
     @Autowired
     private ValidationService validationService;
 
@@ -79,6 +85,9 @@ public class ValidationServiceTest
 
     @Autowired
     private DataValueService dataValueService;
+
+    @Autowired
+    private DataValueStore dataValueStore;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -325,6 +334,14 @@ public class ValidationServiceTest
     // Local convenience methods
     // -------------------------------------------------------------------------
 
+    private ValidationResult createValidationResult( ValidationRule validationRule, Period period, OrganisationUnit orgUnit,
+        DataElementCategoryOptionCombo catCombo, double ls, double rs, int dayInPeriod )
+    {
+        ValidationResult vr = new ValidationResult( validationRule, period, orgUnit, catCombo, ls, rs, dayInPeriod );
+
+        return vr;
+    }
+
     /**
      * Returns a naturally ordered list of ValidationResults.
      * <p>
@@ -337,14 +354,113 @@ public class ValidationServiceTest
      * By making this a List instead of, say a TreeSet, duplicate values (if any
      * should exist by mistake!) are preserved.
      *
-     * @param results collection of ValidationResult to order
-     * @return ValidationResults in their natural order
+     * @param results collection of ValidationResult to order.
+     * @return ValidationResults in their natural order.
      */
     private List<ValidationResult> orderedList( Collection<ValidationResult> results )
     {
         List<ValidationResult> resultList = new ArrayList<>( results );
         Collections.sort( resultList );
         return resultList;
+    }
+
+    /**
+     * Asserts that a collection of ValidationResult is empty.
+     *
+     * @param results collection of ValidationResult to test.
+     */
+    private void assertResultsEmpty( Collection<ValidationResult> results )
+    {
+        assertResultsEquals( new HashSet<ValidationResult>(), results );
+    }
+
+    /**
+     * Asserts that a collection of ValidationResult matches a reference
+     * collection. If it doesn't, log some extra diagnostic information.
+     * <p>
+     * This method was written in response to intermittent test failures.
+     * The extra diagnostic information is an attempt to further investigate
+     * the nature of the failures.
+     * <p>
+     * A partial stack trace is logged (just within this file), so when the
+     * test is working, the check inequality can be commented out and the
+     * tester can generate a reference of expected vales for each call.
+     * <p>
+     * Also tests to be sure that each result expression was evaluated
+     * correctly.
+     *
+     * @param reference the reference collection of ValidationResult.
+     * @param results collection of ValidationResult to test.
+     */
+    private void assertResultsEquals( Collection<ValidationResult> reference, Collection<ValidationResult> results )
+    {
+        List<ValidationResult> referenceList = orderedList( reference );
+        List<ValidationResult> resultsList = orderedList( results );
+
+        if ( !referenceList.equals( resultsList ) )
+        {
+            StringBuilder sb = new StringBuilder();
+
+            StackTraceElement[] e = Thread.currentThread().getStackTrace();
+
+            for ( int i = 1; i < e.length && e[ i ].getFileName().equals( e[ 1 ].getFileName() ); i++ )
+            {
+                sb.append("  at " ).append( e[ i ].getMethodName() )
+                    .append( "(" ).append( e[ i ].getFileName() )
+                    .append( ":" ).append( e[ i ].getLineNumber() ).append( ")\n" );
+            }
+
+            sb.append( formatResultsList( "Expected", referenceList ) )
+                .append( formatResultsList ( "But was", resultsList ) )
+                .append( getAllDataValues() )
+                .append( getAllValidationRules() );
+
+            log.error( sb.toString() );
+        }
+
+        assertTrue( referenceList.equals( resultsList ) );
+
+        for ( ValidationResult result : results )
+        {
+            assertFalse( MathUtils.expressionIsTrue( result.getLeftsideValue(),
+                result.getValidationRule().getOperator(), result.getRightsideValue() ) );
+        }
+    }
+
+    private String formatResultsList( String label, List<ValidationResult> results )
+    {
+        StringBuilder sb = new StringBuilder( label + " (" + results.size() + "):\n" );
+
+        results.forEach( r -> sb.append( "  " ).append( r.toString() ).append( "\n" ) );
+
+        return sb.toString();
+    }
+
+    private String getAllDataValues()
+    {
+        List<DataValue> allDataValues = dataValueStore.getAllDataValues();
+
+        StringBuilder sb = new StringBuilder( "All data values (" + allDataValues.size() + "):\n" );
+
+        allDataValues.forEach( d -> sb.append( "  " ).append( d.toString() ).append( "\n" ) );
+
+        return sb.toString();
+    }
+
+    private String getAllValidationRules()
+    {
+        List<ValidationRule> allValidationRules = validationRuleService.getAllValidationRules();
+
+        StringBuilder sb = new StringBuilder( "All validation rules (" + allValidationRules.size() + "):\n" );
+
+        allValidationRules.forEach( v -> sb
+            .append( "  " ).append( v.getName() )
+            .append(": ").append( v.getLeftSide().getExpression() )
+            .append(" [").append( v.getOperator() ).append("] ")
+            .append( v.getRightSide().getExpression() )
+            .append( "\n" ) );
+
+        return sb.toString();
     }
 
     private void useDataValue( DataElement e, Period p, OrganisationUnit s, String value )
@@ -400,24 +516,17 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( validationRuleA, periodA, sourceA, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
-        reference.add( new ValidationResult( validationRuleA, periodB, sourceA, defaultCombo, 3.0, -1.0, dayInPeriodB ) );
-        reference.add( new ValidationResult( validationRuleA, periodA, sourceB, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
-        reference.add( new ValidationResult( validationRuleA, periodB, sourceB, defaultCombo, 3.0, -1.0, dayInPeriodB ) );
+        reference.add( createValidationResult( validationRuleA, periodA, sourceA, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
+        reference.add( createValidationResult( validationRuleA, periodB, sourceA, defaultCombo, 3.0, -1.0, dayInPeriodB ) );
+        reference.add( createValidationResult( validationRuleA, periodA, sourceB, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
+        reference.add( createValidationResult( validationRuleA, periodB, sourceB, defaultCombo, 3.0, -1.0, dayInPeriodB ) );
 
-        reference.add( new ValidationResult( validationRuleB, periodA, sourceA, defaultCombo, -1.0, 4.0, dayInPeriodA ) );
-        reference.add( new ValidationResult( validationRuleB, periodB, sourceA, defaultCombo, -1.0, 4.0, dayInPeriodB ) );
-        reference.add( new ValidationResult( validationRuleB, periodA, sourceB, defaultCombo, -1.0, 4.0, dayInPeriodA ) );
-        reference.add( new ValidationResult( validationRuleB, periodB, sourceB, defaultCombo, -1.0, 4.0, dayInPeriodB ) );
+        reference.add( createValidationResult( validationRuleB, periodA, sourceA, defaultCombo, -1.0, 4.0, dayInPeriodA ) );
+        reference.add( createValidationResult( validationRuleB, periodB, sourceA, defaultCombo, -1.0, 4.0, dayInPeriodB ) );
+        reference.add( createValidationResult( validationRuleB, periodA, sourceB, defaultCombo, -1.0, 4.0, dayInPeriodA ) );
+        reference.add( createValidationResult( validationRuleB, periodB, sourceB, defaultCombo, -1.0, 4.0, dayInPeriodB ) );
 
-        for ( ValidationResult result : results )
-        {
-            assertFalse( MathUtils.expressionIsTrue( result.getLeftsideValue(),
-                result.getValidationRule().getOperator(), result.getRightsideValue() ) );
-        }
-
-        assertEquals( 8, results.size() );
-        assertEquals( orderedList( reference ), orderedList( results ) );
+        assertResultsEquals( reference, results );
     }
 
     @Test
@@ -463,14 +572,7 @@ public class ValidationServiceTest
         reference.add( new ValidationResult( validationRuleA, periodA, sourceB, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
         reference.add( new ValidationResult( validationRuleA, periodB, sourceB, defaultCombo, 3.0, -1.0, dayInPeriodB ) );
 
-        for ( ValidationResult result : results )
-        {
-            assertFalse( MathUtils.expressionIsTrue( result.getLeftsideValue(),
-                result.getValidationRule().getOperator(), result.getRightsideValue() ) );
-        }
-
-        assertEquals( 4, results.size() );
-        assertEquals( orderedList( reference ), orderedList( results ) );
+        assertResultsEquals( reference, results );
     }
 
     @Test
@@ -493,14 +595,7 @@ public class ValidationServiceTest
         reference.add( new ValidationResult( validationRuleA, periodA, sourceA, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
         reference.add( new ValidationResult( validationRuleB, periodA, sourceA, defaultCombo, -1.0, 4.0, dayInPeriodA ) );
 
-        for ( ValidationResult result : results )
-        {
-            assertFalse( MathUtils.expressionIsTrue( result.getLeftsideValue(),
-                result.getValidationRule().getOperator(), result.getRightsideValue() ) );
-        }
-
-        assertEquals( 2, results.size() );
-        assertEquals( orderedList( reference ), orderedList( results ) );
+        assertResultsEquals( reference, results );
     }
 
     @Test
@@ -518,8 +613,7 @@ public class ValidationServiceTest
 
         reference.add( new ValidationResult( validationRuleP, periodA, sourceA, defaultCombo, 1111.0, 31.0, dayInPeriodA ) );
 
-        assertEquals( 1, results.size() );
-        assertEquals( orderedList( reference ), orderedList( results ) );
+        assertResultsEquals( reference, results );
 
         results = validationService.startInteractiveValidationAnalysis( dataSetYearly, periodY, sourceB, null );
 
@@ -527,8 +621,7 @@ public class ValidationServiceTest
 
         reference.add( new ValidationResult( validationRuleQ, periodY, sourceB, defaultCombo, 2222.0, 366.0, dayInPeriodY ) );
 
-        assertEquals( 1, results.size() );
-        assertEquals( orderedList( reference ), orderedList( results ) );
+        assertResultsEquals( reference, results );
     }
 
     @Test
@@ -538,7 +631,7 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
 
-        assertEquals( 0, results.size() );
+        assertResultsEmpty( results );
     }
 
     @Test
@@ -554,8 +647,7 @@ public class ValidationServiceTest
 
         reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 0.0, 1.0, dayInPeriodA ) );
 
-        assertEquals( 1, results.size() );
-        assertEquals( orderedList( reference ), orderedList( results ) );
+        assertResultsEquals( reference, results );
     }
 
     @Test
@@ -571,8 +663,7 @@ public class ValidationServiceTest
 
         reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 1.0, 0.0, dayInPeriodA ) );
 
-        assertEquals( 1, results.size() );
-        assertEquals( orderedList( reference ), orderedList( results ) );
+        assertResultsEquals( reference, results );
     }
 
     @Test
@@ -583,7 +674,7 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
 
-        assertEquals( 0, results.size() );
+        assertResultsEmpty( results );
     }
 
     @Test
@@ -593,7 +684,7 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
 
-        assertEquals( 0, results.size() );
+        assertResultsEmpty( results );
     }
 
     @Test
@@ -609,8 +700,7 @@ public class ValidationServiceTest
 
         reference.add( new ValidationResult( validationRuleE, periodA, sourceA, defaultCombo, 0.0, 1.0, dayInPeriodA ) );
 
-        assertEquals( 1, results.size() );
-        assertEquals( orderedList( reference ), orderedList( results ) );
+        assertResultsEquals( reference, results );
     }
 
     @Test
@@ -626,8 +716,7 @@ public class ValidationServiceTest
 
         reference.add( new ValidationResult( validationRuleE, periodA, sourceA, defaultCombo, 1.0, 0.0, dayInPeriodA ) );
 
-        assertEquals( 1, results.size() );
-        assertEquals( orderedList( reference ), orderedList( results ) );
+        assertResultsEquals( reference, results );
     }
 
     @Test
@@ -640,13 +729,13 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
 
-        assertEquals( 0, results.size() );
+        assertResultsEmpty( results );
     }
 
     @Test
     public void testValidateExclusivePairWithOtherData00()
     {
-        useDataValue( dataElementC, periodA, sourceA, "99" );
+        useDataValue( dataElementC, periodA, sourceA, "96" );
         validationRuleService.saveValidationRule( validationRuleG );
 
         validationRuleService.saveValidationRule( validationRuleF );
@@ -655,16 +744,15 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 99.0, 0.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 96.0, 0.0, dayInPeriodA ) );
 
-        assertEquals( 1, results.size() );
-        assertEquals( orderedList( reference ), orderedList( results ) );
+        assertResultsEquals( reference, results );
     }
 
     @Test
     public void testValidateExclusivePairWithOtherData01()
     {
-        useDataValue( dataElementC, periodA, sourceA, "99" );
+        useDataValue( dataElementC, periodA, sourceA, "97" );
         validationRuleService.saveValidationRule( validationRuleG );
 
         useDataValue( dataElementB, periodA, sourceA, "1" );
@@ -675,16 +763,15 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 99.0, 0.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 97.0, 0.0, dayInPeriodA ) );
 
-        assertEquals( 1, results.size() );
-        assertEquals( orderedList( reference ), orderedList( results ) );
+        assertResultsEquals( reference, results );
     }
 
     @Test
     public void testValidateExclusivePairWithOtherData10()
     {
-        useDataValue( dataElementC, periodA, sourceA, "99" );
+        useDataValue( dataElementC, periodA, sourceA, "98" );
         validationRuleService.saveValidationRule( validationRuleG );
 
         useDataValue( dataElementA, periodA, sourceA, "1" );
@@ -695,10 +782,9 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 99.0, 0.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 98.0, 0.0, dayInPeriodA ) );
 
-        assertEquals( 1, results.size() );
-        assertEquals( orderedList( reference ), orderedList( results ) );
+        assertResultsEquals( reference, results );
     }
 
     @Test
@@ -719,8 +805,7 @@ public class ValidationServiceTest
         reference.add( new ValidationResult( validationRuleF, periodA, sourceA, defaultCombo, 1.0, 2.0, dayInPeriodA ) );
         reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 99.0, 0.0, dayInPeriodA ) );
 
-        assertEquals( 2, results.size() );
-        assertEquals( orderedList( reference ), orderedList( results ) );
+        assertResultsEquals( reference, results );
     }
 
     @Test
@@ -730,7 +815,7 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
 
-        assertEquals( 0, results.size() );
+        assertResultsEmpty( results );
     }
 
     @Test
@@ -742,7 +827,7 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
 
-        assertEquals( 0, results.size() );
+        assertResultsEmpty( results );
     }
 
     @Test
@@ -754,7 +839,7 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
 
-        assertEquals( 0, results.size() );
+        assertResultsEmpty( results );
     }
 
     @Test
@@ -771,8 +856,7 @@ public class ValidationServiceTest
 
         reference.add( new ValidationResult( validationRuleF, periodA, sourceA, defaultCombo, 1.0, 2.0, dayInPeriodA ) );
 
-        assertEquals( 1, results.size() );
-        assertEquals( orderedList( reference ), orderedList( results ) );
+        assertResultsEquals( reference, results );
     }
 
     @Test
@@ -826,14 +910,7 @@ public class ValidationServiceTest
         reference.add( new ValidationResult( validationRuleD, periodA, sourceA, optionComboAC, 7.0, 6.0, dayInPeriodA ) );
         reference.add( new ValidationResult( validationRuleX, periodA, sourceA, optionComboAC, 7.0, 6.0, dayInPeriodA ) );
 
-        for ( ValidationResult result : results )
-        {
-            assertFalse( MathUtils.expressionIsTrue( result.getLeftsideValue(),
-                result.getValidationRule().getOperator(), result.getRightsideValue() ) );
-        }
-
-        assertEquals( 2, results.size() );
-        assertEquals( orderedList( reference ), orderedList( results ) );
+        assertResultsEquals( reference, results );
 
         //
         // All optionCombos
@@ -847,21 +924,13 @@ public class ValidationServiceTest
         reference.add( new ValidationResult( validationRuleD, periodA, sourceA, optionComboBC, 3.0, 2.0, dayInPeriodA ) );
         reference.add( new ValidationResult( validationRuleX, periodA, sourceA, optionComboBC, 3.0, 2.0, dayInPeriodA ) );
 
-        for ( ValidationResult result : results )
-        {
-            assertFalse( MathUtils.expressionIsTrue( result.getLeftsideValue(),
-                result.getValidationRule().getOperator(), result.getRightsideValue() ) );
-        }
-
-        assertEquals( 4, results.size() );
-        assertEquals( orderedList( reference ), orderedList( results ) );
+        assertResultsEquals( reference, results );
 
         //
         // Default optionCombo
         //
         results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, optionCombo );
 
-        assertEquals( 0, results.size() );
+        assertResultsEmpty( results );
     }
 }
-

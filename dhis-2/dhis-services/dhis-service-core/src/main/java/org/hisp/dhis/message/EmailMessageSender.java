@@ -45,7 +45,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
-import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
@@ -54,10 +53,10 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.springframework.scheduling.annotation.Async;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
@@ -270,12 +269,9 @@ public class EmailMessageSender
     @Override
     public OutboundMessageResponseSummary sendMessageBatch( OutboundMessageBatch batch )
     {
-        List<OutboundMessageResponse> statuses = new ArrayList<>();
-
-        for ( OutboundMessage email : batch.getMessages() )
-        {
-            statuses.add( sendMessage( email.getSubject(), email.getText(), email.getRecipients() ) );
-        }
+        List<OutboundMessageResponse> statuses = batch.getMessages().stream()
+            .map( m -> sendMessage( m.getSubject(), m.getText(), m.getRecipients() ) )
+            .collect( Collectors.toList() );
 
         return generateSummary( statuses );
     }

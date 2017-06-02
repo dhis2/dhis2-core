@@ -170,9 +170,9 @@ public abstract class AbstractTrackedEntityInstanceService
         trackedEntityInstance.setOrgUnit( entityInstance.getOrganisationUnit().getUid() );
         trackedEntityInstance.setTrackedEntity( entityInstance.getTrackedEntity().getUid() );
         trackedEntityInstance.setCreated( DateUtils.getIso8601NoTz( entityInstance.getCreated() ) );
-        trackedEntityInstance.setCreatedAtClient( DateUtils.getIso8601NoTz( entityInstance.getLastUpdatedAtAtClient() ) );
+        trackedEntityInstance.setCreatedAtClient( DateUtils.getIso8601NoTz( entityInstance.getLastUpdatedAtClient() ) );
         trackedEntityInstance.setLastUpdated( DateUtils.getIso8601NoTz( entityInstance.getLastUpdated() ) );
-        trackedEntityInstance.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( entityInstance.getLastUpdatedAtAtClient() ) );
+        trackedEntityInstance.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( entityInstance.getLastUpdatedAtClient() ) );
         trackedEntityInstance.setInactive( entityInstance.isInactive() );
 
         if ( params.isIncludeRelationships() )
@@ -259,8 +259,8 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         entityInstance.setTrackedEntity( trackedEntity );
-        entityInstance.setUid( CodeGenerator.isValidCode( trackedEntityInstance.getTrackedEntityInstance() ) ?
-            trackedEntityInstance.getTrackedEntityInstance() : CodeGenerator.generateCode() );
+        entityInstance.setUid( CodeGenerator.isValidUid( trackedEntityInstance.getTrackedEntityInstance() ) ?
+            trackedEntityInstance.getTrackedEntityInstance() : CodeGenerator.generateUid() );
 
         return entityInstance;
     }
@@ -303,7 +303,7 @@ public abstract class AbstractTrackedEntityInstanceService
             importOptions = new ImportOptions();
         }
 
-        ImportSummary importSummary = new ImportSummary();
+        ImportSummary importSummary = new ImportSummary( trackedEntityInstance.getTrackedEntityInstance() );
 
         trackedEntityInstance.trimValuesToNull();
 
@@ -382,7 +382,7 @@ public abstract class AbstractTrackedEntityInstanceService
             importOptions = new ImportOptions();
         }
 
-        ImportSummary importSummary = new ImportSummary();
+        ImportSummary importSummary = new ImportSummary( trackedEntityInstance.getTrackedEntityInstance() );
 
         trackedEntityInstance.trimValuesToNull();
 
@@ -730,7 +730,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         if ( lastUpdatedAtClient != null )
         {
-            entityInstance.setLastUpdatedAtAtClient( DateUtils.parseDate( lastUpdatedAtClient ) );
+            entityInstance.setLastUpdatedAtClient( DateUtils.parseDate( lastUpdatedAtClient ) );
         }
     }
 }

@@ -183,7 +183,7 @@ public class DefaultSystemSettingManager
     public Serializable getSystemSetting( SettingKey setting )
     {
         Optional<Serializable> value = SETTING_CACHE.get( setting.getName(),
-            c -> getSystemSettingOptional( setting.getName(), setting.getDefaultValue() ) );
+            key -> getSystemSettingOptional( key, setting.getDefaultValue() ) );
 
         return value.orElse( null );
     }
@@ -224,7 +224,7 @@ public class DefaultSystemSettingManager
                 {
                     return Optional.of( pbeStringEncryptor.decrypt( (String) setting.getValue() ) );
                 }
-                catch ( EncryptionOperationNotPossibleException e ) // Most likely this means the value is not encrypted, or not existing(null or empty string).
+                catch ( EncryptionOperationNotPossibleException e ) // Most likely this means the value is not encrypted, or not existing
                 {
                     log.warn( "Could not decrypt system setting '" + name + "'" );
                     return Optional.empty();
@@ -410,7 +410,7 @@ public class DefaultSystemSettingManager
     @Override
     public boolean emailEnabled()
     {
-        return getEmailHostName() != null;
+        return (Boolean) getSystemSetting( SettingKey.MESSAGE_EMAIL_NOTIFICATION );
     }
 
     @Override

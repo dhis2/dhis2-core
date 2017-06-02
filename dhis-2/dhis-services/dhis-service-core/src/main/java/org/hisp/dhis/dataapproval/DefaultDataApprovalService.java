@@ -48,11 +48,14 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.hisp.dhis.dataapproval.DataApprovalAction.*;
 
 /**
  * @author Jim Grace
@@ -72,6 +75,13 @@ public class DefaultDataApprovalService
     public void setDataApprovalStore( DataApprovalStore dataApprovalStore )
     {
         this.dataApprovalStore = dataApprovalStore;
+    }
+
+    private DataApprovalAuditStore dataApprovalAuditStore;
+
+    public void setDataApprovalAuditStore( DataApprovalAuditStore dataApprovalAuditStore )
+    {
+        this.dataApprovalAuditStore = dataApprovalAuditStore;
     }
 
     private DataApprovalWorkflowStore workflowStore;
@@ -157,7 +167,7 @@ public class DefaultDataApprovalService
     {
         return workflowStore.getAll();
     }
-    
+
     // -------------------------------------------------------------------------
     // Data approval logic
     // -------------------------------------------------------------------------
@@ -240,6 +250,8 @@ public class DefaultDataApprovalService
         {
             log.debug( "-> approving " + da );
 
+            audit( da, APPROVE );
+
             dataApprovalStore.addDataApproval( da );
         }
         
@@ -292,6 +304,8 @@ public class DefaultDataApprovalService
 
                 throw new DataMayNotBeUnapprovedException();
             }
+
+            audit( d, UNAPPROVE );
 
             dataApprovalStore.deleteDataApproval( d );
         }
@@ -351,6 +365,8 @@ public class DefaultDataApprovalService
 
             d.setAccepted( true );
 
+            audit( d, ACCEPT );
+
             dataApprovalStore.updateDataApproval( d );
         }
         
@@ -405,6 +421,8 @@ public class DefaultDataApprovalService
             }
 
             d.setAccepted( false );
+
+            audit( d, UNACCEPT );
 
             dataApprovalStore.updateDataApproval( d );
         }
@@ -512,6 +530,22 @@ public class DefaultDataApprovalService
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Audits a data approval action.
+     *
+     * @param da the details of the action.
+     * @param action the data approval action to audit.
+     */
+    private void audit( DataApproval da, DataApprovalAction action )
+    {
+        DataApprovalAudit audit = new DataApprovalAudit( da, action );
+
+        audit.setCreated( new Date() );
+        audit.setCreator( currentUserService.getCurrentUser() );
+
+        dataApprovalAuditStore.save( audit );
+    }
 
     /**
      * Returns the next higher (lower number) level within a workflow.

@@ -36,8 +36,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 
 import java.util.HashSet;
@@ -147,34 +145,5 @@ public class ProgramTrackedEntityAttributeGroup
     public void setUniqunessType( UniqunessType uniqunessType )
     {
         this.uniqunessType = uniqunessType;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            ProgramTrackedEntityAttributeGroup programTrackedEntityAttributeGroup = (ProgramTrackedEntityAttributeGroup) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                uniqunessType = programTrackedEntityAttributeGroup.getUniqunessType();
-                description = programTrackedEntityAttributeGroup.getDescription();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                uniqunessType = programTrackedEntityAttributeGroup.getUniqunessType() == null ? uniqunessType : programTrackedEntityAttributeGroup.getUniqunessType();
-                description = programTrackedEntityAttributeGroup.getDescription() == null ? description : programTrackedEntityAttributeGroup.getDescription();
-            }
-
-            removeAllAttributes();
-
-            for ( ProgramTrackedEntityAttribute attribute : programTrackedEntityAttributeGroup.getAttributes() )
-            {
-                addAttribute( attribute );
-            }
-        }
     }
 }

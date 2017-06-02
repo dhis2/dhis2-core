@@ -180,6 +180,12 @@ public class DataQueryParams
     protected boolean hideEmptyRows;
     
     /**
+     * Indicates whether columns with no values should be hidden in the response.
+     * Applies to responses with table layout only. 
+     */
+    protected boolean hideEmptyColumns;
+    
+    /**
      * Indicates whether the org unit hierarchy path should be displayed with the
      * org unit names on rows.
      */
@@ -499,6 +505,38 @@ public class DataQueryParams
 
         return latestEndDate;
 
+    }
+    
+    /**
+     * Finds the earliest startDate associated with this DataQueryParams. checks startDate, period dimensions and
+     * period filters
+     * @return the latest endDate present.
+     */
+    public Date getEarliestStartDate()
+    {
+        // Set to minimum value
+        Date earliestStartDate = new Date(Long.MAX_VALUE);
+
+        if ( startDate != null && startDate.before( startDate ) )
+        {
+            earliestStartDate = startDate;
+        }
+
+        for ( DimensionalItemObject object : getFilterPeriods() )
+        {
+            Period period = PeriodType.getPeriodFromIsoString( object.getDimensionItem() );
+
+            earliestStartDate = ( period.getStartDate().before( earliestStartDate ) ? period.getStartDate() : earliestStartDate );
+        }
+
+        for ( DimensionalItemObject object : getPeriods() )
+        {
+            Period period = PeriodType.getPeriodFromIsoString( object.getDimensionItem() );
+
+            earliestStartDate = ( period.getStartDate().before( earliestStartDate ) ? period.getStartDate() : earliestStartDate );
+        }
+
+        return earliestStartDate;
     }
     
     /**
@@ -836,11 +874,11 @@ public class DataQueryParams
     }
     
     /**
-     * Retrieves the options for the given dimension identifier. If the co 
-     * dimension is specified, all category option combos for the first data 
+     * Retrieves the options for the given dimension identifier. If the "co"
+     * dimension is specified, all category option combinations for the first data 
      * element is returned. Returns an empty array if the dimension is not present.
      */
-    public List<DimensionalItemObject> getDimensionArrayExplodeCoc( String dimension )
+    public DimensionalItemObject[] getDimensionItemArrayExplodeCoc( String dimension )
     {
         List<DimensionalItemObject> items = new ArrayList<>();
         
@@ -868,7 +906,7 @@ public class DataQueryParams
             items.addAll( getDimensionOptions( dimension ) );
         }
         
-        return items;
+        return items.toArray( new DimensionalItemObject[0] );
     }
     
     /**
@@ -1605,6 +1643,11 @@ public class DataQueryParams
         return hideEmptyRows;
     }
 
+    public boolean isHideEmptyColumns()
+    {
+        return hideEmptyColumns;
+    }
+
     public boolean isShowHierarchy()
     {
         return showHierarchy;
@@ -2211,6 +2254,12 @@ public class DataQueryParams
         public Builder withHideEmptyRows( boolean hideEmptyRows )
         {
             this.params.hideEmptyRows = hideEmptyRows;
+            return this;
+        }
+        
+        public Builder withHideEmptyColumns( boolean hideEmptyColumns )
+        {
+            this.params.hideEmptyColumns = hideEmptyColumns;
             return this;
         }
 

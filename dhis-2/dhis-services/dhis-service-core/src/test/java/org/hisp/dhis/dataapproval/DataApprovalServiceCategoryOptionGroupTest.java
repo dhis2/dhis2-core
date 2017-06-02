@@ -199,7 +199,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
 
         for ( UserAuthorityGroup role : credentials.getUserAuthorityGroups() )
         {
-            role.setName( CodeGenerator.generateCode() ); // Give the role an arbitrary name
+            role.setName( CodeGenerator.generateUid() ); // Give the role an arbitrary name
 
             userService.addUserAuthorityGroup( role );
         }
@@ -431,10 +431,10 @@ public class DataApprovalServiceCategoryOptionGroupTest
         partners.addCategoryOptionGroup( partner1 );
         partners.addCategoryOptionGroup( partner2 );
 
-        agencyA.setGroupSet( agencies );
-        agencyB.setGroupSet( agencies );
-        partner1.setGroupSet( partners );
-        partner2.setGroupSet( partners );
+        agencyA.getGroupSets().add( agencies );
+        agencyB.getGroupSets().add( agencies );
+        partner1.getGroupSets().add( partners );
+        partner2.getGroupSets().add( partners );
 
         categoryService.updateCategoryOptionGroupSet( partners );
         categoryService.updateCategoryOptionGroupSet( agencies );

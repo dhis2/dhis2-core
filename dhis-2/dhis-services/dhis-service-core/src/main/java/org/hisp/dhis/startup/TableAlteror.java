@@ -130,6 +130,14 @@ public class TableAlteror
         executeSql( "DROP TABLE datadictionarydataelements" );
         executeSql( "DROP TABLE datadictionary" );
         executeSql( "DROP TABLE caseaggregationcondition" );
+        executeSql( "DROP TABLE trackedentitytabularreportusergroupaccesses" );
+        executeSql( "DROP TABLE trackedentitytabularreport_filters" );
+        executeSql( "DROP TABLE trackedentitytabularreport_dimensions" );
+        executeSql( "DROP TABLE trackedentitytabularreport" );
+        executeSql( "DROP TABLE trackedentityaggregatereportusergroupaccesses" );
+        executeSql( "DROP TABLE trackedentityaggregatereport_filters" );
+        executeSql( "DROP TABLE trackedentityaggregatereport_dimension" );
+        executeSql( "DROP TABLE trackedentityaggregatereport" );
         executeSql( "ALTER TABLE categoryoptioncombo drop column userid" );
         executeSql( "ALTER TABLE categoryoptioncombo drop column publicaccess" );
         executeSql( "ALTER TABLE categoryoptioncombo alter column name type text" );
@@ -189,6 +197,8 @@ public class TableAlteror
         executeSql( "UPDATE mapview SET hidden = false WHERE hidden IS NULL" );
         executeSql( "UPDATE mapview SET eventclustering = false WHERE eventclustering IS NULL" );
         executeSql( "UPDATE mapview SET eventpointradius = 0 WHERE eventpointradius IS NULL" );
+        executeSql( "UPDATE programnotificationtemplate SET trackedentityattributeid = 0 WHERE trackedentityattributeid IS NULL" );
+
 
         executeSql( "DELETE FROM systemsetting WHERE name = 'longitude'" );
         executeSql( "DELETE FROM systemsetting WHERE name = 'latitude'" );
@@ -492,6 +502,7 @@ public class TableAlteror
         executeSql( "update reporttable set userorganisationunitgrandchildren = false where userorganisationunitgrandchildren is null" );
         executeSql( "update reporttable set subtotals = true where subtotals is null" );
         executeSql( "update reporttable set hideemptyrows = false where hideemptyrows is null" );
+        executeSql( "update reporttable set hideemptycolumns = false where hideemptycolumns is null" );
         executeSql( "update reporttable set displaydensity = 'normal' where displaydensity is null" );
         executeSql( "update reporttable set fontsize = 'normal' where fontsize is null" );
         executeSql( "update reporttable set digitgroupseparator = 'space' where digitgroupseparator is null" );
@@ -702,6 +713,7 @@ public class TableAlteror
         // remove unused configurations
         executeSql( "delete from systemsetting where name='keySmsConfig'" );
         executeSql( "delete from systemsetting where name='keySmsConfiguration'" );
+        executeSql( "delete from systemsetting where name='keySmsConfigurations'" );
 
         // update denominator of indicator which has indicatortype as 'number'
         executeSql( "UPDATE indicator SET denominator = 1, denominatordescription = '' WHERE indicatortypeid IN (SELECT DISTINCT indicatortypeid FROM indicatortype WHERE indicatornumber = true) AND denominator IS NULL" );

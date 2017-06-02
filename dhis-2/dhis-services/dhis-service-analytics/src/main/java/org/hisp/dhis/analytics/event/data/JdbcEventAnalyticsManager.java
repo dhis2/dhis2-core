@@ -64,6 +64,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
@@ -71,8 +73,6 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 
 /**
  * TODO could use row_number() and filtering for paging, but not supported on MySQL.
@@ -157,14 +157,14 @@ public class JdbcEventAnalyticsManager
         {
             log.info( QUERY_ERR_MSG, ex );
         }
-        
+
         return grid;
     }
     
     private void getAggregatedEventData( Grid grid, EventQueryParams params, String sql )
     {
         log.debug( String.format( "Analytics event aggregate SQL: %s", sql ) );
-        
+
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
         while ( rowSet.next() )
@@ -229,7 +229,7 @@ public class JdbcEventAnalyticsManager
         List<String> fixedCols = Lists.newArrayList( "psi", "ps", "executiondate", "longitude", "latitude", "ouname", "oucode" );
         
         List<String> selectCols = ListUtils.distinctUnion( fixedCols, getSelectColumns( params ) );
-        
+
         String sql = "select " + StringUtils.join( selectCols, "," ) + " ";
 
         // ---------------------------------------------------------------------
@@ -245,19 +245,20 @@ public class JdbcEventAnalyticsManager
         if ( params.isSorting() )
         {
             sql += "order by ";
-        
-            for ( String item : params.getAsc() )
+
+            for ( DimensionalItemObject item : params.getAsc() )
             {
-                sql += statementBuilder.columnQuote( item ) + " asc,";
+                sql += statementBuilder.columnQuote( item.getUid() ) + " asc,";
             }
-            
-            for  ( String item : params.getDesc() )
+
+            for  ( DimensionalItemObject item : params.getDesc() )
             {
-                sql += statementBuilder.columnQuote( item ) + " desc,";
+                sql += statementBuilder.columnQuote( item.getUid() ) + " desc,";
             }
-            
+
             sql = removeLastComma( sql ) + " ";
         }
+
         
         // ---------------------------------------------------------------------
         // Paging
@@ -325,7 +326,7 @@ public class JdbcEventAnalyticsManager
     @Override
     public Grid getEventClusters( EventQueryParams params, Grid grid, int maxLimit )
     {
-        String clusterField = statementBuilder.columnQuote( params.getCoordinateField() );
+        String clusterField = params.getCoordinateField();
         
         List<String> columns = Lists.newArrayList( "count(psi) as count", 
             "ST_AsText(ST_Centroid(ST_Collect(" + clusterField + "))) as center", "ST_Extent(" + clusterField + ") as extent" );
@@ -382,7 +383,7 @@ public class JdbcEventAnalyticsManager
     @Override
     public Rectangle getRectangle( EventQueryParams params )
     {
-        String clusterField = statementBuilder.columnQuote( params.getCoordinateField() );
+        String clusterField = params.getCoordinateField();
                 
         String sql = "select count(psi) as " + COL_COUNT + ", ST_Extent(" + clusterField + ") as " + COL_EXTENT + " ";
         
@@ -437,7 +438,7 @@ public class JdbcEventAnalyticsManager
             function = TextUtils.emptyIfEqual( function, AggregationType.CUSTOM.getValue() );
             
             String expression = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getExpression(), 
-                params.getProgramIndicator().getAnalyticsType() );
+                params.getProgramIndicator().getAnalyticsType(), params.getEarliestStartDate(), params.getLatestEndDate() );
             
             return function + "(" + expression + ")";
         }
@@ -445,15 +446,15 @@ public class JdbcEventAnalyticsManager
         {
             if ( EventOutputType.TRACKED_ENTITY_INSTANCE.equals( outputType ) && params.isProgramRegistration() )
             {
-                return "count(distinct tei)";
+                return "count(distinct " + statementBuilder.columnQuote( "tei") + ")";
             }
             else if ( EventOutputType.ENROLLMENT.equals( outputType ) )
             {
-                return "count(distinct pi)";
+                return "count(distinct " + statementBuilder.columnQuote( "pi") + ")";
             }
             else // EVENT
             {
-                return "count(psi)";
+                return "count(" + statementBuilder.columnQuote( "psi") + ")";
             }
         }
     }
@@ -469,23 +470,23 @@ public class JdbcEventAnalyticsManager
         
         if ( params.hasValueDimension() )
         {
-            return Lists.newArrayList( statementBuilder.columnQuote( params.getValue().getUid() ) );
+            return Lists.newArrayList( params.getValue().getUid() );
         }
         else if ( params.hasProgramIndicatorDimension() )
         {
             Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( params.getProgramIndicator().getExpression(),  params.getProgramIndicator().getAnalyticsType() );
             
-            return uids.stream().map( uid -> statementBuilder.columnQuote( uid ) ).collect( Collectors.toList() );
+            return Lists.newArrayList( uids );
         }
         else
         {
             if ( EventOutputType.TRACKED_ENTITY_INSTANCE.equals( outputType ) && params.isProgramRegistration() )
             {
-                return Lists.newArrayList( statementBuilder.columnQuote( "tei" ) );
+                return Lists.newArrayList( "tei" );
             }
             else if ( EventOutputType.ENROLLMENT.equals( outputType ) )
             {
-                return Lists.newArrayList( statementBuilder.columnQuote( "pi" ) );
+                return Lists.newArrayList( "pi" );
             }
         }
         
@@ -515,7 +516,7 @@ public class JdbcEventAnalyticsManager
                 
                 String asClause = " as " + statementBuilder.columnQuote( in.getUid() );
                 
-                columns.add( "(" + programIndicatorService.getAnalyticsSQl( in.getExpression(), in.getAnalyticsType() ) + ")" + asClause );
+                columns.add( "(" + programIndicatorService.getAnalyticsSQl( in.getExpression(), in.getAnalyticsType(), params.getEarliestStartDate(), params.getLatestEndDate() ) + ")" + asClause );
             }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
             {
@@ -549,7 +550,7 @@ public class JdbcEventAnalyticsManager
         
         for ( DimensionalObject dimension : params.getDimensions() )
         {
-            columns.add( statementBuilder.columnQuote( dimension.getDimensionName() ) );
+            columns.add( dimension.getDimensionName() );
         }
         
         for ( QueryItem queryItem : params.getItems() )
@@ -559,15 +560,12 @@ public class JdbcEventAnalyticsManager
                 ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
                 
                 Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( in.getExpression(), in.getAnalyticsType() );
-                
-                for ( String uid : uids )
-                {
-                    columns.add( statementBuilder.columnQuote( uid ) );
-                }
+
+                columns.addAll( uids );
             }
             else
             {
-                columns.add( statementBuilder.columnQuote( queryItem.getItemName() ) );
+                columns.add( queryItem.getItemName() );
             }
         }
         
@@ -593,18 +591,33 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
+     * Returns a list of ascending or descending keywords for sorting.
+     * 
+     * @param params the {@link EventQueryParams}.
+     */
+    private List<String> getSortColumns( EventQueryParams params )
+    {
+       return ListUtils.distinctUnion( params.getAsc(), params.getDesc() ).stream().filter(
+                dimItObject -> DimensionItemType.PROGRAM_INDICATOR !=
+                    dimItObject.getDimensionItemType() ).map( IdentifiableObject::getUid ).collect( Collectors.toList());
+    }
+
+    /**
      * Returns a from and where SQL clause for all partitions part of the given
      * query parameters.
+     *
+     * Columns are quoted after distincUnion to reduce local column quotations.
      * 
      * @param params the {@link EventQueryParams}.
      * @param fixedColumns the list of fixed column names to include.
      */
     private String getFromWhereMultiplePartitionsClause( EventQueryParams params, List<String> fixedColumns )
     {
-        List<String> cols = ListUtils.distinctUnion( fixedColumns, getAggregateColumns( params ), getPartitionSelectColumns( params ) );
-        
+        List<String> cols = ListUtils.distinctUnion( fixedColumns, getAggregateColumns( params ), getPartitionSelectColumns( params ), getSortColumns( params ));
+        cols = cols.stream().map( s -> statementBuilder.columnQuote( s ) ).collect( Collectors.toList());
+
         String selectCols = StringUtils.join( cols, "," );
-        
+
         String sql = "from (";
         
         for ( String partition : params.getPartitions().getPartitions() )
@@ -638,8 +651,8 @@ public class JdbcEventAnalyticsManager
 
         if ( params.hasStartEndDate() )
         {        
-            sql += "where executiondate >= '" + getMediumDateString( params.getStartDate() ) + "' ";
-            sql += "and executiondate <= '" + getMediumDateString( params.getEndDate() ) + "' ";
+            sql += "where " + statementBuilder.columnQuote( "executiondate") + " >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+            sql += "and " + statementBuilder.columnQuote( "executiondate") + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
         }
         else // Periods
         {
@@ -665,7 +678,7 @@ public class JdbcEventAnalyticsManager
             for ( DimensionalItemObject object : params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) )
             {
                 OrganisationUnit unit = (OrganisationUnit) object;
-                sql += "uidlevel" + unit.getLevel() + " = '" + unit.getUid() + "' or ";
+                sql += statementBuilder.columnQuote( "uidlevel" + unit.getLevel() ) + " = '" + unit.getUid() + "' or ";
             }
             
             sql = removeLastOr( sql ) + ") ";
@@ -691,7 +704,7 @@ public class JdbcEventAnalyticsManager
 
         if ( params.hasProgramStage() )
         {
-            sql += "and ps = '" + params.getProgramStage().getUid() + "' ";
+            sql += "and " + statementBuilder.columnQuote( "ps" ) + " = '" + params.getProgramStage().getUid() + "' ";
         }
 
         // ---------------------------------------------------------------------
@@ -727,7 +740,7 @@ public class JdbcEventAnalyticsManager
         if ( params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasFilter() )
         {
             String filter = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getFilter(), 
-                params.getProgramIndicator().getAnalyticsType(), false );
+                params.getProgramIndicator().getAnalyticsType(), false, params.getEarliestStartDate(), params.getLatestEndDate() );
             
             String sqlFilter = ExpressionUtils.asSql( filter );
             

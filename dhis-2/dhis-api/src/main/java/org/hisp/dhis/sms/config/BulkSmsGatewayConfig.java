@@ -43,10 +43,6 @@ public class BulkSmsGatewayConfig
 
     private final String URL_TEMPLATE = "https://bulksms.vsms.net/eapi/submission/send_sms/2/2.0";
 
-    private String username;
-
-    private String password;
-
     @JsonProperty( value = "urlTemplateForBatchSms" )
     public String getUrlTemplateForBatchSms()
     {
@@ -60,32 +56,10 @@ public class BulkSmsGatewayConfig
         return this.URL_TEMPLATE;
     }
 
-    @JsonProperty( value = "username" )
-    public String getUsername()
-    {
-        return username;
-    }
-
-    public void setUsername( String username )
-    {
-        this.username = username;
-    }
-
     @JsonProperty( value = "name" )
     public String getName()
     {
         return super.getName();
-    }
-
-    public String getPassword()
-    {
-        return password;
-    }
-
-    @JsonProperty
-    public void setPassword( String password )
-    {
-        this.password = password;
     }
 
     @JsonProperty( value = "default" )

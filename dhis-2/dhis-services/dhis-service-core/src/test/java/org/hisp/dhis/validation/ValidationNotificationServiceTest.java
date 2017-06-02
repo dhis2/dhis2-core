@@ -136,6 +136,8 @@ public class ValidationNotificationServiceTest
     private ValidationRule valRuleA;
     private UserGroup userGroupA;
 
+    int idCounter = 0;
+
     private void setUpEntitiesA()
     {
         User userA = createUser( 'A' );
@@ -162,7 +164,7 @@ public class ValidationNotificationServiceTest
     private ValidationResult createValidationResult( OrganisationUnit ou, ValidationRule rule )
     {
         Period period = createPeriod( "2017Q1" );
-        return new ValidationResult(
+        ValidationResult vr = new ValidationResult(
             rule,
             period,
             ou,
@@ -171,12 +173,16 @@ public class ValidationNotificationServiceTest
             RandomUtils.nextDouble( 10, 1000 ),
             periodService.getDayInPeriod( period, new Date() )
         );
+
+        vr.setId( idCounter++ );
+
+        return vr;
     }
 
     private ValidationResult createValidationResultA()
     {
         Period period = createPeriod( "2017Q1" );
-        return new ValidationResult(
+        ValidationResult vr = new ValidationResult(
             valRuleA,
             period,
             orgUnitA,
@@ -185,6 +191,10 @@ public class ValidationNotificationServiceTest
             RandomUtils.nextDouble( 10, 1000 ),
             periodService.getDayInPeriod( period, new Date() )
         );
+
+        vr.setId( idCounter++ );
+
+        return vr;
     }
 
     /*
@@ -267,7 +277,7 @@ public class ValidationNotificationServiceTest
         assertEquals( "The validation results should form a single summarized message", 1, sentMessages.size() );
 
         String text = sentMessages.iterator().next().text;
-
+        
         assertEquals(
             "Wrong number of messages in the summarized message", 10, StringUtils.countMatches( text, STATIC_MOCK_SUBJECT ) );
     }

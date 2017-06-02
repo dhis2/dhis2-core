@@ -34,13 +34,14 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
@@ -53,7 +54,16 @@ import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RestoreOptions;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.*;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserGroupService;
+import org.hisp.dhis.user.UserInvitationStatus;
+import org.hisp.dhis.user.UserQueryParams;
+import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserSetting;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
@@ -358,14 +368,16 @@ public class UserController
         }
 
         User userReplica = new User();
-        userReplica.mergeWith( existingUser, MergeMode.MERGE );
-        userReplica.setUid( CodeGenerator.generateCode() );
+        mergeService.merge( new MergeParams<>( existingUser, userReplica )
+            .setMergeMode( MergeMode.MERGE ) );
+        userReplica.setUid( CodeGenerator.generateUid() );
         userReplica.setCode( null );
         userReplica.setCreated( new Date() );
 
         UserCredentials credentialsReplica = new UserCredentials();
-        credentialsReplica.mergeWith( existingUser.getUserCredentials(), MergeMode.MERGE );
-        credentialsReplica.setUid( CodeGenerator.generateCode() );
+        mergeService.merge( new MergeParams<>( existingUser.getUserCredentials(), credentialsReplica )
+            .setMergeMode( MergeMode.MERGE ) );
+        credentialsReplica.setUid( CodeGenerator.generateUid() );
         credentialsReplica.setCode( null );
         credentialsReplica.setCreated( new Date() );
         credentialsReplica.setLdapId( null );
@@ -390,11 +402,7 @@ public class UserController
         for ( UserSetting setting : settings )
         {
             Optional<UserSettingKey> key = UserSettingKey.getByName( setting.getName() );
-
-            if ( key.isPresent() )
-            {
-                userSettingService.saveUserSetting( key.get(), setting.getValue(), userReplica );
-            }
+            key.ifPresent( userSettingKey -> userSettingService.saveUserSetting( userSettingKey, setting.getValue(), userReplica ) );
         }
 
         response.addHeader( "Location", UserSchemaDescriptor.API_ENDPOINT + "/" + userReplica.getUid() );

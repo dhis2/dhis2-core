@@ -31,10 +31,12 @@ package org.hisp.dhis.setting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.LocaleUtils;
+import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.common.DigitGroupSeparator;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.cache.Cacheability;
 import org.hisp.dhis.configuration.Configuration;
+import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 
 import java.io.Serializable;
@@ -50,7 +52,7 @@ public enum SettingKey
 {
     MESSAGE_EMAIL_NOTIFICATION( "keyMessageEmailNotification", Boolean.FALSE, Boolean.class ),
     MESSAGE_SMS_NOTIFICATION( "keyMessageSmsNotification", Boolean.FALSE, Boolean.class ),
-    UI_LOCALE( "keyUiLocale", Locale.class ),
+    UI_LOCALE( "keyUiLocale", LocaleManager.DEFAULT_LOCALE, Locale.class ),
     DB_LOCALE( "keyDbLocale", Locale.class ),
     ANALYSIS_DISPLAY_PROPERTY( "keyAnalysisDisplayProperty", "name", String.class ),
     ANALYSIS_DIGIT_GROUP_SEPARATOR( "keyAnalysisDigitGroupSeparator", DigitGroupSeparator.SPACE, DigitGroupSeparator.class ),
@@ -78,10 +80,11 @@ public enum SettingKey
     MAX_PASSWORD_LENGTH( "maxPasswordLength", 40, Integer.class ),
     INSTANCE_BASE_URL( "keyInstanceBaseUrl" ),
     SCHEDULED_TASKS( "keySchedTasks", ListMap.class ),
-    SMS_CONFIG( "keySmsConfigurations", SmsConfiguration.class ),
+    SMS_CONFIG( "keySmsSetting", SmsConfiguration.class ),
     CACHE_STRATEGY( "keyCacheStrategy", "CACHE_6AM_TOMORROW", String.class ),
     CACHEABILITY( "keyCacheability", Cacheability.PUBLIC, Cacheability.class ),
     CACHE_ANALYTICS_DATA_YEAR_THRESHOLD( "keyCacheAnalyticsDataYearThreshold", 0, Integer.class ),
+    ANALYTICS_FINANCIAL_YEAR_START( "analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.FINANCIAL_PERIOD_OCTOBER, AnalyticsFinancialYearStartKey.class ),
     PHONE_NUMBER_AREA_CODE( "phoneNumberAreaCode" ),
     MULTI_ORGANISATION_UNIT_FORMS( "multiOrganisationUnitForms", Boolean.FALSE, Boolean.class ),
     CONFIGURATION( "keyConfig", Configuration.class ),

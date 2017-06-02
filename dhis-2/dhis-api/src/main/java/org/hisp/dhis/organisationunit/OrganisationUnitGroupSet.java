@@ -38,8 +38,6 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.adapter.JacksonOrganisationUnitGroupSymbolSerializer;
 
@@ -93,20 +91,20 @@ public class OrganisationUnitGroupSet
     public void addOrganisationUnitGroup( OrganisationUnitGroup organisationUnitGroup )
     {
         organisationUnitGroups.add( organisationUnitGroup );
-        organisationUnitGroup.setGroupSet( this );
+        organisationUnitGroup.getGroupSets().add( this );
     }
 
     public void removeOrganisationUnitGroup( OrganisationUnitGroup organisationUnitGroup )
     {
         organisationUnitGroups.remove( organisationUnitGroup );
-        organisationUnitGroup.setGroupSet( null );
+        organisationUnitGroup.getGroupSets().remove( this );
     }
 
     public void removeAllOrganisationUnitGroups()
     {
-        for ( OrganisationUnitGroup organisationUnitGroup : organisationUnitGroups )
+        for ( OrganisationUnitGroup group : organisationUnitGroups )
         {
-            organisationUnitGroup.setGroupSet( null );
+            group.getGroupSets().remove( this );
         }
 
         organisationUnitGroups.clear();
@@ -239,36 +237,5 @@ public class OrganisationUnitGroupSet
     public void setOrganisationUnitGroups( Set<OrganisationUnitGroup> organisationUnitGroups )
     {
         this.organisationUnitGroups = organisationUnitGroups;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            OrganisationUnitGroupSet organisationUnitGroupSet = (OrganisationUnitGroupSet) other;
-
-            compulsory = organisationUnitGroupSet.isCompulsory();
-
-            includeSubhierarchyInAnalytics = organisationUnitGroupSet.isIncludeSubhierarchyInAnalytics();
-
-            if ( mergeMode.isReplace() )
-            {
-                description = organisationUnitGroupSet.getDescription();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                description = organisationUnitGroupSet.getDescription() == null ? description : organisationUnitGroupSet.getDescription();
-            }
-
-            removeAllOrganisationUnitGroups();
-
-            for ( OrganisationUnitGroup organisationUnitGroup : organisationUnitGroupSet.getOrganisationUnitGroups() )
-            {
-                addOrganisationUnitGroup( organisationUnitGroup );
-            }
-        }
     }
 }

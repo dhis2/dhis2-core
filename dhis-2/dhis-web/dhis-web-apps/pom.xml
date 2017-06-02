@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-web</artifactId>
-    <version>2.27-SNAPSHOT</version>
+    <version>2.28-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-web-apps</artifactId>
@@ -192,9 +192,18 @@
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-interpretation</artifactId>
-                  <version>2.26-SNAPSHOT</version>
+                  <version>2.27-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-interpretation</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
+                <!-- Datastore -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-datastore</artifactId>
+                  <version>2.27-SNAPSHOT</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-datastore</outputDirectory>
                   <includes>**/*.*</includes>
                 </artifactItem>
               </artifactItems>

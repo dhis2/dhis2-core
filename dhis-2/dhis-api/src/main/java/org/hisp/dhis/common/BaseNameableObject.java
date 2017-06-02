@@ -177,7 +177,7 @@ public class BaseNameableObject
     {
         return "{" +
             "\"class\":\"" + getClass() + "\", " +
-            "\"hashCode\":\"" + hashCode() + "\", " +            
+            "\"hashCode\":\"" + hashCode() + "\", " +
             "\"id\":\"" + getId() + "\", " +
             "\"uid\":\"" + getUid() + "\", " +
             "\"code\":\"" + getCode() + "\", " +
@@ -247,28 +247,5 @@ public class BaseNameableObject
     public void setDisplayDescription( String displayDescription )
     {
         this.displayDescription = displayDescription;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            NameableObject nameableObject = (NameableObject) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                this.shortName = nameableObject.getShortName();
-                this.description = nameableObject.getDescription();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                this.shortName = nameableObject.getShortName() == null ? this.shortName : nameableObject.getShortName();
-                this.description = nameableObject.getDescription() == null ? this.description : nameableObject.getDescription();
-            }
-
-        }
     }
 }

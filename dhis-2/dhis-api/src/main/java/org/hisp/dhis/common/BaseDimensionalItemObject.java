@@ -103,7 +103,7 @@ public class BaseDimensionalItemObject
     {
         return getPropertyValue( idScheme );
     }
-    
+
     // -------------------------------------------------------------------------
     // Get and set methods
     // -------------------------------------------------------------------------
@@ -135,7 +135,7 @@ public class BaseDimensionalItemObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public LegendSet getLegendSet()
     {
-        return legendSets.isEmpty() ? null : legendSets.get(0);
+        return legendSets.isEmpty() ? null : legendSets.get( 0 );
     }
 
     public void setLegendSets( List<LegendSet> legendSets )
@@ -154,33 +154,5 @@ public class BaseDimensionalItemObject
     public void setAggregationType( AggregationType aggregationType )
     {
         this.aggregationType = aggregationType;
-    }
-
-    // -------------------------------------------------------------------------
-    // Merge
-    // -------------------------------------------------------------------------
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DimensionalItemObject object = (DimensionalItemObject) other;
-
-            if ( mergeMode.isReplace() )
-            {
-//                legendSets = object.getLegendSets();
-                aggregationType = object.getAggregationType();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-//                legendSets = object.getLegendSets() == null ? legendSets : object.getLegendSets();
-                aggregationType = object.getAggregationType() == null ? aggregationType : object.getAggregationType();
-            }
-
-            legendSets.clear();
-        }
     }
 }

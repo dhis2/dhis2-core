@@ -201,6 +201,7 @@ public class DefaultValidationService
         systemSettingManager.saveSystemSetting( SettingKey.LAST_MONITORING_RUN, new Date() );
 
         ValidationRunContext context = getValidationContext( orgUnits, periods, rules )
+            .withPersistResults( true )
             .withMaxResults( MAX_SCHEDULED_ALERTS )
             .withSendNotifications( false )
             .build();
@@ -536,7 +537,8 @@ public class DefaultValidationService
      * @param dimClass Class of dimensional object
      * @param idClasses Component class(es) of identifiable objects
      */
-    private void getIdentifiableObjectIds( SetMap<Class<? extends IdentifiableObject>, String> idsToGet,
+    @SafeVarargs
+    private final void getIdentifiableObjectIds( SetMap<Class<? extends IdentifiableObject>, String> idsToGet,
         SetMap<Class<? extends DimensionalItemObject>, String> expressionIdMap,
         Class<? extends DimensionalItemObject> dimClass,
         Class<? extends IdentifiableObject>... idClasses )
