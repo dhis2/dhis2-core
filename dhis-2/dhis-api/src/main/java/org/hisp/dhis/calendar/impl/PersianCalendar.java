@@ -33,7 +33,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-
 import org.hisp.dhis.calendar.AbstractCalendar;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateInterval;
@@ -46,105 +45,22 @@ import org.joda.time.chrono.ISOChronology;
 import org.springframework.stereotype.Component;
 
 import org.hisp.dhis.calendar.exception.InvalidCalendarParamatersException;
+
 /**
  * @author Hans Jacobson <jacobson.hans@gmail.com>
  */
 
 @Component
-public class PersianCalendar
-    extends AbstractCalendar
+public class PersianCalendar extends AbstractCalendar
 {
 
     private static final DateTimeUnit START_PERSIAN = new DateTimeUnit( 1353, 1, 1, java.util.Calendar.THURSDAY );
 
-    private static final DateTimeUnit START_ISO = new DateTimeUnit( 1974, 3, 21, java.util.Calendar.THURSDAY,
-        true );
+    private static final DateTimeUnit START_ISO = new DateTimeUnit( 1974, 3, 21, java.util.Calendar.THURSDAY, true );
 
     private static final DateTimeUnit STOP_PERSIAN = new DateTimeUnit( 1418, 12, 29, java.util.Calendar.MONDAY );
 
     private static final DateTimeUnit STOP_ISO = new DateTimeUnit( 2040, 3, 19, java.util.Calendar.MONDAY, true );
-
-    //------------------------------------------------------------------------------------------------------------
-    // Conversion map for Persian calendar
-    //
-    //------------------------------------------------------------------------------------------------------------
-
-    /**
-     * Map that gives an array of month lengths based on Persian year lookup.
-     * Index 1 - 12 is used for months, index 0 is used to give year total (lazy calculated).
-     */
-    private static final Map<Integer, int[]> CONVERSION_MAP = new HashMap<>();
-
-    static
-    {
-        CONVERSION_MAP.put( 1353, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1354, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
-        CONVERSION_MAP.put( 1355, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1356, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1357, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1358, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
-        CONVERSION_MAP.put( 1359, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1360, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1361, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1362, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
-        CONVERSION_MAP.put( 1363, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1364, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1365, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1366, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
-        CONVERSION_MAP.put( 1367, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1368, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1369, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1370, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
-        CONVERSION_MAP.put( 1371, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1372, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1373, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1374, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1375, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
-        CONVERSION_MAP.put( 1376, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1377, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1378, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1379, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
-        CONVERSION_MAP.put( 1380, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1381, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1382, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1383, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
-        CONVERSION_MAP.put( 1384, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1385, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1386, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1387, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
-        CONVERSION_MAP.put( 1388, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1389, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1390, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1391, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
-        CONVERSION_MAP.put( 1392, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1393, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1394, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1395, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
-        CONVERSION_MAP.put( 1396, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1397, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1398, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1399, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
-        CONVERSION_MAP.put( 1400, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1401, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1402, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1403, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
-        CONVERSION_MAP.put( 1404, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1405, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1406, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1407, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1408, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
-        CONVERSION_MAP.put( 1409, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1410, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1411, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1412, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
-        CONVERSION_MAP.put( 1413, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1414, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1415, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1416, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
-        CONVERSION_MAP.put( 1417, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1418, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-        CONVERSION_MAP.put( 1419, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
-    }
 
     private static final Calendar SELF = new PersianCalendar();
 
@@ -679,5 +595,87 @@ public class PersianCalendar
         result.setDayOfWeek( weekday( result ) );
     }
 
+
+    //------------------------------------------------------------------------------------------------------------
+    // Conversion map for Persian calendar
+    //
+    //------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Map that gives an array of month lengths based on Persian year lookup.
+     * Index 1 - 12 is used for months, index 0 is used to give year total (lazy calculated).
+     */
+    private static final Map<Integer, int[]> CONVERSION_MAP = new HashMap<>();
+
+    static
+    {
+        CONVERSION_MAP.put( 1353, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1354, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
+        CONVERSION_MAP.put( 1355, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1356, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1357, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1358, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
+        CONVERSION_MAP.put( 1359, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1360, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1361, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1362, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
+        CONVERSION_MAP.put( 1363, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1364, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1365, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1366, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
+        CONVERSION_MAP.put( 1367, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1368, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1369, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1370, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
+        CONVERSION_MAP.put( 1371, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1372, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1373, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1374, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1375, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
+        CONVERSION_MAP.put( 1376, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1377, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1378, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1379, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
+        CONVERSION_MAP.put( 1380, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1381, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1382, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1383, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
+        CONVERSION_MAP.put( 1384, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1385, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1386, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1387, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
+        CONVERSION_MAP.put( 1388, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1389, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1390, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1391, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
+        CONVERSION_MAP.put( 1392, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1393, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1394, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1395, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
+        CONVERSION_MAP.put( 1396, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1397, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1398, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1399, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
+        CONVERSION_MAP.put( 1400, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1401, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1402, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1403, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
+        CONVERSION_MAP.put( 1404, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1405, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1406, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1407, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1408, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
+        CONVERSION_MAP.put( 1409, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1410, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1411, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1412, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
+        CONVERSION_MAP.put( 1413, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1414, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1415, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1416, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30 } );
+        CONVERSION_MAP.put( 1417, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1418, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+        CONVERSION_MAP.put( 1419, new int[]{ 0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 } );
+    }
 
 }

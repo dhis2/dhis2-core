@@ -52,7 +52,6 @@ import org.junit.Test;
  */
 public class PersianCalendarTest
 {
-
     private Calendar calendar;
 
     @Before
