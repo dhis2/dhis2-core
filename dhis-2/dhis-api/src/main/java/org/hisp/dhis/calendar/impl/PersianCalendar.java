@@ -33,7 +33,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-
 import org.hisp.dhis.calendar.AbstractCalendar;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateInterval;
@@ -46,19 +45,18 @@ import org.joda.time.chrono.ISOChronology;
 import org.springframework.stereotype.Component;
 
 import org.hisp.dhis.calendar.exception.InvalidCalendarParamatersException;
+
 /**
  * @author Hans Jacobson <jacobson.hans@gmail.com>
  */
 
 @Component
-public class PersianCalendar
-    extends AbstractCalendar
+public class PersianCalendar extends AbstractCalendar
 {
 
     private static final DateTimeUnit START_PERSIAN = new DateTimeUnit( 1353, 1, 1, java.util.Calendar.THURSDAY );
 
-    private static final DateTimeUnit START_ISO = new DateTimeUnit( 1974, 3, 21, java.util.Calendar.THURSDAY,
-        true );
+    private static final DateTimeUnit START_ISO = new DateTimeUnit( 1974, 3, 21, java.util.Calendar.THURSDAY, true );
 
     private static final DateTimeUnit STOP_PERSIAN = new DateTimeUnit( 1418, 12, 29, java.util.Calendar.MONDAY );
 
