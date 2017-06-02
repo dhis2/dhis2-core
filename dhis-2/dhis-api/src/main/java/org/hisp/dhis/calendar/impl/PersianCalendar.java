@@ -33,7 +33,7 @@ import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateInterval;
 import org.hisp.dhis.calendar.DateIntervalType;
 import org.hisp.dhis.calendar.DateTimeUnit;
-import org.hisp.dhis.calendar.exception.InvalidCalendarParamatersException;
+import org.hisp.dhis.calendar.exception.InvalidCalendarParametersException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Days;
@@ -85,7 +85,7 @@ public class PersianCalendar extends AbstractCalendar
         if ( dateTimeUnit.getYear() > STOP_PERSIAN.getYear() ||
             dateTimeUnit.getYear() < START_PERSIAN.getYear() )
         {
-            throw new InvalidCalendarParamatersException(
+            throw new InvalidCalendarParametersException(
                 "Illegal PERSIAN year, must be between " + START_PERSIAN.getYear() + " and " +
                     STOP_PERSIAN.getYear() + ", was given " + dateTimeUnit.getYear() );
         }
@@ -129,7 +129,7 @@ public class PersianCalendar extends AbstractCalendar
 
         if ( dateTimeUnit.getYear() < START_ISO.getYear() || dateTimeUnit.getYear() > STOP_ISO.getYear() )
         {
-            throw new InvalidCalendarParamatersException(
+            throw new InvalidCalendarParametersException(
                 "Illegal ISO year, must be between " + START_ISO.getYear() + " and " + STOP_ISO.getYear() +
                     ", was given " + dateTimeUnit.getYear() );
         }
@@ -453,7 +453,7 @@ public class PersianCalendar extends AbstractCalendar
 
         if ( CONVERSION_MAP.get( year ) == null )
         {
-            throw new InvalidCalendarParamatersException(
+            throw new InvalidCalendarParametersException(
                 "Illegal PERSIAN year, must be between " + START_PERSIAN.getYear() + " and " +
                     STOP_PERSIAN.getYear() + " was given " + year );
         }
@@ -474,7 +474,7 @@ public class PersianCalendar extends AbstractCalendar
 
         if ( CONVERSION_MAP.get( year ) == null )
         {
-            throw new InvalidCalendarParamatersException(
+            throw new InvalidCalendarParametersException(
                 "Illegal PERSIAN year, must be between " + START_PERSIAN.getYear() + " and " +
                     STOP_PERSIAN.getYear() + ", was given " + year );
         }

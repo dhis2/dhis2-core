@@ -40,7 +40,7 @@ import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.QuarterlyPeriodType;
-import org.hisp.dhis.calendar.exception.InvalidCalendarParamatersException;
+import org.hisp.dhis.calendar.exception.InvalidCalendarParametersException;
 
 import static org.junit.Assert.assertEquals;
 
@@ -80,7 +80,7 @@ public class PersianCalendarTest
         calendar.daysInMonth( 1389, 13 );
     }
 
-    @Test( expected = InvalidCalendarParamatersException.class )
+    @Test( expected = InvalidCalendarParametersException.class )
     public void testGetDaysFromMapEx()
     {
         calendar.daysInMonth( 1500, 7 );

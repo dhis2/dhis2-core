@@ -32,13 +32,10 @@ package org.hisp.dhis.calendar.exception;
 /**
  * @author Jason P. Pickering <jason.p.pickering@gmail.com>
  */
-public class InvalidCalendarParamatersException extends RuntimeException
+public class InvalidCalendarParametersException extends RuntimeException
 {
-
-    public InvalidCalendarParamatersException() {}
-
-    public InvalidCalendarParamatersException(String message)
+    public InvalidCalendarParametersException( String message )
     {
-        super(message);
+        super( message );
     }
 }
