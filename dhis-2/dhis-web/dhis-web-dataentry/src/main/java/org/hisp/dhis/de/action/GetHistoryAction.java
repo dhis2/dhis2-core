@@ -259,6 +259,8 @@ public class GetHistoryAction
 
         DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cc, cp, false );
 
+        dataElementHistory = historyRetriever.getHistory( dataElement, categoryOptionCombo, attributeOptionCombo, organisationUnit, period, HISTORY_LENGTH );
+
         dataValueAudits = dataValueAuditService.getDataValueAudits( Lists.newArrayList( dataElement ), Lists.newArrayList( period ),
             Lists.newArrayList( organisationUnit ), categoryOptionCombo, attributeOptionCombo, null );
 
@@ -270,8 +272,6 @@ public class GetHistoryAction
             storedBy = credentials != null ? credentials.getName() : dataValue.getStoredBy();
         }
 
-        dataElementHistory = historyRetriever.getHistory( dataElement, categoryOptionCombo, attributeOptionCombo, organisationUnit, period, HISTORY_LENGTH );
-        
         historyInvalid = dataElementHistory == null;
 
         minMaxInvalid = !dataElement.getValueType().isNumeric();
