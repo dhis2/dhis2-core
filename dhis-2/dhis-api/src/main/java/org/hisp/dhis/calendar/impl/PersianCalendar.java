@@ -28,32 +28,29 @@ package org.hisp.dhis.calendar.impl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.hisp.dhis.calendar.AbstractCalendar;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateInterval;
 import org.hisp.dhis.calendar.DateIntervalType;
 import org.hisp.dhis.calendar.DateTimeUnit;
+import org.hisp.dhis.calendar.exception.InvalidCalendarParamatersException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Days;
 import org.joda.time.chrono.ISOChronology;
 import org.springframework.stereotype.Component;
 
-import org.hisp.dhis.calendar.exception.InvalidCalendarParamatersException;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Hans Jacobson <jacobson.hans@gmail.com>
  */
-
 @Component
 public class PersianCalendar extends AbstractCalendar
 {
-
     private static final DateTimeUnit START_PERSIAN = new DateTimeUnit( 1353, 1, 1, java.util.Calendar.THURSDAY );
 
     private static final DateTimeUnit START_ISO = new DateTimeUnit( 1974, 3, 21, java.util.Calendar.THURSDAY, true );
@@ -112,7 +109,6 @@ public class PersianCalendar extends AbstractCalendar
         dateTime = dateTime.plusDays( totalDays );
 
         return new DateTimeUnit( DateTimeUnit.fromJodaDateTime( dateTime ), true );
-
     }
 
     @Override
@@ -142,7 +138,6 @@ public class PersianCalendar extends AbstractCalendar
         DateTime end = dateTimeUnit.toJodaDateTime();
 
         return plusDays( START_PERSIAN, Days.daysBetween( start, end ).getDays() );
-
     }
 
     @Override
@@ -161,98 +156,6 @@ public class PersianCalendar extends AbstractCalendar
             default:
                 return null;
         }
-
-    }
-
-    private DateInterval toYearIsoInterval( DateTimeUnit dateTimeUnit, int offset, int length )
-    {
-        DateTimeUnit from = new DateTimeUnit( dateTimeUnit );
-
-        if ( offset > 0 )
-        {
-            from = plusYears( from, offset );
-        }
-        else if ( offset < 0 )
-        {
-            from = minusYears( from, -offset );
-        }
-
-        DateTimeUnit to = new DateTimeUnit( from );
-        to = plusYears( to, length );
-        to = minusDays( to, length );
-
-        from = toIso( from );
-        to = toIso( to );
-
-        return new DateInterval( from, to, DateIntervalType.ISO8601_YEAR );
-    }
-
-    private DateInterval toMonthIsoInterval( DateTimeUnit dateTimeUnit, int offset, int length )
-    {
-        DateTimeUnit from = new DateTimeUnit( dateTimeUnit );
-
-        if ( offset > 0 )
-        {
-            from = plusMonths( from, offset );
-        }
-        else if ( offset < 0 )
-        {
-            from = minusMonths( from, -offset );
-        }
-
-        DateTimeUnit to = new DateTimeUnit( from );
-        to = plusMonths( to, length );
-        to = minusDays( to, 1 );
-
-        from = toIso( from );
-        to = toIso( to );
-
-        return new DateInterval( from, to, DateIntervalType.ISO8601_MONTH );
-    }
-
-    private DateInterval toWeekIsoInterval( DateTimeUnit dateTimeUnit, int offset, int length )
-    {
-        DateTimeUnit from = new DateTimeUnit( dateTimeUnit );
-
-        if ( offset > 0 )
-        {
-            from = plusWeeks( from, offset );
-        }
-        else if ( offset < 0 )
-        {
-            from = minusWeeks( from, -offset );
-        }
-
-        DateTimeUnit to = new DateTimeUnit( from );
-        to = plusWeeks( to, length );
-        to = minusDays( to, 1 );
-
-        from = toIso( from );
-        to = toIso( to );
-
-        return new DateInterval( from, to, DateIntervalType.ISO8601_WEEK );
-    }
-
-    private DateInterval toDayIsoInterval( DateTimeUnit dateTimeUnit, int offset, int length )
-    {
-        DateTimeUnit from = new DateTimeUnit( dateTimeUnit );
-
-        if ( offset >= 0 )
-        {
-            from = plusDays( from, offset );
-        }
-        else if ( offset < 0 )
-        {
-            from = minusDays( from, -offset );
-        }
-
-        DateTimeUnit to = new DateTimeUnit( from );
-        to = plusDays( to, length );
-
-        from = toIso( from );
-        to = toIso( to );
-
-        return new DateInterval( from, to, DateIntervalType.ISO8601_DAY );
     }
 
     @Override
@@ -369,27 +272,6 @@ public class PersianCalendar extends AbstractCalendar
         }
 
         return "persian." + DEFAULT_I18N_DAY_SHORT_NAMES[day - 1];
-    }
-
-    private int getYearTotal( int year )
-    {
-
-        if ( CONVERSION_MAP.get( year ) == null )
-        {
-            throw new InvalidCalendarParamatersException(
-                "Illegal PERSIAN year, must be between " + START_PERSIAN.getYear() + " and " +
-                    STOP_PERSIAN.getYear() + " was given " + year );
-        }
-
-        if ( CONVERSION_MAP.get( year )[0] == 0 )
-        {
-            for ( int j = 1; j <= 12; j++ )
-            {
-                CONVERSION_MAP.get( year )[0] += CONVERSION_MAP.get( year )[j];
-            }
-        }
-
-        return CONVERSION_MAP.get( year )[0];
     }
 
     @Override
@@ -562,7 +444,32 @@ public class PersianCalendar extends AbstractCalendar
         return new DateTimeUnit( year + 621, 3, day, java.util.Calendar.FRIDAY, true );
     }
 
-    public int getDaysFromMap( int year, int month )
+    //---------------------------------------------------------------------------------------------
+    // Helpers
+    //---------------------------------------------------------------------------------------------
+
+    private int getYearTotal( int year )
+    {
+
+        if ( CONVERSION_MAP.get( year ) == null )
+        {
+            throw new InvalidCalendarParamatersException(
+                "Illegal PERSIAN year, must be between " + START_PERSIAN.getYear() + " and " +
+                    STOP_PERSIAN.getYear() + " was given " + year );
+        }
+
+        if ( CONVERSION_MAP.get( year )[0] == 0 )
+        {
+            for ( int j = 1; j <= 12; j++ )
+            {
+                CONVERSION_MAP.get( year )[0] += CONVERSION_MAP.get( year )[j];
+            }
+        }
+
+        return CONVERSION_MAP.get( year )[0];
+    }
+
+    private int getDaysFromMap( int year, int month )
     {
 
         if ( CONVERSION_MAP.get( year ) == null )
@@ -575,6 +482,96 @@ public class PersianCalendar extends AbstractCalendar
         return CONVERSION_MAP.get( year )[month];
     }
 
+    private DateInterval toYearIsoInterval( DateTimeUnit dateTimeUnit, int offset, int length )
+    {
+        DateTimeUnit from = new DateTimeUnit( dateTimeUnit );
+
+        if ( offset > 0 )
+        {
+            from = plusYears( from, offset );
+        }
+        else if ( offset < 0 )
+        {
+            from = minusYears( from, -offset );
+        }
+
+        DateTimeUnit to = new DateTimeUnit( from );
+        to = plusYears( to, length );
+        to = minusDays( to, length );
+
+        from = toIso( from );
+        to = toIso( to );
+
+        return new DateInterval( from, to, DateIntervalType.ISO8601_YEAR );
+    }
+
+    private DateInterval toMonthIsoInterval( DateTimeUnit dateTimeUnit, int offset, int length )
+    {
+        DateTimeUnit from = new DateTimeUnit( dateTimeUnit );
+
+        if ( offset > 0 )
+        {
+            from = plusMonths( from, offset );
+        }
+        else if ( offset < 0 )
+        {
+            from = minusMonths( from, -offset );
+        }
+
+        DateTimeUnit to = new DateTimeUnit( from );
+        to = plusMonths( to, length );
+        to = minusDays( to, 1 );
+
+        from = toIso( from );
+        to = toIso( to );
+
+        return new DateInterval( from, to, DateIntervalType.ISO8601_MONTH );
+    }
+
+    private DateInterval toWeekIsoInterval( DateTimeUnit dateTimeUnit, int offset, int length )
+    {
+        DateTimeUnit from = new DateTimeUnit( dateTimeUnit );
+
+        if ( offset > 0 )
+        {
+            from = plusWeeks( from, offset );
+        }
+        else if ( offset < 0 )
+        {
+            from = minusWeeks( from, -offset );
+        }
+
+        DateTimeUnit to = new DateTimeUnit( from );
+        to = plusWeeks( to, length );
+        to = minusDays( to, 1 );
+
+        from = toIso( from );
+        to = toIso( to );
+
+        return new DateInterval( from, to, DateIntervalType.ISO8601_WEEK );
+    }
+
+    private DateInterval toDayIsoInterval( DateTimeUnit dateTimeUnit, int offset, int length )
+    {
+        DateTimeUnit from = new DateTimeUnit( dateTimeUnit );
+
+        if ( offset >= 0 )
+        {
+            from = plusDays( from, offset );
+        }
+        else if ( offset < 0 )
+        {
+            from = minusDays( from, -offset );
+        }
+
+        DateTimeUnit to = new DateTimeUnit( from );
+        to = plusDays( to, length );
+
+        from = toIso( from );
+        to = toIso( to );
+
+        return new DateInterval( from, to, DateIntervalType.ISO8601_DAY );
+    }
 
     private boolean contains( final int[] arr, final int key )
     {
