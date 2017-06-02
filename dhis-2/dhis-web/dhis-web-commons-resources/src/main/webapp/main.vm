@@ -37,7 +37,7 @@
     <script type="text/javascript">
       var dateFormat = 'yy-mm-dd';
     </script>
-    
+
     <script type="text/javascript" src="../dhis-web-commons/javascripts/ext/ext-all.js"></script>
 
     <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.min.js?_rev=$!{buildRevision}"></script>
@@ -97,7 +97,7 @@
     <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.plus.min.js?_rev=$!{buildRevision}"></script>
     <script type="text/javascript" src="../dhis-web-commons/javascripts/moment/moment-with-langs.min.js?_rev=$!{buildRevision}"></script>
 	<script type="text/javascript" src="../dhis-web-commons/select2/select2.min.js?_rev=$!{buildRevision}"></script>
-    #if( $keyCalendar == "coptic" || $keyCalendar == "ethiopian" || $keyCalendar == "islamic"  || $keyCalendar == "julian" || $keyCalendar == "nepali" || $keyCalendar == "thai" )
+    #if( $keyCalendar == "persian" || $keyCalendar == "coptic" || $keyCalendar == "ethiopian" || $keyCalendar == "islamic"  || $keyCalendar == "julian" || $keyCalendar == "nepali" || $keyCalendar == "thai" )
     <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.${keyCalendar}.min.js?_rev=$!{buildRevision}"></script>
     #end
     <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.period.js?_rev=$!{buildRevision}"></script>
@@ -134,7 +134,7 @@
       #end
       dhis2.period.generator = new dhis2.period.PeriodGenerator( dhis2.period.calendar, dhis2.period.format );
       dhis2.period.picker = new dhis2.period.DatePicker( dhis2.period.calendar, dhis2.period.format );
-      
+
     </script>
   </head>
 

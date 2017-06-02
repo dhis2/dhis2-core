@@ -103,7 +103,7 @@ fonts/LiberationSans-Bold-webfont.svg
 
 ../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.min.js?_rev=$!{buildRevision}
 ../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.plus.min.js?_rev=$!{buildRevision}
-#if( $keyCalendar == "coptic" || $keyCalendar == "ethiopian" || $keyCalendar == "islamic"  || $keyCalendar == "julian" || $keyCalendar == "nepali" || $keyCalendar == "thai" )
+#if( $keyCalendar == "persian" || $keyCalendar == "coptic" || $keyCalendar == "ethiopian" || $keyCalendar == "islamic"  || $keyCalendar == "julian" || $keyCalendar == "nepali" || $keyCalendar == "thai" )
 ../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.${keyCalendar}.min.js?_rev=$!{buildRevision}">
 #end
 ../dhis-web-commons/javascripts/dhis2/dhis2.period.js?_rev=$!{buildRevision}
