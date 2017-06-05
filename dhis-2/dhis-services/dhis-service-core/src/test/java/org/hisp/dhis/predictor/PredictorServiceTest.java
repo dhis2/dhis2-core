@@ -214,9 +214,9 @@ public class PredictorServiceTest
 
         expressionA = new Expression(
             "AVG(#{" + dataElementA.getUid() + "})+1.5*STDDEV(#{" + dataElementA.getUid() + "})", "descriptionA" );
-        expressionB = new Expression( "#{" + dataElementB.getUid() + "}", "descriptionB" );
-        expressionC = new Expression( "1234", "descriptionB" );
-        expressionD = new Expression( SYMBOL_DAYS, "descriptionB" );
+        expressionB = new Expression( "AVG(#{" + dataElementB.getUid() + "." + defaultCombo.getUid() + "})", "descriptionB" );
+        expressionC = new Expression( "1234", "descriptionC" );
+        expressionD = new Expression( SYMBOL_DAYS, "descriptionD" );
 
         expressionService.addExpression( expressionA );
         expressionService.addExpression( expressionB );
@@ -584,6 +584,20 @@ public class PredictorServiceTest
     // -------------------------------------------------------------------------
     // Predict tests
     // -------------------------------------------------------------------------
+
+    @Test
+    @Category( IntegrationTest.class )
+    public void testPredictWithCategoryOptionCombo()
+    {
+        useDataValue( dataElementB, makeMonth( 2001, 6 ), sourceA, 5 );
+
+        Predictor p = createPredictor( dataElementX, defaultCombo, "A", expressionB, null,
+            periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        assertEquals( 1, predictorService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 8 ) ) );
+
+        assertEquals( new Double( 5.0 ), getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
+    }
 
     @Test
     @Category( IntegrationTest.class )
