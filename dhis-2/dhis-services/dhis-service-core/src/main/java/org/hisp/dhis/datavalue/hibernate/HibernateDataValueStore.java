@@ -458,7 +458,7 @@ public class HibernateDataValueStore
                 return "";
             }
 
-            restiction += snippit + deo.getCategoryOptionCombo().getUid();
+            restiction += snippit + "'" + deo.getCategoryOptionCombo().getUid() + "'";
 
             snippit = ", ";
         }
