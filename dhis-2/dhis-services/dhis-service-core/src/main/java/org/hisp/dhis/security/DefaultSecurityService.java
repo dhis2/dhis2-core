@@ -210,7 +210,7 @@ public class DefaultSecurityService
     @Override
     public String validateRestore( UserCredentials credentials )
     {
-        if ( !systemSettingManager.emailEnabled() )
+        if ( !emailMessageSender.isConfigured() )
         {
             log.warn( "Could not send restore/invite message as email is not configured" );
             return "email_not_configured_for_system";
