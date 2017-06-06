@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -134,7 +133,7 @@ public class ObjectBundleValidationReport
             return new ArrayList<>();
         }
 
-        return typeReportMap.get( klass ).getErrorReports().stream().collect( Collectors.toList() );
+        return new ArrayList<>( typeReportMap.get( klass ).getErrorReports() );
     }
 
     public List<ErrorReport> getErrorReports()

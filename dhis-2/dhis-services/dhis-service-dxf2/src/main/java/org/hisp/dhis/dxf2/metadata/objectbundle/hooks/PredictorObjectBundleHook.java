@@ -31,7 +31,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.predictor.Predictor;
 
 /**
@@ -64,12 +63,6 @@ public class PredictorObjectBundleHook
         {
             sessionFactory.getCurrentSession().save( skipTest );
         }
-
-        if ( predictor.getPeriodType() != null )
-        {
-            PeriodType periodType = bundle.getPreheat().getPeriodTypeMap().get( predictor.getPeriodType().getName() );
-            predictor.setPeriodType( periodType );
-        }
     }
 
     @Override
@@ -96,12 +89,6 @@ public class PredictorObjectBundleHook
         if ( skipTest != null )
         {
             sessionFactory.getCurrentSession().save( skipTest );
-        }
-
-        if ( predictor.getPeriodType() != null )
-        {
-            PeriodType periodType = bundle.getPreheat().getPeriodTypeMap().get( predictor.getPeriodType().getName() );
-            predictor.setPeriodType( periodType );
         }
     }
 }
