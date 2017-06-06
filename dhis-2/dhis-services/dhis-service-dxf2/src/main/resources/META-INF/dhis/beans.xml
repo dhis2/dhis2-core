@@ -16,17 +16,11 @@
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.OrganisationUnitObjectBundleHook" />
 
-  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ProgramStageObjectBundleHook" />
-
-  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataApprovalWorkflowObjectBundleHook" />
-
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.UserObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.UserRoleObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataInputPeriodObjectBundleHook" />
-
-  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ValidationRuleObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.PredictorObjectBundleHook" />
 

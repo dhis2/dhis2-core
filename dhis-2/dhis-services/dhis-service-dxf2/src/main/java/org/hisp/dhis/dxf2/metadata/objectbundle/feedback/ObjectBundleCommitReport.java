@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.feedback;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
-
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
@@ -40,7 +39,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -133,7 +131,7 @@ public class ObjectBundleCommitReport
         {
             return Lists.newArrayList();
         }
-        
+
         return typeReportMap.get( klass ).getObjectReports();
     }
 
@@ -143,14 +141,14 @@ public class ObjectBundleCommitReport
         {
             return Lists.newArrayList();
         }
-        
-        return typeReportMap.get( klass ).getErrorReports().stream().collect( Collectors.toList() );
+
+        return new ArrayList<>( typeReportMap.get( klass ).getErrorReports() );
     }
 
     public List<ErrorReport> getErrorReports()
     {
         List<ErrorReport> errorReports = new ArrayList<>();
-        
+
         typeReportMap.values().forEach( typeReport -> errorReports.addAll( typeReport.getErrorReports() ) );
 
         return errorReports;
