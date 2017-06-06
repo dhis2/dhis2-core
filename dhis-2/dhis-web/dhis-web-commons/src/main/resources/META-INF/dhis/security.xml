@@ -53,6 +53,8 @@
     <property name="sessionTimeout" ref="sessionTimeout" />
   </bean>
 
+  <bean class="org.hisp.dhis.security.DefaultLogoutSuccessHandler" />
+
   <bean id="customAuthenticationFilter" class="org.hisp.dhis.security.filter.CustomAuthenticationFilter" />
 
   <bean id="corsFilter" class="org.hisp.dhis.security.filter.CorsFilter" />
@@ -119,7 +121,8 @@
     <sec:csrf disabled="true" />
 
     <sec:http-basic />
-    <sec:logout logout-url="/dhis-web-commons-security/logout.action" logout-success-url="/" />
+    <sec:logout logout-url="/dhis-web-commons-security/logout.action"
+      success-handler-ref="org.hisp.dhis.security.DefaultLogoutSuccessHandler" />
     <sec:intercept-url pattern="/dhis-web-commons/i18nJavaScript.action" access="permitAll()" />
     <sec:intercept-url pattern="/dhis-web-commons/security/**" access="permitAll()" />
 
