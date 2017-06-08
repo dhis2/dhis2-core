@@ -39,6 +39,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 
 import java.util.Set;
+import java.util.function.BiConsumer;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -47,15 +48,16 @@ public class ProgramNotificationTemplateObjectBundleHook
     extends AbstractObjectBundleHook
 {
     private ImmutableMap<ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>>
-            RECIPIENT_RESOLVER = new ImmutableMap.Builder<ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>>()
-            .put( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE, template -> template.getRecipientProgramAttribute().getValueType() )
-            .build();
+        RECIPIENT_RESOLVER = new ImmutableMap.Builder<ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>>()
+        .put( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE, template -> template.getRecipientProgramAttribute().getValueType() )
+        .put( ProgramNotificationRecipient.DATA_ELEMENT, template -> template.getRecipientDataElement().getValueType() )
+        .build();
 
     private static  final  ImmutableMap<ValueType,Set<DeliveryChannel>>
-            CHANNEL_MAPPER = new ImmutableMap.Builder<ValueType, Set<DeliveryChannel>>()
-            .put( ValueType.PHONE_NUMBER, Sets.newHashSet( DeliveryChannel.SMS ) )
-            .put( ValueType.EMAIL, Sets.newHashSet( DeliveryChannel.EMAIL ) )
-            .build();
+        CHANNEL_MAPPER = new ImmutableMap.Builder<ValueType, Set<DeliveryChannel>>()
+        .put( ValueType.PHONE_NUMBER, Sets.newHashSet( DeliveryChannel.SMS ) )
+        .put( ValueType.EMAIL, Sets.newHashSet( DeliveryChannel.EMAIL ) )
+        .build();
 
     @Override
     public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
@@ -124,6 +126,11 @@ public class ProgramNotificationTemplateObjectBundleHook
         if ( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE == template.getNotificationRecipient() )
         {
             resolveTemplateRecipients( template, ProgramNotificationRecipient.PROGRAM_ATTRIBUTE );
+        }
+
+        if ( ProgramNotificationRecipient.DATA_ELEMENT == template.getNotificationRecipient() )
+        {
+            resolveTemplateRecipients( template, ProgramNotificationRecipient.DATA_ELEMENT );
         }
     }
 
