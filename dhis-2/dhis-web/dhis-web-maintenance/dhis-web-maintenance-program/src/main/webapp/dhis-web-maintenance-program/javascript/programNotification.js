@@ -12,6 +12,9 @@
         var programAttributeContainer=qs('#programAttributeContainer');
         var programAttribute = qs('#programAttribute');
 
+        var dataElementContainer=qs('#dataElementContainer');
+        var dataElement = qs('#dataElement');
+
         var notificationTrigger = qs( '#notificationTrigger' );
         var daysContainer = qs( '#daysContainer' );
         var days = qs( '#days' );
@@ -56,6 +59,15 @@
             if ( recipient === 'PROGRAM_ATTRIBUTE' ) {
                 programAttributeContainer.style.display = 'table-row';
                 programAttribute.disabled = false;
+            } else {
+                programAttributeContainer.style.display = 'none';
+                programAttribute.value = "";
+                programAttribute.disabled = true;
+            }
+
+            if ( recipient === 'DATA_ELEMENT' ) {
+                dataElementContainer.style.display = 'table-row';
+                dataElement.disabled = false;
             } else {
                 programAttributeContainer.style.display = 'none';
                 programAttribute.value = "";
@@ -129,6 +141,11 @@
             return ( uid === undefined ) ? undefined : { 'id' : uid };
         }
 
+        function getDataElement() {
+            var uid = qs( '#dataElement' ).value || undefined;
+            return ( uid === undefined ) ? undefined : { 'id' : uid };
+        }
+
         function getScheduledDays() {
             return ( days.value || 0 ) * ( qs( '#daysModifier' ).value );
         }
@@ -141,6 +158,7 @@
                 notificationRecipient : qs( '#notificationRecipient' ).value,
                 recipientUserGroup : getUserGroup(),
                 recipientProgramAttribute: getProgramAttribute(),
+                recipientDataElement: getDataElement(),
                 deliveryChannels : getSelectedDeliveryChannels(),
                 subjectTemplate : qs( '#subjectTemplate' ).value,
                 messageTemplate : qs( '#messageTemplate' ).value

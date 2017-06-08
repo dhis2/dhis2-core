@@ -30,8 +30,10 @@ package org.hisp.dhis.trackedentity.action.notification;
 
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
@@ -91,6 +93,13 @@ public class ShowAddProgramStageNotificationAction
         return attributes;
     }
 
+    private List<DataElement> dataElements;
+
+    public List<DataElement> getDataElements()
+    {
+        return dataElements;
+    }
+
     private List<TrackedEntityAttribute> phoneNumberAttributes;
 
     private List<TrackedEntityAttribute> emailAttributes;
@@ -105,6 +114,20 @@ public class ShowAddProgramStageNotificationAction
         return emailAttributes;
     }
 
+    private List<DataElement> phoneNumberDataElements;
+
+    private List<DataElement> emailDataElements;
+
+    public List<DataElement> getEmailDataElements()
+    {
+        return emailDataElements;
+    }
+
+    public List<DataElement> getPhoneNumberDataElements()
+    {
+        return phoneNumberDataElements;
+    }
+
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -115,9 +138,15 @@ public class ShowAddProgramStageNotificationAction
         programStage = programStageService.getProgramStage( id );
         userGroups = userGroupService.getAllUserGroups();
         attributes = programStage.getProgram().getTrackedEntityAttributes();
+        dataElements = programStage.getProgramStageDataElements().stream()
+            .map( psde -> psde.getDataElement() )
+            .collect( Collectors.toList() );
 
         phoneNumberAttributes = getAttributeBasedOnValueType( attributes, ValueType.PHONE_NUMBER );
         emailAttributes = getAttributeBasedOnValueType( attributes, ValueType.EMAIL );
+
+        phoneNumberDataElements = getDataElementBasedOnValueType( dataElements, ValueType.PHONE_NUMBER );
+        emailDataElements = getDataElementBasedOnValueType( dataElements, ValueType.EMAIL );
 
         return SUCCESS;
     }
@@ -125,5 +154,10 @@ public class ShowAddProgramStageNotificationAction
     private List<TrackedEntityAttribute> getAttributeBasedOnValueType( List<TrackedEntityAttribute> attributes, ValueType valueType )
     {
         return attributes.stream().filter( attr -> attr.getValueType().equals( valueType ) ).collect( Collectors.toList() );
+    }
+
+    private List<DataElement> getDataElementBasedOnValueType( List<DataElement> dataElements, ValueType valueType )
+    {
+        return dataElements.stream().filter( de -> de.getValueType().equals( valueType ) ).collect( Collectors.toList() );
     }
 }
