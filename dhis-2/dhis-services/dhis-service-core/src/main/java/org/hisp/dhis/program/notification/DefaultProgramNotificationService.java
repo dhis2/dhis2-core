@@ -28,12 +28,15 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.notification.NotificationMessage;
@@ -49,6 +52,8 @@ import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.user.User;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,6 +61,7 @@ import javax.annotation.Nullable;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 /**
@@ -271,8 +277,8 @@ public class DefaultProgramNotificationService
         NotificationMessage message = programStageNotificationRenderer.render( psi, template );
 
         return new ProgramMessage(
-            message.getSubject(), message.getMessage(), resolveProgramMessageRecipients( template, psi.getOrganisationUnit(),
-            psi.getProgramInstance() ), template.getDeliveryChannels(), psi );
+            message.getSubject(), message.getMessage(), resolveProgramStageNotificationRecipients( template, psi.getOrganisationUnit(),
+            psi ), template.getDeliveryChannels(), psi );
     }
 
     private ProgramMessage createProgramMessage( ProgramInstance programInstance, ProgramNotificationTemplate template )
@@ -281,7 +287,7 @@ public class DefaultProgramNotificationService
 
         return new ProgramMessage(
             message.getSubject(), message.getMessage(),
-            resolveProgramMessageRecipients( template, programInstance.getOrganisationUnit(), programInstance ),
+            resolveProgramNotificationRecipients( template, programInstance.getOrganisationUnit(), programInstance ),
             template.getDeliveryChannels(), programInstance );
     }
 
@@ -313,29 +319,65 @@ public class DefaultProgramNotificationService
         return recipients;
     }
 
-    private ProgramMessageRecipients resolveProgramMessageRecipients(
+    private ProgramMessageRecipients resolveProgramNotificationRecipients(
             ProgramNotificationTemplate template, OrganisationUnit organisationUnit, ProgramInstance programInstance )
+    {
+        return resolveRecipients( template, organisationUnit, programInstance.getEntityInstance(), programInstance );
+    }
+
+    private ProgramMessageRecipients resolveProgramStageNotificationRecipients(
+            ProgramNotificationTemplate template, OrganisationUnit organisationUnit, ProgramStageInstance psi )
     {
         ProgramMessageRecipients recipients = new ProgramMessageRecipients();
 
-        TrackedEntityInstance trackedEntityInstance = programInstance.getEntityInstance();
+        if ( template.getNotificationRecipient() == ProgramNotificationRecipient.DATA_ELEMENT
+            && template.getRecipientDataElement() != null )
+        {
+            List<String> recipientList = psi.getDataValues().stream()
+                .filter( dv -> template.getRecipientDataElement().getUid().equals( dv.getDataElement().getUid() ) )
+                .map( TrackedEntityDataValue::getValue )
+                .collect( Collectors.toList() );
+
+            if ( template.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
+            {
+                recipients.getPhoneNumbers().addAll( recipientList );
+            }
+            else if ( template.getDeliveryChannels().contains( DeliveryChannel.EMAIL ) )
+            {
+                recipients.getEmailAddresses().addAll( recipientList );
+            }
+
+            return recipients;
+        }
+        else
+        {
+            TrackedEntityInstance trackedEntityInstance = psi.getProgramInstance().getEntityInstance();
+
+            return resolveRecipients( template, organisationUnit, trackedEntityInstance, psi.getProgramInstance() );
+        }
+    }
+
+    private ProgramMessageRecipients resolveRecipients( ProgramNotificationTemplate template, OrganisationUnit ou,
+        TrackedEntityInstance tei, ProgramInstance pi)
+    {
+        ProgramMessageRecipients recipients = new ProgramMessageRecipients();
 
         ProgramNotificationRecipient recipientType = template.getNotificationRecipient();
 
         if ( recipientType == ProgramNotificationRecipient.ORGANISATION_UNIT_CONTACT )
         {
-            recipients.setOrganisationUnit( organisationUnit );
+            recipients.setOrganisationUnit( ou );
         }
         else if ( recipientType == ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE )
         {
-            recipients.setTrackedEntityInstance( trackedEntityInstance );
+            recipients.setTrackedEntityInstance( tei );
         }
         else if ( recipientType == ProgramNotificationRecipient.PROGRAM_ATTRIBUTE
             && template.getRecipientProgramAttribute() != null )
         {
-            List<String> recipientList = programInstance.getEntityInstance().getTrackedEntityAttributeValues().stream()
+            List<String> recipientList = pi.getEntityInstance().getTrackedEntityAttributeValues().stream()
                 .filter( av -> template.getRecipientProgramAttribute().getUid().equals( av.getAttribute().getUid() ) )
-                .map( av -> av.getPlainValue() )
+                .map( TrackedEntityAttributeValue::getPlainValue )
                 .collect( Collectors.toList() );
 
             if ( template.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
