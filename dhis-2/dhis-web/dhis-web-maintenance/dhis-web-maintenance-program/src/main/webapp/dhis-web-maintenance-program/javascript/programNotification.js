@@ -69,9 +69,9 @@
                 dataElementContainer.style.display = 'table-row';
                 dataElement.disabled = false;
             } else {
-                programAttributeContainer.style.display = 'none';
-                programAttribute.value = "";
-                programAttribute.disabled = true;
+                dataElementContainer.style.display = 'none';
+                dataElement.value = "";
+                dataElement.disabled = true;
             }
 
             if ( isExternalRecipient( recipient ) ) {
