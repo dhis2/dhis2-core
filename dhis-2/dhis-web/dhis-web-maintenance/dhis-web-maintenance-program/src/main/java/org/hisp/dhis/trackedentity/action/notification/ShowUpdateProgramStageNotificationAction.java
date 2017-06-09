@@ -117,12 +117,12 @@ public class ShowUpdateProgramStageNotificationAction
 
     private List<TrackedEntityAttribute> phoneNumberAttributes;
 
-    private List<TrackedEntityAttribute> emailAttributes;
-
     public List<TrackedEntityAttribute> getPhoneNumberAttributes()
     {
         return phoneNumberAttributes;
     }
+
+    private List<TrackedEntityAttribute> emailAttributes;
 
     public List<TrackedEntityAttribute> getEmailAttributes()
     {
@@ -131,16 +131,16 @@ public class ShowUpdateProgramStageNotificationAction
 
     private List<DataElement> phoneNumberDataElements;
 
+    public List<DataElement> getPhoneNumberDataElements()
+    {
+        return phoneNumberDataElements;
+    }
+
     private List<DataElement> emailDataElements;
 
     public List<DataElement> getEmailDataElements()
     {
         return emailDataElements;
-    }
-
-    public List<DataElement> getPhoneNumberDataElements()
-    {
-        return phoneNumberDataElements;
     }
 
     // -------------------------------------------------------------------------
