@@ -39,7 +39,6 @@ import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 
 import java.util.Set;
-import java.util.function.BiConsumer;
 
 /**
  * @author Halvdan Hoem Grelland
