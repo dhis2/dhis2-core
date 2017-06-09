@@ -38,7 +38,6 @@ import org.hibernate.mapping.Column;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.metamodel.spi.MetamodelImplementor;
 import org.hibernate.persister.collection.CollectionPersister;
-import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.Joinable;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.CustomType;
@@ -203,7 +202,7 @@ public abstract class AbstractPropertyIntrospectorService
 
         try
         {
-            EntityPersister classMetadata = metamodelImplementor.entityPersister( klass );
+            metamodelImplementor.entityPersister( klass );
         }
         catch ( MappingException e )
         {

@@ -36,7 +36,6 @@ import com.google.common.collect.Maps;
 import org.hibernate.MappingException;
 import org.hibernate.SessionFactory;
 import org.hibernate.metamodel.spi.MetamodelImplementor;
-import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.schema.descriptors.*;
@@ -186,7 +185,7 @@ public class DefaultSchemaService
 
             try
             {
-                EntityPersister entityPersister = metamodelImplementor.entityPersister( schema.getKlass() );
+                metamodelImplementor.entityPersister( schema.getKlass() );
                 schema.setPersisted( true );
             }
             catch ( MappingException e )
