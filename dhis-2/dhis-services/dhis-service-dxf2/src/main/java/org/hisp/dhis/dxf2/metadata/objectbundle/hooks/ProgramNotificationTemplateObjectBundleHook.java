@@ -48,7 +48,7 @@ public class ProgramNotificationTemplateObjectBundleHook
     extends AbstractObjectBundleHook
 {
     private ImmutableMap<ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>>
-        RECIPIENT_RESOLVER = new ImmutableMap.Builder<ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>>()
+        RECIPIENT_TO_VALUETYPE_RESOLVER = new ImmutableMap.Builder<ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>>()
         .put( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE, template -> template.getRecipientProgramAttribute().getValueType() )
         .put( ProgramNotificationRecipient.DATA_ELEMENT, template -> template.getRecipientDataElement().getValueType() )
         .build();
@@ -115,6 +115,11 @@ public class ProgramNotificationTemplateObjectBundleHook
             template.setRecipientProgramAttribute( null );
         }
 
+        if ( ProgramNotificationRecipient.DATA_ELEMENT != template.getNotificationRecipient() )
+        {
+            template.setRecipientDataElement( null );
+        }
+
         if ( ! ( template.getNotificationRecipient().isExternalRecipient() ) )
         {
             template.setDeliveryChannels( Sets.newHashSet() );
@@ -136,11 +141,11 @@ public class ProgramNotificationTemplateObjectBundleHook
 
     private void resolveTemplateRecipients( ProgramNotificationTemplate pnt, ProgramNotificationRecipient pnr )
     {
-        Function<ProgramNotificationTemplate,ValueType> resolver = RECIPIENT_RESOLVER.get( pnr );
+        Function<ProgramNotificationTemplate,ValueType> resolver = RECIPIENT_TO_VALUETYPE_RESOLVER.get( pnr );
 
         ValueType valueType = null;
 
-        if ( resolver != null && pnt.getRecipientProgramAttribute() != null )
+        if ( resolver != null && ( pnt.getRecipientProgramAttribute() != null || pnt.getRecipientDataElement() != null ) )
         {
             valueType = resolver.apply( pnt );
         }
