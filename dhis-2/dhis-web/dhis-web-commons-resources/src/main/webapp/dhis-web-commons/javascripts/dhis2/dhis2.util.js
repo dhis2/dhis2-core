@@ -198,7 +198,7 @@ dhis2.util.nameSort = function( a, b ) {
  * adds ':containsNC' to filtering.
  * $(sel).find(':containsNC(key)').doSomething();
  */
-$.expr[":"].containsNC = function( a, i, m, r ) {
+$.expr.pseudos.containsNC = function( a, i, m, r ) {
   var search = dhis2.util.escape(m[3]);
   return jQuery(a).text().toUpperCase().indexOf(m[search].toUpperCase()) >= 0;
 };
