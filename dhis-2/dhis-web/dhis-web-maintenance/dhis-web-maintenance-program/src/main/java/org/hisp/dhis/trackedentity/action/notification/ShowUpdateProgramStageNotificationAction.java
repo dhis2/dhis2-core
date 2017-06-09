@@ -159,8 +159,8 @@ public class ShowUpdateProgramStageNotificationAction
         {
             attributes = programStage.getProgram().getTrackedEntityAttributes();
             dataElements = programStage.getProgramStageDataElements().stream()
-                    .map( psde -> psde.getDataElement() )
-                    .collect( Collectors.toList() );
+                .map( psde -> psde.getDataElement() )
+                .collect( Collectors.toList() );
 
             phoneNumberAttributes = getAttributeBasedOnValueType( attributes, ValueType.PHONE_NUMBER );
             emailAttributes = getAttributeBasedOnValueType( attributes, ValueType.EMAIL );
