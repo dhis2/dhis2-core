@@ -206,7 +206,7 @@ $.expr.pseudos.containsNC = function( a, i, m, r ) {
 /**
  * adds ':regex' to filtering, use to filter by regular expression
  */
-$.expr[":"].regex = function( a, i, m, r ) {
+$.expr.pseudos.regex = function( a, i, m, r ) {
   var re = new RegExp(m[3], 'i');
   return re.test(jQuery(a).text());
 };
@@ -215,7 +215,7 @@ $.expr[":"].regex = function( a, i, m, r ) {
  * adds ':regex' to filtering, use to filter by regular expression
  * (this is the case sensitive version)
  */
-$.expr[":"].regexCS = function( a, i, m, r ) {
+$.expr.pseudos.regexCS = function( a, i, m, r ) {
   var re = new RegExp(m[3]);
   return re.test(jQuery(a).text());
 };
