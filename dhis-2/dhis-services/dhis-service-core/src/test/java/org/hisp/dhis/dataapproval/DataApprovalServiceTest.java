@@ -43,7 +43,6 @@ import java.util.Set;
 
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeApprovedException;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
@@ -95,9 +94,6 @@ public class DataApprovalServiceTest
     @Autowired
     private OrganisationUnitService organisationUnitService;
    
-    @Autowired 
-    protected IdentifiableObjectManager identifiableObjectManager;
-    
     @Autowired
     protected UserService _userService;
 

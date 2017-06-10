@@ -204,6 +204,7 @@ public class DefaultValidationNotificationService
     {
         final Map<MessagePair, NotificationMessage> renderedNotificationsMap = groupedByRecipients.entrySet().stream()
             .flatMap( entry -> entry.getValue().stream() )
+            .distinct()
             .collect( Collectors.toMap( p -> p, p -> notificationMessageRenderer.render( p.result, p.template ) ) );
 
         // Collect all pre-rendered messages into summaries and return mapped by recipients

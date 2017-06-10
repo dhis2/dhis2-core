@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping( value = "/periodTypes" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V27 } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V27, DhisApiVersion.V28 } )
 public class PeriodTypeController
 {
     private final PeriodService periodService;

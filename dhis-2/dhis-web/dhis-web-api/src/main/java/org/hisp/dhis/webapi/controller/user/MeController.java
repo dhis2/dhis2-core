@@ -46,7 +46,14 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.PasswordManager;
-import org.hisp.dhis.user.*;
+import org.hisp.dhis.user.CredentialsInfo;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.PasswordValidationResult;
+import org.hisp.dhis.user.PasswordValidationService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -55,13 +62,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -69,7 +84,7 @@ import java.util.stream.Collectors;
  */
 @Controller
 @RequestMapping( value = "/me", method = RequestMethod.GET )
-@ApiVersion( { DhisApiVersion.V24, DhisApiVersion.V25, DhisApiVersion.V26, DhisApiVersion.V27 } )
+@ApiVersion( { DhisApiVersion.V24, DhisApiVersion.V25, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 } )
 public class MeController
 {
     @Autowired
@@ -296,7 +311,7 @@ public class MeController
 
     @RequestMapping( value = "/validatePassword", method = RequestMethod.POST, consumes = "text/*" )
     public @ResponseBody RootNode validatePasswordText( @RequestBody String password, HttpServletResponse response )
-            throws WebMessageException
+        throws WebMessageException
     {
         return validatePasswordInternal( password, getCurrentUserOrThrow() );
     }
@@ -346,7 +361,7 @@ public class MeController
     }
 
     private RootNode validatePasswordInternal( String password, User currentUser )
-            throws WebMessageException
+        throws WebMessageException
     {
         if ( password == null )
         {
