@@ -479,7 +479,7 @@ function Selection()
 
                         $.post( organisationUnitTreePath + "setorgunit.action", {
                             id: selected
-                        } ).complete( function() {
+                        } ).always( function() {
                             selection.busy( false );
                             fn();
                         } );
@@ -508,7 +508,7 @@ function Selection()
         selection.getRoots().length > 1 ? selection.setSelected( roots ) : selection.setSelected( roots[0] );
         subtree.reloadTree();
 
-        $.post( organisationUnitTreePath + "clearselected.action" ).complete( this.responseReceived );
+        $.post( organisationUnitTreePath + "clearselected.action" ).always( this.responseReceived );
     };
 
     this.select = function( unitId ) {
@@ -555,7 +555,7 @@ function Selection()
 
             $.post( organisationUnitTreePath + "removeorgunit.action", {
                 id: unitId
-            } ).complete( function() {
+            } ).always( function() {
                 selection.busy( false );
                 selection.responseReceived();
             });
@@ -576,7 +576,7 @@ function Selection()
 
                 $.post( organisationUnitTreePath + "addorgunit.action", {
                     id: unitId
-                } ).complete( function() {
+                } ).always( function() {
                     selection.busy( false );
                     selection.responseReceived();
                 });

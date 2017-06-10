@@ -287,6 +287,7 @@
         <value>dhis-web-commons-stream</value>
         <value>dhis-web-commons-help</value>
         <value>dhis-web-commons-about</value>
+        <value>dhis-web-menu-management</value>
         <value>dhis-web-apps</value>
         <value>dhis-web-api-mobile</value>
         <value>dhis-web-portal</value>

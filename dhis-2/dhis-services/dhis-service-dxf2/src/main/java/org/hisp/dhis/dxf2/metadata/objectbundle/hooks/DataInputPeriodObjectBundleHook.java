@@ -41,7 +41,7 @@ public class DataInputPeriodObjectBundleHook
     extends AbstractObjectBundleHook
 {
     @Autowired
-    PeriodService periodService;
+    private PeriodService periodService;
 
     @Override
     public void preCreate( IdentifiableObject object, ObjectBundle bundle )
@@ -51,7 +51,7 @@ public class DataInputPeriodObjectBundleHook
             return;
         }
 
-        setPeriod(object);
+        setPeriod( object );
     }
 
     @Override
@@ -62,7 +62,7 @@ public class DataInputPeriodObjectBundleHook
             return;
         }
 
-        setPeriod(object);
+        setPeriod( object );
     }
 
     private void setPeriod( IdentifiableObject object )
