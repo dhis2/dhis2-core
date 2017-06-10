@@ -37,8 +37,9 @@ public interface ExternalFileResourceStore
     extends GenericIdentifiableObjectStore<ExternalFileResource>
 {
     /**
-     * Returns a single ExternalFileResource with the given (unique) accessToken
-     * @param accessToken unique string belonging to a single ExternalFileResource
+     * Returns a single ExternalFileResource with the given (unique) accessToken.
+     * 
+     * @param accessToken unique string belonging to a single ExternalFileResource.
      * @return ExternalFileResource
      */
     ExternalFileResource getExternalFileResourceByAccessToken( String accessToken );
