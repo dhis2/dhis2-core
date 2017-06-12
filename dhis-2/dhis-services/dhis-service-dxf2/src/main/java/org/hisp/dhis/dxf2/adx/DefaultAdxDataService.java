@@ -294,8 +294,8 @@ public class DefaultAdxDataService
 
         ExecutorService executor = Executors.newSingleThreadExecutor();
 
-        // Give the DXF import a different notification task ID so it doesn't conflict with notifications from this level.
-        TaskId dxfTaskId = new TaskId( TaskCategory.DATAVALUE_IMPORT_INTERNAL, id.getUser() );
+        // For Async runs, give the DXF import a different notification task ID so it doesn't conflict with notifications from this level.
+        TaskId dxfTaskId = ( id == null ) ? null : new TaskId( TaskCategory.DATAVALUE_IMPORT_INTERNAL, id.getUser() );
 
         int groupCount = 0;
 
