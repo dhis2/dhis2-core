@@ -31,13 +31,12 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleHook;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.preheat.PreheatService;
+import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -53,9 +52,6 @@ public class AbstractObjectBundleHook implements ObjectBundleHook
 
     @Autowired
     protected PreheatService preheatService;
-
-    @Autowired
-    protected SchemaValidator validator;
 
     @Autowired
     protected SessionFactory sessionFactory;
