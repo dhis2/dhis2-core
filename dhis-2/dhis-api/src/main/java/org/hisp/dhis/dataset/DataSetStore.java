@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,6 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
 import java.util.List;
 
 import org.hisp.dhis.common.GenericNameableObjectStore;
@@ -38,7 +37,6 @@ import org.hisp.dhis.period.PeriodType;
 
 /**
  * @author Kristian Nordal
- * @version $Id: DataSetStore.java 6255 2008-11-10 16:01:24Z larshelg $
  */
 public interface DataSetStore
     extends GenericNameableObjectStore<DataSet>
@@ -61,10 +59,6 @@ public interface DataSetStore
      * Returns all DataSets that can be collected through mobile.
      */
     List<DataSet> getDataSetsForMobile( OrganisationUnit source );
-
-    List<DataSet> getDataSetsForMobile();
-
-    List<DataSet> getDataSetsBySources( Collection<OrganisationUnit> sources );
 
     /**
      * Gets all DataSets associated with the given DataEntryForm.

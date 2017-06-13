@@ -1,7 +1,7 @@
 package org.hisp.dhis.minmax.hibernate;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,17 +28,31 @@ package org.hisp.dhis.minmax.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
+import org.hibernate.Criteria;
+import org.hibernate.criterion.Conjunction;
+import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.minmax.MinMaxDataElement;
+import org.hisp.dhis.minmax.MinMaxDataElementQueryParams;
 import org.hisp.dhis.minmax.MinMaxDataElementStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.query.QueryParser;
+import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.query.QueryUtils;
+import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.query.planner.QueryPlanner;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Kristian Nordal
@@ -47,6 +61,14 @@ public class HibernateMinMaxDataElementStore
     extends HibernateGenericStore<MinMaxDataElement>
     implements MinMaxDataElementStore
 {
+    @Autowired
+    private QueryParser queryParser;
+
+    @Autowired
+    private QueryPlanner queryPlanner;
+
+    @Autowired
+    private SchemaService schemaService;
     // -------------------------------------------------------------------------
     // MinMaxDataElementStore Implementation
     // -------------------------------------------------------------------------
@@ -83,6 +105,32 @@ public class HibernateMinMaxDataElementStore
             Restrictions.eq( "source", source ), 
             Restrictions.in( "dataElement", dataElements ) ).list();
     }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public List<MinMaxDataElement> query(  MinMaxDataElementQueryParams query )
+    {
+        Criteria criteria = getSession().createCriteria( MinMaxDataElement.class );
+        criteria = parseFilter( criteria, query.getFilters() );
+
+        if ( !query.isSkipPaging() )
+        {
+            Pager pager = query.getPager();
+            criteria.setFirstResult( pager.getOffset() );
+            criteria.setMaxResults( pager.getPageSize() );
+        }
+
+        return criteria.list();
+    }
+
+    @Override
+    public int countMinMaxDataElements( MinMaxDataElementQueryParams query )
+    {
+        Criteria criteria = getSession().createCriteria( MinMaxDataElement.class );
+        criteria = parseFilter( criteria, query.getFilters() );
+
+        return criteria.list().size();
+    }
     
     @Override
     public void delete( OrganisationUnit organisationUnit )
@@ -116,5 +164,56 @@ public class HibernateMinMaxDataElementStore
         getQuery( hql ).
             setParameterList( "dataElements", dataElements ).
             setParameterList( "organisationUnits", organisationUnits ).executeUpdate();
+    }
+
+    private Criteria parseFilter( Criteria criteria, List<String> filters )
+    {
+        Conjunction conjunction = Restrictions.conjunction();
+        Schema schema = schemaService.getDynamicSchema( MinMaxDataElement.class );
+
+        if ( !filters.isEmpty() )
+        {
+            for ( String filter : filters )
+            {
+                String[] split = filter.split( ":" );
+
+                if ( split.length != 3 )
+                {
+                    throw new QueryParserException( "Invalid filter: " + filter );
+                }
+
+                QueryPath queryPath = queryPlanner.getQueryPath( schema,  split[0] );
+
+                Property property = queryParser.getProperty( schema, split[0] );
+
+                Criterion restriction = getRestriction( property, queryPath.getPath(), split[1], split[2] );
+
+                if ( restriction != null )
+                {
+                    conjunction.add( restriction );
+
+                    if ( queryPath.haveAlias() )
+                    {
+                        for ( String alias : queryPath.getAlias() )
+                        {
+                            criteria.createAlias( alias, alias );
+                        }
+                    }
+                }
+            }
+        }
+        criteria.add( conjunction );
+
+        return criteria;
+    }
+
+    private Criterion getRestriction( Property property,  String path, String operator, String value )
+     {
+        switch ( operator )
+        {
+            case "in" : return Restrictions.in( path, QueryUtils.parseValue( Collection.class, property.getKlass(), value ) );
+            case "eq" : return Restrictions.eq( path, QueryUtils.parseValue( property.getKlass(), value ) );
+            default: throw new QueryParserException( "Query operator is not supported : " + operator );
+        }
     }
 }

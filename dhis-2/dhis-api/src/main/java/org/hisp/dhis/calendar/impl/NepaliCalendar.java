@@ -1,7 +1,7 @@
 package org.hisp.dhis.calendar.impl;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -128,97 +128,6 @@ public class NepaliCalendar extends AbstractCalendar
         return null;
     }
 
-    private DateInterval toYearIsoInterval( DateTimeUnit dateTimeUnit, int offset, int length )
-    {
-        DateTimeUnit from = new DateTimeUnit( dateTimeUnit );
-
-        if ( offset > 0 )
-        {
-            from = plusYears( from, offset );
-        }
-        else if ( offset < 0 )
-        {
-            from = minusYears( from, -offset );
-        }
-
-        DateTimeUnit to = new DateTimeUnit( from );
-        to = plusYears( to, length );
-        to = minusDays( to, length );
-
-        from = toIso( from );
-        to = toIso( to );
-
-        return new DateInterval( from, to, DateIntervalType.ISO8601_YEAR );
-    }
-
-    private DateInterval toMonthIsoInterval( DateTimeUnit dateTimeUnit, int offset, int length )
-    {
-        DateTimeUnit from = new DateTimeUnit( dateTimeUnit );
-
-        if ( offset > 0 )
-        {
-            from = plusMonths( from, offset );
-        }
-        else if ( offset < 0 )
-        {
-            from = minusMonths( from, -offset );
-        }
-
-        DateTimeUnit to = new DateTimeUnit( from );
-        to = plusMonths( to, length );
-        to = minusDays( to, 1 );
-
-        from = toIso( from );
-        to = toIso( to );
-
-        return new DateInterval( from, to, DateIntervalType.ISO8601_MONTH );
-    }
-
-    private DateInterval toWeekIsoInterval( DateTimeUnit dateTimeUnit, int offset, int length )
-    {
-        DateTimeUnit from = new DateTimeUnit( dateTimeUnit );
-
-        if ( offset > 0 )
-        {
-            from = plusWeeks( from, offset );
-        }
-        else if ( offset < 0 )
-        {
-            from = minusWeeks( from, -offset );
-        }
-
-        DateTimeUnit to = new DateTimeUnit( from );
-        to = plusWeeks( to, length );
-        to = minusDays( to, 1 );
-
-        from = toIso( from );
-        to = toIso( to );
-
-        return new DateInterval( from, to, DateIntervalType.ISO8601_WEEK );
-    }
-
-    private DateInterval toDayIsoInterval( DateTimeUnit dateTimeUnit, int offset, int length )
-    {
-        DateTimeUnit from = new DateTimeUnit( dateTimeUnit );
-
-        if ( offset > 0 )
-        {
-            from = plusDays( from, offset );
-        }
-        else if ( offset < 0 )
-        {
-            from = minusDays( from, -offset );
-        }
-
-        DateTimeUnit to = new DateTimeUnit( from );
-        to = plusDays( to, length );
-
-        from = toIso( from );
-        to = toIso( to );
-
-        return new DateInterval( from, to, DateIntervalType.ISO8601_DAY );
-    }
-
     @Override
     public int daysInYear( int year )
     {
@@ -313,20 +222,6 @@ public class NepaliCalendar extends AbstractCalendar
         }
 
         return "nepali." + DEFAULT_I18N_DAY_SHORT_NAMES[day - 1];
-    }
-
-    private int getYearTotal( int year )
-    {
-        // if year total index is uninitialized, calculate and set in array
-        if ( CONVERSION_MAP.get( year )[0] == 0 )
-        {
-            for ( int j = 1; j <= 12; j++ )
-            {
-                CONVERSION_MAP.get( year )[0] += CONVERSION_MAP.get( year )[j];
-            }
-        }
-
-        return CONVERSION_MAP.get( year )[0];
     }
 
     @Override
@@ -489,6 +384,24 @@ public class NepaliCalendar extends AbstractCalendar
         return START_ISO;
     }
 
+    //---------------------------------------------------------------------------------------------
+    // Helpers
+    //---------------------------------------------------------------------------------------------
+
+    private int getYearTotal( int year )
+    {
+        // if year total index is uninitialized, calculate and set in array
+        if ( CONVERSION_MAP.get( year )[0] == 0 )
+        {
+            for ( int j = 1; j <= 12; j++ )
+            {
+                CONVERSION_MAP.get( year )[0] += CONVERSION_MAP.get( year )[j];
+            }
+        }
+
+        return CONVERSION_MAP.get( year )[0];
+    }
+
     // check if day is more than current maximum for month, don't overflow, just set to maximum
     // set day of week
     private void updateDateUnit( DateTimeUnit result )
@@ -501,6 +414,97 @@ public class NepaliCalendar extends AbstractCalendar
         }
 
         result.setDayOfWeek( weekday( result ) );
+    }
+
+    private DateInterval toYearIsoInterval( DateTimeUnit dateTimeUnit, int offset, int length )
+    {
+        DateTimeUnit from = new DateTimeUnit( dateTimeUnit );
+
+        if ( offset > 0 )
+        {
+            from = plusYears( from, offset );
+        }
+        else if ( offset < 0 )
+        {
+            from = minusYears( from, -offset );
+        }
+
+        DateTimeUnit to = new DateTimeUnit( from );
+        to = plusYears( to, length );
+        to = minusDays( to, length );
+
+        from = toIso( from );
+        to = toIso( to );
+
+        return new DateInterval( from, to, DateIntervalType.ISO8601_YEAR );
+    }
+
+    private DateInterval toMonthIsoInterval( DateTimeUnit dateTimeUnit, int offset, int length )
+    {
+        DateTimeUnit from = new DateTimeUnit( dateTimeUnit );
+
+        if ( offset > 0 )
+        {
+            from = plusMonths( from, offset );
+        }
+        else if ( offset < 0 )
+        {
+            from = minusMonths( from, -offset );
+        }
+
+        DateTimeUnit to = new DateTimeUnit( from );
+        to = plusMonths( to, length );
+        to = minusDays( to, 1 );
+
+        from = toIso( from );
+        to = toIso( to );
+
+        return new DateInterval( from, to, DateIntervalType.ISO8601_MONTH );
+    }
+
+    private DateInterval toWeekIsoInterval( DateTimeUnit dateTimeUnit, int offset, int length )
+    {
+        DateTimeUnit from = new DateTimeUnit( dateTimeUnit );
+
+        if ( offset > 0 )
+        {
+            from = plusWeeks( from, offset );
+        }
+        else if ( offset < 0 )
+        {
+            from = minusWeeks( from, -offset );
+        }
+
+        DateTimeUnit to = new DateTimeUnit( from );
+        to = plusWeeks( to, length );
+        to = minusDays( to, 1 );
+
+        from = toIso( from );
+        to = toIso( to );
+
+        return new DateInterval( from, to, DateIntervalType.ISO8601_WEEK );
+    }
+
+    private DateInterval toDayIsoInterval( DateTimeUnit dateTimeUnit, int offset, int length )
+    {
+        DateTimeUnit from = new DateTimeUnit( dateTimeUnit );
+
+        if ( offset > 0 )
+        {
+            from = plusDays( from, offset );
+        }
+        else if ( offset < 0 )
+        {
+            from = minusDays( from, -offset );
+        }
+
+        DateTimeUnit to = new DateTimeUnit( from );
+        to = plusDays( to, length );
+
+        from = toIso( from );
+        to = toIso( to );
+
+        return new DateInterval( from, to, DateIntervalType.ISO8601_DAY );
     }
 
     //------------------------------------------------------------------------------------------------------------

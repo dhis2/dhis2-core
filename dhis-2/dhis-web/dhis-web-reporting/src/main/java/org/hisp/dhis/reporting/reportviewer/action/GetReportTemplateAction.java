@@ -1,7 +1,7 @@
 package org.hisp.dhis.reporting.reportviewer.action;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +27,6 @@ package org.hisp.dhis.reporting.reportviewer.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
@@ -40,6 +36,7 @@ import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.util.ContextUtils;
 import org.springframework.core.io.ClassPathResource;
 
+import com.google.common.collect.ImmutableMap;
 import com.opensymphony.xwork2.Action;
 
 /**
@@ -47,13 +44,15 @@ import com.opensymphony.xwork2.Action;
  */
 public class GetReportTemplateAction
     implements Action
-{
-    private static final String TEMPLATE_JASPER = "jasper-report-template.jrxml";
-    private static final String TEMPLATE_HTML = "html-report-template.html";
+{    
+    private Map<String, String> TYPE_TEMPLATE_MAP = ImmutableMap.<String, String>builder()
+        .put( "jasper", "jasper-report-template.jrxml" )
+        .put( "html", "html-report-template.html" ).build();
     
-    private static final String TYPE_JASPER = "jasper";
-    private static final String TYPE_HTML = "html";
-    
+    private Map<String, String> TYPE_CONTENT_TYPE_MAP = ImmutableMap.<String, String>builder()
+        .put( "jasper", ContextUtils.CONTENT_TYPE_XML )
+        .put( "html", ContextUtils.CONTENT_TYPE_HTML ).build();
+            
     private String type;
         
     public void setType( String type )
@@ -67,23 +66,16 @@ public class GetReportTemplateAction
     {
         HttpServletResponse response = ServletActionContext.getResponse();
 
-        Map<String, String> typeTemplateMap = new HashMap<>();
-        typeTemplateMap.put( TYPE_JASPER, TEMPLATE_JASPER );
-        typeTemplateMap.put( TYPE_HTML, TEMPLATE_HTML );
-        
-        Map<String, String> typeContentTypeMap = new HashMap<>();
-        typeContentTypeMap.put( TYPE_JASPER, ContextUtils.CONTENT_TYPE_XML );
-        typeContentTypeMap.put( TYPE_HTML, ContextUtils.CONTENT_TYPE_HTML );
-        
-        if ( type != null & typeTemplateMap.containsKey( type ) )
+        if ( type != null & TYPE_TEMPLATE_MAP.containsKey( type ) )
         {
-            String template = typeTemplateMap.get( type );
-            String contentType = typeContentTypeMap.get( type );
+            String template = TYPE_TEMPLATE_MAP.get( type );
+            String contentType = TYPE_CONTENT_TYPE_MAP.get( type );
             
             ContextUtils.configureResponse( response, contentType, false, template, true );
             
-            IOUtils.copy( new BufferedInputStream( new ClassPathResource( template ).getInputStream() ), 
-                new BufferedOutputStream( response.getOutputStream() ) );
+            String content = IOUtils.toString( new ClassPathResource( template ).getInputStream() );
+            
+            IOUtils.write( content, response.getWriter() );
         }
         
         return SUCCESS;

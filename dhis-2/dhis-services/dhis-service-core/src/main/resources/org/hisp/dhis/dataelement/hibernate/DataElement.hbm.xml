@@ -51,12 +51,14 @@
       <many-to-many class="org.hisp.dhis.dataelement.DataElementGroup" column="dataelementgroupid" />
     </set>
 
-    <set name="dataSetElements" table="datasetmembers" inverse="true">
+    <set name="dataSetElements" table="datasetelement" inverse="true">
+      <cache usage="read-write" />
       <key column="dataelementid" foreign-key="fk_datasetmembers_dataelementid" not-null="true" />
       <one-to-many class="org.hisp.dhis.dataset.DataSetElement" />
     </set>
 
     <list name="aggregationLevels" table="dataelementaggregationlevels">
+      <cache usage="read-write" />
       <key column="dataelementid" foreign-key="fk_dataelementaggregationlevels_dataelementid" />
       <list-index column="sort_order" base="0" />
       <element column="aggregationlevel" type="integer" />
@@ -74,22 +76,18 @@
       <cache usage="read-write" />
       <key column="dataelementid" />
       <list-index column="sort_order" base="0" />
-      <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_dataelement_legendsetid" ></many-to-many>
+      <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_dataelement_legendsetid" />
     </list>
-    
-    <property name="aggregateExportCategoryOptionCombo" column="aggregateexportcategoryoptioncombo" />
-
-    <property name="aggregateExportAttributeOptionCombo" column="aggregateexportattributeoptioncombo" />
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="dataelementattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="dataelementattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="dataelementid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="dataelementtranslations" cascade="delete-orphan">
+    <set name="translations" table="dataelementtranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="dataelementid" foreign-key="fk_objecttranslation_dataelementid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -100,10 +98,16 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="dataelementusergroupaccesses">
+    <set name="userGroupAccesses" table="dataelementusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="dataelementid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="dataelementuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="dataelementid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
   </class>

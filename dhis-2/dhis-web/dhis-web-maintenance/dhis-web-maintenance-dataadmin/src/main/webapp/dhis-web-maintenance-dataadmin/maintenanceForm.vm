@@ -12,13 +12,33 @@
 </p>
 
 <p>
+    <input type="checkbox" id="analyzeAnalytics"/>
+    <label for="analyzeAnalytics">$i18n.getString( "analyze_analytics_tables" )</label>
+</p>
+
+<p>
 	<input type="checkbox" id="zeroValues"/>
 	<label for="zeroValues">$i18n.getString( "remove_zero_data_values" )</label>
 </p>
 
 <p>
-	<input type="checkbox" id="softDeletedValues"/>
-	<label for="softDeletedValues">$i18n.getString( "remove_soft_deleted_data_values" )</label>
+    <input type="checkbox" id="softDeletedValues"/>
+    <label for="softDeletedValues">$i18n.getString( "remove_soft_deleted_data_values" )</label>
+</p>
+
+<p>
+    <input type="checkbox" id="softDeletedEvents"/>
+    <label for="softDeletedEvents">$i18n.getString( "remove_soft_deleted_events" )</label>
+</p>
+
+<p>
+    <input type="checkbox" id="softDeletedEnrollments"/>
+    <label for="softDeletedEnrollments">$i18n.getString( "remove_soft_deleted_enrollments" )</label>
+</p>
+
+<p>
+    <input type="checkbox" id="softDeletedTrackedEntityInstances"/>
+    <label for="softDeletedTrackedEntityInstances">$i18n.getString( "remove_soft_deleted_trackedentityinstances" )</label>
 </p>
 
 <p>

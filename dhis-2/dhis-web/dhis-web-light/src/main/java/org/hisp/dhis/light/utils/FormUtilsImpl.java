@@ -1,7 +1,7 @@
 package org.hisp.dhis.light.utils;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,21 +28,16 @@ package org.hisp.dhis.light.utils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.Validate;
+import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataanalysis.DataAnalysisService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
@@ -59,13 +54,12 @@ import org.hisp.dhis.system.filter.PastAndCurrentPeriodFilter;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationRule;
-import org.hisp.dhis.validation.ValidationRuleService;
+import org.hisp.dhis.validation.ValidationService;
 import org.joda.time.DateTime;
 
-import com.google.common.collect.Sets;
+import java.util.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -128,11 +122,11 @@ public class FormUtilsImpl
         this.systemSettingManager = systemSettingManager;
     }
 
-    private ValidationRuleService validationRuleService;
+    private ValidationService validationService;
 
-    public void setValidationRuleService( ValidationRuleService validationRuleService )
+    public void setValidationService( ValidationService validationService )
     {
-        this.validationRuleService = validationRuleService;
+        this.validationService = validationService;
     }
 
     private ExpressionService expressionService;
@@ -178,7 +172,7 @@ public class FormUtilsImpl
     @Override
     public List<String> getValidationRuleViolations( OrganisationUnit organisationUnit, DataSet dataSet, Period period )
     {
-        List<ValidationResult> validationRuleResults = new ArrayList<>( validationRuleService.validate(
+        List<ValidationResult> validationRuleResults = new ArrayList<>( validationService.startInteractiveValidationAnalysis(
             dataSet, period, organisationUnit, null ) );
 
         List<String> validationRuleViolations = new ArrayList<>( validationRuleResults.size() );
@@ -202,8 +196,11 @@ public class FormUtilsImpl
     public Map<String, String> getDataValueMap( OrganisationUnit organisationUnit, DataSet dataSet, Period period )
     {
         Map<String, String> dataValueMap = new HashMap<>();
-        List<DataValue> values = new ArrayList<>( dataValueService.getDataValues( dataSet.getDataElements(), 
-            Sets.newHashSet( period ), Sets.newHashSet( organisationUnit ) ) );
+        
+        List<DataValue> values = dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( dataSet.getDataElements() )
+            .setPeriods( Sets.newHashSet( period ) )
+            .setOrganisationUnits( Sets.newHashSet( organisationUnit ) ) );
 
         for ( DataValue dataValue : values )
         {

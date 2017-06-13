@@ -61,7 +61,8 @@ public class TranslationServiceTest
     private User user;
 
     @Override
-    public void setUpTest() {
+    public void setUpTest() 
+    {
         this.userService = injectUserService;
         user = createUserAndInjectSecurityContext( true );
     }

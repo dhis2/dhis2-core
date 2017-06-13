@@ -38,7 +38,7 @@
 
     <!-- Data value export -->
 
-    <action name="displayDataValueExportForm" class="org.hisp.dhis.importexport.action.NoAction">
+    <action name="displayDataValueExportForm" class="org.hisp.dhis.importexport.action.datavalue.ShowDataValueExportFormAction">
       <result name="success" type="velocity">/main.vm</result>
       <param name="page">/dhis-web-importexport/exportDataValueForm.vm</param>
       <param name="menu">/dhis-web-importexport/mainMenu.vm</param>

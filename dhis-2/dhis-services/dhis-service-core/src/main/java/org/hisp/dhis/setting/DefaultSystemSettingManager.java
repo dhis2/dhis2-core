@@ -1,7 +1,7 @@
 package org.hisp.dhis.setting;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.system.util.SystemUtils;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
@@ -183,7 +183,7 @@ public class DefaultSystemSettingManager
     public Serializable getSystemSetting( SettingKey setting )
     {
         Optional<Serializable> value = SETTING_CACHE.get( setting.getName(),
-            c -> getSystemSettingOptional( setting.getName(), setting.getDefaultValue() ) );
+            key -> getSystemSettingOptional( key, setting.getDefaultValue() ) );
 
         return value.orElse( null );
     }
@@ -224,7 +224,7 @@ public class DefaultSystemSettingManager
                 {
                     return Optional.of( pbeStringEncryptor.decrypt( (String) setting.getValue() ) );
                 }
-                catch ( EncryptionOperationNotPossibleException e ) // Most likely this means the value is not encrypted, or not existing(null or empty string).
+                catch ( EncryptionOperationNotPossibleException e ) // Most likely this means the value is not encrypted, or not existing
                 {
                     log.warn( "Could not decrypt system setting '" + name + "'" );
                     return Optional.empty();
@@ -410,7 +410,7 @@ public class DefaultSystemSettingManager
     @Override
     public boolean emailEnabled()
     {
-        return getEmailHostName() != null;
+        return (Boolean) getSystemSetting( SettingKey.MESSAGE_EMAIL_NOTIFICATION );
     }
 
     @Override
@@ -424,7 +424,8 @@ public class DefaultSystemSettingManager
     @Override
     public boolean hideUnapprovedDataInAnalytics()
     {
-        return (Boolean) getSystemSetting( SettingKey.HIDE_UNAPPROVED_DATA_IN_ANALYTICS );
+        // -1 means approval is disabled
+        return (int) getSystemSetting( SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD ) >= 0;
     }
 
     @Override

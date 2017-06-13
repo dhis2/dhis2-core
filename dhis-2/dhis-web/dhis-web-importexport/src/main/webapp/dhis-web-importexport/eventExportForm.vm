@@ -1,182 +1,195 @@
 <script type="text/javascript" src="../dhis-web-commons/oust/oust.js"></script>
 <script type="text/javascript" src="../dhis-web-commons/oust/selectionTreeSelect.js"></script>
 <script>
-$( function() {
+  $( function() {
     datePickerInRange( 'startDate' , 'endDate' );
 
     $( '#submit' ).on( 'click', function() {
-        var format = $( '#format' ).val();
-        var compression = $( '#compression' ).val();
-        var program = $( '#programs' ).val();
-        var programStage = $( '#programStages' ).val();
-        var inclusion = $( '#inclusion' ).val();
-        var file = "events" + format + compression;
+      var format = $( '#format' ).val();
+      var compression = $( '#compression' ).val();
+      var program = $( '#programs' ).val();
+      var programStage = $( '#programStages' ).val();
+      var inclusion = $( '#inclusion' ).val();
+      var idscheme = $( '#idscheme').val();
+      var file = "events" + format + compression;
 
-        var url = '../api/' + file + "?attachment=" + file + "&program=" + program;
+      var url = '../api/' + file + "?attachment=" + file + "&program=" + program;
 
-        if( programStage && programStage.length > 0 ) {
-            url += "&programStage=" + programStage;
+      if( programStage && programStage.length > 0 ) {
+        url += "&programStage=" + programStage;
+      }
+
+      if( program.length == 0 ) {
+        setHeaderDelayMessage( "No program selected." );
+        return false;
+      }
+
+      if( !selectionTreeSelection.isSelected() ) {
+        setHeaderDelayMessage( "No organisation unit selected." );
+        return false;
+      }
+
+      url += "&orgUnit=" + selectedOrganisationUnit[0];
+
+      var startDate = $('#startDate' ).val();
+      var endDate = $('#endDate' ).val();
+
+      if( inclusion ) {
+        if( "children" == inclusion ) {
+          url += "&ouMode=CHILDREN";
+        } else if( "descendants" == inclusion ) {
+          url += "&ouMode=DESCENDANTS";
         }
+      }
 
-        if( program.length == 0 ) {
-            setHeaderDelayMessage( "No program selected." );
-            return false;
-        }
+      url += "&startDate=" + startDate;
+      url += "&endDate=" + endDate;
+      url += "&links=false";
+      url += "&skipPaging=true";
+      url += "&includeDeleted=true";
 
-        if( !selectionTreeSelection.isSelected() ) {
-            setHeaderDelayMessage( "No organisation unit selected." );
-            return false;
-        }
+      url += "&idScheme=" + idscheme;
 
-        url += "&orgUnit=" + selectedOrganisationUnit[0];
-
-        var startDate = $('#startDate' ).val();
-        var endDate = $('#endDate' ).val();
-
-        if( inclusion ) {
-          if( "children" == inclusion ) {
-            url += "&ouMode=CHILDREN";
-          } else if( "descendants" == inclusion ) {
-            url += "&ouMode=DESCENDANTS";
-          }
-        }
-
-        url += "&startDate=" + startDate;
-        url += "&endDate=" + endDate;
-        url += "&links=false";
-        url += "&skipPaging=true";
-
-        window.location = url;
+      window.location = url;
     });
 
     selectionTreeSelection.setMultipleSelectionAllowed( false );
     selectionTree.clearSelectedOrganisationUnitsAndBuildTree();
 
     $.ajax({
-       url: '../api/programs.json?fields=id,displayName&paging=false'
+      url: '../api/programs.json?fields=id,displayName&paging=false'
     } ).done(function(data) {
-        var options = [];
+      var options = [];
 
-        $.each(data.programs, function() {
-            var option = $( '<option/>' ).html( this.displayName ).val(this.id);
-            options.push( option );
-        });
+      $.each(data.programs, function() {
+        var option = $( '<option/>' ).html( this.displayName ).val(this.id);
+        options.push( option );
+      });
 
-        if(options.length > 0) {
-            $( '#programs' ).removeAttr('disabled');
-        } else {
-            var option = $( '<option/>' ).html('$i18n.getString( "no_programs_available" )');
-            $( '#programs' ).attr('disabled', true);
-        }
+      if(options.length > 0) {
+        $( '#programs' ).removeAttr('disabled');
+      } else {
+        var option = $( '<option/>' ).html('$i18n.getString( "no_programs_available" )');
+        $( '#programs' ).attr('disabled', true);
+      }
 
-        $( '#programs' ).html( options ).trigger('change');
+      $( '#programs' ).html( options ).trigger('change');
     });
 
     $( '#programs' ).on( 'change', function( e ) {
-        var program = $( '#programs' ).val();
-        $( '#programStages' ).attr('disabled', true)
-                .html($( '<option/>' ).html('$i18n.getString( "no_program_stages_available" )'));
+      var program = $( '#programs' ).val();
+      $( '#programStages' ).attr('disabled', true)
+          .html($( '<option/>' ).html('$i18n.getString( "no_program_stages_available" )'));
 
-        $.ajax({
-           url: '../api/programs/' + program + '.json?fields=id,displayName,programStages[id,displayName]'
-        } ).done(function(data) {
-            var options = [];
+      $.ajax({
+        url: '../api/programs/' + program + '.json?fields=id,displayName,programStages[id,displayName]'
+      } ).done(function(data) {
+        var options = [];
 
-            $.each(data.programStages, function() {
-                var option = $( '<option/>' ).html( this.displayName ).val(this.id);
-                options.push( option );
-            });
-
-            if( options.length > 0 ) {
-                var option = $( '<option/>' ).html( "[ " + "$i18n.getString("all_program_stages")" +" ]" ).val( '' );
-                options.unshift( option );
-                $( '#programStages' ).removeAttr( 'disabled' ).html( options );
-            }
+        $.each(data.programStages, function() {
+          var option = $( '<option/>' ).html( this.displayName ).val(this.id);
+          options.push( option );
         });
+
+        if( options.length > 0 ) {
+          var option = $( '<option/>' ).html( "[ " + "$i18n.getString("all_program_stages")" +" ]" ).val( '' );
+          options.unshift( option );
+          $( '#programStages' ).removeAttr( 'disabled' ).html( options );
+        }
+      });
     });
-});
+  });
 </script>
 
 <h3>$i18n.getString( "event_export" )</h3>
 
 <div id="inputCriteria" class="inputCriteria" style="width: 730px;">
-<form id="importForm" name="importForm" method="post" enctype="multipart/form-data" action="importMetaData.action">
-<table>
-    <colgroup>
-        <col style="width: 150px;" />
-        <col />
-    </colgroup>
+    <form id="importForm" name="importForm" method="post" enctype="multipart/form-data" action="importMetaData.action">
+        <table>
+            <colgroup>
+                <col style="width: 150px;" />
+                <col />
+            </colgroup>
 
-<tr>
-   <td colspan="2">$i18n.getString( "organisation_unit" )</td>
-</tr>
+            <tr>
+                <td colspan="2">$i18n.getString( "organisation_unit" )</td>
+            </tr>
 
-<tr>
-   <td colspan="2"><div id="selectionTree" style="width:700px; height:220px"></div></td>
-</tr>
+            <tr>
+                <td colspan="2"><div id="selectionTree" style="width:700px; height:220px"></div></td>
+            </tr>
 
-<tr>
-	<td>$i18n.getString( "programs" )</td>
-    <td><select disabled="disabled" style="width: 300px;" id="programs" name="programs">
-        <option>$i18n.getString( "no_programs_available" )</option>
-    </select>
-    </td>
-</tr>
+            <tr>
+                <td>$i18n.getString( "programs" )</td>
+                <td><select disabled="disabled" style="width: 300px;" id="programs" name="programs">
+                    <option>$i18n.getString( "no_programs_available" )</option>
+                </select>
+                </td>
+            </tr>
 
-<tr>
-    <td>$i18n.getString( "program_stages" )</td>
-    <td><select disabled="disabled" style="width: 300px;" id="programStages" name="programStages">
-        <option>$i18n.getString( "no_program_stages_available" )</option>
-    </select>
-    </td>
-</tr>
+            <tr>
+                <td>$i18n.getString( "program_stages" )</td>
+                <td><select disabled="disabled" style="width: 300px;" id="programStages" name="programStages">
+                    <option>$i18n.getString( "no_program_stages_available" )</option>
+                </select>
+                </td>
+            </tr>
 
-<tr>
-    <td>$i18n.getString("start_date")</td>
-    <td><input type="text" id="startDate" name="startDate" value="$!startDate" style="width:296px"></td>
-</tr>
+            <tr>
+                <td>$i18n.getString( "id_scheme" )</td>
+                <td><select id="idscheme" name="idscheme" style="width:100px">
+                    <option value="UID">$i18n.getString( "uid" )</option>
+                    <option value="CODE">$i18n.getString( "code" )</option>
+                </select></td>
+            </tr>
 
-<tr>
-    <td>$i18n.getString("end_date")</td>
-    <td><input type="text" id="endDate" name="endDate" value="$!endDate" style="width:296px"></td>
-</tr>
+            <tr>
+                <td>$i18n.getString("start_date")</td>
+                <td><input type="text" id="startDate" name="startDate" value="$!startDate" style="width:296px"></td>
+            </tr>
 
-<tr>
-    <td>$i18n.getString( "inclusion" )</td>
-    <td>
-        <select id="inclusion" style="width: 300px;">
-            <option value="selected">$i18n.getString( "include_selected" )</option>
-            <option value="children">$i18n.getString( "include_children" )</option>
-            <option value="descendants">$i18n.getString( "include_descendants" )</option>
-        </select>
-    </td>
-</tr>
+            <tr>
+                <td>$i18n.getString("end_date")</td>
+                <td><input type="text" id="endDate" name="endDate" value="$!endDate" style="width:296px"></td>
+            </tr>
 
-<tr>
-    <td>$i18n.getString( "format" )</td>
-    <td>
-        <select id="format" style="width: 300px;">
-            <option value=".xml">XML</option>
-            <option value=".json">JSON</option>
-            <option value=".csv">CSV</option>
-        </select>
-    </td>
-</tr>
+            <tr>
+                <td>$i18n.getString( "inclusion" )</td>
+                <td>
+                    <select id="inclusion" style="width: 300px;">
+                        <option value="selected">$i18n.getString( "include_selected" )</option>
+                        <option value="children">$i18n.getString( "include_children" )</option>
+                        <option value="descendants">$i18n.getString( "include_descendants" )</option>
+                    </select>
+                </td>
+            </tr>
 
-<tr>
-    <td>$i18n.getString( "compression" )</td>
-    <td>
-        <select id="compression" style="width: 300px;">
-            <option value=".gz">$i18n.getString( "compression_gzip" )</option>
-            <option value="">$i18n.getString( "uncompressed" )</option>
-        </select>
-    </td>
-</tr>
+            <tr>
+                <td>$i18n.getString( "format" )</td>
+                <td>
+                    <select id="format" style="width: 300px;">
+                        <option value=".xml">XML</option>
+                        <option value=".json">JSON</option>
+                        <option value=".csv">CSV</option>
+                    </select>
+                </td>
+            </tr>
 
-<tr>
-	<td></td>
-	<td><input type="button" id="submit" value="$i18n.getString( 'export' )" style="width:120px" /></td>
-</tr>
-</table>
-</form>
+            <tr>
+                <td>$i18n.getString( "compression" )</td>
+                <td>
+                    <select id="compression" style="width: 300px;">
+                        <option value=".zip">$i18n.getString( "compression_zip" )</option>
+                        <option value=".gz">$i18n.getString( "compression_gzip" )</option>
+                        <option value="">$i18n.getString( "uncompressed" )</option>
+                    </select>
+                </td>
+            </tr>
+
+            <tr>
+                <td></td>
+                <td><input type="button" id="submit" value="$i18n.getString( 'export' )" style="width:120px" /></td>
+            </tr>
+        </table>
+    </form>
 </div>

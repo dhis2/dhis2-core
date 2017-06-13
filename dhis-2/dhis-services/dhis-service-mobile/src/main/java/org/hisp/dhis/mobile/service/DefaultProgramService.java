@@ -1,7 +1,7 @@
 package org.hisp.dhis.mobile.service;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -264,10 +264,9 @@ public class DefaultProgramService
                     // data element list of program stage
                     List<Integer> dataElementIds = new ArrayList<>();
 
-                    for ( ProgramStageDataElement eachPogramStageDataElement : eachSection
-                        .getProgramStageDataElements() )
+                    for ( org.hisp.dhis.dataelement.DataElement element : eachSection.getDataElements() )
                     {
-                        dataElementIds.add( eachPogramStageDataElement.getDataElement().getId() );
+                        dataElementIds.add( element.getId() );
                     }
 
                     mobileSection.setDataElementIds( dataElementIds );

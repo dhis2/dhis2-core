@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.datastatistics;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,16 +36,19 @@ import org.hisp.dhis.datastatistics.DataStatisticsService;
 import org.hisp.dhis.datastatistics.EventInterval;
 import org.hisp.dhis.datastatistics.FavoriteStatistics;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -59,18 +62,19 @@ import java.util.List;
  * @author Julie Hill Roa
  */
 @Controller
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@RequestMapping( DataStatisticsController.RESOURCE_PATH )
 public class DataStatisticsController
 {
-    private static final String RESOURCE_PATH = "/dataStatistics";
-    
+    public static final String RESOURCE_PATH = "/dataStatistics";
+
     @Autowired
     private CurrentUserService currentUserService;
 
     @Autowired
     private DataStatisticsService dataStatisticsService;
 
-    @RequestMapping( value = RESOURCE_PATH, method = RequestMethod.POST )
+    @PostMapping
     @ResponseStatus( HttpStatus.CREATED )
     public void saveEvent( @RequestParam DataStatisticsEventType eventType, String favorite )
     {
@@ -81,10 +85,9 @@ public class DataStatisticsController
         dataStatisticsService.addEvent( event );
     }
 
-    @RequestMapping( value = RESOURCE_PATH, method = RequestMethod.GET )
+    @GetMapping
     public @ResponseBody List<AggregatedStatistics> getReports( @RequestParam Date startDate,
-        @RequestParam Date endDate, @RequestParam EventInterval interval, HttpServletResponse response )
-        throws WebMessageException
+        @RequestParam Date endDate, @RequestParam EventInterval interval, HttpServletResponse response ) throws WebMessageException
     {
         if ( startDate.after( endDate ) )
         {
@@ -94,7 +97,7 @@ public class DataStatisticsController
         return dataStatisticsService.getReports( startDate, endDate, interval );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + "/favorites", method = RequestMethod.GET )
+    @GetMapping( "/favorites" )
     public @ResponseBody List<FavoriteStatistics> getTopFavorites( @RequestParam DataStatisticsEventType eventType,
         @RequestParam( required = false ) Integer pageSize, @RequestParam( required = false ) SortOrder sortOrder,
         @RequestParam( required = false ) String username )
@@ -105,10 +108,18 @@ public class DataStatisticsController
 
         return dataStatisticsService.getTopFavorites( eventType, pageSize, sortOrder, username );
     }
-    
-    @RequestMapping( value = "/dataStatistics/favorites/{uid}", method = RequestMethod.GET )
+
+    @GetMapping( "/favorites/{uid}" )
     public @ResponseBody FavoriteStatistics getFavoriteStatistics( @PathVariable( "uid" ) String uid )
     {
         return dataStatisticsService.getFavoriteStatistics( uid );
+    }
+    
+    @PreAuthorize( "hasRole('ALL')" )
+    @ResponseStatus( HttpStatus.CREATED )
+    @PostMapping( "/snapshot" )
+    public void saveSnapshot()
+    {
+        dataStatisticsService.saveDataStatisticsSnapshot();
     }
 }

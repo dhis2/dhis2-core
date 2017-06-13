@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.synch;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,8 @@ import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
@@ -136,7 +138,7 @@ public class DefaultSynchronizationManager
         String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
         String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
 
-        log.debug( "Remote server ping URL: " + url + ", username: " + username );
+        log.debug( String.format( "Remote server ping URL: %s, username: %s", url, username ) );
 
         HttpEntity<String> request = getBasicAuthRequestEntity( username, password );
 
@@ -194,7 +196,7 @@ public class DefaultSynchronizationManager
     }
 
     @Override
-    public ImportSummary executeDataPush()
+    public ImportSummary executeDataPush() throws WebMessageParseException
     {
         AvailabilityStatus availability = isRemoteServerAvailable();
 
@@ -219,7 +221,7 @@ public class DefaultSynchronizationManager
      * @param instance the remote system instance.
      * @return an ImportSummary.
      */
-    private ImportSummary executeDataPush( SystemInstance instance )
+    private ImportSummary executeDataPush( SystemInstance instance ) throws WebMessageParseException
     {
         // ---------------------------------------------------------------------
         // Set time for last success to start of process to make data saved
@@ -227,9 +229,9 @@ public class DefaultSynchronizationManager
         // ---------------------------------------------------------------------
 
         final Date startTime = new Date();
-        final Date lastSuccessTime = getLastSynchSuccessFallback();
+        final Date lastSuccessTime = getLastDataSynchSuccessFallback();
 
-        final int lastUpdatedCount = dataValueService.getDataValueCountLastUpdatedAfter( lastSuccessTime );
+        final int lastUpdatedCount = dataValueService.getDataValueCountLastUpdatedAfter( lastSuccessTime, true );
 
         log.info( "Values: " + lastUpdatedCount + " since last synch success: " + lastSuccessTime );
 
@@ -243,29 +245,44 @@ public class DefaultSynchronizationManager
 
         log.info( "Remote server POST URL: " + instance.getUrl() );
 
-        final RequestCallback requestCallback = new RequestCallback()
+        final RequestCallback requestCallback = request ->
         {
-            @Override
-            public void doWithRequest( ClientHttpRequest request )
-                throws IOException
-            {
-                request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
-                request.getHeaders().add( HEADER_AUTHORIZATION, CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
+            request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
+            request.getHeaders().add( HEADER_AUTHORIZATION, CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
 
-                dataValueSetService.writeDataValueSetJson( lastSuccessTime, request.getBody(), new IdSchemes() );
-            }
+            dataValueSetService.writeDataValueSetJson( lastSuccessTime, request.getBody(), new IdSchemes() );
         };
 
         ResponseExtractor<ImportSummary> responseExtractor = new ImportSummaryResponseExtractor();
+        ImportSummary summary = null;
+        try
+        {
+            summary = restTemplate
+                .execute( instance.getUrl(), HttpMethod.POST, requestCallback, responseExtractor );
+        }
 
-        ImportSummary summary = restTemplate
-            .execute( instance.getUrl(), HttpMethod.POST, requestCallback, responseExtractor );
+        catch ( HttpClientErrorException ex )
+        {
+            String responseBody = ex.getResponseBodyAsString();
+            summary = WebMessageParseUtils.fromWebMessageResponse( responseBody, ImportSummary.class );
+        }
+        catch ( HttpServerErrorException ex )
+        {
+            String responseBody = ex.getResponseBodyAsString();
+            log.error( "Internal error happened during event data push: " + responseBody, ex );
+            throw ex;
+        }
+        catch ( ResourceAccessException ex )
+        {
+            log.error( "Exception during event data push: " + ex.getMessage(), ex );
+            throw ex;
+        }
 
         log.info( "Synch summary: " + summary );
 
         if ( summary != null && ImportStatus.SUCCESS.equals( summary.getStatus() ) )
         {
-            setLastSynchSuccess( startTime );
+            setLastDataSynchSuccess( startTime );
             log.info( "Synch successful, setting last success time: " + startTime );
         }
         else
@@ -277,7 +294,7 @@ public class DefaultSynchronizationManager
     }
 
     @Override
-    public ImportSummaries executeAnonymousEventPush()
+    public ImportSummaries executeEventPush() throws WebMessageParseException
     {
         AvailabilityStatus availability = isRemoteServerAvailable();
 
@@ -297,7 +314,7 @@ public class DefaultSynchronizationManager
 
         int lastUpdatedEventsCount = eventService.getAnonymousEventValuesCountLastUpdatedAfter( lastSuccessTime );
 
-        log.info( "Event Values: " + lastUpdatedEventsCount + " since last synch success: " + lastSuccessTime );
+        log.info( "Events: " + lastUpdatedEventsCount + " since last synch success: " + lastSuccessTime );
 
         if ( lastUpdatedEventsCount == 0 )
         {
@@ -327,18 +344,42 @@ public class DefaultSynchronizationManager
         };
 
         ResponseExtractor<ImportSummaries> responseExtractor = new ImportSummariesResponseExtractor();
-        ImportSummaries summaries = restTemplate.execute( url, HttpMethod.POST, requestCallback, responseExtractor );
+        ImportSummaries summaries = null;
+        try
+        {
+            summaries = restTemplate.execute( url, HttpMethod.POST, requestCallback, responseExtractor );
+        }
+        catch ( HttpClientErrorException ex )
+        {
+            String responseBody = ex.getResponseBodyAsString();
+            summaries = WebMessageParseUtils.fromWebMessageResponse( responseBody, ImportSummaries.class );
+        }
+        catch ( HttpServerErrorException ex )
+        {
+            String responseBody = ex.getResponseBodyAsString();
+            log.error( "Internal error happened during event data push: " + responseBody, ex );
+            throw ex;
+        }
+        catch ( ResourceAccessException ex )
+        {
+            log.error( "Exception during event data push: " + ex.getMessage(), ex );
+            throw ex;
+        }
 
         log.info( "Event synch summary: " + summaries );
         boolean isError = false;
 
-        for ( ImportSummary summary : summaries.getImportSummaries() )
+        if ( summaries != null )
         {
-            if ( ImportStatus.ERROR.equals( summary.getStatus() ) || ImportStatus.WARNING.equals( summary.getStatus() ) )
+
+            for ( ImportSummary summary : summaries.getImportSummaries() )
             {
-                isError = true;
-                log.debug( "Sync failed: " + summaries );
-                break;
+                if ( ImportStatus.ERROR.equals( summary.getStatus() ) || ImportStatus.WARNING.equals( summary.getStatus() ) )
+                {
+                    isError = true;
+                    log.debug( "Sync failed: " + summaries );
+                    break;
+                }
             }
         }
 
@@ -352,9 +393,15 @@ public class DefaultSynchronizationManager
     }
 
     @Override
-    public Date getLastSynchSuccess()
+    public Date getLastDataSynchSuccess()
     {
         return (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_DATA_SYNC );
+    }
+
+    @Override
+    public Date getLastEventSynchSuccess()
+    {
+        return (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_EVENT_DATA_SYNC );
     }
 
     @Override
@@ -364,7 +411,7 @@ public class DefaultSynchronizationManager
 
         String userUid = user != null ? user.getUid() : null;
 
-        log.info( "Metadata pull, url: " + url + ", user: " + userUid );
+        log.info( String.format( "Metadata pull, url: %s, user: %s", url, userUid ) );
 
         String json = restTemplate.getForObject( url, String.class );
 
@@ -392,16 +439,20 @@ public class DefaultSynchronizationManager
     // -------------------------------------------------------------------------
 
     /**
-     * Gets the time of the last successful synchronization operation. If not set,
-     * the current date subtracted three days is returned.
+     * Gets the time of the last successful data synchronization operation. If not set,
+     * the current date subtracted by three days is returned.
      */
-    private Date getLastSynchSuccessFallback()
+    private Date getLastDataSynchSuccessFallback()
     {
         Date fallback = new DateTime().minusDays( 3 ).toDate();
 
         return (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_DATA_SYNC, fallback );
     }
 
+    /**
+     * Gets the time of the last successful event synchronization operation. If not set,
+     * the current date subtracted by three days is returned.
+     */
     private Date getLastEventSynchSuccessFallback()
     {
         Date fallback = new DateTime().minusDays( 3 ).toDate();
@@ -410,17 +461,15 @@ public class DefaultSynchronizationManager
     }
 
     /**
-     * Sets the time of the last successful synchronization operation.
+     * Sets the time of the last successful data synchronization operation.
      */
-    private void setLastSynchSuccess( Date time )
+    private void setLastDataSynchSuccess( Date time )
     {
         systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_DATA_SYNC, time );
     }
 
     /**
-     * Sets the time of the last successful synchronization for Anonymous events
-     *
-     * @param time
+     * Sets the time of the last successful event synchronization operation.
      */
     private void setLastEventSynchSuccess( Date time )
     {

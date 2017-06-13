@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,21 +36,25 @@ import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
 import org.hisp.dhis.dxf2.adx.AdxException;
-import org.hisp.dhis.dxf2.common.Status;
 import org.hisp.dhis.dxf2.metadata.MetadataExportException;
 import org.hisp.dhis.dxf2.metadata.MetadataImportException;
+import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterException;
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
+import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
 import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
+import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.service.WebMessageService;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -139,7 +143,6 @@ public class CrudControllerAdvice
     public void constraintViolationExceptionHandler( ConstraintViolationException ex, HttpServletResponse response, HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.error( getExceptionMessage( ex ) ), response, request );
-        ex.printStackTrace();
     }
 
     @ExceptionHandler( MaintenanceModeException.class )
@@ -220,7 +223,36 @@ public class CrudControllerAdvice
         webMessageService.send( WebMessageUtils.error( metadataSyncException.getMessage() ), response, request );
     }
 
-    // Catch default exception and send back to user, but rethrow internally so it still ends up in server logs
+    @ExceptionHandler( DhisVersionMismatchException.class )
+    public void handleDhisVersionMismatchException( DhisVersionMismatchException versionMismatchException, HttpServletResponse response, HttpServletRequest request )
+    {
+        webMessageService.send( WebMessageUtils.forbidden( versionMismatchException.getMessage() ), response, request );
+    }
+
+    @ExceptionHandler( MetadataImportConflictException.class )
+    public void handleMetadataImportConflictException( MetadataImportConflictException conflictException, HttpServletResponse response, HttpServletRequest request )
+    {
+        if ( conflictException.getMetadataSyncSummary() == null )
+        {
+            webMessageService.send( WebMessageUtils.conflict( conflictException.getMessage() ), response, request );
+        }
+        else
+        {
+            WebMessage message = new WebMessage( Status.ERROR, HttpStatus.CONFLICT );
+            message.setResponse( conflictException.getMetadataSyncSummary() );
+            webMessageService.send( message, response, request );
+        }
+    }
+
+    @ExceptionHandler( OperationNotAllowedException.class )
+    public void handleOperationNotAllowedException( OperationNotAllowedException ex, HttpServletResponse response, HttpServletRequest request )
+    {
+        webMessageService.send( WebMessageUtils.forbidden( ex.getMessage() ), response, request );
+    }
+
+    /**
+     * Catches default exception and send back to user, but re-throws internally so it still ends up in server logs.
+     */
     @ExceptionHandler( Exception.class )
     public void defaultExceptionHandler( Exception ex, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {

@@ -1,7 +1,7 @@
 package org.hisp.dhis.mapgeneration;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -116,8 +116,8 @@ public class InternalMapLayer
      */
     public void applyInterpolatedRadii()
     {
-        Assert.isTrue( mapObjects != null );
-        Assert.isTrue( mapObjects.size() > 0 );
+        Assert.notNull( mapObjects, "Map objects cannot be null" );
+        Assert.notEmpty( mapObjects, "Map objects cannot be empty" );
 
         InternalMapObject min = null, max = null;
 
@@ -321,9 +321,8 @@ public class InternalMapLayer
      */
     public void setEqualRangeIntervalSet( int length )
     {
-        Assert.isTrue( length > 0 );
-        Assert.isTrue( mapObjects != null );
-        Assert.isTrue( mapObjects.size() > 0 );
+        Assert.isTrue( length > 0, "Lengt must be a positive number" );
+        Assert.notEmpty( mapObjects, "Map objects cannot be empty" );
 
         IntervalSet intervalSet = new IntervalSet().setLowHigh( mapObjects );
 
@@ -348,15 +347,14 @@ public class InternalMapLayer
 
     public void setEqualCountIntervalSet( int length )
     {
-        Assert.isTrue( length > 0 );
-        Assert.isTrue( mapObjects != null );
-        Assert.isTrue( mapObjects.size() > 0 );
+        Assert.isTrue( length > 0, "Lengt must be a positive number" );
+        Assert.notEmpty( mapObjects, "Map objects cannot be empty" );
 
         IntervalSet intervalSet = new IntervalSet().setLowHigh( mapObjects );
 
         List<Double> values = getSortedMapObjectValues();
         
-        Assert.isTrue( values.size() > 0 );
+        Assert.notEmpty( values, "Values cannot be empty" );
         
         int range = values.size() / length;
         

@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.notification;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,22 +73,56 @@ public class InMemoryNotifier
     }
     
     @Override
+    public Notifier notify( TaskId id, NotificationLevel level, String message )
+    {
+        return notify( id, level, message, false );
+    }
+
+    @Override
     public Notifier notify( TaskId id, NotificationLevel level, String message, boolean completed )
     {
-        if ( id != null )
+        if ( id != null && !( level != null && level.isOff() ) )
         {
             Notification notification = new Notification( level, id.getCategory(), new Date(), message, completed );
-        
+
             notifications.get( id ).add( 0, notification );
-            
+
             if ( notifications.get( id ).size() > MAX_SIZE )
             {
                 notifications.get( id ).remove( MAX_SIZE );
             }
-            
+
             log.info( notification );
         }
-        
+
+        return this;
+    }
+
+    @Override
+    public Notifier update( TaskId id, String message )
+    {
+        return update( id, NotificationLevel.INFO, message, false );
+    }
+
+    @Override
+    public Notifier update( TaskId id, NotificationLevel level, String message )
+    {
+        return update( id, level, message, false );
+    }
+
+    @Override
+    public Notifier update( TaskId id, NotificationLevel level, String message, boolean completed )
+    {
+        if ( id != null && !( level != null && level.isOff() ) )
+        {
+            if ( notifications.get( id ).size() > 0 )
+            {
+                notifications.get( id ).remove( notifications.get( id ).size() - 1 );
+            }
+
+            notify( id, level, message, completed );
+        }
+
         return this;
     }
 
@@ -128,7 +162,13 @@ public class InMemoryNotifier
     @Override
     public Notifier addTaskSummary( TaskId id, Object taskSummary )
     {
-        if ( id != null )
+        return addTaskSummary( id, NotificationLevel.INFO, taskSummary );
+    }
+    
+    @Override
+    public Notifier addTaskSummary( TaskId id, NotificationLevel level, Object taskSummary )
+    {
+        if ( id != null && !( level != null && level.isOff() ) )
         {
             taskSummaries.get( id ).put( id.getCategory(), taskSummary );
         }

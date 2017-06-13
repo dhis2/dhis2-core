@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema.descriptors;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,6 @@ public class DashboardItemSchemaDescriptor implements SchemaDescriptor
     {
         Schema schema = new Schema( DashboardItem.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setShareable( false );
         schema.setOrder( 3500 );
         schema.setDefaultPrivate( true );
         schema.setImplicitPrivateAuthority( true );

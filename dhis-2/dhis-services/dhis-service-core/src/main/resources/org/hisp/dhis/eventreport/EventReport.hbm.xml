@@ -16,7 +16,7 @@
     &identifiableProperties;
 
     <property name="name" column="name" not-null="true" unique="false" length="230" />
-    
+
     <property name="description" type="text" />
 
     <list name="organisationUnits" table="eventreport_organisationunits">
@@ -38,14 +38,30 @@
     <many-to-one name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
       cascade="all-delete-orphan" foreign-key="fk_eventreport_relativeperiodsid" />
 
-    <list name="organisationUnitGroups" table="eventreport_orgunitgroups">
+    <list name="categoryDimensions" table="eventreport_categorydimensions" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="eventreportid" foreign-key="fk_eventreport_orgunitunitgroups_eventreportid" />
+      <key column="eventreportid" foreign-key="fk_eventreport_categorydimensions_eventreportid" />
       <list-index column="sort_order" base="0" />
-      <many-to-many column="orgunitgroupid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroup"
-        foreign-key="fk_eventreport_orgunitgroups_orgunitgroupid" />
+      <many-to-many column="categorydimensionid" class="org.hisp.dhis.dataelement.CategoryDimension"
+        foreign-key="fk_eventreport_categorydimensions_categorydimensionid" />
     </list>
 
+    <list name="organisationUnitGroupSetDimensions" table="eventreport_orgunitgroupsetdimensions" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="eventreportid" foreign-key="fk_eventreport_orgunitgroupsetdimensions_eventreporteid" />
+      <list-index column="sort_order" />
+      <many-to-many column="orgunitgroupsetdimensionid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension"
+        foreign-key="fk_eventreport_dimensions_ogunitgroupsetdimensionid" />
+    </list>
+    
+    <list name="categoryOptionGroupSetDimensions" table="eventreport_categoryoptiongroupsetdimensions" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="eventreportid" foreign-key="fk_eventreport_catoptiongroupsetdimensions_eventreportid" />
+      <list-index column="sort_order" />
+      <many-to-many column="categoryoptiongroupsetdimensionid" class="org.hisp.dhis.dataelement.CategoryOptionGroupSetDimension"
+        foreign-key="fk_eventreport_dimensions_catoptiongroupsetdimensionid" />
+    </list>
+    
     <list name="organisationUnitLevels" table="eventreport_orgunitlevels">
       <cache usage="read-write" />
       <key column="eventreportid" foreign-key="fk_eventreport_orgunitlevels_eventreportid" />
@@ -116,6 +132,12 @@
 
     <property name="title" />
     
+    <property name="subtitle" />
+
+    <property name="hideTitle" />
+
+    <property name="hideSubtitle" />
+
     <set name="interpretations" inverse="true">
       <key column="eventreportid" />
       <one-to-many class="org.hisp.dhis.interpretation.Interpretation" />
@@ -200,6 +222,22 @@
       </type>
     </property>
 
+    <property name="programStatus" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.program.ProgramStatus</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
+    <property name="eventStatus" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.event.EventStatus</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
     <property name="sortOrder" />
 
     <property name="topLimit" />
@@ -217,8 +255,14 @@
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
+    <set name="userAccesses" table="eventreportuseraccesses">
+      <cache usage="read-write" />
+      <key column="eventreportid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
+
     <!-- Object Translation -->
-    <set name="translations" table="eventreporttranslations" cascade="delete-orphan">
+    <set name="translations" table="eventreporttranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="eventreportid" foreign-key="fk_objecttranslation_eventreportid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

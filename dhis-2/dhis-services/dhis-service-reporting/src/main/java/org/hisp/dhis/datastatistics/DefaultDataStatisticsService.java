@@ -1,7 +1,7 @@
 package org.hisp.dhis.datastatistics;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -80,7 +80,9 @@ public class DefaultDataStatisticsService
     @Override
     public int addEvent( DataStatisticsEvent event )
     {
-        return dataStatisticsEventStore.save( event );
+        dataStatisticsEventStore.save( event );
+
+        return event.getId();
     }
 
     @Override
@@ -131,7 +133,9 @@ public class DefaultDataStatisticsService
     @Override
     public int saveDataStatistics( DataStatistics dataStatistics )
     {
-        return dataStatisticsStore.save( dataStatistics );
+        dataStatisticsStore.save( dataStatistics );
+
+        return dataStatistics.getId();
     }
 
     @Override

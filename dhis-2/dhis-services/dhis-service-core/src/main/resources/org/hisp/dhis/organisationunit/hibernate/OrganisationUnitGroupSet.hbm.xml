@@ -3,7 +3,7 @@
   "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
   [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
->
+  >
 
 <hibernate-mapping>
   <class name="org.hisp.dhis.organisationunit.OrganisationUnitGroupSet" table="orgunitgroupset">
@@ -21,6 +21,8 @@
 
     <property name="compulsory" not-null="true" />
 
+    <property name="includeSubhierarchyInAnalytics" not-null="false" />
+
     <property name="dataDimension" column="datadimension" not-null="true" />
 
     <set name="organisationUnitGroups" table="orgunitgroupsetmembers">
@@ -32,14 +34,14 @@
 
     <!-- Dynamic attribute values -->
 
-    <set name="attributeValues" table="orgunitgroupsetattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="orgunitgroupsetattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="orgunitgroupsetid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="orgunitgroupsettranslations" cascade="delete-orphan">
+    <set name="translations" table="orgunitgroupsettranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="orgunitgroupsetid" foreign-key="fk_objecttranslation_orgunitgroupsetid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -50,10 +52,16 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="orgunitgroupsetusergroupaccesses">
+    <set name="userGroupAccesses" table="orgunitgroupsetusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="orgunitgroupsetid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="orgunitgroupsetuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="orgunitgroupsetid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
   </class>

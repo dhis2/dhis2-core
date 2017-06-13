@@ -1,7 +1,7 @@
 package org.hisp.dhis.constant;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,12 @@ package org.hisp.dhis.constant;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.GenericNameableObjectStore;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.hisp.dhis.common.GenericNameableObjectStore;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Dang Duy Hieu
@@ -61,7 +61,8 @@ public class DefaultConstantService
     @Override
     public int saveConstant( Constant constant )
     {
-        return constantStore.save( constant );
+        constantStore.save( constant );
+        return constant.getId();
     }
 
     @Override

@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -95,14 +95,32 @@ public class DefaultProgramStageInstanceService
     public int addProgramStageInstance( ProgramStageInstance programStageInstance )
     {
         programStageInstance.setAutoFields();
-        return programStageInstanceStore.save( programStageInstance );
+        programStageInstanceStore.save( programStageInstance );
+
+        return programStageInstance.getId();
     }
 
     @Override
     public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
     {
+        deleteProgramStageInstance( programStageInstance, false );
+    }
+
+    public void deleteProgramStageInstance( ProgramStageInstance programStageInstance, boolean forceDelete )
+    {
         dataValueAuditService.deleteTrackedEntityDataValueAudits( programStageInstance );
-        programStageInstanceStore.delete( programStageInstance );
+
+        if ( forceDelete )
+        {
+            programStageInstanceStore.delete( programStageInstance );
+        }
+        else
+        {
+            // Soft delete
+            programStageInstance.setDeleted( !forceDelete );
+            programStageInstanceStore.save( programStageInstance );
+        }
+
     }
 
     @Override
@@ -285,4 +303,5 @@ public class DefaultProgramStageInstanceService
 
         return programStageInstance;
     }
+
 }

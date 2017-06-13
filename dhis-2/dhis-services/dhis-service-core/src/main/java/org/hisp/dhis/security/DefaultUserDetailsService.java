@@ -1,7 +1,10 @@
 package org.hisp.dhis.security;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +34,7 @@ package org.hisp.dhis.security;
 import org.hisp.dhis.system.util.SecurityUtils;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -45,6 +49,8 @@ public class DefaultUserDetailsService
     implements UserDetailsService
 {
     public static final String ID = UserDetailsService.class.getName();
+    
+    private static final Log log = LogFactory.getLog( DefaultUserDetailsService.class );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -55,6 +61,13 @@ public class DefaultUserDetailsService
     public void setUserService( UserService userService )
     {
         this.userService = userService;
+    }
+    
+    private SecurityService securityService;
+
+    public void setSecurityService( SecurityService securityService )
+    {
+        this.securityService = securityService;
     }
 
     // -------------------------------------------------------------------------
@@ -82,9 +95,17 @@ public class DefaultUserDetailsService
             }
         }
 
+        boolean enabled = !credentials.isDisabled();
         boolean credentialsNonExpired = userService.credentialsNonExpired( credentials );
+        boolean accountNonLocked = !securityService.isLocked( credentials.getUsername() );
 
+        if ( ObjectUtils.anyIsFalse( enabled, credentialsNonExpired, accountNonLocked ) )
+        {
+            log.info( String.format( "Login attempt for disabled/locked user: '%s', enabled: %b, credentials non-expired: %b, account non-locked: %b", 
+                username, enabled, credentialsNonExpired, accountNonLocked ) );
+        }
+        
         return new User( credentials.getUsername(), credentials.getPassword(),
-            !credentials.isDisabled(), true, credentialsNonExpired, true, SecurityUtils.getGrantedAuthorities( credentials ) );
+            enabled, true, credentialsNonExpired, accountNonLocked, SecurityUtils.getGrantedAuthorities( credentials ) );
     }
 }

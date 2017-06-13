@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@ package org.hisp.dhis.common;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,15 +41,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.comparator.ObjectStringValueComparator;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 
 /**
  * @author Lars Helge Overland
@@ -66,7 +69,7 @@ public class DimensionalObjectUtils
      * Matching data element operand, program data element, program attribute,
      * data set reporting rate metric.
      */
-    private static final Pattern COMPOSITE_DIM_OBJECT_PATTERN = Pattern.compile( "([a-zA-Z]\\w{10})\\.(\\w{5,30})" );
+    private static final Pattern COMPOSITE_DIM_OBJECT_PATTERN = Pattern.compile( "(?<id1>\\w+)\\.(?<id2>\\w+|\\*)(\\.(?<id3>\\w+|\\*))?" );
     
     public static List<DimensionalObject> getCopies( List<DimensionalObject> dimensions )
     {
@@ -134,7 +137,7 @@ public class DimensionalObjectUtils
      * @return a map.
      */
     @SafeVarargs
-    public static final <T> Map<T, T> asMap( final T... elements )
+    public static <T> Map<T, T> asMap( final T... elements )
     {
         Map<T, T> map = new HashMap<>();
         
@@ -351,7 +354,44 @@ public class DimensionalObjectUtils
     {
         return expression != null && COMPOSITE_DIM_OBJECT_PATTERN.matcher( expression ).matches();
     }
+    
+    /**
+     * Returns the first identifier in a composite dimension object identifier.
+     * 
+     * @param compositeItem the composite dimension object identifier.
+     * @return the first identifier, or null if not a valid composite identifier
+     *         or no match.
+     */
+    public static String getFirstIdentifer( String compositeItem )
+    {
+        Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher( compositeItem );
+        return matcher.matches() ? matcher.group( 1 ) : null;
+    }
 
+    /**
+     * Returns the second identifier in a composite dimension object identifier.
+     * 
+     * @param compositeItem the composite dimension object identifier.
+     * @return the second identifier, or null if not a valid composite identifier
+     *         or no match.
+     */
+    public static String getSecondIdentifer( String compositeItem )
+    {
+        Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher( compositeItem );
+        return matcher.matches() ? matcher.group( 2 ) : null;
+    }
+
+    /**
+     * Indicates whether the given identifier is a wildcard.
+     * 
+     * @param identifier the identifier.
+     * @return true if the given identifier is a wildcard, false if not.
+     */
+    public static boolean isWildCard( String identifier )
+    {
+        return SYMBOL_WILDCARD.equals( identifier );
+    }
+    
     /**
      * Returns a list of DimensionalItemObjects.
      *
@@ -461,35 +501,79 @@ public class DimensionalObjectUtils
      */
     public static Set<DimensionalItemObject> getDataElements( Collection<DataElementOperand> operands )
     {
-        Set<DimensionalItemObject> set = Sets.newHashSet();
-        
-        for ( DataElementOperand operand : operands )
-        {
-            set.add( operand.getDataElement() );
-        }
-        
-        return set;
+        return operands.stream().map( DataElementOperand::getDataElement ).collect( Collectors.toSet() );
     }
     
     /**
-     * Gets a set of unique category option combos based on the given collection
+     * Gets a set of unique category option combinations based on the given collection
      * of operands.
      * 
      * @param operands the collection of operands.
-     * @return a set of category option combos.
+     * @return a set of category option combinations.
      */
     public static Set<DimensionalItemObject> getCategoryOptionCombos( Collection<DataElementOperand> operands )
     {
-        Set<DimensionalItemObject> set = Sets.newHashSet();
-        
-        for ( DataElementOperand operand : operands )
-        {
-            set.add( operand.getCategoryOptionCombo() );
-        }
-        
-        return set;
+        return operands.stream()
+            .filter( o -> o.getCategoryOptionCombo() != null )
+            .map( DataElementOperand::getCategoryOptionCombo )
+            .collect( Collectors.toSet() );
     }
-    
+
+    /**
+     * Gets a set of unique attribute option combinations based on the given collection
+     * of operands.
+     * 
+     * @param operands the collection of operands.
+     * @return a set of category option combinations.
+     */
+    public static Set<DimensionalItemObject> getAttributeOptionCombos( Collection<DataElementOperand> operands )
+    {
+        return operands.stream()
+            .filter( o -> o.getAttributeOptionCombo() != null )
+            .map( DataElementOperand::getAttributeOptionCombo )
+            .collect( Collectors.toSet() );
+    }
+
+    /**
+     * Returns a mapping between the base dimension item identifier and the 
+     * dimension item identifier defined by the given identifier scheme.
+     *
+     * @param objects the dimensional item objects.
+     * @param idScheme the identifier scheme.
+     * @return a mapping between dimension item identifiers.
+     */
+    public static Map<String, String> getDimensionItemIdSchemeMap( Collection<? extends DimensionalItemObject> objects, IdScheme idScheme )
+    {
+        Map<String, String> map = Maps.newHashMap();
+
+        objects.forEach( obj -> map.put( obj.getDimensionItem(), obj.getDimensionItem( IdScheme.from( idScheme ) ) ) );
+
+        return map;
+    }
+
+    /**
+     * Returns a mapping between the base dimension item identifier and the
+     * dimension item identifier defined by the given identifier scheme. For
+     * each operand, the data element and category option combo identifiers
+     * are included in the mapping, not the operand itself.
+     * 
+     * @param dataElementOperands the data element operands.
+     * @param idScheme the identifier scheme.
+     * @return a mapping between dimension item identifiers.
+     */
+    public static Map<String, String> getDataElementOperandIdSchemeMap( Collection<DataElementOperand> dataElementOperands, IdScheme idScheme )
+    {
+        Map<String, String> map = Maps.newHashMap();
+
+        for ( DataElementOperand operand : dataElementOperands )
+        {
+            map.put( operand.getDataElement().getDimensionItem(), operand.getDataElement().getDimensionItem( IdScheme.from( idScheme ) ) );
+            map.put( operand.getCategoryOptionCombo().getDimensionItem(), operand.getCategoryOptionCombo().getDimensionItem( IdScheme.from( idScheme ) ) );
+        }
+
+        return map;
+    }
+
     /**
      * Returns a dimension item identifier for the given data set identifier and
      * reporting date metric.
@@ -501,5 +585,27 @@ public class DimensionalObjectUtils
     public static String getDimensionItem( String uid, ReportingRateMetric metric )
     {
         return uid + COMPOSITE_DIM_OBJECT_PLAIN_SEP + metric.name();
+    }
+    
+    /**
+     * Replaces total {@link DataElementOperand} items with {@link DataElement} items
+     * in the given list of items.
+     * 
+     * @param items the list of items.
+     * @return a list of dimensional item objects.
+     */
+    public static List<DimensionalItemObject> replaceOperandTotalsWithDataElements( List<DimensionalItemObject> items )
+    {
+        for ( int i = 0; i < items.size(); i++ )
+        {
+            DimensionalItemObject item = items.get( i );
+            
+            if ( DimensionItemType.DATA_ELEMENT_OPERAND.equals( item.getDimensionItemType() ) && ((DataElementOperand) item).isTotal() )
+            {
+                items.set( i, ((DataElementOperand) item).getDataElement() );
+            }
+        }
+        
+        return items;
     }
 }

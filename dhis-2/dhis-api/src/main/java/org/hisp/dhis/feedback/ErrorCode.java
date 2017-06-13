@@ -1,7 +1,7 @@
 package org.hisp.dhis.feedback;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,9 +39,16 @@ package org.hisp.dhis.feedback;
 public enum ErrorCode
 {
     /* Security Errors */
-    E3000( "User {0} is not allowed to create objects of type {1}." ),
-    E3001( "User {0} is not allowed to update object {1}." ),
-    E3002( "User {0} is not allowed to delete object {1}." ),
+    E3000( "User `{0}` is not allowed to create objects of type {1}." ),
+    E3001( "User `{0}` is not allowed to update object `{1}`." ),
+    E3002( "User `{0}` is not allowed to delete object `{1}`." ),
+    E3003( "User `{0}` is not allowed to grant users access to user role `{1}`." ),
+    E3004( "User `{0}` is not allowed to grant users access to user groups." ),
+    E3005( "User `{0}` is not allowed to grant users access to user group `{1}`." ),
+    E3006( "User `{0}` is not allowed to externalize objects of type `{1}`." ),
+    E3008( "User `{0}` is not allowed to make public objects of type `{1}`." ),
+    E3009( "User `{0}` is not allowed to make private objects of type `{1}`." ),
+    E3010( "Invalid access string `{0}`." ),
 
     /* Metadata Validation Errors */
     E4000( "Missing required property `{0}`." ),
@@ -56,6 +63,7 @@ public enum ErrorCode
     E4009( "Attribute `{0}` is unique, and value `{1}` already exist." ),
     E4010( "Attribute `{0}` is not supported for type `{1}`." ),
     E4011( "Attribute `{0}` is required, but no value was found." ),
+    E4012( "Attribute `{0}` contains elements of different period type than the data set it was added to" ),
 
     /* Preheat Errors */
     E5000( "Found matching object for given reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),

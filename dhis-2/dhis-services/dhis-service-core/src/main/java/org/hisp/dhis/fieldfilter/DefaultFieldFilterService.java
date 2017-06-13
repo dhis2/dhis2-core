@@ -1,7 +1,7 @@
 package org.hisp.dhis.fieldfilter;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.ReportingRate;
-import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeTransformer;
@@ -56,6 +55,7 @@ import org.springframework.util.StringUtils;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -79,7 +79,7 @@ public class DefaultFieldFilterService implements FieldFilterService
     private SchemaService schemaService;
 
     @Autowired( required = false )
-    private Set<NodeTransformer> nodeTransformers = Sets.newHashSet();
+    private Set<NodeTransformer> nodeTransformers = new HashSet<>();
 
     private ImmutableMap<String, Preset> presets = ImmutableMap.of();
 
@@ -110,7 +110,7 @@ public class DefaultFieldFilterService implements FieldFilterService
     @Override
     public ComplexNode filter( Object object, List<String> fieldList )
     {
-        Assert.notNull( object );
+        Assert.notNull( object, "Object cannot be null" );
 
         CollectionNode collectionNode = filter( object.getClass(), Lists.newArrayList( object ), fieldList );
 
@@ -152,7 +152,6 @@ public class DefaultFieldFilterService implements FieldFilterService
             fieldMap = fieldParser.parse( fields );
         }
 
-
         final FieldMap finalFieldMap = fieldMap;
         objects.forEach( object -> collectionNode.addChild( buildNode( finalFieldMap, klass, object ) ) );
 
@@ -181,21 +180,25 @@ public class DefaultFieldFilterService implements FieldFilterService
 
         for ( String fieldKey : fieldMap.keySet() )
         {
-            AbstractNode child = null;
+            AbstractNode child;
+            Property property = schema.getProperty( fieldKey );
 
-            if ( !schema.haveProperty( fieldKey ) )
+            if ( property == null || !property.isReadable() )
             {
                 // throw new FieldFilterException( fieldKey, schema );
                 log.debug( "Unknown field property `" + fieldKey + "`, available fields are " + schema.getPropertyMap().keySet() );
                 continue;
             }
 
-            Property property = schema.getProperty( fieldKey );
-
             Object returnValue = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
             Schema propertySchema = schemaService.getDynamicSchema( property.getKlass() );
 
             FieldMap fieldValue = fieldMap.get( fieldKey );
+
+            if ( returnValue == null && property.isCollection() )
+            {
+                continue;
+            }
 
             if ( property.isCollection() )
             {
@@ -325,18 +328,18 @@ public class DefaultFieldFilterService implements FieldFilterService
 
         for ( String fieldKey : Sets.newHashSet( fieldMap.keySet() ) )
         {
+            Collection<Property> properties = schema.getReadableProperties().values();
+
             if ( "*".equals( fieldKey ) )
             {
-                schema.getPropertyMap().keySet().stream()
-                    .filter( mapKey -> !fieldMap.containsKey( mapKey ) )
-                    .forEach( mapKey -> fieldMap.put( mapKey, new FieldMap() ) );
+                properties.stream()
+                    .filter( property -> !fieldMap.containsKey( property.key() ) )
+                    .forEach( property -> fieldMap.put( property.key(), new FieldMap() ) );
 
                 cleanupFields.add( fieldKey );
             }
             else if ( ":persisted".equals( fieldKey ) )
             {
-                List<Property> properties = schema.getProperties();
-
                 properties.stream()
                     .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted() )
                     .forEach( property -> fieldMap.put( property.key(), new FieldMap() ) );
@@ -345,8 +348,6 @@ public class DefaultFieldFilterService implements FieldFilterService
             }
             else if ( ":owner".equals( fieldKey ) )
             {
-                List<Property> properties = schema.getProperties();
-
                 properties.stream()
                     .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted() && property.isOwner() )
                     .forEach( property -> fieldMap.put( property.key(), new FieldMap() ) );
@@ -423,13 +424,14 @@ public class DefaultFieldFilterService implements FieldFilterService
     {
         FieldMap fieldMap = new FieldMap();
 
-        if ( schema.isPersisted() )
+        for ( Property property : schema.getReadableProperties().values() )
         {
-            fieldMap.put( ":owner", new FieldMap() );
+            fieldMap.put( property.getName(), new FieldMap() );
         }
-        else
+
+        for ( String mapKey : schema.getPropertyMap().keySet() )
         {
-            for ( String mapKey : schema.getPropertyMap().keySet() )
+            if ( schema.getProperty( mapKey ).isReadable() )
             {
                 fieldMap.put( mapKey, new FieldMap() );
             }
@@ -485,7 +487,6 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private boolean isProperIdObject( Class<?> klass )
     {
-        return !(DataElementOperand.class.isAssignableFrom( klass ) || UserCredentials.class.isAssignableFrom( klass )
-            || ReportingRate.class.isAssignableFrom( klass ));
+        return !(UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass ));
     }
 }

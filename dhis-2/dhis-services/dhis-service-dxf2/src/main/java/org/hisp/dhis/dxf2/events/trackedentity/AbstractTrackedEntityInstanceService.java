@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.trackedentity;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
@@ -44,10 +45,11 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -60,6 +62,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -101,6 +104,9 @@ public abstract class AbstractTrackedEntityInstanceService
     @Autowired
     protected EnrollmentService enrollmentService;
 
+    @Autowired
+    protected ProgramInstanceService programInstanceService;
+
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
     private final CachingMap<String, TrackedEntity> trackedEntityCache = new CachingMap<>();
@@ -112,15 +118,15 @@ public abstract class AbstractTrackedEntityInstanceService
     // -------------------------------------------------------------------------
 
     @Override
-    public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params )
+    public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams, TrackedEntityInstanceParams params )
     {
-        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> teis = entityInstanceService.getTrackedEntityInstances( params );
+        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> teis = entityInstanceService.getTrackedEntityInstances( queryParams );
 
         List<TrackedEntityInstance> teiItems = new ArrayList<>();
 
         for ( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance : teis )
         {
-            teiItems.add( getTrackedEntityInstance( trackedEntityInstance, false ) );
+            teiItems.add( getTrackedEntityInstance( trackedEntityInstance, params ) );
         }
 
         return teiItems;
@@ -139,13 +145,20 @@ public abstract class AbstractTrackedEntityInstanceService
     }
 
     @Override
-    public TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance )
+    public TrackedEntityInstance getTrackedEntityInstance( String uid, TrackedEntityInstanceParams params )
     {
-        return getTrackedEntityInstance( entityInstance, true );
+        return getTrackedEntityInstance( teiService.getTrackedEntityInstance( uid ), params );
     }
 
     @Override
-    public TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance, boolean includeRelationships )
+    public TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance )
+    {
+        return getTrackedEntityInstance( entityInstance, TrackedEntityInstanceParams.TRUE );
+    }
+
+    @Override
+    public TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
+        TrackedEntityInstanceParams params )
     {
         if ( entityInstance == null )
         {
@@ -156,11 +169,13 @@ public abstract class AbstractTrackedEntityInstanceService
         trackedEntityInstance.setTrackedEntityInstance( entityInstance.getUid() );
         trackedEntityInstance.setOrgUnit( entityInstance.getOrganisationUnit().getUid() );
         trackedEntityInstance.setTrackedEntity( entityInstance.getTrackedEntity().getUid() );
-        trackedEntityInstance.setCreated( entityInstance.getCreated().toString() );
-        trackedEntityInstance.setLastUpdated( DateUtils.getLongGmtDateString( entityInstance.getLastUpdated() ) );
+        trackedEntityInstance.setCreated( DateUtils.getIso8601NoTz( entityInstance.getCreated() ) );
+        trackedEntityInstance.setCreatedAtClient( DateUtils.getIso8601NoTz( entityInstance.getLastUpdatedAtClient() ) );
+        trackedEntityInstance.setLastUpdated( DateUtils.getIso8601NoTz( entityInstance.getLastUpdated() ) );
+        trackedEntityInstance.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( entityInstance.getLastUpdatedAtClient() ) );
         trackedEntityInstance.setInactive( entityInstance.isInactive() );
 
-        if ( includeRelationships )
+        if ( params.isIncludeRelationships() )
         {
             //TODO include relationships in data model and void transactional query in for-loop
 
@@ -178,14 +193,22 @@ public abstract class AbstractTrackedEntityInstanceService
                 // we might have cases where A <=> A, so we only include the relative if the UIDs do not match
                 if ( !entityRelationship.getEntityInstanceA().getUid().equals( entityInstance.getUid() ) )
                 {
-                    relationship.setRelative( getTrackedEntityInstance( entityRelationship.getEntityInstanceA(), false ) );
+                    relationship.setRelative( getTrackedEntityInstance( entityRelationship.getEntityInstanceA(), TrackedEntityInstanceParams.FALSE ) );
                 }
                 else if ( !entityRelationship.getEntityInstanceB().getUid().equals( entityInstance.getUid() ) )
                 {
-                    relationship.setRelative( getTrackedEntityInstance( entityRelationship.getEntityInstanceB(), false ) );
+                    relationship.setRelative( getTrackedEntityInstance( entityRelationship.getEntityInstanceB(), TrackedEntityInstanceParams.FALSE ) );
                 }
 
                 trackedEntityInstance.getRelationships().add( relationship );
+            }
+        }
+
+        if ( params.isIncludeEnrollments() )
+        {
+            for ( ProgramInstance programInstance : entityInstance.getProgramInstances() )
+            {
+                trackedEntityInstance.getEnrollments().add( enrollmentService.getEnrollment( programInstance, params ) );
             }
         }
 
@@ -193,8 +216,8 @@ public abstract class AbstractTrackedEntityInstanceService
         {
             Attribute attribute = new Attribute();
 
-            attribute.setCreated( DateUtils.getLongGmtDateString( attributeValue.getCreated() ) );
-            attribute.setLastUpdated( DateUtils.getLongGmtDateString( attributeValue.getLastUpdated() ) );
+            attribute.setCreated( DateUtils.getIso8601NoTz( attributeValue.getCreated() ) );
+            attribute.setLastUpdated( DateUtils.getIso8601NoTz( attributeValue.getLastUpdated() ) );
             attribute.setDisplayName( attributeValue.getAttribute().getDisplayName() );
             attribute.setAttribute( attributeValue.getAttribute().getUid() );
             attribute.setValueType( attributeValue.getAttribute().getValueType() );
@@ -236,8 +259,8 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         entityInstance.setTrackedEntity( trackedEntity );
-        entityInstance.setUid( CodeGenerator.isValidCode( trackedEntityInstance.getTrackedEntityInstance() ) ?
-            trackedEntityInstance.getTrackedEntityInstance() : CodeGenerator.generateCode() );
+        entityInstance.setUid( CodeGenerator.isValidUid( trackedEntityInstance.getTrackedEntityInstance() ) ?
+            trackedEntityInstance.getTrackedEntityInstance() : CodeGenerator.generateUid() );
 
         return entityInstance;
     }
@@ -263,7 +286,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
             if ( counter % FLUSH_FREQUENCY == 0 )
             {
-                dbmsManager.clearSession();
+                clearSession();
             }
 
             counter++;
@@ -280,7 +303,7 @@ public abstract class AbstractTrackedEntityInstanceService
             importOptions = new ImportOptions();
         }
 
-        ImportSummary importSummary = new ImportSummary();
+        ImportSummary importSummary = new ImportSummary( trackedEntityInstance.getTrackedEntityInstance() );
 
         trackedEntityInstance.trimValuesToNull();
 
@@ -308,19 +331,15 @@ public abstract class AbstractTrackedEntityInstanceService
 
         updateRelationships( trackedEntityInstance, entityInstance );
         updateAttributeValues( trackedEntityInstance, entityInstance );
+        updateDateFields( trackedEntityInstance, entityInstance );
+
         teiService.updateTrackedEntityInstance( entityInstance );
 
         importSummary.setReference( entityInstance.getUid() );
         importSummary.getImportCount().incrementImported();
 
-        for ( Enrollment enrollment : trackedEntityInstance.getEnrollments() )
-        {
-            enrollment.setTrackedEntity( trackedEntityInstance.getTrackedEntity() );
-            enrollment.setTrackedEntityInstance( entityInstance.getUid() );
-        }
-
-        ImportSummaries importSummaries = enrollmentService.addEnrollments( trackedEntityInstance.getEnrollments(), importOptions );
-        importSummary.setEnrollments( importSummaries );
+        importOptions.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        importSummary.setEnrollments( handleEnrollments( trackedEntityInstance, entityInstance, importOptions ) );
 
         return importSummary;
     }
@@ -346,7 +365,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
             if ( counter % FLUSH_FREQUENCY == 0 )
             {
-                dbmsManager.clearSession();
+                clearSession();
             }
 
             counter++;
@@ -363,7 +382,7 @@ public abstract class AbstractTrackedEntityInstanceService
             importOptions = new ImportOptions();
         }
 
-        ImportSummary importSummary = new ImportSummary();
+        ImportSummary importSummary = new ImportSummary( trackedEntityInstance.getTrackedEntityInstance() );
 
         trackedEntityInstance.trimValuesToNull();
 
@@ -406,21 +425,16 @@ public abstract class AbstractTrackedEntityInstanceService
 
         updateRelationships( trackedEntityInstance, entityInstance );
         updateAttributeValues( trackedEntityInstance, entityInstance );
+        updateDateFields( trackedEntityInstance, entityInstance );
+
         teiService.updateTrackedEntityInstance( entityInstance );
 
         importSummary.setStatus( ImportStatus.SUCCESS );
         importSummary.setReference( entityInstance.getUid() );
         importSummary.getImportCount().incrementUpdated();
 
-        for ( Enrollment enrollment : trackedEntityInstance.getEnrollments() )
-        {
-            enrollment.setTrackedEntity( trackedEntityInstance.getTrackedEntity() );
-            enrollment.setTrackedEntityInstance( entityInstance.getUid() );
-        }
-
         importOptions.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        ImportSummaries importSummaries = enrollmentService.addEnrollments( trackedEntityInstance.getEnrollments(), importOptions );
-        importSummary.setEnrollments( importSummaries );
+        importSummary.setEnrollments( handleEnrollments( trackedEntityInstance, entityInstance, importOptions ) );
 
         return importSummary;
     }
@@ -455,7 +469,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
             if ( counter % FLUSH_FREQUENCY == 0 )
             {
-                dbmsManager.clearSession();
+                clearSession();
             }
 
             counter++;
@@ -467,6 +481,33 @@ public abstract class AbstractTrackedEntityInstanceService
     // -------------------------------------------------------------------------
     // HELPERS
     // -------------------------------------------------------------------------
+
+    private ImportSummaries handleEnrollments( TrackedEntityInstance trackedEntityInstanceDTO, org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions )
+    {
+        List<Enrollment> create = new ArrayList<>();
+        List<Enrollment> update = new ArrayList<>();
+
+        for ( Enrollment enrollment : trackedEntityInstanceDTO.getEnrollments() )
+        {
+            enrollment.setTrackedEntity( trackedEntityInstanceDTO.getTrackedEntity() );
+            enrollment.setTrackedEntityInstance( trackedEntityInstance.getUid() );
+
+            if ( !programInstanceService.programInstanceExists( enrollment.getEnrollment() ) )
+            {
+                create.add( enrollment );
+            }
+            else
+            {
+                update.add( enrollment );
+            }
+        }
+
+        ImportSummaries importSummaries = new ImportSummaries();
+        importSummaries.addImportSummaries( enrollmentService.addEnrollments( create, importOptions ) );
+        importSummaries.addImportSummaries( enrollmentService.updateEnrollments( update, importOptions ) );
+
+        return importSummaries;
+    }
 
     private void updateAttributeValues( TrackedEntityInstance trackedEntityInstance, org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance )
     {
@@ -519,17 +560,17 @@ public abstract class AbstractTrackedEntityInstanceService
 
     private OrganisationUnit getOrganisationUnit( IdSchemes idSchemes, String id )
     {
-        return organisationUnitCache.get( id, new IdentifiableObjectCallable<>( manager, OrganisationUnit.class, idSchemes.getOrgUnitIdScheme(), id ) );
+        return organisationUnitCache.get( id, () -> manager.getObject( OrganisationUnit.class, idSchemes.getOrgUnitIdScheme(), id ) );
     }
 
     private TrackedEntity getTrackedEntity( IdSchemes idSchemes, String id )
     {
-        return trackedEntityCache.get( id, new IdentifiableObjectCallable<>( manager, TrackedEntity.class, idSchemes.getTrackedEntityIdScheme(), id ) );
+        return trackedEntityCache.get( id, () -> manager.getObject( TrackedEntity.class, idSchemes.getTrackedEntityIdScheme(), id ) );
     }
 
     private TrackedEntityAttribute getTrackedEntityAttribute( IdSchemes idSchemes, String id )
     {
-        return trackedEntityAttributeCache.get( id, new IdentifiableObjectCallable<>( manager, TrackedEntityAttribute.class, idSchemes.getTrackedEntityAttributeIdScheme(), id ) );
+        return trackedEntityAttributeCache.get( id, () -> manager.getObject( TrackedEntityAttribute.class, idSchemes.getTrackedEntityAttributeIdScheme(), id ) );
     }
 
     //--------------------------------------------------------------------------
@@ -663,5 +704,33 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         return importConflicts;
+    }
+
+    private void clearSession()
+    {
+        organisationUnitCache.clear();
+        trackedEntityCache.clear();
+        trackedEntityAttributeCache.clear();
+
+        dbmsManager.clearSession();
+    }
+
+    private void updateDateFields( TrackedEntityInstance trackedEntityInstance, org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance )
+    {
+        entityInstance.setAutoFields();
+
+        Date createdAtClient = DateUtils.parseDate( trackedEntityInstance.getCreatedAtClient() );
+
+        if ( createdAtClient != null )
+        {
+            entityInstance.setCreatedAtClient( createdAtClient );
+        }
+
+        String lastUpdatedAtClient = trackedEntityInstance.getLastUpdatedAtClient();
+
+        if ( lastUpdatedAtClient != null )
+        {
+            entityInstance.setLastUpdatedAtClient( DateUtils.parseDate( lastUpdatedAtClient ) );
+        }
     }
 }

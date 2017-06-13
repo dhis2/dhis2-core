@@ -2,7 +2,7 @@ package org.hisp.dhis.expression;
 
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,18 +31,18 @@ package org.hisp.dhis.expression;
 
 public enum Operator
 {
-    equal_to( "==" ), 
-    not_equal_to( "!=" ), 
-    greater_than( ">" ), 
-    greater_than_or_equal_to( ">=" ), 
-    less_than( "<" ), 
+    equal_to( "==" ),
+    not_equal_to( "!=" ),
+    greater_than( ">" ),
+    greater_than_or_equal_to( ">=" ),
+    less_than( "<" ),
     less_than_or_equal_to( "<=" ),
-    compulsory_pair( "[Compulsory pair]"),
+    compulsory_pair( "[Compulsory pair]" ),
     exclusive_pair( "[Exclusive pair]" );
 
     private final String mathematicalOperator;
 
-    private Operator( String mathematicalOperator )
+    Operator( String mathematicalOperator )
     {
         this.mathematicalOperator = mathematicalOperator;
     }
@@ -51,7 +51,7 @@ public enum Operator
     {
         return mathematicalOperator;
     }
-    
+
     public static Operator fromValue( String value )
     {
         for ( Operator operator : Operator.values() )
@@ -64,7 +64,7 @@ public enum Operator
 
         return null;
     }
-    
+
     public static Operator safeValueOf( String name )
     {
         return name != null ? Operator.valueOf( name ) : null;

@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,14 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.cache.HibernateCacheManager;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
@@ -68,7 +68,7 @@ public class DefaultUserGroupService
     {
         this.aclService = aclService;
     }
-    
+
     private HibernateCacheManager cacheManager;
 
     public void setCacheManager( HibernateCacheManager cacheManager )
@@ -83,7 +83,8 @@ public class DefaultUserGroupService
     @Override
     public int addUserGroup( UserGroup userGroup )
     {
-        return userGroupStore.save( userGroup );
+        userGroupStore.save( userGroup );
+        return userGroup.getId();
     }
 
     @Override
@@ -96,9 +97,9 @@ public class DefaultUserGroupService
     public void updateUserGroup( UserGroup userGroup )
     {
         userGroupStore.update( userGroup );
-        
+
         // Clear query cache due to sharing and user group membership
-        
+
         cacheManager.clearQueryCache();
     }
 
@@ -123,27 +124,37 @@ public class DefaultUserGroupService
     @Override
     public boolean canAddOrRemoveMember( String uid )
     {
-        User currentUser = currentUserService.getCurrentUser();
-        
+        return canAddOrRemoveMember( uid, currentUserService.getCurrentUser() );
+    }
+
+    @Override
+    public boolean canAddOrRemoveMember( String uid, User currentUser )
+    {
         UserGroup userGroup = getUserGroup( uid );
-        
+
         if ( userGroup == null || currentUser == null || currentUser.getUserCredentials() == null )
         {
             return false;
         }
-        
+
         boolean canUpdate = aclService.canUpdate( currentUser, userGroup );
         boolean canAddMember = currentUser.getUserCredentials().isAuthorized( UserGroup.AUTH_ADD_MEMBERS_TO_READ_ONLY_USER_GROUPS );
-        
+
         return canUpdate || canAddMember;
     }
-    
+
     @Override
     public void addUserToGroups( User user, Collection<String> uids )
-    {        
+    {
+        addUserToGroups( user, uids, currentUserService.getCurrentUser() );
+    }
+
+    @Override
+    public void addUserToGroups( User user, Collection<String> uids, User currentUser )
+    {
         for ( String uid : uids )
         {
-            if ( canAddOrRemoveMember( uid ) )
+            if ( canAddOrRemoveMember( uid, currentUser ) )
             {
                 UserGroup userGroup = getUserGroup( uid );
                 userGroup.addUser( user );
@@ -163,25 +174,31 @@ public class DefaultUserGroupService
                 userGroup.removeUser( user );
                 userGroupStore.updateNoAcl( userGroup );
             }
-        }        
+        }
     }
 
     @Override
     public void updateUserGroups( User user, Collection<String> uids )
     {
+        updateUserGroups( user, uids, currentUserService.getCurrentUser() );
+    }
+
+    @Override
+    public void updateUserGroups( User user, Collection<String> uids, User currentUser )
+    {
         Collection<UserGroup> updates = getUserGroupsByUid( uids );
-        
+
         for ( UserGroup userGroup : new HashSet<>( user.getGroups() ) )
         {
-            if ( !updates.contains( userGroup ) && canAddOrRemoveMember( userGroup.getUid() ) )
+            if ( !updates.contains( userGroup ) && canAddOrRemoveMember( userGroup.getUid(), currentUser ) )
             {
                 userGroup.removeUser( user );
             }
         }
-        
+
         for ( UserGroup userGroup : updates )
         {
-            if ( canAddOrRemoveMember( userGroup.getUid() ) )
+            if ( canAddOrRemoveMember( userGroup.getUid(), currentUser ) )
             {
                 userGroup.addUser( user );
                 userGroupStore.updateNoAcl( userGroup );
@@ -193,7 +210,7 @@ public class DefaultUserGroupService
     {
         return userGroupStore.getByUid( uids );
     }
-    
+
     @Override
     public List<UserGroup> getUserGroupByName( String name )
     {

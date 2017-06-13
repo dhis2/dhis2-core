@@ -1,7 +1,7 @@
 package org.hisp.dhis.orgunitdistribution.impl;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@ import java.util.Set;
 import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -127,7 +128,7 @@ public class DefaultOrgUnitDistributionService
             units.add( organisationUnit ); // Add parent itself to the end to get the total
         }
         
-        grid.addHeader( new GridHeader( FIRST_COLUMN_TEXT, FIRST_COLUMN_TEXT, null, false, true ) );
+        grid.addHeader( new GridHeader( FIRST_COLUMN_TEXT, FIRST_COLUMN_TEXT, ValueType.TEXT, String.class.getName(), false, true ) );
         
         for ( OrganisationUnitGroup group : groups )
         {

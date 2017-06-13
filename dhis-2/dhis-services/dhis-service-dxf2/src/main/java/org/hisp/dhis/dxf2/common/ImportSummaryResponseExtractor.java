@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,7 @@ package org.hisp.dhis.dxf2.common;
 
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.render.DefaultRenderService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResponseExtractor;
 
 import java.io.IOException;
@@ -51,15 +49,6 @@ public class ImportSummaryResponseExtractor
     @Override
     public ImportSummary extractData( ClientHttpResponse response ) throws IOException
     {
-        ImportSummary summary = DefaultRenderService.getJsonMapper().readValue( response.getBody(), ImportSummary.class );
-
-        HttpStatus status = response.getStatusCode();
-
-        if ( !(HttpStatus.CREATED.equals( status ) || HttpStatus.OK.equals( status )) )
-        {
-            throw new HttpServerErrorException( status, "Data synch failed on remote server" );
-        }
-
-        return summary;
+        return DefaultRenderService.getJsonMapper().readValue( response.getBody(), ImportSummary.class );
     }
 }

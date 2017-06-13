@@ -1,7 +1,7 @@
 package org.hisp.dhis.mapgeneration;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -123,7 +123,7 @@ public class GeoToolsMapGenerationService
     public BufferedImage generateMapImageForUser( Map map, Date date, OrganisationUnit unit, Integer width,
         Integer height, User user )
     {
-        Assert.isTrue( map != null );
+        Assert.isTrue( map != null, "Map cannot be null" );
 
         if ( width == null && height == null )
         {
@@ -350,10 +350,10 @@ public class GeoToolsMapGenerationService
 
     private BufferedImage combineLegendAndMapImages( BufferedImage titleImage, BufferedImage legendImage, BufferedImage mapImage )
     {
-        Assert.isTrue( titleImage != null );
-        Assert.isTrue( legendImage != null );
-        Assert.isTrue( mapImage != null );
-        Assert.isTrue( legendImage.getType() == mapImage.getType() );
+        Assert.notNull( titleImage, "Title image cannot be null" );
+        Assert.notNull( legendImage, "Legend image cannot be null" );
+        Assert.notNull( mapImage, "Map image cannot be null" );
+        Assert.notNull( legendImage.getType(), "Legend image type cannot be null" );
 
         // Create image, note that image height cannot be less than legend
 

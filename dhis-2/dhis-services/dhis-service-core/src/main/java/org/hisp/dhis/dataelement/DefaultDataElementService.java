@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,20 +28,13 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.GenericNameableObjectStore;
-import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.period.PeriodType;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -83,7 +76,9 @@ public class DefaultDataElementService
     @Override
     public int addDataElement( DataElement dataElement )
     {
-        return dataElementStore.save( dataElement );
+        dataElementStore.save( dataElement );
+
+        return dataElement.getId();
     }
 
     @Override
@@ -123,70 +118,9 @@ public class DefaultDataElementService
     }
 
     @Override
-    public List<DataElement> getDataElementsByUid( Collection<String> uids )
-    {
-        return dataElementStore.getByUid( uids );
-    }
-
-    @Override
-    public void setZeroIsSignificantForDataElements( Collection<Integer> dataElementIds )
-    {
-        if ( dataElementIds != null )
-        {
-            dataElementStore.setZeroIsSignificantForDataElements( dataElementIds );
-        }
-    }
-
-    @Override
     public List<DataElement> getDataElementsByZeroIsSignificant( boolean zeroIsSignificant )
     {
         return dataElementStore.getDataElementsByZeroIsSignificant( zeroIsSignificant );
-    }
-
-    @Override
-    public Set<DataElement> getDataElementsByZeroIsSignificantAndGroup( boolean zeroIsSignificant, DataElementGroup dataElementGroup )
-    {
-        Set<DataElement> dataElements = new HashSet<>( dataElementGroup.getMembers() );
-
-        return dataElements.stream().filter( p -> p.isZeroIsSignificant() ).collect( Collectors.toSet() );
-    }
-
-    @Override
-    public List<DataElement> getAggregateableDataElements()
-    {
-        return dataElementStore.getAggregateableDataElements();
-    }
-
-    @Override
-    public List<DataElement> searchDataElementsByName( String key )
-    {
-        return dataElementStore.searchDataElementsByName( key );
-    }
-
-    @Override
-    public DataElement getDataElementByShortName( String shortName )
-    {
-        List<DataElement> dataElements = dataElementStore.getAllEqShortName( shortName );
-
-        return !dataElements.isEmpty() ? dataElements.get( 0 ) : null;
-    }
-
-    @Override
-    public List<DataElement> getDataElementsByAggregationType( AggregationType aggregationType )
-    {
-        return dataElementStore.getDataElementsByAggregationType( aggregationType );
-    }
-
-    @Override
-    public List<DataElement> getDataElementsByValueTypes( Collection<ValueType> valueTypes )
-    {
-        return dataElementStore.getDataElementsByValueTypes( valueTypes );
-    }
-
-    @Override
-    public List<DataElement> getDataElementsByValueType( ValueType valueType )
-    {
-        return dataElementStore.getDataElementsByValueType( valueType );
     }
 
     @Override
@@ -202,21 +136,9 @@ public class DefaultDataElementService
     }
 
     @Override
-    public List<DataElement> getDataElementsByDomainType( DataElementDomain domainType, int first, int max )
-    {
-        return dataElementStore.getDataElementsByDomainType( domainType, first, max );
-    }
-
-    @Override
     public List<DataElement> getDataElementByCategoryCombo( DataElementCategoryCombo categoryCombo )
     {
         return dataElementStore.getDataElementByCategoryCombo( categoryCombo );
-    }
-
-    @Override
-    public List<DataElement> getDataElementsWithGroupSets()
-    {
-        return dataElementStore.getDataElementsWithGroupSets();
     }
 
     @Override
@@ -238,34 +160,9 @@ public class DefaultDataElementService
     }
 
     @Override
-    public List<DataElement> getDataElementsLikeName( String name )
-    {
-        return dataElementStore.getAllLikeName( name );
-    }
-
-    @Override
     public List<DataElement> getDataElementsByAggregationLevel( int aggregationLevel )
     {
         return dataElementStore.getDataElementsByAggregationLevel( aggregationLevel );
-    }
-
-    @Override
-    public ListMap<String, String> getDataElementCategoryOptionComboMap( Set<String> dataElementUids )
-    {
-        return dataElementStore.getDataElementCategoryOptionComboMap( dataElementUids );
-    }
-
-    @Override
-    public Map<String, Integer> getDataElementUidIdMap()
-    {
-        Map<String, Integer> map = new HashMap<>();
-
-        for ( DataElement dataElement : getAllDataElements() )
-        {
-            map.put( dataElement.getUid(), dataElement.getId() );
-        }
-
-        return map;
     }
 
     // -------------------------------------------------------------------------
@@ -275,9 +172,9 @@ public class DefaultDataElementService
     @Override
     public int addDataElementGroup( DataElementGroup dataElementGroup )
     {
-        int id = dataElementGroupStore.save( dataElementGroup );
+        dataElementGroupStore.save( dataElementGroup );
 
-        return id;
+        return dataElementGroup.getId();
     }
 
     @Override
@@ -343,12 +240,6 @@ public class DefaultDataElementService
         return dataElementGroupStore.getByCode( code );
     }
 
-    @Override
-    public Set<DataElement> getDataElementsByGroupId( int groupId )
-    {
-        return dataElementGroupStore.get( groupId ).getMembers();
-    }
-
     // -------------------------------------------------------------------------
     // DataElementGroupSet
     // -------------------------------------------------------------------------
@@ -356,7 +247,9 @@ public class DefaultDataElementService
     @Override
     public int addDataElementGroupSet( DataElementGroupSet groupSet )
     {
-        return dataElementGroupSetStore.save( groupSet );
+        dataElementGroupSetStore.save( groupSet );
+
+        return groupSet.getId();
     }
 
     @Override
@@ -392,20 +285,8 @@ public class DefaultDataElementService
     }
 
     @Override
-    public List<DataElementGroupSet> getCompulsoryDataElementGroupSetsWithMembers()
-    {
-        return getAllDataElementGroupSets().stream().filter( p -> p.isCompulsory() && p.hasDataElementGroups() ).collect( Collectors.toList() );
-    }
-
-    @Override
     public List<DataElementGroupSet> getAllDataElementGroupSets()
     {
         return dataElementGroupSetStore.getAll();
-    }
-
-    @Override
-    public List<DataElementGroupSet> getDataElementGroupSetsByUid( Collection<String> uids )
-    {
-        return dataElementGroupSetStore.getByUid( uids );
     }
 }

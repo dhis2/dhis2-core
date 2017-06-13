@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataentryform;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 
 import java.util.Objects;
 
@@ -44,7 +43,7 @@ import java.util.Objects;
  */
 @JacksonXmlRootElement( localName = "dataEntryForm", namespace = DxfNamespaces.DXF_2_0 )
 public class DataEntryForm
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     public static final int CURRENT_FORMAT = 2;
 
@@ -189,29 +188,5 @@ public class DataEntryForm
     public void setFormat( int format )
     {
         this.format = format;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DataEntryForm dataEntryForm = (DataEntryForm) other;
-
-            format = dataEntryForm.getFormat();
-
-            if ( mergeMode.isReplace() )
-            {
-                style = dataEntryForm.getStyle();
-                htmlCode = dataEntryForm.getHtmlCode();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                style = dataEntryForm.getStyle() == null ? style : dataEntryForm.getStyle();
-                htmlCode = dataEntryForm.getHtmlCode() == null ? htmlCode : dataEntryForm.getHtmlCode();
-            }
-        }
     }
 }

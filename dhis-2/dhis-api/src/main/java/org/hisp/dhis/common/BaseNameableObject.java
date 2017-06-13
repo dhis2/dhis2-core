@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -119,7 +119,7 @@ public class BaseNameableObject
     }
 
     // -------------------------------------------------------------------------
-    // hashCode and equals
+    // hashCode, equals and toString
     // -------------------------------------------------------------------------
 
     @Override
@@ -170,6 +170,23 @@ public class BaseNameableObject
         }
 
         return true;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "{" +
+            "\"class\":\"" + getClass() + "\", " +
+            "\"hashCode\":\"" + hashCode() + "\", " +
+            "\"id\":\"" + getId() + "\", " +
+            "\"uid\":\"" + getUid() + "\", " +
+            "\"code\":\"" + getCode() + "\", " +
+            "\"name\":\"" + getName() + "\", " +
+            "\"shortName\":\"" + getShortName() + "\", " +
+            "\"description\":\"" + getDescription() + "\", " +
+            "\"created\":\"" + getCreated() + "\", " +
+            "\"lastUpdated\":\"" + getLastUpdated() + "\" " +
+            "}";
     }
 
     // -------------------------------------------------------------------------
@@ -230,28 +247,5 @@ public class BaseNameableObject
     public void setDisplayDescription( String displayDescription )
     {
         this.displayDescription = displayDescription;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            NameableObject nameableObject = (NameableObject) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                this.shortName = nameableObject.getShortName();
-                this.description = nameableObject.getDescription();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                this.shortName = nameableObject.getShortName() == null ? this.shortName : nameableObject.getShortName();
-                this.description = nameableObject.getDescription() == null ? this.description : nameableObject.getDescription();
-            }
-
-        }
     }
 }

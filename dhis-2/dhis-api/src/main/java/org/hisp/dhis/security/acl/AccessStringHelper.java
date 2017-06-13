@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.acl;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -148,5 +148,10 @@ public class AccessStringHelper
     public static boolean isEnabled( String access, Permission permission )
     {
         return access != null && access.charAt( permission.getPosition() ) == permission.getValue();
+    }
+
+    public static boolean isValid( String access )
+    {
+        return access == null || DEFAULT.equals( access ) || READ.equals( access ) || WRITE.equals( access ) || READ_WRITE.equals( access );
     }
 }

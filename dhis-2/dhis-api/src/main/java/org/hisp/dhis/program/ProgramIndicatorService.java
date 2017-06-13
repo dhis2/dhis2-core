@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -74,15 +75,6 @@ public interface ProgramIndicatorService
     ProgramIndicator getProgramIndicator( String name );
 
     /**
-     * Returns a {@link ProgramIndicator} with a given short name.
-     *
-     * @param shortName the name of the ProgramIndicator to return.
-     * @return the ProgramIndicator with the given short name, or null if no
-     * match.
-     */
-    ProgramIndicator getProgramIndicatorByShortName( String shortName );
-
-    /**
      * Returns the {@link ProgramIndicator} with the given UID.
      *
      * @param uid the UID.
@@ -113,7 +105,7 @@ public interface ProgramIndicatorService
      * @param expression the expression.
      * @return the SQL string.
      */
-    String getAnalyticsSQl( String expression );
+    String getAnalyticsSQl( String expression, AnalyticsType aalyticsType, Date startDate, Date endDate );
     
     /**
      * Get the expression as an analytics SQL clause.
@@ -122,7 +114,7 @@ public interface ProgramIndicatorService
      * @param whether to ignore missing values for data elements and attributes.
      * @return the SQL string.
      */
-    String getAnalyticsSQl( String expression, boolean ignoreMissingValues );
+    String getAnalyticsSQl( String expression, AnalyticsType analyticsType, boolean ignoreMissingValues, Date startDate, Date endDate );
     
     /**
      * Returns a SQL clause which matches any value for the data elements and
@@ -131,7 +123,7 @@ public interface ProgramIndicatorService
      * @param expression the expression.
      * @return the SQL string.
      */
-    String getAnyValueExistsClauseAnalyticsSql( String expression );
+    String getAnyValueExistsClauseAnalyticsSql( String expression, AnalyticsType analyticsType );
 
     /**
      * Indicates whether the given program indicator expression is valid.
@@ -168,15 +160,5 @@ public interface ProgramIndicatorService
     ProgramIndicatorGroup getProgramIndicatorGroup( String uid );
 
     List<ProgramIndicatorGroup> getAllProgramIndicatorGroups();
-
-    ProgramIndicatorGroup getProgramIndicatorGroupByName( String name );
-
-    List<ProgramIndicatorGroup> getProgramIndicatorGroupsBetween( int first, int max );
-
-    List<ProgramIndicatorGroup> getProgramIndicatorGroupsBetweenByName( String name, int first, int max );
-
-    int getProgramIndicatorGroupCount();
-
-    int getProgramIndicatorGroupCountByName( String name );
 
 }

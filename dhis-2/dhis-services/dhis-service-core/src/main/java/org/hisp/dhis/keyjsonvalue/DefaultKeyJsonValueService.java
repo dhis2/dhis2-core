@@ -1,7 +1,7 @@
 package org.hisp.dhis.keyjsonvalue;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@ package org.hisp.dhis.keyjsonvalue;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Date;
 
 /**
  * @author Stian Sandvold
@@ -63,6 +64,12 @@ public class DefaultKeyJsonValueService
     }
 
     @Override
+    public List<String> getKeysInNamespace( String namespace, Date lastUpdated )
+    {
+        return keyJsonValueStore.getKeysInNamespace( namespace, lastUpdated );
+    }
+
+    @Override
     public void deleteNamespace( String namespace )
     {
         keyJsonValueStore.getKeyJsonValueByNamespace( namespace ).forEach( keyJsonValueStore::delete );
@@ -77,7 +84,9 @@ public class DefaultKeyJsonValueService
     @Override
     public int addKeyJsonValue( KeyJsonValue keyJsonValue )
     {
-        return keyJsonValueStore.save( keyJsonValue );
+        keyJsonValueStore.save( keyJsonValue );
+
+        return keyJsonValue.getId();
     }
 
     @Override

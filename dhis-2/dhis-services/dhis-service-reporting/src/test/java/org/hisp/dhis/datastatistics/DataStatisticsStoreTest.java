@@ -29,18 +29,14 @@ package org.hisp.dhis.datastatistics;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.datastatistics.AggregatedStatistics;
-import org.hisp.dhis.datastatistics.DataStatistics;
-import org.hisp.dhis.datastatistics.DataStatisticsStore;
-
-import org.hisp.dhis.datastatistics.EventInterval;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Yrjan A. F. Fraschetti
@@ -87,8 +83,10 @@ public class DataStatisticsStoreTest
     @Test
     public void saveSnapshotTest() throws Exception
     {
-        ds1Id = dataStatisticsStore.save( ds1 );
-        ds2Id = dataStatisticsStore.save( ds2 );
+        dataStatisticsStore.save( ds1 );
+        ds1Id = ds1.getId();
+        dataStatisticsStore.save( ds2 );
+        ds2Id = ds2.getId();
 
         assertTrue( ds1Id != 0 );
         assertTrue( ds2Id != 0 );

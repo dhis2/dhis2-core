@@ -19,6 +19,8 @@
 
     <property name="url" not-null="true" type="text" />
 
+    <many-to-one name="fileResource" class="org.hisp.dhis.fileresource.FileResource" column="fileresource" foreign-key="fk_document_fileresourceid" />
+
     <property name="external" not-null="true" />
 
     <property name="contentType" />
@@ -26,7 +28,7 @@
     <property name="attachment" />
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="documentattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="documentattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="documentid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
@@ -45,8 +47,14 @@
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
+    <set name="userAccesses" table="documentuseraccesses">
+      <cache usage="read-write" />
+      <key column="documentid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
+
     <!-- Object Translation -->
-    <set name="translations" table="documenttranslations" cascade="delete-orphan">
+    <set name="translations" table="documenttranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="documentid" foreign-key="fk_objecttranslation_documentid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

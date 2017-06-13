@@ -1,7 +1,7 @@
 package org.hisp.dhis.commons.util;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -131,5 +131,16 @@ public class ExpressionFunctions
         LocalDate en = LocalDate.parse( end, DATE_FORMAT );
         
         return ChronoUnit.DAYS.between( st, en );
+    }
+    
+    /**
+     * Function will will return true only if the parameter value is not null.
+     * 
+     * @param value to check whether has a value.
+     * @return true if the parameter has a value.
+     */
+    public static boolean hasValue( Object value )
+    {
+        return value != null;
     }
 }

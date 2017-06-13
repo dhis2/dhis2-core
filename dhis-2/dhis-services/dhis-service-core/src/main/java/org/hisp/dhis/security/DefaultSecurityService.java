@@ -1,7 +1,7 @@
 package org.hisp.dhis.security;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,12 +52,16 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 /**
@@ -77,7 +81,13 @@ public class DefaultSecurityService
 
     private static final int RESTORE_TOKEN_LENGTH = 50;
     private static final int RESTORE_CODE_LENGTH = 15;
+    private static final int LOGIN_MAX_FAILED_ATTEMPTS = 5;
+    private static final int LOGIN_LOCKOUT_MINS = 15;
 
+    private final LoadingCache<String, Integer> CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS = Caffeine.newBuilder()
+        .expireAfterWrite( LOGIN_LOCKOUT_MINS, TimeUnit.MINUTES )
+        .build( ( u ) -> 0 );
+    
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -131,6 +141,48 @@ public class DefaultSecurityService
     // -------------------------------------------------------------------------
 
     @Override
+    public void registerFailedLogin( String username )
+    {
+        if ( !isBlockFailedLogins() || username == null )
+        {
+            return;
+        }
+        
+        Integer attempts = CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS.get( username );
+        
+        attempts++;
+        
+        CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS.put( username, attempts );
+    }
+
+    @Override
+    public void registerSuccessfulLogin( String username )
+    {
+        if ( !isBlockFailedLogins() || username == null )
+        {
+            return;
+        }
+        
+        CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS.invalidate( username );        
+    }
+
+    @Override
+    public boolean isLocked( String username )
+    {
+        if ( !isBlockFailedLogins() || username == null )
+        {
+            return false;
+        }
+        
+        return CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS.get( username ) > LOGIN_MAX_FAILED_ATTEMPTS;
+    }
+    
+    private boolean isBlockFailedLogins()
+    {
+        return (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOCK_MULTIPLE_FAILED_LOGINS );
+    }
+    
+    @Override
     public boolean prepareUserForInvite( User user )
     {
         if ( user == null || user.getUserCredentials() == null )
@@ -140,7 +192,7 @@ public class DefaultSecurityService
 
         if ( user.getUsername() == null || user.getUsername().isEmpty() )
         {
-            String username = "invite-" + user.getEmail() + "-" + CodeGenerator.generateCode();
+            String username = "invite-" + user.getEmail() + "-" + CodeGenerator.generateUid();
 
             user.getUserCredentials().setUsername( username );
         }
@@ -158,7 +210,7 @@ public class DefaultSecurityService
     @Override
     public String validateRestore( UserCredentials credentials )
     {
-        if ( !systemSettingManager.emailEnabled() )
+        if ( !emailMessageSender.isConfigured() )
         {
             log.warn( "Could not send restore/invite message as email is not configured" );
             return "email_not_configured_for_system";
@@ -474,7 +526,7 @@ public class DefaultSecurityService
     public boolean canCreatePublic( IdentifiableObject identifiableObject )
     {
         return !aclService.isShareable( identifiableObject.getClass() )
-            || aclService.canCreatePublic( currentUserService.getCurrentUser(), identifiableObject.getClass() );
+            || aclService.canMakePublic( currentUserService.getCurrentUser(), identifiableObject.getClass() );
     }
 
     @Override
@@ -483,14 +535,14 @@ public class DefaultSecurityService
         Class<? extends IdentifiableObject> klass = aclService.classForType( type );
 
         return !aclService.isShareable( klass )
-            || aclService.canCreatePublic( currentUserService.getCurrentUser(), klass );
+            || aclService.canMakePublic( currentUserService.getCurrentUser(), klass );
     }
 
     @Override
     public boolean canCreatePrivate( IdentifiableObject identifiableObject )
     {
         return !aclService.isShareable( identifiableObject.getClass() )
-            || aclService.canCreatePrivate( currentUserService.getCurrentUser(), identifiableObject.getClass() );
+            || aclService.canMakePrivate( currentUserService.getCurrentUser(), identifiableObject.getClass() );
     }
 
     @Override
@@ -507,7 +559,7 @@ public class DefaultSecurityService
         Class<? extends IdentifiableObject> klass = aclService.classForType( type );
 
         return !aclService.isShareable( klass )
-            || aclService.canCreatePrivate( currentUserService.getCurrentUser(), klass );
+            || aclService.canMakePrivate( currentUserService.getCurrentUser(), klass );
     }
 
     @Override

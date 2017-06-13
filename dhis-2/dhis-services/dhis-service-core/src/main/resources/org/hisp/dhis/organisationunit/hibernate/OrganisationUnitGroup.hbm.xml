@@ -27,9 +27,15 @@
       <many-to-many class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
         foreign-key="fk_orgunitgroup_organisationunitid" />
     </set>
+    
+    <set name="groupSets" table="orgunitgroupsetmembers" inverse="true">
+      <cache usage="read-write" />
+      <key column="orgunitgroupid" />
+      <many-to-many class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSet" column="orgunitgroupsetid" />
+    </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="orgunitgrouptranslations" cascade="delete-orphan">
+    <set name="translations" table="orgunitgrouptranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="orgunitgroupid" foreign-key="fk_objecttranslation_orgunitgroupid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -40,24 +46,24 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="orgunitgroupusergroupaccesses">
+    <set name="userGroupAccesses" table="orgunitgroupusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="orgunitgroupid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <!-- Dynamic attribute values -->
+    <set name="userAccesses" table="orgunitgroupuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="orgunitgroupid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
 
-    <set name="attributeValues" table="orgunitgroupattributevalues" cascade="delete-orphan">
+    <!-- Dynamic attribute values -->
+    <set name="attributeValues" table="orgunitgroupattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="orgunitgroupid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
     </set>
-
-    <join table="orgunitgroupsetmembers" inverse="true">
-      <key column="orgunitgroupid" />
-      <many-to-one column="orgunitgroupsetid" name="groupSet" />
-    </join>
 
   </class>
 

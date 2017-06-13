@@ -1,7 +1,9 @@
 package org.hisp.dhis.analytics;
 
+import java.util.Date;
+
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +41,8 @@ public class AnalyticsTableColumn
     
     private String alias;
     
+    private Date created;
+    
     private boolean skipIndex = false;
     
     private String indexType;
@@ -57,6 +61,20 @@ public class AnalyticsTableColumn
         this.name = name;
         this.dataType = dataType;
         this.alias = alias;
+    }
+
+    /**
+     * @param name analytics table column name.
+     * @param dataType analytics table column data type.
+     * @param alias source table column alias and name.
+     * @param created date when column data was created.
+     */
+    public AnalyticsTableColumn( String name, String dataType, String alias, Date created )
+    {
+        this.name = name;
+        this.dataType = dataType;
+        this.alias = alias;
+        this.created = created;
     }
 
     /**
@@ -98,19 +116,9 @@ public class AnalyticsTableColumn
         return name;
     }
 
-    public void setName( String name )
-    {
-        this.name = name;
-    }
-
     public String getDataType()
     {
         return dataType;
-    }
-
-    public void setDataType( String dataType )
-    {
-        this.dataType = dataType;
     }
 
     public String getAlias()
@@ -118,9 +126,9 @@ public class AnalyticsTableColumn
         return alias;
     }
 
-    public void setAlias( String alias )
+    public Date getCreated()
     {
-        this.alias = alias;
+        return created;
     }
 
     public boolean isSkipIndex()
@@ -128,18 +136,8 @@ public class AnalyticsTableColumn
         return skipIndex;
     }
 
-    public void setSkipIndex( boolean skipIndex )
-    {
-        this.skipIndex = skipIndex;
-    }
-
     public String getIndexType()
     {
         return indexType;
     }
-
-    public void setIndexType( String indexType )
-    {
-        this.indexType = indexType;
-    }    
 }

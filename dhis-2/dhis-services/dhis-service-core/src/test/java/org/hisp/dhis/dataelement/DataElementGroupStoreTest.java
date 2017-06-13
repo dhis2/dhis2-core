@@ -28,18 +28,14 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-
-import javax.annotation.Resource;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.junit.Test;
+
+import javax.annotation.Resource;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -58,9 +54,12 @@ public class DataElementGroupStoreTest
         DataElementGroup dataElementGroupB = new DataElementGroup( "DataElementGroupB" );
         DataElementGroup dataElementGroupC = new DataElementGroup( "DataElementGroupC" );
         
-        int idA = dataElementGroupStore.save( dataElementGroupA );
-        int idB = dataElementGroupStore.save( dataElementGroupB );
-        int idC = dataElementGroupStore.save( dataElementGroupC );
+        dataElementGroupStore.save( dataElementGroupA );
+        int idA = dataElementGroupA.getId();
+        dataElementGroupStore.save( dataElementGroupB );
+        int idB = dataElementGroupB.getId();
+        dataElementGroupStore.save( dataElementGroupC );
+        int idC = dataElementGroupC.getId();
 
         dataElementGroupA = dataElementGroupStore.get( idA );
         assertNotNull( dataElementGroupA );
@@ -85,9 +84,12 @@ public class DataElementGroupStoreTest
         DataElementGroup dataElementGroupB = new DataElementGroup( "DataElementGroupB" );
         DataElementGroup dataElementGroupC = new DataElementGroup( "DataElementGroupC" );
 
-        int idA = dataElementGroupStore.save( dataElementGroupA );
-        int idB = dataElementGroupStore.save( dataElementGroupB );
-        int idC = dataElementGroupStore.save( dataElementGroupC );
+        dataElementGroupStore.save( dataElementGroupA );
+        int idA = dataElementGroupA.getId();
+        dataElementGroupStore.save( dataElementGroupB );
+        int idB = dataElementGroupB.getId();
+        dataElementGroupStore.save( dataElementGroupC );
+        int idC = dataElementGroupC.getId();
 
         dataElementGroupA = dataElementGroupStore.get( idA );
         assertNotNull( dataElementGroupA );
@@ -121,10 +123,14 @@ public class DataElementGroupStoreTest
         DataElementGroup dataElementGroupC = new DataElementGroup( "DataElementGroupC" );
         DataElementGroup dataElementGroupD = new DataElementGroup( "DataElementGroupD" );
 
-        int idA = dataElementGroupStore.save( dataElementGroupA );
-        int idB = dataElementGroupStore.save( dataElementGroupB );
-        int idC = dataElementGroupStore.save( dataElementGroupC );
-        int idD = dataElementGroupStore.save( dataElementGroupD );
+        dataElementGroupStore.save( dataElementGroupA );
+        int idA = dataElementGroupA.getId();
+        dataElementGroupStore.save( dataElementGroupB );
+        int idB = dataElementGroupB.getId();
+        dataElementGroupStore.save( dataElementGroupC );
+        int idC = dataElementGroupC.getId();
+        dataElementGroupStore.save( dataElementGroupD );
+        int idD = dataElementGroupD.getId();
 
         assertNotNull( dataElementGroupStore.get( idA ) );
         assertNotNull( dataElementGroupStore.get( idB ) );
@@ -161,8 +167,10 @@ public class DataElementGroupStoreTest
     {
         DataElementGroup dataElementGroupA = new DataElementGroup( "DataElementGroupA" );
         DataElementGroup dataElementGroupB = new DataElementGroup( "DataElementGroupB" );
-        int idA = dataElementGroupStore.save( dataElementGroupA );
-        int idB = dataElementGroupStore.save( dataElementGroupB );
+        dataElementGroupStore.save( dataElementGroupA );
+        int idA = dataElementGroupA.getId();
+        dataElementGroupStore.save( dataElementGroupB );
+        int idB = dataElementGroupB.getId();
 
         assertNotNull( dataElementGroupStore.get( idA ) );
         assertNotNull( dataElementGroupStore.get( idB ) );

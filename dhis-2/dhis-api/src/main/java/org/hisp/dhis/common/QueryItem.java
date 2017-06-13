@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
  */
 
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
@@ -37,6 +38,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Class which encapsulates a query parameter and value. Operator and filter
@@ -111,6 +115,26 @@ public class QueryItem
 
         return itemName;
     }
+    
+    public boolean addFilter( QueryFilter filter )
+    {
+        return filters.add( filter );
+    }
+    
+    /**
+     * Returns a string representation of the query filters. Returns null if item
+     * has no query items.
+     */
+    public String getFiltersAsString()
+    {
+        if ( filters.isEmpty() )
+        {
+            return null;
+        }
+        
+        List<String> filterStrings = filters.stream().map( QueryFilter::getFilterAsString ).collect( Collectors.toList() );
+        return StringUtils.join( filterStrings, ", " );
+    }
 
     public String getTypeAsString()
     {
@@ -161,14 +185,73 @@ public class QueryItem
     {
         return DimensionItemType.PROGRAM_INDICATOR.equals( item.getDimensionItemType() );
     }
+    
+    /**
+     * Returns filter items for all filters associated with this
+     * query item. If no filter items are specified, return all
+     * items part of the legend set. If not legend set is specified,
+     * returns null.
+     */
+    public List<String> getLegendSetFilterItemsOrAll()
+    {
+        if ( !hasLegendSet() )
+        {
+            return null;
+        }
         
+        return hasFilter() ? getQueryFilterItems() : 
+            IdentifiableObjectUtils.getUids( legendSet.getSortedLegends() );
+    }
+    
+    /**
+     * Returns filter items for all filters associated with this
+     * query item.
+     */
+    public List<String> getQueryFilterItems()
+    {
+        List<String> filterItems = new ArrayList<>();
+        filters.forEach( f -> filterItems.addAll( QueryFilter.getFilterItems( f.getFilter() ) ) );
+        return filterItems;
+    }
+    
+    /**
+     * Returns SQL filter for the given query filter and SQL encoded
+     * filter. If the item value type is text-based, the filter is
+     * converted to lower-case.
+     * 
+     * @param filter the query filter.
+     * @param encodedFilter the SQL encoded filter.
+     */
+    public String getSqlFilter( QueryFilter filter, String encodedFilter )
+    {
+        String sqlFilter = filter.getSqlFilter( encodedFilter );
+        
+        return isText() ? sqlFilter.toLowerCase() : sqlFilter;
+    }
+    
+    // -------------------------------------------------------------------------
+    // Static utilities
+    // -------------------------------------------------------------------------
+
     public static List<QueryItem> getQueryItems( Collection<TrackedEntityAttribute> attributes )
     {
         List<QueryItem> queryItems = new ArrayList<>();
 
         for ( TrackedEntityAttribute attribute : attributes )
         {
-            queryItems.add( new QueryItem( attribute, attribute.getLegendSets().get(0), attribute.getValueType(), attribute.getAggregationType(), attribute.hasOptionSet() ? attribute.getOptionSet() : null ) );
+            queryItems.add( new QueryItem( attribute, (attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get(0) ), attribute.getValueType(), attribute.getAggregationType(), attribute.hasOptionSet() ? attribute.getOptionSet() : null ) );
+        }
+
+        return queryItems;
+    }
+    
+    public static List<QueryItem> getDataElementQueryItems( Collection<DataElement> dataElements )
+    {
+        List<QueryItem> queryItems = new ArrayList<>();
+
+        for ( DataElement dataElement : dataElements )
+        {
+            queryItems.add( new QueryItem( dataElement, dataElement.getLegendSet(), dataElement.getValueType(), dataElement.getAggregationType(), dataElement.hasOptionSet() ? dataElement.getOptionSet() : null ) );
         }
 
         return queryItems;

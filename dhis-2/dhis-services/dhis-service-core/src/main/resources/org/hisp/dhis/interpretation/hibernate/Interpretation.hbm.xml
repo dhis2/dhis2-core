@@ -10,9 +10,9 @@
       <generator class="native" />
     </id>
 
-    <property name="uid" column="uid" length="11" not-null="true"/>
-    
-    <property name="lastUpdated" type="timestamp" index="interpretation_lastupdated"  not-null="true" />
+    <property name="uid" column="uid" length="11" not-null="true" />
+
+    <property name="lastUpdated" type="timestamp" index="interpretation_lastupdated" not-null="true" />
 
     <many-to-one name="reportTable" class="org.hisp.dhis.reporttable.ReportTable" column="reporttableid"
       foreign-key="fk_interpretation_reporttableid" />
@@ -25,7 +25,7 @@
 
     <many-to-one name="eventReport" class="org.hisp.dhis.eventreport.EventReport" column="eventreportid"
       foreign-key="fk_interpretation_eventreportid" />
-      
+
     <many-to-one name="eventChart" class="org.hisp.dhis.eventchart.EventChart" column="eventchartid"
       foreign-key="fk_interpretation_eventchartid" />
 
@@ -40,7 +40,7 @@
 
     <property name="text" column="interpretationtext" type="text" />
 
-    <property name="created" not-null="true" type="timestamp"  />
+    <property name="created" not-null="true" type="timestamp" />
 
     <list name="comments" table="interpretation_comments" cascade="all,delete-orphan">
       <key column="interpretationid" foreign-key="fk_interpretation_comments_interpretationid" />
@@ -48,9 +48,9 @@
       <many-to-many class="org.hisp.dhis.interpretation.InterpretationComment" column="interpretationcommentid"
         unique="true" foreign-key="fk_interpretation_comments_interpretationcommentid" />
     </list>
-    
+
     <property name="likes" />
-    
+
     <set name="likedBy" table="intepretation_likedby">
       <key column="interpretationid" foreign-key="fk_interpretation_likedby_interpretationid" />
       <many-to-many class="org.hisp.dhis.user.User" column="userid"
@@ -65,6 +65,12 @@
     <set name="userGroupAccesses" table="interpretationusergroupaccesses">
       <key column="interpretationid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="interpretationuseraccesses">
+      <cache usage="read-write" />
+      <key column="interpretationid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
   </class>

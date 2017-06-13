@@ -5,15 +5,20 @@ addons:
   apt:
     packages:
     - oracle-java8-installer
+before_install:
+- rm ~/.m2/settings.xml
+cache:
+  directories:
+  - "$HOME/.m2"
 script:
-- mvn clean install -DskipTests=true -f ./dhis-2/pom-full.xml
-
+-  mvn clean  install -DskipTests=false -f ./dhis-2/pom-full.xml
 branches:
   only:
   - master
-  - /^2\.[0-9]{1,}/
-
+  - "/^2\\.[0-9]{1,}/"
 notifications:
   slack:
     rooms:
-      secure: SzjMaFPJ4TdfB5hqXFeXNT/8sTlzpiTcjGup6B3EJ2kqnGRGQaqusZMXWK7SvmVDbSYrTjNqoQQ9nLZMx1WrgDkamuJAoa1zxG7xHmUAptyk1taXPZo75MzQkHiM2JgUzZJ7G1S9G3W7sPuq2ocVwt5S1bBccPN5/InlkezZ8FleXDo5NIwPfp1EF4WEaHcBaQRxUCTfaHR1zL9B3MrmN0CbshS2iuO1Q/mk0zexSTKJe9VcNHuGlu1o71ImVEFkTHN8KVMONOJG8zhbKlpW02HtIqNUmJjIqHC+tNzGLPqhS4+MIiOkzyVldjZmcShfxodFLRA8F4pZgDzRVAYW8e4GfS+TKoccLcqGtPcoDl0rbtTzV/B0U2ibGBs5ZOW1n4lMaoXtGt7xQGlnavNKbz1e+1Y7AwP/0T3B8VE1wtPA9WGMl9niIXtwdRH+T1OSruK2S4SdTOnlsrVtykOqIlAYn5PRb3C2QU724TfCIZT/yWRdoVsnuFiamXuiDoYXUo3YfGpQZxZnNebUpfaXzf/0QaIajPWLiTKy/JiXvp5QaWLtbjf4qabMaOPKU26dQPxCD02CwP3GBlN5UxbsDcFmj1SxAVFarSW/a06hoMjEb5n5yitSOR5kUPFC2s0a4NJKTsvJSbiKHaVL23C8HWgiiQ5iaG+QcMxHOKiI3EI=
+      secure: W74/QrNS1n3Gxgc/s20Fj/R/6Y9xt//GlIhtilECDGN29koOAbv0Varw6L+Le8ytCy2Np9mlk6zSbjXavVOMX7r4wYPeZwxSXJ/a9EJQiBThQ0N+B53e/KER/nNHtoqiPhZsuSoXQx7oaoeZmT1RLpHpvPZzrWmIr6ViwKHsnI7jnctgITWQSY5WSP9baFvJrIGbVCuM0gPvOKNSwyh2TjML4biH3ZYa/Lv8Qt9y6E36ni0BOGLA6sROc3xCTJCMa/QWU0geRQpTe4Y6FXaNfqZ2GlpRi0CWZ57yXhAxXVE5sDHRLtDG4hvQHmNMgBVi3/zTpkbBLXY8QByYoWtA84dIQpkwfoRPG5QqXZ3AhHIc14oU8B6PcvXD6hAalBYLq+8xf9TKGkOWM4tT83C9UxtrMmjl3ZZz9oHidLfbLYGsggypXWwdV8i9uGau4lomyMVhV63RXtcS5vdrGUQL820YLnAAj5SgVmiyTkYYwEI0s6d+pGjR++S9g7w+JZnwk6EU2xm2bM23ARI7+YKA1j5r0SoAGaXVOgr9oyH+8Qz0g1cvMxG5Akj/E04x/DegjY/maYSccqkt+ug3HrL5spsPA1CljWCD0O7aXS4E07HZZA5sYsmW7goFn8Wu8mtzPiPHi8zjoCfyRdeTpreXS9DcGSZyBtzyuW3zuZcMdhA=
+    on_success: change
+    on_failure: always

@@ -1,7 +1,7 @@
 package org.hisp.dhis.external.conf;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,8 +39,10 @@ import java.util.Optional;
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.StrSubstitutor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
@@ -48,6 +50,9 @@ import org.hisp.dhis.external.location.LocationManagerException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
 
 import javax.crypto.Cipher;
 
@@ -60,9 +65,11 @@ public class DefaultDhisConfigurationProvider
     private static final Log log = LogFactory.getLog( DefaultDhisConfigurationProvider.class );
 
     private static final String CONF_FILENAME = "dhis.conf";
+    private static final String TEST_CONF_FILENAME = "dhis-test.conf";
     private static final String GOOGLE_AUTH_FILENAME = "dhis-google-auth.json";
     private static final String GOOGLE_EE_SCOPE = "https://www.googleapis.com/auth/earthengine";
     private static final String ENABLED_VALUE = "on";
+    private static final String CACHE_PROVIDER_MEMCACHED = "memcached";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -91,41 +98,26 @@ public class DefaultDhisConfigurationProvider
         // Load DHIS 2 configuration file into properties bundle
         // ---------------------------------------------------------------------
 
-        InputStream in = null;
-
-        try
+        if ( SystemUtils.isTestRun() )
         {
-            in = locationManager.getInputStream( CONF_FILENAME );
+            this.properties = loadDhisTestConf();
+
+            return; // Short-circuit here when we're setting up a test context
         }
-        catch ( LocationManagerException ex1 )
+        else
         {
-            log.debug( "Could not load dhis.conf" );
-        }
-
-        Properties properties = new Properties();
-
-        if ( in != null )
-        {
-            try
-            {
-                properties.load( in );                
-            }
-            catch ( IOException ex )
-            {
-                throw new IllegalStateException( "Properties could not be loaded", ex );
-            }
+            this.properties = loadDhisConf();
         }
 
         // ---------------------------------------------------------------------
         // Load Google JSON authentication file into properties bundle
         // ---------------------------------------------------------------------
-        
+
         try ( InputStream jsonIn = locationManager.getInputStream( GOOGLE_AUTH_FILENAME ) )
         {
             Map<String, String> json = new ObjectMapper().readValue( jsonIn, new TypeReference<HashMap<String,Object>>() {} );
             
-            properties.put( ConfigurationKey.GOOGLE_SERVICE_ACCOUNT_CLIENT_ID.getKey(), json.get( "client_id" ) );
-            properties.put( ConfigurationKey.GOOGLE_SERVICE_ACCOUNT_CLIENT_EMAIL.getKey(), json.get( "client_email" ) );
+            this.properties.put( ConfigurationKey.GOOGLE_SERVICE_ACCOUNT_CLIENT_ID.getKey(), json.get( "client_id" ) );
         }
         catch ( LocationManagerException ex )
         {
@@ -135,8 +127,6 @@ public class DefaultDhisConfigurationProvider
         {
             log.warn( "Could not load credential from dhis-google-auth.json", ex );
         }
-        
-        this.properties = properties;
 
         // ---------------------------------------------------------------------
         // Load Google JSON authentication file into GoogleCredential
@@ -221,7 +211,7 @@ public class DefaultDhisConfigurationProvider
                 return Optional.empty();
             }            
         }
-        catch( IOException ex )
+        catch ( IOException ex )
         {
             throw new IllegalStateException( "Could not retrieve refresh token: " + ex.getMessage(), ex );
         }
@@ -249,6 +239,12 @@ public class DefaultDhisConfigurationProvider
     }
 
     @Override
+    public boolean isMemcachedCacheProviderEnabled()
+    {
+        return CACHE_PROVIDER_MEMCACHED.equals( getProperty( ConfigurationKey.CACHE_PROVIDER ) );
+    }
+
+    @Override
     public boolean isLdapConfigured()
     {
         String ldapUrl = getProperty( ConfigurationKey.LDAP_URL );
@@ -270,7 +266,7 @@ public class DefaultDhisConfigurationProvider
         try
         {
             maxKeyLength = Cipher.getMaxAllowedKeyLength( "AES" );
-            
+
             if ( maxKeyLength == 128 )
             {
                 return EncryptionStatus.MISSING_JCE_POLICY;
@@ -294,5 +290,48 @@ public class DefaultDhisConfigurationProvider
         }
 
         return EncryptionStatus.OK;
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private Properties loadDhisConf()
+        throws IllegalStateException
+    {
+        try ( InputStream in = locationManager.getInputStream( CONF_FILENAME ) )
+        {
+            Properties conf = PropertiesLoaderUtils.loadProperties( new InputStreamResource( in ) );
+            substituteEnvironmentVariables( conf );
+
+            return conf;
+        }
+        catch ( LocationManagerException | IOException | SecurityException ex )
+        {
+            log.debug( String.format( "Could not load %s", CONF_FILENAME ), ex );
+
+            throw new IllegalStateException( "Properties could not be loaded", ex );
+        }
+    }
+
+    private Properties loadDhisTestConf()
+    {
+        try
+        {
+            return PropertiesLoaderUtils.loadProperties( new ClassPathResource( TEST_CONF_FILENAME ) );
+        }
+        catch ( IOException ex )
+        {
+            log.warn( String.format( "Could not load %s from classpath", TEST_CONF_FILENAME ), ex );
+
+            return new Properties();
+        }
+    }
+
+    private void substituteEnvironmentVariables( Properties properties )
+    {
+        final StrSubstitutor substitutor = new StrSubstitutor( System.getenv() ); // Matches on ${...}
+
+        properties.entrySet().forEach( entry -> entry.setValue( substitutor.replace( entry.getValue() ).trim() ) );
     }
 }

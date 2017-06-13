@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,8 @@ public class GenericGatewayParameter
 {
     private static final long serialVersionUID = -863990758156009672L;
 
+    private boolean header;
+
     private String key;
 
     private String value;
@@ -69,10 +71,15 @@ public class GenericGatewayParameter
         this.key = key;
     }
 
-    @JsonProperty( value = "value" )
     public String getValue()
     {
         return value;
+    }
+
+    @JsonProperty( value = "value" )
+    public String getValueFilterIfClassified()
+    {
+        return classified ? "" : value;
     }
 
     public void setValue( String value )
@@ -89,5 +96,16 @@ public class GenericGatewayParameter
     public void setClassified( boolean classified )
     {
         this.classified = classified;
+    }
+
+    @JsonProperty
+    public boolean isHeader()
+    {
+        return header;
+    }
+
+    public void setHeader( boolean header )
+    {
+        this.header = header;
     }
 }

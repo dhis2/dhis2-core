@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.dataelement.DataElement;
 
 /**
@@ -43,7 +42,7 @@ import org.hisp.dhis.dataelement.DataElement;
  */
 @JacksonXmlRootElement( localName = "programStageDataElement", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramStageDataElement
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements EmbeddedObject
 {
     private ProgramStage programStage;
 
@@ -62,6 +61,8 @@ public class ProgramStageDataElement
     private Boolean displayInReports = false;
 
     private Boolean allowFutureDate = false;
+
+    private Boolean renderOptionsAsRadio = false;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -183,6 +184,18 @@ public class ProgramStageDataElement
         this.allowFutureDate = allowFutureDate;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getRenderOptionsAsRadio()
+    {
+        return renderOptionsAsRadio;
+    }
+
+    public void setRenderOptionsAsRadio( Boolean renderOptionsAsRadio )
+    {
+        this.renderOptionsAsRadio = renderOptionsAsRadio;
+    }
+
     // -------------------------------------------------------------------------
     // hashCode, equals and toString
     // -------------------------------------------------------------------------
@@ -220,38 +233,7 @@ public class ProgramStageDataElement
             ", sortOrder=" + sortOrder +
             ", displayInReports=" + displayInReports +
             ", allowFutureDate=" + allowFutureDate +
+            ", renderOptionsAsRadio=" + renderOptionsAsRadio +
             '}';
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            ProgramStageDataElement programStageDataElement = (ProgramStageDataElement) other;
-
-            compulsory = programStageDataElement.isCompulsory();
-
-            if ( mergeMode.isReplace() )
-            {
-                programStage = programStageDataElement.getProgramStage();
-                dataElement = programStageDataElement.getDataElement();
-                allowFutureDate = programStageDataElement.getAllowFutureDate();
-                allowProvidedElsewhere = programStageDataElement.getAllowProvidedElsewhere();
-                displayInReports = programStageDataElement.getDisplayInReports();
-                sortOrder = programStageDataElement.getSortOrder();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                programStage = programStageDataElement.getProgramStage() == null ? programStage : programStageDataElement.getProgramStage();
-                dataElement = programStageDataElement.getDataElement() == null ? dataElement : programStageDataElement.getDataElement();
-                allowFutureDate = programStageDataElement.getAllowFutureDate() == null ? allowFutureDate : programStageDataElement.getAllowFutureDate();
-                allowProvidedElsewhere = programStageDataElement.getAllowProvidedElsewhere() == null ? allowProvidedElsewhere : programStageDataElement.getAllowProvidedElsewhere();
-                displayInReports = programStageDataElement.getDisplayInReports() == null ? displayInReports : programStageDataElement.getDisplayInReports();
-                sortOrder = programStageDataElement.getSortOrder() == null ? sortOrder : programStageDataElement.getSortOrder();
-            }
-        }
     }
 }

@@ -28,15 +28,13 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import javax.annotation.Resource;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.junit.Test;
+
+import javax.annotation.Resource;
+
+import static org.junit.Assert.*;
 
 public class UserAuthorityGroupTest
     extends DhisSpringTest
@@ -51,11 +49,16 @@ public class UserAuthorityGroupTest
         UserAuthorityGroup roleB = createUserAuthorityGroup( 'B' );
         UserAuthorityGroup roleC = createUserAuthorityGroup( 'C' );
         
-        int idA = userAuthorityGroupStore.save( roleA );
-        int idB = userAuthorityGroupStore.save( roleB );
-        int idC = userAuthorityGroupStore.save( roleC );
-        
-        assertEquals( roleA, userAuthorityGroupStore.get( idA ) );
+        userAuthorityGroupStore.save( roleA );
+        int idA = roleA.getId();
+
+        userAuthorityGroupStore.save( roleB );
+        int idB = roleB.getId();
+
+        userAuthorityGroupStore.save( roleC );
+        int idC = roleC.getId();
+
+            assertEquals( roleA, userAuthorityGroupStore.get( idA ) );
         assertEquals( roleB, userAuthorityGroupStore.get( idB ) );
         assertEquals( roleC, userAuthorityGroupStore.get( idC ) );
     }
@@ -66,10 +69,15 @@ public class UserAuthorityGroupTest
         UserAuthorityGroup roleA = createUserAuthorityGroup( 'A' );
         UserAuthorityGroup roleB = createUserAuthorityGroup( 'B' );
         UserAuthorityGroup roleC = createUserAuthorityGroup( 'C' );
-        
-        int idA = userAuthorityGroupStore.save( roleA );
-        int idB = userAuthorityGroupStore.save( roleB );
-        int idC = userAuthorityGroupStore.save( roleC );
+
+        userAuthorityGroupStore.save( roleA );
+        int idA = roleA.getId();
+
+        userAuthorityGroupStore.save( roleB );
+        int idB = roleB.getId();
+
+        userAuthorityGroupStore.save( roleC );
+        int idC = roleC.getId();
         
         assertEquals( roleA, userAuthorityGroupStore.get( idA ) );
         assertEquals( roleB, userAuthorityGroupStore.get( idB ) );

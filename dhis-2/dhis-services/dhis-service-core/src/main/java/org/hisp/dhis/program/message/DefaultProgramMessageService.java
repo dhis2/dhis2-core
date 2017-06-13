@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.message;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,35 +28,32 @@ package org.hisp.dhis.program.message;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.outboundmessage.BatchResponseStatus;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.sms.BatchResponseStatus;
-import org.hisp.dhis.sms.MessageBatchCreatorService;
-import org.hisp.dhis.sms.MessageBatchStatus;
-import org.hisp.dhis.sms.MessageResponseSummary;
-import org.hisp.dhis.sms.outbound.MessageBatch;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -93,7 +90,7 @@ public class DefaultProgramMessageService
     private ProgramStageInstanceService programStageInstanceService;
 
     @Autowired
-    private List<MessageSender> messageSenders;
+    private OutboundMessageBatchService messageBatchService;
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -184,7 +181,8 @@ public class DefaultProgramMessageService
     @Override
     public int saveProgramMessage( ProgramMessage programMessage )
     {
-        return programMessageStore.save( programMessage );
+        programMessageStore.save( programMessage );
+        return programMessage.getId();
     }
 
     @Override
@@ -202,41 +200,13 @@ public class DefaultProgramMessageService
     @Override
     public BatchResponseStatus sendMessages( List<ProgramMessage> programMessages )
     {
-        List<MessageResponseSummary> summaries = new ArrayList<>();
+        List<ProgramMessage> populatedProgramMessages = programMessages.stream()
+            .map( this::setAttributesBasedOnStrategy )
+            .collect( Collectors.toList() );
 
-        List<ProgramMessage> populatedProgramMessages = new ArrayList<>();
+        List<OutboundMessageBatch> batches = createBatches( populatedProgramMessages );
 
-        for ( ProgramMessage message : programMessages )
-        {
-            populatedProgramMessages.add( setAttributesBasedOnStrategy( message ) );
-        }
-
-        List<MessageBatch> batches = createBatches( populatedProgramMessages );
-
-        for ( MessageBatch batch : batches )
-        {
-            for ( MessageSender messageSender : messageSenders )
-            {
-                if ( messageSender.accept( Sets.newHashSet( batch.getDeliveryChannel() ) ) )
-                {
-                    if ( messageSender.isServiceReady() )
-                    {
-                        log.info( "Invoking message sender: " + messageSender.getClass().getSimpleName() );
-
-                        summaries.add( messageSender.sendMessageBatch( batch ) );
-                    }
-                    else
-                    {
-                        log.error( "No server/gateway configuration found for delivery channel: " + messageSender.getDeliveryChannel() );
-
-                        summaries.add( new MessageResponseSummary( "No server/gateway configuration found for delivery channel: " + messageSender.getDeliveryChannel(),
-                            messageSender.getDeliveryChannel(), MessageBatchStatus.FAILED ) );
-                    }
-                }
-            }
-        }
-
-        BatchResponseStatus status = new BatchResponseStatus( summaries );
+        BatchResponseStatus status = new BatchResponseStatus( messageBatchService.sendBatches( batches ) );
         
         saveProgramMessages( programMessages, status );
         
@@ -335,35 +305,28 @@ public class DefaultProgramMessageService
 
     private void saveProgramMessages( List<ProgramMessage> messageBatch, BatchResponseStatus status )
     {
-        for ( ProgramMessage message : messageBatch )
-        {
-            if ( message.isStoreCopy() )
-            {
-                message.setProgramInstance( getProgramInstance( message ) );
-                message.setProgramStageInstance( getProgramStageInstance( message ) );
-                message.setProcessedDate( new Date() );
-                message.setMessageStatus( status.isOk() ? ProgramMessageStatus.SENT : ProgramMessageStatus.FAILED );
-
-                saveProgramMessage( message );
-            }
-        }
+        messageBatch.parallelStream()
+            .filter( pm -> pm.isStoreCopy() )
+            .map( pm -> setParameters( pm, status ) )
+            .map( pm -> saveProgramMessage( pm ) );
     }
 
-    private List<MessageBatch> createBatches( List<ProgramMessage> programMessages )
+    private ProgramMessage setParameters( ProgramMessage message, BatchResponseStatus status )
     {
-        List<MessageBatch> batches = new ArrayList<>();
+        message.setProgramInstance( getProgramInstance( message ) );
+        message.setProgramStageInstance( getProgramStageInstance( message ) );
+        message.setProcessedDate( new Date() );
+        message.setMessageStatus( status.isOk() ? ProgramMessageStatus.SENT : ProgramMessageStatus.FAILED );
 
-        for ( MessageBatchCreatorService batchCreator : batchCreators )
-        {
-            MessageBatch tmpBatch = batchCreator.getMessageBatch( programMessages );
+        return message;
+    }
 
-            if ( !tmpBatch.getBatch().isEmpty() )
-            {
-                batches.add( tmpBatch );
-            }
-        }
-
-        return batches;
+    private List<OutboundMessageBatch> createBatches( List<ProgramMessage> programMessages )
+    {
+        return batchCreators.stream()
+            .map( bc -> bc.getMessageBatch( programMessages ) )
+            .filter( bc -> !bc.getMessages().isEmpty() )
+            .collect( Collectors.toList() );
     }
 
     private ProgramInstance getProgramInstance( ProgramMessage programMessage )
@@ -393,13 +356,9 @@ public class DefaultProgramMessageService
 
         for ( DeliveryChannel channel : channels )
         {
-            for ( DeliveryChannelStrategy strategy : strategies )
-            {
-                if ( strategy.getDeliveryChannel().equals( channel ) )
-                {
-                    strategy.setAttributes( message );
-                }
-            }
+            strategies.stream()
+                .filter( st -> st.getDeliveryChannel().equals( channel ) )
+                .map( st -> st.setAttributes( message ) );
         }
 
         return message;

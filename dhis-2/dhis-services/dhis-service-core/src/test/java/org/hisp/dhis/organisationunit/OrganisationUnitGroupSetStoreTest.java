@@ -53,4 +53,10 @@ public class OrganisationUnitGroupSetStoreTest
     {
         return "org.hisp.dhis.organisationunit.OrganisationUnitGroupSetStore";
     }
+
+    @Override
+    protected int getObjectId( OrganisationUnitGroupSet object )
+    {
+        return object.getId();
+    }
 }

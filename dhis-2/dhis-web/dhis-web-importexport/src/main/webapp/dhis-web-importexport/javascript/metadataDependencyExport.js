@@ -6,7 +6,7 @@ $( document ).ready( function() {
 
 mde.displayObjectList = function() {
 	var objectType = $( "#objectType" ).val(),
-		url = "../api/" + objectType + "?fields=id,displayName";
+		url = "../api/" + objectType + "?fields=id,displayName&paging=false";
 	
 	$.getJSON( url, function( json ) {
 		var html = "";
@@ -20,9 +20,11 @@ mde.displayObjectList = function() {
 
 mde.exportMetadata = function() {
 	var objectType = $( "#objectType" ).val(),
-		objectId = $( "#objectList" ).val(),
-		format = $( "#format" ).val(),
-		url = "../api/" + objectType + "/" + objectId + "/metadata." + format;
-	
+			objectId = $( "#objectList" ).val(),
+			format = $( "#format" ).val(),
+			compression = $("#compression").val(),
+			url = "../api/" + objectType + "/" + objectId + "/metadata" + format + (compression ?  compression : "" );
+
+	url += "?attachment=" + "metadataDependency" + format + compression;;
 	window.open( url, "_blank" );
 }

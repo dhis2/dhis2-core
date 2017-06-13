@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.service;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,9 @@ import org.springframework.stereotype.Service;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -58,6 +60,9 @@ public class DefaultLinkService implements LinkService
 
     @Autowired
     private ContextService contextService;
+
+    // since classes won't change during runtime, use a map to cache setHref lookups
+    private Map<Class<?>, Method> setterCache = new HashMap<>();
 
     @Override
     public void generatePagerLinks( Pager pager, Class<?> klass )
@@ -237,7 +242,7 @@ public class DefaultLinkService implements LinkService
 
     private <T> void generateHref( T object, String hrefBase )
     {
-        if ( object == null )
+        if ( object == null || getSetter( object.getClass() ) == null )
         {
             return;
         }
@@ -268,11 +273,27 @@ public class DefaultLinkService implements LinkService
                 return;
             }
 
-            Method setHref = object.getClass().getMethod( "setHref", String.class );
+            Method setHref = getSetter( object.getClass() );
             setHref.invoke( object, hrefBase + schema.getRelativeApiEndpoint() + "/" + value );
         }
-        catch ( NoSuchMethodException | InvocationTargetException | IllegalAccessException ignored )
+        catch ( InvocationTargetException | IllegalAccessException ignored )
         {
         }
+    }
+
+    private Method getSetter( Class<?> klass )
+    {
+        if ( !setterCache.containsKey( klass ) )
+        {
+            try
+            {
+                setterCache.put( klass, klass.getMethod( "setHref", String.class ) );
+            }
+            catch ( NoSuchMethodException ignored )
+            {
+            }
+        }
+
+        return setterCache.get( klass );
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,12 +38,9 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -53,11 +50,11 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "dataElementGroup", namespace = DxfNamespaces.DXF_2_0 )
 public class DataElementGroup
-    extends BaseDimensionalItemObject
+    extends BaseDimensionalItemObject implements MetadataObject
 {
     private Set<DataElement> members = new HashSet<>();
 
-    private DataElementGroupSet groupSet;
+    private Set<DataElementGroupSet> groupSets = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -169,44 +166,17 @@ public class DataElementGroup
         this.members = members;
     }
 
-    @JsonProperty( "dataElementGroupSet" )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.REFERENCE, required = Property.Value.FALSE )
-    public DataElementGroupSet getGroupSet()
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "groupSets", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "groupSet", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<DataElementGroupSet> getGroupSets()
     {
-        return groupSet;
+        return groupSets;
     }
 
-    public void setGroupSet( DataElementGroupSet groupSet )
+    public void setGroupSets( Set<DataElementGroupSet> groupSets )
     {
-        this.groupSet = groupSet;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DataElementGroup dataElementGroup = (DataElementGroup) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                groupSet = dataElementGroup.getGroupSet();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                groupSet = dataElementGroup.getGroupSet() == null ? groupSet : dataElementGroup.getGroupSet();
-            }
-
-            removeAllDataElements();
-
-            for ( DataElement dataElement : dataElementGroup.getMembers() )
-            {
-                addDataElement( dataElement );
-            }
-        }
+        this.groupSets = groupSets;
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -47,7 +46,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "userGroup", namespace = DxfNamespaces.DXF_2_0 )
 public class UserGroup
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     public static final String AUTH_USER_ADD = "F_USER_ADD";
     public static final String AUTH_USER_DELETE = "F_USER_DELETE";
@@ -143,12 +142,6 @@ public class UserGroup
     // -------------------------------------------------------------------------
 
     @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
-
-    @Override
     @JsonIgnore
     public User getUser()
     {
@@ -202,19 +195,5 @@ public class UserGroup
     public void setManagedByGroups( Set<UserGroup> managedByGroups )
     {
         this.managedByGroups = managedByGroups;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            UserGroup userGroup = (UserGroup) other;
-
-            members.clear();
-            members.addAll( userGroup.getMembers() );
-        }
     }
 }

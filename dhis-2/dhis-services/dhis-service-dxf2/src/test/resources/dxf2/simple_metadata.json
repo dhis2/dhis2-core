@@ -81,28 +81,28 @@
       "uuid": "6ea86a20-1eb1-4bbd-87ea-948ee1e01f20"
     }
   ],
-  "dataSetElements": [
-    {
-      "id": "WTOZ7gqbASV",
-      "dataElement": {
-        "id": "SG4HuKlNEFH"
-      },
-      "dataSet": {
-        "id": "DSaKQTwN4qg"
-      }
-    },
-    {
-      "id": "rSChycu6mOY",
-      "dataElement": {
-        "id": "CCwk5Yx440o"
-      },
-      "dataSet": {
-        "id": "DSaKQTwN4qg"
-      }
-    }
-  ],
   "dataSets": [
     {
+      "dataSetElements": [
+        {
+          "id": "WTOZ7gqbASV",
+          "dataElement": {
+            "id": "SG4HuKlNEFH"
+          },
+          "dataSet": {
+            "id": "DSaKQTwN4qg"
+          }
+        },
+        {
+          "id": "rSChycu6mOY",
+          "dataElement": {
+            "id": "CCwk5Yx440o"
+          },
+          "dataSet": {
+            "id": "DSaKQTwN4qg"
+          }
+        }
+      ],
       "periodType": "Monthly",
       "dataElementDecoration": false,
       "noValueRequiresComment": false,

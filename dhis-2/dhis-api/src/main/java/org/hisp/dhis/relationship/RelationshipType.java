@@ -1,7 +1,7 @@
 package org.hisp.dhis.relationship;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
 /**
@@ -42,7 +41,7 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
  */
 @JacksonXmlRootElement( localName = "relationshipType", namespace = DxfNamespaces.DXF_2_0 )
 public class RelationshipType
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     private String aIsToB;
 
@@ -107,27 +106,5 @@ public class RelationshipType
             "\"aIsToB\":\"" + aIsToB + "\", " +
             "\"bIsToA\":\"" + bIsToA + "\" " +
             "}";
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            RelationshipType relationshipType = (RelationshipType) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                aIsToB = relationshipType.getaIsToB();
-                bIsToA = relationshipType.getbIsToA();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                aIsToB = relationshipType.getaIsToB() == null ? aIsToB : relationshipType.getaIsToB();
-                bIsToA = relationshipType.getbIsToA() == null ? bIsToA : relationshipType.getbIsToA();
-            }
-        }
     }
 }

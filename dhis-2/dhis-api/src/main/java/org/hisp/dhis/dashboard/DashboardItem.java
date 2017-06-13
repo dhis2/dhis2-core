@@ -1,7 +1,7 @@
 package org.hisp.dhis.dashboard;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.InterpretableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
@@ -60,7 +60,7 @@ import java.util.List;
  */
 @JacksonXmlRootElement( localName = "dashboardItem", namespace = DxfNamespaces.DXF_2_0 )
 public class DashboardItem
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     public static final int MAX_CONTENT = 8;
 
@@ -187,7 +187,7 @@ public class DashboardItem
     public int getInterpretationCount()
     {
         InterpretableObject object = getEmbeddedItem();
-        
+
         return object != null ? object.getInterpretations().size() : 0;
     }
 
@@ -196,11 +196,11 @@ public class DashboardItem
     public int getInterpretationLikeCount()
     {
         InterpretableObject object = getEmbeddedItem();
-        
+
         return object != null ? object.getInterpretations().
-            stream().mapToInt( Interpretation::getLikes ).sum() : 0;        
+            stream().mapToInt( Interpretation::getLikes ).sum() : 0;
     }
-    
+
     /**
      * Returns a list of the actual item objects if this dashboard item
      * represents a list of objects and not an embedded item.
@@ -425,45 +425,5 @@ public class DashboardItem
     public void setShape( DashboardItemShape shape )
     {
         this.shape = shape;
-    }
-
-    // -------------------------------------------------------------------------
-    // Merge with
-    // -------------------------------------------------------------------------
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DashboardItem dashboardItem = (DashboardItem) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                chart = dashboardItem.getChart();
-                map = dashboardItem.getMap();
-                reportTable = dashboardItem.getReportTable();
-                users = dashboardItem.getUsers();
-                reports = dashboardItem.getReports();
-                resources = dashboardItem.getResources();
-                messages = dashboardItem.getMessages();
-                appKey = dashboardItem.getAppKey();
-                shape = dashboardItem.getShape();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                chart = dashboardItem.getChart() == null ? chart : dashboardItem.getChart();
-                map = dashboardItem.getMap() == null ? map : dashboardItem.getMap();
-                reportTable = dashboardItem.getReportTable() == null ? reportTable : dashboardItem.getReportTable();
-                users = dashboardItem.getUsers() == null ? users : dashboardItem.getUsers();
-                reports = dashboardItem.getReports() == null ? reports : dashboardItem.getReports();
-                resources = dashboardItem.getResources() == null ? resources : dashboardItem.getResources();
-                messages = dashboardItem.getMessages() == null ? messages : dashboardItem.getMessages();
-                appKey = dashboardItem.getAppKey() == null ? appKey : dashboardItem.getAppKey();
-                shape = dashboardItem.getShape() == null ? shape : dashboardItem.getShape();
-            }
-        }
     }
 }

@@ -27,12 +27,12 @@
       <cache usage="read-write" />
       <key column="dataelementgroupsetid" foreign-key="fk_dataelementgroupsetmembers_dataelementgroupsetid" />
       <list-index column="sort_order" base="1" />
-      <many-to-many class="org.hisp.dhis.dataelement.DataElementGroup" column="dataelementgroupid" unique="true"
+      <many-to-many class="org.hisp.dhis.dataelement.DataElementGroup" column="dataelementgroupid"
         foreign-key="fk_dataelementgroupset_dataelementgroupid" />
     </list>
 
     <!-- Object Translation -->
-    <set name="translations" table="dataelementgroupsettranslations" cascade="delete-orphan">
+    <set name="translations" table="dataelementgroupsettranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="dataelementgroupsetid" foreign-key="fk_objecttranslation_dataelementgroupsetid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -43,10 +43,16 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="dataelementgroupsetusergroupaccesses">
+    <set name="userGroupAccesses" table="dataelementgroupsetusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="dataelementgroupsetid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="dataelementgroupsetuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="dataelementgroupsetid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
   </class>

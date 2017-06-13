@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.webdomain.sharing;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,9 @@ public class SharingObject
 
     @JsonProperty
     private List<SharingUserGroupAccess> userGroupAccesses = new ArrayList<>();
+
+    @JsonProperty
+    private List<SharingUserAccess> userAccesses = new ArrayList<>();
 
     public SharingObject()
     {
@@ -131,5 +134,15 @@ public class SharingObject
     public void setUserGroupAccesses( List<SharingUserGroupAccess> userGroupAccesses )
     {
         this.userGroupAccesses = userGroupAccesses;
+    }
+
+    public List<SharingUserAccess> getUserAccesses()
+    {
+        return userAccesses;
+    }
+
+    public void setUserAccesses( List<SharingUserAccess> userAccesses )
+    {
+        this.userAccesses = userAccesses;
     }
 }

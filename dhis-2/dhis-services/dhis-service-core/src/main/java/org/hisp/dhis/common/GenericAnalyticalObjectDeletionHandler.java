@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,6 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.function.BiConsumer;
-
-import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
@@ -40,6 +36,9 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 
+import java.util.List;
+import java.util.function.BiConsumer;
+
 /**
  * @author Lars Helge Overland
  */
@@ -47,29 +46,29 @@ public abstract class GenericAnalyticalObjectDeletionHandler<T extends Analytica
     extends DeletionHandler
 {
     protected abstract AnalyticalObjectService<T> getAnalyticalObjectService();
-    
+
     @Override
     public void deleteIndicator( Indicator indicator )
     {
-        removeItem( getAnalyticalObjectService().getAnalyticalObjects( indicator ), indicator, ( ao, di ) -> ao.removeDataDimensionItem( di ) );
+        removeItem( getAnalyticalObjectService().getAnalyticalObjects( indicator ), indicator, AnalyticalObject::removeDataDimensionItem );
     }
-    
+
     @Override
     public void deleteDataElement( DataElement dataElement )
     {
-        removeItem( getAnalyticalObjectService().getAnalyticalObjects( dataElement ), dataElement, ( ao, di ) -> ao.removeDataDimensionItem( di ) );
+        removeItem( getAnalyticalObjectService().getAnalyticalObjects( dataElement ), dataElement, AnalyticalObject::removeDataDimensionItem );
     }
 
     @Override
     public void deleteDataSet( DataSet dataSet )
     {
-        removeItem( getAnalyticalObjectService().getAnalyticalObjects( dataSet ), dataSet, ( ao, di ) -> ao.removeDataDimensionItem( di ) );
+        removeItem( getAnalyticalObjectService().getAnalyticalObjects( dataSet ), dataSet, AnalyticalObject::removeDataDimensionItem );
     }
-    
+
     @Override
     public void deleteProgramIndicator( ProgramIndicator programIndicator )
     {
-        removeItem( getAnalyticalObjectService().getAnalyticalObjects( programIndicator ), programIndicator, ( ao, di ) -> ao.removeDataDimensionItem( di ) );
+        removeItem( getAnalyticalObjectService().getAnalyticalObjects( programIndicator ), programIndicator, AnalyticalObject::removeDataDimensionItem );
     }
 
     @Override
@@ -77,25 +76,35 @@ public abstract class GenericAnalyticalObjectDeletionHandler<T extends Analytica
     {
         removeItem( getAnalyticalObjectService().getAnalyticalObjects( period ), period, ( ao, di ) -> ao.getPeriods().remove( di ) );
     }
-    
+
+    @Override
+    public String allowDeletePeriod( Period period )
+    {
+        List<T> analyticalObjects = getAnalyticalObjectService().getAnalyticalObjects( period );
+
+        for ( T analyticalObject : analyticalObjects )
+        {
+            if ( analyticalObject.getPeriods().contains( period ) )
+            {
+                return ERROR;
+            }
+        }
+
+        return null;
+    }
+
     @Override
     public void deleteOrganisationUnit( OrganisationUnit organisationUnit )
     {
         removeItem( getAnalyticalObjectService().getAnalyticalObjects( organisationUnit ), organisationUnit, ( ao, di ) -> ao.getOrganisationUnits().remove( di ) );
     }
-    
-    @Override
-    public void deleteCategoryOptionGroup( CategoryOptionGroup categoryOptionGroup )
-    {
-        removeItem( getAnalyticalObjectService().getAnalyticalObjects( categoryOptionGroup ), categoryOptionGroup, ( ao, di ) -> ao.getCategoryOptionGroups().remove( di ) );
-    }
-    
+
     protected void removeItem( List<T> analyticalObjects, DimensionalItemObject itemObject, BiConsumer<AnalyticalObject, DimensionalItemObject> updateOperation )
     {
         for ( T analyticalObject : analyticalObjects )
         {
             updateOperation.accept( analyticalObject, itemObject );
-            
+
             getAnalyticalObjectService().update( analyticalObject );
         }
     }

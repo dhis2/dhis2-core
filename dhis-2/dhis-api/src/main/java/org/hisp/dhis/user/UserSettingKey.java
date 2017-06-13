@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,22 +49,22 @@ public enum UserSettingKey
     AUTO_SAVE_CASE_ENTRY_FORM( "keyAutoSaveCaseEntryForm", Boolean.class ),
     AUTO_SAVE_TRACKED_ENTITY_REGISTRATION_ENTRY_FORM( "keyAutoSavetTrackedEntityForm", Boolean.class ),
     AUTO_SAVE_DATA_ENTRY_FORM( "keyAutoSaveDataEntryForm", Boolean.class );
-    
+
     private final String name;
-    
+
     private final Class<?> clazz;
 
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
 
-    private UserSettingKey( String name )
+    UserSettingKey( String name )
     {
         this.name = name;
         this.clazz = String.class;
     }
-    
-    private UserSettingKey( String name, Class<?> clazz )
+
+    UserSettingKey( String name, Class<?> clazz )
     {
         this.name = name;
         this.clazz = clazz;
@@ -83,18 +83,18 @@ public enum UserSettingKey
                 return Optional.of( setting );
             }
         }
-        
+
         return Optional.empty();
     }
 
     public static Serializable getAsRealClass( String name, String value )
     {
         Optional<UserSettingKey> setting = getByName( name );
-                
+
         if ( setting.isPresent() )
-        {            
+        {
             Class<?> settingClazz = setting.get().getClazz();
-            
+
             if ( Double.class.isAssignableFrom( settingClazz ) )
             {
                 return Double.valueOf( value );
@@ -111,10 +111,10 @@ public enum UserSettingKey
             {
                 return LocaleUtils.toLocale( value );
             }
-            
+
             //TODO handle Dates
         }
-        
+
         return value;
     }
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,14 +35,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-
-import org.hisp.dhis.common.BaseDataDimensionalItemObject;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DataDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
@@ -86,9 +83,10 @@ import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
  */
 @JacksonXmlRootElement( localName = "dataElement", namespace = DxfNamespaces.DXF_2_0 )
 public class DataElement
-    extends BaseDataDimensionalItemObject implements DataDimensionalItemObject
+    extends BaseDimensionalItemObject implements MetadataObject
 {
-    public static final String[] I18N_PROPERTIES = { "name", "shortName", "description", "formName" };
+    public static final String[] I18N_PROPERTIES = { TranslationProperty.NAME.getName(), TranslationProperty.SHORT_NAME.getName(),
+        TranslationProperty.DESCRIPTION.getName(), TranslationProperty.FORM_NAME.getName() };
 
     /**
      * Data element value type (int, boolean, etc)
@@ -152,7 +150,7 @@ public class DataElement
      * The option set for comments linked to this data element, can be null.
      */
     private OptionSet commentOptionSet;
-    
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -176,7 +174,7 @@ public class DataElement
         groups.add( group );
         group.getMembers().add( this );
     }
-    
+
     public void removeDataElementGroup( DataElementGroup group )
     {
         groups.remove( group );
@@ -203,7 +201,7 @@ public class DataElement
     }
 
     /**
-     * Returns the resolved category combinations by joining the category 
+     * Returns the resolved category combinations by joining the category
      * combinations of the data set elements of which this data element is part
      * of and the category combination linked directly with this data element.
      * The returned set is immutable, will never be null and will contain at
@@ -218,9 +216,9 @@ public class DataElement
                 .collect( Collectors.toSet() ) )
             .add( dataElementCategoryCombo ).build();
     }
-    
+
     /**
-     * Returns the category combination of the data set element matching the 
+     * Returns the category combination of the data set element matching the
      * given data set for this data element. If not present, returns the
      * category combination for this data element.
      */
@@ -233,13 +231,13 @@ public class DataElement
                 return element.getCategoryCombo();
             }
         }
-        
+
         return dataElementCategoryCombo;
     }
-    
+
     /**
      * Returns the category option combinations of the resolved category
-     * combinations of this data element. The returned set is immutable, will 
+     * combinations of this data element. The returned set is immutable, will
      * never be null and will contain at least one item.
      */
     public Set<DataElementCategoryOptionCombo> getCategoryOptionCombos()
@@ -249,16 +247,16 @@ public class DataElement
 
     /**
      * Returns the sorted category option combinations of the resolved category
-     * combinations of this data element. The returned list is immutable, will 
+     * combinations of this data element. The returned list is immutable, will
      * never be null and will contain at least one item.
      */
     public List<DataElementCategoryOptionCombo> getSortedCategoryOptionCombos()
     {
         List<DataElementCategoryOptionCombo> optionCombos = Lists.newArrayList();
-        getCategoryCombos().stream().forEach( cc -> optionCombos.addAll( cc.getSortedOptionCombos() ) );
+        getCategoryCombos().forEach( cc -> optionCombos.addAll( cc.getSortedOptionCombos() ) );
         return optionCombos;
     }
-    
+
     /**
      * Indicates whether the value type of this data element is numeric.
      */
@@ -301,32 +299,16 @@ public class DataElement
 
     /**
      * Note that this method returns an immutable set and can not be used to
-     * modify the model. Returns an immutable set of data sets associated with 
+     * modify the model. Returns an immutable set of data sets associated with
      * this data element.
      */
     public Set<DataSet> getDataSets()
     {
         return ImmutableSet.copyOf( dataSetElements.stream().map( e -> e.getDataSet() ).collect( Collectors.toSet() ) );
     }
-    
-    /**
-     * Returns the attribute category combinations associated with the data sets 
-     * of this data element.
-     */
-    public Set<DataElementCategoryCombo> getDataSetCategoryCombos()
-    {
-        Set<DataElementCategoryCombo> categoryCombos = new HashSet<>();
-
-        for ( DataSet dataSet : getDataSets() )
-        {
-            categoryCombos.add( dataSet.getCategoryCombo() );
-        }
-
-        return categoryCombos;
-    }
 
     /**
-     * Returns the attribute category options combinations associated with the 
+     * Returns the attribute category options combinations associated with the
      * data sets of this data element.
      */
     public Set<DataElementCategoryOptionCombo> getDataSetCategoryOptionCombos()
@@ -478,7 +460,7 @@ public class DataElement
     public String getDisplayFormName()
     {
         displayFormName = getTranslation( TranslationProperty.FORM_NAME, displayFormName );
-        return displayFormName != null ? displayFormName : getFormName() != null && !getFormName().isEmpty() ? getFormName() : getDisplayName();
+        return displayFormName != null ? displayFormName : getFormNameFallback();
     }
 
     public void setDisplayFormName( String displayFormName )
@@ -526,16 +508,31 @@ public class DataElement
         return expiryDays != DataSet.NO_EXPIRY && new DateTime( period.getEndDate() ).plusDays( expiryDays ).isBefore( new DateTime( now ) );
     }
 
+    /**
+     * Indicates whether this data element has a description.
+     *
+     * @return true if this data element has a description.
+     */
     public boolean hasDescription()
     {
         return description != null && !description.trim().isEmpty();
     }
 
+    /**
+     * Indicates whether this data element has a URL.
+     *
+     * @return true if this data element has a URL.
+     */
     public boolean hasUrl()
     {
         return url != null && !url.trim().isEmpty();
     }
 
+    /**
+     * Indicates whether this data element has an option set.
+     *
+     * @return true if this data element has an option set.
+     */
     public boolean hasOptionSet()
     {
         return optionSet != null;
@@ -556,7 +553,7 @@ public class DataElement
     // -------------------------------------------------------------------------
     // Helper getters
     // -------------------------------------------------------------------------
-        
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isOptionSetValue()
@@ -572,8 +569,7 @@ public class DataElement
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ValueType getValueType()
     {
-        //TODO
-        //return optionSet != null ? optionSet.getValueType() : valueType;
+        //TODO return optionSet != null ? optionSet.getValueType() : valueType;
         return valueType;
     }
 
@@ -648,7 +644,6 @@ public class DataElement
     }
 
     @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "dataSetElements", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "dataSetElements", namespace = DxfNamespaces.DXF_2_0 )
     public Set<DataSetElement> getDataSetElements()
@@ -709,45 +704,16 @@ public class DataElement
         this.commentOptionSet = commentOptionSet;
     }
 
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
+    /**
+     * Checks if the combination of period and date is allowed for any of the dataSets associated with the dataElement
+     *
+     * @param period period to check
+     * @param date   date to check
+     * @return true if no dataSets exists, or at least one dataSet has a valid DataInputPeriod for the period and date.
+     */
+    public boolean isDataInputAllowedForPeriodAndDate( Period period, Date date )
     {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DataElement dataElement = (DataElement) other;
-
-            zeroIsSignificant = dataElement.isZeroIsSignificant();
-
-            if ( mergeMode.isReplace() )
-            {
-                formName = dataElement.getFormName();
-                domainType = dataElement.getDomainType();
-                aggregationType = dataElement.getAggregationType();
-                valueType = dataElement.getValueType();
-                dataElementCategoryCombo = dataElement.getDataElementCategoryCombo();
-                url = dataElement.getUrl();
-                optionSet = dataElement.getOptionSet();
-                commentOptionSet = dataElement.getCommentOptionSet();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                formName = dataElement.getFormName() == null ? formName : dataElement.getFormName();
-                domainType = dataElement.getDomainType() == null ? domainType : dataElement.getDomainType();
-                aggregationType = dataElement.getAggregationType() == null ? aggregationType : dataElement.getAggregationType();
-                valueType = dataElement.getValueType() == null ? valueType : dataElement.getValueType();
-                dataElementCategoryCombo = dataElement.getDataElementCategoryCombo() == null ? dataElementCategoryCombo : dataElement.getDataElementCategoryCombo();
-                url = dataElement.getUrl() == null ? url : dataElement.getUrl();
-                optionSet = dataElement.getOptionSet() == null ? optionSet : dataElement.getOptionSet();
-                commentOptionSet = dataElement.getCommentOptionSet() == null ? commentOptionSet : dataElement.getCommentOptionSet();
-            }
-
-            groups.clear();
-            dataSetElements.clear();
-
-            aggregationLevels.clear();
-            aggregationLevels.addAll( dataElement.getAggregationLevels() );
-        }
+        return getDataSets().isEmpty() || getDataSets().stream()
+            .anyMatch( dataSet -> dataSet.isDataInputPeriodAndDateAllowed( period, date ) );
     }
 }

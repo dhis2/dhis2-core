@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,26 +37,38 @@ import org.hisp.dhis.common.MaintenanceModeException;
  * @author Lars Helge Overland
  */
 public interface EventQueryPlanner
-{    
+{
+    /**
+     * Validates the given query. Throws an IllegalQueryException if the query
+     * is not valid with a descriptive message. Returns normally if the query is
+     * valid.
+     * 
+     * @param params the event query parameters.
+     * @throws IllegalQueryException if the query is invalid.
+     */
     void validate( EventQueryParams params )
         throws IllegalQueryException, MaintenanceModeException;
         
     /**
-     * Plans the given params and returns a list of params.
+     * Plans the given parameters and returns a list of parameters.
      * 
-     * @param params the query params.
+     * @param params the event query parameters.
+     * @return a list of {@link EventQueryParams}.
      */
     List<EventQueryParams> planAggregateQuery( EventQueryParams params );
 
     /**
-     * Plans the given params and returns a list of params.
+     * Plans the given parameters and returns a list of parameters.
      * 
-     * @param params the query params.
+     * @param params the event query parameters.
+     * @return an {@link EventQueryParams}.
      */
     EventQueryParams planEventQuery( EventQueryParams params );
     
     /**
      * Returns the max number of records to return. A value of 0 indicates no limit.
+     * 
+     * @return the max number of recrods to return.
      */
     int getMaxLimit();
 }

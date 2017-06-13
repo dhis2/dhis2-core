@@ -31,13 +31,13 @@
       <many-to-many class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo" column="categoryoptioncomboid"
         foreign-key="fk_categorycombo_categoryoptioncomboid" unique="true" />
     </set>
-    
+
     <property name="dataDimensionType" column="datadimensiontype" type="org.hisp.dhis.common.DataDimensionTypeUserType" not-null="true" />
 
     <property name="skipTotal" column="skiptotal" not-null="true" />
 
     <!-- Object Translation -->
-    <set name="translations" table="categorycombotranslations" cascade="delete-orphan">
+    <set name="translations" table="categorycombotranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="categorycomboid" foreign-key="fk_objecttranslation_categorycomboid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -48,10 +48,16 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="categorycombousergroupaccesses">
+    <set name="userGroupAccesses" table="categorycombousergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="categorycomboid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="categorycombouseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="categorycomboid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
   </class>

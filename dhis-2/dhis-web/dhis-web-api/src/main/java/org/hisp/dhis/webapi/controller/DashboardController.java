@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,11 +35,12 @@ import org.hisp.dhis.dashboard.DashboardItemType;
 import org.hisp.dhis.dashboard.DashboardSearchResult;
 import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
+import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.schema.descriptors.DashboardItemSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DashboardSchemaDescriptor;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -54,6 +55,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -319,5 +321,19 @@ public class DashboardController
                 }
             }
         }
+    }
+
+    @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
+    public @ResponseBody RootNode getDataSetWithDependencies( @PathVariable( "uid" ) String dashboardId, HttpServletResponse response )
+        throws WebMessageException, IOException
+    {
+        Dashboard dashboard = dashboardService.getDashboard( dashboardId );
+
+        if ( dashboard == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "Dashboard not found for uid: " + dashboardId ) );
+        }
+
+        return exportService.getMetadataWithDependenciesAsNode( dashboard );
     }
 }

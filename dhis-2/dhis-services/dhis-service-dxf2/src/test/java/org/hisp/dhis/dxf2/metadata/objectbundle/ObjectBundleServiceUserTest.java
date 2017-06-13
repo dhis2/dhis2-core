@@ -263,4 +263,22 @@ public class ObjectBundleServiceUserTest
         ObjectBundle bundle = objectBundleService.create( params );
         assertEquals( 0, objectBundleValidationService.validate( bundle ).getErrorReports().size() );
     }
+
+    @Test
+    public void testCreateUsersWithInvalidPasswords() throws IOException
+    {
+        createUserAndInjectSecurityContext( true );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/users_passwords.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.VALIDATE );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+        assertEquals( 1, validate.getErrorReportsByCode( User.class, ErrorCode.E4005 ).size() );
+    }
 }

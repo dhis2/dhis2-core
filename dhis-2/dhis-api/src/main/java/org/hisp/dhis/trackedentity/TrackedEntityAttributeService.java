@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -115,20 +115,6 @@ public interface TrackedEntityAttributeService
      * List if there are no TrackedEntityAttributes.
      */
     List<TrackedEntityAttribute> getAllTrackedEntityAttributes();
-
-    /**
-     * Get attributes without groups
-     *
-     * @return List of attributes
-     */
-    List<TrackedEntityAttribute> getOptionalAttributesWithoutGroup();
-
-    /**
-     * Get attributes without groups
-     *
-     * @return List of attributes without group
-     */
-    List<TrackedEntityAttribute> getTrackedEntityAttributesWithoutGroup();
 
     /**
      * Get attributes which are displayed in visit schedule

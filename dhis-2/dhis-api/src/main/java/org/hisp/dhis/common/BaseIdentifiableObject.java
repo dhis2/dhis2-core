@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
@@ -44,14 +43,13 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.acl.Access;
-import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.translation.ObjectTranslation;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserSettingKey;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -134,6 +132,11 @@ public class BaseIdentifiableObject
     protected Set<UserGroupAccess> userGroupAccesses = new HashSet<>();
 
     /**
+     * Access for users
+     */
+    protected Set<UserAccess> userAccesses = new HashSet<>();
+
+    /**
      * Access information for this object. Applies to current user.
      */
     protected transient Access access;
@@ -142,6 +145,11 @@ public class BaseIdentifiableObject
      * The i18n variant of the name. Should not be persisted.
      */
     protected transient String displayName;
+
+    /**
+     * Last user updated this object
+     */
+    private User lastUpdatedBy;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -189,8 +197,8 @@ public class BaseIdentifiableObject
         {
             return object.getDisplayName() == null ? 0 : 1;
         }
-        
-        return object.getDisplayName() == null ? -1 : 
+
+        return object.getDisplayName() == null ? -1 :
             this.getDisplayName().compareToIgnoreCase( object.getDisplayName() );
     }
 
@@ -288,6 +296,20 @@ public class BaseIdentifiableObject
 
     @Override
     @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public User getLastUpdatedBy()
+    {
+        return lastUpdatedBy;
+    }
+
+    public void setLastUpdatedBy( User lastUpdatedBy )
+    {
+        this.lastUpdatedBy = lastUpdatedBy;
+    }
+
+    @Override
+    @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     @Description( "The date this object was last updated." )
     @Property( value = PropertyType.DATE, required = Value.FALSE )
@@ -336,29 +358,29 @@ public class BaseIdentifiableObject
     /**
      * Returns a translated value for this object for the given property. The
      * current locale is read from the user context.
-     * 
-     * @param property the translation property.
+     *
+     * @param property     the translation property.
      * @param defaultValue the value to use if there are no translations.
      * @return a translated value.
      */
     protected String getTranslation( TranslationProperty property, String defaultValue )
     {
         Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE, Locale.class );
-        
+
         defaultValue = defaultValue != null ? defaultValue.trim() : null;
-        
+
         if ( locale == null || property == null )
         {
             return defaultValue;
         }
-        
+
         loadTranslationsCacheIfEmpty();
-        
+
         String cacheKey = ObjectTranslation.getCacheKey( locale.toString(), property );
-        
+
         return translationCache.getOrDefault( cacheKey, defaultValue );
     }
-    
+
     /**
      * Populates the translationsCache map unless it is already populated.
      */
@@ -370,7 +392,7 @@ public class BaseIdentifiableObject
             {
                 if ( translation.getLocale() != null && translation.getProperty() != null && !StringUtils.isEmpty( translation.getValue() ) )
                 {
-                    String key = ObjectTranslation.getCacheKey( translation.getLocale(), translation.getProperty() );            
+                    String key = ObjectTranslation.getCacheKey( translation.getLocale(), translation.getProperty() );
                     translationCache.put( key, translation.getValue() );
                 }
             }
@@ -430,6 +452,20 @@ public class BaseIdentifiableObject
     public void setUserGroupAccesses( Set<UserGroupAccess> userGroupAccesses )
     {
         this.userGroupAccesses = userGroupAccesses;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "userAccesses", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<UserAccess> getUserAccesses()
+    {
+        return userAccesses;
+    }
+
+    public void setUserAccesses( Set<UserAccess> userAccesses )
+    {
+        this.userAccesses = userAccesses;
     }
 
     @Override
@@ -499,12 +535,12 @@ public class BaseIdentifiableObject
 
         return true;
     }
-    
+
     /**
      * Equality check against typed identifiable object. This method is not
      * vulnerable to proxy issues, where an uninitialized object class type
      * fails comparison to a real class.
-     * 
+     *
      * @param other the identifiable object to compare this object against.
      * @return true if equal.
      */
@@ -537,24 +573,6 @@ public class BaseIdentifiableObject
     // Logic
     // -------------------------------------------------------------------------
 
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return true;
-    }
-
-    @Override
-    public boolean haveUniqueCode()
-    {
-        return true;
-    }
-
-    @Override
-    public boolean isAutoGenerated()
-    {
-        return false;
-    }
-
     /**
      * Set auto-generated fields on save or update
      */
@@ -562,7 +580,7 @@ public class BaseIdentifiableObject
     {
         if ( uid == null || uid.length() == 0 )
         {
-            setUid( CodeGenerator.generateCode() );
+            setUid( CodeGenerator.generateUid() );
         }
 
         Date date = new Date();
@@ -573,90 +591,6 @@ public class BaseIdentifiableObject
         }
 
         setLastUpdated( date );
-    }
-
-    /**
-     * Clear out all sharing properties.
-     *
-     * @param clearUser Clear out user property
-     */
-    public void clearSharing( boolean clearUser )
-    {
-        if ( clearUser )
-        {
-            user = null;
-        }
-
-        publicAccess = AccessStringHelper.DEFAULT;
-        externalAccess = false;
-
-        if ( userGroupAccesses != null )
-        {
-            userGroupAccesses.clear();
-        }
-    }
-
-    /**
-     * Get a map of uids to internal identifiers
-     *
-     * @param objects the IdentifiableObjects to put in the map
-     * @return the map
-     */
-    public static Map<String, Integer> getUIDMap( Collection<? extends BaseIdentifiableObject> objects )
-    {
-        Map<String, Integer> map = new HashMap<>();
-
-        for ( IdentifiableObject object : objects )
-        {
-            String uid = object.getUid();
-            int internalId = object.getId();
-
-            map.put( uid, internalId );
-        }
-
-        return map;
-    }
-
-    /**
-     * Get a map of codes to internal identifiers
-     *
-     * @param objects the NameableObjects to put in the map
-     * @return the map
-     */
-    public static Map<String, Integer> getCodeMap( Collection<? extends BaseIdentifiableObject> objects )
-    {
-        Map<String, Integer> map = new HashMap<>();
-
-        for ( BaseIdentifiableObject object : objects )
-        {
-            String code = object.getCode();
-            int internalId = object.getId();
-
-            map.put( code, internalId );
-        }
-
-        return map;
-    }
-
-    /**
-     * Get a map of names to internal identifiers
-     *
-     * @param objects the NameableObjects to put in the map
-     * @return the map
-     */
-    public static Map<String, Integer> getNameMap( Collection<? extends BaseIdentifiableObject> objects )
-    {
-        Map<String, Integer> map = new HashMap<>();
-
-        for ( BaseIdentifiableObject object : objects )
-        {
-            String name = object.getName();
-            int internalId = object.getId();
-
-            map.put( name, internalId );
-        }
-
-        return map;
     }
 
     /**
@@ -697,6 +631,26 @@ public class BaseIdentifiableObject
         return null;
     }
 
+    /**
+     * Returns the attribute value for the given attributes. Returns null
+     * if there are no attribute values for the given attribute.
+     *
+     * @param attribute the attribute.
+     * @return the attribute value if exists, null if not.
+     */
+    public String getValueForAttribute( Attribute attribute )
+    {
+        for ( AttributeValue attributeValue : attributeValues )
+        {
+            if ( attribute.equals( attributeValue.getAttribute().getUid() ) )
+            {
+                return attributeValue.getValue();
+            }
+        }
+
+        return null;
+    }
+
     @Override
     public String toString()
     {
@@ -709,55 +663,5 @@ public class BaseIdentifiableObject
             "\"created\":\"" + getCreated() + "\", " +
             "\"lastUpdated\":\"" + getLastUpdated() + "\" " +
             "}";
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        Validate.notNull( other );
-
-        if ( mergeMode.isReplace() )
-        {
-            uid = other.getUid();
-            name = other.getName();
-            code = other.getCode();
-            lastUpdated = other.getLastUpdated();
-            created = other.getCreated();
-            user = other.getUser();
-        }
-        else if ( mergeMode.isMerge() )
-        {
-            uid = other.getUid() == null ? uid : other.getUid();
-            name = other.getName() == null ? name : other.getName();
-            code = other.getCode() == null ? code : other.getCode();
-            lastUpdated = other.getLastUpdated() == null ? lastUpdated : other.getLastUpdated();
-            created = other.getCreated() == null ? created : other.getCreated();
-            user = other.getUser() == null ? user : other.getUser();
-        }
-
-        attributeValues.clear();
-        attributeValues.addAll( other.getAttributeValues() );
-
-        translations.clear();
-        translations.addAll( other.getTranslations() );
-
-        translationCache.clear();
-    }
-
-    @Override
-    public void mergeSharingWith( IdentifiableObject other )
-    {
-        Validate.notNull( other );
-
-        // sharing
-        user = other.getUser() == null ? user : other.getUser();
-        publicAccess = other.getPublicAccess() == null ? publicAccess : other.getPublicAccess();
-        externalAccess = other.getExternalAccess();
-
-        if ( userGroupAccesses != null )
-        {
-            userGroupAccesses.clear();
-            userGroupAccesses.addAll( other.getUserGroupAccesses() );
-        }
     }
 }

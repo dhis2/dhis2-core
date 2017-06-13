@@ -39,22 +39,27 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="usergroupusergroupaccesses">
+    <set name="userGroupAccesses" table="usergroupusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="usergroupid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <!-- Dynamic attribute values -->
+    <set name="userAccesses" table="usergroupuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="usergroupid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
 
-    <set name="attributeValues" table="usergroupattributevalues" cascade="delete-orphan">
+    <!-- Dynamic attribute values -->
+    <set name="attributeValues" table="usergroupattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="usergroupid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="usergrouptranslations" cascade="delete-orphan">
+    <set name="translations" table="usergrouptranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="usergroupid" foreign-key="fk_objecttranslation_usergroupid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

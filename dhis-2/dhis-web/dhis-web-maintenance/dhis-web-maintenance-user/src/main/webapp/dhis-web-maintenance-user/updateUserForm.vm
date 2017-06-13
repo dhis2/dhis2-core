@@ -3,7 +3,6 @@
 
   jQuery(function() {
     var rules = getValidationRules("user");
-    rules["rawPassword"].required = false;
     rules["retypePassword"].required = false;
     rules["inviteEmail"].required = false;
 
@@ -28,6 +27,7 @@
     });
 
     checkValueIsExist("openId", "validateUser.action", { id: $userCredentials.id });
+      checkValueIsExist("rawPassword", "validateUser.action", { id: $userCredentials.id, newUser: false });
 
     ouwtSelected = selection.getSelected();
     selection.clearSelected(); // Sync ouwt from server

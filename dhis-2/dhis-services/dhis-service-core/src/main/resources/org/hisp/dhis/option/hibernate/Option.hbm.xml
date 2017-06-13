@@ -15,23 +15,28 @@
     </id>
 
     <property name="uid" column="uid" unique="true" length="11" not-null="true" />
-    <property name="code" column="code" not-null="false" unique="false" length="230" />
+
+    <property name="code" column="code" not-null="true" unique="false" length="230" />
+
     <property name="name" column="name" not-null="true" length="230" />
+
     <property name="created" type="timestamp" not-null="true" />
-    <property name="lastUpdated" type="timestamp" not-null="true"/>
+
+    <property name="lastUpdated" type="timestamp" not-null="true" />
+
     <property name="sortOrder" column="sort_order" />
-    
+
     <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid" />
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="optionattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="optionattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="optionvalueid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="optionvaluetranslations" cascade="delete-orphan">
+    <set name="translations" table="optionvaluetranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="optionvalueid" foreign-key="fk_objecttranslation_optionvalueid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

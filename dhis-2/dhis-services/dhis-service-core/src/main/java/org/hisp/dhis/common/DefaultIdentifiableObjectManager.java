@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -172,9 +172,18 @@ public class DefaultIdentifiableObjectManager
 
         translations.forEach( translation ->
         {
-            session.save( translation );
-            persistedObject.getTranslations().add( translation );
+            if ( StringUtils.isNotEmpty( translation.getValue() ) )
+            {
+                session.save( translation );
+                persistedObject.getTranslations().add( translation );
+            }
         } );
+
+        BaseIdentifiableObject translatedObject = (BaseIdentifiableObject) persistedObject;
+        translatedObject.setLastUpdated( new Date() );
+        translatedObject.setLastUpdatedBy( currentUserService.getCurrentUser() );
+
+        session.update( translatedObject );
     }
 
     @Override
@@ -278,6 +287,20 @@ public class DefaultIdentifiableObjectManager
         }
 
         return null;
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> get( Class<T> clazz, Collection<String> uids )
+    {
+        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return null;
+        }
+
+        return (List<T>) store.getByUid( uids );
     }
 
     @Override
@@ -464,6 +487,20 @@ public class DefaultIdentifiableObjectManager
         }
 
         return (List<T>) store.getByUid( uids );
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getById( Class<T> clazz, Collection<Integer> ids )
+    {
+        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return null;
+        }
+
+        return (List<T>) store.getById( ids );
     }
 
     @Override
@@ -954,6 +991,12 @@ public class DefaultIdentifiableObjectManager
     public void refresh( Object object )
     {
         sessionFactory.getCurrentSession().refresh( object );
+    }
+
+    @Override
+    public void flush()
+    {
+        sessionFactory.getCurrentSession().flush();
     }
 
     @Override

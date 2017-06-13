@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,20 +29,16 @@ package org.hisp.dhis.dataset;
  */
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.joda.time.DateTime;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -79,13 +75,6 @@ public class DefaultDataSetService
         this.lockExceptionStore = lockExceptionStore;
     }
 
-    private OrganisationUnitService organisationUnitService;
-
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
-    {
-        this.organisationUnitService = organisationUnitService;
-    }
-
     private CurrentUserService currentUserService;
 
     public void setCurrentUserService( CurrentUserService currentUserService )
@@ -107,7 +96,8 @@ public class DefaultDataSetService
     @Override
     public int addDataSet( DataSet dataSet )
     {
-        return dataSetStore.save( dataSet );
+        dataSetStore.save( dataSet );
+        return dataSet.getId();
     }
 
     @Override
@@ -141,30 +131,6 @@ public class DefaultDataSetService
     }
 
     @Override
-    public List<DataSet> getDataSetByName( String name )
-    {
-        return new ArrayList<>( dataSetStore.getAllEqName( name ) );
-    }
-
-    @Override
-    public List<DataSet> getDataSetByShortName( String shortName )
-    {
-        return new ArrayList<>( dataSetStore.getAllEqShortName( shortName ) );
-    }
-
-    @Override
-    public DataSet getDataSetByCode( String code )
-    {
-        return dataSetStore.getByCode( code );
-    }
-
-    @Override
-    public List<DataSet> getDataSetsBySources( Collection<OrganisationUnit> sources )
-    {
-        return dataSetStore.getDataSetsBySources( sources );
-    }
-
-    @Override
     public List<DataSet> getDataSetsByDataEntryForm( DataEntryForm dataEntryForm )
     {
         return dataSetStore.getDataSetsByDataEntryForm( dataEntryForm );
@@ -189,21 +155,9 @@ public class DefaultDataSetService
     }
 
     @Override
-    public List<DataSet> getDataSetsByUidNoAcl( Collection<String> uids )
-    {
-        return dataSetStore.getByUidNoAcl( uids );
-    }
-    
-    @Override
     public List<DataSet> getDataSetsForMobile( OrganisationUnit source )
     {
         return dataSetStore.getDataSetsForMobile( source );
-    }
-
-    @Override
-    public List<DataSet> getDataSetsForMobile()
-    {
-        return dataSetStore.getDataSetsForMobile();
     }
 
     @Override
@@ -233,7 +187,8 @@ public class DefaultDataSetService
     @Override
     public int addLockException( LockException lockException )
     {
-        return lockExceptionStore.save( lockException );
+        lockExceptionStore.save( lockException );
+        return lockException.getId();
     }
 
     @Override
@@ -291,19 +246,15 @@ public class DefaultDataSetService
     }
 
     @Override
-    public boolean isLockedPeriod( DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now )
+    public boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now )
     {
-        now = now != null ? now : new Date();
-
-        boolean expired = dataSet.getExpiryDays() != DataSet.NO_EXPIRY && new DateTime( period.getEndDate() ).plusDays( dataSet.getExpiryDays() ).isBefore( new DateTime( now ) );
-
-        return expired && lockExceptionStore.getCount( dataSet, period, organisationUnit ) == 0L;
+        return dataSet.isLocked( period, now ) && lockExceptionStore.getCount( dataSet, period, organisationUnit ) == 0L;
     }
 
     @Override
     public boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo, Date now )
     {
-        return isLockedPeriod( dataSet, period, organisationUnit, now ) ||
+        return isLocked( dataSet, period, organisationUnit, now ) ||
             dataApprovalService.isApproved( dataSet.getWorkflow(), period, organisationUnit, attributeOptionCombo );
     }
 
@@ -353,24 +304,6 @@ public class DefaultDataSetService
         }
 
         return dataApprovalService.isApproved( dataSet.getWorkflow(), period, organisationUnit, attributeOptionCombo );
-    }
-
-    @Override
-    public void mergeWithCurrentUserOrganisationUnits( DataSet dataSet, Collection<OrganisationUnit> mergeOrganisationUnits )
-    {
-        Set<OrganisationUnit> selectedOrgUnits = Sets.newHashSet( dataSet.getSources() );
-
-        OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
-        params.setParents( currentUserService.getCurrentUser().getOrganisationUnits() );
-
-        Set<OrganisationUnit> userOrganisationUnits = Sets.newHashSet( organisationUnitService.getOrganisationUnitsByQuery( params ) );
-
-        selectedOrgUnits.removeAll( userOrganisationUnits );
-        selectedOrgUnits.addAll( mergeOrganisationUnits );
-
-        dataSet.updateOrganisationUnits( selectedOrgUnits );
-
-        updateDataSet( dataSet );
     }
 
     @Override

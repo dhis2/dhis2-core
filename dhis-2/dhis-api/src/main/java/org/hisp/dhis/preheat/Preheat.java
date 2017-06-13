@@ -1,7 +1,7 @@
 package org.hisp.dhis.preheat;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
@@ -51,25 +52,50 @@ import java.util.Set;
  */
 public class Preheat
 {
+    /**
+     * User to use for import job (important for threaded imports).
+     */
     private User user;
 
+    /**
+     * Internal map of all objects mapped by identifier => class type => uid.
+     */
     private Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Map<String, IdentifiableObject>>> map = new HashMap<>();
 
+    /**
+     * Internal map of all default object (like category option combo, etc).
+     */
     private Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = new HashMap<>();
 
-    private Map<String, UserCredentials> usernames = new HashMap<>();
-
+    /**
+     * Map of unique columns, mapped by class type => uid => value.
+     */
     private Map<Class<? extends IdentifiableObject>, Map<String, Map<Object, String>>> uniquenessMap = new HashMap<>();
 
+    /**
+     * All periods available.
+     */
     private Map<String, Period> periodMap = new HashMap<>();
 
+    /**
+     * All periodTypes available.
+     */
     private Map<String, PeriodType> periodTypeMap = new HashMap<>();
 
-    private Map<Class<? extends IdentifiableObject>, Set<String>> mandatoryAttributes = new HashMap<>();
+    /**
+     * Map of all required attributes, mapped by class type.
+     */
+    private Map<Class<?>, Set<String>> mandatoryAttributes = new HashMap<>();
 
-    private Map<Class<? extends IdentifiableObject>, Set<String>> uniqueAttributes = new HashMap<>();
+    /**
+     * Map of all unique attributes, mapped by class type.
+     */
+    private Map<Class<?>, Set<String>> uniqueAttributes = new HashMap<>();
 
-    private Map<Class<? extends IdentifiableObject>, Map<String, Map<String, String>>> uniqueAttributeValues = new HashMap<>();
+    /**
+     * Map of all unique attributes values, mapped by class type => attribute uid => object uid.
+     */
+    private Map<Class<?>, Map<String, Map<String, String>>> uniqueAttributeValues = new HashMap<>();
 
     public Preheat()
     {
@@ -379,42 +405,6 @@ public class Preheat
         this.defaults = defaults;
     }
 
-    public Map<String, UserCredentials> getUsernames()
-    {
-        return usernames;
-    }
-
-    public void setUsernames( Map<String, UserCredentials> usernames )
-    {
-        this.usernames = usernames;
-    }
-
-    public static boolean isDefaultClass( IdentifiableObject object )
-    {
-        return object != null && isDefaultClass( getRealClass( object.getClass() ) );
-    }
-
-    public static boolean isDefaultClass( Class<?> klass )
-    {
-        return DataElementCategory.class.isAssignableFrom( klass ) || DataElementCategoryOption.class.isAssignableFrom( klass )
-            || DataElementCategoryCombo.class.isAssignableFrom( klass );
-    }
-
-    public static boolean isDefault( IdentifiableObject object )
-    {
-        return isDefaultClass( object ) && "default".equals( object.getName() );
-    }
-
-    public static Class<?> getRealClass( Class<?> klass )
-    {
-        if ( ProxyFactory.isProxyClass( klass ) )
-        {
-            klass = klass.getSuperclass();
-        }
-
-        return klass;
-    }
-
     public void setUniquenessMap( Map<Class<? extends IdentifiableObject>, Map<String, Map<Object, String>>> uniquenessMap )
     {
         this.uniquenessMap = uniquenessMap;
@@ -445,33 +435,59 @@ public class Preheat
         this.periodTypeMap = periodTypeMap;
     }
 
-    public Map<Class<? extends IdentifiableObject>, Set<String>> getMandatoryAttributes()
+    public Map<Class<?>, Set<String>> getMandatoryAttributes()
     {
         return mandatoryAttributes;
     }
 
-    public void setMandatoryAttributes( Map<Class<? extends IdentifiableObject>, Set<String>> mandatoryAttributes )
+    public void setMandatoryAttributes( Map<Class<?>, Set<String>> mandatoryAttributes )
     {
         this.mandatoryAttributes = mandatoryAttributes;
     }
 
-    public Map<Class<? extends IdentifiableObject>, Set<String>> getUniqueAttributes()
+    public Map<Class<?>, Set<String>> getUniqueAttributes()
     {
         return uniqueAttributes;
     }
 
-    public void setUniqueAttributes( Map<Class<? extends IdentifiableObject>, Set<String>> uniqueAttributes )
+    public void setUniqueAttributes( Map<Class<?>, Set<String>> uniqueAttributes )
     {
         this.uniqueAttributes = uniqueAttributes;
     }
 
-    public Map<Class<? extends IdentifiableObject>, Map<String, Map<String, String>>> getUniqueAttributeValues()
+    public Map<Class<?>, Map<String, Map<String, String>>> getUniqueAttributeValues()
     {
         return uniqueAttributeValues;
     }
 
-    public void setUniqueAttributeValues( Map<Class<? extends IdentifiableObject>, Map<String, Map<String, String>>> uniqueAttributeValues )
+    public void setUniqueAttributeValues( Map<Class<?>, Map<String, Map<String, String>>> uniqueAttributeValues )
     {
         this.uniqueAttributeValues = uniqueAttributeValues;
+    }
+
+    public static Class<?> getRealClass( Class<?> klass )
+    {
+        if ( ProxyFactory.isProxyClass( klass ) )
+        {
+            klass = klass.getSuperclass();
+        }
+
+        return klass;
+    }
+
+    public static boolean isDefaultClass( IdentifiableObject object )
+    {
+        return object != null && isDefaultClass( getRealClass( object.getClass() ) );
+    }
+
+    public static boolean isDefaultClass( Class<?> klass )
+    {
+        return DataElementCategory.class.isAssignableFrom( klass ) || DataElementCategoryOption.class.isAssignableFrom( klass )
+            || DataElementCategoryCombo.class.isAssignableFrom( klass ) || DataElementCategoryOptionCombo.class.isAssignableFrom( klass );
+    }
+
+    public static boolean isDefault( IdentifiableObject object )
+    {
+        return isDefaultClass( object ) && "default".equals( object.getName() );
     }
 }

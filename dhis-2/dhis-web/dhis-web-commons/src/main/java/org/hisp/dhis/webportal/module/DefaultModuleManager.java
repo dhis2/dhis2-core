@@ -1,7 +1,7 @@
 package org.hisp.dhis.webportal.module;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -157,11 +157,10 @@ public class DefaultModuleManager
     {
         List<Module> modules = getAccessibleMenuModules();
         List<App> apps = appManager
-                .getAccessibleApps( contextPath )
-                .stream()
-                // Prevent widgets and resource type apps from showing up as menu modules
-                .filter( app -> app.getAppType() == AppType.APP )
-                .collect( Collectors.toList() );
+            .getAccessibleApps( contextPath )
+            .stream()
+            .filter( app -> app.getAppType() == AppType.APP )
+            .collect( Collectors.toList() );
 
         modules.addAll( apps.stream().map( Module::getModule ).collect( Collectors.toList() ) );
 

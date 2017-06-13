@@ -1,69 +1,4 @@
 {
-  "legends": [
-    {
-      "name": "Medium Plus",
-      "id": "Pn6IoBWiJpe",
-      "endValue": 70.0,
-      "color": "#FF6600",
-      "startValue": 60.0,
-      "lastUpdated": "2016-03-17T01:40:08.004+0000",
-      "created": "2016-03-17T01:40:08.002+0000"
-    },
-    {
-      "name": "Low",
-      "id": "lrs5w0hTJtE",
-      "endValue": 40.0,
-      "color": "#FF0000",
-      "startValue": 0.0,
-      "lastUpdated": "2016-03-17T01:40:08.004+0000",
-      "created": "2016-03-17T01:40:08.002+0000"
-    },
-    {
-      "name": "Medium",
-      "id": "QokQceufnau",
-      "endValue": 60.0,
-      "color": "#993300",
-      "startValue": 40.0,
-      "lastUpdated": "2016-03-17T01:40:08.004+0000",
-      "created": "2016-03-17T01:40:08.002+0000"
-    },
-    {
-      "name": "High Plus",
-      "id": "JVBtpZGG2Rh",
-      "endValue": 90.0,
-      "color": "#339966",
-      "startValue": 80.0,
-      "lastUpdated": "2016-03-17T01:40:08.004+0000",
-      "created": "2016-03-17T01:40:08.002+0000"
-    },
-    {
-      "name": "High",
-      "id": "epVTNHmMDlk",
-      "endValue": 80.0,
-      "color": "#99CC00",
-      "startValue": 70.0,
-      "lastUpdated": "2016-03-17T01:40:08.004+0000",
-      "created": "2016-03-17T01:40:08.002+0000"
-    },
-    {
-      "name": "Great",
-      "id": "VwpNfwNQX3m",
-      "endValue": 120.0,
-      "color": "#00FF00",
-      "startValue": 90.0,
-      "lastUpdated": "2016-03-17T01:40:08.004+0000",
-      "created": "2016-03-17T01:40:08.002+0000"
-    },
-    {
-      "name": "Invalid",
-      "id": "Va71FXFjb4w",
-      "endValue": 990.0,
-      "color": "#99CCFF",
-      "startValue": 120.0,
-      "lastUpdated": "2016-03-17T01:40:08.004+0000",
-      "created": "2016-03-17T01:40:08.002+0000"
-    }
-  ],
   "legendSets": [
     {
       "name": "ANC Coverage",
@@ -73,25 +8,46 @@
       "created": "2016-03-17T01:40:08.002+0000",
       "legends": [
         {
-          "id": "Pn6IoBWiJpe"
+          "name": "Medium Plus",
+          "endValue": 70.0,
+          "color": "#FF6600",
+          "startValue": 60.0
         },
         {
-          "id": "lrs5w0hTJtE"
+          "name": "Low",
+          "endValue": 40.0,
+          "color": "#FF0000",
+          "startValue": 0.0
         },
         {
-          "id": "QokQceufnau"
+          "name": "Medium",
+          "endValue": 60.0,
+          "color": "#993300",
+          "startValue": 40.0
         },
         {
-          "id": "JVBtpZGG2Rh"
+          "name": "High Plus",
+          "endValue": 90.0,
+          "color": "#339966",
+          "startValue": 80.0
         },
         {
-          "id": "epVTNHmMDlk"
+          "name": "High",
+          "endValue": 80.0,
+          "color": "#99CC00",
+          "startValue": 70.0
         },
         {
-          "id": "VwpNfwNQX3m"
+          "name": "Great",
+          "endValue": 120.0,
+          "color": "#00FF00",
+          "startValue": 90.0
         },
         {
-          "id": "Va71FXFjb4w"
+          "name": "Invalid",
+          "endValue": 990.0,
+          "color": "#99CCFF",
+          "startValue": 120.0
         }
       ]
     }

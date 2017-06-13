@@ -1,7 +1,7 @@
 package org.hisp.dhis.datavalue;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,13 +50,20 @@ public interface DataValueAuditStore
      * @param dataValueAudit the DataValueAudit to add.
      */
     void addDataValueAudit( DataValueAudit dataValueAudit );
-    
+
     /**
      * Deletes all data value audits for the given organisation unit.
-     * 
+     *
      * @param organisationUnit the organisation unit.
      */
     void deleteDataValueAudits( OrganisationUnit organisationUnit );
+
+    /**
+     * Deletes all data value audits for the given data element.
+     *
+     * @param dataElement the data element.
+     */
+    void deleteDataValueAudits( DataElement dataElement );
     
     /**
      * Returns all DataValueAudits which match the DataElement, Period, OrganisationUnit

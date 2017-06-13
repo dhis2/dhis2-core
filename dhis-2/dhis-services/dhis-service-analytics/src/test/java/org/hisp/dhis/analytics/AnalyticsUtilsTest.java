@@ -28,45 +28,49 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
-
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.DataDimensionItemType;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataelement.DataElementOperand.TotalType;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElement;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.junit.Test;
 
+import java.sql.Date;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
+import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.junit.Assert.*;
+import static org.hisp.dhis.common.DimensionalObject.*;
 
 /**
  * @author Lars Helge Overland
  */
 public class AnalyticsUtilsTest 
-    extends DhisSpringTest
+    extends DhisConvenienceTest
 {
     @Test
     public void testGetByDataDimensionType()
@@ -75,8 +79,8 @@ public class AnalyticsUtilsTest
         
         DataElement deA = createDataElement( 'A', new DataElementCategoryCombo() );
         DataElement deB = createDataElement( 'B', new DataElementCategoryCombo() );
-        ProgramDataElement pdeA = new ProgramDataElement( prA, deA );
-        ProgramDataElement pdeB = new ProgramDataElement( prA, deB );
+        ProgramDataElementDimensionItem pdeA = new ProgramDataElementDimensionItem( prA, deA );
+        ProgramDataElementDimensionItem pdeB = new ProgramDataElementDimensionItem( prA, deB );
         ProgramIndicator piA = createProgramIndicator( 'A', prA, null, null );
         
         List<DimensionalItemObject> list = Lists.newArrayList( deA, deB, pdeA, pdeB, piA );
@@ -88,18 +92,78 @@ public class AnalyticsUtilsTest
     }
     
     @Test
-    public void testConvertDxToOperand()
+    public void testConvertDxToOperandCocOnly()
     {
         Map<String, Double> map = new HashMap<>();
         map.put( "GauDLAiXPKT-kC1OT9Q1n1j-R9U8q7X1aJG", 10d );
         map.put( "YkRvCLedQa4-h1dJ9W4dWor-Zrd4DAf8M99", 11d );
         map.put( "PcfRp1HETO8-zqXKIEycBck-KBJBZopYMPV", 12d );
         
-        Map<String, Double> convertedMap = AnalyticsUtils.convertDxToOperand( map );
+        Map<String, Double> convertedMap = AnalyticsUtils.convertDxToOperand( map, TotalType.COC_ONLY );
         
         assertTrue( convertedMap.containsKey( "GauDLAiXPKT.kC1OT9Q1n1j-R9U8q7X1aJG" ) );
         assertTrue( convertedMap.containsKey( "YkRvCLedQa4.h1dJ9W4dWor-Zrd4DAf8M99" ) );
         assertTrue( convertedMap.containsKey( "PcfRp1HETO8.zqXKIEycBck-KBJBZopYMPV" ) );
+    }
+
+    @Test
+    public void testConvertDxToOperandCocOnlyNoDmensions()
+    {
+        Map<String, Double> map = new HashMap<>();
+        map.put( "GauDLAiXPKT-kC1OT9Q1n1j", 10d );
+        map.put( "YkRvCLedQa4-h1dJ9W4dWor", 11d );
+        map.put( "PcfRp1HETO8-zqXKIEycBck", 12d );
+        
+        Map<String, Double> convertedMap = AnalyticsUtils.convertDxToOperand( map, TotalType.COC_ONLY );
+
+        assertTrue( convertedMap.containsKey( "GauDLAiXPKT.kC1OT9Q1n1j" ) );
+        assertTrue( convertedMap.containsKey( "YkRvCLedQa4.h1dJ9W4dWor" ) );
+        assertTrue( convertedMap.containsKey( "PcfRp1HETO8.zqXKIEycBck" ) );
+    }
+
+    @Test
+    public void testConvertDxToOperandAocOnly()
+    {
+        Map<String, Double> map = new HashMap<>();
+        map.put( "GauDLAiXPKT-kC1OT9Q1n1j-2016", 10d );
+        map.put( "YkRvCLedQa4-h1dJ9W4dWor-2017", 11d );
+        map.put( "w1G4l0cSxOi-gQhAMdimKO4-2017", 12d );
+        
+        Map<String, Double> convertedMap = AnalyticsUtils.convertDxToOperand( map, TotalType.AOC_ONLY );
+        
+        assertTrue( convertedMap.containsKey( "GauDLAiXPKT.*.kC1OT9Q1n1j-2016" ) );
+        assertTrue( convertedMap.containsKey( "YkRvCLedQa4.*.h1dJ9W4dWor-2017" ) );
+        assertTrue( convertedMap.containsKey( "w1G4l0cSxOi.*.gQhAMdimKO4-2017" ) );
+    }
+
+    @Test
+    public void testConvertDxToOperandCocAndAoc()
+    {
+        Map<String, Double> map = new HashMap<>();
+        map.put( "GauDLAiXPKT-kC1OT9Q1n1j-R9U8q7X1aJG-201701", 10d );
+        map.put( "YkRvCLedQa4-h1dJ9W4dWor-Zrd4DAf8M99-201702", 11d );
+        map.put( "PcfRp1HETO8-zqXKIEycBck-KBJBZopYMPV-201703", 12d );
+                
+        Map<String, Double> convertedMap = AnalyticsUtils.convertDxToOperand( map, TotalType.COC_AND_AOC );
+        
+        assertTrue( convertedMap.containsKey( "GauDLAiXPKT.kC1OT9Q1n1j.R9U8q7X1aJG-201701" ) );
+        assertTrue( convertedMap.containsKey( "YkRvCLedQa4.h1dJ9W4dWor.Zrd4DAf8M99-201702" ) );
+        assertTrue( convertedMap.containsKey( "PcfRp1HETO8.zqXKIEycBck.KBJBZopYMPV-201703" ) );
+    }
+
+    @Test
+    public void testConvertDxToOperandNone()
+    {
+        Map<String, Double> map = new HashMap<>();
+        map.put( "GauDLAiXPKT-kC1OT9Q1n1j-R9U8q7X1aJG", 10d );
+        map.put( "YkRvCLedQa4-h1dJ9W4dWor-Zrd4DAf8M99", 11d );
+        map.put( "PcfRp1HETO8-zqXKIEycBck-KBJBZopYMPV", 12d );
+                
+        Map<String, Double> convertedMap = AnalyticsUtils.convertDxToOperand( map, TotalType.NONE );
+
+        assertTrue( convertedMap.containsKey( "GauDLAiXPKT-kC1OT9Q1n1j-R9U8q7X1aJG" ) );
+        assertTrue( convertedMap.containsKey( "YkRvCLedQa4-h1dJ9W4dWor-Zrd4DAf8M99" ) );
+        assertTrue( convertedMap.containsKey( "PcfRp1HETO8-zqXKIEycBck-KBJBZopYMPV" ) );
     }
     
     @Test
@@ -153,28 +217,28 @@ public class AnalyticsUtilsTest
     }
     
     @Test
-    public void testGetUidDimensionalItemMap()
+    public void testGetDimensionalItemObjectMap()
     {
         DataElement deA = createDataElement( 'A' );
         Indicator inA = createIndicator( 'A', null );
         DataSet dsA = createDataSet( 'A' );
 
-        DimensionalObject dx = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( deA, inA, dsA ) );
+        DimensionalObject dx = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, DimensionalObjectUtils.getList( deA, inA, dsA ) );
         
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( dx )
             .withDisplayProperty( DisplayProperty.NAME )
             .build();
         
-        Map<String, DimensionalItemObject> map = AnalyticsUtils.getUidDimensionalItemMap( params );
+        Map<String, DimensionalItemObject> map = AnalyticsUtils.getDimensionalItemObjectMap( params );
         
-        assertEquals( map.get( deA.getUid() ), deA );
-        assertEquals( map.get( inA.getUid() ), inA );
-        assertEquals( map.get( dsA.getUid() ), dsA );
+        assertEquals( map.get( deA.getDimensionItem() ), deA );
+        assertEquals( map.get( inA.getDimensionItem() ), inA );
+        assertEquals( map.get( dsA.getDimensionItem() ), dsA );
     }
     
     @Test
-    public void testGetUidNameMap()
+    public void testGetDimensionItemNameMap()
     {
         DataElement deA = createDataElement( 'A' );
         Indicator inA = createIndicator( 'A', null );
@@ -183,7 +247,7 @@ public class AnalyticsUtilsTest
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         OrganisationUnit ouB = createOrganisationUnit( 'B' );
         
-        DimensionalObject dx = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( deA, inA, dsA ) );
+        DimensionalObject dx = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, DimensionalObjectUtils.getList( deA, inA, dsA ) );
         DimensionalObject ou = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA, ouB ) );
         
         DataQueryParams params = DataQueryParams.newBuilder()
@@ -192,13 +256,13 @@ public class AnalyticsUtilsTest
             .withDisplayProperty( DisplayProperty.NAME )
             .build();
         
-        Map<String, String> map = AnalyticsUtils.getUidNameMap( params );
+        Map<String, String> map = AnalyticsUtils.getDimensionItemNameMap( params );
         
-        assertEquals( map.get( deA.getUid() ), deA.getDisplayName() );
-        assertEquals( map.get( inA.getUid() ), inA.getDisplayName() );
-        assertEquals( map.get( dsA.getUid() ), dsA.getDisplayName() );
-        assertEquals( map.get( ouA.getUid() ), ouA.getDisplayName() );
-        assertEquals( map.get( ouB.getUid() ), ouB.getDisplayName() );
+        assertEquals( map.get( deA.getDimensionItem() ), deA.getDisplayName() );
+        assertEquals( map.get( inA.getDimensionItem() ), inA.getDisplayName() );
+        assertEquals( map.get( dsA.getDimensionItem() ), dsA.getDisplayName() );
+        assertEquals( map.get( ouA.getDimensionItem() ), ouA.getDisplayName() );
+        assertEquals( map.get( ouB.getDimensionItem() ), ouB.getDisplayName() );
     }
     
     @Test
@@ -233,60 +297,253 @@ public class AnalyticsUtilsTest
     }
     
     @Test
-    public void testGetDataValueSetFromGrid()
+    public void testHandleGridForDataValueSet()
     {
+        IndicatorType itA = new IndicatorType();
+        DataElementCategoryOptionCombo ocA = createCategoryOptionCombo( 'A' );
+        ocA.setUid( "ceabcdefghA" );
+
+        DataElement dxA = createDataElement( 'A' );
+        dxA.setUid( "deabcdefghA" );
+        dxA.setValueType( ValueType.INTEGER );
+                
         DataElement dxB = createDataElement( 'B' );
-        dxB.setUid( "dxB" );
-        dxB.setAggregateExportCategoryOptionCombo( "coA" );
+        dxB.setUid( "deabcdefghB" );
+        dxB.setValueType( ValueType.NUMBER );
+
+        Indicator dxC = createIndicator( 'C', itA );
+        dxC.setUid( "deabcdefghC" );
+        dxC.setDecimals( 0 );
+        dxC.setAggregateExportAttributeOptionCombo( "ceabcdefghA" );
         
-        DataElement dxC = createDataElement( 'C' );
-        dxC.setUid( "dxC" );
-        dxC.setAggregateExportAttributeOptionCombo( "aoA" );
-
-        Map<String, DimensionalItemObject> itemMap = Maps.newHashMap();
-        itemMap.put( dxB.getUid(), dxB );
-        itemMap.put( dxC.getUid(), dxC );
-
+        Indicator dxD = createIndicator( 'D', itA );
+        dxD.setUid( "deabcdefghD" );
+        dxD.setDecimals( 2 );
+        dxD.setAggregateExportCategoryOptionCombo( "ceabcdefghB" );
+        
+        DataElementOperand dxE = new DataElementOperand( dxA, ocA );
+        DataElementOperand dxF = new DataElementOperand( dxB, ocA );
+        
+        DataQueryParams params = DataQueryParams.newBuilder().
+            addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( dxA, dxB, dxC, dxD, dxE, dxF ) ) )
+            .build();
+        
         Grid grid = new ListGrid();
-        
-        grid.getMetaData().put( AnalyticsMetaDataKey.DIMENSION_ITEMS.getKey(), itemMap );
-        
+
         grid.addHeader( new GridHeader( DimensionalObject.DATA_X_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.PERIOD_DIM_ID ) );
+        grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) );
+            
+        grid.addRow().addValuesAsList( Lists.newArrayList( "deabcdefghA", "ouA", "peA", 1d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "deabcdefghB", "ouA", "peA", 2d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "deabcdefghC", "ouA", "peA", 3d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "deabcdefghD", "ouA", "peA", 4d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "deabcdefghA.ceabcdefghA", "ouA", "peA", 5d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "deabcdefghB.ceabcdefghA", "ouA", "peA", 6d ) );
         
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peA", "1" ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peB", "2" ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouB", "peA", "3" ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouB", "peB", "4" ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxB", "ouA", "peA", "5" ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxB", "ouA", "peB", "6" ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxC", "ouA", "peA", "7" ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxC", "ouA", "peB", "8" ) );
+        assertEquals( 4, grid.getWidth() );
+        assertEquals( 6, grid.getHeight() );
         
-        DataValueSet dvs = AnalyticsUtils.getDataValueSetFromGrid( grid );
+        AnalyticsUtils.handleGridForDataValueSet( params, grid );
+
+        assertEquals( 6, grid.getWidth() );
+        assertEquals( 6, grid.getHeight() );
+        
+        assertEquals( "deabcdefghA", grid.getRow( 0 ).get( 0 ) );
+        assertNull( grid.getRow( 0 ).get( 3 ) );
+        assertNull( grid.getRow( 0 ).get( 4 ) );
+        assertEquals( 1, grid.getRow( 0 ).get( 5 ) );
+
+        assertEquals( "deabcdefghB", grid.getRow( 1 ).get( 0 ) );
+        assertNull( grid.getRow( 1 ).get( 3 ) );
+        assertNull( grid.getRow( 1 ).get( 4 ) );
+        assertEquals( 2d, (Double) grid.getRow( 1 ).get( 5 ), 0.01 );
+
+        assertEquals( "deabcdefghC", grid.getRow( 2 ).get( 0 ) );
+        assertNull( grid.getRow( 2 ).get( 3 ) );
+        assertEquals( "ceabcdefghA", grid.getRow( 2 ).get( 4 ) );
+        assertEquals( 3, grid.getRow( 2 ).get( 5 ) );
+
+        assertEquals( "deabcdefghD", grid.getRow( 3 ).get( 0 ) );
+        assertEquals( "ceabcdefghB", grid.getRow( 3 ).get( 3 ) );
+        assertNull( grid.getRow( 3 ).get( 4 ) );
+        assertEquals( 4d, (Double) grid.getRow( 3 ).get( 5 ), 0.01 );
+        
+        assertEquals( "deabcdefghA", grid.getRow( 4 ).get( 0 ) );
+        assertEquals( "ceabcdefghA", grid.getRow( 4 ).get( 3 ) );
+        assertNull( grid.getRow( 4 ).get( 4 ) );
+        assertEquals( 5, grid.getRow( 4 ).get( 5 ) );
+
+        assertEquals( "deabcdefghB", grid.getRow( 5 ).get( 0 ) );
+        assertEquals( "ceabcdefghA", grid.getRow( 5 ).get( 3 ) );
+        assertNull( grid.getRow( 5 ).get( 4 ) );
+        assertEquals( 6d, (Double) grid.getRow( 5 ).get( 5 ), 0.01 );
+    }
+    
+    @Test
+    public void testGetDataValueSetFromGrid()
+    {
+        Grid grid = new ListGrid();
+                
+        grid.addHeader( new GridHeader( DimensionalObject.DATA_X_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.PERIOD_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) );
+        grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) );
+        
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peA", "coA", "aoA", 1d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peB", null, null, 2d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouB", "peA", null, null, 3d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouB", "peB", null, null, 4d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxB", "ouA", "peA", "coA", null, 5d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxB", "ouA", "peB", "coA", "aoB", 6d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxC", "ouA", "peA", null, "aoA", 7 ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxC", "ouA", "peB", null, null, 8d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxD", "ouA", "peA", "coB", null, 9d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxE", "ouA", "peB", null, null, 10 ) );
+        
+        DataValueSet dvs = AnalyticsUtils.getDataValueSetFromGrid( DataQueryParams.newBuilder().build(), grid );
         
         assertNotNull( dvs );
         assertNotNull( dvs.getDataValues() );
-        assertEquals( 8, dvs.getDataValues().size() );
+        assertEquals( 10, dvs.getDataValues().size() );
         
         assertEquals( "dxA", dvs.getDataValues().get( 1 ).getDataElement() );
         assertEquals( "ouA", dvs.getDataValues().get( 1 ).getOrgUnit() );
         assertEquals( "peB", dvs.getDataValues().get( 1 ).getPeriod() );
-        assertEquals( "2", dvs.getDataValues().get( 1 ).getValue() );     
         assertNull( dvs.getDataValues().get( 1 ).getCategoryOptionCombo() );
         assertNull( dvs.getDataValues().get( 1 ).getAttributeOptionCombo() );
+        assertEquals( "2.0", dvs.getDataValues().get( 1 ).getValue() );
         
         assertEquals( "dxB", dvs.getDataValues().get( 4 ).getDataElement() );
         assertEquals( "ouA", dvs.getDataValues().get( 4 ).getOrgUnit() );
         assertEquals( "peA", dvs.getDataValues().get( 4 ).getPeriod() );
         assertEquals( "coA", dvs.getDataValues().get( 4 ).getCategoryOptionCombo() );
         assertNull( dvs.getDataValues().get( 4 ).getAttributeOptionCombo() );
+        assertEquals( "5.0", dvs.getDataValues().get( 4 ).getValue() );
 
         assertEquals( "dxC", dvs.getDataValues().get( 6 ).getDataElement() );
         assertEquals( "ouA", dvs.getDataValues().get( 6 ).getOrgUnit() );
         assertEquals( "peA", dvs.getDataValues().get( 6 ).getPeriod() );
         assertNull( dvs.getDataValues().get( 6 ).getCategoryOptionCombo() );
         assertEquals( "aoA", dvs.getDataValues().get( 6 ).getAttributeOptionCombo() );
+        assertEquals( "7", dvs.getDataValues().get( 6 ).getValue() );
+
+        assertEquals( "dxD", dvs.getDataValues().get( 8 ).getDataElement() );
+        assertEquals( "ouA", dvs.getDataValues().get( 8 ).getOrgUnit() );
+        assertEquals( "peA", dvs.getDataValues().get( 8 ).getPeriod() );
+        assertEquals( "coB", dvs.getDataValues().get( 8 ).getCategoryOptionCombo() );
+        assertNull( dvs.getDataValues().get( 8 ).getAttributeOptionCombo() );
+        assertEquals( "9.0", dvs.getDataValues().get( 8 ).getValue() );
+
+        assertEquals( "dxE", dvs.getDataValues().get( 9 ).getDataElement() );
+        assertEquals( "ouA", dvs.getDataValues().get( 9 ).getOrgUnit() );
+        assertEquals( "peB", dvs.getDataValues().get( 9 ).getPeriod() );
+        assertNull( dvs.getDataValues().get( 9 ).getCategoryOptionCombo() );
+        assertNull( dvs.getDataValues().get( 9 ).getAttributeOptionCombo() );
+        assertEquals( "10", dvs.getDataValues().get( 9 ).getValue() );        
+    }
+
+    @Test
+    public void testGetDataValueSetFromGridWithDuplicates()
+    {
+        Grid grid = new ListGrid();
+                
+        grid.addHeader( new GridHeader( DimensionalObject.DATA_X_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.PERIOD_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) );
+        grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) );
+        
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peA", null, null, 1d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peB", null, null, 2d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peB", null, null, 2d ) ); // Duplicate
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouB", "peA", null, null, 3d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouB", "peB", null, null, 4d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxB", "ouA", "peA", null, null, 5d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxB", "ouA", "peA", null, null, 5d ) ); // Duplicate
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxB", "ouA", "peB", null, null, 6d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxC", "ouA", "peA", null, null, 7d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxC", "ouA", "peA", null, null, 7d ) ); // Duplicate
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxC", "ouA", "peB", null, null, 8d ) );
+        
+        DataValueSet dvs = AnalyticsUtils.getDataValueSetFromGrid( DataQueryParams.newBuilder()
+            .withDuplicatesOnly( true ).build(), grid );
+
+        assertNotNull( dvs );
+        assertNotNull( dvs.getDataValues() );
+        assertEquals( 3, dvs.getDataValues().size() );
+    }
+    
+    @Test
+    public void testGetUidNameMapEventQuery()
+    {
+        ProgramStage psA = createProgramStage( 'A', 0 );
+        ProgramStage psB = createProgramStage( 'B', 0 );
+        Program prA = createProgram( 'A' );
+        prA.getProgramStages().add( psA );
+        prA.getProgramStages().add( psB );
+        DataElement deA = createDataElement( 'A' );
+        DataElement deB = createDataElement( 'A' );
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .addItem( new QueryItem( deA ) )
+            .addItem( new QueryItem( deB ) )
+            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA ) ) )
+            .withDisplayProperty( DisplayProperty.NAME )
+            .build();
+        
+        Map<String, String> map = AnalyticsUtils.getUidNameMap( params );
+        
+        assertEquals( psA.getName(), map.get( psA.getUid() ) );
+        assertEquals( psB.getName(), map.get( psB.getUid() ) );
+        assertEquals( prA.getName(), map.get( prA.getUid() ) );
+        assertEquals( deA.getName(), map.get( deA.getUid() ) );
+        assertEquals( deB.getName(), map.get( deB.getUid() ) );
+        assertEquals( ouA.getName(), map.get( ouA.getUid() ) );
+    }
+
+    @Test
+    public void testIsPeriodOverApprovalThreshold()
+    {
+        java.util.Calendar calendar = java.util.Calendar.getInstance();
+        int currentYear = calendar.get( Calendar.YEAR );
+
+        YearlyPeriodType pt = new YearlyPeriodType();
+
+        calendar.set( currentYear, 1, 1 );
+        Period thisYear = pt.createPeriod( Date.from( calendar.toInstant() ) );
+
+        calendar.set( currentYear-1, 1, 1 );
+        Period oneYearAgo = pt.createPeriod( Date.from( calendar.toInstant() ) );
+
+        calendar.set( currentYear-2, 1, 1 );
+        Period twoYearAgo = pt.createPeriod( Date.from( calendar.toInstant() ) );
+
+        calendar.set( currentYear-3, 1, 1 );
+        Period threeYearAgo = pt.createPeriod( Date.from( calendar.toInstant() ) );
+
+        // maxYears = 0 should always return false
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( thisYear, 0 ) );
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( oneYearAgo, 0 ) );
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearAgo, 0 ) );
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearAgo, 0 ) );
+
+        // maxYears = 1 should only return true for years other than thisYear
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( thisYear, 1 ) );
+        assertTrue( AnalyticsUtils.periodIsOutsideApprovalMaxYears( oneYearAgo, 1 ) );
+        assertTrue( AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearAgo, 1 ) );
+        assertTrue( AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearAgo, 1 ) );
+
+        // maxYears = 4 should only return false for all three years defined
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( thisYear, 5 ) );
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( oneYearAgo, 5 ) );
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearAgo, 5 ) );
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearAgo, 5 ) );
     }
 }

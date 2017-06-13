@@ -32,14 +32,10 @@
     <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid" foreign-key="fk_optiongroupset_optionsetid" />
 
     <!-- Object Translation -->
-    <set name="translations" table="optiongroupsettranslations" cascade="delete-orphan">
+    <set name="translations" table="optiongroupsettranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="optiongroupsetid" foreign-key="fk_objecttranslation_optiongroupsetid" />
-
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
-        <column name="objecttranslationid" unique="true" />
-        <filter name="locale" condition="locale = :locale" />
-      </many-to-many>
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
     <!-- Access properties -->
@@ -47,10 +43,16 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="optiongroupsetusergroupaccesses">
+    <set name="userGroupAccesses" table="optiongroupsetusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="optiongroupsetid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="optiongroupsetuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="optiongroupsetid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
   </class>

@@ -1,7 +1,7 @@
 package org.hisp.dhis.security;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,29 @@ import org.hisp.dhis.user.UserCredentials;
 public interface SecurityService
 {
     /**
+     * Register a failed login attempt for the given user account.
+     * 
+     * @param username the username of the user account.
+     */
+    void registerFailedLogin( String username );
+
+    /**
+     * Register a successful login attempt for the given user account.
+     * 
+     * @param username the username of the user account.
+     */
+    void registerSuccessfulLogin( String username );
+
+    /**
+     * Indicates whether the given user account is locked out due to too 
+     * many successive failed login attempts within a specific time span. 
+     * The max number of attempts is 5 and the time span is 15 minutes.
+     * 
+     * @param username the username of the user account.
+     */
+    boolean isLocked( String username );
+    
+    /**
      * Sets information for a user who will be invited by email to finish
      * setting up their user account.
      *
@@ -48,8 +71,8 @@ public interface SecurityService
 
     /**
      * Indicates whether a restore/invite is allowed for the given user. The
-     * requirements are:</p>
-     * <p/>
+     * requirements are:
+     * <p>
      * <ul>
      * <li>email_not_configured_for_system</li>
      * <li>no_user_credentials</li>
@@ -65,7 +88,7 @@ public interface SecurityService
     /**
      * Indicates whether an invite is allowed for the given user. Delegates to
      * validateRestore( UserCredentials ). The requirements are.
-     * <p/>
+     * <p>
      * <ul>
      * <li>no_user_credentials</li>
      * <li>username_taken</li>
@@ -79,7 +102,7 @@ public interface SecurityService
     /**
      * Invokes the initRestore method and dispatches email messages with
      * restore information to the user.
-     * <p/>
+     * <p>
      * In the case of inviting a user to finish setting up an account,
      * the user account must already be configured with the profile desired
      * for the user (e.g., locale, organisation unit(s), role(s), etc.)
@@ -97,7 +120,7 @@ public interface SecurityService
      * credentials with a hashed version of auto-generated values. Sets the
      * restoreExpiry property with a date time some interval from now depending
      * on the restore type. Changes are persisted.
-     *
+     * 
      * @param credentials    the user credentials.
      * @param restoreOptions restore options, including type of restore.
      * @return an array where index 0 is the clear-text token and index 1 the
@@ -247,5 +270,12 @@ public interface SecurityService
      */
     boolean canManage( IdentifiableObject identifiableObject );
 
+    /**
+     * Indicates whether the current user has been granted any of
+     * the given authorities.
+     * 
+     * @param authorities the authorities.
+     * @return true if the current user has any of the given authorities.
+     */
     boolean hasAnyAuthority( String... authorities );
 }

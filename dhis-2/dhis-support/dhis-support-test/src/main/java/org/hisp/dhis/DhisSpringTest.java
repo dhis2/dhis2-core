@@ -1,7 +1,7 @@
 package org.hisp.dhis;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,21 +28,21 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.lang.reflect.Method;
-
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.lang.reflect.Method;
 
 /**
  * @author Trygve Laugst&oslash;l
  * @author Lars Helge Overland
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith( SpringRunner.class )
 @ContextConfiguration( locations = { "classpath*:/META-INF/dhis/beans.xml", "classpath*:/META-INF/dhis/security.xml" } )
 @Transactional
 public abstract class DhisSpringTest
@@ -54,7 +54,7 @@ public abstract class DhisSpringTest
 
     @Autowired
     protected ApplicationContext context;
-    
+
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
@@ -64,16 +64,16 @@ public abstract class DhisSpringTest
         throws Exception
     {
         executeStartupRoutines();
-        
+
         setUpTest();
     }
-    
+
     /**
      * Method to override.
      */
     protected void setUpTest()
         throws Exception
-    {   
+    {
     }
 
     // -------------------------------------------------------------------------
@@ -82,7 +82,7 @@ public abstract class DhisSpringTest
 
     /**
      * Retrieves a bean from the application context.
-     * 
+     *
      * @param beanId the identifier of the bean.
      */
     protected Object getBean( String beanId )
@@ -103,9 +103,9 @@ public abstract class DhisSpringTest
         {
             Object object = context.getBean( id );
 
-            Method method = object.getClass().getMethod( "executeForTesting", new Class[ 0 ] );
+            Method method = object.getClass().getMethod( "executeForTesting", new Class[0] );
 
-            method.invoke( object, new Object[ 0 ] );
+            method.invoke( object, new Object[0] );
         }
     }
 }

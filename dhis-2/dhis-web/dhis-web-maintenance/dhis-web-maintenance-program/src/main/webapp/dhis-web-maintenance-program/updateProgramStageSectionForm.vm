@@ -62,8 +62,8 @@ jQuery( document ).ready( function()
       <tr>
         <td>
             <select style="height: 200px; width: 100%;" size="15" id="availableList" name='availableList' multiple="multiple" ondblclick="moveSelectedById( 'availableList', 'dataElementIds' );">
-				#foreach( $psDataElement in $availableDataElements )
-					<option value='$psDataElement.dataElement.id'>$encoder.htmlEncode($psDataElement.dataElement.name)</option>
+				#foreach( $dataElement in $availableDataElements )
+					<option value='$dataElement.id'>$encoder.htmlEncode($dataElement.displayName)</option>
 				#end
 			</select>
         </td>
@@ -77,8 +77,8 @@ jQuery( document ).ready( function()
 		
 		<td>
 			<select style="height: 200px; width: 100%;" size="15" id="dataElementIds" name='dataElementIds' multiple="multiple"  ondblclick="moveSelectedById( 'dataElementIds', 'availableList' );">
-				#foreach( $psDataElement in $section.programStageDataElements )
-					<option value='$psDataElement.dataElement.id'>$encoder.htmlEncode($psDataElement.dataElement.name)</option>
+				#foreach( $dataElement in $section.dataElements )
+					<option value='$dataElement.id'>$encoder.htmlEncode($dataElement.displayName)</option>
 				#end
 			</select>
 		</td>

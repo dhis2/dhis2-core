@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,14 +37,4 @@ import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 public interface ProgramStageSectionStore
     extends GenericIdentifiableObjectStore<ProgramStageSection>
 {
-    /**
-     * Retrieve a program stage section by name and a program stage
-     *
-     * @param name         Name of program stage
-     * @param programStage Specify a {@link Program} for retrieving a program
-     *                     stage. The system allows the name of program stages are duplicated
-     *                     on different programs
-     * @return ProgramStage
-     */
-    ProgramStageSection getByNameAndProgramStage( String name, ProgramStage programStage );
 }

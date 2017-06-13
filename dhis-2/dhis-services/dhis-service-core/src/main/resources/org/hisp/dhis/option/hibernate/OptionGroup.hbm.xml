@@ -28,22 +28,17 @@
 
     <!-- Dynamic attribute values -->
 
-    <set name="attributeValues" table="optiongroupattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="optiongroupattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="optiongroupid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
     </set>
 
-
     <!-- Object Translation -->
-    <set name="translations" table="optiongrouptranslations" cascade="delete-orphan">
+    <set name="translations" table="optiongrouptranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="optiongroupid" foreign-key="fk_objecttranslation_optiongroupid" />
-
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
-        <column name="objecttranslationid" unique="true" />
-        <filter name="locale" condition="locale = :locale" />
-      </many-to-many>
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
     <!-- Access properties -->
@@ -51,17 +46,18 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="optiongroupusergroupaccesses">
+    <set name="userGroupAccesses" table="optiongroupusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="optiongroupid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
+    <set name="userAccesses" table="optiongroupuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="optiongroupid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
+
   </class>
-
-
-  <filter-def name="locale">
-    <filter-param name="locale" type="string" />
-  </filter-def>
 
 </hibernate-mapping>

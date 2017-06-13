@@ -3,23 +3,21 @@
   "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
   [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
->
+  >
 
 <hibernate-mapping>
   <class name="org.hisp.dhis.validation.ValidationRuleGroup" table="validationrulegroup">
-  
+
     <cache usage="read-write" />
-      
+
     <id name="id" column="validationrulegroupid">
       <generator class="native" />
     </id>
     &identifiableProperties;
-    
+
     <property name="name" column="name" not-null="true" unique="true" length="230" />
 
     <property name="description" type="text" />
-
-    <property name="alertByOrgUnits" column="alertbyorgunits" />
 
     <set name="members" table="validationrulegroupmembers">
       <cache usage="read-write" />
@@ -28,26 +26,25 @@
         foreign-key="fk_validationrulegroup_validationruleid" />
     </set>
 
-    <set name="userGroupsToAlert" table="validationrulegroupusergroupstoalert">
-      <cache usage="read-write" />
-      <key column="validationgroupid" foreign-key="fk_validationrulegroupusergroupstoalert_validationgroupid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroup" column="usergroupid"
-        foreign-key="fk_validationrulegroupusergroupstoalert_usergroupid" />
-    </set>
-
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_validationrulegroup_userid" />
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="validationrulegroupusergroupaccesses">
+    <set name="userGroupAccesses" table="validationrulegroupusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="validationrulegroupid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
+    <set name="userAccesses" table="validationrulegroupuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="validationrulegroupid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
+
     <!-- Object Translation -->
-    <set name="translations" table="validationrulegrouptranslations" cascade="delete-orphan">
+    <set name="translations" table="validationrulegrouptranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="validationrulegroupid" foreign-key="fk_objecttranslation_validationrulegroupid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

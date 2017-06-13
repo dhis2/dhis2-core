@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,13 +36,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-
-import org.hisp.dhis.common.BaseDataDimensionalItemObject;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.VersionedObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
@@ -63,6 +61,7 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.UserGroup;
+import org.joda.time.DateTime;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -78,8 +77,8 @@ import java.util.stream.Collectors;
  */
 @JacksonXmlRootElement( localName = "dataSet", namespace = DxfNamespaces.DXF_2_0 )
 public class DataSet
-    extends BaseDataDimensionalItemObject
-    implements VersionedObject
+    extends BaseDimensionalItemObject
+    implements VersionedObject, MetadataObject
 {
     public static final int NO_EXPIRY = 0;
 
@@ -87,6 +86,14 @@ public class DataSet
      * The PeriodType indicating the frequency that this DataSet should be used
      */
     private PeriodType periodType;
+
+    /**
+     * The dataInputPeriods is a set of periods with opening and closing dates, which determines the period
+     * of which data can belong (period) and at which dates (between opening and closing dates) actually registering
+     * this data is allowed. The same period can exist at the same time with different opening and closing dates to
+     * allow for multiple periods for registering data.
+     */
+    private Set<DataInputPeriod> dataInputPeriods = new HashSet<>();
 
     /**
      * All DataElements associated with this DataSet.
@@ -140,16 +147,6 @@ public class DataSet
      * How many days after period is over will this dataSet auto-lock
      */
     private int expiryDays;
-
-    /**
-     * The start date.
-     */
-    private Date startDate;
-
-    /**
-     * The end date.
-     */
-    private Date endDate;
 
     /**
      * Days after period end to qualify for timely data submission
@@ -283,11 +280,16 @@ public class DataSet
         Set<OrganisationUnit> toRemove = Sets.difference( sources, updates );
         Set<OrganisationUnit> toAdd = Sets.difference( updates, sources );
 
-        toRemove.stream().forEach( u -> u.getDataSets().remove( this ) );
-        toAdd.stream().forEach( u -> u.getDataSets().add( this ) );
+        toRemove.forEach( u -> u.getDataSets().remove( this ) );
+        toAdd.forEach( u -> u.getDataSets().add( this ) );
 
         sources.clear();
         sources.addAll( updates );
+    }
+
+    public boolean addDataInputPeriod( DataInputPeriod dataInputPeriod )
+    {
+        return dataInputPeriods.add( dataInputPeriod );
     }
 
     public boolean addDataSetElement( DataSetElement element )
@@ -295,16 +297,16 @@ public class DataSet
         element.getDataElement().getDataSetElements().add( element );
         return dataSetElements.add( element );
     }
-    
+
     /**
      * Adds a data set element using this data set, the given data element and
      * no category combo.
-     * 
+     *
      * @param dataElement the data element.
      */
     public boolean addDataSetElement( DataElement dataElement )
     {
-        DataSetElement element = new DataSetElement( this, dataElement, null );      
+        DataSetElement element = new DataSetElement( this, dataElement, null );
         dataElement.getDataSetElements().add( element );
         return dataSetElements.add( element );
     }
@@ -312,8 +314,8 @@ public class DataSet
     /**
      * Adds a data set element using this data set, the given data element and
      * the given category combo.
-     * 
-     * @param dataElement the data element.
+     *
+     * @param dataElement   the data element.
      * @param categoryCombo the category combination.
      */
     public boolean addDataSetElement( DataElement dataElement, DataElementCategoryCombo categoryCombo )
@@ -322,23 +324,23 @@ public class DataSet
         dataElement.getDataSetElements().add( element );
         return dataSetElements.add( element );
     }
-        
+
     public boolean removeDataSetElement( DataSetElement element )
     {
         dataSetElements.remove( element );
         return element.getDataElement().getDataSetElements().remove( element );
     }
-    
+
     public void removeDataSetElement( DataElement dataElement )
     {
         Iterator<DataSetElement> elements = dataSetElements.iterator();
-        
+
         while ( elements.hasNext() )
         {
             DataSetElement element = elements.next();
-            
+
             DataSetElement other = new DataSetElement( this, dataElement );
-            
+
             if ( element.objectEquals( other ) )
             {
                 elements.remove();
@@ -346,17 +348,17 @@ public class DataSet
             }
         }
     }
-    
+
     public void removeAllDataSetElements()
     {
         for ( DataSetElement element : dataSetElements )
         {
             element.getDataElement().getDataSetElements().remove( element );
         }
-        
+
         dataSetElements.clear();
     }
-    
+
     public void addIndicator( Indicator indicator )
     {
         indicators.add( indicator );
@@ -414,17 +416,17 @@ public class DataSet
 
         return FormType.DEFAULT;
     }
-    
+
     /**
      * Note that this method returns an immutable set and can not be used to
-     * modify the model. Returns an immutable set of data sets associated with 
+     * modify the model. Returns an immutable set of data sets associated with
      * this data element.
      */
     public Set<DataElement> getDataElements()
     {
         return ImmutableSet.copyOf( dataSetElements.stream().map( e -> e.getDataElement() ).collect( Collectors.toSet() ) );
     }
-    
+
     public Set<DataElement> getDataElementsInSections()
     {
         Set<DataElement> dataElements = new HashSet<>();
@@ -487,20 +489,34 @@ public class DataSet
     }
 
     /**
-     * Indicates if the given period is valid for data entry for this data set.
-     * Returns true if the given period is null.
+     * Indicates whether the data set is locked for data entry based on the
+     * expiry days.
      *
-     * @param period the period.
+     * @param period the period to compare with.
+     * @param now    the date indicating now, uses current date if null.
      */
-    public boolean isValidPeriodForDataEntry( Period period )
+    public boolean isLocked( Period period, Date now )
     {
-        if ( period != null )
-        {
-            return (startDate == null || startDate.compareTo( period.getStartDate() ) <= 0)
-                && (endDate == null || endDate.compareTo( period.getEndDate() ) >= 0);
-        }
+        DateTime date = now != null ? new DateTime( now ) : new DateTime();
 
-        return true;
+        return expiryDays != DataSet.NO_EXPIRY &&
+            new DateTime( period.getEndDate() ).plusDays( expiryDays ).isBefore( date );
+    }
+
+    /**
+     * Checks if the given period and date combination conforms to any of the dataInputPeriods.
+     * Returns true if no dataInputPeriods exists, or the combination conforms to at least one dataInputPeriod.
+     *
+     * @param period
+     * @param date
+     * @return true if period and date conforms to a dataInputPeriod, or no dataInputPeriods exists.
+     */
+    public boolean isDataInputPeriodAndDateAllowed( Period period, Date date )
+    {
+        return dataInputPeriods.isEmpty() || dataInputPeriods.stream()
+            .map( dataInputPeriod -> dataInputPeriod.isPeriodAndDateValid( period, date ) )
+            .reduce( ( a, b ) -> a || b )
+            .get();
     }
 
     // -------------------------------------------------------------------------
@@ -517,12 +533,6 @@ public class DataSet
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
-
     @JsonProperty
     @JsonSerialize( using = JacksonPeriodTypeSerializer.class )
     @JsonDeserialize( using = JacksonPeriodTypeDeserializer.class )
@@ -536,6 +546,19 @@ public class DataSet
     public void setPeriodType( PeriodType periodType )
     {
         this.periodType = periodType;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "dataInputPeriods", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "dataInputPeriods", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<DataInputPeriod> getDataInputPeriods()
+    {
+        return dataInputPeriods;
+    }
+
+    public void setDataInputPeriods( Set<DataInputPeriod> dataInputPeriods )
+    {
+        this.dataInputPeriods = dataInputPeriods;
     }
 
     @JsonProperty
@@ -660,7 +683,7 @@ public class DataSet
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = -Double.MIN_VALUE )
+    @PropertyRange( min = Integer.MIN_VALUE )
     public int getExpiryDays()
     {
         return expiryDays;
@@ -669,32 +692,6 @@ public class DataSet
     public void setExpiryDays( int expiryDays )
     {
         this.expiryDays = expiryDays;
-    }
-
-    @JsonProperty
-    @Property( value = PropertyType.DATE, required = Property.Value.FALSE )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getStartDate()
-    {
-        return startDate;
-    }
-
-    public void setStartDate( Date startDate )
-    {
-        this.startDate = startDate;
-    }
-
-    @JsonProperty
-    @Property( value = PropertyType.DATE, required = Property.Value.FALSE )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getEndDate()
-    {
-        return endDate;
-    }
-
-    public void setEndDate( Date endDate )
-    {
-        this.endDate = endDate;
     }
 
     @JsonProperty
@@ -839,60 +836,5 @@ public class DataSet
     public void setDataElementDecoration( boolean dataElementDecoration )
     {
         this.dataElementDecoration = dataElementDecoration;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DataSet dataSet = (DataSet) other;
-
-            dataElementDecoration = dataSet.isDataElementDecoration();
-            skipOffline = dataSet.isSkipOffline();
-            renderAsTabs = dataSet.isRenderAsTabs();
-            renderHorizontally = dataSet.isRenderHorizontally();
-            expiryDays = dataSet.getExpiryDays();
-            openFuturePeriods = dataSet.getOpenFuturePeriods();
-            fieldCombinationRequired = dataSet.isFieldCombinationRequired();
-            mobile = dataSet.isMobile();
-            validCompleteOnly = dataSet.isValidCompleteOnly();
-            version = dataSet.getVersion();
-            timelyDays = dataSet.getTimelyDays();
-            notifyCompletingUser = dataSet.isNotifyCompletingUser();
-
-            if ( mergeMode.isReplace() )
-            {
-                periodType = dataSet.getPeriodType();
-                categoryCombo = dataSet.getCategoryCombo();
-                dataEntryForm = dataSet.getDataEntryForm();
-                notificationRecipients = dataSet.getNotificationRecipients();
-                startDate = dataSet.getStartDate();
-                endDate = dataSet.getEndDate();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                periodType = dataSet.getPeriodType() == null ? periodType : dataSet.getPeriodType();
-                categoryCombo = dataSet.getCategoryCombo() == null ? categoryCombo : dataSet.getCategoryCombo();
-                dataEntryForm = dataSet.getDataEntryForm() == null ? dataEntryForm : dataSet.getDataEntryForm();
-                notificationRecipients = dataSet.getNotificationRecipients() == null ? notificationRecipients : dataSet.getNotificationRecipients();
-                startDate = dataSet.getStartDate() == null ? startDate : dataSet.getStartDate();
-                endDate = dataSet.getEndDate() == null ? endDate : dataSet.getEndDate();
-            }
-
-            removeAllDataSetElements();
-            dataSet.getDataSetElements().forEach( this::addDataSetElement );
-
-            indicators.clear();
-            dataSet.getIndicators().forEach( this::addIndicator );
-
-            compulsoryDataElementOperands.clear();
-            dataSet.getCompulsoryDataElementOperands().forEach( this::addCompulsoryDataElementOperand );
-
-            removeAllOrganisationUnits();
-            dataSet.getSources().forEach( this::addOrganisationUnit );
-        }
     }
 }

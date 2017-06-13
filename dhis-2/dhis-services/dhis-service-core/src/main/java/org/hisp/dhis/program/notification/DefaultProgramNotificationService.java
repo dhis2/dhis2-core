@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.notification;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.message.MessageType;
+import org.hisp.dhis.notification.NotificationMessage;
+import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
@@ -42,7 +46,7 @@ import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
-import org.hisp.dhis.sms.BatchResponseStatus;
+import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
@@ -99,6 +103,20 @@ public class DefaultProgramNotificationService
     public void setIdentifiableObjectManager( IdentifiableObjectManager identifiableObjectManager )
     {
         this.identifiableObjectManager = identifiableObjectManager;
+    }
+
+    private NotificationMessageRenderer<ProgramInstance> programNotificationRenderer;
+
+    public void setProgramNotificationRenderer( NotificationMessageRenderer<ProgramInstance> programNotificationRenderer )
+    {
+        this.programNotificationRenderer = programNotificationRenderer;
+    }
+
+    private NotificationMessageRenderer<ProgramStageInstance> programStageNotificationRenderer;
+
+    public void setProgramStageNotificationRenderer( NotificationMessageRenderer<ProgramStageInstance> programStageNotificationRenderer )
+    {
+        this.programStageNotificationRenderer = programStageNotificationRenderer;
     }
 
     // -------------------------------------------------------------------------
@@ -250,20 +268,20 @@ public class DefaultProgramNotificationService
 
     private ProgramMessage createProgramMessage( ProgramStageInstance psi, ProgramNotificationTemplate template )
     {
-        NotificationMessage message = NotificationMessageRenderer.render( psi, template );
+        NotificationMessage message = programStageNotificationRenderer.render( psi, template );
 
         return new ProgramMessage(
             message.getSubject(), message.getMessage(), resolveProgramMessageRecipients( template, psi.getOrganisationUnit(),
-            psi.getProgramInstance().getEntityInstance() ), template.getDeliveryChannels(), psi );
+            psi.getProgramInstance() ), template.getDeliveryChannels(), psi );
     }
 
     private ProgramMessage createProgramMessage( ProgramInstance programInstance, ProgramNotificationTemplate template )
     {
-        NotificationMessage message = NotificationMessageRenderer.render( programInstance, template );
+        NotificationMessage message = programNotificationRenderer.render( programInstance, template );
 
         return new ProgramMessage(
             message.getSubject(), message.getMessage(),
-            resolveProgramMessageRecipients( template, programInstance.getOrganisationUnit(), programInstance.getEntityInstance() ),
+            resolveProgramMessageRecipients( template, programInstance.getOrganisationUnit(), programInstance ),
             template.getDeliveryChannels(), programInstance );
     }
 
@@ -277,13 +295,13 @@ public class DefaultProgramNotificationService
 
         Set<User> recipients = Sets.newHashSet();
 
-        NotificationRecipient recipientType = template.getNotificationRecipient();
+        ProgramNotificationRecipient recipientType = template.getNotificationRecipient();
 
-        if ( recipientType == NotificationRecipient.USER_GROUP )
+        if ( recipientType == ProgramNotificationRecipient.USER_GROUP )
         {
             recipients.addAll( template.getRecipientUserGroup().getMembers() );
         }
-        else if ( recipientType == NotificationRecipient.USERS_AT_ORGANISATION_UNIT )
+        else if ( recipientType == ProgramNotificationRecipient.USERS_AT_ORGANISATION_UNIT )
         {
 
             OrganisationUnit organisationUnit =
@@ -296,19 +314,38 @@ public class DefaultProgramNotificationService
     }
 
     private ProgramMessageRecipients resolveProgramMessageRecipients(
-        ProgramNotificationTemplate template, OrganisationUnit organisationUnit, TrackedEntityInstance trackedEntityInstance )
+            ProgramNotificationTemplate template, OrganisationUnit organisationUnit, ProgramInstance programInstance )
     {
         ProgramMessageRecipients recipients = new ProgramMessageRecipients();
 
-        NotificationRecipient recipientType = template.getNotificationRecipient();
+        TrackedEntityInstance trackedEntityInstance = programInstance.getEntityInstance();
 
-        if ( recipientType == NotificationRecipient.ORGANISATION_UNIT_CONTACT )
+        ProgramNotificationRecipient recipientType = template.getNotificationRecipient();
+
+        if ( recipientType == ProgramNotificationRecipient.ORGANISATION_UNIT_CONTACT )
         {
             recipients.setOrganisationUnit( organisationUnit );
         }
-        else if ( recipientType == NotificationRecipient.TRACKED_ENTITY_INSTANCE )
+        else if ( recipientType == ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE )
         {
             recipients.setTrackedEntityInstance( trackedEntityInstance );
+        }
+        else if ( recipientType == ProgramNotificationRecipient.PROGRAM_ATTRIBUTE
+            && template.getRecipientProgramAttribute() != null )
+        {
+            List<String> recipientList = programInstance.getEntityInstance().getTrackedEntityAttributeValues().stream()
+                .filter( av -> template.getRecipientProgramAttribute().getUid().equals( av.getAttribute().getUid() ) )
+                .map( av -> av.getPlainValue() )
+                .collect( Collectors.toList() );
+
+            if ( template.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
+            {
+                recipients.getPhoneNumbers().addAll( recipientList );
+            }
+            else if ( template.getDeliveryChannels().contains( DeliveryChannel.EMAIL ) )
+            {
+                recipients.getEmailAddresses().addAll( recipientList );
+            }
         }
 
         return recipients;
@@ -332,7 +369,7 @@ public class DefaultProgramNotificationService
     {
         DhisMessage dhisMessage = new DhisMessage();
 
-        dhisMessage.message = NotificationMessageRenderer.render( psi, template );
+        dhisMessage.message = programStageNotificationRenderer.render( psi, template );
         dhisMessage.recipients = resolveDhisMessageRecipients( template, null, psi );
 
         return dhisMessage;
@@ -342,7 +379,8 @@ public class DefaultProgramNotificationService
     {
         DhisMessage dhisMessage = new DhisMessage();
 
-        dhisMessage.message = NotificationMessageRenderer.render( pi, template );
+        dhisMessage.message = programNotificationRenderer.render( pi, template );
+
         dhisMessage.recipients = resolveDhisMessageRecipients( template, pi, null );
 
         return dhisMessage;
@@ -351,7 +389,8 @@ public class DefaultProgramNotificationService
     private void sendDhisMessages( Set<DhisMessage> messages )
     {
         messages.forEach( m ->
-            messageService.sendMessage( m.message.getSubject(), m.message.getMessage(), null, m.recipients, null, false, true )
+            messageService.sendMessage( m.message.getSubject(), m.message.getMessage(), null, m.recipients, null,
+                MessageType.SYSTEM, true )
         );
     }
 

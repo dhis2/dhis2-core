@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,6 +57,12 @@ public interface CurrentUserService
     User getCurrentUser();
     
     /**
+     * @return the user info for the currently logged in user. If no user is 
+     *         logged in or the auto access admin is active, null is returned.
+     */
+    UserInfo getCurrentUserInfo();
+    
+    /**
      * @return the data capture organisation units of the current user, empty set
      *         if no current user.
      */
@@ -77,5 +83,5 @@ public interface CurrentUserService
     /**
      * Indicates whether the current user has been granted the given authority.
      */
-    boolean currenUserIsAuthorized( String auth );
+    boolean currentUserIsAuthorized( String auth );
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,11 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.Iterator;
-
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+
+import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * @author Quang Nguyen
@@ -66,7 +66,7 @@ public class ProgramInstanceDeletionHandler
     {
         for ( ProgramInstance programInstance : trackedEntityInstance.getProgramInstances() )
         {
-            programInstanceService.deleteProgramInstance( programInstance );
+            programInstanceService.deleteProgramInstance( programInstance, false );
         }
     }   
 
@@ -82,7 +82,7 @@ public class ProgramInstanceDeletionHandler
             {
                 ProgramInstance programInstance = iterator.next();
                 iterator.remove();
-                programInstanceService.deleteProgramInstance( programInstance );
+                programInstanceService.deleteProgramInstance( programInstance, true );
             }
         }
     }

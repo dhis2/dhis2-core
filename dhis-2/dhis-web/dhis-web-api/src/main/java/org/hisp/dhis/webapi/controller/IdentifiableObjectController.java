@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,6 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -40,6 +39,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Lars Helge Overland
@@ -55,12 +55,8 @@ public class IdentifiableObjectController
     public List<IdentifiableObject> getEntity( String uid, WebOptions options )
     {
         List<IdentifiableObject> identifiableObjects = Lists.newArrayList();
-        Optional<IdentifiableObject> optional = Optional.fromNullable( manager.get( uid ) );
-
-        if ( optional.isPresent() )
-        {
-            identifiableObjects.add( optional.get() );
-        }
+        Optional<IdentifiableObject> optional = Optional.ofNullable( manager.get( uid ) );
+        optional.ifPresent( identifiableObjects::add );
 
         return identifiableObjects;
     }

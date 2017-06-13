@@ -1,7 +1,7 @@
 package org.hisp.dhis.email;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,12 +36,12 @@ public enum EmailResponse
 {
     SENT( "success" ),
     FAILED( "failed" ),
-    ABORTED( "aborted" );
-    
+    ABORTED( "aborted" ),
+    NOT_CONFIGURED( "no configuration found" );
+
     private String responseMessage;
 
-    
-    private EmailResponse( String responseMessage )
+    EmailResponse( String responseMessage )
     {
         this.responseMessage = responseMessage;
     }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table.scheduling;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,24 +28,11 @@ package org.hisp.dhis.analytics.table.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
+import java.util.HashSet;
 
-import java.util.Date;
-
-import javax.annotation.Resource;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.analytics.AnalyticsTableService;
-import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.security.NoSecurityContextRunnable;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.util.Clock;
-import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -54,31 +41,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class AnalyticsTableTask
     extends NoSecurityContextRunnable
 {
-    private static final Log log = LogFactory.getLog( AnalyticsTableTask.class );
-
-    @Resource( name = "org.hisp.dhis.analytics.AnalyticsTableService" )
-    private AnalyticsTableService analyticsTableService;
-
-    @Resource( name = "org.hisp.dhis.analytics.CompletenessTableService" )
-    private AnalyticsTableService completenessTableService;
-
-    @Resource( name = "org.hisp.dhis.analytics.CompletenessTargetTableService" )
-    private AnalyticsTableService completenessTargetTableService;
-
-    @Resource( name = "org.hisp.dhis.analytics.OrgUnitTargetTableService" )
-    private AnalyticsTableService orgUnitTargetTableService;
-
-    @Resource( name = "org.hisp.dhis.analytics.EventAnalyticsTableService" )
-    private AnalyticsTableService eventAnalyticsTableService;
-
     @Autowired
-    private Notifier notifier;
-
-    @Autowired
-    private MessageService messageService;
-
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    private AnalyticsTableGenerator analyticsTableGenerator;
     
     private Integer lastYears;
 
@@ -87,34 +51,13 @@ public class AnalyticsTableTask
         this.lastYears = lastYears;
     }
 
-    private boolean skipResourceTables = false;
-
-    public void setSkipResourceTables( boolean skipResourceTables )
-    {
-        this.skipResourceTables = skipResourceTables;
-    }
-
-    private boolean skipAggregate = false;
-
-    public void setSkipAggregate( boolean skipAggregate )
-    {
-        this.skipAggregate = skipAggregate;
-    }
-
-    private boolean skipEvents = false;
-
-    public void setSkipEvents( boolean skipEvents )
-    {
-        this.skipEvents = skipEvents;
-    }
-
     private TaskId taskId;
 
     public void setTaskId( TaskId taskId )
     {
         this.taskId = taskId;
     }
-
+    
     // -------------------------------------------------------------------------
     // Runnable implementation
     // -------------------------------------------------------------------------
@@ -122,53 +65,6 @@ public class AnalyticsTableTask
     @Override
     public void call()
     {
-        final Date startTime = new Date();
-        final Clock clock = new Clock( log ).startClock();
-
-        notifier.clear( taskId ).notify( taskId, "Analytics table update process started" );
-
-        try
-        {
-            if ( !skipResourceTables )
-            {
-                notifier.notify( taskId, "Updating resource tables" );
-                analyticsTableService.generateResourceTables();
-            }
-
-            if ( !skipAggregate )
-            {
-                notifier.notify( taskId, "Updating analytics tables" );
-                analyticsTableService.update( lastYears, taskId );
-
-                notifier.notify( taskId, "Updating completeness table" );
-                completenessTableService.update( lastYears, taskId );
-
-                notifier.notify( taskId, "Updating completeness target table" );
-                completenessTargetTableService.update( lastYears, taskId );
-
-                notifier.notify( taskId, "Updating organisation unit target table" );
-                orgUnitTargetTableService.update( lastYears, taskId );
-            }
-
-            if ( !skipEvents )
-            {
-                notifier.notify( taskId, "Updating event analytics table" );
-                eventAnalyticsTableService.update( lastYears, taskId );
-            }
-
-            clock.logTime( "Analytics tables updated" );
-            notifier.notify( taskId, INFO, "Analytics tables updated: " + clock.time(), true );
-        }
-        catch ( RuntimeException ex )
-        {
-            notifier.notify( taskId, ERROR, "Process failed: " + ex.getMessage(), true );
-
-            messageService.sendSystemErrorNotification( "Analytics table process failed", ex );
-
-            throw ex;
-        }
-
-        systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, startTime );
-        systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME, DateUtils.getPrettyInterval( clock.getSplitTime() ) );
+        analyticsTableGenerator.generateTables( lastYears, taskId, new HashSet<>(), false );
     }
 }

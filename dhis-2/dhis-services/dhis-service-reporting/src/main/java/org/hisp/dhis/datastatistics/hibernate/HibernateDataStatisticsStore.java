@@ -1,7 +1,7 @@
 package org.hisp.dhis.datastatistics.hibernate;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -220,31 +220,31 @@ public class HibernateDataStatisticsStore
     {
         return
             "cast(round(cast(sum(mapviews) as numeric),0) as int) as mapViews," +
-                "cast(round(cast(sum(chartviews) as numeric),0) as int) as chartViews," +
-                "cast(round(cast(sum(reporttableviews) as numeric),0) as int) as reportTableViews, " +
-                "cast(round(cast(sum(eventreportviews) as numeric),0) as int) as eventReportViews, " +
-                "cast(round(cast(sum(eventchartviews) as numeric),0) as int) as eventChartViews," +
-                "cast(round(cast(sum(dashboardviews) as numeric),0) as int) as dashboardViews, " +
-                "cast(round(cast(sum(datasetreportviews) as numeric),0) as int) as dataSetReportViews, " +
-                "max(active_users) as activeUsers," +
-                "coalesce(sum(totalviews)/nullif(max(active_users), 0), 0) as averageViews," +
-                "coalesce(sum(mapviews)/nullif(max(active_users), 0), 0) as averageMapViews, " +
-                "coalesce(sum(chartviews)/nullif(max(active_users), 0), 0) as averageChartViews, " +
-                "coalesce(sum(reporttableviews)/nullif(max(active_users), 0), 0) as averageReportTableViews, " +
-                "coalesce(sum(eventreportviews)/nullif(max(active_users), 0), 0) as averageEventReportViews, " +
-                "coalesce(sum(eventchartviews)/nullif(max(active_users), 0), 0) as averageEventChartViews, " +
-                "coalesce(sum(dashboardviews)/nullif(max(active_users), 0), 0) as averageDashboardViews, " +
-                "cast(round(cast(sum(totalviews) as numeric),0) as int) as totalViews," +
-                "cast(round(cast(sum(maps) as numeric),0) as int) as savedMaps," +
-                "cast(round(cast(sum(charts) as numeric),0) as int) as savedCharts," +
-                "cast(round(cast(sum(reporttables) as numeric),0) as int) as savedReportTables," +
-                "cast(round(cast(sum(eventreports) as numeric),0) as int) as savedEventReports," +
-                "cast(round(cast(sum(eventcharts) as numeric),0) as int) as savedEventCharts," +
-                "cast(round(cast(sum(dashboards) as numeric),0) as int) as savedDashboards, " +
-                "cast(round(cast(sum(indicators) as numeric),0) as int) as savedIndicators," +
-                "cast(round(cast(sum(datavalues) as numeric),0) as int) as savedDataValues," +
-                "max(users) as users from datastatistics " +
-                "where created >= '" + DateUtils.getMediumDateString( start ) + "' " +
-                "and created <= '" + DateUtils.getMediumDateString( end ) + "' ";
+            "cast(round(cast(sum(chartviews) as numeric),0) as int) as chartViews," +
+            "cast(round(cast(sum(reporttableviews) as numeric),0) as int) as reportTableViews, " +
+            "cast(round(cast(sum(eventreportviews) as numeric),0) as int) as eventReportViews, " +
+            "cast(round(cast(sum(eventchartviews) as numeric),0) as int) as eventChartViews," +
+            "cast(round(cast(sum(dashboardviews) as numeric),0) as int) as dashboardViews, " +
+            "cast(round(cast(sum(datasetreportviews) as numeric),0) as int) as dataSetReportViews, " +
+            "max(active_users) as activeUsers," +
+            "coalesce(sum(totalviews)/nullif(max(active_users), 0), 0) as averageViews," +
+            "coalesce(sum(mapviews)/nullif(max(active_users), 0), 0) as averageMapViews, " +
+            "coalesce(sum(chartviews)/nullif(max(active_users), 0), 0) as averageChartViews, " +
+            "coalesce(sum(reporttableviews)/nullif(max(active_users), 0), 0) as averageReportTableViews, " +
+            "coalesce(sum(eventreportviews)/nullif(max(active_users), 0), 0) as averageEventReportViews, " +
+            "coalesce(sum(eventchartviews)/nullif(max(active_users), 0), 0) as averageEventChartViews, " +
+            "coalesce(sum(dashboardviews)/nullif(max(active_users), 0), 0) as averageDashboardViews, " +
+            "cast(round(cast(sum(totalviews) as numeric),0) as int) as totalViews," +
+            "cast(round(cast(sum(maps) as numeric),0) as int) as savedMaps," +
+            "cast(round(cast(sum(charts) as numeric),0) as int) as savedCharts," +
+            "cast(round(cast(sum(reporttables) as numeric),0) as int) as savedReportTables," +
+            "cast(round(cast(sum(eventreports) as numeric),0) as int) as savedEventReports," +
+            "cast(round(cast(sum(eventcharts) as numeric),0) as int) as savedEventCharts," +
+            "cast(round(cast(sum(dashboards) as numeric),0) as int) as savedDashboards, " +
+            "cast(round(cast(sum(indicators) as numeric),0) as int) as savedIndicators," +
+            "cast(round(cast(sum(datavalues) as numeric),0) as int) as savedDataValues," +
+            "max(users) as users from datastatistics " +
+            "where created >= '" + DateUtils.getMediumDateString( start ) + "' " +
+            "and created <= '" + DateUtils.getMediumDateString( end ) + "' ";
     }
 }

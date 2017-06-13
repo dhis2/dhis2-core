@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.pdfform;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,6 @@ import org.hisp.dhis.period.SixMonthlyAprilPeriodType;
 import org.hisp.dhis.period.SixMonthlyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.system.util.DateUtils;
@@ -361,25 +360,25 @@ public class DefaultPdfDataEntryFormService
             // Sectioned Ones
             for ( ProgramStageSection section : programStage.getProgramStageSections() )
             {
-                insertTable_ProgramStageSections( mainTable, rectangle, writer, section.getProgramStageDataElements() );
+                insertTable_ProgramStageSections( mainTable, rectangle, writer, section.getDataElements() );
             }
         }
         else
         {
             // Default one
-            insertTable_ProgramStageSections( mainTable, rectangle, writer, programStage.getProgramStageDataElements() );
+            insertTable_ProgramStageSections( mainTable, rectangle, writer, programStage.getAllDataElements() );
         }
     }
 
     private void insertTable_ProgramStageSections( PdfPTable mainTable, Rectangle rectangle, PdfWriter writer,
-        Collection<ProgramStageDataElement> programStageDataElements )
+        Collection<DataElement> dataElements )
         throws IOException, DocumentException
     {
         boolean hasBorder = false;
 
         // Add one to column count due to date entry + one hidden height set
         // field.
-        int colCount = programStageDataElements.size() + 1 + 1;
+        int colCount = dataElements.size() + 1 + 1;
 
         PdfPTable table = new PdfPTable( colCount ); // Code 1
 
@@ -387,7 +386,7 @@ public class DefaultPdfDataEntryFormService
         float firstCellWidth_dateEntry = PdfDataEntryFormUtil.UNITSIZE_DEFAULT * 3;
         float lastCellWidth_hidden = PdfDataEntryFormUtil.UNITSIZE_DEFAULT;
         float dataElementCellWidth = (totalWidth - firstCellWidth_dateEntry - lastCellWidth_hidden)
-            / programStageDataElements.size();
+            / dataElements.size();
 
         // Create 2 types of Rectangles, one for Date field, one for data
         // elements - to be used when rendering them.
@@ -415,10 +414,8 @@ public class DefaultPdfDataEntryFormService
         addCell_Text( table, PdfDataEntryFormUtil.getPdfPCell( hasBorder ), "Date", Element.ALIGN_CENTER );
 
         // Add Program Data Elements Columns
-        for ( ProgramStageDataElement programStageDataElement : programStageDataElements )
+        for ( DataElement dataElement : dataElements )
         {
-            DataElement dataElement = programStageDataElement.getDataElement();
-
             addCell_Text( table, PdfDataEntryFormUtil.getPdfPCell( hasBorder ), dataElement.getFormNameFallback(), Element.ALIGN_CENTER );
         }
 
@@ -435,10 +432,8 @@ public class DefaultPdfDataEntryFormService
             addCell_WithTextField( table, rectangleDate, writer, PdfDataEntryFormUtil.getPdfPCell( hasBorder ), strFieldDateLabel );
 
             // Add Program Data Elements Columns
-            for ( ProgramStageDataElement programStageDataElement : programStageDataElements )
+            for ( DataElement dataElement : dataElements )
             {
-                DataElement dataElement = programStageDataElement.getDataElement();
-
                 OptionSet optionSet = dataElement.getOptionSet();
 
                 String strFieldLabel = PdfDataEntryFormUtil.LABELCODE_DATAENTRYTEXTFIELD
@@ -593,6 +588,8 @@ public class DefaultPdfDataEntryFormService
 
         tableButton.setHorizontalAlignment( Element.ALIGN_CENTER );
 
+        //FIXME
+        
         String jsAction = "var newFileName = this.getField(\"" + PdfDataEntryFormUtil.LABELCODE_PERIODID + "\").value + ' ' + "
             + "  this.getField(\"" + PdfDataEntryFormUtil.LABELCODE_ORGID + "\").value + ' ' + "
             + "  \"" + dataSetName + ".pdf\";"

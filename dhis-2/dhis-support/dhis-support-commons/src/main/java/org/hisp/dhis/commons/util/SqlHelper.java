@@ -1,7 +1,7 @@
 package org.hisp.dhis.commons.util;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,13 +35,15 @@ package org.hisp.dhis.commons.util;
  */
 public class SqlHelper
 {
-    private boolean invoked = false;
-    
-    private boolean isBetweenInvoked = false;
-
     private boolean includeSpaces = false;
 
+    private boolean invoked = false;
+
     private boolean havingInvoked = false;
+    
+    private boolean orInvoked = false;
+
+    private boolean betweenInvoked = false;
 
     public SqlHelper()
     {
@@ -68,7 +70,10 @@ public class SqlHelper
     }
 
     /**
-     *
+     * Returns "having" the first time it is invoked, then "and" for subsequent
+     * invocations.
+     * 
+     * @return "having" or "and".
      */
     public String havingAnd()
     {
@@ -80,55 +85,31 @@ public class SqlHelper
     }
 
     /**
-     * Returns "where" the first time it is invoked, then "or" for subsequent
+     * Returns the empty string the first time it is invoked, then "or" for subsequent
      * invocations.
      * 
-     * @return "where" or "or".
+     * @return empty string or "or".
      */
-    public String whereOr()
+    public String or()
     {
-        String str = invoked ? "or" : "where";
+        String str = orInvoked ? "or" : "";
 
-        invoked = true;
+        orInvoked = true;
 
         return includeSpaces ? " " + str + " " : str;
     }
 
     /**
-     * Returns "" the first time it is invoked, then "and" for subsequent
-     * invocations.
-     * 
-     * @return empty or "and".
-     */
-    public String and()
-    {
-        String str = invoked ? "and" : "";
-
-        invoked = true;
-
-        return includeSpaces ? " " + str + " " : str;
-    }
-
-    /**
-     * Returns "" the first time it is invoked, then "or" for subsequent
+     * Returns the empty string the first time it is invoked, then "or" for subsequent
      * invocations.
      * 
      * @return empty or "or".
      */
-    public String or()
-    {
-        String str = invoked ? "or" : "";
-
-        invoked = true;
-
-        return includeSpaces ? " " + str + " " : str;
-    }
-    
     public String betweenAnd()
     {
-        String str = isBetweenInvoked ? "and" : "BETWEEN";
+        String str = betweenInvoked ? "and" : "between";
 
-        isBetweenInvoked = true;
+        betweenInvoked = true;
 
         return includeSpaces ? " " + str + " " : str;
     }

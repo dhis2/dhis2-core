@@ -1,7 +1,9 @@
 package org.hisp.dhis.common;
 
+import java.security.SecureRandom;
+
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +33,8 @@ package org.hisp.dhis.common;
 import java.util.Random;
 import java.util.regex.Pattern;
 
+import org.springframework.util.Base64Utils;
+
 /**
  * @author bobj
  */
@@ -45,21 +49,29 @@ public class CodeGenerator
     public static final int CODESIZE = 11;
 
     private static final Pattern CODE_PATTERN = Pattern.compile( "^[a-zA-Z]{1}[a-zA-Z0-9]{10}$" );
+
+    /**
+     * 192 bit, must be dividable by 3 to avoid padding "=".
+     */
+    private static final int URL_RANDOM_TOKEN_LENGTH = 24;
     
     /**
-     * Generates a pseudo random string using the allowed characters. Code is
-     * 11 characters long.
+     * Generates a UID according to the following rules:
+     * <ul>
+     * <li>Alphanumeric characters only.</li>
+     * <li>Exactly 11 characters long.</li>
+     * <li>First character is alphabetic.</li>
+     * </ul>
      * 
-     * @param codeSize the number of characters in the code.
-     * @return the code.
+     * @return a UID.
      */
-    public static String generateCode()
+    public static String generateUid()
     {
         return generateCode( CODESIZE );
     }
         
     /**
-     * Generates a pseudo random string using the allowed characters.
+     * Generates a pseudo random string with alphanumeric characters.
      * 
      * @param codeSize the number of characters in the code.
      * @return the code.
@@ -82,13 +94,27 @@ public class CodeGenerator
     }
     
     /**
-     * Tests whether the given code is valid.
+     * Tests whether the given code is a valid UID.
      * 
      * @param code the code to validate.
      * @return true if the code is valid.
      */
-    public static boolean isValidCode( String code )
+    public static boolean isValidUid( String code )
     {
         return code != null && CODE_PATTERN.matcher( code ).matches();
+    }
+    
+    /**
+     * Generates a random 32 character token to be used in URLs.
+     * 
+     * @return a token.
+     */
+    public static String getRandomUrlToken()
+    {
+        SecureRandom sr = new SecureRandom();
+        byte[] tokenBytes = new byte[ URL_RANDOM_TOKEN_LENGTH ];
+        sr.nextBytes( tokenBytes );
+
+        return Base64Utils.encodeToUrlSafeString( tokenBytes );
     }
 }

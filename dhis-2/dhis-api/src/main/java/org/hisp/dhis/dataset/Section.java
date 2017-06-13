@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -50,7 +49,7 @@ import java.util.Set;
 
 @JacksonXmlRootElement( localName = "section", namespace = DxfNamespaces.DXF_2_0 )
 public class Section
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     private String description;
 
@@ -63,9 +62,9 @@ public class Section
     private Set<DataElementOperand> greyedFields = new HashSet<>();
 
     private int sortOrder;
-    
+
     private boolean showRowTotals;
-    
+
     private boolean showColumnTotals;
 
     // -------------------------------------------------------------------------
@@ -88,46 +87,6 @@ public class Section
     // Logic
     // -------------------------------------------------------------------------
 
-    public void addDataElement( DataElement dataElement )
-    {
-        dataElements.add( dataElement );
-    }
-
-    public void removeDataElement( DataElement dataElement )
-    {
-        dataElements.remove( dataElement );
-    }
-
-    public void addGreyedField( DataElementOperand greyedField )
-    {
-        greyedFields.add( greyedField );
-    }
-
-    public void removeGreyedField( DataElementOperand greyedField )
-    {
-        greyedFields.remove( greyedField );
-    }
-
-    private void addIndicator( Indicator indicator )
-    {
-        indicators.remove( indicator );
-    }
-
-    public void removeAllGreyedFields()
-    {
-        greyedFields.clear();
-    }
-
-    public void removeAllDataElements()
-    {
-        dataElements.clear();
-    }
-
-    public void removeAllIndicators()
-    {
-        indicators.clear();
-    }
-
     public boolean hasCategoryCombo()
     {
         return !getCategoryCombos().isEmpty();
@@ -138,18 +97,18 @@ public class Section
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Set<DataElementCategoryCombo> getCategoryCombos()
     {
-    	Set<DataElementCategoryCombo> categoryCombos = new HashSet<>();
-    	
+        Set<DataElementCategoryCombo> categoryCombos = new HashSet<>();
+
         for ( DataElement dataElement : dataElements )
         {
             DataElementCategoryCombo categoryCombo = dataElement.getCategoryCombo( dataSet );
-            
+
             if ( categoryCombo != null )
             {
-            	categoryCombos.add( categoryCombo ); 
+                categoryCombos.add( categoryCombo );
             }
         }
-        
+
         return categoryCombos;
     }
 
@@ -157,26 +116,20 @@ public class Section
     {
         return dataElements != null && !dataElements.isEmpty();
     }
-    
+
     public List<DataElement> getDataElementsByCategoryCombo( DataElementCategoryCombo categoryCombo )
     {
         List<DataElement> dataElements = new ArrayList<>();
-        
-        for( DataElement dataElement : this.dataElements )
+
+        for ( DataElement dataElement : this.dataElements )
         {
-            if( dataElement.getCategoryCombo( this.dataSet ).equals( categoryCombo ) )
+            if ( dataElement.getCategoryCombo( this.dataSet ).equals( categoryCombo ) )
             {
                 dataElements.add( dataElement );
             }
         }
-        
-        return dataElements;        
-    }
 
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
+        return dataElements;
     }
 
     // -------------------------------------------------------------------------
@@ -260,7 +213,7 @@ public class Section
     public void setGreyedFields( Set<DataElementOperand> greyedFields )
     {
         this.greyedFields = greyedFields;
-    }        
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -284,37 +237,5 @@ public class Section
     public void setShowColumnTotals( boolean showColumnTotals )
     {
         this.showColumnTotals = showColumnTotals;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            Section section = (Section) other;
-            sortOrder = section.getSortOrder();
-
-            if ( mergeMode.isReplace() )
-            {
-                dataSet = section.getDataSet();
-                description = section.getDescription();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                dataSet = section.getDataSet() == null ? dataSet : section.getDataSet();
-                description = section.getDescription() == null ? description : section.getDescription();
-            }
-
-            removeAllDataElements();
-            section.getDataElements().forEach( this::addDataElement );
-
-            removeAllGreyedFields();
-            section.getGreyedFields().forEach( this::addGreyedField );
-
-            removeAllIndicators();
-            section.getIndicators().forEach( this::addIndicator );
-        }
     }
 }

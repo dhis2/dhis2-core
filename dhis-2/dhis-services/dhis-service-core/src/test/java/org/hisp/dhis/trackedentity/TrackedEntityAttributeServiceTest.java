@@ -48,16 +48,11 @@ public class TrackedEntityAttributeServiceTest
     @Autowired
     private TrackedEntityAttributeStore attributeStore;
 
-    @Autowired
-    private TrackedEntityAttributeGroupService attributeGroupService;
-
     private TrackedEntityAttribute attributeA;
 
     private TrackedEntityAttribute attributeB;
 
     private TrackedEntityAttribute attributeC;
-
-    private TrackedEntityAttributeGroup attributeGroup;
 
     @Override
     public void setUpTest()
@@ -69,22 +64,8 @@ public class TrackedEntityAttributeServiceTest
         List<TrackedEntityAttribute> attributesA = new ArrayList<>();
         attributesA.add( attributeA );
         attributesA.add( attributeB );
-        attributeGroup = createTrackedEntityAttributeGroup( 'A', attributesA );
     }
 
-    @Test
-    public void testGetTrackedEntityAttributesWithoutGroup()
-    {
-        attributeStore.save( attributeA );
-        attributeStore.save( attributeB );
-        attributeStore.save( attributeC );
-
-        attributeGroupService.addTrackedEntityAttributeGroup( attributeGroup );
-
-        List<TrackedEntityAttribute> attributes = attributeStore.getOptionalAttributesWithoutGroup();
-        assertEquals( 1, attributes.size() );
-        assertTrue( attributes.contains( attributeC ) );
-    }
 
     @Test
     public void testGetTrackedEntityAttributesByDisplayOnVisitSchedule()

@@ -61,8 +61,8 @@ jQuery( document ).ready( function()
       <tr>
         <td>
             <select id="availableList" name='availableList' size="15" style="height: 200px; width: 100%;" multiple="multiple" ondblclick="moveSelectedById( 'availableList', 'dataElementIds' );">
-				#foreach( $psPataElement in $availableDataElements )
-					<option value='$psPataElement.dataElement.id'>$psPataElement.dataElement.name</option>
+				#foreach( $dataElement in $availableDataElements )
+					<option value='$dataElement.id'>$dataElement.displayName</option>
 				#end
 			</select>
         </td>

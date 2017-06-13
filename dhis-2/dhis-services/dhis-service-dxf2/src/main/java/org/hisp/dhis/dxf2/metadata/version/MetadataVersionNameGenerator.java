@@ -1,5 +1,7 @@
+package org.hisp.dhis.dxf2.metadata.version;
+
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.dxf2.metadata.version;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -60,7 +60,7 @@ public class MetadataVersionNameGenerator
             }
             catch ( NumberFormatException nfe )
             {
-                String message = "Invalid version name found in the db. Please contact system admin";
+                String message = "Invalid version name found: " + versionNameSuffix;
                 log.error( message, nfe );
 
                 throw new MetadataVersionServiceException( message, nfe );

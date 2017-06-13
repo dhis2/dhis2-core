@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.util;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,9 +43,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.message.DeliveryChannel;
-import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -101,7 +98,14 @@ public class SmsUtils
         }
 
         Date date = null;
-        String dateString = message.trim().split( " " )[0];
+        String[] messageSplit = message.trim().split( " " );
+        // The first element in the split is the sms command. If there are only two elements
+        // in the split assume the 2nd is data values, not date.
+        if ( messageSplit.length <= 2 )
+        {
+            return null;
+        }
+        String dateString = messageSplit[1];
         SimpleDateFormat format = new SimpleDateFormat( "ddMM" );
 
         try
@@ -112,7 +116,7 @@ public class SmsUtils
             int year = Calendar.getInstance().get( Calendar.YEAR );
             int month = Calendar.getInstance().get( Calendar.MONTH );
 
-            if ( cal.get( Calendar.MONTH ) < month )
+            if ( cal.get( Calendar.MONTH ) <= month )
             {
                 cal.set( Calendar.YEAR, year );
             }
@@ -208,7 +212,7 @@ public class SmsUtils
         {
             String phoneNumber = user.getPhoneNumber();
 
-            if ( StringUtils.trimToNull( phoneNumber ) != null )
+            if ( phoneNumber != null && !phoneNumber.isEmpty() )
             {
                 recipients.add( phoneNumber );
             }
@@ -269,5 +273,24 @@ public class SmsUtils
         }
 
         return orgUnit;
+    }
+
+    public static String removePhoneNumberPrefix( String number )
+    {
+        if ( number == null )
+        {
+            return null;
+        }
+
+        if ( number.startsWith( "00" ) )
+        {
+            number = number.substring( 2, number.length() );
+        }
+        else if ( number.startsWith( "+" ) )
+        {
+            number = number.substring( 1, number.length() );
+        }
+
+        return number;
     }
 }

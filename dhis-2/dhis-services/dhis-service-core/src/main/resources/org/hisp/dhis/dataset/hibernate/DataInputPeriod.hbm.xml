@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  >
+<hibernate-mapping>
+  <class name="org.hisp.dhis.dataset.DataInputPeriod" table="datainputperiod">
+    <cache usage="read-write" />
+
+    <id name="id" column="datainputperiodid">
+      <generator class="native" />
+    </id>
+
+    <many-to-one name="period" class="org.hisp.dhis.period.Period" column="periodid" not-null="true" foreign-key="fk_datainputperiod_period" />
+    <property name="openingDate" column="openingdate" not-null="false" />
+    <property name="closingDate" column="closingdate" not-null="false" />
+
+  </class>
+</hibernate-mapping>

@@ -1,7 +1,7 @@
 package org.hisp.dhis.resourcetable.table;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,17 +28,16 @@ package org.hisp.dhis.resourcetable.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST;
+import com.google.common.collect.Lists;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.resourcetable.ResourceTable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.resourcetable.ResourceTable;
-
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST;
 
 /**
  * @author Lars Helge Overland
@@ -62,7 +61,8 @@ public class CategoryOptionComboNameResourceTable
     {
         return "create table " + getTempTableName() + 
             " (categoryoptioncomboid integer not null primary key, " +
-            "categoryoptioncomboname varchar(255), approvallevel integer)";
+            "categoryoptioncomboname varchar(255), approvallevel integer, " +
+            "startdate date, enddate date)";
     }
 
     @Override
@@ -91,6 +91,8 @@ public class CategoryOptionComboNameResourceTable
                 values.add( coc.getId() );
                 values.add( coc.getName() );
                 values.add( coc.isIgnoreApproval() ? APPROVAL_LEVEL_HIGHEST : null );
+                values.add( coc.getLatestStartDate() );
+                values.add( coc.getEarliestEndDate() );
 
                 batchArgs.add( values.toArray() );
             }

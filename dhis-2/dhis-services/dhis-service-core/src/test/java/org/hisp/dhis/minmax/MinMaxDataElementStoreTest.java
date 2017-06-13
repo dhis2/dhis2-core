@@ -87,7 +87,8 @@ public class MinMaxDataElementStoreTest
         MinMaxDataElement minMaxDataElement3 = new MinMaxDataElement( source2, dataElement3, optionCombo, 0, 100, false );
         MinMaxDataElement minMaxDataElement4 = new MinMaxDataElement( source2, dataElement4, optionCombo, 0, 100, false );
 
-        int mmdeid1 = minMaxDataElementStore.save( minMaxDataElement1 );
+        minMaxDataElementStore.save( minMaxDataElement1 );
+        int mmdeid1 = minMaxDataElement1.getId();
         minMaxDataElementStore.save( minMaxDataElement2 );
         minMaxDataElementStore.save( minMaxDataElement3 );
         minMaxDataElementStore.save( minMaxDataElement4 );

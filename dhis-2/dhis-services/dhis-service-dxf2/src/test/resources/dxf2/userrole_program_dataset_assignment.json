@@ -1,22 +1,4 @@
 {
-  "programStageDataElements": [
-    {
-      "programStage": {
-        "id": "vnLGLc5Yfht"
-      },
-      "id": "uZkc320l9l4",
-      "lastUpdated": "2016-03-31T05:16:32.701+0000",
-      "dataElement": {
-        "id": "ZvMSusTCqz4"
-      },
-      "allowFutureDate": false,
-      "compulsory": false,
-      "displayInReports": true,
-      "sortOrder": 0,
-      "created": "2016-03-31T05:16:32.701+0000",
-      "allowProvidedElsewhere": false
-    }
-  ],
   "organisationUnits": [
     {
       "id": "akbbc91qpUc",
@@ -98,22 +80,6 @@
       "fieldCombinationRequired": false
     }
   ],
-  "programTrackedEntityAttributes": [
-    {
-      "created": "2016-03-31T05:16:08.202+0000",
-      "id": "QSWm5Yk4nYK",
-      "trackedEntityAttribute": {
-        "id": "DmvXbwPCYgm"
-      },
-      "program": {
-        "id": "MBhDW2M2mtT"
-      },
-      "allowFutureDate": false,
-      "lastUpdated": "2016-03-31T05:16:08.202+0000",
-      "displayInList": true,
-      "mandatory": false
-    }
-  ],
   "categories": [
     {
       "lastUpdated": "2016-03-31T05:10:45.115+0000",
@@ -140,7 +106,20 @@
       },
       "programStageDataElements": [
         {
-          "id": "uZkc320l9l4"
+          "programStage": {
+            "id": "vnLGLc5Yfht"
+          },
+          "id": "uZkc320l9l4",
+          "lastUpdated": "2016-03-31T05:16:32.701+0000",
+          "dataElement": {
+            "id": "ZvMSusTCqz4"
+          },
+          "allowFutureDate": false,
+          "compulsory": false,
+          "displayInReports": true,
+          "sortOrder": 0,
+          "created": "2016-03-31T05:16:32.701+0000",
+          "allowProvidedElsewhere": false
         }
       ],
       "validCompleteOnly": false,
@@ -397,7 +376,18 @@
       "selectIncidentDatesInFuture": false,
       "programTrackedEntityAttributes": [
         {
-          "id": "QSWm5Yk4nYK"
+          "created": "2016-03-31T05:16:08.202+0000",
+          "id": "QSWm5Yk4nYK",
+          "trackedEntityAttribute": {
+            "id": "DmvXbwPCYgm"
+          },
+          "program": {
+            "id": "MBhDW2M2mtT"
+          },
+          "allowFutureDate": false,
+          "lastUpdated": "2016-03-31T05:16:08.202+0000",
+          "displayInList": true,
+          "mandatory": false
         }
       ],
       "lastUpdated": "2016-03-31T05:16:13.196+0000",
@@ -420,6 +410,7 @@
       "displayOnVisitSchedule": false,
       "confidential": false,
       "valueType": "TEXT",
+      "aggregationType": "NONE",
       "displayInListNoProgram": false,
       "name": "TrackedEntityAttributeA",
       "orgunitScope": false,

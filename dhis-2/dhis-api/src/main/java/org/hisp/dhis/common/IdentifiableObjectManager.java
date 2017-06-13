@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -103,6 +103,8 @@ public interface IdentifiableObjectManager
     <T extends IdentifiableObject> List<T> getAllByAttributes( Class<T> klass, List<Attribute> attributes );
 
     <T extends IdentifiableObject> List<T> getByUid( Class<T> clazz, Collection<String> uids );
+    
+    <T extends IdentifiableObject> List<T> getById( Class<T> clazz, Collection<Integer> ids );
 
     <T extends IdentifiableObject> List<T> getByUidOrdered( Class<T> clazz, List<String> uids );
 
@@ -170,6 +172,8 @@ public interface IdentifiableObjectManager
 
     void refresh( Object object );
 
+    void flush();
+
     void evict( Object object );
 
     <T extends IdentifiableObject> List<AttributeValue> getAttributeValueByAttribute( Class<T> klass, Attribute attribute );
@@ -201,4 +205,6 @@ public interface IdentifiableObjectManager
     <T extends IdentifiableObject> List<T> getBetweenNoAcl( Class<T> clazz, int first, int max );
 
     void updateTranslations( IdentifiableObject persistedObject, Set<ObjectTranslation> translations );
+
+    <T extends IdentifiableObject> List<T> get( Class<T> clazz, Collection<String> uids );
 }

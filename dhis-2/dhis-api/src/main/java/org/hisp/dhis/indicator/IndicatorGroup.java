@@ -1,7 +1,7 @@
 package org.hisp.dhis.indicator;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
@@ -48,7 +47,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "indicatorGroup", namespace = DxfNamespaces.DXF_2_0 )
 public class IndicatorGroup
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     private Set<Indicator> members = new HashSet<>();
 
@@ -112,13 +111,6 @@ public class IndicatorGroup
     // Getters and setters
     // -------------------------------------------------------------------------
 
-
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
-
     @JsonProperty( "indicators" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "indicators", namespace = DxfNamespaces.DXF_2_0 )
@@ -145,32 +137,5 @@ public class IndicatorGroup
     public void setGroupSet( IndicatorGroupSet groupSet )
     {
         this.groupSet = groupSet;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            IndicatorGroup indicatorGroup = (IndicatorGroup) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                groupSet = indicatorGroup.getGroupSet();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                groupSet = indicatorGroup.getGroupSet() == null ? groupSet : indicatorGroup.getGroupSet();
-            }
-
-            removeAllIndicators();
-
-            for ( Indicator indicator : indicatorGroup.getMembers() )
-            {
-                addIndicator( indicator );
-            }
-        }
     }
 }

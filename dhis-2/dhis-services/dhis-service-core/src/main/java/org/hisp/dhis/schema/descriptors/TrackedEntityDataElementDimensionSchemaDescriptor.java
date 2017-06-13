@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema.descriptors;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,12 +46,6 @@ public class TrackedEntityDataElementDimensionSchemaDescriptor implements Schema
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( TrackedEntityDataElementDimension.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setMetadata( false );
-        schema.setShareable( false );
-        schema.setOrder( 1490 );
-
-        return schema;
+        return new Schema( TrackedEntityDataElementDimension.class, SINGULAR, PLURAL );
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,30 +29,30 @@ package org.hisp.dhis.common;
  */
 
 /**
-* @author Lars Helge Overland
-*/
+ * @author Lars Helge Overland
+ */
 public enum ReportingRateMetric
 {
-    REPORTING_RATE( "reporting_rate", "Reporting rate" ), 
+    REPORTING_RATE( "reporting_rate", "Reporting rate" ),
     REPORTING_RATE_ON_TIME( "reporting_rate_on_time", "Reporting rate on time" ),
-    ACTUAL_REPORTS( "actual_reports", "Actual reports" ), 
+    ACTUAL_REPORTS( "actual_reports", "Actual reports" ),
     ACTUAL_REPORTS_ON_TIME( "actual_reports_on_time", "Actual reports on time" ),
     EXPECTED_REPORTS( "expected_reports", "Expected reports" );
-    
+
     private String key;
-    
+
     private String displayName;
-    
-    private ReportingRateMetric( String key, String displayName )
+
+    ReportingRateMetric( String key, String displayName )
     {
         this.displayName = displayName;
     }
-    
+
     public String key()
     {
         return key;
     }
-    
+
     public String displayName()
     {
         return displayName;

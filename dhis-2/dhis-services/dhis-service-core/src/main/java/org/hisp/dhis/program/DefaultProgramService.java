@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,6 @@ package org.hisp.dhis.program;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
@@ -79,20 +78,6 @@ public class DefaultProgramService
         this.organisationUnitService = organisationUnitService;
     }
 
-    private DataElementService dataElementService;
-
-    public void setDataElementService( DataElementService dataElementService )
-    {
-        this.dataElementService = dataElementService;
-    }
-
-    private ProgramDataElementStore programDataElementStore;
-
-    public void setProgramDataElementStore( ProgramDataElementStore programDataElementStore )
-    {
-        this.programDataElementStore = programDataElementStore;
-    }
-
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------
@@ -100,7 +85,8 @@ public class DefaultProgramService
     @Override
     public int addProgram( Program program )
     {
-        return programStore.save( program );
+        programStore.save( program );
+        return program.getId();
     }
 
     @Override
@@ -202,12 +188,12 @@ public class DefaultProgramService
     @Override
     public Set<Program> getUserPrograms( User user )
     {
-        if ( user != null )
+        if ( user == null || user.isSuper() )
         {
-            return user.isSuper() ? Sets.newHashSet( getAllPrograms() ) : user.getUserCredentials().getAllPrograms();
+            return Sets.newHashSet( getAllPrograms() );
         }
 
-        return Sets.newHashSet();
+        return user.getUserCredentials().getAllPrograms();
     }
 
     @Override
@@ -238,51 +224,13 @@ public class DefaultProgramService
     // ProgramDataElement
     // -------------------------------------------------------------------------
 
-    @Override
-    public ProgramDataElement getOrAddProgramDataElement( String programUid, String dataElementUid )
-    {
-        Program program = programStore.getByUid( programUid );
-
-        DataElement dataElement = dataElementService.getDataElement( dataElementUid );
-
-        if ( program == null || dataElement == null )
-        {
-            return null;
-        }
-
-        ProgramDataElement programDataElement = programDataElementStore.get( program, dataElement );
-
-        if ( programDataElement == null )
-        {
-            programDataElement = new ProgramDataElement( program, dataElement );
-
-            programDataElementStore.save( programDataElement );
-        }
-
-        return programDataElement;
-    }
 
     @Override
-    public ProgramDataElement getProgramDataElement( String programUid, String dataElementUid )
-    {
-        Program program = programStore.getByUid( programUid );
-
-        DataElement dataElement = dataElementService.getDataElement( dataElementUid );
-
-        if ( program == null || dataElement == null )
-        {
-            return null;
-        }
-
-        return new ProgramDataElement( program, dataElement );
-    }
-
-    @Override
-    public List<ProgramDataElement> getGeneratedProgramDataElements( String programUid )
+    public List<ProgramDataElementDimensionItem> getGeneratedProgramDataElements( String programUid )
     {
         Program program = getProgram( programUid );
 
-        List<ProgramDataElement> programDataElements = Lists.newArrayList();
+        List<ProgramDataElementDimensionItem> programDataElements = Lists.newArrayList();
 
         if ( program == null )
         {
@@ -291,7 +239,7 @@ public class DefaultProgramService
 
         for ( DataElement element : program.getDataElements() )
         {
-            programDataElements.add( new ProgramDataElement( program, element ) );
+            programDataElements.add( new ProgramDataElementDimensionItem( program, element ) );
         }
 
         Collections.sort( programDataElements );

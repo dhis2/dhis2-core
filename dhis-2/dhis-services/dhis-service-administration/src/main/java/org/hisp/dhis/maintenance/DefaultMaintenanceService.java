@@ -1,29 +1,27 @@
 package org.hisp.dhis.maintenance;
 
-import java.util.Collections;
-import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeleteNotAllowedException;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.commons.util.PageRange;
+import org.hisp.dhis.dataapproval.DataApprovalAuditService;
 import org.hisp.dhis.dataapproval.DataApprovalService;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserInvitationStatus;
-import org.hisp.dhis.user.UserQueryParams;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.user.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
+import java.util.List;
+
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -94,9 +92,12 @@ public class DefaultMaintenanceService
     
     @Autowired
     private CompleteDataSetRegistrationService completeRegistrationService;
-    
+
     @Autowired
     private DataApprovalService dataApprovalService;
+
+    @Autowired
+    private DataApprovalAuditService dataApprovalAuditService;
 
     // -------------------------------------------------------------------------
     // MaintenanceService implementation
@@ -121,7 +122,37 @@ public class DefaultMaintenanceService
         
         return result;
     }
-    
+
+    @Override
+    public int deleteSoftDeletedProgramStageInstances()
+    {
+        int result = maintenanceStore.deleteSoftDeletedProgramStageInstances();
+
+        log.info( "Permanently deleted soft deleted events: " + result );
+
+        return result;
+    }
+
+    @Override
+    public int deleteSoftDeletedProgramInstances()
+    {
+        int result = maintenanceStore.deleteSoftDeletedProgramInstances();
+
+        log.info( "Permanently deleted soft deleted enrollments: " + result );
+
+        return result;
+    }
+
+    @Override
+    public int deleteSoftDeletedTrackedEntityInstances()
+    {
+        int result = maintenanceStore.deleteSoftDeletedTrackedEntityInstances();
+
+        log.info( "Permanently deleted soft deleted tracked entity instances: " + result );
+
+        return result;
+    }
+
     @Override
     public void prunePeriods()
     {
@@ -152,14 +183,35 @@ public class DefaultMaintenanceService
         {
             return false;
         }
-        
+
         dataApprovalService.deleteDataApprovals( organisationUnit );
+        dataApprovalAuditService.deleteDataApprovalAudits( organisationUnit );
         completeRegistrationService.deleteCompleteDataSetRegistrations( organisationUnit );
         dataValueAuditService.deleteDataValueAudits( organisationUnit );
         dataValueService.deleteDataValues( organisationUnit );
         
         log.info( "Pruned data for organisation unit: " + organisationUnit );
         
+        return true;
+    }
+
+    @Override
+    @Transactional
+    public boolean pruneData( DataElement dataElement )
+    {
+        User user = currentUserService.getCurrentUser();
+
+
+        if ( user == null  || !user.isSuper() )
+        {
+            return false;
+        }
+
+        dataValueAuditService.deleteDataValueAudits( dataElement );
+        dataValueService.deleteDataValues( dataElement );
+
+        log.info( "Pruned data for data element: " + dataElement );
+
         return true;
     }
 

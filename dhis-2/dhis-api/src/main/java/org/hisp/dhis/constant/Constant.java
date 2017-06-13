@@ -1,7 +1,7 @@
 package org.hisp.dhis.constant;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,15 +33,14 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 
 /**
  * @author Dang Duy Hieu
  */
 @JacksonXmlRootElement( localName = "constant", namespace = DxfNamespaces.DXF_2_0 )
 public class Constant
-    extends BaseNameableObject
+    extends BaseNameableObject implements MetadataObject
 {
     // -------------------------------------------------------------------------
     // Variables
@@ -82,17 +81,5 @@ public class Constant
     public void setValue( double value )
     {
         this.value = value;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            Constant constant = (Constant) other;
-            value = constant.getValue();
-        }
     }
 }

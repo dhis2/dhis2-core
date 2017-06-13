@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -140,8 +140,6 @@ public class DataSetDeletionHandler
     @Override
     public void deleteLegendSet( LegendSet legendSet )
     {
-        Collection<DataSet> dataSets = idObjectManager.getAllNoAcl( DataSet.class );
-
         for ( DataSet dataSet : idObjectManager.getAllNoAcl( DataSet.class ) )
         {
             for ( LegendSet ls : dataSet.getLegendSets() )

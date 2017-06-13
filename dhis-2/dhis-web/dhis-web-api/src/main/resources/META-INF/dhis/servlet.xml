@@ -3,11 +3,13 @@
   xmlns="http://www.springframework.org/schema/beans"
   xmlns:context="http://www.springframework.org/schema/context"
   xmlns:sec="http://www.springframework.org/schema/security" xmlns:mvc="http://www.springframework.org/schema/mvc"
-  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
-    http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.2.xsd
-    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+    http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.2.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
-  <sec:global-method-security pre-post-annotations="enabled" />
+  <sec:global-method-security pre-post-annotations="enabled">
+    <sec:expression-handler ref="methodSecurityExpressionHandler" />
+  </sec:global-method-security>
 
   <context:component-scan base-package="org.hisp.dhis.webapi" />
 
@@ -16,7 +18,7 @@
   <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver" />
 
   <bean id="renderServiceMessageConverter"
-    class="org.hisp.dhis.webapi.messageconverter.RenderServiceMessageConverter" />
+    class="org.hisp.dhis.webapi.mvc.messageconverter.RenderServiceMessageConverter" />
 
   <bean id="requestMappingHandlerMapping" class="org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping">
     <property name="contentNegotiationManager" ref="contentNegotiationManager" />
@@ -34,31 +36,31 @@
 
   <bean class="org.springframework.web.util.UrlPathHelper" />
 
-  <bean id="jsonMessageConverter" class="org.hisp.dhis.webapi.messageconverter.JsonMessageConverter">
+  <bean id="jsonMessageConverter" class="org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter">
     <constructor-arg name="compression" value="NONE" />
   </bean>
 
-  <bean id="jsonMessageConverterGZIP" class="org.hisp.dhis.webapi.messageconverter.JsonMessageConverter">
+  <bean id="jsonMessageConverterGZIP" class="org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter">
     <constructor-arg name="compression" value="GZIP" />
   </bean>
 
-  <bean id="jsonMessageConverterZIP" class="org.hisp.dhis.webapi.messageconverter.JsonMessageConverter">
+  <bean id="jsonMessageConverterZIP" class="org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter">
     <constructor-arg name="compression" value="ZIP" />
   </bean>
 
-  <bean id="xmlMessageConverter" class="org.hisp.dhis.webapi.messageconverter.XmlMessageConverter">
+  <bean id="xmlMessageConverter" class="org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter">
     <constructor-arg name="compression" value="NONE" />
   </bean>
 
-  <bean id="xmlMessageConverterGZIP" class="org.hisp.dhis.webapi.messageconverter.XmlMessageConverter">
+  <bean id="xmlMessageConverterGZIP" class="org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter">
     <constructor-arg name="compression" value="GZIP" />
   </bean>
 
-  <bean id="xmlMessageConverterZIP" class="org.hisp.dhis.webapi.messageconverter.XmlMessageConverter">
+  <bean id="xmlMessageConverterZIP" class="org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter">
     <constructor-arg name="compression" value="ZIP" />
   </bean>
 
-  <bean id="jsonPMessageConverter" class="org.hisp.dhis.webapi.messageconverter.JsonPMessageConverter" />
+  <bean id="jsonPMessageConverter" class="org.hisp.dhis.webapi.mvc.messageconverter.JsonPMessageConverter" />
 
   <bean id="stringHttpMessageConverter" class="org.springframework.http.converter.StringHttpMessageConverter" />
 
@@ -105,6 +107,12 @@
       <bean class="org.springframework.web.bind.support.ConfigurableWebBindingInitializer">
         <property name="conversionService" ref="conversionService" />
       </bean>
+    </property>
+    <property name="customArgumentResolvers">
+      <list>
+        <ref bean="currentUserHandlerMethodArgumentResolver" />
+        <ref bean="dhisApiVersionHandlerMethodArgumentResolver" />
+      </list>
     </property>
     <property name="messageConverters">
       <list>

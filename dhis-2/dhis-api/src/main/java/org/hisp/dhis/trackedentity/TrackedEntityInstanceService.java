@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -124,34 +124,35 @@ public interface TrackedEntityInstanceService
     /**
      * Returns a TrackedEntityInstanceQueryParams based on the given input.
      *
-     * @param query                             the query string.
-     * @param attribute                         the set of attributes.
-     * @param filter                            the set of filters.
-     * @param ou                                the set of organisation unit identifiers.
-     * @param ouMode                            the OrganisationUnitSelectionMode.
-     * @param program                           the Program identifier.
-     * @param programStatus                     the ProgramStatus in the given program.
-     * @param followUp                          indicates follow up status in the given Program.
-     * @param programEnrollmentStartDate        the start date for enrollment in the given
-     *                                          Program.
-     * @param programEnrollmentEndDate          the end date for enrollment in the given Program.
-     * @param programIncidentStartDate          the start date for incident in the given Program.
-     * @param programIncidentEndDate            the end date for enrollment in the given Program.
-     * @param trackedEntity                     the TrackedEntity uid.
-     * @param eventStatus                       the event status for the given Program.
-     * @param eventStartDate                    the event start date for the given Program.
-     * @param eventEndDate                      the event end date for the given Program.
-     * @param skipMeta                          indicates whether to include meta data in the response.
-     * @param page                              the page number.
-     * @param pageSize                          the page size.
-     * @param totalPages                        indicates whether to include the total number of pages.
-     * @param skipPaging                        whether to skip paging.
+     * @param query                      the query string.
+     * @param attribute                  the set of attributes.
+     * @param filter                     the set of filters.
+     * @param ou                         the set of organisation unit identifiers.
+     * @param ouMode                     the OrganisationUnitSelectionMode.
+     * @param program                    the Program identifier.
+     * @param programStatus              the ProgramStatus in the given program.
+     * @param followUp                   indicates follow up status in the given Program.
+     * @param programEnrollmentStartDate the start date for enrollment in the given
+     *                                   Program.
+     * @param programEnrollmentEndDate   the end date for enrollment in the given Program.
+     * @param programIncidentStartDate   the start date for incident in the given Program.
+     * @param programIncidentEndDate     the end date for enrollment in the given Program.
+     * @param trackedEntity              the TrackedEntity uid.
+     * @param eventStatus                the event status for the given Program.
+     * @param eventStartDate             the event start date for the given Program.
+     * @param eventEndDate               the event end date for the given Program.
+     * @param skipMeta                   indicates whether to include meta data in the response.
+     * @param page                       the page number.
+     * @param pageSize                   the page size.
+     * @param totalPages                 indicates whether to include the total number of pages.
+     * @param skipPaging                 whether to skip paging.
+     * @param includeDeleted             whether to include soft deleted items
      * @return a TrackedEntityInstanceQueryParams.
      */
     TrackedEntityInstanceQueryParams getFromUrl( String query, Set<String> attribute, Set<String> filter,
         Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
-        Boolean followUp, Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate, Date programIncidentEndDate, String trackedEntity, EventStatus eventStatus,
-        Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging );
+        Boolean followUp, Date lastUpdatedStart, Date lastUpdatedEndDate, Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate, Date programIncidentEndDate, String trackedEntity, EventStatus eventStatus,
+        Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, List<String> orders );
 
     /**
      * Decides whether current user is authorized to perform the given query.
@@ -181,11 +182,20 @@ public interface TrackedEntityInstanceService
     int addTrackedEntityInstance( TrackedEntityInstance entityInstance );
 
     /**
-     * Deletes a {@link TrackedEntityInstance}.
+     * Soft deletes a {@link TrackedEntityInstance}.
      *
      * @param entityInstance the TrackedEntityInstance to delete.
      */
     void deleteTrackedEntityInstance( TrackedEntityInstance entityInstance );
+
+    /**
+     * Deletes a {@link TrackedEntityInstance}. Depending on forceDelete, the TEI will either be
+     * soft deleted (false) or hard deleted (true)
+     *
+     * @param instance to be deleted
+     * @param forceDelete hard or soft delete
+     */
+    void deleteTrackedEntityInstance( TrackedEntityInstance instance, boolean forceDelete );
 
     /**
      * Updates a {@link TrackedEntityInstance}.

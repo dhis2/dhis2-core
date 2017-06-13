@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+<hibernate-mapping>
+  <class name="org.hisp.dhis.validation.notification.ValidationNotificationTemplate"
+    table="validationnotificationtemplate">
+
+    <id name="id" column="validationnotificationtemplateid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="false" length="230" />
+
+    <property name="subjectTemplate" column="subjecttemplate" not-null="false" length="100" />
+
+    <property name="messageTemplate" column="messagetemplate" not-null="false" type="text" />
+
+    <property name="notifyUsersInHierarchyOnly" column="notifyusersinhierarchyonly" />
+
+    <property name="sendStrategy" length="50" column="sendstrategy">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.notification.SendStrategy</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <set name="recipientUserGroups">
+      <key column="validationnotificationtemplateid" foreign-key="fk_validationnotificationtemplate_usergroup" not-null="false" />
+      <many-to-many class="org.hisp.dhis.user.UserGroup" column="usergroupid" />
+    </set>
+
+    <set name="validationRules" table="validationnotificationtemplatevalidationrules">
+      <key column="validationnotificationtemplateid" />
+      <many-to-many class="org.hisp.dhis.validation.ValidationRule" column="validationruleid" />
+    </set>
+
+  </class>
+
+</hibernate-mapping>

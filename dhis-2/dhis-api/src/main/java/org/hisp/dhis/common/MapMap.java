@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,13 +54,21 @@ public class MapMap<T, U, V>
         this.put( key, map );
     }
 
+    public void putMap( MapMap<T, U, V> map )
+    {
+        for ( Map.Entry<T, Map<U, V>> entry : map.entrySet() )
+        {
+            this.putEntries( entry.getKey(), entry.getValue() );
+        }
+    }
+    
     public V getValue( T key, U valueKey )
     {
         return this.get( key ) == null ? null : this.get( key ).get( valueKey );
     }
     
     @SafeVarargs
-    public static final <T, U, V> MapMap<T, U, V> asMapMap( final AbstractMap.SimpleEntry<T, Map<U, V>>... entries )
+    public static <T, U, V> MapMap<T, U, V> asMapMap( final AbstractMap.SimpleEntry<T, Map<U, V>>... entries )
     {
         MapMap<T, U, V> map = new MapMap<>();
 

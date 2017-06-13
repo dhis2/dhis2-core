@@ -28,33 +28,14 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.collect.Sets.newHashSet;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
-import org.hisp.dhis.dataelement.CategoryOptionGroup;
-import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataelement.hibernate.HibernateCategoryOptionGroupStore;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -64,20 +45,15 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupAccess;
-import org.hisp.dhis.user.UserGroupAccessService;
-import org.hisp.dhis.user.UserGroupService;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.*;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
+import java.util.*;
+
+import static com.google.common.collect.Sets.newHashSet;
+import static org.junit.Assert.*;
 
 /**
  * @author Jim Grace
@@ -223,7 +199,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
 
         for ( UserAuthorityGroup role : credentials.getUserAuthorityGroups() )
         {
-            role.setName( CodeGenerator.generateCode() ); // Give the role an arbitrary name
+            role.setName( CodeGenerator.generateUid() ); // Give the role an arbitrary name
 
             userService.addUserAuthorityGroup( role );
         }
@@ -251,7 +227,8 @@ public class DataApprovalServiceCategoryOptionGroupTest
     {
         Set<User> users = new HashSet<>();
 
-        for ( CurrentUserService mock : mockServices ) {
+        for ( CurrentUserService mock : mockServices ) 
+        {
             users.add( mock.getCurrentUser() );
         }
 
@@ -454,10 +431,10 @@ public class DataApprovalServiceCategoryOptionGroupTest
         partners.addCategoryOptionGroup( partner1 );
         partners.addCategoryOptionGroup( partner2 );
 
-        agencyA.setGroupSet( agencies );
-        agencyB.setGroupSet( agencies );
-        partner1.setGroupSet( partners );
-        partner2.setGroupSet( partners );
+        agencyA.getGroupSets().add( agencies );
+        agencyB.getGroupSets().add( agencies );
+        partner1.getGroupSets().add( partners );
+        partner2.getGroupSets().add( partners );
 
         categoryService.updateCategoryOptionGroupSet( partners );
         categoryService.updateCategoryOptionGroupSet( agencies );
@@ -488,7 +465,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
         dataApprovalService.addWorkflow( workflowAll );
         dataApprovalService.addWorkflow( workflowAgency );
 
-        systemSettingManager.saveSystemSetting( SettingKey.HIDE_UNAPPROVED_DATA_IN_ANALYTICS, true );
+        systemSettingManager.saveSystemSetting( SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD, 0 );
         systemSettingManager.saveSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL, true );
     }
 
@@ -507,7 +484,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
         setDependency( organisationUnitService, "currentUserService", currentUserService, CurrentUserService.class );
         setDependency( hibernateCategoryOptionGroupStore, "currentUserService", currentUserService, CurrentUserService.class );
 
-        systemSettingManager.saveSystemSetting( SettingKey.HIDE_UNAPPROVED_DATA_IN_ANALYTICS, false );
+        systemSettingManager.saveSystemSetting( SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD, -1 );
         systemSettingManager.saveSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL, false );
 
         DataApprovalPermissionsEvaluator.invalidateCache();

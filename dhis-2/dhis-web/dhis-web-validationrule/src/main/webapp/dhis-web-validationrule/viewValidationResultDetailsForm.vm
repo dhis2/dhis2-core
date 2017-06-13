@@ -10,11 +10,11 @@
     </tr>
     <tr>
     	<td>$i18n.getString( "name" )</th>
-    	<td>$encoder.htmlEncode( $!validationRule.name )</td>
+    	<td>$!encoder.htmlEncode( $validationRule.name )</td>
     </tr>
     <tr>
     	<td>$i18n.getString( "description" )</td>
-    	<td>$encoder.htmlEncode( $!validationRule.description )</td>
+    	<td>$!encoder.htmlEncode( $validationRule.description )</td>
     </tr>
 </table>
 

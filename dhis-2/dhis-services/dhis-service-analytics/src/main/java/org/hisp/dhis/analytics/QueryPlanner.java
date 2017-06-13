@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -91,7 +91,7 @@ public interface QueryPlanner
      * 
      * @param params the data query parameters.
      * @param plannerParams the query planner parameters.
-     * @return a DataQueryGroups object.
+     * @return a {@link DataQueryGroups} object.
      */
     DataQueryGroups planQuery( DataQueryParams params, QueryPlannerParams plannerParams  )
         throws IllegalQueryException;

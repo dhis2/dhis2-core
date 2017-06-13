@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,14 +29,19 @@ package org.hisp.dhis.program;
  */
 
 import com.google.common.collect.ImmutableMap;
+
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.commons.sqlfunc.ConditionalSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.DaysBetweenSqlFunction;
+import org.hisp.dhis.commons.sqlfunc.MonthsBetweenSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.OneIfZeroOrPositiveSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.SqlFunction;
+import org.hisp.dhis.commons.sqlfunc.WeeksBetweenSqlFunction;
+import org.hisp.dhis.commons.sqlfunc.YearsBetweenSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.ZeroIfNegativeSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.ZeroPositiveValueCountFunction;
+import org.hisp.dhis.commons.sqlfunc.HasValueSqlFunction;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.Constant;
@@ -53,6 +58,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -71,7 +77,29 @@ public class DefaultProgramIndicatorService
         put( OneIfZeroOrPositiveSqlFunction.KEY, new OneIfZeroOrPositiveSqlFunction() ).
         put( ZeroPositiveValueCountFunction.KEY, new ZeroPositiveValueCountFunction() ).
         put( DaysBetweenSqlFunction.KEY, new DaysBetweenSqlFunction() ).
-        put( ConditionalSqlFunction.KEY, new ConditionalSqlFunction() ).build();
+        put( WeeksBetweenSqlFunction.KEY, new WeeksBetweenSqlFunction() ).
+        put( MonthsBetweenSqlFunction.KEY, new MonthsBetweenSqlFunction() ).
+        put( YearsBetweenSqlFunction.KEY, new YearsBetweenSqlFunction() ).
+        put( ConditionalSqlFunction.KEY, new ConditionalSqlFunction() ).
+        put( HasValueSqlFunction.KEY, new HasValueSqlFunction() ).build();
+    
+    private static final Map<String, String> VARIABLE_SAMPLE_VALUE_MAP = ImmutableMap.<String, String>builder().
+        put( ProgramIndicator.VAR_COMPLETED_DATE, "'2017-07-08'" ).
+        put( ProgramIndicator.VAR_CURRENT_DATE, "'2017-07-08'" ).
+        put( ProgramIndicator.VAR_DUE_DATE, "'2017-07-08'" ).
+        put( ProgramIndicator.VAR_ENROLLMENT_COUNT, "1" ).
+        put( ProgramIndicator.VAR_ENROLLMENT_DATE, "'2017-07-08'" ).
+        put( ProgramIndicator.VAR_ENROLLMENT_STATUS, "'COMPLETED'" ).
+        put( ProgramIndicator.VAR_EVENT_COUNT, "1" ).
+        put( ProgramIndicator.VAR_EVENT_DATE, "'2017-07-08'" ).
+        put( ProgramIndicator.VAR_EXECUTION_DATE, "'2017-07-08'" ).
+        put( ProgramIndicator.VAR_INCIDENT_DATE, "'2017-07-08'" ).
+        put( ProgramIndicator.VAR_ANALYTICS_PERIOD_START, "'2017-07-08'" ).
+        put( ProgramIndicator.VAR_PROGRAM_STAGE_ID, "'WZbXY0S00lP'" ).
+        put( ProgramIndicator.VAR_PROGRAM_STAGE_NAME, "'First antenatal care visit'" ).
+        put( ProgramIndicator.VAR_TEI_COUNT, "1" ).
+        put( ProgramIndicator.VAR_VALUE_COUNT, "1" ).
+        put( ProgramIndicator.VAR_ZERO_POS_VALUE_COUNT, "1" ).build();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -137,7 +165,8 @@ public class DefaultProgramIndicatorService
     @Transactional
     public int addProgramIndicator( ProgramIndicator programIndicator )
     {
-        return programIndicatorStore.save( programIndicator );
+        programIndicatorStore.save( programIndicator );
+        return programIndicator.getId();
     }
 
     @Override
@@ -173,13 +202,6 @@ public class DefaultProgramIndicatorService
     public ProgramIndicator getProgramIndicatorByUid( String uid )
     {
         return programIndicatorStore.getByUid( uid );
-    }
-
-    @Override
-    @Transactional
-    public ProgramIndicator getProgramIndicatorByShortName( String shortName )
-    {
-        return programIndicatorStore.getByShortName( shortName );
     }
 
     @Override
@@ -259,13 +281,13 @@ public class DefaultProgramIndicatorService
     }
 
     @Override
-    public String getAnalyticsSQl( String expression )
+    public String getAnalyticsSQl( String expression, AnalyticsType analyticsType, Date startDate, Date endDate )
     {
-        return getAnalyticsSQl( expression, true );
+        return getAnalyticsSQl( expression, analyticsType, true, startDate, endDate );
     }
 
     @Override
-    public String getAnalyticsSQl( String expression, boolean ignoreMissingValues )
+    public String getAnalyticsSQl( String expression, AnalyticsType analyticsType, boolean ignoreMissingValues, Date startDate, Date endDate )
     {
         if ( expression == null )
         {
@@ -273,17 +295,18 @@ public class DefaultProgramIndicatorService
         }
 
         expression = TextUtils.removeNewlines( expression );
+        
+        expression = getSubstitutedVariablesForAnalyticsSql( expression, analyticsType, startDate, endDate );
 
-        expression = getSubstitutedVariablesForAnalyticsSql( expression );
-
-        expression = getSubstitutedFunctionsAnalyticsSql( expression, false );
-
-        expression = getSubstitutedElementsAnalyticsSql( expression, ignoreMissingValues );
+        expression = getSubstitutedFunctionsAnalyticsSql( expression, false, analyticsType );
+        
+        expression = getSubstitutedElementsAnalyticsSql( expression, ignoreMissingValues, analyticsType );
 
         return expression;
     }
 
-    private String getSubstitutedFunctionsAnalyticsSql( String expression, boolean ignoreMissingValues )
+    private String getSubstitutedFunctionsAnalyticsSql( String expression, boolean ignoreMissingValues, 
+        AnalyticsType analyticsType )
     {
         if ( expression == null )
         {
@@ -305,7 +328,7 @@ public class DefaultProgramIndicatorService
 
                 for ( int i = 0; i < args.length; i++ )
                 {
-                    String arg = getSubstitutedElementsAnalyticsSql( trim( args[i] ), false );
+                    String arg = getSubstitutedElementsAnalyticsSql( trim( args[i] ), false, analyticsType );
                     args[i] = arg;
                 }
 
@@ -325,7 +348,7 @@ public class DefaultProgramIndicatorService
         return TextUtils.appendTail( matcher, buffer );
     }
 
-    private String getSubstitutedVariablesForAnalyticsSql( String expression )
+    private String getSubstitutedVariablesForAnalyticsSql( String expression, AnalyticsType analyticsType, Date startDate, Date endDate )
     {
         if ( expression == null )
         {
@@ -340,7 +363,7 @@ public class DefaultProgramIndicatorService
         {
             String var = matcher.group( 1 );
 
-            String sql = getVariableAsSql( var, expression );
+            String sql = getVariableAsSql( var, expression, analyticsType, startDate, endDate );
 
             if ( sql != null )
             {
@@ -351,7 +374,7 @@ public class DefaultProgramIndicatorService
         return TextUtils.appendTail( matcher, buffer );
     }
 
-    private String getSubstitutedElementsAnalyticsSql( String expression, boolean ignoreMissingValues )
+    private String getSubstitutedElementsAnalyticsSql( String expression, boolean ignoreMissingValues, AnalyticsType analyticsType  )
     {
         if ( expression == null )
         {
@@ -360,25 +383,44 @@ public class DefaultProgramIndicatorService
 
         StringBuffer buffer = new StringBuffer();
 
-        Matcher matcher = ProgramIndicator.EXPRESSION_PATTERN.matcher( expression );
+        Matcher matcher = ProgramIndicator.EXPRESSION_EQUALSZEROOREMPTY_PATTERN.matcher( expression );
 
         while ( matcher.find() )
         {
             String key = matcher.group( 1 );
             String el1 = matcher.group( 2 );
             String el2 = matcher.group( 3 );
+            boolean equalsZero = matcher.group( 4 ) != null && matcher.group( 4 ).matches( ProgramIndicator.EQUALSZERO );
+            boolean equalsEmpty = matcher.group( 4 ) != null && matcher.group( 4 ).matches( ProgramIndicator.EQUALSEMPTY );
 
-            if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
-            {
-                String de = ignoreMissingValues ? getIgnoreNullSql( statementBuilder.columnQuote( el2 ) ) : statementBuilder.columnQuote( el2 );
+            if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) || ProgramIndicator.KEY_ATTRIBUTE.equals( key ) )
+            {                
+                String columnName;
+                
+                if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
+                {
+                    columnName = AnalyticsType.ENROLLMENT == analyticsType ? 
+                        statementBuilder.columnQuote( el1 + ProgramIndicator.DB_SEPARATOR_ID + el2 ) : statementBuilder.columnQuote( el2 );
+                }
+                else // ProgramIndicator.KEY_ATTRIBUTE
+                {                    
+                    columnName = statementBuilder.columnQuote( el1 );
+                }
+                    
+                if ( equalsZero )
+                {
+                    columnName = getNumericIgnoreNullSql( columnName ) + " == 0 ";
+                }
+                else if ( equalsEmpty )
+                {
+                    columnName = getTextIgnoreNullSql( columnName ) + " == '' ";
+                }
+                else if ( ignoreMissingValues )
+                {
+                    columnName = getNumericIgnoreNullSql( columnName );
+                }
 
-                matcher.appendReplacement( buffer, de );
-            }
-            else if ( ProgramIndicator.KEY_ATTRIBUTE.equals( key ) )
-            {
-                String at = ignoreMissingValues ? getIgnoreNullSql( statementBuilder.columnQuote( el1 ) ) : statementBuilder.columnQuote( el1 );
-
-                matcher.appendReplacement( buffer, at );
+                matcher.appendReplacement( buffer, columnName );
             }
             else if ( ProgramIndicator.KEY_CONSTANT.equals( key ) )
             {
@@ -395,9 +437,9 @@ public class DefaultProgramIndicatorService
     }
 
     @Override
-    public String getAnyValueExistsClauseAnalyticsSql( String expression )
+    public String getAnyValueExistsClauseAnalyticsSql( String expression, AnalyticsType analyticsType )
     {
-        Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( expression );
+        Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, analyticsType );
 
         if ( uids.isEmpty() )
         {
@@ -420,7 +462,8 @@ public class DefaultProgramIndicatorService
     {
         String expr = getSubstitutedExpression( expression );
 
-        if ( ProgramIndicator.INVALID_IDENTIFIERS_IN_EXPRESSION.equals( expr ) )
+        if ( ProgramIndicator.INVALID_IDENTIFIERS_IN_EXPRESSION.equals( expr ) 
+            || ProgramIndicator.UNKNOWN_VARIABLE.equals( expr ) )
         {
             return expr;
         }
@@ -439,7 +482,8 @@ public class DefaultProgramIndicatorService
     {
         String expr = getSubstitutedExpression( filter );
 
-        if ( ProgramIndicator.INVALID_IDENTIFIERS_IN_EXPRESSION.equals( expr ) )
+        if ( ProgramIndicator.INVALID_IDENTIFIERS_IN_EXPRESSION.equals( expr )
+            || ProgramIndicator.UNKNOWN_VARIABLE.equals( expr ) )
         {
             return expr;
         }
@@ -451,7 +495,7 @@ public class DefaultProgramIndicatorService
 
         return ProgramIndicator.VALID;
     }
-
+    
     /**
      * Generates an expression where all items are substituted with a sample value
      * in order to maintain a valid expression syntax.
@@ -517,7 +561,16 @@ public class DefaultProgramIndicatorService
             }
             else if ( ProgramIndicator.KEY_PROGRAM_VARIABLE.equals( key ) )
             {
-                matcher.appendReplacement( expr, String.valueOf( 1 ) );
+                String sampleValue = VARIABLE_SAMPLE_VALUE_MAP.get( uid );
+                
+                if ( sampleValue != null )
+                {
+                    matcher.appendReplacement( expr, sampleValue );
+                }
+                else
+                {
+                    return ProgramIndicator.UNKNOWN_VARIABLE;
+                }
             }
         }
 
@@ -539,11 +592,15 @@ public class DefaultProgramIndicatorService
      * @param expression the program indicator expression.
      * @return a SQL select clause.
      */
-    private String getVariableAsSql( String var, String expression )
+    private String getVariableAsSql( String var, String expression, AnalyticsType analyticsType, Date startDate, Date endDate )
     {
         final String dbl = statementBuilder.getDoubleColumnType();
 
-        if ( ProgramIndicator.VAR_EXECUTION_DATE.equals( var ) )
+        if ( ProgramIndicator.VAR_EVENT_DATE.equals( var ) )
+        {
+            return "executiondate";
+        }
+        else if ( ProgramIndicator.VAR_EXECUTION_DATE.equals( var ) )
         {
             return "executiondate";
         }
@@ -559,6 +616,10 @@ public class DefaultProgramIndicatorService
         {
             return "incidentdate";
         }
+        else if ( ProgramIndicator.VAR_ENROLLMENT_STATUS.equals( var ) )
+        {
+            return "enrollmentstatus";
+        }
         else if ( ProgramIndicator.VAR_CURRENT_DATE.equals( var ) )
         {
             return "'" + DateUtils.getLongDateString() + "'";
@@ -567,7 +628,7 @@ public class DefaultProgramIndicatorService
         {
             String sql = "nullif(cast((";
 
-            for ( String uid : ProgramIndicator.getDataElementAndAttributeIdentifiers( expression ) )
+            for ( String uid : ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, analyticsType ) )
             {
                 sql += "case when " + statementBuilder.columnQuote( uid ) + " is not null then 1 else 0 end + ";
             }
@@ -578,7 +639,7 @@ public class DefaultProgramIndicatorService
         {
             String sql = "nullif(cast((";
 
-            for ( String uid : ProgramIndicator.getDataElementAndAttributeIdentifiers( expression ) )
+            for ( String uid : ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, analyticsType ) )
             {
                 sql += "case when " + statementBuilder.columnQuote( uid ) + " >= 0 then 1 else 0 end + ";
             }
@@ -597,13 +658,52 @@ public class DefaultProgramIndicatorService
         {
             return "distinct tei";
         }
+        else if ( ProgramIndicator.VAR_COMPLETED_DATE.equals( var ) )
+        {
+            return "completeddate";
+        }
+        else if ( ProgramIndicator.VAR_PROGRAM_STAGE_NAME.equals( var ) )
+        {
+            if ( AnalyticsType.EVENT == analyticsType )
+            {
+                return "(select name from programstage where uid = ps)";
+            }
+            else
+            {
+                return "''";
+            }
+        }
+        else if ( ProgramIndicator.VAR_PROGRAM_STAGE_ID.equals( var ) )
+        {
+            if ( AnalyticsType.EVENT == analyticsType )
+            {
+                return "ps";
+            }
+            else
+            {
+                return "''";
+            }
+        }
+        else if ( ProgramIndicator.VAR_ANALYTICS_PERIOD_START.equals( var ) )
+        {
+            return "'" + DateUtils.getSqlDateString( startDate ) + "'";
+        }
+        else if ( ProgramIndicator.VAR_ANALYTICS_PERIOD_END.equals( var ) )
+        {
+            return "'" + DateUtils.getSqlDateString( endDate ) + "'";
+        }
 
         return null;
     }
 
-    private String getIgnoreNullSql( String column )
+    private String getNumericIgnoreNullSql( String column )
     {
         return "coalesce(" + column + ",0)";
+    }
+    
+    private String getTextIgnoreNullSql( String column )
+    {
+        return "coalesce(" + column + ",'')";
     }
 
     // -------------------------------------------------------------------------
@@ -614,7 +714,8 @@ public class DefaultProgramIndicatorService
     @Transactional
     public int addProgramIndicatorGroup( ProgramIndicatorGroup programIndicatorGroup )
     {
-        return programIndicatorGroupStore.save( programIndicatorGroup );
+        programIndicatorGroupStore.save( programIndicatorGroup );
+        return programIndicatorGroup.getId();
     }
 
     @Override
@@ -648,36 +749,4 @@ public class DefaultProgramIndicatorService
     {
         return programIndicatorGroupStore.getAll();
     }
-
-    @Override
-    public ProgramIndicatorGroup getProgramIndicatorGroupByName( String name )
-    {
-        return programIndicatorGroupStore.getByName( name );
-    }
-
-    @Override
-    public int getProgramIndicatorGroupCount()
-    {
-        return programIndicatorGroupStore.getCount();
-    }
-
-    @Override
-    public int getProgramIndicatorGroupCountByName( String name )
-    {
-        return programIndicatorGroupStore.getCountLikeName( name );
-    }
-
-    @Override
-    public List<ProgramIndicatorGroup> getProgramIndicatorGroupsBetween( int first, int max )
-    {
-        return  programIndicatorGroupStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    public List<ProgramIndicatorGroup> getProgramIndicatorGroupsBetweenByName( String name, int first, int max )
-    {
-        return programIndicatorGroupStore.getAllLikeName( name, first, max );
-    }
-
-
 }

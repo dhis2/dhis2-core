@@ -1,7 +1,7 @@
 package org.hisp.dhis.eventreport;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,13 +44,14 @@ import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.FontSize;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
@@ -65,7 +66,7 @@ import java.util.List;
 @JacksonXmlRootElement( localName = "eventReport", namespace = DxfNamespaces.DXF_2_0 )
 public class EventReport
     extends BaseAnalyticalObject
-    implements EventAnalyticalObject
+    implements EventAnalyticalObject, MetadataObject
 {
     public static final String DATA_TYPE_AGGREGATED_VALUES = "aggregated_values";
     public static final String DATA_TYPE_INDIVIDUAL_CASES = "individual_cases";
@@ -175,6 +176,16 @@ public class EventReport
      */
     private FontSize fontSize;
 
+    /**
+     * The program status.
+     */
+    private ProgramStatus programStatus;
+    
+    /**
+     * The event status.
+     */
+    private EventStatus eventStatus;
+    
     /**
      * The font size of the text in the table.
      */
@@ -512,6 +523,30 @@ public class EventReport
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramStatus getProgramStatus()
+    {
+        return programStatus;
+    }
+
+    public void setProgramStatus( ProgramStatus programStatus )
+    {
+        this.programStatus = programStatus;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public EventStatus getEventStatus()
+    {
+        return eventStatus;
+    }
+
+    public void setEventStatus( EventStatus eventStatus )
+    {
+        this.eventStatus = eventStatus;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isShowDimensionLabels()
     {
         return showDimensionLabels;
@@ -538,65 +573,5 @@ public class EventReport
     public void setValue( DimensionalItemObject value )
     {
         this.value = value;
-    }
-
-    // -------------------------------------------------------------------------
-    // Merge with
-    // -------------------------------------------------------------------------
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            EventReport report = (EventReport) other;
-
-            rowSubTotals = report.isRowSubTotals();
-            colSubTotals = report.isColSubTotals();
-            hideEmptyRows = report.isHideEmptyRows();
-            hideNaData = report.isHideNaData();
-            rowTotals = report.isRowTotals();
-            colTotals = report.isColTotals();
-            showHierarchy = report.isShowHierarchy();
-            showDimensionLabels = report.isShowDimensionLabels();
-
-            if ( mergeMode.isReplace() )
-            {
-                dataElementValueDimension = report.getDataElementValueDimension();
-                attributeValueDimension = report.getAttributeValueDimension();
-                dataType = report.getDataType();
-                program = report.getProgram();
-                programStage = report.getProgramStage();
-                startDate = report.getStartDate();
-                endDate = report.getEndDate();
-                outputType = report.getOutputType();
-                displayDensity = report.getDisplayDensity();
-                fontSize = report.getFontSize();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                dataElementValueDimension = report.getDataElementValueDimension() == null ? dataElementValueDimension : report.getDataElementValueDimension();
-                attributeValueDimension = report.getAttributeValueDimension() == null ? attributeValueDimension : report.getAttributeValueDimension();
-                dataType = report.getDataType() == null ? dataType : report.getDataType();
-                program = report.getProgram() == null ? program : report.getProgram();
-                programStage = report.getProgramStage() == null ? programStage : report.getProgramStage();
-                startDate = report.getStartDate() == null ? startDate : report.getStartDate();
-                endDate = report.getEndDate() == null ? endDate : report.getEndDate();
-                outputType = report.getOutputType() == null ? outputType : report.getOutputType();
-                displayDensity = report.getDisplayDensity() == null ? displayDensity : report.getDisplayDensity();
-                fontSize = report.getFontSize() == null ? fontSize : report.getFontSize();
-            }
-
-            columnDimensions.clear();
-            columnDimensions.addAll( report.getColumnDimensions() );
-
-            rowDimensions.clear();
-            rowDimensions.addAll( report.getRowDimensions() );
-
-            filterDimensions.clear();
-            filterDimensions.addAll( report.getFilterDimensions() );
-        }
     }
 }

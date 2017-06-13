@@ -8,7 +8,7 @@
 
     <composite-id>
       <key-many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid" foreign-key="fk_datavalue_dataelementid" />
-      <key-many-to-one name="period" class="org.hisp.dhis.period.Period" column="periodid" foreign-key="fk_datavalue_periodid" />      
+      <key-many-to-one name="period" class="org.hisp.dhis.period.Period" column="periodid" foreign-key="fk_datavalue_periodid" />
       <key-many-to-one name="source" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="sourceid" foreign-key="fk_datavalue_organisationunitid" />
       <key-many-to-one name="categoryOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo" column="categoryoptioncomboid" foreign-key="fk_datavalue_categoryoptioncomboid" />
       <key-many-to-one name="attributeOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo" column="attributeoptioncomboid" foreign-key="fk_datavalue_attributeoptioncomboid" />
@@ -18,14 +18,14 @@
 
     <property name="storedBy" column="storedby" />
 
-    <property name="created" column="created" type="timestamp" />
+    <property name="created" column="created" type="timestamp" not-null="true" />
 
-    <property name="lastUpdated" column="lastupdated" type="timestamp" index="in_datavalue_lastupdated" />
+    <property name="lastUpdated" column="lastupdated" type="timestamp" not-null="true" index="in_datavalue_lastupdated" />
 
     <property name="comment" length="50000" />
 
     <property name="followup" />
-    
+
     <property name="deleted" column="deleted" index="in_datavalue_deleted" />
 
   </class>

@@ -1,7 +1,7 @@
 package org.hisp.dhis.minmax;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,13 @@ package org.hisp.dhis.minmax;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.List;
-
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Kristian Nordal
@@ -50,7 +50,11 @@ public interface MinMaxDataElementStore
     List<MinMaxDataElement> get( OrganisationUnit source, DataElement dataElement );  
 
     List<MinMaxDataElement> get( OrganisationUnit source, Collection<DataElement> dataElements );
-    
+
+    List<MinMaxDataElement> query( MinMaxDataElementQueryParams query );
+
+    int countMinMaxDataElements( MinMaxDataElementQueryParams query );
+
     void delete( OrganisationUnit organisationUnit );
     
     void delete( DataElement dataElement );

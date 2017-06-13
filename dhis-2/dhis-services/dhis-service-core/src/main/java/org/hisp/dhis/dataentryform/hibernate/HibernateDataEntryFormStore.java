@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataentryform.hibernate;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@ import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormStore;
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.ProgramStage;
 
 import java.util.List;
@@ -59,14 +58,6 @@ public class HibernateDataEntryFormStore
         return (DataEntryForm) criteria.uniqueResult();
     }
 
-    public DataEntryForm getDataEntryFormByDataSet( DataSet dataSet )
-    {
-        Criteria criteria = getSession().createCriteria( DataEntryForm.class );
-        criteria.add( Restrictions.eq( "dataSet", dataSet ) );
-
-        return (DataEntryForm) criteria.uniqueResult();
-    }
-
     @Override
     @SuppressWarnings( "unchecked" )
     public List<DataEntryForm> listDistinctDataEntryFormByProgramStageIds( List<Integer> programStageIds )
@@ -74,17 +65,6 @@ public class HibernateDataEntryFormStore
         Criteria criteria = getSession().createCriteria( ProgramStage.class );
         criteria.add( Restrictions.in( "id", programStageIds ) ).add( Restrictions.isNotNull( "dataEntryForm" ) );
         criteria.setProjection( Projections.groupProperty( "dataEntryForm" ) );
-
-        return criteria.list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<DataEntryForm> listDistinctDataEntryFormByDataSetIds( List<Integer> dataSetIds )
-    {
-        Criteria criteria = getSession().createCriteria( DataSet.class ).add(
-            Restrictions.in( "dataEntryForm.id", dataSetIds ) ).setProjection(
-            Projections.distinct( Projections.property( "dataEntryForm" ) ) );
 
         return criteria.list();
     }

@@ -365,7 +365,6 @@ public class CriteriaQueryEngineTest
     }
 
     @Test
-    @Ignore
     public void testDoubleEqConjunction()
     {
         Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
@@ -381,7 +380,6 @@ public class CriteriaQueryEngineTest
     }
 
     @Test
-    @Ignore
     public void testDoubleEqDisjunction()
     {
         Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
@@ -400,7 +398,6 @@ public class CriteriaQueryEngineTest
     }
 
     @Test
-    @Ignore
     public void testDateRangeWithConjunction()
     {
         Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
@@ -424,6 +421,17 @@ public class CriteriaQueryEngineTest
     {
         Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
         query.add( Restrictions.isNull( "categoryCombo" ) );
+
+        List<? extends IdentifiableObject> objects = queryEngine.query( query );
+
+        assertEquals( 0, objects.size() );
+    }
+
+    @Test
+    public void testIsNotNull()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
+        query.add( Restrictions.isNotNull( "categoryCombo" ) );
 
         List<? extends IdentifiableObject> objects = queryEngine.query( query );
 

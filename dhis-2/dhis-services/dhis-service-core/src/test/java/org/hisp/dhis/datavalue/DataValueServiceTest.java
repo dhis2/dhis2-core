@@ -31,6 +31,8 @@ package org.hisp.dhis.datavalue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
@@ -48,7 +50,6 @@ import com.google.common.collect.Sets;
 
 /**
  * @author Kristian Nordal
- * @version $Id: DataValueServiceTest.java 5715 2008-09-17 14:05:28Z larshelg $
  */
 public class DataValueServiceTest
     extends DhisSpringTest
@@ -131,12 +132,9 @@ public class DataValueServiceTest
     @Test
     public void testAddDataValue()
     {
-        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo );
-        dataValueA.setValue( "1" );
-        DataValue dataValueB = new DataValue( dataElementB, periodA, sourceA, optionCombo, optionCombo );
-        dataValueB.setValue( "2" );
-        DataValue dataValueC = new DataValue( dataElementC, periodC, sourceA, optionCombo, optionCombo );
-        dataValueC.setValue( "3" );
+        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo, "1" );
+        DataValue dataValueB = new DataValue( dataElementB, periodA, sourceA, optionCombo, optionCombo, "2" );
+        DataValue dataValueC = new DataValue( dataElementC, periodC, sourceA, optionCombo, optionCombo, "3" );
 
         dataValueService.addDataValue( dataValueA );
         dataValueService.addDataValue( dataValueB );
@@ -170,10 +168,8 @@ public class DataValueServiceTest
     @Test
     public void testUpdataDataValue()
     {
-        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo );
-        dataValueA.setValue( "1" );
-        DataValue dataValueB = new DataValue( dataElementB, periodA, sourceB, optionCombo, optionCombo );
-        dataValueB.setValue( "2" );
+        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo, "1" );
+        DataValue dataValueB = new DataValue( dataElementB, periodA, sourceB, optionCombo, optionCombo, "2" );
 
         dataValueService.addDataValue( dataValueA );
         dataValueService.addDataValue( dataValueB );
@@ -196,14 +192,10 @@ public class DataValueServiceTest
     @Test
     public void testDeleteAndGetDataValue()
     {
-        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo );
-        dataValueA.setValue( "1" );
-        DataValue dataValueB = new DataValue( dataElementB, periodA, sourceA, optionCombo, optionCombo );
-        dataValueB.setValue( "2" );
-        DataValue dataValueC = new DataValue( dataElementC, periodC, sourceD, optionCombo, optionCombo );
-        dataValueC.setValue( "3" );
-        DataValue dataValueD = new DataValue( dataElementD, periodC, sourceB, optionCombo, optionCombo );
-        dataValueD.setValue( "4" );
+        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo, "1" );
+        DataValue dataValueB = new DataValue( dataElementB, periodA, sourceA, optionCombo, optionCombo, "2" );
+        DataValue dataValueC = new DataValue( dataElementC, periodC, sourceD, optionCombo, optionCombo, "3" );
+        DataValue dataValueD = new DataValue( dataElementD, periodC, sourceB, optionCombo, optionCombo, "4" );
 
         dataValueService.addDataValue( dataValueA );
         dataValueService.addDataValue( dataValueB );
@@ -245,6 +237,116 @@ public class DataValueServiceTest
     // -------------------------------------------------------------------------
 
     @Test
+    public void testGetDataValuesDataExportParamsA()
+    {
+        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo, "1" );
+        DataValue dataValueB = new DataValue( dataElementA, periodA, sourceB, optionCombo, optionCombo, "2" );
+        DataValue dataValueC = new DataValue( dataElementA, periodB, sourceA, optionCombo, optionCombo, "3" );
+        DataValue dataValueD = new DataValue( dataElementA, periodB, sourceB, optionCombo, optionCombo, "4" );
+        DataValue dataValueE = new DataValue( dataElementB, periodA, sourceA, optionCombo, optionCombo, "5" );
+        DataValue dataValueF = new DataValue( dataElementB, periodA, sourceB, optionCombo, optionCombo, "6" );
+        DataValue dataValueG = new DataValue( dataElementB, periodB, sourceA, optionCombo, optionCombo, "7" );
+        DataValue dataValueH = new DataValue( dataElementB, periodB, sourceB, optionCombo, optionCombo, "8" );
+        DataValue dataValueI = new DataValue( dataElementA, periodC, sourceA, optionCombo, optionCombo, "9" );
+        DataValue dataValueJ = new DataValue( dataElementA, periodC, sourceB, optionCombo, optionCombo, "10" );
+
+        dataValueService.addDataValue( dataValueA );
+        dataValueService.addDataValue( dataValueB );
+        dataValueService.addDataValue( dataValueC );
+        dataValueService.addDataValue( dataValueD );
+        dataValueService.addDataValue( dataValueE );
+        dataValueService.addDataValue( dataValueF );
+        dataValueService.addDataValue( dataValueG );
+        dataValueService.addDataValue( dataValueH );
+        dataValueService.addDataValue( dataValueI );
+        dataValueService.addDataValue( dataValueJ );
+        
+        DataExportParams params = new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementA ) )
+            .setOrganisationUnits( Sets.newHashSet( sourceA ) );
+        
+        List<DataValue> values = dataValueService.getDataValues( params );
+        
+        assertEquals( 3, values.size() );
+        assertTrue( values.contains( dataValueA ) );
+        assertTrue( values.contains( dataValueC ) );
+        assertTrue( values.contains( dataValueI ) );
+        
+        params = new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementB ) )
+            .setPeriods( Sets.newHashSet( periodA ) );
+        
+        values = dataValueService.getDataValues( params );
+        
+        assertEquals( 2, values.size() );
+        assertTrue( values.contains( dataValueE ) );
+        assertTrue( values.contains( dataValueF ) );
+
+        params = new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementA ) )
+            .setLimit( 2 );
+
+        values = dataValueService.getDataValues( params );
+        
+        assertEquals( 2, values.size() );
+        
+        params = new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementA, dataElementB ) );
+        
+        values = dataValueService.getDataValues( params );
+        
+        assertEquals( 10, values.size() );
+        
+        //TODO more tests
+    }
+
+    @Test
+    public void testGetDataValuesDataExportParamsB()
+    {
+        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo, "1" );
+        DataValue dataValueB = new DataValue( dataElementA, periodA, sourceB, optionCombo, optionCombo, "2" );
+        DataValue dataValueC = new DataValue( dataElementA, periodB, sourceA, optionCombo, optionCombo, "3" );
+        DataValue dataValueD = new DataValue( dataElementA, periodB, sourceB, optionCombo, optionCombo, "4" );
+        DataValue dataValueE = new DataValue( dataElementB, periodA, sourceA, optionCombo, optionCombo, "5" );
+        DataValue dataValueF = new DataValue( dataElementB, periodA, sourceB, optionCombo, optionCombo, "6" );
+        DataValue dataValueG = new DataValue( dataElementB, periodB, sourceA, optionCombo, optionCombo, "7" );
+        DataValue dataValueH = new DataValue( dataElementB, periodB, sourceB, optionCombo, optionCombo, "8" );
+        DataValue dataValueI = new DataValue( dataElementA, periodC, sourceA, optionCombo, optionCombo, "9" );
+        DataValue dataValueJ = new DataValue( dataElementA, periodC, sourceB, optionCombo, optionCombo, "10" );
+
+        dataValueService.addDataValue( dataValueA );
+        dataValueService.addDataValue( dataValueB );
+        dataValueService.addDataValue( dataValueC );
+        dataValueService.addDataValue( dataValueD );
+        dataValueService.addDataValue( dataValueE );
+        dataValueService.addDataValue( dataValueF );
+        dataValueService.addDataValue( dataValueG );
+        dataValueService.addDataValue( dataValueH );
+        dataValueService.addDataValue( dataValueI );
+        dataValueService.addDataValue( dataValueJ );
+        
+        assertEquals( 6, dataValueService.getDataValues( new DataExportParams().setDataElements( Sets.newHashSet( dataElementA ) ) ).size() );
+        assertEquals( 4, dataValueService.getDataValues( new DataExportParams().setDataElements( Sets.newHashSet( dataElementB ) ) ).size() );
+
+        assertEquals( 4, dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementA, dataElementB ) ).setPeriods( Sets.newHashSet( periodB ) ) ).size() );
+        assertEquals( 2, dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementA, dataElementB ) ).setPeriods( Sets.newHashSet( periodA ) ).setOrganisationUnits( Sets.newHashSet( sourceB ) ) ).size() );
+        assertEquals( 4, dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementA, dataElementB ) ).setPeriods( Sets.newHashSet( periodB ) ) ).size() );
+        
+        assertEquals( 4, dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementA ) ).setPeriods( Sets.newHashSet( periodA, periodC ) ) ).size() );
+        assertEquals( 4, dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementB ) ).setOrganisationUnits( Sets.newHashSet( sourceA, sourceB ) ) ).size() );
+
+        assertEquals( 1, dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementB ) ).setPeriods( Sets.newHashSet( periodB ) ).setOrganisationUnits( Sets.newHashSet( sourceA ) ) ).size() );
+        assertEquals( 1, dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementA ) ).setPeriods( Sets.newHashSet( periodA ) ).setOrganisationUnits( Sets.newHashSet( sourceB ) ) ).size() );
+    }
+    
+    @Test
     public void testGetAllDataValues()
     {
         DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo );
@@ -264,31 +366,21 @@ public class DataValueServiceTest
         List<DataValue> dataValues = dataValueService.getAllDataValues();
         assertNotNull( dataValues );
         assertEquals( 4, dataValues.size() );
-    }   
+    }
 
     @Test
     public void testGetDataValuesDataElementsPeriodsOrgUnits()
     {
-        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo );
-        dataValueA.setValue( "1" );
-        DataValue dataValueB = new DataValue( dataElementA, periodA, sourceB, optionCombo, optionCombo );
-        dataValueB.setValue( "2" );
-        DataValue dataValueC = new DataValue( dataElementA, periodB, sourceA, optionCombo, optionCombo );
-        dataValueC.setValue( "3" );
-        DataValue dataValueD = new DataValue( dataElementA, periodB, sourceB, optionCombo, optionCombo );
-        dataValueD.setValue( "4" );
-        DataValue dataValueE = new DataValue( dataElementB, periodA, sourceA, optionCombo, optionCombo );
-        dataValueE.setValue( "5" );
-        DataValue dataValueF = new DataValue( dataElementB, periodA, sourceB, optionCombo, optionCombo );
-        dataValueF.setValue( "6" );
-        DataValue dataValueG = new DataValue( dataElementB, periodB, sourceA, optionCombo, optionCombo );
-        dataValueG.setValue( "7" );
-        DataValue dataValueH = new DataValue( dataElementB, periodB, sourceB, optionCombo, optionCombo );
-        dataValueH.setValue( "8" );
-        DataValue dataValueI = new DataValue( dataElementA, periodC, sourceA, optionCombo, optionCombo );
-        dataValueI.setValue( "9" );
-        DataValue dataValueJ = new DataValue( dataElementA, periodC, sourceB, optionCombo, optionCombo );
-        dataValueJ.setValue( "1" );
+        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo, "1" );
+        DataValue dataValueB = new DataValue( dataElementA, periodA, sourceB, optionCombo, optionCombo, "2" );
+        DataValue dataValueC = new DataValue( dataElementA, periodB, sourceA, optionCombo, optionCombo, "3" );
+        DataValue dataValueD = new DataValue( dataElementA, periodB, sourceB, optionCombo, optionCombo, "4" );
+        DataValue dataValueE = new DataValue( dataElementB, periodA, sourceA, optionCombo, optionCombo, "5" );
+        DataValue dataValueF = new DataValue( dataElementB, periodA, sourceB, optionCombo, optionCombo, "6" );
+        DataValue dataValueG = new DataValue( dataElementB, periodB, sourceA, optionCombo, optionCombo, "7" );
+        DataValue dataValueH = new DataValue( dataElementB, periodB, sourceB, optionCombo, optionCombo, "8" );
+        DataValue dataValueI = new DataValue( dataElementA, periodC, sourceA, optionCombo, optionCombo, "9" );
+        DataValue dataValueJ = new DataValue( dataElementA, periodC, sourceB, optionCombo, optionCombo, "10" );
 
         dataValueService.addDataValue( dataValueA );
         dataValueService.addDataValue( dataValueB );
@@ -301,23 +393,71 @@ public class DataValueServiceTest
         dataValueService.addDataValue( dataValueI );
         dataValueService.addDataValue( dataValueJ );
 
-        assertEquals( 6, dataValueService.getDataValues( Sets.newHashSet( dataElementA ), Sets.newHashSet(), Sets.newHashSet() ).size() );
-        assertEquals( 4, dataValueService.getDataValues( Sets.newHashSet( dataElementB ), Sets.newHashSet(), Sets.newHashSet() ).size() );
-        assertEquals( 4, dataValueService.getDataValues( Sets.newHashSet(), Sets.newHashSet( periodA ), Sets.newHashSet() ).size() );
-        assertEquals( 5, dataValueService.getDataValues( Sets.newHashSet(), Sets.newHashSet(), Sets.newHashSet( sourceA ) ).size() );
+        assertEquals( 6, dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementA ) ) ).size() );
         
-        assertEquals( 4, dataValueService.getDataValues( Sets.newHashSet( dataElementA, dataElementB ), Sets.newHashSet( periodB ), Sets.newHashSet() ).size() );
-        assertEquals( 2, dataValueService.getDataValues( Sets.newHashSet( dataElementA, dataElementB ), Sets.newHashSet( periodA ), Sets.newHashSet( sourceB ) ).size() );
+        assertEquals( 4, dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementB ) ) ).size() );
         
-        assertEquals( 2, dataValueService.getDataValues( Sets.newHashSet( dataElementA ), Sets.newHashSet( periodC ), Sets.newHashSet() ).size() );
-        
-        assertEquals( 4, dataValueService.getDataValues( Sets.newHashSet( dataElementA ), Sets.newHashSet( periodA, periodC ), Sets.newHashSet() ).size() );
-        assertEquals( 4, dataValueService.getDataValues( Sets.newHashSet( dataElementB ), Sets.newHashSet(), Sets.newHashSet( sourceA, sourceB ) ).size() );
+        assertEquals( 4, dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementA, dataElementB ) )
+            .setPeriods( Sets.newHashSet( periodB ) ) ).size() );
 
-        assertEquals( 1, dataValueService.getDataValues( Sets.newHashSet( dataElementB ), Sets.newHashSet( periodB ), Sets.newHashSet( sourceA ) ).size() );
-        assertEquals( dataValueG, dataValueService.getDataValues( Sets.newHashSet( dataElementB ), Sets.newHashSet( periodB ), Sets.newHashSet( sourceA ) ).iterator().next() );
+        assertEquals( 2, dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementA, dataElementB ) )
+            .setPeriods( Sets.newHashSet( periodA ) )
+            .setOrganisationUnits( Sets.newHashSet( sourceB ) ) ).size() );
 
-        assertEquals( 1, dataValueService.getDataValues( Sets.newHashSet( dataElementA ), Sets.newHashSet( periodA ), Sets.newHashSet( sourceB ) ).size() );
-        assertEquals( dataValueB, dataValueService.getDataValues( Sets.newHashSet( dataElementA ), Sets.newHashSet( periodA ), Sets.newHashSet( sourceB ) ).iterator().next() );        
+        assertEquals( 2, dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementA ) )
+            .setPeriods( Sets.newHashSet( periodC ) ) ).size() );
+
+        assertEquals( 4, dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementA ) )
+            .setPeriods( Sets.newHashSet( periodA, periodC ) ) ).size() );
+
+        assertEquals( 4, dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementB ) )
+            .setOrganisationUnits( Sets.newHashSet( sourceA, sourceB ) ) ).size() );
+
+        assertEquals( 1, dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementB ) )
+            .setPeriods( Sets.newHashSet( periodB ) )
+            .setOrganisationUnits( Sets.newHashSet( sourceA ) ) ).size() );
+
+        assertEquals( 1, dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementB ) )
+            .setPeriods( Sets.newHashSet( periodB ) )
+            .setOrganisationUnits( Sets.newHashSet( sourceA ) ) ).size() );
+
+        assertEquals( 1, dataValueService.getDataValues( new DataExportParams()
+            .setDataElements( Sets.newHashSet( dataElementA ) )
+            .setPeriods( Sets.newHashSet( periodA ) )
+            .setOrganisationUnits( Sets.newHashSet( sourceB ) ) ).size() );     
+    }
+    
+    @Test
+    public void testGetDataValueCountLastUpdatedBetween()
+    {
+        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo, "1" );
+        DataValue dataValueB = new DataValue( dataElementA, periodA, sourceB, optionCombo, optionCombo, "2" );
+        DataValue dataValueC = new DataValue( dataElementB, periodA, sourceB, optionCombo, optionCombo, "3" );
+        
+        dataValueService.addDataValue( dataValueA );
+        dataValueService.addDataValue( dataValueB );
+        dataValueService.addDataValue( dataValueC );
+        
+        assertEquals( 3, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null, false ) );
+        assertEquals( 3, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null, true ) );
+        
+        dataValueService.deleteDataValue( dataValueC );
+
+        assertEquals( 3, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null, true ) );
+        assertEquals( 2, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null, false ) );
+        
+        dataValueService.deleteDataValue( dataValueB );
+
+        assertEquals( 3, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null, true ) );
+        assertEquals( 1, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null, false ) );
     }
 }

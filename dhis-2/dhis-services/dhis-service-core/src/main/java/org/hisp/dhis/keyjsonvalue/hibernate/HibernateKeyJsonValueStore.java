@@ -1,7 +1,7 @@
 package org.hisp.dhis.keyjsonvalue.hibernate;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,9 +31,11 @@ package org.hisp.dhis.keyjsonvalue.hibernate;
 import java.util.List;
 
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueStore;
+import java.util.Date;
 
 /**
  * @author Stian Sandvold
@@ -56,8 +58,29 @@ public class HibernateKeyJsonValueStore
     public List<String> getKeysInNamespace( String namespace )
     {
         String hql = "select key from KeyJsonValue where namespace = :namespace";
-        
+
         return getQuery( hql ).setString( "namespace", namespace ).list();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public List<String> getKeysInNamespace( String namespace, Date lastUpdated )
+    {
+        String hql = "select key from KeyJsonValue where namespace = :namespace";
+        
+        if ( lastUpdated != null )
+        {
+            hql += " and lastupdated >= :lastUpdated ";
+        }
+        
+        Query query = getQuery( hql ).setString( "namespace", namespace );
+        
+        if ( lastUpdated != null )
+        {
+            query.setTimestamp( "lastUpdated", lastUpdated );
+        }
+
+        return query.list();
     }
 
     @Override

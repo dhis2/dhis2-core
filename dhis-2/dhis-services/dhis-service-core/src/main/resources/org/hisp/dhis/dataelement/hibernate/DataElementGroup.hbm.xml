@@ -26,16 +26,22 @@
         foreign-key="fk_dataelementgroup_dataelementid" />
     </set>
 
+    <set name="groupSets" table="dataelementgroupsetmembers" inverse="true">
+      <cache usage="read-write" />
+      <key column="dataelementgroupid" />
+      <many-to-many class="org.hisp.dhis.dataelement.DataElementGroupSet" column="dataelementgroupsetid" />
+    </set>
+
     <!-- Dynamic attribute values -->
 
-    <set name="attributeValues" table="dataelementgroupattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="dataelementgroupattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="dataelementgroupid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="dataelementgrouptranslations" cascade="delete-orphan">
+    <set name="translations" table="dataelementgrouptranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="dataelementgroupid" foreign-key="fk_objecttranslation_dataelementgroupid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -46,16 +52,17 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="dataelementgroupusergroupaccesses">
+    <set name="userGroupAccesses" table="dataelementgroupusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="dataelementgroupid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <join table="dataelementgroupsetmembers" inverse="true">
+    <set name="userAccesses" table="dataelementgroupuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
       <key column="dataelementgroupid" />
-      <many-to-one column="dataelementgroupsetid" name="groupSet" />
-    </join>
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
 
   </class>
 

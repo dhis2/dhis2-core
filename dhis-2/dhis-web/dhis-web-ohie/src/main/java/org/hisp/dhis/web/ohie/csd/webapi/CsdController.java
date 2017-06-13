@@ -1,7 +1,7 @@
 package org.hisp.dhis.web.ohie.csd.webapi;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.web.ohie.common.domain.soap.Envelope;
 import org.hisp.dhis.web.ohie.common.domain.soap.Fault;
@@ -80,6 +81,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -294,15 +297,15 @@ public class CsdController
                     continue;
                 }
 
-                if ( organisationUnitGroup.getGroupSet() != null
-                    && FACILITY_STATUS_GROUPSET.equals( organisationUnitGroup.getGroupSet().getName() ) )
+                Set<String> groupSetNames = organisationUnitGroup.getGroupSets().stream().map( OrganisationUnitGroupSet::getName ).collect( Collectors.toSet() );
+                
+                if ( groupSetNames.contains( FACILITY_STATUS_GROUPSET ) )
                 {
                     facilityStatus = organisationUnitGroup.getCode();
                     continue;
                 }
 
-                if ( organisationUnitGroup.getGroupSet() != null
-                    && FACILITY_TYPE_GROUPSET.equals( organisationUnitGroup.getGroupSet().getName() ) )
+                if ( groupSetNames.contains( FACILITY_TYPE_GROUPSET ) )
                 {
                     if ( organisationUnitGroup.getCode() == null )
                     {
@@ -328,10 +331,8 @@ public class CsdController
                     facility.getCodedTypes().add( codedType );
                 }
 
-                if ( organisationUnitGroup.getGroupSet() != null
-                    && FACILITY_OWNERSHIP_GROUPSET.equals( organisationUnitGroup.getGroupSet().getName() ) )
+                if ( groupSetNames.contains( FACILITY_OWNERSHIP_GROUPSET ) )
                 {
-
                     Organization organization = new Organization( "urn:x-dhis:ownership." + organisationUnitGroup.getUid() );
                     facility.getOrganizations().add( organization );
 

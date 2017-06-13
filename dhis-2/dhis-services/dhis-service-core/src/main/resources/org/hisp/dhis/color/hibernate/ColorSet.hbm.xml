@@ -25,7 +25,7 @@
 	</list>
 
     <!-- Object Translation -->
-    <set name="translations" table="colorsettranslations" cascade="delete-orphan">
+    <set name="translations" table="colorsettranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="colorsetid" foreign-key="fk_objecttranslation_colorsetid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

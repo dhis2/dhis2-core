@@ -1,7 +1,7 @@
 package org.hisp.dhis.cache;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,12 +31,17 @@ package org.hisp.dhis.cache;
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
  * @author Lars Helge Overland
  */
 public class DefaultHibernateCacheManager
     implements HibernateCacheManager
 {
+    private static final Log log = LogFactory.getLog( DefaultHibernateCacheManager.class );
+    
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -71,6 +76,8 @@ public class DefaultHibernateCacheManager
     {
         clearObjectCache();        
         clearQueryCache();
+        
+        log.info( "Cleared Hibernate caches" );
     }
     
     @Override

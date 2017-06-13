@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -37,18 +38,19 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.VersionedObject;
+import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
+import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -68,7 +70,7 @@ import java.util.stream.Collectors;
 @JacksonXmlRootElement( localName = "program", namespace = DxfNamespaces.DXF_2_0 )
 public class Program
     extends BaseNameableObject
-    implements VersionedObject
+    implements VersionedObject, MetadataObject
 {
     private int version;
 
@@ -93,9 +95,9 @@ public class Program
     private Set<UserAuthorityGroup> userRoles = new HashSet<>();
 
     private Set<ProgramIndicator> programIndicators = new HashSet<>();
-    
+
     private Set<ProgramRule> programRules = new HashSet<>();
-    
+
     private Set<ProgramRuleVariable> programRuleVariables = new HashSet<>();
 
     private Boolean onlyEnrollOnce = false;
@@ -113,8 +115,6 @@ public class Program
     private Boolean relationshipFromA = false;
 
     private Program relatedProgram;
-
-    private Boolean dataEntryMethod = false;
 
     private TrackedEntity trackedEntity;
 
@@ -143,22 +143,22 @@ public class Program
      * same page with registration
      */
     private Boolean useFirstStageDuringRegistration = false;
-    
+
     /**
      * Property indicating whether program allows for capturing of coordinates
      */
     private Boolean captureCoordinates = false;
-    
+
     /**
      * How many days after period is over will this program block creation and modification of events
      */
     private int expiryDays;
-    
+
     /**
      * The PeriodType indicating the frequency that this program will use to decide on expiry
      */
     private PeriodType expiryPeriodType;
-    
+
     /**
      * How many days after an event is completed will this program block modification of the event
      */
@@ -199,8 +199,8 @@ public class Program
         Set<OrganisationUnit> toRemove = Sets.difference( organisationUnits, updates );
         Set<OrganisationUnit> toAdd = Sets.difference( updates, organisationUnits );
 
-        toRemove.stream().forEach( u -> u.getPrograms().remove( this ) );
-        toAdd.stream().forEach( u -> u.getPrograms().add( this ) );
+        toRemove.forEach( u -> u.getPrograms().remove( this ) );
+        toAdd.forEach( u -> u.getPrograms().add( this ) );
 
         organisationUnits.clear();
         organisationUnits.addAll( updates );
@@ -279,6 +279,42 @@ public class Program
     public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributesWithLegendSet()
     {
         return getTrackedEntityAttributes().stream().filter( a -> !a.isConfidentialBool() && a.hasLegendSet() && a.isNumericType() ).collect( Collectors.toList() );
+    }
+
+    /**
+     * Indicates whether this program contains the given data element.
+     */
+    public boolean containsDataElement( DataElement dataElement )
+    {
+        for ( ProgramStage stage : programStages )
+        {
+            for ( ProgramStageDataElement element : stage.getProgramStageDataElements() )
+            {
+                if ( dataElement.equals( element.getDataElement() ) )
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Indicates whether this program contains the given tracked entity
+     * attribute.
+     */
+    public boolean containsAttribute( TrackedEntityAttribute attribute )
+    {
+        for ( ProgramTrackedEntityAttribute programAttribute : programAttributes )
+        {
+            if ( attribute.equals( programAttribute.getAttribute() ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public ProgramStage getProgramStageByStage( int stage )
@@ -606,18 +642,6 @@ public class Program
         this.relationshipFromA = relationshipFromA;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getDataEntryMethod()
-    {
-        return dataEntryMethod;
-    }
-
-    public void setDataEntryMethod( Boolean dataEntryMethod )
-    {
-        this.dataEntryMethod = dataEntryMethod;
-    }
-
     @JsonProperty( "programTrackedEntityAttributes" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "programTrackedEntityAttributes", namespace = DxfNamespaces.DXF_2_0 )
@@ -725,8 +749,8 @@ public class Program
     public void setUseFirstStageDuringRegistration( Boolean useFirstStageDuringRegistration )
     {
         this.useFirstStageDuringRegistration = useFirstStageDuringRegistration;
-    }    
-    
+    }
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getCaptureCoordinates()
@@ -738,115 +762,42 @@ public class Program
     {
         this.captureCoordinates = captureCoordinates;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getExpiryDays() {
-		return expiryDays;
-	}
-
-	public void setExpiryDays(int expiryDays) {
-		this.expiryDays = expiryDays;
-	}
-	
-	@JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-	public PeriodType getExpiryPeriodType() {
-		return expiryPeriodType;
-	}
-
-	public void setExpiryPeriodType(PeriodType expiryPeriodType) {
-		this.expiryPeriodType = expiryPeriodType;
-	}
-
-	@JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-	public int getCompleteEventsExpiryDays() {
-		return completeEventsExpiryDays;
-	}
-
-	public void setCompleteEventsExpiryDays(int completeEventsExpiryDays) {
-		this.completeEventsExpiryDays = completeEventsExpiryDays;
-	}
-
-	@Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
+    public int getExpiryDays()
     {
-        super.mergeWith( other, mergeMode );
+        return expiryDays;
+    }
 
-        if ( other.getClass().isInstance( this ) )
-        {
-            Program program = (Program) other;
+    public void setExpiryDays( int expiryDays )
+    {
+        this.expiryDays = expiryDays;
+    }
 
-            version = program.getVersion();
-            expiryDays = program.getExpiryDays();            
-            completeEventsExpiryDays = program.getCompleteEventsExpiryDays();
+    @JsonProperty
+    @JsonSerialize( using = JacksonPeriodTypeSerializer.class )
+    @JsonDeserialize( using = JacksonPeriodTypeDeserializer.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public PeriodType getExpiryPeriodType()
+    {
+        return expiryPeriodType;
+    }
 
-            if ( mergeMode.isReplace() )
-            {
-                enrollmentDateLabel = program.getEnrollmentDateLabel();
-                incidentDateLabel = program.getIncidentDateLabel();
-                programType = program.getProgramType();
-                displayIncidentDate = program.getDisplayIncidentDate();
-                ignoreOverdueEvents = program.getIgnoreOverdueEvents();
-                onlyEnrollOnce = program.getOnlyEnrollOnce();
-                selectEnrollmentDatesInFuture = program.getSelectEnrollmentDatesInFuture();
-                selectIncidentDatesInFuture = program.getSelectIncidentDatesInFuture();
-                relationshipText = program.getRelationshipText();
-                relationshipType = program.getRelationshipType();
-                relationshipFromA = program.getRelationshipFromA();
-                relatedProgram = program.getRelatedProgram();
-                dataEntryMethod = program.getDataEntryMethod();
-                trackedEntity = program.getTrackedEntity();
-                useFirstStageDuringRegistration = program.getUseFirstStageDuringRegistration();
-                categoryCombo = program.getCategoryCombo();
-                captureCoordinates = program.getCaptureCoordinates();
-                expiryPeriodType = program.getExpiryPeriodType();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                enrollmentDateLabel = program.getEnrollmentDateLabel() == null ? enrollmentDateLabel : program.getEnrollmentDateLabel();
-                incidentDateLabel = program.getIncidentDateLabel() == null ? incidentDateLabel : program.getIncidentDateLabel();
-                programType = program.getProgramType() == null ? programType : program.getProgramType();
-                displayIncidentDate = program.getDisplayIncidentDate() == null ? displayIncidentDate : program.getDisplayIncidentDate();
-                ignoreOverdueEvents = program.getIgnoreOverdueEvents() == null ? ignoreOverdueEvents : program.getIgnoreOverdueEvents();
-                onlyEnrollOnce = program.getOnlyEnrollOnce() == null ? onlyEnrollOnce : program.getOnlyEnrollOnce();
-                selectEnrollmentDatesInFuture = program.getSelectEnrollmentDatesInFuture() == null ? selectEnrollmentDatesInFuture : program.getSelectEnrollmentDatesInFuture();
-                selectIncidentDatesInFuture = program.getSelectIncidentDatesInFuture() == null ? selectIncidentDatesInFuture : program.getSelectIncidentDatesInFuture();
-                relationshipText = program.getRelationshipText() == null ? relationshipText : program.getRelationshipText();
-                relationshipType = program.getRelationshipType() == null ? relationshipType : program.getRelationshipType();
-                relationshipFromA = program.getRelationshipFromA() == null ? relationshipFromA : program.getRelationshipFromA();
-                relatedProgram = program.getRelatedProgram() == null ? relatedProgram : program.getRelatedProgram();
-                dataEntryMethod = program.getDataEntryMethod() == null ? dataEntryMethod : program.getDataEntryMethod();
-                trackedEntity = program.getTrackedEntity() == null ? trackedEntity : program.getTrackedEntity();
-                useFirstStageDuringRegistration = program.getUseFirstStageDuringRegistration() == null ? useFirstStageDuringRegistration : program.getUseFirstStageDuringRegistration();
-                categoryCombo = program.getCategoryCombo() == null ? categoryCombo : program.getCategoryCombo();
-                captureCoordinates = program.getCaptureCoordinates() == null ? captureCoordinates : program.getCaptureCoordinates();
-                expiryPeriodType = program.getExpiryPeriodType() == null ? expiryPeriodType : program.getExpiryPeriodType();
-            }
+    public void setExpiryPeriodType( PeriodType expiryPeriodType )
+    {
+        this.expiryPeriodType = expiryPeriodType;
+    }
 
-            organisationUnits.clear();
-            organisationUnits.addAll( program.getOrganisationUnits() );
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getCompleteEventsExpiryDays()
+    {
+        return completeEventsExpiryDays;
+    }
 
-            programStages.clear();
-
-            for ( ProgramStage programStage : program.getProgramStages() )
-            {
-                programStages.add( programStage );
-                programStage.setProgram( this );
-            }
-
-            validationCriteria.clear();
-            validationCriteria.addAll( program.getValidationCriteria() );
-
-            programAttributes.clear();
-            programAttributes.addAll( program.getProgramAttributes() );
-
-            userRoles.clear();
-            userRoles.addAll( program.getUserRoles() );
-
-            notificationTemplates.clear();
-            notificationTemplates.addAll( program.getNotificationTemplates() );
-        }
+    public void setCompleteEventsExpiryDays( int completeEventsExpiryDays )
+    {
+        this.completeEventsExpiryDays = completeEventsExpiryDays;
     }
 }

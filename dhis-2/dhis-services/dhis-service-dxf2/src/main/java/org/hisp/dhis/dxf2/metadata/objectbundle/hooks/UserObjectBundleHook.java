@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  */
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
@@ -101,7 +102,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
             userService.encodeAndSetPassword( userCredentials, userCredentials.getPassword() );
         }
 
-        persistedUserCredentials.mergeWith( userCredentials, bundle.getMergeMode() );
+        mergeService.merge( new MergeParams<>( userCredentials, persistedUserCredentials ).setMergeMode( bundle.getMergeMode() ) );
         preheatService.connectReferences( persistedUserCredentials, bundle.getPreheat(), bundle.getPreheatIdentifier() );
 
         persistedUserCredentials.setUserInfo( user );
@@ -113,7 +114,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public void postImport( ObjectBundle bundle )
+    public void postCommit( ObjectBundle bundle )
     {
         if ( !bundle.getObjectMap().containsKey( User.class ) ) return;
 

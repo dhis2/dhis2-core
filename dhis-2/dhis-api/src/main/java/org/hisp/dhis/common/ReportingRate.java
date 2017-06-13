@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_P
  */
 @JacksonXmlRootElement( localName = "reportingRate", namespace = DxfNamespaces.DXF_2_0 )
 public class ReportingRate
-    extends BaseDataDimensionalItemObject
+    extends BaseDimensionalItemObject implements EmbeddedObject
 {
     private DataSet dataSet;
 
@@ -110,18 +110,6 @@ public class ReportingRate
         return dataSet.getLegendSets();
     }
     
-    @Override
-    public String getAggregateExportCategoryOptionCombo()
-    {
-        return dataSet.getAggregateExportCategoryOptionCombo();
-    }
-
-    @Override
-    public boolean hasAggregateExportCategoryOptionCombo()
-    {
-        return dataSet.hasAggregateExportCategoryOptionCombo();
-    }    
-
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------

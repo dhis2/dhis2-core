@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.hisp.dhis</groupId>
   <artifactId>dhis</artifactId>
-  <version>2.26-SNAPSHOT</version>
+  <version>2.28-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>DHIS 2</name>
   <url>http://dhis2.org</url>
@@ -234,7 +234,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>2.10.3</version>
+          <version>2.10.4</version>
           <configuration>
             <additionalparam>-Xdoclint:none</additionalparam>
           </configuration>
@@ -275,7 +275,7 @@
                   <mkdir dir="${project.build.outputDirectory}" />
                   <exec executable="git" outputproperty="revision" failifexecutionfails="false">
                     <arg value="rev-parse" />
-                    <arg value="--short" />
+                    <arg value="--short=7" />
                     <arg value="HEAD" />
                   </exec>
                   <echo file="${project.build.outputDirectory}/build.properties"
@@ -472,7 +472,7 @@
       <dependency>
         <groupId>org.springframework.hateoas</groupId>
         <artifactId>spring-hateoas</artifactId>
-        <version>0.21.0.RELEASE</version>
+        <version>0.23.0.RELEASE</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.retry</groupId>
@@ -482,7 +482,7 @@
       <dependency>
         <groupId>cglib</groupId>
         <artifactId>cglib</artifactId>
-        <version>3.2.1</version>
+        <version>3.2.4</version>
       </dependency>
       <dependency>
         <groupId>org.aspectj</groupId>
@@ -498,7 +498,7 @@
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-core</artifactId>
-        <version>${spring.security.version}</version>
+        <version>${spring-security.version}</version>
         <exclusions>
           <exclusion>
             <groupId>org.springframework</groupId>
@@ -521,22 +521,22 @@
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-web</artifactId>
-        <version>${spring.security.version}</version>
+        <version>${spring-security.version}</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-aspects</artifactId>
-        <version>${spring.security.version}</version>
+        <version>${spring-security.version}</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-config</artifactId>
-        <version>${spring.security.version}</version>
+        <version>${spring-security.version}</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-openid</artifactId>
-        <version>${spring.security.version}</version>
+        <version>${spring-security.version}</version>
         <exclusions>
           <exclusion>
             <groupId>com.google.inject</groupId>
@@ -547,19 +547,19 @@
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-ldap</artifactId>
-        <version>${spring.security.version}</version>
+        <version>${spring-security.version}</version>
       </dependency>
 
       <!-- OAuth 2.0 -->
       <dependency>
         <groupId>org.springframework.security.oauth</groupId>
         <artifactId>spring-security-oauth2</artifactId>
-        <version>${spring.security.oauth2.version}</version>
+        <version>${spring-security-oauth2.version}</version>
       </dependency>
       <dependency>
         <groupId>com.google.api-client</groupId>
         <artifactId>google-api-client</artifactId>
-        <version>1.21.0</version>
+        <version>1.22.0</version>
       </dependency>
 
       <!-- Spring Mobile -->
@@ -612,17 +612,29 @@
             <groupId>antlr</groupId>
             <artifactId>antlr</artifactId>
           </exclusion>
+          <exclusion>
+            <groupId>org.apache.struts</groupId>
+            <artifactId>struts-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.struts</groupId>
+            <artifactId>struts-tiles</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.struts</groupId>
+            <artifactId>struts-taglib</artifactId>
+          </exclusion>
         </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.poi</groupId>
         <artifactId>poi</artifactId>
-        <version>3.10.1</version>
+        <version>3.15</version>
       </dependency>
       <dependency>
         <groupId>org.apache.poi</groupId>
         <artifactId>poi-ooxml</artifactId>
-        <version>3.10.1</version>
+        <version>3.15</version>
       </dependency>
       <dependency>
         <groupId>org.hisp</groupId>
@@ -630,9 +642,9 @@
         <version>1.3.1</version>
       </dependency>
       <dependency>
-        <groupId>org.amplecode</groupId>
+        <groupId>org.hisp</groupId>
         <artifactId>staxwax</artifactId>
-        <version>1.1.2</version>
+        <version>1.2</version>
       </dependency>
       <dependency>
         <groupId>com.lowagie</groupId>
@@ -662,7 +674,7 @@
       <dependency>
         <groupId>joda-time</groupId>
         <artifactId>joda-time</artifactId>
-        <version>2.8.2</version>
+        <version>2.9.7</version>
       </dependency>
       <dependency>
         <groupId>javax.servlet</groupId>
@@ -754,7 +766,7 @@
       <dependency>
         <groupId>com.h2database</groupId>
         <artifactId>h2</artifactId>
-        <version>1.4.191</version>
+        <version>1.4.194</version>
       </dependency>
       <dependency>
         <groupId>org.hsqldb</groupId>
@@ -775,6 +787,11 @@
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-ehcache</artifactId>
         <version>${hibernate.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.mihaicostin</groupId>
+        <artifactId>hibernate-l2-memcached</artifactId>
+        <version>5.1.5.1</version>
       </dependency>
       <!-- javassist in use by hibernate - make sure versions are kept in sync  -->
       <dependency>
@@ -803,9 +820,9 @@
         <version>1.1.1</version>
       </dependency>
       <dependency>
-        <groupId>c3p0</groupId>
+        <groupId>com.mchange</groupId>
         <artifactId>c3p0</artifactId>
-        <version>0.9.1.2</version>
+        <version>0.9.5.2</version>
       </dependency>
       <dependency>
         <groupId>mysql</groupId>
@@ -815,20 +832,27 @@
       <dependency>
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
-        <version>9.4.1211</version>
+        <version>9.4.1212</version>
       </dependency>
 
       <!-- Apache jClouds -->
       <dependency>
         <groupId>org.apache.jclouds</groupId>
-        <artifactId>jclouds-all</artifactId>
+        <artifactId>jclouds-core</artifactId>
         <version>${jclouds.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.apache.jclouds</groupId>
+        <artifactId>jclouds-blobstore</artifactId>
+        <version>${jclouds.version}</version>
+      </dependency>
+
       <dependency>
         <groupId>org.apache.jclouds.api</groupId>
         <artifactId>filesystem</artifactId>
         <version>${jclouds.version}</version>
       </dependency>
+
       <dependency>
         <groupId>org.apache.jclouds.provider</groupId>
         <artifactId>aws-s3</artifactId>
@@ -983,6 +1007,11 @@
       </dependency>
       <dependency>
         <groupId>org.geotools</groupId>
+        <artifactId>gt-opengis</artifactId>
+        <version>${geotools.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
         <artifactId>gt-geojson</artifactId>
         <version>${geotools.version}</version>
       </dependency>
@@ -1094,19 +1123,19 @@
   <properties>
     <rootDir></rootDir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spring.version>4.2.8.RELEASE</spring.version>
-    <spring.security.version>3.2.9.RELEASE</spring.security.version>
-    <spring.security.oauth2.version>2.0.5.RELEASE</spring.security.oauth2.version>
-    <struts.version>2.3.24.1</struts.version>
-    <hibernate.version>5.1.0.Final</hibernate.version>
+    <spring.version>4.3.9.RELEASE</spring.version>
+    <spring-security.version>4.2.3.RELEASE</spring-security.version>
+    <spring-security-oauth2.version>2.0.13.RELEASE</spring-security-oauth2.version>
+    <struts.version>2.3.32</struts.version>
+    <hibernate.version>5.1.5.Final</hibernate.version>
     <hibernate-validator.version>4.3.2.Final</hibernate-validator.version>
-    <jclouds.version>1.9.2</jclouds.version>
+    <jclouds.version>1.9.3</jclouds.version>
     <!-- Keep in sync with Hibernate -->
     <javassist.version>3.20.0-GA</javassist.version>
     <!-- unit test dependencies-->
-    <powermock.version>1.6.5</powermock.version>
-    <jackson.version>2.6.7</jackson.version>
-    <slf4j.version>1.7.21</slf4j.version>
+    <powermock.version>1.6.6</powermock.version>
+    <jackson.version>2.7.4</jackson.version>
+    <slf4j.version>1.7.22</slf4j.version>
     <geotools.version>14.3</geotools.version>
     <jasperreports.version>6.3.1</jasperreports.version>
     <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>

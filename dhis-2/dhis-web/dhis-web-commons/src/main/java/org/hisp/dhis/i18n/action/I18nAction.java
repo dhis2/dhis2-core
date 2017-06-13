@@ -1,7 +1,7 @@
 package org.hisp.dhis.i18n.action;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,10 +31,11 @@ package org.hisp.dhis.i18n.action;
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.i18n.locale.LocaleManager;
+import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.TranslationUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -75,13 +76,6 @@ public class I18nAction
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private LocaleManager localeManager;
-
-    public void setLocaleManager( LocaleManager localeManager )
-    {
-        this.localeManager = localeManager;
-    }
-
     private UserSettingService userSettingService;
 
     public void setUserSettingService( UserSettingService userSettingService )
@@ -95,6 +89,9 @@ public class I18nAction
     {
         this.identifiableObjectManager = identifiableObjectManager;
     }
+
+    @Autowired
+    private I18nLocaleService i18nLocaleService;
 
     // -------------------------------------------------------------------------
     // Input
@@ -181,7 +178,7 @@ public class I18nAction
         
         currentLocale = (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE );
         
-        availableLocales = localeManager.getAvailableLocales();
+        availableLocales = i18nLocaleService.getAllLocales();
 
         IdentifiableObject object = identifiableObjectManager.getObject( uid, className );
 
@@ -193,7 +190,4 @@ public class I18nAction
 
         return SUCCESS;
     }
-
-
-
 }

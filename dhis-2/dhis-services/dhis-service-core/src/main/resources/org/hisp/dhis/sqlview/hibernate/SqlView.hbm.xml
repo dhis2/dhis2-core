@@ -18,7 +18,7 @@
     <property name="description" type="text" />
 
     <property name="sqlQuery" not-null="true" type="text" />
-    
+
     <property name="type" length="40">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.sqlview.SqlViewType</param>
@@ -48,8 +48,14 @@
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
+    <set name="userAccesses" table="sqlviewuseraccesses">
+      <cache usage="read-write" />
+      <key column="sqlviewid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
+
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="sqlviewattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="sqlviewattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="sqlviewid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />

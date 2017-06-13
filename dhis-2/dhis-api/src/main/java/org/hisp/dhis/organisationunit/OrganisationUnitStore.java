@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,14 +51,6 @@ public interface OrganisationUnitStore
     // -------------------------------------------------------------------------
 
     /**
-     * Retrieves the object with the given uid.
-     *
-     * @param uuid the uid.
-     * @return the object with the given uid.
-     */
-    OrganisationUnit getByUuid( String uuid );
-
-    /**
      * Returns all OrganisationUnits by lastUpdated.
      *
      * @param lastUpdated OrganisationUnits from this date
@@ -66,14 +58,6 @@ public interface OrganisationUnitStore
      *         there are no OrganisationUnits.
      */
     List<OrganisationUnit> getAllOrganisationUnitsByLastUpdated( Date lastUpdated );
-
-    /**
-     * Returns an OrganisationUnit with a given name. Case is ignored.
-     *
-     * @param name the name of the OrganisationUnit to return.
-     * @return the OrganisationUnit with the given name, or null if not match.
-     */
-    OrganisationUnit getOrganisationUnitByNameIgnoreCase( String name );
 
     /**
      * Returns all root OrganisationUnits. A root OrganisationUnit is an
@@ -92,11 +76,16 @@ public interface OrganisationUnitStore
     List<OrganisationUnit> getOrganisationUnitsWithoutGroups();
     
     /**
-     * Returns all OrganisationUnits with at least one CategoryOption.
+     * Returns the count of OrganisationUnits which are part of the
+     * sub-hierarchy of the given parent OrganisationUnit and members of 
+     * the given object based on the collection of the given collection name.
      * 
-     * @return all OrganisationUnits with at least one CategoryOption.
+     * @param parent the parent OrganisationUnit.
+     * @param member the member object.
+     * @param collectionName the name of the collection.
+     * @return the count of member OrganisationUnits.
      */
-    List<OrganisationUnit> getOrganisationUnitsWithCategoryOptions();
+    Long getOrganisationUnitHierarchyMemberCount( OrganisationUnit parent, Object member, String collectionName );
 
     /**
      * Returns a list of OrganisationUnits based on the given params.
@@ -113,17 +102,6 @@ public interface OrganisationUnitStore
      * @return a map of sets.
      */
     Map<String, Set<String>> getOrganisationUnitDataSetAssocationMap();
-
-    /**
-     * Retrieves the objects determined by the given first result and max result
-     * which lastUpdated is larger or equal.
-     *
-     * @param lastUpdated the name which result object names must be like.
-     * @param first       the first result object to return.
-     * @param max         the max number of result objects to return.
-     * @return a list of objects.
-     */
-    List<OrganisationUnit> getBetweenByLastUpdated( Date lastUpdated, int first, int max );
 
     /**
      * Retrieves the objects where its coordinate is within the 4 area points.

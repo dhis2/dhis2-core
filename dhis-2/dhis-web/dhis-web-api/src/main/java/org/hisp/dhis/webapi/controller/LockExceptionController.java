@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,28 +29,42 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.google.common.collect.Lists;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.LockException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
+import org.hisp.dhis.node.NodeUtils;
+import org.hisp.dhis.node.Preset;
+import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.MathUtils;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
+import org.hisp.dhis.webapi.webdomain.WebMetadata;
+import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
@@ -59,13 +73,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
 @Controller
 @RequestMapping( LockExceptionController.RESOURCE_PATH )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class LockExceptionController
 {
     public static final String RESOURCE_PATH = "/lockExceptions";
@@ -77,9 +92,6 @@ public class LockExceptionController
     private DataSetService dataSetService;
 
     @Autowired
-    private RenderService renderService;
-
-    @Autowired
     private PeriodService periodService;
 
     @Autowired
@@ -88,17 +100,31 @@ public class LockExceptionController
     @Autowired
     private WebMessageService webMessageService;
 
+    @Autowired
+    private AclService aclService;
+
+    @Autowired
+    private CurrentUserService userService;
+
+    @Autowired
+    private FieldFilterService fieldFilterService;
 
     // -------------------------------------------------------------------------
     // Resources
     // -------------------------------------------------------------------------
 
     @RequestMapping( method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
-    public void getLockExceptions( @RequestParam( required = false ) String key,
-        HttpServletRequest request, HttpServletResponse response )
-        throws IOException
+    public @ResponseBody RootNode getLockExceptions( @RequestParam( required = false ) String key,
+        @RequestParam Map<String, String> rpParameters, HttpServletRequest request, HttpServletResponse response )
+        throws IOException, WebMessageException
     {
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        if ( fields.isEmpty() )
+        {
+            fields.addAll( Preset.ALL.getFields() );
+        }
 
         List<LockException> lockExceptions = new ArrayList<>();
 
@@ -108,8 +134,7 @@ public class LockExceptionController
 
             if ( lockException == null )
             {
-                response.sendError( HttpServletResponse.SC_NOT_FOUND );
-                return;
+                throw new WebMessageException( WebMessageUtils.notFound( "Cannot find LockException with key: " + key ) );
             }
 
             lockExceptions.add( lockException );
@@ -123,19 +148,47 @@ public class LockExceptionController
             lockExceptions = dataSetService.getAllLockExceptions();
         }
 
-        renderService.toJson( response.getOutputStream(), lockExceptions );
+        WebOptions options = new WebOptions( rpParameters );
+        WebMetadata metadata = new WebMetadata();
+
+        Pager pager = metadata.getPager();
+
+        if ( options.hasPaging() && pager == null )
+        {
+            pager = new Pager( options.getPage(), lockExceptions.size(), options.getPageSize() );
+            lockExceptions = PagerUtils.pageCollection( lockExceptions, pager );
+        }
+
+        RootNode rootNode = NodeUtils.createMetadata();
+
+        if ( pager != null )
+        {
+            rootNode.addChild( NodeUtils.createPager( pager ) );
+        }
+
+        rootNode.addChild( fieldFilterService.filter( LockException.class, lockExceptions, fields ) );
+
+        return rootNode;
     }
 
     @RequestMapping( method = RequestMethod.POST )
     public void addLockException( @RequestParam( "ou" ) String organisationUnitId, @RequestParam( "pe" ) String periodId,
         @RequestParam( "ds" ) String dataSetId, HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
     {
+        User user = userService.getCurrentUser();
+
         DataSet dataSet = dataSetService.getDataSet( dataSetId );
+
         Period period = periodService.reloadPeriod( PeriodType.getPeriodFromIsoString( periodId ) );
 
         if ( dataSet == null || period == null )
         {
             throw new WebMessageException( WebMessageUtils.conflict( " DataSet or Period is invalid" ) );
+        }
+
+        if ( !aclService.canUpdate( user, dataSet ) )
+        {
+            throw new ReadAccessDeniedException( "You don't have the proper permissions to update this object" );
         }
 
         boolean created = false;
@@ -189,24 +242,30 @@ public class LockExceptionController
     public void deleteLockException( @RequestParam( "ou" ) String organisationUnitId, @RequestParam( "pe" ) String periodId,
         @RequestParam( "ds" ) String dataSetId, HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
     {
+        User user = userService.getCurrentUser();
+
         DataSet dataSet = dataSetService.getDataSet( dataSetId );
+
         Period period = periodService.reloadPeriod( PeriodType.getPeriodFromIsoString( periodId ) );
         OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( organisationUnitId );
 
-        if ( dataSet != null || period != null )
+        if ( !ObjectUtils.allNonNull( dataSet, period ) )
         {
-            if ( organisationUnit != null )
-            {
-                dataSetService.deleteLockExceptionCombination( dataSet, period, organisationUnit );
-            }
-            else
-            {
-                dataSetService.deleteLockExceptionCombination( dataSet, period );
-            }
+            throw new WebMessageException( WebMessageUtils.conflict( "Can't find LockException with combination: dataSet=" + dataSetId + ", period=" + periodId ) );
+        }
+
+        if ( !aclService.canDelete( user, dataSet ) )
+        {
+            throw new ReadAccessDeniedException( "You don't have the proper permissions to delete this object." );
+        }
+
+        if ( organisationUnit != null )
+        {
+            dataSetService.deleteLockExceptionCombination( dataSet, period, organisationUnit );
         }
         else
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Can't find LockException with combination: dataSet=" + dataSetId + ", period=" + periodId ) );
+            dataSetService.deleteLockExceptionCombination( dataSet, period );
         }
     }
 }

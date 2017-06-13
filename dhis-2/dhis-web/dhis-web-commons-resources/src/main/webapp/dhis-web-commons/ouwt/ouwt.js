@@ -141,6 +141,22 @@ function Selection()
         sessionStorage[ OU_SELECTED_KEY ] = JSON.stringify( selected );
     };
 
+    this.setOrgUnitFromURL = function (selected) {
+        selection.setSelected(selected);
+        subtree.reloadTree();
+        function setSelectedOrgUnit() {
+            /*When the selected orgunit is loaded in the tree, selection.select() is called*/
+            setTimeout(function () {
+                if(organisationUnits[selected]) {
+                    selection.select(selected);
+                } else {
+                    setSelectedOrgUnit();
+                }
+            }, 100);
+        }
+        setSelectedOrgUnit();
+    };
+
     this.selectedExists = function() {
         return sessionStorage[ OU_SELECTED_KEY ] != null;
     };
@@ -463,7 +479,7 @@ function Selection()
 
                         $.post( organisationUnitTreePath + "setorgunit.action", {
                             id: selected
-                        } ).complete( function() {
+                        } ).always( function() {
                             selection.busy( false );
                             fn();
                         } );
@@ -492,7 +508,7 @@ function Selection()
         selection.getRoots().length > 1 ? selection.setSelected( roots ) : selection.setSelected( roots[0] );
         subtree.reloadTree();
 
-        $.post( organisationUnitTreePath + "clearselected.action" ).complete( this.responseReceived );
+        $.post( organisationUnitTreePath + "clearselected.action" ).always( this.responseReceived );
     };
 
     this.select = function( unitId ) {
@@ -539,7 +555,7 @@ function Selection()
 
             $.post( organisationUnitTreePath + "removeorgunit.action", {
                 id: unitId
-            } ).complete( function() {
+            } ).always( function() {
                 selection.busy( false );
                 selection.responseReceived();
             });
@@ -560,7 +576,7 @@ function Selection()
 
                 $.post( organisationUnitTreePath + "addorgunit.action", {
                     id: unitId
-                } ).complete( function() {
+                } ).always( function() {
                     selection.busy( false );
                     selection.responseReceived();
                 });

@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,12 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.feedback.ErrorReport;
+
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.dataset.DataSet;
 
 /**
  * @author Chau Thu Tran
@@ -86,10 +88,10 @@ public interface UserService
     /**
      * Retrieves all Users with first name, surname or user name like the given
      * name.
-     * 
-     * @param name the name.
+     *
+     * @param name  the name.
      * @param first the first item to return.
-     * @param max the max number of item to return.
+     * @param max   the max number of item to return.
      * @return a list of Users.
      */
     List<User> getAllUsersBetweenByName( String name, int first, int max );
@@ -110,16 +112,16 @@ public interface UserService
     /**
      * Returns all users which are managed by the given user through its managed
      * groups association.
-     * 
+     *
      * @param user the user.
      * @return a List of users.
      */
     List<User> getManagedUsers( User user );
 
     /**
-     * Returns the number of users which are managed by the given user through its 
+     * Returns the number of users which are managed by the given user through its
      * managed groups association.
-     * 
+     *
      * @param user the user.
      * @return number of users.
      */
@@ -127,7 +129,7 @@ public interface UserService
 
     /**
      * Returns a list of users based on the given query parameters.
-     * 
+     *
      * @param params the user query parameters.
      * @return a List of users.
      */
@@ -135,32 +137,35 @@ public interface UserService
 
     /**
      * Returns the number of users based on the given query parameters.
-     * 
+     *
      * @param params the user query parameters.
      * @return number of users.
      */
     int getUserCount( UserQueryParams params );
 
     /**
-    * Returns number of all users
-    * @return number of users
-    */
+     * Returns number of all users
+     *
+     * @return number of users
+     */
     int getUserCount();
-    
+
     List<User> getUsersByPhoneNumber( String phoneNumber );
-    
+
     /**
      * Tests whether the current user is allowed to create a user associated
-     * with the given user group identifiers. Returns true if current user has 
-     * the F_USER_ADD authority. Returns true if the current user has the 
+     * with the given user group identifiers. Returns true if current user has
+     * the F_USER_ADD authority. Returns true if the current user has the
      * F_USER_ADD_WITHIN_MANAGED_GROUP authority and can manage any of the given
      * user groups. Returns false otherwise.
-     * 
+     *
      * @param userGroups the user group identifiers.
      * @return true if the current user can create user, false if not.
      */
     boolean canAddOrUpdateUser( Collection<String> userGroups );
-    
+
+    boolean canAddOrUpdateUser( Collection<String> userGroups, User currentUser );
+
     // -------------------------------------------------------------------------
     // UserCredentials
     // -------------------------------------------------------------------------
@@ -220,10 +225,10 @@ public interface UserService
      * Due to business logic required on password updates the password for a user
      * should only be changed using this method or {@link #encodeAndSetPassword(UserCredentials, String) encodeAndSetPassword}
      * and not directly on the User or UserCredentials object.
-     *
+     * <p>
      * Note that the changes made to the User object are not persisted.
      *
-     * @param user the User.
+     * @param user        the User.
      * @param rawPassword the raw password.
      */
     void encodeAndSetPassword( User user, String rawPassword );
@@ -233,11 +238,11 @@ public interface UserService
      * Due to business logic required on password updates the password for a user
      * should only be changed using this method or {@link #encodeAndSetPassword(User, String) encodeAndSetPassword}
      * and not directly on the User or UserCredentials object.
-     *
+     * <p>
      * Note that the changes made to the UserCredentials object are not persisted.
      *
      * @param userCredentials the UserCredentials.
-     * @param rawPassword the raw password.
+     * @param rawPassword     the raw password.
      */
     void encodeAndSetPassword( UserCredentials userCredentials, String rawPassword );
 
@@ -254,7 +259,7 @@ public interface UserService
     int getActiveUsersCount( Date since );
 
     boolean credentialsNonExpired( UserCredentials credentials );
-    
+
     // -------------------------------------------------------------------------
     // UserAuthorityGroup
     // -------------------------------------------------------------------------
@@ -311,10 +316,10 @@ public interface UserService
      * @return a List of UserAuthorityGroups.
      */
     List<UserAuthorityGroup> getAllUserAuthorityGroups();
-    
+
     /**
      * Retrieves UserAuthorityGroups with the given UIDs.
-     * 
+     *
      * @param uids the UIDs.
      * @return a List of UserAuthorityGroups.
      */
@@ -337,7 +342,7 @@ public interface UserService
     /**
      * Returns the number of UserAuthorityGroups which are associated with the
      * given DataSet.
-     *  
+     *
      * @param dataSet the DataSet.
      * @return number of UserAuthorityGroups.
      */
@@ -345,14 +350,14 @@ public interface UserService
 
     /**
      * Returns the number of UserAuthorityGroups.
-     * 
+     *
      * @return the number of UserAuthorityGroups.
      */
     int getUserRoleCount();
 
     /**
      * Returns the number of UserAuthorityGroups with the given name.
-     * 
+     *
      * @return the number of UserAuthorityGroups with the given name.
      */
     int getUserRoleCountByName( String name );
@@ -360,8 +365,17 @@ public interface UserService
     /**
      * Filters the given collection of user roles based on whether the current user
      * is allowed to issue it.
-     * 
+     *
      * @param userRoles the collection of user roles.
      */
     void canIssueFilter( Collection<UserAuthorityGroup> userRoles );
+
+    List<ErrorReport> validateUser( User user, User currentUser );
+
+    /**
+     * Returns list of users whose credentials are expiring with in few days.
+     *
+     * @return list of users whose credentials are expiring with in few days.
+     */
+    List<User> getExpiringUsers();
 }

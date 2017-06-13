@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.vote;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@ package org.hisp.dhis.security.vote;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.ConfigAttribute;
@@ -50,6 +51,7 @@ import java.util.List;
  * @author Torgeir Lorange Ostby
  * @version $Id: LogicalOrAccessDecisionManager.java 6335 2008-11-20 11:11:26Z larshelg $
  */
+@Primary
 public class LogicalOrAccessDecisionManager
     implements AccessDecisionManager
 {
@@ -76,7 +78,7 @@ public class LogicalOrAccessDecisionManager
         for ( AccessDecisionManager accessDecisionManager : accessDecisionManagers )
         {
             // Cannot assume that all decision managers can support the same type
-            
+
             if ( accessDecisionManager.supports( object.getClass() ) )
             {
                 try
@@ -86,11 +88,11 @@ public class LogicalOrAccessDecisionManager
                     LOG.debug( "ACCESS GRANTED [" + object.toString() + "]" );
 
                     return;
-                } 
+                }
                 catch ( AccessDeniedException e )
                 {
                     ade = e;
-                } 
+                }
                 catch ( InsufficientAuthenticationException e )
                 {
                     iae = e;

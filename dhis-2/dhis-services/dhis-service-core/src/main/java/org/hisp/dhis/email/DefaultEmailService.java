@@ -1,7 +1,7 @@
 package org.hisp.dhis.email;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,8 @@ import org.hisp.dhis.user.UserCredentials;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
+
+import java.util.Set;
 
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
@@ -86,9 +88,21 @@ public class DefaultEmailService
     }
 
     @Override
+    public boolean emailConfigured()
+    {
+        return emailMessageSender.isConfigured();
+    }
+
+    @Override
     public void sendEmail( Email email )
     {
         emailMessageSender.sendMessage( email.getSubject(), email.getText(), null, email.getSender(), email.getRecipients(), true );
+    }
+
+    @Override
+    public void sendEmail( String subject, String message, Set<String> recipients )
+    {
+        emailMessageSender.sendMessage( subject, message, recipients );
     }
 
     @Override

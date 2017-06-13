@@ -24,6 +24,9 @@
 				var allowFutureDateSelector = jQuery( "#allowFutureDate" );
 				allowFutureDateSelector.empty();
 				
+				var renderOptionsAsRadios = jQuery( "#renderOptionsAsRadios" );
+   				renderOptionsAsRadios.empty();
+				
 				if( getFieldValue('type') != 3 ){
 					
 					var isDisplayed = false;
@@ -45,6 +48,11 @@
 						var allowFutureDate = jQuery( item ).find( "input[name='allowFutureDate']:first");
 						checked = allowFutureDate.attr('checked') ? true : false;
 						allowFutureDateSelector.append( "<option value='" + checked + "' selected='true'>" + checked + "</option>" );
+						
+						// renderOptionsAsRadio
+						var renderOptionsAsRadio = jQuery( item ).find( "input[name='renderOptionsAsRadio']:first");
+						var checked = renderOptionsAsRadio.attr('checked') ? true : false;
+						renderOptionsAsRadios.append( "<option value='" + checked + "' selected='true'>" + checked + "</option>" );
 					});
 					if( jQuery("#selectedList").find("tr").length > 0 && isDisplayed ){
 						compulsaryIdentifier.append( "<option value='0' selected='true'></option>");
@@ -109,17 +117,6 @@
 					#foreach($trackedEntity in $trackedEntities)
 					<option value='$trackedEntity.id'>$trackedEntity.displayName</option>
 					#end
-				</select>
-			</td>
-			<td></td>
-		</tr>
-		
-		<tr>
-			<td><label for="dataEntryMethod">$i18n.getString( "data_entry_method_for_option_sets" ) </label></td>
-			<td>
-				<select id='dataEntryMethod' name='dataEntryMethod'>
-					<option value='false' selected>$i18n.getString('drop_down_lists')</option>
-					<option value='true'>$i18n.getString('radio_buttons')</option>
 				</select>
 			</td>
 			<td></td>
@@ -327,6 +324,7 @@
 			<select style='display:none;' multiple id="mandatory" name="mandatory" ></select>
 			<select style='display:none;' multiple id="allowFutureDate" name="allowFutureDate" ></select>
 			<select id='compulsaryIdentifier' name="compulsaryIdentifier" multiple="multiple" class="hidden {validate:{required:true}}" title="$i18n.getString('please_select_at_least_attribute_for_displaying_in_list')"></select>
+			<select style='display:none;' multiple id="renderOptionsAsRadios" name="renderOptionsAsRadios" ></select>
 		</td>
 	  </tr>
 	</thead>
@@ -334,7 +332,11 @@
 		<td>
 			<select style="width:100%;" size="15" multiple id="availablePropertyIds" name="availablePropertyIds" ondblclick="selectProperties();">
 				#foreach( $attribute in $availableAttributes )
-					<option value="attr_$attribute.id" valuetype='$attribute.valueType'>$attribute.displayName</option>
+					#if($attribute.hasOptionSet() == 'true')
+						<option value="attr_$attribute.id" valuetype='optionset'>$attribute.displayName</option>
+					#else
+						<option value="attr_$attribute.id" valuetype='$attribute.valueType'>$attribute.displayName</option>
+					#end
 				#end
 			</select>
 		</td>
@@ -346,17 +348,18 @@
 		</td>
 		<td>
 			<div class="dataElementDiv">
-				<table>
+				<table class="bordered-table">
 					<colgroup>
 						<col/>
 						<col style="width:20px;"/>
 					</colgroup>
 					<thead>
 						<tr>
-                            <th style="width:180px;">$i18n.getString( "name" )</th>
-                            <th style="width:20px;">$i18n.getString( "displayed_in_list" )</th>
-                            <th style="width:20px;">$i18n.getString( "mandatory" )</th>
-                            <th style="width:20px;">$i18n.getString( "date_in_future" )</th>
+                            <th>$i18n.getString( "name" )</th>
+                            <th>$i18n.getString( "displayed_in_list" )</th>
+                            <th>$i18n.getString( "mandatory" )</th>
+                            <th>$i18n.getString( "date_in_future" )</th>
+                            <th>$i18n.getString( "render_options_as_radio" )</th>
                         </tr>
 					</thead>
 					<tbody id="selectedList"></tbody>

@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.dataelement;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,11 +35,13 @@ import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.schema.descriptors.DataElementGroupSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,9 +51,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +70,9 @@ public class DataElementGroupController
 {
     @Autowired
     private DataElementCategoryService dataElementCategoryService;
+
+    @Autowired
+    private DataElementService dataElementService;
 
     @RequestMapping( value = "/{uid}/operands", method = RequestMethod.GET )
     public String getOperands( @PathVariable( "uid" ) String uid, @RequestParam Map<String, String> parameters, Model model,
@@ -143,5 +150,19 @@ public class DataElementGroupController
         model.addAttribute( "viewClass", options.getViewClass( "basic" ) );
 
         return StringUtils.uncapitalize( getEntitySimpleName() );
+    }
+
+    @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
+    public @ResponseBody RootNode getDataElementGroupWithDependencies( @PathVariable( "uid" ) String dataElementGroupId, HttpServletResponse response )
+        throws WebMessageException, IOException
+    {
+        DataElementGroup dataElementGroup = dataElementService.getDataElementGroup( dataElementGroupId );
+
+        if ( dataElementGroup == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "DataElementGroup not found for uid: " + dataElementGroupId ) );
+        }
+
+        return exportService.getMetadataWithDependenciesAsNode( dataElementGroup );
     }
 }

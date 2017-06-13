@@ -1,7 +1,7 @@
 package org.hisp.dhis.startup;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,7 @@ public class InitTableAlteror
         executeSql( "alter table programstageinstance alter column  status  type varchar(25);" );
         executeSql( "UPDATE programstageinstance SET status='ACTIVE' WHERE status='0';" );
         executeSql( "UPDATE programstageinstance SET status='COMPLETED' WHERE status='1';" );
-        executeSql( "UPDATE programstageinstance SET status='SKIPPED' WHERE status='5';" );        
+        executeSql( "UPDATE programstageinstance SET status='SKIPPED' WHERE status='5';" );
         executeSql( "ALTER TABLE program DROP COLUMN displayonallorgunit" );
 
         upgradeProgramStageDataElements();
@@ -99,7 +99,54 @@ public class InitTableAlteror
 
         updateMessageConversationMessageCount();
 
+        // Set OrganisationUnitGroupSet includeSubhierarchyInAnalytics to false where IS NULL
+        executeSql( "UPDATE orgunitgroupset SET includesubhierarchyinanalytics = FALSE WHERE includesubhierarchyinanalytics IS NULL" );
+
+        // Update programstageinstance set deleted = false where deleted = null
+        executeSql( "UPDATE programstageinstance SET deleted = false WHERE deleted IS NULL" );
+        executeSql( "alter table programstageinstance alter column deleted set not null" );
+        executeSql( "create index in_programstageinstance_deleted on programstageinstace(deleted)" );
+
+        // Update trackedentityinstance set deleted = false where deleted = null
+        executeSql( "UPDATE trackedentityinstance SET deleted = false WHERE deleted IS NULL" );
+        executeSql( "alter table trackedentityinstance alter column deleted set not null" );
+        executeSql( "create index in_trackedentityinstance_deleted on trackedentityinstance(deleted)" );
+
+        // Update programinstance set deleted = false where deleted = null
+        executeSql( "UPDATE programinstance SET deleted = false WHERE deleted IS NULL" );
+        executeSql( "alter table programinstance alter column deleted set not null" );
+        executeSql( "create index in_programinstance_deleted on programinstance(deleted)" );
+
+        // Remove DataSet start and end date - replaced by DataInputPeriods
+        executeSql( "ALTER TABLE dataset drop column startdate" );
+        executeSql( "ALTER TABLE dataset drop column enddate" );
+
         updateLegendSetAssociationAndDeleteOldAssociation();
+
+        // Message Conversation Message Type
+        updateMessageConversationMessageTypes();
+
+        executeSql( "UPDATE expression SET slidingWindow = FALSE WHERE slidingWindow IS NULL" );
+        executeSql( "UPDATE validationResult set notificationsent = false WHERE notificationsent is null" );
+
+    }
+
+    private void updateMessageConversationMessageTypes()
+    {
+        // Tickets has status != NONE
+        executeSql( "UPDATE messageconversation SET messagetype = 'TICKET' WHERE messagetype IS NULL AND status != 'NONE'" );
+
+        // Validation results existing ValidationResults always start with "Alerts as of%"
+        executeSql( "UPDATE messageconversation SET messagetype = 'VALIDATION_RESULT' WHERE messagetype IS NULL AND ( subject LIKE 'Alerts as of%' OR subject LIKE 'DHIS alerts as of%' )" );
+
+        // System Always have no user "owner"
+        executeSql( "UPDATE messageconversation SET messagetype = 'SYSTEM' WHERE messagetype IS NULL AND userid IS NULL" );
+
+        // Direct messages is what is left
+        executeSql( "UPDATE messageconversation SET messagetype = 'PRIVATE' WHERE messagetype IS NULL" );
+
+        executeSql( "ALTER TABLE messageconversation ALTER COLUMN messagetype set not null" );
+
     }
 
     private void updateLegendSetAssociationAndDeleteOldAssociation()
@@ -135,15 +182,13 @@ public class InitTableAlteror
         executeSql( "ALTER TABLE trackedentityattribute DROP COLUMN legendsetid ");
     }
 
-    private void updateMessageConversationMessageCount() {
-
+    private void updateMessageConversationMessageCount()
+    {
         Integer nullCounts = statementManager.getHolder().queryForInteger( "SELECT count(*) from messageconversation WHERE messagecount IS NULL" );
 
-        if(nullCounts > 0)
+        if ( nullCounts > 0 )
         {
-            // Count messages in messageConversations
-            executeSql(
-                "update messageconversation MC SET messagecount = (SELECT count(MCM.messageconversationid) FROM messageconversation_messages MCM WHERE messageconversationid=MC.messageconversationid) " );
+            executeSql( "update messageconversation MC SET messagecount = (SELECT count(MCM.messageconversationid) FROM messageconversation_messages MCM WHERE messageconversationid=MC.messageconversationid)" );
         }
     }
 

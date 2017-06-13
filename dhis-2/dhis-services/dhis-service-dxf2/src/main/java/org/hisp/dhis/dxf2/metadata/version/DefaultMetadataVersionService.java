@@ -1,5 +1,7 @@
+package org.hisp.dhis.dxf2.metadata.version;
+
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.dxf2.metadata.version;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -67,7 +67,8 @@ import java.util.List;
  * @author aamerm
  */
 @Transactional
-public class DefaultMetadataVersionService
+public class
+DefaultMetadataVersionService
     implements MetadataVersionService
 {
     private static final Log log = LogFactory.getLog( DefaultMetadataVersionService.class );
@@ -98,7 +99,9 @@ public class DefaultMetadataVersionService
     @Override
     public int addVersion( MetadataVersion version )
     {
-        return versionStore.save( version );
+        versionStore.save( version );
+
+        return version.getId();
     }
 
     @Override
@@ -346,7 +349,7 @@ public class DefaultMetadataVersionService
     //--------------------------------------------------------------------------
 
     /**
-     *Generates the Metadata export based on the created date of the current version
+     * Generates the metadata export based on the created date of the current version.
      */
     private ByteArrayOutputStream getMetadataExport( Date minDate )
     {

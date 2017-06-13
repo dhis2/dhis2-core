@@ -1,7 +1,7 @@
 package org.hisp.dhis.expression;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,11 +35,11 @@ public enum MissingValueStrategy
 {
     SKIP_IF_ANY_VALUE_MISSING( "skip_if_any_value_missing" ),
     SKIP_IF_ALL_VALUES_MISSING( "skip_if_all_values_missing" ),
-    NEVER_SKIP( "never_skip" );    
+    NEVER_SKIP( "never_skip" );
 
     private final String value;
 
-    private MissingValueStrategy( String value )
+    MissingValueStrategy( String value )
     {
         this.value = value;
     }
@@ -48,7 +48,7 @@ public enum MissingValueStrategy
     {
         return value;
     }
-    
+
     public static MissingValueStrategy safeValueOf( String value )
     {
         return value != null ? MissingValueStrategy.valueOf( value ) : null;

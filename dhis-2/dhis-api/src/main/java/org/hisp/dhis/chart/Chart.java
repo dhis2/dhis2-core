@@ -1,7 +1,7 @@
 package org.hisp.dhis.chart;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,7 @@ import org.hisp.dhis.common.AnalyticsType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -51,7 +50,7 @@ import java.util.List;
  */
 @JacksonXmlRootElement( localName = "chart", namespace = DxfNamespaces.DXF_2_0 )
 public class Chart
-    extends BaseChart
+    extends BaseChart implements MetadataObject
 {
     private String series;
 
@@ -219,31 +218,5 @@ public class Chart
     public void setCategory( String category )
     {
         this.category = category;
-    }
-
-    // -------------------------------------------------------------------------
-    // Merge with
-    // -------------------------------------------------------------------------
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            Chart chart = (Chart) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                series = chart.getSeries();
-                category = chart.getCategory();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                series = chart.getSeries() == null ? series : chart.getSeries();
-                category = chart.getCategory() == null ? category : chart.getCategory();
-            }
-        }
     }
 }

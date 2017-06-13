@@ -29,17 +29,14 @@ package org.hisp.dhis.datastatistics;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.datastatistics.DataStatisticsEvent;
-import org.hisp.dhis.datastatistics.DataStatisticsEventStore;
-import org.hisp.dhis.datastatistics.DataStatisticsEventType;
-
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Yrjan A. F. Fraschetti
@@ -79,8 +76,11 @@ public class DataStatisticsEventStoreTest
     @Test
     public void addDataStatisticsEventTest()
     {
-        dse1Id = dataStatisticsEventStore.save( dse1 );
-        dse2Id = dataStatisticsEventStore.save( dse2 );
+        dataStatisticsEventStore.save( dse1 );
+        dse1Id = dse1.getId();
+        dataStatisticsEventStore.save( dse2 );
+        dse2Id = dse2.getId();
+
         assertTrue( dse1Id != 0 );
         assertTrue( dse2Id != 0 );
     }

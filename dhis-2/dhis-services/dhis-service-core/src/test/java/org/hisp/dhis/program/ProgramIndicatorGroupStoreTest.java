@@ -96,7 +96,8 @@ public class ProgramIndicatorGroupStoreTest
     @Test
     public void testDeleteProgramIndicatorGroup()
     {
-        int id = programIndicatorGroupStore.save( programIndicatorGroupA );
+        programIndicatorGroupStore.save( programIndicatorGroupA );
+        int id = programIndicatorGroupA.getId();
 
         programIndicatorGroupStore.delete( programIndicatorGroupA );
 

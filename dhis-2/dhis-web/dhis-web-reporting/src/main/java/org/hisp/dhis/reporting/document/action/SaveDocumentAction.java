@@ -1,19 +1,7 @@
 package org.hisp.dhis.reporting.document.action;
 
-import com.opensymphony.xwork2.Action;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.document.Document;
-import org.hisp.dhis.document.DocumentService;
-import org.hisp.dhis.external.location.LocationManager;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.File;
-import java.util.List;
-
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +28,24 @@ import java.util.List;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.hash.Hashing;
+import com.google.common.io.ByteSource;
+import com.opensymphony.xwork2.Action;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.document.Document;
+import org.hisp.dhis.document.DocumentService;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
 /**
  * @author Lars Helge Overland
  */
@@ -56,22 +62,14 @@ public class SaveDocumentAction
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private LocationManager locationManager;
-
-    public void setLocationManager( LocationManager locationManager )
-    {
-        this.locationManager = locationManager;
-    }
-
+    @Autowired
     private DocumentService documentService;
-
-    public void setDocumentService( DocumentService documentService )
-    {
-        this.documentService = documentService;
-    }
 
     @Autowired
     private AttributeService attributeService;
+
+    @Autowired
+    private FileResourceService fileResourceService;
 
     // -------------------------------------------------------------------------
     // Input
@@ -148,50 +146,32 @@ public class SaveDocumentAction
     public String execute()
         throws Exception
     {
-        Document document = new Document();
+        Document document = id == null ? new Document() : documentService.getDocument( id );
 
-        if ( id != null )
+        if ( document == null )
         {
-            document = documentService.getDocument( id );
+            throw new RuntimeException( "Document with id " + id + " was not found" );
         }
 
-        if ( !external && file != null )
+        if ( file != null )
         {
-            log.info( "Uploading file: '" + fileName + "', content-type: '" + contentType + "'" );
-
-            File destination = locationManager.getFileForWriting( fileName, DocumentService.DIR );
-
-            log.info( "Destination: '" + destination.getAbsolutePath() + "'" );
-
-            boolean fileMoved = file.renameTo( destination );
-
-            if ( !fileMoved )
+            if ( document.getFileResource() != null )
             {
-                throw new RuntimeException( "File could not be moved to: '" + destination.getAbsolutePath() + "'" );
+                documentService.deleteFileFromDocument( document );
             }
 
-            url = fileName;
-            document.setUrl( url );
+            document.setUrl( fileName );
+            document.setFileResource( uploadFile( file, fileName, contentType ) );
             document.setContentType( contentType );
         }
-
         else if ( external )
         {
-            if ( !(url.startsWith( HTTP_PREFIX ) || url.startsWith( HTTPS_PREFIX )) )
-            {
-                url = HTTP_PREFIX + url;
-            }
-
-            log.info( "Document name: '" + name + "', url: '" + url + "', external: '" + external + "'" );
-
-            document.setUrl( url );
+            document.setUrl( getValidUrl( url ) );
         }
 
-        document.setAttachment( attachment );
-
-        document.setExternal( external );
-
         document.setName( name );
+        document.setExternal( external );
+        document.setAttachment( attachment );
 
         documentService.saveDocument( document );
 
@@ -203,5 +183,36 @@ public class SaveDocumentAction
         documentService.saveDocument( document );
 
         return SUCCESS;
+    }
+
+    private String getValidUrl( String url )
+    {
+        if ( !( url.startsWith( HTTP_PREFIX ) || url.startsWith( HTTPS_PREFIX ) ) )
+        {
+            url = HTTP_PREFIX + url;
+        }
+
+        return url;
+    }
+
+    private FileResource uploadFile( File file, String fileName, String contentType )
+        throws IOException
+    {
+        log.info( "Uploading file '" + fileName + "' to document " + name + "." );
+
+        byte[] bytes = FileUtils.readFileToByteArray( file );
+        FileResource fileResource = new FileResource(
+            fileName,
+            contentType,
+            bytes.length,
+            ByteSource.wrap( bytes ).hash( Hashing.md5() ).toString(),
+            FileResourceDomain.DOCUMENT
+        );
+
+        fileResourceService.saveFileResource( fileResource, bytes );
+
+        log.info( "Upload complete." );
+
+        return fileResource;
     }
 }

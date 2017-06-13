@@ -1,7 +1,7 @@
 package org.hisp.dhis.relationship;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -81,7 +81,8 @@ public class DefaultRelationshipTypeService
     @Override
     public int addRelationshipType( RelationshipType relationshipType )
     {
-        return relationshipTypeStore.save( relationshipType );
+        relationshipTypeStore.save( relationshipType );
+        return relationshipType.getId();
     }
 
     @Override

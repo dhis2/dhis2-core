@@ -1,7 +1,7 @@
 package org.hisp.dhis.attribute;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,15 +32,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
@@ -71,7 +72,7 @@ import java.util.Objects;
  */
 @JacksonXmlRootElement( localName = "attribute", namespace = DxfNamespaces.DXF_2_0 )
 public class Attribute
-    extends BaseIdentifiableObject
+    extends BaseNameableObject implements MetadataObject
 {
     private ValueType valueType;
 
@@ -123,6 +124,8 @@ public class Attribute
 
     private boolean sectionAttribute;
 
+    private boolean categoryOptionComboAttribute;
+
     private boolean mandatory;
 
     private boolean unique;
@@ -148,7 +151,7 @@ public class Attribute
         return 31 * super.hashCode() + Objects.hash( valueType, dataElementAttribute, dataElementGroupAttribute, indicatorAttribute, indicatorGroupAttribute,
             dataSetAttribute, organisationUnitAttribute, organisationUnitGroupAttribute, organisationUnitGroupSetAttribute, userAttribute, userGroupAttribute,
             programAttribute, programStageAttribute, trackedEntityAttribute, trackedEntityAttributeAttribute, categoryOptionAttribute, categoryOptionGroupAttribute,
-            mandatory, unique, optionSet, optionAttribute, constantAttribute, legendSetAttribute, programIndicatorAttribute, sqlViewAttribute, sectionAttribute );
+            mandatory, unique, optionSet, optionAttribute, constantAttribute, legendSetAttribute, programIndicatorAttribute, sqlViewAttribute, sectionAttribute, categoryOptionComboAttribute );
     }
 
     @Override
@@ -192,6 +195,7 @@ public class Attribute
             && Objects.equals( this.programIndicatorAttribute, other.programIndicatorAttribute )
             && Objects.equals( this.sqlViewAttribute, other.sqlViewAttribute )
             && Objects.equals( this.sectionAttribute, other.sectionAttribute )
+            && Objects.equals( this.categoryOptionComboAttribute, other.categoryOptionComboAttribute )
 
             && Objects.equals( this.mandatory, other.mandatory )
             && Objects.equals( this.unique, other.unique )
@@ -512,6 +516,18 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isCategoryOptionComboAttribute()
+    {
+        return categoryOptionComboAttribute;
+    }
+
+    public void setCategoryOptionComboAttribute( boolean categoryOptionComboAttribute )
+    {
+        this.categoryOptionComboAttribute = categoryOptionComboAttribute;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isSectionAttribute()
     {
         return sectionAttribute;
@@ -574,58 +590,9 @@ public class Attribute
         if ( programIndicatorAttribute ) klasses.add( ProgramIndicator.class );
         if ( sqlViewAttribute ) klasses.add( SqlView.class );
         if ( sectionAttribute ) klasses.add( Section.class );
+        if ( categoryOptionComboAttribute ) klasses.add( DataElementCategoryOptionCombo.class );
 
         return klasses;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            Attribute attribute = (Attribute) other;
-
-            dataElementAttribute = attribute.isDataElementAttribute();
-            dataElementGroupAttribute = attribute.isDataElementGroupAttribute();
-            indicatorAttribute = attribute.isIndicatorAttribute();
-            indicatorGroupAttribute = attribute.isIndicatorGroupAttribute();
-            dataSetAttribute = attribute.isDataSetAttribute();
-            organisationUnitAttribute = attribute.isOrganisationUnitAttribute();
-            organisationUnitGroupAttribute = attribute.isOrganisationUnitGroupAttribute();
-            organisationUnitGroupSetAttribute = attribute.isOrganisationUnitGroupSetAttribute();
-            userAttribute = attribute.isUserAttribute();
-            userGroupAttribute = attribute.isUserGroupAttribute();
-            programAttribute = attribute.isProgramAttribute();
-            programStageAttribute = attribute.isProgramStageAttribute();
-            trackedEntityAttribute = attribute.isTrackedEntityAttribute();
-            trackedEntityAttributeAttribute = attribute.isTrackedEntityAttributeAttribute();
-            categoryOptionAttribute = attribute.isCategoryOptionAttribute();
-            categoryOptionGroupAttribute = attribute.isCategoryOptionGroupAttribute();
-            documentAttribute = attribute.isDocumentAttribute();
-            optionAttribute = attribute.isOptionAttribute();
-            optionSetAttribute = attribute.isOptionSetAttribute();
-            constantAttribute = attribute.isConstantAttribute();
-            legendSetAttribute = attribute.isLegendSetAttribute();
-            programIndicatorAttribute = attribute.isProgramIndicatorAttribute();
-            sqlViewAttribute = attribute.isSqlViewAttribute();
-            sectionAttribute = attribute.isSectionAttribute();
-            mandatory = attribute.isMandatory();
-            unique = attribute.isUnique();
-            optionSet = attribute.getOptionSet();
-
-            if ( mergeMode.isReplace() )
-            {
-                valueType = attribute.getValueType();
-                sortOrder = attribute.getSortOrder();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                valueType = attribute.getValueType() == null ? valueType : attribute.getValueType();
-                sortOrder = attribute.getSortOrder() == null ? sortOrder : attribute.getSortOrder();
-            }
-        }
     }
 
     @Override
@@ -655,6 +622,7 @@ public class Attribute
             .add( "programIndicatorAttribute", programIndicatorAttribute )
             .add( "sqlViewAttribute", sqlViewAttribute )
             .add( "sectionAttribute", sectionAttribute )
+            .add( "categoryOptionComboAttribute", categoryOptionComboAttribute )
             .add( "mandatory", mandatory )
             .toString();
     }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,14 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import org.hisp.dhis.program.message.DeliveryChannel;
+import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.program.message.MessageBatchCreatorService;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.sms.outbound.MessageBatch;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -42,29 +44,19 @@ public class SmsMessageBatchCreatorService
     implements MessageBatchCreatorService
 {
     @Override
-    public MessageBatch getMessageBatch( List<ProgramMessage> programMessages )
+    public OutboundMessageBatch getMessageBatch( List<ProgramMessage> programMessages )
     {
-        MessageBatch messageBatch = new MessageBatch();
+        List<OutboundMessage> messages = programMessages.parallelStream()
+            .filter( pm -> pm.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
+            .map( pm -> createSmsMessage( pm ) )
+            .collect( Collectors.toList() );
 
-        List<OutBoundMessage> smsBatch = new ArrayList<>();
+        return new OutboundMessageBatch( messages, DeliveryChannel.SMS );
+    }
 
-        for ( ProgramMessage programMessage : programMessages )
-        {
-            if ( programMessage.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
-            {
-                OutBoundMessage sms = new OutBoundMessage( programMessage.getText(),
-                    programMessage.getRecipients().getPhoneNumbers(), programMessage.getSubject() );
-
-                smsBatch.add( sms );
-            }
-        }
-
-        if ( !smsBatch.isEmpty() )
-        {
-            messageBatch.setBatch( smsBatch );
-            messageBatch.setDeliveryChannel( DeliveryChannel.SMS );
-        }
-
-        return messageBatch;
+    private OutboundMessage createSmsMessage( ProgramMessage programMessage )
+    {
+        return new OutboundMessage( programMessage.getSubject(), programMessage.getText(),
+                programMessage.getRecipients().getPhoneNumbers() );
     }
 }

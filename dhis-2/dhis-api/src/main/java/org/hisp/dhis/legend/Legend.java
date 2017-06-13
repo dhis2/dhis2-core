@@ -1,7 +1,7 @@
 package org.hisp.dhis.legend;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,15 +33,15 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 
 /**
  * @author Jan Henrik Overland
  */
 @JacksonXmlRootElement( localName = "legend", namespace = DxfNamespaces.DXF_2_0 )
 public class Legend
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements EmbeddedObject
 {
     private Double startValue;
 
@@ -50,6 +50,8 @@ public class Legend
     private String color;
 
     private String image;
+
+    private LegendSet legendSet;
 
     public Legend()
     {
@@ -68,14 +70,9 @@ public class Legend
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = Integer.MIN_VALUE )
     public Double getStartValue()
     {
         return startValue;
@@ -88,6 +85,7 @@ public class Legend
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = Integer.MIN_VALUE )
     public Double getEndValue()
     {
         return endValue;
@@ -122,29 +120,13 @@ public class Legend
         this.image = image;
     }
 
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
+    public LegendSet getLegendSet()
     {
-        super.mergeWith( other, mergeMode );
+        return legendSet;
+    }
 
-        if ( other.getClass().isInstance( this ) )
-        {
-            Legend legend = (Legend) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                startValue = legend.getStartValue();
-                endValue = legend.getEndValue();
-                color = legend.getColor();
-                image = legend.getImage();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                startValue = legend.getStartValue() == null ? startValue : legend.getStartValue();
-                endValue = legend.getEndValue() == null ? endValue : legend.getEndValue();
-                color = legend.getColor() == null ? color : legend.getColor();
-                image = legend.getImage() == null ? image : legend.getImage();
-            }
-        }
+    public void setLegendSet( LegendSet legendSet )
+    {
+        this.legendSet = legendSet;
     }
 }

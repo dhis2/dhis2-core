@@ -12,18 +12,26 @@
 
     <property name="uid" column="uid" unique="true" length="11" />
 
+    <property name="code" column="code" not-null="false" unique="true" length="50" />
+
     <property name="created" type="timestamp" not-null="true" />
 
     <property name="lastUpdated" type="timestamp" not-null="true" />
 
+    <property name="createdAtClient" type="timestamp" />
+
+    <property name="lastUpdatedAtClient" type="timestamp" />
+
     <many-to-one name="programInstance" class="org.hisp.dhis.program.ProgramInstance"
-      column="programinstanceid" not-null="true" foreign-key="fk_programstageinstance_programinstanceid" />
+      column="programinstanceid" not-null="true" foreign-key="fk_programstageinstance_programinstanceid" index="programstageinstance_programinstanceid" />
 
     <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
       column="programstageid" not-null="true" foreign-key="fk_programstageinstance_programstageid" />
 
     <many-to-one name="attributeOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo"
       column="attributeoptioncomboid" foreign-key="fk_programstageinstance_attributeoptioncomboid" />
+
+    <property name="deleted" column="deleted" />
 
     <property name="storedBy" />
 
@@ -50,13 +58,18 @@
     <property name="completedBy" />
 
     <property name="completedDate" />
- 
-    <list name="comments" table="programstageinstancecomments" cascade="all,delete-orphan">
-      <key column="programstageinstanceid" foreign-key="fk_programstageinstancecomments_programstageinstanceid"/>
+
+    <list name="comments" table="programstageinstancecomments" cascade="all-delete-orphan">
+      <key column="programstageinstanceid" foreign-key="fk_programstageinstancecomments_programstageinstanceid" />
       <list-index column="sort_order" base="1" />
-      <many-to-many class="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" column="trackedentitycommentid" 
-      	unique="true" foreign-key="fk_programstageinstancecomments_trackedentitycommentid"/>
+      <many-to-many class="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" column="trackedentitycommentid"
+        unique="true" foreign-key="fk_programstageinstancecomments_trackedentitycommentid" />
     </list>
+
+    <set name="dataValues" inverse="true" lazy="true">
+      <key column="programstageinstanceid" />
+      <one-to-many class="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue" />
+    </set>
 
   </class>
 

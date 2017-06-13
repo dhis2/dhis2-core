@@ -1,5 +1,7 @@
+package org.hisp.dhis.metadata.version;
+
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.metadata.version;
-
 import org.hisp.dhis.node.types.RootNode;
 
 import java.util.Date;
@@ -43,8 +43,8 @@ public interface MetadataVersionService
     // ------------------------------------------------------------------------
     //   Constants
     //-------------------------------------------------------------------------
-    public static String METADATASTORE = "METADATASTORE";
-    public static String METADATAVERSION_NAME_PREFIX = "Version_";
+    String METADATASTORE = "METADATASTORE";
+    String METADATAVERSION_NAME_PREFIX = "Version_";
 
     /**
      * @param version Version object to add.

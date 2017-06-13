@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ public class UserRoleObjectBundleHook
 {
     @Override
     @SuppressWarnings( "unchecked" )
-    public void postImport( ObjectBundle bundle )
+    public void postCommit( ObjectBundle bundle )
     {
         if ( !bundle.getObjectMap().containsKey( UserAuthorityGroup.class ) ) return;
         List<IdentifiableObject> objects = bundle.getObjectMap().get( UserAuthorityGroup.class );

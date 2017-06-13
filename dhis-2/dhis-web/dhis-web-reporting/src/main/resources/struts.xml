@@ -230,11 +230,5 @@
       <param name="requiredAuthorities">F_DATA_MART_ADMIN</param>
     </action>
 
-    <action name="startExport" class="org.hisp.dhis.reporting.datamart.action.StartExportAction">
-      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
-      <param name="onExceptionReturn">plainTextError</param>
-      <param name="requiredAuthorities">F_DATA_MART_ADMIN</param>
-    </action>
-
   </package>
 </struts>

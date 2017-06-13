@@ -61,13 +61,39 @@
             <td>
                 #set( $rcpt = $template.notificationRecipient.name() )
                 <select type="text" id="notificationRecipient" name="notificationRecipient">
-                    <option value="TRACKED_ENTITY_INSTANCE" #if ( $rcpt == "TRACKED_ENTITY_INSTANCE" ) selected #end>$i18n.getString( "tracked_entity_instance" )</option>
                     <option value="ORGANISATION_UNIT_CONTACT" #if ( $rcpt == "ORGANISATION_UNIT_CONTACT" ) selected #end>$i18n.getString( "orgunit_contact" )</option>
                     <option value="USERS_AT_ORGANISATION_UNIT" #if ( $rcpt == "USERS_AT_ORGANISATION_UNIT" ) selected #end>$i18n.getString( "users_at_orgunit" )</option>
                     <option value="USER_GROUP" #if ( $rcpt == "USER_GROUP" ) selected #end>$i18n.getString( "user_group" )</option>
+                    <option value="PROGRAM_ATTRIBUTE" #if ( $rcpt == "PROGRAM_ATTRIBUTE" ) selected #end>$i18n.getString( "program_attributes" )</option>
                 </select>
             </td>
         </tr>
+
+        <tr id="programAttributeContainer" #if ( $rcpt != "PROGRAM_ATTRIBUTE" ) style="display: none;" #end>
+            <td>
+                <label for="programAttribute">$i18n.getString( "program_attributes" )</label>
+            </td>
+            <td>
+                #set( $pAttr = $template.recipientProgramAttribute )
+                <select type="text" id="programAttribute" name="programAttribute" class="programAttribute">
+                    #if ( $phoneNumberAttributes.size() > 0 || $emailAttributes.size() > 0 )
+
+                    <option value="">[$i18n.getString("please_select")]</option>
+                            #foreach( $phoneNumber in $!phoneNumberAttributes )
+                                <option value="$phoneNumber.uid" #if ( $pAttr && $pAttr.uid.equals( $phoneNumber.uid ) ) selected #end>$phoneNumber.displayName</option>
+                            #end
+
+                            #foreach( $email in $!emailAttributes )
+                                <option value="$email.uid" #if ( $pAttr && $pAttr.uid.equals( $email.uid ) ) selected #end>$email.displayName</option>
+                            #end
+                #else
+                    <option value="">[$i18n.getString("no_phonenumber_email_found")]</option>
+                #end
+
+                </select>
+            </td>
+        </tr>
+
         <tr id="userGroupContainer" #if ( $rcpt != "USER_GROUP" ) style="display: none;" #end>
             <td>
                 <label for="userGroup">$i18n.getString( "user_group" )</label>
@@ -82,7 +108,7 @@
                 </select>
             </td>
         </tr>
-        <tr id="deliveryChannelsContainer" #if ( !$template.notificationRecipient.isExternalRecipient() ) style="display: none;" #end>
+        <tr id="deliveryChannelsContainer" #if ( $rcpt != "ORGANISATION_UNIT_CONTACT" ) style="display: none;" #end>
             <td><label for="deliveryChannelsForm">$i18n.getString( "message_type" )</label></td>
             <td>
                 #set( $dc = $template.deliveryChannels )

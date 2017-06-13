@@ -28,35 +28,24 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.DataDimensionItemType;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
-import org.hisp.dhis.common.ReportingRate;
-import org.hisp.dhis.common.ReportingRateMetric;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.collect.Lists;
+import java.util.*;
+
+import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -77,6 +66,12 @@ public class DataQueryParamsTest
     private ReportingRate rrB;
     private ReportingRate rrC;
     private ReportingRate rrD;
+    
+    private Period peA;
+    private Period peB;
+    
+    private OrganisationUnit ouA;
+    private OrganisationUnit ouB;
 
     @Before
     public void setUpTest()
@@ -94,6 +89,45 @@ public class DataQueryParamsTest
         rrB = new ReportingRate( createDataSet( 'B', null ), ReportingRateMetric.REPORTING_RATE );
         rrC = new ReportingRate( createDataSet( 'C', null ), ReportingRateMetric.EXPECTED_REPORTS );
         rrD = new ReportingRate( createDataSet( 'D', null ), ReportingRateMetric.ACTUAL_REPORTS );
+        
+        peA = createPeriod( "201601" );
+        peB = createPeriod( "201603" );
+        
+        ouA = createOrganisationUnit( 'A' );
+        ouB = createOrganisationUnit( 'B' );
+    }
+
+    @Test
+    public void addDimension()
+    {
+        DimensionalObject doA = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList() );
+        DimensionalObject doB = new BaseDimensionalObject( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID, DimensionType.CATEGORY_OPTION_COMBO, Lists.newArrayList() );
+        DimensionalObject doC = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList() );
+        DimensionalObject doD = new BaseDimensionalObject( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID, DimensionType.ATTRIBUTE_OPTION_COMBO, Lists.newArrayList() );
+        DimensionalObject doE = new BaseDimensionalObject( "WpDi1seZU0Z", DimensionType.DATA_ELEMENT_GROUP_SET, Lists.newArrayList() );
+        DimensionalObject doF = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList() );
+        DimensionalObject doG = new BaseDimensionalObject( "Cz3WQznvrCM", DimensionType.ORGANISATION_UNIT_GROUP_SET, Lists.newArrayList() );
+        
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( doA )
+            .addDimension( doB )
+            .addDimension( doC )
+            .addDimension( doD )
+            .addDimension( doE )
+            .addDimension( doF )
+            .addDimension( doG )
+            .build();
+        
+        List<DimensionalObject> dimensions = params.getDimensions();
+        
+        assertEquals( 7, dimensions.size() );
+        assertEquals( doF, dimensions.get( 0 ) );
+        assertEquals( doB, dimensions.get( 1 ) );
+        assertEquals( doD, dimensions.get( 2 ) );
+        assertEquals( doA, dimensions.get( 3 ) );
+        assertEquals( doC, dimensions.get( 4 ) );
+        assertEquals( doE, dimensions.get( 5 ) );
+        assertEquals( doG, dimensions.get( 6 ) );        
     }
     
     @Test
@@ -269,5 +303,69 @@ public class DataQueryParamsTest
             .withDimensionOptions( DimensionalObject.DATA_X_DIM_ID, itemsAfter ).build();
         
         assertEquals( itemsAfter, params.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems() );        
+    }
+
+    @Test
+    public void testGetDaysForAvgSumIntAggregation()
+    {
+        List<DimensionalItemObject> dataElements = Lists.newArrayList( deA, deB, deC );
+        List<DimensionalItemObject> periods = Lists.newArrayList( peA, peB );
+        
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( dataElements )
+            .withPeriods( periods ).build();
+        
+        assertEquals( peA.getDaysInPeriod(), params.getDaysForAvgSumIntAggregation() );
+        
+        params = DataQueryParams.newBuilder()
+            .withDataElements( dataElements )
+            .withFilterPeriods( periods ).build();
+        
+        int totalDays = peA.getDaysInPeriod() + peB.getDaysInPeriod();
+        
+        assertEquals( totalDays, params.getDaysForAvgSumIntAggregation() );
+    }
+
+    @Test
+    public void testGetDimensionsAndFiltersByDimensionTypes()
+    {        
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( Lists.newArrayList( deA, deB, deC ) )
+            .withPeriods( Lists.newArrayList( peA, peB ) )
+            .withOrganisationUnits( Lists.newArrayList( ouA, ouB ) )
+            .build();
+        
+        List<DimensionalObject> dimensions = params.getDimensionsAndFilters( Sets.newHashSet( DimensionType.PERIOD, DimensionType.ORGANISATION_UNIT ) );
+        
+        assertEquals( 2, dimensions.size() );
+        assertTrue( dimensions.contains( new BaseDimensionalObject( PERIOD_DIM_ID ) ) );
+        assertTrue( dimensions.contains( new BaseDimensionalObject( ORGUNIT_DIM_ID ) ) );        
+    }
+
+    @Test
+    public void testGetLatestEndDate()
+    {
+        Period q1_2016 = PeriodType.getPeriodFromIsoString( "2016Q1");
+        Period q2_2016 = PeriodType.getPeriodFromIsoString( "2016Q2");
+        Calendar today = Calendar.getInstance();
+
+        DataQueryParams dqp1 = DataQueryParams.newBuilder()
+            .withEndDate( today.getTime() )
+            .withPeriods( Lists.newArrayList( q1_2016 ) )
+            .withFilterPeriods( Lists.newArrayList( q2_2016 ) )
+            .build();
+
+        DataQueryParams dqp2 = DataQueryParams.newBuilder()
+            .withEndDate( q1_2016.getEndDate() )
+            .build();
+
+        DataQueryParams dqp3 = DataQueryParams.newBuilder()
+            .withFilterPeriods( Lists.newArrayList( q2_2016 ) )
+            .withPeriods( Lists.newArrayList( q1_2016 ) )
+            .build();
+
+        assertEquals( today.getTime(), dqp1.getLatestEndDate() );
+        assertEquals( q1_2016.getEndDate(), dqp2.getLatestEndDate() );
+        assertEquals( q2_2016.getEndDate(), dqp3.getLatestEndDate() );
     }
 }

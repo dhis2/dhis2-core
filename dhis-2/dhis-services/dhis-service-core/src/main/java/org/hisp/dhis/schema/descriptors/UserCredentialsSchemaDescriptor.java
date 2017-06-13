@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema.descriptors;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,10 +46,6 @@ public class UserCredentialsSchemaDescriptor implements SchemaDescriptor
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( UserCredentials.class, SINGULAR, PLURAL );
-        schema.setMetadata( false );
-        schema.setOrder( 2000 );
-
-        return schema;
+        return new Schema( UserCredentials.class, SINGULAR, PLURAL );
     }
 }

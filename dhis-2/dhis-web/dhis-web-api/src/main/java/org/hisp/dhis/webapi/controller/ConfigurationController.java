@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,8 +44,10 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -60,13 +62,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * @author Lars Helge Overland
  */
 @Controller
 @RequestMapping( "/configuration" )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class ConfigurationController
 {
     @Autowired
@@ -105,6 +108,18 @@ public class ConfigurationController
         return configurationService.getConfiguration().getSystemId();
     }
 
+    @PreAuthorize( "hasRole('ALL')" )
+    @ResponseStatus( value = HttpStatus.OK )
+    @RequestMapping( value = "/systemId", method = RequestMethod.POST )
+    public void setSystemId( @RequestBody( required = false ) String systemId )
+    {
+        systemId = ObjectUtils.firstNonNull( systemId, UUID.randomUUID().toString() );
+        
+        Configuration config = configurationService.getConfiguration();
+        config.setSystemId( systemId );
+        configurationService.setConfiguration( config );
+    }
+    
     @RequestMapping( value = "/feedbackRecipients", method = RequestMethod.GET )
     public @ResponseBody UserGroup getFeedbackRecipients( Model model, HttpServletRequest request )
     {

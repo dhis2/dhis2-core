@@ -16,7 +16,7 @@
     &identifiableProperties;
 
     <property name="name" column="name" not-null="true" length="230" />
-    
+
     <property name="description" type="text" />
 
     <property name="domainAxisLabel" />
@@ -52,6 +52,10 @@
       </type>
     </property>
 
+    <property name="title" />
+    
+    <property name="subtitle" />
+    
     <property name="hideTitle" />
 
     <property name="hideSubtitle" />
@@ -95,34 +99,34 @@
       <cache usage="read-write" />
       <key column="chartid" foreign-key="fk_chart_categorydimensions_chartid" />
       <list-index column="sort_order" base="0" />
-      <many-to-many column="categorydimensionid" class="org.hisp.dhis.dataelement.DataElementCategoryDimension"
+      <many-to-many column="categorydimensionid" class="org.hisp.dhis.dataelement.CategoryDimension"
         foreign-key="fk_chart_categorydimensions_categorydimensionid" />
     </list>
 
-    <list name="dataElementGroups" table="chart_dataelementgroups">
+    <list name="dataElementGroupSetDimensions" table="chart_dataelementgroupsetdimensions" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="chartid" foreign-key="fk_chart_dataelementgroups_chartid" />
-      <list-index column="sort_order" base="0" />
-      <many-to-many column="dataelementgroupid" class="org.hisp.dhis.dataelement.DataElementGroup"
-        foreign-key="fk_chart_dataelementgroups_dataelementgroupid" />
+      <key column="chartid" foreign-key="fk_chart_dimensions_chartid" />
+      <list-index column="sort_order" />
+      <many-to-many column="dataelementgroupsetdimensionid" class="org.hisp.dhis.dataelement.DataElementGroupSetDimension"
+        foreign-key="fk_chart_dimensions_dataelementgroupsetdimensionid" />
     </list>
 
-    <list name="organisationUnitGroups" table="chart_orgunitgroups">
+    <list name="organisationUnitGroupSetDimensions" table="chart_orgunitgroupsetdimensions" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="chartid" foreign-key="fk_chart_orgunitunitgroups_chartid" />
-      <list-index column="sort_order" base="0" />
-      <many-to-many column="orgunitgroupid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroup"
-        foreign-key="fk_chart_orgunitgroups_orgunitgroupid" />
+      <key column="chartid" foreign-key="fk_chart_orgunitgroupsetdimensions_chartid" />
+      <list-index column="sort_order" />
+      <many-to-many column="orgunitgroupsetdimensionid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension"
+        foreign-key="fk_chart_dimensions_ogunitgroupsetdimensionid" />
     </list>
 
-    <list name="categoryOptionGroups" table="chart_categoryoptiongroups">
+    <list name="categoryOptionGroupSetDimensions" table="chart_categoryoptiongroupsetdimensions" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="chartid" foreign-key="fk_chart_categoryoptiongroups_chartid" />
-      <list-index column="sort_order" base="0" />
-      <many-to-many column="categoryoptiongroupid" class="org.hisp.dhis.dataelement.CategoryOptionGroup"
-        foreign-key="fk_chart_categoryoptiongroups_categoryoptiongroupid" />
+      <key column="chart" foreign-key="fk_chart_catoptiongroupsetdimensions_chartid" />
+      <list-index column="sort_order" />
+      <many-to-many column="categoryoptiongroupsetdimensionid" class="org.hisp.dhis.dataelement.CategoryOptionGroupSetDimension"
+        foreign-key="fk_chart_dimensions_catoptiongroupsetdimensionid" />
     </list>
-
+    
     <list name="organisationUnitLevels" table="chart_orgunitlevels">
       <cache usage="read-write" />
       <key column="chartid" foreign-key="fk_chart_orgunitlevels_chartid" />
@@ -153,9 +157,7 @@
     </property>
 
     <property name="completedOnly" column="completedonly" />
-    
-    <property name="title" />
-    
+
     <set name="interpretations" inverse="true">
       <key column="chartid" />
       <one-to-many class="org.hisp.dhis.interpretation.Interpretation" />
@@ -163,7 +165,17 @@
 
     <property name="showData" />
 
-    <property name="hideEmptyRows" />
+    <property name="hideEmptyRowItems" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.HideEmptyItemStrategy</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
+    <property name="percentStackedValues" />
+    
+    <property name="cumulativeValues" />
 
     <property name="rangeAxisMaxValue" />
 
@@ -176,7 +188,7 @@
     <property name="sortOrder" />
 
     <!-- Object Translation -->
-    <set name="translations" table="charttranslations" cascade="delete-orphan">
+    <set name="translations" table="charttranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="chartid" foreign-key="fk_objecttranslation_chartid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -189,10 +201,16 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="chartusergroupaccesses">
+    <set name="userGroupAccesses" table="chartusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="chartid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="chartuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="chartid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
   </class>

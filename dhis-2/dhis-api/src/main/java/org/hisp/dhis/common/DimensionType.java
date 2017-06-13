@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,13 +33,13 @@ package org.hisp.dhis.common;
  */
 public enum DimensionType
 {
-    DATA_X,
+    DATA_X( 0 ),
     PROGRAM_DATA_ELEMENT,
     PROGRAM_ATTRIBUTE,
     PROGRAM_INDICATOR,
     DATA_COLLAPSED,
-    CATEGORY_OPTION_COMBO,
-    ATTRIBUTE_OPTION_COMBO,
+    CATEGORY_OPTION_COMBO( 1 ),
+    ATTRIBUTE_OPTION_COMBO( 2 ),
     PERIOD,
     ORGANISATION_UNIT,
     CATEGORY_OPTION_GROUP_SET,
@@ -47,5 +47,23 @@ public enum DimensionType
     ORGANISATION_UNIT_GROUP_SET,
     CATEGORY,
     STATIC,
-    OPTION_GROUP_SET
+    OPTION_GROUP_SET;
+    
+    private static final int LAST_ORDER = 999;
+    
+    private int order = LAST_ORDER;
+    
+    DimensionType()
+    {
+    }
+    
+    DimensionType( int order )
+    {
+        this.order = order;
+    }
+    
+    public int getOrder()
+    {
+        return order;
+    }
 }

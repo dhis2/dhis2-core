@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity.action.programstage;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -173,6 +173,13 @@ public class AddProgramStageAction
     {
         this.excecutionDateLabel = excecutionDateLabel;
     }
+    
+    private String dueDateLabel;
+
+    public void setDueDateLabel( String dueDateLabel )
+    {
+        this.dueDateLabel = dueDateLabel;
+    }
 
     private Boolean autoGenerateEvent;
 
@@ -328,6 +335,11 @@ public class AddProgramStageAction
         programStage.setMinDaysFromStart( minDaysFromStart );
         programStage.setDisplayGenerateEventBox( displayGenerateEventBox );
         programStage.setValidCompleteOnly( validCompleteOnly );
+        
+        if( !hideDueDate )
+        {
+            programStage.setDueDateLabel( StringUtils.trimToNull( dueDateLabel ) );
+        }
 
         periodTypeName = StringUtils.trimToNull( periodTypeName );
 

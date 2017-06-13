@@ -1,7 +1,7 @@
 package org.hisp.dhis.user.action;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -99,7 +99,10 @@ public class SetupTreeAction
 
     private I18nLocaleService i18nLocaleService;
 
-    public void setI18nLocaleService( I18nLocaleService i18nLocaleService ) { this.i18nLocaleService = i18nLocaleService; }
+    public void setI18nLocaleService( I18nLocaleService i18nLocaleService )
+    {
+        this.i18nLocaleService = i18nLocaleService;
+    }
 
     private LocaleManager localeManager;
 

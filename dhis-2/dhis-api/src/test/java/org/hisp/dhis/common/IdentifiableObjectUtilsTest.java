@@ -31,18 +31,40 @@ package org.hisp.dhis.common;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.QuarterlyPeriodType;
+import org.hisp.dhis.period.WeeklyPeriodType;
+import org.hisp.dhis.period.YearlyPeriodType;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
 
 import static org.junit.Assert.*;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.SEPARATOR_JOIN;
 
 /**
  * @author Lars Helge Overland
  */
 public class IdentifiableObjectUtilsTest
 {
+    @Test
+    public void testJoin()
+    {
+        DataElement deA = new DataElement( "DEA" );
+        DataElement deB = new DataElement( "DEB" );
+        DataElement deC = new DataElement( "DEC" );
+        
+        String expected = deA.getDisplayName() + SEPARATOR_JOIN + deB.getDisplayName() + SEPARATOR_JOIN + deC.getDisplayName();
+        
+        assertEquals( expected, IdentifiableObjectUtils.join( Lists.newArrayList( deA, deB, deC ) ) );
+        assertNull( IdentifiableObjectUtils.join( null ) );
+        assertNull( IdentifiableObjectUtils.join( Lists.newArrayList() ) );        
+    }
+    
     @Test
     public void testGetIdMap()
     {
@@ -105,5 +127,65 @@ public class IdentifiableObjectUtilsTest
         assertEquals( "CodeA", map.get( "A123456789A" ) );
         assertEquals( "CodeB", map.get( "A123456789B" ) );
         assertEquals( null, map.get( "A123456789C" ) );
-    }    
+    }
+    
+    @Test
+    public void testGetPeriodByPeriodType()
+    {
+        Calendar calendar = Iso8601Calendar.getInstance();
+        
+        WeeklyPeriodType weekly = new WeeklyPeriodType();
+        MonthlyPeriodType monthly = new MonthlyPeriodType();
+        QuarterlyPeriodType quarterly = new QuarterlyPeriodType();
+        YearlyPeriodType yearly = new YearlyPeriodType();
+        
+        assertEquals( PeriodType.getPeriodFromIsoString( "2017W10" ),
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "20170308" ), weekly, calendar ) );
+        assertEquals( PeriodType.getPeriodFromIsoString( "2017W9" ),
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "20170301" ), weekly, calendar ) );
+
+        assertEquals( PeriodType.getPeriodFromIsoString( "201702" ),
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017W8" ), monthly, calendar ) );
+        assertEquals( PeriodType.getPeriodFromIsoString( "201703" ),
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017W9" ), monthly, calendar ) );
+        assertEquals( PeriodType.getPeriodFromIsoString( "201705" ),
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017W21" ), monthly, calendar ) );
+        assertEquals( PeriodType.getPeriodFromIsoString( "201706" ),
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017W22" ), monthly, calendar ) );
+
+        assertEquals( PeriodType.getPeriodFromIsoString( "201702" ),
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017WedW8" ), monthly, calendar ) );
+        assertEquals( PeriodType.getPeriodFromIsoString( "201703" ),
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017WedW9" ), monthly, calendar ) );
+
+        assertEquals( PeriodType.getPeriodFromIsoString( "201702" ),
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017ThuW8" ), monthly, calendar ) );
+        assertEquals( PeriodType.getPeriodFromIsoString( "201703" ),
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017ThuW9" ), monthly, calendar ) );
+
+        assertEquals( PeriodType.getPeriodFromIsoString( "201702" ),
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017SatW7" ), monthly, calendar ) );
+        assertEquals( PeriodType.getPeriodFromIsoString( "201703" ),
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017SatW8" ), monthly, calendar ) );        
+        
+        assertEquals( PeriodType.getPeriodFromIsoString( "201702" ),
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017SunW7" ), monthly, calendar ) );
+        assertEquals( PeriodType.getPeriodFromIsoString( "201703" ),
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017SunW8" ), monthly, calendar ) );
+
+        assertEquals( PeriodType.getPeriodFromIsoString( "201702" ),
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017SunW7" ), monthly, calendar ) );
+        assertEquals( PeriodType.getPeriodFromIsoString( "201703" ),
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017SunW8" ), monthly, calendar ) );
+        
+        assertEquals( PeriodType.getPeriodFromIsoString( "2017Q1" ),
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "201703" ), quarterly, calendar ) );
+        assertEquals( PeriodType.getPeriodFromIsoString( "2017Q2" ),
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "201704" ), quarterly, calendar ) );
+
+        assertEquals( PeriodType.getPeriodFromIsoString( "2016" ),
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2016Q4" ), yearly, calendar ) );
+        assertEquals( PeriodType.getPeriodFromIsoString( "2017" ),
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017Q1" ), yearly, calendar ) );
+    }
 }

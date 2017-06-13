@@ -40,12 +40,22 @@ import com.google.common.collect.Sets;
 public class ProgramIndicatorTest
 {
     @Test
-    public void testGetIdentifiers()
+    public void testGetIdentifiersEvent()
     {
         String expression = "#{chG8sINMf11.yD5mUKAm3aK} + #{chG8sINMf11.UaGD9u0kaur} - A{y1Bhi6xHtVk}";
         
         Set<String> expected = Sets.newHashSet( "yD5mUKAm3aK", "UaGD9u0kaur", "y1Bhi6xHtVk" );
         
-        assertEquals( expected, ProgramIndicator.getDataElementAndAttributeIdentifiers( expression ) );
+        assertEquals( expected, ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, AnalyticsType.EVENT ) );
+    }
+    
+    @Test
+    public void testGetIdentifiersEnrollment()
+    {
+        String expression = "#{chG8sINMf11.yD5mUKAm3aK} + #{chG8sINMf11.UaGD9u0kaur} - A{y1Bhi6xHtVk}";
+        
+        Set<String> expected = Sets.newHashSet( "chG8sINMf11_yD5mUKAm3aK", "chG8sINMf11_UaGD9u0kaur", "y1Bhi6xHtVk" );
+        
+        assertEquals( expected, ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, AnalyticsType.ENROLLMENT ) );
     }
 }

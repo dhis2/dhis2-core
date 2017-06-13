@@ -1,7 +1,7 @@
 package org.hisp.dhis.render;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.render;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 
@@ -65,6 +66,16 @@ public interface RenderService
     boolean isValidJson( String json ) throws IOException;
 
     /**
+     * Gets the DHIS version from the metadata export
+     *
+     * @param inputStream Stream to read from
+     * @param format      Payload format (only JSON is supported)
+     * @return JsonNode object
+     * @throws IOException
+     */
+    JsonNode getSystemObject( InputStream inputStream, RenderFormat format ) throws IOException;
+
+    /**
      * Parses metadata stream and automatically finds collections of id object based on root properties.
      * <p>
      * i.e. A property called "dataElements" would be tried to parsed as a collection of data elements.
@@ -83,5 +94,5 @@ public interface RenderService
      * @return List of MetadataVersion objects.
      * @throws IOException
      */
-    List<MetadataVersion> fromMetadataVersion(InputStream inputStream, RenderFormat format) throws IOException;
+    List<MetadataVersion> fromMetadataVersion( InputStream inputStream, RenderFormat format ) throws IOException;
 }

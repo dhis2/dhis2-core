@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,8 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Iterator;
+
 import org.hisp.dhis.system.deletion.DeletionHandler;
 
 /**
@@ -47,6 +49,13 @@ public class ProgramRuleActionDeletionHandler
         this.programRuleActionService = programRuleActionService;
     }
     
+    private ProgramRuleService programRuleService;
+
+    public void setProgramRuleService( ProgramRuleService programRuleService )
+    {
+        this.programRuleService = programRuleService;
+    }
+    
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------
@@ -60,10 +69,14 @@ public class ProgramRuleActionDeletionHandler
     @Override
     public void deleteProgramRule( ProgramRule programRule )
     {
-        for ( ProgramRuleAction programRuleAction : programRuleActionService.getProgramRuleAction( programRule ) )
-        {
-            programRuleActionService.deleteProgramRuleAction( programRuleAction );
+        Iterator<ProgramRuleAction> actionIterator = programRuleActionService.getProgramRuleAction( programRule ).iterator();
+        
+        programRule.setProgramRuleActions( null );
+        programRuleService.updateProgramRule( programRule );
+        
+        while ( actionIterator.hasNext() )
+        {   
+            programRuleActionService.deleteProgramRuleAction( actionIterator.next() );
         }
     }
-    
 }

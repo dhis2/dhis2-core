@@ -1,7 +1,7 @@
 package org.hisp.dhis.sqlview.hibernate;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,6 @@ package org.hisp.dhis.sqlview.hibernate;
 
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.Grid;
@@ -39,7 +38,6 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewStore;
 import org.hisp.dhis.sqlview.SqlViewType;
-import org.hisp.dhis.commons.util.SqlHelper;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -55,8 +53,6 @@ public class HibernateSqlViewStore
 {
     private static final Log log = LogFactory.getLog( HibernateSqlViewStore.class );
 
-    private static final String PREFIX_SELECT_QUERY = "SELECT * FROM ";
-    
     private static final Map<SqlViewType, String> TYPE_CREATE_PREFIX_MAP = 
         ImmutableMap.of( SqlViewType.VIEW, "CREATE VIEW ", SqlViewType.MATERIALIZED_VIEW, "CREATE MATERIALIZED VIEW " );
 

@@ -53,14 +53,20 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="reportusergroupaccesses">
+    <set name="userGroupAccesses" table="reportusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="reportid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
+    <set name="userAccesses" table="reportuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="reportid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
+
     <!-- Object Translation -->
-    <set name="translations" table="reporttranslations" cascade="delete-orphan">
+    <set name="translations" table="reporttranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="reportid" foreign-key="fk_objecttranslation_reportid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

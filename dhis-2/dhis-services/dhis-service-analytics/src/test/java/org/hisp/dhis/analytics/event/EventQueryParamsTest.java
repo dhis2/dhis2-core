@@ -66,7 +66,8 @@ public class EventQueryParamsTest
         assertNull( params.getStartDate() );
         assertNull( params.getEndDate() );
         
-        params.replacePeriodsWithStartEndDates();
+        params = new EventQueryParams.Builder( params )
+            .withStartEndDatesForPeriods().build();
         
         assertEquals( new DateTime( 2014, 4, 1, 0, 0 ).toDate(), params.getStartDate() );
         assertEquals( new DateTime( 2014, 6, 30, 0, 0 ).toDate(), params.getEndDate() );        

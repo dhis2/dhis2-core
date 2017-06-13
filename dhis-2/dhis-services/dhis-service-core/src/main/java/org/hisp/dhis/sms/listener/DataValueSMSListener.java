@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.listener;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -161,7 +161,7 @@ public class DataValueSMSListener
 
         for ( SMSCode code : smsCommand.getCodes() )
         {
-            if ( parsedMessage.containsKey( code.getCode().toUpperCase() ) )
+            if ( parsedMessage.containsKey( code.getCode() ) )
             {
                 valueStored = storeDataValue( senderPhoneNumber, orgUnit, parsedMessage, code, smsCommand, date,
                     smsCommand.getDataset() );
@@ -207,19 +207,19 @@ public class DataValueSMSListener
         if ( !StringUtils.isBlank( smsCommand.getSeparator() ) )
         {
             String x = "([^\\s|" + smsCommand.getSeparator().trim() + "]+)\\s*\\" + smsCommand.getSeparator().trim()
-                + "\\s*([\\w ]+)\\s*(\\" + smsCommand.getSeparator().trim() + "|$)*\\s*";
+                + "\\s*([-\\w\\s]+)\\s*(\\" + smsCommand.getSeparator().trim() + "|$)*\\s*";
             pattern = Pattern.compile( x );
         }
 
         Matcher matcher = pattern.matcher( sms );
         while ( matcher.find() )
         {
-            String key = matcher.group( 1 );
-            String value = matcher.group( 2 );
+            String key = matcher.group( 1 ).trim();
+            String value = matcher.group( 2 ).trim();
 
             if ( !StringUtils.isEmpty( key ) && !StringUtils.isEmpty( value ) )
             {
-                output.put( key.toUpperCase(), value );
+                output.put( key, value );
             }
         }
 
@@ -252,8 +252,6 @@ public class DataValueSMSListener
     private boolean storeDataValue( String sender, OrganisationUnit orgunit, Map<String, String> parsedMessage,
         SMSCode code, SMSCommand command, Date date, DataSet dataSet )
     {
-        String upperCaseCode = code.getCode().toUpperCase();
-
         String storedBy = SmsUtils.getUser( sender, command, userService.getUsersByPhoneNumber( sender ) )
             .getUsername();
 
@@ -269,7 +267,7 @@ public class DataValueSMSListener
 
         DataValue dv = dataValueService.getDataValue( code.getDataElement(), period, orgunit, optionCombo );
 
-        String value = parsedMessage.get( upperCaseCode );
+        String value = parsedMessage.get( code.getCode() );
 
         Set<SMSSpecialCharacter> specialCharacters = command.getSpecialCharacters();
 
@@ -520,7 +518,7 @@ public class DataValueSMSListener
 
         notInReport = notInReport.substring( 0, notInReport.length() - 1 );
 
-        if ( smsSender.isServiceReady() )
+        if ( smsSender.isConfigured() )
         {
             if ( command.getSuccessMessage() != null && !StringUtils.isEmpty( command.getSuccessMessage() ) )
             {

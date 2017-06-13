@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@ import java.io.Serializable;
 
 /**
  * TODO make IdentifiableObject
- * 
+ *
  * @author Nguyen Hong Duc
  */
 public class UserSetting
@@ -58,14 +58,14 @@ public class UserSetting
     public UserSetting()
     {
     }
-    
+
     public UserSetting( User user, String name, Serializable value )
     {
         this.user = user;
         this.name = name;
         this.value = value;
     }
-    
+
     // -------------------------------------------------------------------------
     // hashCode and equals
     // -------------------------------------------------------------------------
@@ -104,7 +104,7 @@ public class UserSetting
 
         return result;
     }
-    
+
     @Override
     public String toString()
     {
@@ -115,18 +115,11 @@ public class UserSetting
             "}";
     }
 
-    public void mergeWith( UserSetting other )
-    {
-        user = other.getUser() != null ? other.getUser() : user;
-        name = other.getName() != null ? other.getName() : name;
-        value = other.getValue() != null ? other.getValue() : value;
-    }
-
     public boolean hasValue()
     {
         return value != null;
     }
-    
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------

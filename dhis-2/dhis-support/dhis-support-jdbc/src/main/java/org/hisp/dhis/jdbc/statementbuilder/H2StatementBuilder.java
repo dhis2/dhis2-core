@@ -1,7 +1,7 @@
 package org.hisp.dhis.jdbc.statementbuilder;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,13 @@ public class H2StatementBuilder
     {
         return null;
     }
-    
+
+    @Override
+    public String getAnalyze( String table )
+    {
+        return null;
+    }
+
     @Override
     public String getTableOptions( boolean autoVacuum )
     {
@@ -98,6 +104,12 @@ public class H2StatementBuilder
     public String getAddDate( String dateField, int days )
     {
         return "DATEADD('DAY'," + days + "," + dateField + ")";
+    }
+
+    @Override
+    public String getDaysBetweenDates( String fromColumn, String toColumn )
+    {
+        return ("DATEDIFF('DAY', " + toColumn + ", " + fromColumn + ")");
     }
 
     @Override

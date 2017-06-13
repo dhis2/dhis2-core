@@ -16,7 +16,7 @@
     &identifiableProperties;
 
     <property name="name" column="name" not-null="true" unique="false" length="230" />
-    
+
     <property name="description" type="text" />
 
     <property name="regression" />
@@ -54,32 +54,32 @@
       <cache usage="read-write" />
       <key column="reporttableid" foreign-key="fk_reporttable_categorydimensions_reporttableid" />
       <list-index column="sort_order" base="0" />
-      <many-to-many column="categorydimensionid" class="org.hisp.dhis.dataelement.DataElementCategoryDimension"
+      <many-to-many column="categorydimensionid" class="org.hisp.dhis.dataelement.CategoryDimension"
         foreign-key="fk_reporttable_categorydimensions_categorydimensionid" />
     </list>
 
-    <list name="dataElementGroups" table="reporttable_dataelementgroups">
+    <list name="dataElementGroupSetDimensions" table="reporttable_dataelementgroupsetdimensions" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="reporttableid" foreign-key="fk_reporttable_dataelementgroups_reporttableid" />
-      <list-index column="sort_order" base="0" />
-      <many-to-many column="dataelementgroupid" class="org.hisp.dhis.dataelement.DataElementGroup"
-        foreign-key="fk_reporttable_dataelementgroups_dataelementgroupid" />
+      <key column="reporttableid" foreign-key="fk_reporttable_dataelememntgroupsetdimensions_reporttableid" />
+      <list-index column="sort_order" />
+      <many-to-many column="dataelementgroupsetdimensionid" class="org.hisp.dhis.dataelement.DataElementGroupSetDimension"
+        foreign-key="fk_reporttable_dimensions_dataelementgroupsetdimensionid" />
     </list>
 
-    <list name="organisationUnitGroups" table="reporttable_orgunitgroups">
+    <list name="organisationUnitGroupSetDimensions" table="reporttable_orgunitgroupsetdimensions" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="reporttableid" foreign-key="fk_reporttable_orgunitunitgroups_reporttableid" />
-      <list-index column="sort_order" base="0" />
-      <many-to-many column="orgunitgroupid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroup"
-        foreign-key="fk_reporttable_orgunitgroups_orgunitgroupid" />
+      <key column="reporttableid" foreign-key="fk_reporttable_orgunitgroupsetdimensions_reporttableid" />
+      <list-index column="sort_order" />
+      <many-to-many column="orgunitgroupsetdimensionid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension"
+        foreign-key="fk_reporttable_dimensions_orgunitgroupsetdimensionid" />
     </list>
 
-    <list name="categoryOptionGroups" table="reporttable_categoryoptiongroups">
+    <list name="categoryOptionGroupSetDimensions" table="reporttable_categoryoptiongroupsetdimensions" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="reporttableid" foreign-key="fk_reporttable_categoryoptiongroups_reporttableid" />
-      <list-index column="sort_order" base="0" />
-      <many-to-many column="categoryoptiongroupid" class="org.hisp.dhis.dataelement.CategoryOptionGroup"
-        foreign-key="fk_reporttable_categoryoptiongroups_categoryoptiongroupid" />
+      <key column="reporttableid" foreign-key="fk_reporttable_catoptiongroupsetdimensions_reporttableid" />
+      <list-index column="sort_order" />
+      <many-to-many column="categoryoptiongroupsetdimensionid" class="org.hisp.dhis.dataelement.CategoryOptionGroupSetDimension"
+        foreign-key="fk_reporttable_dimensions_catoptiongroupsetdimensionid" />
     </list>
 
     <list name="organisationUnitLevels" table="reporttable_orgunitlevels">
@@ -138,6 +138,8 @@
     <property name="colSubTotals" />
 
     <property name="hideEmptyRows" />
+    
+    <property name="hideEmptyColumns" />
 
     <property name="aggregationType" length="40">
       <type name="org.hibernate.type.EnumType">
@@ -151,6 +153,12 @@
 
     <property name="title" />
     
+    <property name="subtitle" />
+    
+    <property name="hideTitle" />
+
+    <property name="hideSubtitle" />
+
     <set name="interpretations" inverse="true">
       <key column="reporttableid" />
       <one-to-many class="org.hisp.dhis.interpretation.Interpretation" />
@@ -189,6 +197,30 @@
     <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
       foreign-key="fk_reporttable_legendsetid" />
 
+    <property name="legendDisplayStyle" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.legend.LegendDisplayStyle</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="legendDisplayStrategy" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.legend.LegendDisplayStrategy</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="numberType" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.analytics.NumberType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
     <property name="showHierarchy" />
 
     <property name="showDimensionLabels" />
@@ -202,14 +234,20 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="reporttableusergroupaccesses">
+    <set name="userGroupAccesses" table="reporttableusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="reporttableid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
+    <set name="userAccesses" table="reporttableuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="reporttableid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
+
     <!-- Object Translation -->
-    <set name="translations" table="reporttabletranslations" cascade="delete-orphan">
+    <set name="translations" table="reporttabletranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="reporttableid" foreign-key="fk_objecttranslation_reporttableid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

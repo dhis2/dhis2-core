@@ -1,5 +1,7 @@
+package org.hisp.dhis.dxf2.metadata.systemsettings;
+
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.metadata.systemsettings;
-
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,12 +41,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class DefaultMetadataSystemSettingService
     implements MetadataSystemSettingService
 {
-
     @Autowired
     private SystemSettingManager systemSettingManager;
 
-    private String API_URL = "/api/metadata/version";
-    private String BASELINE_URL = API_URL + "/history?baseline=";
+    private final String API_URL = "/api/metadata/version";
+    private final String BASELINE_URL = API_URL + "/history?baseline=";
 
     public String getRemoteInstanceUserName()
     {
@@ -78,7 +77,7 @@ public class DefaultMetadataSystemSettingService
         return systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + API_URL + "/history";
     }
 
-    public void setSystemMetadataVersion(String versionName)
+    public void setSystemMetadataVersion( String versionName )
     {
         systemSettingManager.saveSystemSetting( SettingKey.SYSTEM_METADATA_VERSION, versionName );
     }
@@ -88,4 +87,9 @@ public class DefaultMetadataSystemSettingService
         return (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_METADATA_VERSION );
     }
 
+    public Boolean getStopMetadataSyncSetting()
+    {
+        Boolean stopSyncSetting = (Boolean) systemSettingManager.getSystemSetting( SettingKey.STOP_METADATA_SYNC );
+        return stopSyncSetting == null ? false : stopSyncSetting;
+    }
 }

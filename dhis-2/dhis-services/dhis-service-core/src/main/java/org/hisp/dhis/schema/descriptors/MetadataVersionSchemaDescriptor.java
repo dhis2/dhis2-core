@@ -1,5 +1,7 @@
+package org.hisp.dhis.schema.descriptors;
+
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.schema.descriptors;
-
 import com.google.common.collect.Lists;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.schema.Schema;
@@ -52,7 +52,6 @@ public class MetadataVersionSchemaDescriptor
     {
         Schema schema = new Schema( MetadataVersion.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setMetadata(false);
 
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "ALL", "F_METADATA_MANAGE" ) ) );
 

@@ -1,28 +1,7 @@
 package org.hisp.dhis.importexport.action.datavalue;
 
-import com.opensymphony.xwork2.Action;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.struts2.ServletActionContext;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.dxf2.datavalueset.DataExportParams;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
-import org.hisp.dhis.oust.manager.SelectionTreeManager;
-import org.hisp.dhis.util.ContextUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.OutputStreamWriter;
-import java.util.HashSet;
-import java.util.Set;
-
-import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
-import static org.hisp.dhis.system.util.DateUtils.getMediumDate;
-import static org.hisp.dhis.util.ContextUtils.*;
-
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +28,29 @@ import static org.hisp.dhis.util.ContextUtils.*;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.opensymphony.xwork2.Action;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.struts2.ServletActionContext;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
+import org.hisp.dhis.oust.manager.SelectionTreeManager;
+import org.hisp.dhis.util.ContextUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.servlet.http.HttpServletResponse;
+
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
+import static org.hisp.dhis.system.util.DateUtils.getMediumDate;
+import static org.hisp.dhis.util.ContextUtils.*;
+
 /**
  * @author Lars Helge Overland
  */
@@ -65,6 +67,7 @@ public class ExportDataValueAction
     private final static String EXTENSION_CSV = ".csv";
     private final static String FORMAT_CSV = "csv";
     private final static String FORMAT_JSON = "json";
+    private final static String COMPRESSION_ZIP = "zip";
 
     @Autowired
     private SelectionTreeManager selectionTreeManager;
@@ -102,6 +105,13 @@ public class ExportDataValueAction
     public void setExportFormat( String exportFormat )
     {
         this.exportFormat = exportFormat;
+    }
+
+    private String compression;
+    
+    public void setCompression( String compression )
+    {
+        this.compression = compression;
     }
 
     private String dataElementIdScheme;
@@ -143,27 +153,30 @@ public class ExportDataValueAction
         Set<String> orgUnits = new HashSet<>( IdentifiableObjectUtils.getUids( selectionTreeManager.getSelectedOrganisationUnits() ) );
 
         HttpServletResponse response = ServletActionContext.getResponse();
+        OutputStream out = response.getOutputStream();
 
         DataExportParams params = dataValueSetService.getFromUrl( selectedDataSets, null, null,
-            getMediumDate( startDate ), getMediumDate( endDate ), orgUnits, true, null, false, null, null, null, idSchemes );
+            getMediumDate( startDate ), getMediumDate( endDate ), orgUnits, true, null, null, false, null, null, null, idSchemes );
+        
+        boolean isCompression = compression == null || COMPRESSION_ZIP.equals( compression );
 
         if ( FORMAT_CSV.equals( exportFormat ) )
         {
             ContextUtils.configureResponse( response, CONTENT_TYPE_CSV, true, getFileName( EXTENSION_CSV_ZIP ), true );
 
-            dataValueSetService.writeDataValueSetCsv( params, new OutputStreamWriter( getZipOut( response, getFileName( EXTENSION_CSV ) ) ) );
+            dataValueSetService.writeDataValueSetCsv( params, new OutputStreamWriter( getZipOut( out, getFileName( EXTENSION_CSV ) ) ) );
         }
         else if ( FORMAT_JSON.equals( exportFormat ) )
         {
-            ContextUtils.configureResponse( response, CONTENT_TYPE_JSON, true, getFileName( EXTENSION_JSON_ZIP ), true );
+            ContextUtils.configureResponse( response, CONTENT_TYPE_JSON, true, getFileName( EXTENSION_JSON_ZIP ), isCompression );
 
-            dataValueSetService.writeDataValueSetJson( params, getZipOut( response, getFileName( EXTENSION_JSON ) ) );
+            dataValueSetService.writeDataValueSetJson( params, isCompression ? getZipOut( out, getFileName( EXTENSION_JSON ) ) : out );
         }
         else
         {
-            ContextUtils.configureResponse( response, CONTENT_TYPE_XML, true, getFileName( EXTENSION_XML_ZIP ), true );
+            ContextUtils.configureResponse( response, CONTENT_TYPE_XML, true, getFileName( EXTENSION_XML_ZIP ), isCompression );
 
-            dataValueSetService.writeDataValueSetXml( params, getZipOut( response, getFileName( EXTENSION_XML ) ) );
+            dataValueSetService.writeDataValueSetXml( params, isCompression ? getZipOut( out, getFileName( EXTENSION_XML ) ) : out );
         }
 
         return SUCCESS;

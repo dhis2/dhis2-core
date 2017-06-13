@@ -1,7 +1,7 @@
 package org.hisp.dhis.mapping;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,8 +73,6 @@ public interface MappingService
 
     void deleteMap( Map map );
 
-    List<Map> getMapsBetweenLikeName( String name, int first, int max );
-
     List<Map> getAllMaps();
 
     // -------------------------------------------------------------------------
@@ -98,8 +96,6 @@ public interface MappingService
     List<MapView> getMapViewsByOrganisationUnitGroupSet( OrganisationUnitGroupSet groupSet );
     
     List<MapView> getAllMapViews();
-
-    List<MapView> getMapViewsBetweenByName( String name, int first, int max );
 
     int countMapViewMaps( MapView mapView );
 

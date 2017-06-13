@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,14 +33,16 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.common.adapter.JacksonOrganisationUnitChildrenSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
@@ -68,7 +70,7 @@ import java.util.regex.Pattern;
  */
 @JacksonXmlRootElement( localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0 )
 public class OrganisationUnit
-    extends BaseDimensionalItemObject
+    extends BaseDimensionalItemObject implements MetadataObject
 {
     private static final String PATH_SEP = "/";
 
@@ -133,6 +135,8 @@ public class OrganisationUnit
     private transient List<String> groupNames = new ArrayList<>();
 
     private transient Double value;
+
+    private transient Integer memberCount;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -246,8 +250,8 @@ public class OrganisationUnit
         Set<DataSet> toRemove = Sets.difference( dataSets, updates );
         Set<DataSet> toAdd = Sets.difference( updates, dataSets );
 
-        toRemove.stream().forEach( d -> d.getSources().remove( this ) );
-        toAdd.stream().forEach( d -> d.getSources().add( this ) );
+        toRemove.forEach( d -> d.getSources().remove( this ) );
+        toAdd.forEach( d -> d.getSources().add( this ) );
 
         dataSets.clear();
         dataSets.addAll( updates );
@@ -349,6 +353,8 @@ public class OrganisationUnit
         return !this.children.isEmpty();
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
     public boolean isLeaf()
     {
         return children == null || children.isEmpty();
@@ -477,7 +483,7 @@ public class OrganisationUnit
 
                     for ( String coordinates : tuple.getCoordinatesTuple() )
                     {
-                        builder.append( "[" + coordinates + "]," );
+                        builder.append( "[" ).append( coordinates ).append( "]," );
                     }
 
                     builder.deleteCharAt( builder.lastIndexOf( "," ) );
@@ -502,7 +508,7 @@ public class OrganisationUnit
             {
                 for ( String coordinates : tuple.getCoordinatesTuple() )
                 {
-                    builder.append( "[" + coordinates + "]" );
+                    builder.append( "[" ).append( coordinates ).append( "]" );
                 }
             }
         }
@@ -585,7 +591,6 @@ public class OrganisationUnit
     public List<OrganisationUnit> getAncestors()
     {
         List<OrganisationUnit> units = new ArrayList<>();
-
         Set<OrganisationUnit> visitedUnits = new HashSet<>();
 
         OrganisationUnit unit = parent;
@@ -606,7 +611,7 @@ public class OrganisationUnit
     }
 
     /**
-     * Returns the list of ancestor organisation units up the any of the given roots
+     * Returns the list of ancestor organisation units up to any of the given roots
      * for this organisation unit. Does not include itself. The list is ordered
      * by root first.
      *
@@ -615,7 +620,6 @@ public class OrganisationUnit
     public List<OrganisationUnit> getAncestors( Collection<OrganisationUnit> roots )
     {
         List<OrganisationUnit> units = new ArrayList<>();
-
         OrganisationUnit unit = parent;
 
         while ( unit != null )
@@ -634,6 +638,71 @@ public class OrganisationUnit
         return units;
     }
 
+    /**
+     * Returns the list of ancestor organisation unit names up to any of the given
+     * roots for this organisation unit. The list is ordered by root first.
+     *
+     * @param roots the root organisation units, if null using real roots.
+     */
+    public List<String> getAncestorNames( Collection<OrganisationUnit> roots, boolean includeThis )
+    {
+        List<String> units = new ArrayList<>();
+
+        if ( includeThis )
+        {
+            units.add( getDisplayName() );
+        }
+
+        OrganisationUnit unit = parent;
+
+        while ( unit != null )
+        {
+            units.add( unit.getDisplayName() );
+
+            if ( roots != null && roots.contains( unit ) )
+            {
+                break;
+            }
+
+            unit = unit.getParent();
+        }
+
+        Collections.reverse( units );
+        return units;
+    }
+
+    /**
+     * Returns the list of ancestor organisation unit UIDs up to any of the given roots
+     * for this organisation unit. Does not include itself. The list is ordered by
+     * root first.
+     *
+     * @param rootUids the root organisation units, if null using real roots.
+     */
+    public List<String> getAncestorUids( Set<String> rootUids )
+    {
+        if ( path == null || path.isEmpty() )
+        {
+            return Lists.newArrayList();
+        }
+
+        String[] ancestors = path.substring( 1 ).split( PATH_SEP ); // Skip first delimiter, root unit first
+        int lastIndex = ancestors.length - 2; // Skip this unit        
+        List<String> uids = Lists.newArrayList();
+
+        for ( int i = lastIndex; i >= 0; i-- )
+        {
+            String uid = ancestors[i];
+            uids.add( 0, uid );
+
+            if ( rootUids != null && rootUids.contains( uid ) )
+            {
+                break;
+            }
+        }
+
+        return uids;
+    }
+
     public Set<DataElement> getDataElementsInDataSets()
     {
         Set<DataElement> dataElements = new HashSet<>();
@@ -648,19 +717,11 @@ public class OrganisationUnit
 
     public Map<PeriodType, Set<DataElement>> getDataElementsInDataSetsByPeriodType()
     {
-        Map<PeriodType, Set<DataElement>> map = new HashMap<>();
+        SetMap<PeriodType, DataElement> map = new SetMap<>();
 
         for ( DataSet dataSet : dataSets )
         {
-            Set<DataElement> dataElements = map.get( dataSet.getPeriodType() );
-
-            if ( dataElements == null )
-            {
-                dataElements = new HashSet<>();
-                map.put( dataSet.getPeriodType(), dataElements );
-            }
-
-            dataElements.addAll( dataSet.getDataElements() );
+            map.putValues( dataSet.getPeriodType(), dataSet.getDataElements() );
         }
 
         return map;
@@ -719,18 +780,18 @@ public class OrganisationUnit
      */
     public String getParentGraph( Collection<OrganisationUnit> roots )
     {
-        StringBuilder builder = new StringBuilder();
-
-        List<OrganisationUnit> ancestors = getAncestors( roots );
-
-        for ( OrganisationUnit unit : ancestors )
-        {
-            builder.append( "/" ).append( unit.getUid() );
-        }
-
-        return builder.toString();
+        Set<String> rootUids = roots != null ? Sets.newHashSet( IdentifiableObjectUtils.getUids( roots ) ) : null;
+        List<String> ancestors = getAncestorUids( rootUids );
+        return StringUtils.join( ancestors, PATH_SEP );
     }
 
+    /**
+     * Returns a string representing the graph of ancestors. The string is delimited
+     * by "/". The ancestors are ordered by root first and represented by names.
+     *
+     * @param roots       the root organisation units, if null using real roots.
+     * @param includeThis whether to include this organisation unit in the graph.
+     */
     public String getParentNameGraph( Collection<OrganisationUnit> roots, boolean includeThis )
     {
         StringBuilder builder = new StringBuilder();
@@ -815,12 +876,6 @@ public class OrganisationUnit
         return categoryOptions != null && !categoryOptions.isEmpty();
     }
 
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
-
     public boolean isRoot()
     {
         return parent == null;
@@ -875,7 +930,7 @@ public class OrganisationUnit
     }
 
     /**
-     * Do not set directly.
+     * Do not set directly, managed by persistence layer.
      */
     public void setPath( String path )
     {
@@ -1175,48 +1230,15 @@ public class OrganisationUnit
         this.currentParent = currentParent;
     }
 
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getMemberCount()
     {
-        super.mergeWith( other, mergeMode );
+        return memberCount;
+    }
 
-        if ( other.getClass().isInstance( this ) )
-        {
-            OrganisationUnit organisationUnit = (OrganisationUnit) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                openingDate = organisationUnit.getOpeningDate();
-                closedDate = organisationUnit.getClosedDate();
-                comment = organisationUnit.getComment();
-                featureType = organisationUnit.getFeatureType();
-                coordinates = organisationUnit.getCoordinates();
-                url = organisationUnit.getUrl();
-                contactPerson = organisationUnit.getContactPerson();
-                address = organisationUnit.getAddress();
-                email = organisationUnit.getEmail();
-                phoneNumber = organisationUnit.getPhoneNumber();
-                parent = organisationUnit.getParent();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                openingDate = organisationUnit.getOpeningDate() == null ? openingDate : organisationUnit.getOpeningDate();
-                closedDate = organisationUnit.getClosedDate() == null ? closedDate : organisationUnit.getClosedDate();
-                comment = organisationUnit.getComment() == null ? comment : organisationUnit.getComment();
-                featureType = organisationUnit.getFeatureType() == null ? featureType : organisationUnit.getFeatureType();
-                coordinates = organisationUnit.getCoordinates() == null ? coordinates : organisationUnit.getCoordinates();
-                url = organisationUnit.getUrl() == null ? url : organisationUnit.getUrl();
-                contactPerson = organisationUnit.getContactPerson() == null ? contactPerson : organisationUnit.getContactPerson();
-                address = organisationUnit.getAddress() == null ? address : organisationUnit.getAddress();
-                email = organisationUnit.getEmail() == null ? email : organisationUnit.getEmail();
-                phoneNumber = organisationUnit.getPhoneNumber() == null ? phoneNumber : organisationUnit.getPhoneNumber();
-                parent = organisationUnit.getParent() == null ? parent : organisationUnit.getParent();
-            }
-
-            groups.clear();
-            users.clear();
-            dataSets.clear();
-            programs.clear();
-        }
+    public void setMemberCount( Integer memberCount )
+    {
+        this.memberCount = memberCount;
     }
 }

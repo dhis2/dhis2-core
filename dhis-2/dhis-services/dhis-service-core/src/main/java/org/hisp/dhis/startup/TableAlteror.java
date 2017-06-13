@@ -1,7 +1,7 @@
 package org.hisp.dhis.startup;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,7 @@ public class TableAlteror
 
     @Autowired
     private StatementManager statementManager;
-    
+
     @Autowired
     private StatementBuilder statementBuilder;
 
@@ -129,6 +129,15 @@ public class TableAlteror
         executeSql( "DROP TABLE datadictionaryindicators" );
         executeSql( "DROP TABLE datadictionarydataelements" );
         executeSql( "DROP TABLE datadictionary" );
+        executeSql( "DROP TABLE caseaggregationcondition" );
+        executeSql( "DROP TABLE trackedentitytabularreportusergroupaccesses" );
+        executeSql( "DROP TABLE trackedentitytabularreport_filters" );
+        executeSql( "DROP TABLE trackedentitytabularreport_dimensions" );
+        executeSql( "DROP TABLE trackedentitytabularreport" );
+        executeSql( "DROP TABLE trackedentityaggregatereportusergroupaccesses" );
+        executeSql( "DROP TABLE trackedentityaggregatereport_filters" );
+        executeSql( "DROP TABLE trackedentityaggregatereport_dimension" );
+        executeSql( "DROP TABLE trackedentityaggregatereport" );
         executeSql( "ALTER TABLE categoryoptioncombo drop column userid" );
         executeSql( "ALTER TABLE categoryoptioncombo drop column publicaccess" );
         executeSql( "ALTER TABLE categoryoptioncombo alter column name type text" );
@@ -152,6 +161,10 @@ public class TableAlteror
         executeSql( "ALTER TABLE dataset DROP COLUMN skipaggregation" );
         executeSql( "ALTER TABLE configuration DROP COLUMN completenessrecipientsid" );
         executeSql( "ALTER TABLE dataelement DROP COLUMN alternativename" );
+        executeSql( "ALTER TABLE dataelement DROP COLUMN aggregateexportcategoryoptioncombo" );
+        executeSql( "ALTER TABLE dataelement DROP COLUMN aggregateexportattributeoptioncombo" );
+        executeSql( "ALTER TABLE dataset DROP COLUMN aggregateexportcategoryoptioncombo" );
+        executeSql( "ALTER TABLE dataset DROP COLUMN aggregateexportattributeoptioncombo" );
         executeSql( "ALTER TABLE indicator DROP COLUMN alternativename" );
         executeSql( "ALTER TABLE orgunitgroup DROP COLUMN image" );
         executeSql( "ALTER TABLE report DROP COLUMN usingorgunitgroupsets" );
@@ -184,6 +197,8 @@ public class TableAlteror
         executeSql( "UPDATE mapview SET hidden = false WHERE hidden IS NULL" );
         executeSql( "UPDATE mapview SET eventclustering = false WHERE eventclustering IS NULL" );
         executeSql( "UPDATE mapview SET eventpointradius = 0 WHERE eventpointradius IS NULL" );
+        executeSql( "UPDATE programnotificationtemplate SET trackedentityattributeid = 0 WHERE trackedentityattributeid IS NULL" );
+
 
         executeSql( "DELETE FROM systemsetting WHERE name = 'longitude'" );
         executeSql( "DELETE FROM systemsetting WHERE name = 'latitude'" );
@@ -208,10 +223,10 @@ public class TableAlteror
 
         executeSql( "update dataset set categorycomboid = " + defaultCategoryComboId + " where categorycomboid is null" );
         executeSql( "alter table dataset alter column categorycomboid set not null" );
-        
+
         executeSql( "update program set categorycomboid = " + defaultCategoryComboId + " where categorycomboid is null" );
         executeSql( "alter table program alter column categorycomboid set not null" );
-        
+
         // categories_categoryoptions
         // set to 0 temporarily
         int c1 = executeSql( "UPDATE categories_categoryoptions SET sort_order=0 WHERE sort_order is NULL OR sort_order=0" );
@@ -263,7 +278,6 @@ public class TableAlteror
         executeSql( "ALTER TABLE organisationunit ALTER COLUMN comment TYPE text" );
         executeSql( "ALTER TABLE program ALTER COLUMN description TYPE text" );
         executeSql( "ALTER TABLE trackedentityattribute ALTER COLUMN description TYPE text" );
-        executeSql( "ALTER TABLE trackedentityattributegroup ALTER COLUMN description TYPE text" );
         executeSql( "ALTER TABLE programrule ALTER COLUMN condition TYPE text" );
         executeSql( "ALTER TABLE programruleaction ALTER COLUMN content TYPE text" );
         executeSql( "ALTER TABLE programruleaction ALTER COLUMN data TYPE text" );
@@ -320,7 +334,6 @@ public class TableAlteror
         executeSql( "ALTER TABLE chart DROP COLUMN verticallabels" );
         executeSql( "ALTER TABLE chart DROP COLUMN targetline" );
         executeSql( "ALTER TABLE chart DROP COLUMN horizontalplotorientation" );
-        executeSql( "ALTER TABLE chart ADD COLUMN hidesubtitle boolean NOT NULL DEFAULT false" );
 
         executeSql( "ALTER TABLE chart DROP COLUMN monthsLastYear" );
         executeSql( "ALTER TABLE chart DROP COLUMN quartersLastYear" );
@@ -426,7 +439,8 @@ public class TableAlteror
         executeSql( "update chart set regression = false where regression is null" );
         executeSql( "update chart set hidesubtitle = false where hidesubtitle is null" );
         executeSql( "update chart set userorganisationunit = false where userorganisationunit is null" );
-        executeSql( "update chart set hideemptyrows = false where hideemptyrows is null" );
+        executeSql( "update chart set percentstackedvalues = false where percentstackedvalues is null" );
+        executeSql( "update chart set cumulativevalues = false where cumulativevalues is null" );
         executeSql( "update indicator set annualized = false where annualized is null" );
         executeSql( "update indicatortype set indicatornumber = false where indicatornumber is null" );
         executeSql( "update dataset set mobile = false where mobile is null" );
@@ -443,9 +457,12 @@ public class TableAlteror
         executeSql( "update eventchart set hidetitle = false where hidetitle is null" );
         executeSql( "update eventchart set hidesubtitle = false where hidesubtitle is null" );
         executeSql( "update eventchart set hidenadata = false where hidenadata is null" );
+        executeSql( "update eventchart set percentstackedvalues = false where percentstackedvalues is null" );
+        executeSql( "update eventchart set cumulativevalues = false where cumulativevalues is null" );
         executeSql( "update reporttable set showdimensionlabels = false where showdimensionlabels is null" );
         executeSql( "update eventreport set showdimensionlabels = false where showdimensionlabels is null" );
         executeSql( "update reporttable set skiprounding = false where skiprounding is null" );
+        executeSql( "update validationnotificationtemplate set sendstrategy = 'COLLECTIVE_SUMMARY' where sendstrategy is null" );
 
         // move timelydays from system setting => dataset property
         executeSql( "update dataset set timelydays = 15 where timelydays is null" );
@@ -485,12 +502,17 @@ public class TableAlteror
         executeSql( "update reporttable set userorganisationunitgrandchildren = false where userorganisationunitgrandchildren is null" );
         executeSql( "update reporttable set subtotals = true where subtotals is null" );
         executeSql( "update reporttable set hideemptyrows = false where hideemptyrows is null" );
+        executeSql( "update reporttable set hideemptycolumns = false where hideemptycolumns is null" );
         executeSql( "update reporttable set displaydensity = 'normal' where displaydensity is null" );
         executeSql( "update reporttable set fontsize = 'normal' where fontsize is null" );
         executeSql( "update reporttable set digitgroupseparator = 'space' where digitgroupseparator is null" );
         executeSql( "update reporttable set sortorder = 0 where sortorder is null" );
         executeSql( "update reporttable set toplimit = 0 where toplimit is null" );
         executeSql( "update reporttable set showhierarchy = false where showhierarchy is null" );
+        executeSql( "update reporttable set legenddisplaystyle = 'FILL' where legenddisplaystyle is null" );
+        executeSql( "update reporttable set legenddisplaystrategy = 'FIXED' where legenddisplaystrategy is null" );
+        executeSql( "update reporttable set hidetitle = false where hidetitle is null" );
+        executeSql( "update reporttable set hidesubtitle = false where hidesubtitle is null" );
 
         // reporttable col/row totals = keep existing || copy from totals || true
         executeSql( "update reporttable set totals = true where totals is null" );
@@ -507,6 +529,8 @@ public class TableAlteror
         // reporttable upgrade counttype to outputtype
         executeSql( "update eventreport set outputtype = 'EVENT' where outputtype is null and counttype = 'events'" );
         executeSql( "update eventreport set outputtype = 'TRACKED_ENTITY_INSTANCE' where outputtype is null and counttype = 'tracked_entity_instances'" );
+        executeSql( "update eventreport set hidetitle = false where hidetitle is null" );
+        executeSql( "update eventreport set hidesubtitle = false where hidesubtitle is null" );
         executeSql( "update eventreport set outputtype = 'EVENT' where outputtype is null" );
         executeSql( "alter table eventreport drop column counttype" );
 
@@ -646,6 +670,10 @@ public class TableAlteror
 
         executeSql( "UPDATE userroleauthorities SET authority='F_LEGEND_SET_PUBLIC_ADD' WHERE authority='F_LEGEND_SET_ADD'" );
 
+        executeSql( "UPDATE userroleauthorities SET authority='F_VALIDATIONRULE_PUBLIC_ADD' WHERE authority='F_VALIDATIONRULE_ADD'" );
+
+        executeSql( "UPDATE userroleauthorities SET authority='F_ATTRIBUTE_PUBLIC_ADD' WHERE authority='F_ATTRIBUTE_ADD'" );
+
         // remove unused authorities
         executeSql( "DELETE FROM userroleauthorities WHERE authority='F_CONCEPT_UPDATE'" );
         executeSql( "DELETE FROM userroleauthorities WHERE authority='F_CONSTANT_UPDATE'" );
@@ -685,6 +713,7 @@ public class TableAlteror
         // remove unused configurations
         executeSql( "delete from systemsetting where name='keySmsConfig'" );
         executeSql( "delete from systemsetting where name='keySmsConfiguration'" );
+        executeSql( "delete from systemsetting where name='keySmsConfigurations'" );
 
         // update denominator of indicator which has indicatortype as 'number'
         executeSql( "UPDATE indicator SET denominator = 1, denominatordescription = '' WHERE indicatortypeid IN (SELECT DISTINCT indicatortypeid FROM indicatortype WHERE indicatornumber = true) AND denominator IS NULL" );
@@ -756,6 +785,7 @@ public class TableAlteror
         executeSql( "ALTER TABLE dataelementgroupset ALTER COLUMN datadimension SET NOT NULL" );
         executeSql( "UPDATE orgunitgroupset SET datadimension=true WHERE datadimension IS NULL" );
         executeSql( "ALTER TABLE orgunitgroupset ALTER COLUMN datadimension SET NOT NULL" );
+        executeSql( "ALTER TABLE validationnotificationtemplate ALTER COLUMN sendstrategy SET NOT NULL" );
 
         // set attribute defaults
         executeSql( "UPDATE attribute SET dataelementattribute=false WHERE dataelementattribute IS NULL" );
@@ -779,9 +809,10 @@ public class TableAlteror
         executeSql( "UPDATE attribute SET optionsetattribute=false WHERE optionsetattribute IS NULL" );
         executeSql( "UPDATE attribute SET constantattribute=false WHERE constantattribute IS NULL" );
         executeSql( "UPDATE attribute SET legendsetattribute=false WHERE legendsetattribute IS NULL" );
-        executeSql( "UPDATE attribute SET programIndicatorAttribute=false WHERE programIndicatorAttribute IS NULL" );
+        executeSql( "UPDATE attribute SET programindicatorattribute=false WHERE programindicatorattribute IS NULL" );
         executeSql( "UPDATE attribute SET sqlViewAttribute=false WHERE sqlViewAttribute IS NULL" );
         executeSql( "UPDATE attribute SET sectionAttribute=false WHERE sectionAttribute IS NULL" );
+        executeSql( "UPDATE attribute SET categoryoptioncomboattribute=false WHERE categoryoptioncomboattribute IS NULL" );
 
         executeSql( "update attribute set isunique=false where isunique is null" );
 
@@ -815,6 +846,8 @@ public class TableAlteror
         executeSql( "update expression set missingvaluestrategy = 'NEVER_SKIP' where missingvaluestrategy is null nullifblank is false" );
         executeSql( "alter table expression alter column missingvaluestrategy set not null" );
         executeSql( "alter table expression drop column nullifblank" );
+        executeSql( "drop table expressiondataelement" );
+        executeSql( "drop table expressionsampleelement" );
 
         executeSql( "alter table dataelementcategoryoption alter column startdate type date" );
         executeSql( "alter table dataelementcategoryoption alter column enddate type date" );
@@ -885,9 +918,9 @@ public class TableAlteror
         executeSql( "update programstage set repeatable = false where repeatable is null" );
         executeSql( "alter table programstage drop column reportdatedescription" );
         executeSql( "alter table programstage drop column irregular" );
-        
+
         executeSql( "update smscodes set compulsory = false where compulsory is null" );
-        
+
         executeSql( "alter table programmessage drop column storecopy" );
 
         executeSql( "alter table programindicator drop column missingvaluereplacement" );
@@ -917,9 +950,9 @@ public class TableAlteror
 
         executeSql( "alter table datastatisticsevent alter column eventtype type character varying" );
         executeSql( "alter table orgunitlevel drop constraint orgunitlevel_name_key" );
-        
+
         executeSql( "update interpretation set likes = 0 where likes is null" );
-        
+
         executeSql( "update chart set regressiontype = 'NONE' where regression is false or regression is null" );
         executeSql( "update chart set regressiontype = 'LINEAR' where regression is true" );
         executeSql( "alter table chart alter column regressiontype set not null" );
@@ -936,11 +969,19 @@ public class TableAlteror
         executeSql( "alter table validationrule drop column sequentialsamplecount" );
         executeSql( "alter table validationrule drop column annualsamplecount" );
         executeSql( "alter table validationrule drop column sequentialskipcount" );
-        
+
+        // remove TrackedEntityAttributeGroup
+        executeSql( "alter table trackedentityattribute drop column trackedentityattributegroupid" );
+        executeSql( "ALTER TABLE trackedentityattribute DROP CONSTRAINT fk_trackedentityattribute_attributegroupid" );
+
+        // remove id object parts from embedded objects
+        upgradeEmbeddedObject( "datainputperiod" );
+        upgradeEmbeddedObject( "datasetelement" );
+
         updateEnums();
 
         upgradeDataValueSoftDelete();
-        
+
         initOauth2();
 
         upgradeDataValuesWithAttributeOptionCombo();
@@ -962,22 +1003,43 @@ public class TableAlteror
         updateNameColumnLengths();
 
         upgradeMapViewsToColumns();
+        upgradeDataDimensionsToEmbeddedOperand();
         upgradeDataDimensionItemsToReportingRateMetric();
+        upgradeDataDimensionItemToEmbeddedProgramAttribute();
+        upgradeDataDimensionItemToEmbeddedProgramDataElement();
 
         updateObjectTranslation();
         upgradeDataSetElements();
 
         removeOutdatedTranslationProperties();
 
+        updateLegendRelationship();
+        updateHideEmptyRows();
+
+        executeSql( "update programindicator set analyticstype = 'EVENT' where analyticstype is null" );
+        executeSql( "alter table programindicator alter column analyticstype set not null" );
+
+        //TODO: remove - not needed in release 2.26.
+        executeSql( "update programindicator set analyticstype = programindicatoranalyticstype" );
+        executeSql( "alter table programindicator drop programindicatoranalyticstype" );
+
         log.info( "Tables updated" );
     }
-    
+
+    private void upgradeEmbeddedObject( String table )
+    {
+        executeSql( "ALTER TABLE " + table + " DROP COLUMN uid" );
+        executeSql( "ALTER TABLE " + table + " DROP COLUMN created" );
+        executeSql( "ALTER TABLE " + table + " DROP COLUMN lastupdated" );
+        executeSql( "ALTER TABLE " + table + " DROP COLUMN code" );
+    }
+
     private void removeOutdatedTranslationProperties()
     {
         executeSql( "delete from indicatortranslations where objecttranslationid in (select objecttranslationid from objecttranslation where property in ('numeratorDescription', 'denominatorDescription'))" );
         executeSql( "delete from objecttranslation where property in ('numeratorDescription', 'denominatorDescription')" );
     }
-    
+
     private void upgradeDataValueSoftDelete()
     {
         executeSql( "update datavalue set deleted = false where deleted is null" );
@@ -1080,26 +1142,26 @@ public class TableAlteror
     {
         String autoIncr = statementBuilder.getAutoIncrementValue();
         String uid = statementBuilder.getUid();
-        
-        String insertSql = 
+
+        String insertSql =
             "insert into datasetelement(datasetelementid,uid,datasetid,dataelementid,created,lastupdated) " +
-            "select " + autoIncr + "  as datasetelementid, " +
-            uid + " as uid, " +
-            "dsm.datasetid as datasetid, " +
-            "dsm.dataelementid as dataelementid, " +
-            "now() as created, " +
-            "now() as lastupdated " +
-            "from datasetmembers dsm; " +
-            "drop table datasetmembers; ";        
-        
+                "select " + autoIncr + "  as datasetelementid, " +
+                uid + " as uid, " +
+                "dsm.datasetid as datasetid, " +
+                "dsm.dataelementid as dataelementid, " +
+                "now() as created, " +
+                "now() as lastupdated " +
+                "from datasetmembers dsm; " +
+                "drop table datasetmembers; ";
+
         executeSql( insertSql );
-        
+
         executeSql( "alter table datasetelement alter column uid set not null" );
         executeSql( "alter table datasetelement alter column created set not null" );
         executeSql( "alter table datasetelement alter column lastupdated set not null" );
         executeSql( "alter table datasetelement alter column datasetid drop not null" );
     }
-    
+
     private void upgradeAggregationType( String table )
     {
         executeSql( "update " + table + " set aggregationtype='SUM' where aggregationtype='sum'" );
@@ -1118,6 +1180,8 @@ public class TableAlteror
         executeSql( "update relativeperiods set thisquarter=reportingquarter" );
 
         executeSql( "update relativeperiods set lastweek = false where lastweek is null" );
+        executeSql( "update relativeperiods set weeksthisyear = false where weeksthisyear is null" );
+        executeSql( "update relativeperiods set bimonthsthisyear = false where bimonthsthisyear is null" );
         executeSql( "update relativeperiods set last4weeks = false where last4weeks is null" );
         executeSql( "update relativeperiods set last12weeks = false where last12weeks is null" );
         executeSql( "update relativeperiods set last6months = false where last6months is null" );
@@ -1133,6 +1197,49 @@ public class TableAlteror
         executeSql( "update relativeperiods set lastquarter = false where lastquarter is null" );
         executeSql( "update relativeperiods set lastsixmonth = false where lastsixmonth is null" );
         executeSql( "update relativeperiods set lastweek = false where lastweek is null" );
+
+        executeSql( "update relativeperiods set thisday = false where thisday is null" );
+        executeSql( "update relativeperiods set yesterday = false where yesterday is null" );
+        executeSql( "update relativeperiods set last3days = false where last3days is null" );
+        executeSql( "update relativeperiods set last7days = false where last7days is null" );
+        executeSql( "update relativeperiods set last14days = false where last14days is null" );
+
+
+        // Set non-null constraint on fields
+        executeSql( "alter table relativeperiods alter column thisday set not null" );
+        executeSql( "alter table relativeperiods alter column yesterday set not null" );
+        executeSql( "alter table relativeperiods alter column last3Days set not null" );
+        executeSql( "alter table relativeperiods alter column last7Days set not null" );
+        executeSql( "alter table relativeperiods alter column last14Days set not null" );
+        executeSql( "alter table relativeperiods alter column thisMonth set not null" );
+        executeSql( "alter table relativeperiods alter column lastMonth set not null" );
+        executeSql( "alter table relativeperiods alter column thisBimonth set not null" );
+        executeSql( "alter table relativeperiods alter column lastBimonth set not null" );
+        executeSql( "alter table relativeperiods alter column thisQuarter set not null" );
+        executeSql( "alter table relativeperiods alter column lastQuarter set not null" );
+        executeSql( "alter table relativeperiods alter column thisSixMonth set not null" );
+        executeSql( "alter table relativeperiods alter column lastSixMonth set not null" );
+        executeSql( "alter table relativeperiods alter column monthsThisYear set not null" );
+        executeSql( "alter table relativeperiods alter column quartersThisYear set not null" );
+        executeSql( "alter table relativeperiods alter column thisYear set not null" );
+        executeSql( "alter table relativeperiods alter column monthsLastYear set not null" );
+        executeSql( "alter table relativeperiods alter column quartersLastYear set not null" );
+        executeSql( "alter table relativeperiods alter column lastYear set not null" );
+        executeSql( "alter table relativeperiods alter column last5Years set not null" );
+        executeSql( "alter table relativeperiods alter column last12Months set not null" );
+        executeSql( "alter table relativeperiods alter column last6Months set not null" );
+        executeSql( "alter table relativeperiods alter column last3Months set not null" );
+        executeSql( "alter table relativeperiods alter column last6BiMonths set not null" );
+        executeSql( "alter table relativeperiods alter column last4Quarters set not null" );
+        executeSql( "alter table relativeperiods alter column last2SixMonths set not null" );
+        executeSql( "alter table relativeperiods alter column thisFinancialYear set not null" );
+        executeSql( "alter table relativeperiods alter column lastFinancialYear set not null" );
+        executeSql( "alter table relativeperiods alter column last5FinancialYears set not null" );
+        executeSql( "alter table relativeperiods alter column thisWeek set not null" );
+        executeSql( "alter table relativeperiods alter column lastWeek set not null" );
+        executeSql( "alter table relativeperiods alter column last4Weeks set not null" );
+        executeSql( "alter table relativeperiods alter column last12Weeks set not null" );
+        executeSql( "alter table relativeperiods alter column last52Weeks set not null" );
     }
 
     private void updateNameColumnLengths()
@@ -1380,6 +1487,21 @@ public class TableAlteror
 
         return idMap;
     }
+    
+    private void updateHideEmptyRows()
+    {
+        executeSql( 
+            "update chart set hideemptyrowitems = 'NONE' where hideemptyrows is false or hideemptyrows is null; " +
+            "update chart set hideemptyrowitems = 'ALL' where hideemptyrows is true; " +
+            "alter table chart alter column hideemptyrowitems set not null; " +
+            "alter table chart drop column hideemptyrows;" );
+        
+        executeSql(
+            "update eventchart set hideemptyrowitems = 'NONE' where hideemptyrows is false or hideemptyrows is null; " +
+            "update eventchart set hideemptyrowitems = 'ALL' where hideemptyrows is true; " +
+            "alter table eventchart alter column hideemptyrowitems set not null; " +
+            "alter table eventchart drop column hideemptyrows;" );        
+    }
 
     private void updateSortOrder( String table, String col1, String col2 )
     {
@@ -1444,8 +1566,8 @@ public class TableAlteror
     private void upgradeMapViewsToColumns()
     {
         String sql =
-            "insert into mapview_columns " +
-                "select mapviewid, 'dx', 0 " +
+            "insert into mapview_columns(mapviewid, sort_order, dimension) " +
+                "select mapviewid, 0, 'dx' " +
                 "from mapview mv " +
                 "where not exists (" +
                 "select mc.mapviewid " +
@@ -1456,10 +1578,33 @@ public class TableAlteror
     }
 
     /**
+     * Upgrades data dimension items to use embedded data element operands.
+     */
+    private void upgradeDataDimensionsToEmbeddedOperand()
+    {
+        String sql =
+            "update datadimensionitem di " +
+            "set dataelementoperand_dataelementid = ( " +
+                "select op.dataelementid " +
+                "from dataelementoperand op " +
+                "where di.dataelementoperandid=op.dataelementoperandid " +
+            "), " +
+            "dataelementoperand_categoryoptioncomboid = ( " +
+                "select op.categoryoptioncomboid " +
+                "from dataelementoperand op " +
+                "where di.dataelementoperandid=op.dataelementoperandid " +
+            ") " +
+            "where di.dataelementoperandid is not null; " +
+            "alter table datadimensionitem drop column dataelementoperandid;";
+        
+        executeSql( sql );
+    }
+    
+    /**
      * Upgrade data dimension items for legacy data sets to use REPORTING_RATE
      * as metric.
      */
-    public void upgradeDataDimensionItemsToReportingRateMetric()
+    private void upgradeDataDimensionItemsToReportingRateMetric()
     {
         String sql = "update datadimensionitem " +
             "set metric='REPORTING_RATE' " +
@@ -1468,7 +1613,43 @@ public class TableAlteror
 
         executeSql( sql );
     }
+    
+    /**
+     * Upgrades data dimension items to use embedded 
+     * ProgramTrackedEntityAttributeDimensionItem class.
+     */
+    private void upgradeDataDimensionItemToEmbeddedProgramAttribute()
+    {
+        String sql =
+            "update datadimensionitem di " +
+            "set programattribute_programid = (select programid from program_attributes where programtrackedentityattributeid=di.programattributeid), " +
+                "programattribute_attributeid = (select trackedentityattributeid from program_attributes where programtrackedentityattributeid=di.programattributeid) " +
+            "where programattributeid is not null " +
+            "and (programattribute_programid is null and programattribute_attributeid is null); " +
+            "alter table datadimensionitem drop column programattributeid;";
+        
+        executeSql( sql );
+    }
 
+    /**
+     * Upgrades data dimension items to use embedded 
+     * ProgramDataElementDimensionItem class.
+     */
+    private void upgradeDataDimensionItemToEmbeddedProgramDataElement()
+    {
+        String sql =
+            "update datadimensionitem di " +
+            "set programdataelement_programid = (select programid from programdataelement where programdataelementid=di.programdataelementid), " +
+                "programdataelement_dataelementid = (select dataelementid from programdataelement where programdataelementid=di.programdataelementid) " +
+            "where di.programdataelementid is not null " +
+            "and (programdataelement_programid is null and programdataelement_dataelementid is null); " +
+            "alter table datadimensionitem drop column programdataelementid; " +
+            "drop table programdataelementtranslations; " +
+            "drop table programdataelement;"; // Remove if program data element is to be reintroduced
+        
+        executeSql( sql );
+    }
+    
     private int executeSql( String sql )
     {
         try
@@ -1501,7 +1682,7 @@ public class TableAlteror
         List<Map<String, String>> listTables = new ArrayList<>();
 
         addTranslationTable( listTables, "DataElement", "dataelementtranslations", "dataelement", "dataelementid" );
-        addTranslationTable( listTables, "DataElementCategory", "dataelementcategorytranslations", "dataelementcategory", "dataelementcategoryid" );
+        addTranslationTable( listTables, "DataElementCategory", "dataelementcategorytranslations", "dataelementcategory", "categoryid" );
         addTranslationTable( listTables, "Attribute", "attributetranslations", "attribute", "attributeid" );
         addTranslationTable( listTables, "Indicator", "indicatortranslations", "indicator", "indicatorid" );
         addTranslationTable( listTables, "OrganisationUnit", "organisationUnittranslations", "organisationunit", "organisationunitid" );
@@ -1558,7 +1739,6 @@ public class TableAlteror
         addTranslationTable( listTables, "ProgramStageInstance", "programstageinstancetranslations", "programstageinstance", "programstageinstanceid" );
         addTranslationTable( listTables, "ProgramStageSection", "programstagesectiontranslations", "programstagesection", "programstagesectionid" );
         addTranslationTable( listTables, "ProgramTrackedEntityAttribute", "programattributestranslations", "programtrackedentityattribute", "programtrackedentityattributeid" );
-        addTranslationTable( listTables, "ProgramValidation", "programvalidationtranslations", "programvalidation", "programvalidationid" );
         addTranslationTable( listTables, "ProgramRule", "programruletranslations", "programrule", "programruleid" );
         addTranslationTable( listTables, "ProgramRuleAction", "programruleactiontranslations", "programruleaction", "programruleactionid" );
         addTranslationTable( listTables, "ProgramRuleVariable", "programrulevariabletranslations", "programrulevariable", "programrulevariableid" );
@@ -1567,7 +1747,6 @@ public class TableAlteror
         addTranslationTable( listTables, "ReportTable", "reporttabletranslations", "reporttable", "reporttableid" );
         addTranslationTable( listTables, "TrackedEntity", "trackedentitytranslations", "trackedentity", "trackedentityid" );
         addTranslationTable( listTables, "TrackedEntityAttribute", "trackedentityattributetranslations", "trackedentityattribute", "trackedentityattributeid" );
-        addTranslationTable( listTables, "TrackedEntityAttributeGroup", "trackedentityattributegrouptranslations", "trackedentityattributegroup", "trackedentityattributegroupid" );
         addTranslationTable( listTables, "TrackedEntityInstance", "trackedentityinstancetranslations", "trackedentityinstance", "trackedentityinstanceid" );
         addTranslationTable( listTables, "User", "userinfotranslations", "userinfo", "userinfoid" );
         addTranslationTable( listTables, "UserAuthorityGroup", "userroletranslations", "userrole", "userroleid" );
@@ -1576,6 +1755,8 @@ public class TableAlteror
         addTranslationTable( listTables, "ValidationCriteria", "validationcriteriatranslations", "validationcriteria", "validationcriteriaid" );
         addTranslationTable( listTables, "ValidationRule", "validationruletranslations", "validationrule", "validationruleid" );
         addTranslationTable( listTables, "ValidationRuleGroup", "validationrulegrouptranslations", "validationrulegroup", "validationrulegroupid" );
+
+        executeSql( "alter table translation add column objectid integer;" );
 
         String sql;
 
@@ -1593,6 +1774,9 @@ public class TableAlteror
                     " t.value " +
                     " from  translation as t " +
                     " where t.objectclass = '" + table.get( "className" ) + "'" +
+                    " and t.objectproperty is not null " +
+                    " and t.locale is not null " +
+                    " and t.value is not null " +
                     " and not exists ( select 1 from objecttranslation where objecttranslationid = t.translationid )  " +
                     " and ( " +
                     " exists ( select 1 from " + table.get( "objectTable" ) + "  where " + table.get( "objectId" ) + " = t.objectid )  " +
@@ -1605,14 +1789,23 @@ public class TableAlteror
                 " insert into " + table.get( "translationTable" ) + " ( " + table.get( "objectId" ) + ", objecttranslationid ) " +
                     " select " +
                     " case when t.objectid is not null then t.objectid " +
-                    " else ( select " + table.get( "objectId" ) + " from " + table.get( "objectTable" )  + " where uid = t.objectuid ) " +
+                    " else ( select " + table.get( "objectId" ) + " from " + table.get( "objectTable" ) + " where uid = t.objectuid ) " +
                     " end," +
                     " o.objecttranslationid  " +
-                    " from objecttranslation o inner join translation t on o.objecttranslationid = t.translationid and t.objectclass = '" + table.get( "className" ) + "'"+
-                    " and not exists ( select 1 from " + table.get( "translationTable" ) + " where objecttranslationid = o.objecttranslationid) ;" ;
+                    " from objecttranslation o inner join translation t on o.objecttranslationid = t.translationid and t.objectclass = '" + table.get( "className" ) + "'" +
+                    " and not exists ( select 1 from " + table.get( "translationTable" ) + " where objecttranslationid = o.objecttranslationid) ;";
 
             executeSql( sql );
 
         }
+    }
+
+    private void updateLegendRelationship()
+    {
+        String sql = "update maplegend l set maplegendsetid = (select legendsetid from maplegendsetmaplegend m where m.maplegendid = l.maplegendid);";
+        executeSql( sql );
+
+        sql = " drop table maplegendsetmaplegend";
+        executeSql( sql );
     }
 }

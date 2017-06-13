@@ -1,7 +1,7 @@
 package org.hisp.dhis.datavalue;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,11 @@ package org.hisp.dhis.datavalue;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.common.MapMapMap;
+import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
@@ -43,16 +46,14 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
@@ -158,6 +159,7 @@ public class DefaultDataValueService
         }
 
         dataValue.setCreated( new Date() );
+        dataValue.setLastUpdated( new Date() );
 
         // ---------------------------------------------------------------------
         // Check and restore soft deleted value
@@ -190,6 +192,8 @@ public class DefaultDataValueService
         }
         else if ( dataValueIsValid( dataValue.getValue(), dataValue.getDataElement() ) == null )
         {
+            dataValue.setLastUpdated( new Date() );
+            
             DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(), dataValue.getStoredBy(), AuditType.UPDATE );
 
             dataValueAuditService.addDataValueAudit( dataValueAudit );
@@ -210,6 +214,7 @@ public class DefaultDataValueService
             fileResourceService.deleteFileResource( dataValue.getValue() );
         }
 
+        dataValue.setLastUpdated( new Date() );
         dataValue.setDeleted( true );
         
         dataValueStore.updateDataValue( dataValue );
@@ -221,7 +226,13 @@ public class DefaultDataValueService
     {
         dataValueStore.deleteDataValues( organisationUnit );
     }
-    
+
+    @Override
+    public void deleteDataValues( DataElement dataElement )
+    {
+        dataValueStore.deleteDataValues( dataElement );
+    }
+
     @Override
     public DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source, DataElementCategoryOptionCombo categoryOptionCombo )
     {
@@ -242,16 +253,70 @@ public class DefaultDataValueService
     // -------------------------------------------------------------------------
 
     @Override
+    public List<DataValue> getDataValues( DataExportParams params )
+    {
+        validate( params );
+        
+        return dataValueStore.getDataValues( params );
+    }
+
+    @Override
+    public void validate( DataExportParams params )
+    {
+        String violation = null;
+
+        if ( params == null )
+        {
+            throw new IllegalArgumentException( "Params cannot be null" );
+        }
+
+        if ( params.getDataElements().isEmpty() && params.getDataSets().isEmpty() && params.getDataElementGroups().isEmpty() )
+        {
+            violation = "At least one valid data set or data element group must be specified";
+        }
+
+        if ( params.hasPeriods() && params.hasStartEndDate() )
+        {
+            violation = "Both periods and start/end date cannot be specified";
+        }
+
+        if ( params.hasStartEndDate() && params.getStartDate().after( params.getEndDate() ) )
+        {
+            violation = "Start date must be before end date";
+        }
+
+        if ( params.hasLastUpdatedDuration() && DateUtils.getDuration( params.getLastUpdatedDuration() ) == null )
+        {
+            violation = "Duration is not valid: " + params.getLastUpdatedDuration();
+        }
+
+        if ( params.isIncludeChildren() && params.hasOrganisationUnitGroups() )
+        {
+            violation = "Children cannot be included for organisation unit groups";
+        }
+
+        if ( params.isIncludeChildren() && !params.hasOrganisationUnits() )
+        {
+            violation = "At least one valid organisation unit must be specified when children is included";
+        }
+
+        if ( params.hasLimit() && params.getLimit() < 0 )
+        {
+            violation = "Limit cannot be less than zero: " + params.getLimit();
+        }
+
+        if ( violation != null )
+        {
+            log.warn( "Validation failed: " + violation );
+
+            throw new IllegalQueryException( violation );
+        }
+    }
+
+    @Override
     public List<DataValue> getAllDataValues()
     {
         return dataValueStore.getAllDataValues();
-    }
-    
-    @Override
-    public List<DataValue> getDataValues( Collection<DataElement> dataElements, 
-        Collection<Period> periods, Collection<OrganisationUnit> organisationUnits )
-    {
-        return dataValueStore.getDataValues( dataElements, periods, organisationUnits );
     }
     
     @Override
@@ -262,112 +327,12 @@ public class DefaultDataValueService
     }
 
     @Override
-    public List<DataValue> getDeflatedDataValues( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo,
-        Collection<Period> periods, Collection<OrganisationUnit> sources )
+    public MapMapMap<Period, String, DimensionalItemObject, Double> getDataElementOperandValues(
+        Collection<DataElementOperand> dataElementOperands, Collection<Period> periods,
+        OrganisationUnit orgUnit )
     {
-        List<DeflatedDataValue> dataValues = dataValueStore.getDeflatedDataValues( dataElement, categoryOptionCombo, periods, sources );
-        List<DataValue> result = new ArrayList<DataValue>();
-
-        Map<Integer, Period> periodIds = new HashMap<Integer, Period>();
-        Map<Integer, OrganisationUnit> sourceIds = new HashMap<Integer, OrganisationUnit>();
-
-        for ( Period period : periods )
-        {
-            periodIds.put( period.getId(), period );
-        }
-
-        for ( OrganisationUnit source : sources )
-        {
-            sourceIds.put( source.getId(), source );
-        }
-
-        for ( DeflatedDataValue ddv : dataValues )
-        {
-            DataValue dv = new DataValue( dataElement, periodIds.get( ddv.getPeriodId() ),
-                sourceIds.get( ddv.getSourceId() ), getCategoryOptionCombo( ddv.getCategoryOptionComboId() ),
-                getCategoryOptionCombo( ddv.getAttributeOptionComboId() ) );
-
-            dv.setValue( ddv.getValue() );
-
-            result.add( dv );
-        }
-
-        return result;
-    }
-
-    /**
-     * Gets deflated (non-persisted) dataValues for a dataElement, period, and sources and
-     * will get the values recursively for children of the sources if they don't exist for any
-     * periods or attribute option combos.
-     */
-    @Override
-    public List<DataValue> getRecursiveDeflatedDataValues(
-        DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo,
-        Collection<Period> periods, Collection<OrganisationUnit> sources )
-    {
-        List<DataValue> result = new ArrayList<DataValue>();
-        DataElementCategoryOptionCombo dcoc = categoryService.getDefaultDataElementCategoryOptionCombo();
-        DataElementCategoryOptionCombo coc = categoryOptionCombo == null || categoryOptionCombo == dcoc ? 
-            null : categoryOptionCombo;
-
-        Map<Integer, Period> periodIds = new HashMap<Integer, Period>();
-        Map<Integer, OrganisationUnit> sourceIds = new HashMap<Integer, OrganisationUnit>();
-
-        for ( Period period : periods )
-        {
-            periodIds.put( period.getId(), period );
-        }
-
-        for ( OrganisationUnit source : sources )
-        {
-            sourceIds.put( source.getId(), source );
-        }
-
-        for ( OrganisationUnit source: sources )
-        {
-            List<DeflatedDataValue> dataValues =
-                dataValueStore.sumRecursiveDeflatedDataValues( dataElement, coc, periods, source );
-            
-            ListMap<Integer, Integer> period2aoc = new ListMap<Integer, Integer>();
-
-            MapMap<Integer, Integer, DataValue> accumulatedValues = new MapMap<Integer, Integer, DataValue>();
-
-            for ( DeflatedDataValue ddv : dataValues )
-            {
-                Integer periodId = ddv.getPeriodId();
-                Integer aoc = ddv.getAttributeOptionComboId();
-                
-                if ( !( period2aoc.containsValue( periodId, aoc ) ) )
-                {
-                    DataValue dv = accumulatedValues.getValue( periodId, aoc );
-                    
-                    if ( dv == null )
-                    {
-                        dv = new DataValue( dataElement, periodIds.get( periodId ), 
-                            source, dcoc, getCategoryOptionCombo( aoc ) );
-
-                        dv.setValue( ddv.getValue() );
-                        accumulatedValues.putEntry( periodId, aoc, dv );
-
-                        result.add( dv );
-                    }
-                    else
-                    {
-                        Double value = Double.valueOf( ddv.getValue() );
-                        Double cv = Double.valueOf( dv.getValue() );
-                        Double nv = value + cv;
-                        dv.setValue( nv.toString() );
-                    }
-                }
-            }
-        }
-
-        return result;
-    }
-
-    private DataElementCategoryOptionCombo getCategoryOptionCombo( Integer id )
-    {
-        return categoryService.getDataElementCategoryOptionCombo( id );
+        return dataValueStore.getDataElementOperandValues( dataElementOperands,
+            periods, orgUnit );
     }
 
     @Override
@@ -376,22 +341,29 @@ public class DefaultDataValueService
         Calendar cal = PeriodType.createCalendarInstance();
         cal.add( Calendar.DAY_OF_YEAR, (days * -1) );
 
-        return dataValueStore.getDataValueCountLastUpdatedAfter( cal.getTime() );
+        return dataValueStore.getDataValueCountLastUpdatedBetween( cal.getTime(), null, false );
     }
 
     @Override
-    public int getDataValueCountLastUpdatedAfter( Date date )
+    public int getDataValueCountLastUpdatedAfter( Date date, boolean includeDeleted )
     {
-        return dataValueStore.getDataValueCountLastUpdatedAfter( date );
+        return dataValueStore.getDataValueCountLastUpdatedBetween( date, null, includeDeleted );
     }
 
     @Override
-    public MapMap<Integer, DataElementOperand, Double> getDataValueMapByAttributeCombo( Collection<DataElement> dataElements, Date date,
-        OrganisationUnit source, Collection<PeriodType> periodTypes, DataElementCategoryOptionCombo attributeCombo,
+    public int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted )
+    {
+        return dataValueStore.getDataValueCountLastUpdatedBetween( startDate, endDate, includeDeleted );
+    }
+
+    @Override
+    public MapMap<String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
+        SetMap<String, DataElementOperand> dataElementOperandsToGet, Date date, OrganisationUnit source,
+        Collection<PeriodType> periodTypes, DataElementCategoryOptionCombo attributeCombo,
         Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints,
-        MapMap<Integer, DataElementOperand, Date> lastUpdatedMap )
+        MapMap<String, DataElementOperand, Date> lastUpdatedMap )
     {
-        return dataValueStore.getDataValueMapByAttributeCombo( dataElements, date, source, periodTypes, attributeCombo,
-            cogDimensionConstraints, coDimensionConstraints, lastUpdatedMap );
+        return dataValueStore.getDataValueMapByAttributeCombo( dataElementOperandsToGet, date, source,
+            periodTypes, attributeCombo, cogDimensionConstraints, coDimensionConstraints, lastUpdatedMap );
     }
 }

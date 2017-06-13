@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.util;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,8 +51,8 @@ public final class SchemaUtils
 
     public static void updatePropertyTypes( Property property )
     {
-        Assert.notNull( property );
-        Assert.notNull( property.getKlass() );
+        Assert.notNull( property, "Property cannot be null" );
+        Assert.notNull( property.getKlass(), "Property class cannot be null" );
 
         property.setPropertyType( getPropertyType( property.getKlass() ) );
 
@@ -81,6 +81,16 @@ public final class SchemaUtils
                 if ( pAnnotation.owner() != org.hisp.dhis.schema.annotation.Property.Value.DEFAULT )
                 {
                     property.setOwner( pAnnotation.owner() == org.hisp.dhis.schema.annotation.Property.Value.TRUE );
+                }
+
+                if ( org.hisp.dhis.schema.annotation.Property.Access.READ_ONLY == pAnnotation.access() )
+                {
+                    property.setWritable( false );
+                }
+
+                if ( org.hisp.dhis.schema.annotation.Property.Access.WRITE_ONLY == pAnnotation.access() )
+                {
+                    property.setReadable( false );
                 }
             }
 

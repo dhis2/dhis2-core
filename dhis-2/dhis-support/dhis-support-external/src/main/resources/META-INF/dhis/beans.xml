@@ -2,9 +2,9 @@
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:context="http://www.springframework.org/schema/context"
   xmlns:task="http://www.springframework.org/schema/task"
-  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
-    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
-    http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.2.xsd">
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+    http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.3.xsd">
 
   <context:annotation-config />
 
@@ -19,14 +19,8 @@
     <property name="systemProperty" value="dhis2.home" />
   </bean>
 
-  <bean id="maxAttempts" class="org.hisp.dhis.external.conf.DhisConfigurationPropertyFactoryBean">
-    <property name="dhisConfigurationProvider" ref="dhisConfigurationProvider" />
-    <property name="dhisProperty" value="META_DATA_SYNC_RETRY" />
-  </bean>
-
-  <bean id="initialInterval" class="org.hisp.dhis.external.conf.DhisConfigurationPropertyFactoryBean">
-    <property name="dhisConfigurationProvider" ref="dhisConfigurationProvider" />
-    <property name="dhisProperty" value="META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC" />
-  </bean>
+  <bean id="maxAttempts" class="org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean"><constructor-arg value="META_DATA_SYNC_RETRY" /></bean>
+  <bean id="initialInterval" class="org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean"><constructor-arg value="META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC" /></bean>
+  <bean id="sessionTimeout" class="org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean"><constructor-arg value="SYSTEM_SESSION_TIMEOUT" /></bean>
 
 </beans>

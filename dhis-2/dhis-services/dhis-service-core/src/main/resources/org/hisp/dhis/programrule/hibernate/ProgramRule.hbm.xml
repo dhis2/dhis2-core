@@ -35,7 +35,7 @@
     <property name="priority" />
 
     <!-- Object Translation -->
-    <set name="translations" table="programruletranslations" cascade="delete-orphan">
+    <set name="translations" table="programruletranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="programruleid" foreign-key="fk_objecttranslation_programruleid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

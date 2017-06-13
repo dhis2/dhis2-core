@@ -25,7 +25,7 @@
     </list>
 
     <!-- Object Translation -->
-    <set name="translations" table="dashboardtranslations" cascade="delete-orphan">
+    <set name="translations" table="dashboardtranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="dashboardid" foreign-key="fk_objecttranslation_dashboardid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -38,10 +38,16 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="dashboardusergroupaccesses">
+    <set name="userGroupAccesses" table="dashboardusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="dashboardid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="dashboarduseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="dashboardid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
   </class>

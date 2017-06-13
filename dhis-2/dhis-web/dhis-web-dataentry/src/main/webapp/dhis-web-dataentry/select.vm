@@ -16,6 +16,7 @@ var i18n_value_must_coordinate = '$encoder.jsEscape( $i18n.getString( "value_mus
 var i18n_value_must_negative_integer = '$encoder.jsEscape( $i18n.getString( "value_must_negative_integer" ) , "'")';
 var i18n_value_must_unit_interval = '$encoder.jsEscape( $i18n.getString( "value_must_unit_interval" ) , "'")';
 var i18n_value_must_percentage = '$encoder.jsEscape( $i18n.getString( "value_must_percentage" ) , "'")';
+var i18n_value_must_valid_url = '$encoder.jsEscape( $i18n.getString( "value_must_valid_url" ) , "'")';
 var i18n_field_unallowed_save_zero = '$encoder.jsEscape( $i18n.getString( "field_unallowed_save_zero" ) , "'")';
 var i18n_saving_value_failed_status_code = '$encoder.jsEscape( $i18n.getString( "saving_value_failed_status_code" ) , "'")';
 var i18n_saving_value_failed_dataset_is_locked = '$encoder.jsEscape( $i18n.getString( "saving_value_failed_dataset_is_locked" ) , "'")';

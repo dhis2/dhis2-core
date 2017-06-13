@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
 /**
@@ -42,7 +41,7 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
  */
 @JacksonXmlRootElement( localName = "organisationUnitLevel", namespace = DxfNamespaces.DXF_2_0 )
 public class OrganisationUnitLevel
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     private int level;
 
@@ -69,56 +68,10 @@ public class OrganisationUnitLevel
         this.offlineLevels = offlineLevels;
     }
 
-    // -------------------------------------------------------------------------
-    // hashCode and equals
-    // -------------------------------------------------------------------------
-
-    @Override
-    public int hashCode()
-    {
-        final int prime = 31;
-
-        int result = 1;
-
-        result = prime * result + level;
-        result = prime * result + ((name == null) ? 0 : name.hashCode());
-
-        return result;
-    }
-
-    @Override
-    public boolean equals( Object object )
-    {
-        if ( this == object )
-        {
-            return true;
-        }
-
-        if ( object == null )
-        {
-            return false;
-        }
-
-        if ( !getClass().isAssignableFrom( object.getClass() ) )
-        {
-            return false;
-        }
-
-        final OrganisationUnitLevel other = (OrganisationUnitLevel) object;
-
-        return level == other.level && name.equals( other.name );
-    }
-
     @Override
     public String toString()
     {
         return "[Name: " + name + ", level: " + level + "]";
-    }
-
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
     }
 
     // -------------------------------------------------------------------------
@@ -148,17 +101,5 @@ public class OrganisationUnitLevel
     public void setOfflineLevels( Integer offlineLevels )
     {
         this.offlineLevels = offlineLevels;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            OrganisationUnitLevel organisationUnitLevel = (OrganisationUnitLevel) other;
-            level = organisationUnitLevel.getLevel();
-        }
     }
 }

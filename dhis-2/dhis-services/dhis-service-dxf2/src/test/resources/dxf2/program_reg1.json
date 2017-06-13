@@ -24,10 +24,36 @@
       "repeatable": false,
       "programStageDataElements": [
         {
-          "id": "K3nySg2U6Ht"
+          "compulsory": true,
+          "lastUpdated": "2016-03-11T07:00:48.250+0000",
+          "allowFutureDate": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 0,
+          "id": "K3nySg2U6Ht",
+          "created": "2016-03-11T07:00:48.249+0000",
+          "dataElement": {
+            "id": "XzGnBlUcB87"
+          },
+          "displayInReports": true,
+          "programStage": {
+            "id": "CPP34zTxaSf"
+          }
         },
         {
-          "id": "LKlMVtBr3sF"
+          "compulsory": true,
+          "allowProvidedElsewhere": false,
+          "allowFutureDate": false,
+          "lastUpdated": "2016-03-11T07:00:48.255+0000",
+          "id": "LKlMVtBr3sF",
+          "sortOrder": 1,
+          "created": "2016-03-11T07:00:48.255+0000",
+          "dataElement": {
+            "id": "qS4lxayqVRv"
+          },
+          "displayInReports": true,
+          "programStage": {
+            "id": "CPP34zTxaSf"
+          }
         }
       ],
       "notificationTemplates": [ ],
@@ -50,10 +76,36 @@
       "repeatable": false,
       "programStageDataElements": [
         {
-          "id": "Eebs10ayIG7"
+          "displayInReports": false,
+          "programStage": {
+            "id": "xx7OzjHZDc8"
+          },
+          "compulsory": true,
+          "allowProvidedElsewhere": false,
+          "allowFutureDate": false,
+          "lastUpdated": "2016-03-11T07:01:02.890+0000",
+          "id": "DMEbpdzukIY",
+          "sortOrder": 1,
+          "created": "2016-03-11T07:01:02.890+0000",
+          "dataElement": {
+            "id": "qS4lxayqVRv"
+          }
         },
         {
-          "id": "DMEbpdzukIY"
+          "programStage": {
+            "id": "xx7OzjHZDc8"
+          },
+          "displayInReports": true,
+          "dataElement": {
+            "id": "XzGnBlUcB87"
+          },
+          "created": "2016-03-11T07:01:02.886+0000",
+          "sortOrder": 0,
+          "id": "Eebs10ayIG7",
+          "lastUpdated": "2016-03-11T07:01:02.887+0000",
+          "allowFutureDate": false,
+          "allowProvidedElsewhere": false,
+          "compulsory": true
         }
       ],
       "name": "ProgramStageB",
@@ -209,10 +261,30 @@
       "notificationTemplates": [ ],
       "programTrackedEntityAttributes": [
         {
-          "id": "zReHWMUoEDQ"
+          "created": "2016-03-11T07:00:28.968+0000",
+          "mandatory": true,
+          "lastUpdated": "2016-03-11T07:00:28.968+0000",
+          "allowFutureDate": false,
+          "displayInList": false,
+          "program": {
+            "id": "lVYxQwbXaj7"
+          },
+          "trackedEntityAttribute": {
+            "id": "cpaMZredRXb"
+          }
         },
         {
-          "id": "vCj7Gz6297Y"
+          "displayInList": true,
+          "allowFutureDate": false,
+          "lastUpdated": "2016-03-11T07:00:28.963+0000",
+          "created": "2016-03-11T07:00:28.963+0000",
+          "mandatory": false,
+          "trackedEntityAttribute": {
+            "id": "QhEcRpLZwMb"
+          },
+          "program": {
+            "id": "lVYxQwbXaj7"
+          }
         }
       ],
       "onlyEnrollOnce": false,
@@ -292,13 +364,15 @@
       "searchScope": "SEARCH_ORG_UNITS",
       "orgunitScope": false,
       "programScope": false,
-      "valueType": "TEXT"
+      "valueType": "TEXT",
+      "aggregationType": "NONE"
     },
     {
       "orgunitScope": false,
       "searchScope": "SEARCH_ORG_UNITS",
       "programScope": false,
       "valueType": "TEXT",
+      "aggregationType": "NONE",
       "user": {
         "id": "A3U6uPM3H58"
       },
@@ -316,72 +390,6 @@
       "confidential": false,
       "lastUpdated": "2016-03-11T06:59:51.889+0000",
       "publicAccess": "rw------"
-    }
-  ],
-  "programStageDataElements": [
-    {
-      "displayInReports": false,
-      "programStage": {
-        "id": "xx7OzjHZDc8"
-      },
-      "compulsory": true,
-      "allowProvidedElsewhere": false,
-      "allowFutureDate": false,
-      "lastUpdated": "2016-03-11T07:01:02.890+0000",
-      "id": "DMEbpdzukIY",
-      "sortOrder": 1,
-      "created": "2016-03-11T07:01:02.890+0000",
-      "dataElement": {
-        "id": "qS4lxayqVRv"
-      }
-    },
-    {
-      "programStage": {
-        "id": "xx7OzjHZDc8"
-      },
-      "displayInReports": true,
-      "dataElement": {
-        "id": "XzGnBlUcB87"
-      },
-      "created": "2016-03-11T07:01:02.886+0000",
-      "sortOrder": 0,
-      "id": "Eebs10ayIG7",
-      "lastUpdated": "2016-03-11T07:01:02.887+0000",
-      "allowFutureDate": false,
-      "allowProvidedElsewhere": false,
-      "compulsory": true
-    },
-    {
-      "compulsory": true,
-      "allowProvidedElsewhere": false,
-      "allowFutureDate": false,
-      "lastUpdated": "2016-03-11T07:00:48.255+0000",
-      "id": "LKlMVtBr3sF",
-      "sortOrder": 1,
-      "created": "2016-03-11T07:00:48.255+0000",
-      "dataElement": {
-        "id": "qS4lxayqVRv"
-      },
-      "displayInReports": true,
-      "programStage": {
-        "id": "CPP34zTxaSf"
-      }
-    },
-    {
-      "compulsory": true,
-      "lastUpdated": "2016-03-11T07:00:48.250+0000",
-      "allowFutureDate": false,
-      "allowProvidedElsewhere": false,
-      "sortOrder": 0,
-      "id": "K3nySg2U6Ht",
-      "created": "2016-03-11T07:00:48.249+0000",
-      "dataElement": {
-        "id": "XzGnBlUcB87"
-      },
-      "displayInReports": true,
-      "programStage": {
-        "id": "CPP34zTxaSf"
-      }
     }
   ],
   "trackedEntityAttributeGroups": [
@@ -504,36 +512,6 @@
       "programs": [ ],
       "id": "RrHdx6L9ksj",
       "lastUpdated": "2016-03-11T06:51:52.447+0000"
-    }
-  ],
-  "programTrackedEntityAttributes": [
-    {
-      "created": "2016-03-11T07:00:28.968+0000",
-      "mandatory": true,
-      "lastUpdated": "2016-03-11T07:00:28.968+0000",
-      "allowFutureDate": false,
-      "id": "vCj7Gz6297Y",
-      "displayInList": false,
-      "program": {
-        "id": "lVYxQwbXaj7"
-      },
-      "trackedEntityAttribute": {
-        "id": "cpaMZredRXb"
-      }
-    },
-    {
-      "displayInList": true,
-      "allowFutureDate": false,
-      "lastUpdated": "2016-03-11T07:00:28.963+0000",
-      "id": "zReHWMUoEDQ",
-      "created": "2016-03-11T07:00:28.963+0000",
-      "mandatory": false,
-      "trackedEntityAttribute": {
-        "id": "QhEcRpLZwMb"
-      },
-      "program": {
-        "id": "lVYxQwbXaj7"
-      }
     }
   ],
   "date": "2016-03-11T07:01:59.096+0000",

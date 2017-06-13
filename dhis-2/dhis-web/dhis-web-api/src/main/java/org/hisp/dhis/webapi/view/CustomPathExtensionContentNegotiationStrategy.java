@@ -1,18 +1,7 @@
 package org.hisp.dhis.webapi.view;
 
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.MediaType;
-import org.springframework.web.accept.PathExtensionContentNegotiationStrategy;
-import org.springframework.web.context.request.NativeWebRequest;
-import org.springframework.web.util.UrlPathHelper;
-import org.springframework.web.util.WebUtils;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.Locale;
-import java.util.Map;
-
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +28,16 @@ import java.util.Map;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.MediaType;
+import org.springframework.web.accept.PathExtensionContentNegotiationStrategy;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.util.UrlPathHelper;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Locale;
+import java.util.Map;
+
 /**
  * Custom PathExtensionContentNegotiationStrategy that handles multiple dots in filename.
  * Based on:
@@ -50,6 +49,10 @@ import java.util.Map;
 public class CustomPathExtensionContentNegotiationStrategy extends PathExtensionContentNegotiationStrategy
 {
     private static final UrlPathHelper URL_PATH_HELPER = new UrlPathHelper();
+
+    private static final char EXTENSION_SEPARATOR = '.';
+
+    private static final String FOLDER_SEPARATOR = "/";
 
     static
     {
@@ -72,15 +75,10 @@ public class CustomPathExtensionContentNegotiationStrategy extends PathExtension
         }
 
         String path = URL_PATH_HELPER.getLookupPathForRequest( servletRequest );
-        String filename = WebUtils.extractFullFilenameFromUrlPath( path );
-        String extension = getFilenameExtension( filename );
+        String extension = getFilenameExtension( path );
 
         return !StringUtils.isBlank( extension ) ? extension.toLowerCase( Locale.ENGLISH ) : null;
     }
-
-    private static final char EXTENSION_SEPARATOR = '.';
-
-    private static final String FOLDER_SEPARATOR = "/";
 
     private static String getFilenameExtension( String path )
     {

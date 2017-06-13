@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement.hibernate;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,14 +47,14 @@ public class HibernateCategoryStore
     @SuppressWarnings("unchecked")
     public List<DataElementCategory> getCategoriesByDimensionType( DataDimensionType dataDimensionType )
     {
-        return getSharingCriteria( Restrictions.eq( "dataDimensionType", dataDimensionType ) ).list();
+        return getSharingDetachedCriteria( Restrictions.eq( "dataDimensionType", dataDimensionType ) ).list();
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<DataElementCategory> getCategories( DataDimensionType dataDimensionType, boolean dataDimension )
     {
-        return getSharingCriteria( 
+        return getSharingDetachedCriteria(
             Restrictions.eq( "dataDimensionType", dataDimensionType ),
             Restrictions.eq( "dataDimension", dataDimension ) ).list();
     }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.adx;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,8 @@ import java.io.PipedOutputStream;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.io.IOUtils;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -60,15 +62,18 @@ public class AdxPipedImporter
 
     private final TaskId id;
     
+    private final SessionFactory sessionFactory;
+    
     private final Authentication authentication;
 
     public AdxPipedImporter( DataValueSetService dataValueSetService, ImportOptions importOptions,
-        TaskId id, PipedOutputStream pipeOut ) throws IOException
+        TaskId id, PipedOutputStream pipeOut, SessionFactory sessionFactory ) throws IOException
     {
         this.dataValueSetService = dataValueSetService;
         this.pipeIn = new PipedInputStream( pipeOut, PIPE_BUFFER_SIZE );
         this.importOptions = importOptions;
         this.id = id;
+        this.sessionFactory = sessionFactory;
         this.authentication = SecurityContextHolder.getContext().getAuthentication();
     }
 
@@ -77,6 +82,7 @@ public class AdxPipedImporter
     {
         ImportSummary result = null;
         SecurityContextHolder.getContext().setAuthentication( authentication );
+        DbmsUtils.bindSessionToThread( sessionFactory );
 
         try
         {
@@ -91,6 +97,7 @@ public class AdxPipedImporter
         finally
         {
             IOUtils.closeQuietly( pipeIn );
+            DbmsUtils.unbindSessionFromThread( sessionFactory );
         }
                 
         return result;

@@ -1,5 +1,7 @@
+package org.hisp.dhis.dxf2.metadata.version;
+
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata.version;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -50,7 +51,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Handling remote calls for metadata version
+ * Handling remote calls for metadata version.
  *
  * @author anilkumk
  */
@@ -59,7 +60,7 @@ public class MetadataVersionDelegate
     private static final Log log = LogFactory.getLog( MetadataVersionDelegate.class );
 
     @Autowired
-    DefaultMetadataSystemSettingService metadataSystemSettingService;
+    private DefaultMetadataSystemSettingService metadataSystemSettingService;
 
     @Autowired
     private SynchronizationManager synchronizationManager;
@@ -101,6 +102,7 @@ public class MetadataVersionDelegate
     {
         String url;
         List<MetadataVersion> metadataVersions = new ArrayList<>();
+        
         if ( metadataVersion == null )
         {
             url = metadataSystemSettingService.getEntireVersionHistory();
@@ -134,7 +136,7 @@ public class MetadataVersionDelegate
         return metadataVersions;
     }
 
-    public String downloadMetadataVersion( MetadataVersion version )
+    public String downloadMetadataVersionSnapshot(MetadataVersion version )
         throws MetadataVersionServiceException
     {
         String downloadVersionSnapshotURL = metadataSystemSettingService.getDownloadVersionSnapshotURL( version.getName() );
@@ -151,20 +153,15 @@ public class MetadataVersionDelegate
     public synchronized void addNewMetadataVersion( MetadataVersion version )
     {
         version.setImportDate( new Date() );
-        boolean isVersionExists = metadataVersionService.getVersionByName( version.getName() ) != null;
 
         try
         {
-            if ( !isVersionExists )
-            {
-                metadataVersionService.addVersion( version );
-            }
+            metadataVersionService.addVersion( version );
         }
         catch ( Exception e )
         {
             throw new MetadataVersionServiceException( "Exception occurred while trying to add metadata version" + version, e );
         }
-
     }
 
     //----------------------------------------------------------------------------------------
@@ -175,7 +172,7 @@ public class MetadataVersionDelegate
     {
         AvailabilityStatus remoteServerAvailable = synchronizationManager.isRemoteServerAvailable();
 
-        if ( !(remoteServerAvailable.isAvailable()) )
+        if ( !( remoteServerAvailable.isAvailable() ) )
         {
             String message = remoteServerAvailable.getMessage();
             log.error( message );
@@ -194,18 +191,16 @@ public class MetadataVersionDelegate
         }
         catch ( Exception e )
         {
-            String message = "Exception occurred while trying to make the GET call to" + url;
+            String message = "Exception occurred while trying to make the GET call to URL: " + url;
             log.error( message, e );
             throw new MetadataVersionServiceException( message, e );
         }
 
         return dhisHttpResponse;
-
     }
 
     private boolean isValidDhisHttpResponse( DhisHttpResponse dhisHttpResponse )
     {
-
         if ( dhisHttpResponse == null || dhisHttpResponse.getResponse().isEmpty() )
         {
             log.warn( "Dhis http response is null" );

@@ -1,7 +1,7 @@
 package org.hisp.dhis.external.conf;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,9 @@ package org.hisp.dhis.external.conf;
 public enum ConfigurationKey
 {
     SYSTEM_READ_ONLY_MODE( "system.read_only_mode", "off" ),
-    INTERNAL_SERVICE_API( "system.internal_service_api", "off" ),
+    SYSTEM_SESSION_TIMEOUT( "system.session.timeout", "3600" ),
+    SYSTEM_INTERNAL_SERVICE_API( "system.internal_service_api", "off" ),
+    NODE_ID( "node.id" ),
     ENCRYPTION_PASSWORD( "encryption.password", "" ),
     CONNECTION_DIALECT( "connection.dialect" ),
     CONNECTION_DRIVER_CLASS( "connection.driver_class" ),
@@ -54,11 +56,13 @@ public enum ConfigurationKey
     FILESTORE_IDENTITY( "filestore.identity", "" ),
     FILESTORE_SECRET( "filestore.secret", "" ),
     GOOGLE_SERVICE_ACCOUNT_CLIENT_ID( "google.service.account.client.id" ),
-    GOOGLE_SERVICE_ACCOUNT_CLIENT_EMAIL( "google.service.account.client.email" ),
     META_DATA_SYNC_RETRY( "metadata.sync.retry", "3" ),
     META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC( "metadata.sync.retry.time.frequency.millisec", "30000" ),
     CLUSTER_INSTANCE_HOSTNAME( "cluster.instance0.hostname" ),
-    CLUSTER_INSTANCE_CACHE_PORT( "cluster.instance0.cache.port", "4001" );
+    CLUSTER_INSTANCE_CACHE_PORT( "cluster.instance0.cache.port", "4001" ),
+    CACHE_PROVIDER( "cache.provider", "ehcache" ),
+    CACHE_SERVERS( "cache.servers", "localhost:11211" ),
+    CACHE_TIME( "cache.time", "600" );
 
     private final String key;
     

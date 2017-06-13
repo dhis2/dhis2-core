@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,12 +32,18 @@ import com.google.common.collect.Lists;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.dataapproval.DataApprovalAudit;
+import org.hisp.dhis.dataapproval.DataApprovalAuditQueryParams;
+import org.hisp.dhis.dataapproval.DataApprovalAuditService;
+import org.hisp.dhis.dataapproval.DataApprovalLevel;
+import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
@@ -55,8 +61,8 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudi
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -65,6 +71,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -72,7 +80,7 @@ import java.util.List;
  */
 @Controller
 @RequestMapping( value = "/audits", method = RequestMethod.GET )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class AuditController
 {
     @Autowired
@@ -89,6 +97,9 @@ public class AuditController
 
     @Autowired
     private TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
+
+    @Autowired
+    private DataApprovalAuditService dataApprovalAuditService;
 
     @Autowired
     private FieldFilterService fieldFilterService;
@@ -255,6 +266,57 @@ public class AuditController
         CollectionNode trackedEntityAttributeValueAudits = rootNode.addChild( new CollectionNode( "trackedEntityAttributeValueAudits", true ) );
         trackedEntityAttributeValueAudits.addChildren( fieldFilterService.filter( TrackedEntityAttributeValueAudit.class,
             attributeValueAudits, fields ).getChildren() );
+
+        return rootNode;
+    }
+
+    @RequestMapping( value = "dataApproval", method = RequestMethod.GET )
+    public @ResponseBody RootNode getDataApprovalAudit(
+        @RequestParam( required = false, defaultValue = "" ) List<String> dal,
+        @RequestParam( required = false, defaultValue = "" ) List<String> wf,
+        @RequestParam( required = false, defaultValue = "" ) List<String> ou,
+        @RequestParam( required = false, defaultValue = "" ) List<String> aoc,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false, defaultValue = "50" ) int pageSize,
+        @RequestParam( required = false, defaultValue = "1" ) int page
+    ) throws WebMessageException
+    {
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        if ( fields.isEmpty() )
+        {
+            fields.addAll( Preset.ALL.getFields() );
+        }
+
+        DataApprovalAuditQueryParams params = new DataApprovalAuditQueryParams();
+
+        params.setLevels( new HashSet<>( getDataApprovalLevel( dal ) ) );
+        params.setWorkflows( new HashSet<>( getDataApprovalWorkflow( wf ) ) );
+        params.setOrganisationUnits( new HashSet<>( getOrganisationUnit( ou ) ) );
+        params.setAttributeOptionCombos( new HashSet<>( getCategoryOptionCombo( aoc ) ) );
+        params.setStartDate( startDate );
+        params.setEndDate( endDate );
+
+        List<DataApprovalAudit> audits = dataApprovalAuditService.getDataApprovalAudits( params );
+
+        Pager pager = null;
+        RootNode rootNode = NodeUtils.createMetadata();
+
+        if ( !skipPaging )
+        {
+            pager = new Pager( page, audits.size(), pageSize );
+
+            audits = audits.subList( pager.getOffset(), pager.getOffset() + pager.getPageSize() < audits.size() ?
+                pager.getOffset() + pager.getPageSize() : audits.size() );
+
+            rootNode.addChild( NodeUtils.createPager( pager ) );
+        }
+
+        CollectionNode dataApprovalAudits = rootNode.addChild( new CollectionNode( "dataApprovalAudits", true ) );
+        dataApprovalAudits.addChildren( fieldFilterService.filter( DataApprovalAudit.class,
+            audits, fields ).getChildren() );
 
         return rootNode;
     }
@@ -445,6 +507,16 @@ public class AuditController
         return manager.getByUid( OrganisationUnit.class, ou );
     }
 
+    private List<DataElementCategoryOptionCombo> getCategoryOptionCombo( List<String> coc ) throws WebMessageException
+    {
+        if ( coc == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return manager.getByUid( DataElementCategoryOptionCombo.class, coc );
+    }
+
     private DataElementCategoryOptionCombo getCategoryOptionCombo( @RequestParam String co ) throws WebMessageException
     {
         if ( co == null )
@@ -477,5 +549,25 @@ public class AuditController
         }
 
         return attributeOptionCombo;
+    }
+
+    private List<DataApprovalLevel> getDataApprovalLevel( @RequestParam List<String> dal ) throws WebMessageException
+    {
+        if ( dal == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return manager.getByUid( DataApprovalLevel.class, dal );
+    }
+
+    private List<DataApprovalWorkflow> getDataApprovalWorkflow( @RequestParam List<String> wf ) throws WebMessageException
+    {
+        if ( wf == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return manager.getByUid( DataApprovalWorkflow.class, wf );
     }
 }

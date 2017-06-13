@@ -1,0 +1,196 @@
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $( "#prioritySelector" ).simpleDropDownMenu( {
+            btnLabel: "<span id='priorityButton'>$i18n.getString("Priority")</span>"
+        });
+        $( "#statusSelector" ).simpleDropDownMenu( {
+            btnLabel: "<span id='statusButton'>$i18n.getString("Status")</span>"
+        });
+
+        jQuery('#text').autogrow();
+
+        if (scrollIsRelevant() == false) {
+            jQuery('.scrollButton').hide();
+        }
+    });
+
+    var i18n_sender = '$encoder.jsEscape( $i18n.getString( "sender" ), "'")';
+    var i18n_enter_text = '$encoder.jsEscape( $i18n.getString( "enter_text" ), "'")';
+    var i18n_sending_message = '$encoder.jsEscape( $i18n.getString( "sending_message" ), "'")';
+</script>
+
+<input type="hidden" id="conversationId" value="${conversation.uid}"/>
+
+<!-- width: 1000px to avoid ticket toolbox to be pushed down under messages -->
+<div style="width: 1000px">
+    <div class="message-container">
+        <div class="messageTopDiv horizontalMenu">
+            <ul>
+                <li><a class="greyButtonLink" href="unreadMessage.action?id=${conversation.id}">$i18n.getString(
+                    'mark_unread' )</a></li>
+                <li><a class="greyButtonLink" href="removeMessageRedirect.action?id=${conversation.id}">$i18n.getString(
+                    'remove' )</a></li>
+                <li><a class="greyButtonLink" href="message.action?currentPage=${keyCurrentPage}">$i18n.getString( "back" )</a></li>
+                <li class="scrollButton"><a class="greyButtonLink" href="javascript:scrollToBottom()">$i18n.getString( "scroll_down" )</a></li>
+            </ul>
+        </div>
+
+        #if($showTicketTools)
+            <div class="ticket-tools-horizontal">
+                <div class="ticket-tools-segment">
+                    <div class="ticket-tools-label">
+                        <label for="ticket-tool-select-priority">$i18n.getString( "priority" )</label>
+                    </div>
+                    <div class="ticket-tools-input">
+                        <select name="priority" id="message-priority" class="message-select" onchange="updatePriority(this, '${conversation.uid}')">
+                            <option value="NONE" #if(${conversation.priority} == "NONE") selected #end>$i18n.getString( "none" )</option>
+                            <option value="LOW" #if(${conversation.priority} == "LOW") selected #end>$i18n.getString( "low" )</option>
+                            <option value="MEDIUM" #if(${conversation.priority} == "MEDIUM") selected #end>$i18n.getString( "medium" )</option>
+                            <option value="HIGH" #if(${conversation.priority} == "HIGH") selected #end>$i18n.getString( "high" )</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="ticket-tools-segment">
+                    <div class="ticket-tools-label">
+                        <label for="ticket-tool-select-priority">$i18n.getString( "status" )</label>
+                    </div>
+                    <div class="ticket-tools-input">
+                        <select name="status" id="message-status" class="message-select" onchange="updateStatus(this, '${conversation.uid}')">
+                            <option value="OPEN" #if(${conversation.status} == "OPEN") selected #end>$i18n.getString( "open" )</option>
+                            <option value="PENDING" #if(${conversation.status} == "PENDING") selected #end>$i18n.getString( "pending" )</option>
+                            <option value="INVALID" #if(${conversation.status} == "INVALID") selected #end>$i18n.getString( "invalid" )</option>
+                            <option value="SOLVED" #if(${conversation.status} == "SOLVED") selected #end>$i18n.getString( "solved" )</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="ticket-tools-segment">
+                    <div class="ticket-tools-label">
+                        <label for="ticket-tool-select-priority">$i18n.getString( "assigned_to" )</label>
+                    </div>
+                    <div class="ticket-tools-input">
+                        <select name="assignee" id="message-assignee" class="message-select" onchange="updateAssignee(this, '${conversation.uid}')">
+                            <option value="none" #if(!$conversation.getAssignee()) selected #end>$i18n.getString( "none" )</option>
+                            #foreach($user in $feedbackRecipientGroupUsers)
+                                <option value="${user.getUid()}" #if($conversation.getAssignee().getUid() == $user.getUid()) selected #end>${user.getName()}</option>
+                            #end
+                        </select>
+                    </div>
+                </div>
+                <div class="ticket-tools-segment">
+                    <span style="padding-left: 10px; display:none;" id="savedMessage" class="tipText">$i18n.getString( "changes_saved" )</span>
+                </div>
+            </div>
+        #end
+
+        <h3>
+            <img id="followUp${conversation.id}" style="padding-right:8px; cursor:pointer;"
+                 onclick="toggleFollowUp( '${conversation.id}' )"#if( $conversation.followUp ) src="../images/marked.png"#else
+                 src="../images/unmarked.png"#end>
+
+            $!encoder.htmlEncode( $conversation.subject )
+        </h3>
+
+        <div class="recipientsDiv tipText">
+            $i18n.getString( "to" )
+            #set( $recSize = $conversation.topRecipients.size() )
+            #foreach( $user in $conversation.topRecipients )
+                <a class="userLink" href="profile.action?id=${user.uid}">${user.name}</a>#if( $velocityCount < $recSize ), #end
+            #end
+            #if( $conversation.bottomRecipients > 0 ) $i18n.getString( "and" ) $conversation.bottomRecipients $i18n.getString(
+                "more" )#end
+
+        </div>
+
+        #foreach( $message in $messages )
+            <div class="messageSymbol"><img src="../images/mail_small.png" onclick="toggleMetaData( '${message.id}' )"></div>
+            <div class="messageDiv #if( $message.internal ) internalMessage #end">
+                #if( $message.sender )
+                    <a class="bold userLink"
+                       href="profile.action?id=${message.sender.uid}">$encoder.htmlEncode( $message.sender.name )</a>
+                #else
+                    <span class="bold">$i18n.getString( "system_notification" )</span>
+                #end
+                <span class="grey">&nbsp;&nbsp;$!format.formatDate( $message.lastUpdated )</span>
+                #if( $message.internal )
+                    <span style="float: right; padding-right: 5px; color: #777">$i18n.getString( 'internalMessage' )</span>
+                #end
+
+                <div class="messageText">$!dhisTextUtils.htmlify( $encoder.htmlEncode( $message.text ) )</div>
+                <div id="metaData${message.id}" class="messageMetaData">$!encoder.htmlEncode( $message.metaData )</div>
+            </div>
+        #end
+
+        <div class="replyDiv">
+            <textarea id="text" name="text" class="replyArea"></textarea>
+
+            <div style="margin-top:10px">
+                <a class="blueButtonLink" href="javascript:sendReply()">$i18n.getString( 'reply' )</a> &nbsp;
+                #if( $showTicketTools )
+                    <a class="internalMessageButtonLink" href="javascript:sendInternalReply()">$i18n.getString(
+                        'internalReply' )</a>
+                #end
+            </div>
+        </div>
+
+        <div class="messageBottomDiv horizontalMenu">
+            <ul>
+                <li><a class="greyButtonLink" href="unreadMessage.action?id=${conversation.id}">$i18n.getString(
+                    'mark_unread' )</a></li>
+                <li><a class="greyButtonLink" href="removeMessageRedirect.action?id=${conversation.id}">$i18n.getString(
+                    'remove' )</a></li>
+                <li><a class="greyButtonLink" href="message.action?currentPage=${keyCurrentPage}">$i18n.getString( 'back' )</a>
+                </li>
+                <li class="scrollButton"><a class="greyButtonLink" href="javascript:scrollToTop()">$i18n.getString(
+                    'scroll_up' )</a></li>
+            </ul>
+        </div>
+    </div>
+
+    #if($showTicketTools)
+        <div class="ticket-tools-vertical">
+            <div class="ticket-tools-segment">
+                <div class="ticket-tools-label">
+                    <label for="ticket-tool-select-priority">$i18n.getString( "priority" )</label>
+                </div>
+                <div class="ticket-tools-input">
+                    <select name="priority" id="message-priority" class="message-select" onchange="updatePriority(this, '${conversation.uid}')">
+                        <option value="NONE" #if(${conversation.priority} == "NONE") selected #end>$i18n.getString( "none" )</option>
+                        <option value="LOW" #if(${conversation.priority} == "LOW") selected #end>$i18n.getString( "low" )</option>
+                        <option value="MEDIUM" #if(${conversation.priority} == "MEDIUM") selected #end>$i18n.getString( "medium" )</option>
+                        <option value="HIGH" #if(${conversation.priority} == "HIGH") selected #end>$i18n.getString( "high" )</option>
+                    </select>
+                </div>
+            </div>
+            <div class="ticket-tools-segment">
+                <div class="ticket-tools-label">
+                    <label for="ticket-tool-select-priority">$i18n.getString( "status" )</label>
+                </div>
+                <div class="ticket-tools-input">
+                    <select name="status" id="message-status" class="message-select" onchange="updateStatus(this, '${conversation.uid}')">
+                        <option value="OPEN" #if(${conversation.status} == "OPEN") selected #end>$i18n.getString( "open" )</option>
+                        <option value="PENDING" #if(${conversation.status} == "PENDING") selected #end>$i18n.getString( "pending" )</option>
+                        <option value="INVALID" #if(${conversation.status} == "INVALID") selected #end>$i18n.getString( "invalid" )</option>
+                        <option value="SOLVED" #if(${conversation.status} == "SOLVED") selected #end>$i18n.getString( "solved" )</option>
+                    </select>
+                </div>
+            </div>
+            <div class="ticket-tools-segment">
+                <div class="ticket-tools-label">
+                    <label for="ticket-tool-select-priority">$i18n.getString( "assigned_to" )</label>
+                </div>
+                <div class="ticket-tools-input">
+                    <select name="assignee" id="message-assignee" class="message-select" onchange="updateAssignee(this, '${conversation.uid}')">
+                        <option value="none" #if(!$conversation.getAssignee()) selected #end>$i18n.getString( "none" )</option>
+                        #foreach($user in $feedbackRecipientGroupUsers)
+                            <option value="${user.getUid()}" #if($conversation.getAssignee().getUid() == $user.getUid()) selected #end>${user.getName()}</option>
+                        #end
+                    </select>
+                </div>
+            </div>
+            <div class="ticket-tools-segment">
+                <span style="padding-left: 10px; display:none;" id="savedMessage" class="tipText">$i18n.getString( "changes_saved" )</span>
+            </div>
+        </div>
+    #end
+</div>

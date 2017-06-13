@@ -1,7 +1,7 @@
 package org.hisp.dhis.system;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -84,7 +84,11 @@ public class SystemInfo
 
     private String fileStoreProvider;
 
+    private String cacheProvider;
+
     private String readOnlyMode;
+    
+    private String nodeId;
 
     private String javaVersion;
 
@@ -109,8 +113,10 @@ public class SystemInfo
     private Integer cpuCores;
 
     private boolean encryption;
-
+    
     private String systemId;
+    
+    private String systemName;
 
     private String systemMetadataVersion;
 
@@ -134,6 +140,9 @@ public class SystemInfo
     public void clearSensitiveInfo()
     {
         this.fileStoreProvider = null;
+        this.cacheProvider = null;
+        this.readOnlyMode = null;
+        this.nodeId = null;
         this.javaVersion = null;
         this.javaVendor = null;
         this.javaOpts = null;
@@ -141,10 +150,10 @@ public class SystemInfo
         this.osArchitecture = null;
         this.osVersion = null;
         this.externalDirectory = null;
+        this.cacheProvider = null;
+        this.readReplicaCount = null;
         this.memoryInfo = null;
         this.cpuCores = null;
-        this.systemId = null;
-        this.readReplicaCount = null;
 
         if ( this.databaseInfo != null )
         {
@@ -326,6 +335,18 @@ public class SystemInfo
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getCacheProvider()
+    {
+        return cacheProvider;
+    }
+
+    public void setCacheProvider( String cacheProvider )
+    {
+        this.cacheProvider = cacheProvider;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getReadOnlyMode()
     {
         return readOnlyMode;
@@ -334,6 +355,18 @@ public class SystemInfo
     public void setReadOnlyMode( String readOnlyMode )
     {
         this.readOnlyMode = readOnlyMode;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getNodeId()
+    {
+        return nodeId;
+    }
+
+    public void setNodeId( String nodeId )
+    {
+        this.nodeId = nodeId;
     }
 
     @JsonProperty
@@ -494,6 +527,18 @@ public class SystemInfo
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getSystemName()
+    {
+        return systemName;
+    }
+
+    public void setSystemName( String systemName )
+    {
+        this.systemName = systemName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getSystemMetadataVersion()
     {
         return systemMetadataVersion;
@@ -539,5 +584,4 @@ public class SystemInfo
     {
         return isMetadataSyncEnabled;
     }
-
 }

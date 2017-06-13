@@ -28,11 +28,26 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
+import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
+import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupAccess;
+import org.hisp.dhis.user.UserService;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,26 +56,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
-import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
-import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupAccess;
-import org.hisp.dhis.user.UserService;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -103,14 +99,18 @@ public class IdentifiableObjectManagerTest
         DataElement dataElementA = createDataElement( 'A' );
         DataElement dataElementB = createDataElement( 'B' );
 
-        int dataElementIdA = dataElementService.addDataElement( dataElementA );
-        int dataElementIdB = dataElementService.addDataElement( dataElementB );
+        dataElementService.addDataElement( dataElementA );
+        int dataElementIdA = dataElementA.getId();
+        dataElementService.addDataElement( dataElementB );
+        int dataElementIdB = dataElementB.getId();
 
         DataElementGroup dataElementGroupA = createDataElementGroup( 'A' );
         DataElementGroup dataElementGroupB = createDataElementGroup( 'B' );
 
-        int dataElementGroupIdA = dataElementService.addDataElementGroup( dataElementGroupA );
-        int dataElementGroupIdB = dataElementService.addDataElementGroup( dataElementGroupB );
+        dataElementService.addDataElementGroup( dataElementGroupA );
+        int dataElementGroupIdA = dataElementGroupA.getId();
+        dataElementService.addDataElementGroup( dataElementGroupB );
+        int dataElementGroupIdB = dataElementGroupB.getId();
 
         assertEquals( dataElementA, identifiableObjectManager.getObject( dataElementIdA, DataElement.class.getSimpleName() ) );
         assertEquals( dataElementB, identifiableObjectManager.getObject( dataElementIdB, DataElement.class.getSimpleName() ) );
@@ -130,7 +130,7 @@ public class IdentifiableObjectManagerTest
 
         Set<Class<? extends IdentifiableObject>> classes = ImmutableSet.<Class<? extends IdentifiableObject>>builder().
             add( Indicator.class ).add( DataElement.class ).add( DataElementOperand.class ).build();
-        
+
         assertEquals( dataElementA, identifiableObjectManager.get( classes, dataElementA.getUid() ) );
         assertEquals( dataElementB, identifiableObjectManager.get( classes, dataElementB.getUid() ) );
     }
@@ -399,8 +399,7 @@ public class IdentifiableObjectManagerTest
         identifiableObjectManager.save( dataElement, false );
     }
 
-    // TODO this should actually throw a UpdateAccessDeniedException, but the problem is that we only have access to the updated object
-    @Test( /* expected = UpdateAccessDeniedException.class */ )
+    @Test( expected = UpdateAccessDeniedException.class )
     public void updateForPrivateUserDeniedAfterChangePublicAccessRW()
     {
         createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PRIVATE_ADD" );
@@ -636,11 +635,11 @@ public class IdentifiableObjectManagerTest
         DataElement dataElementC = createDataElement( 'C' );
         DataElement dataElementD = createDataElement( 'D' );
 
-        dataElementA.setCode("DE_A");
-        dataElementB.setCode("DE_B");
-        dataElementC.setCode("DE_C");
-        dataElementD.setCode("DE_D");
-        
+        dataElementA.setCode( "DE_A" );
+        dataElementB.setCode( "DE_B" );
+        dataElementC.setCode( "DE_C" );
+        dataElementD.setCode( "DE_D" );
+
         identifiableObjectManager.save( dataElementA );
         identifiableObjectManager.save( dataElementB );
         identifiableObjectManager.save( dataElementC );
@@ -659,27 +658,27 @@ public class IdentifiableObjectManagerTest
         assertTrue( cd.contains( dataElementC ) );
         assertTrue( cd.contains( dataElementD ) );
     }
-    
+
     @Test
     public void testGetObjects()
     {
         OrganisationUnit unit1 = createOrganisationUnit( 'A' );
         OrganisationUnit unit2 = createOrganisationUnit( 'B' );
         OrganisationUnit unit3 = createOrganisationUnit( 'C' );
-        
+
         identifiableObjectManager.save( unit1 );
         identifiableObjectManager.save( unit2 );
         identifiableObjectManager.save( unit3 );
-        
+
         Set<String> codes = Sets.newHashSet( unit2.getCode(), unit3.getCode() );
-        
+
         List<OrganisationUnit> units = identifiableObjectManager.getObjects( OrganisationUnit.class, IdentifiableProperty.CODE, codes );
-        
+
         assertEquals( 2, units.size() );
         assertTrue( units.contains( unit2 ) );
         assertTrue( units.contains( unit3 ) );
     }
-    
+
     @Test
     public void testGetIdMapIdScheme()
     {
@@ -690,7 +689,7 @@ public class IdentifiableObjectManagerTest
         dataElementService.addDataElement( dataElementB );
 
         Map<String, DataElement> map = identifiableObjectManager.getIdMap( DataElement.class, IdScheme.CODE );
-        
+
         assertEquals( dataElementA, map.get( "DataElementCodeA" ) );
         assertEquals( dataElementB, map.get( "DataElementCodeB" ) );
         assertNull( map.get( "DataElementCodeX" ) );

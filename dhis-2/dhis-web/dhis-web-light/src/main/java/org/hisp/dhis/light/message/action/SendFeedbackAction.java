@@ -1,7 +1,7 @@
 package org.hisp.dhis.light.message.action;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,13 +76,13 @@ public class SendFeedbackAction
     @Override
     public String execute() throws Exception
     {
-        Assert.hasText( subject );
-        Assert.hasText( text );
+        Assert.hasText( subject, "Subject must be defined" );
+        Assert.hasText( text, "Text must be defined" );
 
         String metaData = MessageService.META_USER_AGENT +
             ServletActionContext.getRequest().getHeader( ContextUtils.HEADER_USER_AGENT );
 
-        messageService.sendFeedback( subject, text, metaData );
+        messageService.sendTicketMessage( subject, text, metaData );
 
         return SUCCESS;
     }

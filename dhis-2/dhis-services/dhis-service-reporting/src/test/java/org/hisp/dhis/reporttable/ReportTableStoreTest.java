@@ -28,16 +28,6 @@ package org.hisp.dhis.reporttable;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.annotation.Resource;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.common.ReportingRate;
@@ -57,6 +47,12 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriods;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -202,10 +198,13 @@ public class ReportTableStoreTest
             new ArrayList<>(), new ArrayList<>(), reportingRates, periods, units,
             false, false, true, relativesC, null, "january_2000" );
         
-        int idA = reportTableStore.save( reportTableA );
-        int idB = reportTableStore.save( reportTableB );
-        int idC = reportTableStore.save( reportTableC );
-        
+        reportTableStore.save( reportTableA );
+        int idA = reportTableA.getId();
+        reportTableStore.save( reportTableB );
+        int idB = reportTableB.getId();
+        reportTableStore.save( reportTableC );
+        int idC = reportTableC.getId();
+
         reportTableA = reportTableStore.get( idA );
         reportTableB = reportTableStore.get( idB );
         reportTableC = reportTableStore.get( idC );
@@ -238,9 +237,11 @@ public class ReportTableStoreTest
             dataElements, new ArrayList<>(), new ArrayList<>(), periods, units,
             false, false, true, relativesB, null, "january_2000" );
         
-        int idA = reportTableStore.save( reportTableA );
-        int idB = reportTableStore.save( reportTableB );
-        
+        reportTableStore.save( reportTableA );
+        int idA = reportTableA.getId();
+        reportTableStore.save( reportTableB );
+        int idB = reportTableB.getId();
+
         assertNotNull( reportTableStore.get( idA ) );
         assertNotNull( reportTableStore.get( idB ) );
         

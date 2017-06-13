@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.csv;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,6 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.option.Option;
@@ -71,7 +70,7 @@ import static org.hisp.dhis.system.util.DateUtils.getMediumDate;
 
 /**
  * TODO Unit testing
- * 
+ *
  * @author Lars Helge Overland
  */
 public class DefaultCsvImportService
@@ -79,9 +78,6 @@ public class DefaultCsvImportService
 {
     @Autowired
     private DataElementCategoryService categoryService;
-
-    @Autowired
-    private ExpressionService expressionService;
 
     // -------------------------------------------------------------------------
     // CsvImportService implementation
@@ -209,17 +205,16 @@ public class DefaultCsvImportService
                 String commentOptionSetUid = getSafe( values, 13, null, 11 );
                 object.setAutoFields();
 
-                if ( categoryComboUid != null )
+                DataElementCategoryCombo cc = new DataElementCategoryCombo();
+                cc.setUid( categoryComboUid );
+                cc.setAutoFields();
+
+                if ( categoryComboUid == null )
                 {
-                    DataElementCategoryCombo cc = new DataElementCategoryCombo();
-                    cc.setUid( categoryComboUid );
-                    cc.setAutoFields();
-                    object.setDataElementCategoryCombo( cc );
+                    cc.setUid( categoryCombo.getUid() );
                 }
-                else
-                {
-                    object.setDataElementCategoryCombo( categoryCombo );
-                }
+
+                object.setDataElementCategoryCombo( cc );
 
                 if ( optionSetUid != null )
                 {
@@ -293,12 +288,10 @@ public class DefaultCsvImportService
                 leftSide.setExpression( getSafe( values, 9, null, 255 ) );
                 leftSide.setDescription( getSafe( values, 10, null, 255 ) );
                 leftSide.setMissingValueStrategy( MissingValueStrategy.safeValueOf( getSafe( values, 11, MissingValueStrategy.NEVER_SKIP.toString(), 50 ) ) );
-                leftSide.setDataElementsInExpression( expressionService.getDataElementsInExpression( leftSide.getExpression() ) );
 
                 rightSide.setExpression( getSafe( values, 12, null, 255 ) );
                 rightSide.setDescription( getSafe( values, 13, null, 255 ) );
                 rightSide.setMissingValueStrategy( MissingValueStrategy.safeValueOf( getSafe( values, 14, MissingValueStrategy.NEVER_SKIP.toString(), 50 ) ) );
-                rightSide.setDataElementsInExpression( expressionService.getDataElementsInExpression( rightSide.getExpression() ) );
 
                 object.setLeftSide( leftSide );
                 object.setRightSide( rightSide );
@@ -408,7 +401,7 @@ public class DefaultCsvImportService
 
                 Option option = new Option();
                 option.setName( getSafe( values, 3, null, 230 ) );
-                option.setUid( getSafe( values, 4, CodeGenerator.generateCode(), 11 ) );
+                option.setUid( getSafe( values, 4, CodeGenerator.generateUid(), 11 ) );
                 option.setCode( getSafe( values, 5, null, 50 ) );
                 option.setAutoFields();
 
@@ -452,7 +445,7 @@ public class DefaultCsvImportService
     private static void setIdentifiableObject( BaseIdentifiableObject object, String[] values )
     {
         object.setName( getSafe( values, 0, null, 230 ) );
-        object.setUid( getSafe( values, 1, CodeGenerator.generateCode(), 11 ) );
+        object.setUid( getSafe( values, 1, CodeGenerator.generateUid(), 11 ) );
         object.setCode( getSafe( values, 2, null, 50 ) );
     }
 

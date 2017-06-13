@@ -1,7 +1,7 @@
 package org.hisp.dhis.attribute;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,12 @@ package org.hisp.dhis.attribute;
  */
 
 import com.google.common.collect.ImmutableMap;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.GenericNameableObjectStore;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
@@ -61,7 +62,7 @@ import java.util.List;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface AttributeStore
-    extends GenericIdentifiableObjectStore<Attribute>
+    extends GenericNameableObjectStore<Attribute>
 {
     String ID = AttributeStore.class.getName();
 
@@ -85,11 +86,12 @@ public interface AttributeStore
         .put( Document.class, "documentAttribute" )
         .put( Option.class, "optionAttribute" )
         .put( OptionSet.class, "optionSetAttribute" )
-        .put( Constant.class, "constantAttribute")
-        .put( LegendSet.class, "legendSetAttribute")
-        .put( ProgramIndicator.class, "programIndicatorAttribute")
-        .put( SqlView.class, "sqlViewAttribute")
-        .put( Section.class, "sectionAttribute")
+        .put( Constant.class, "constantAttribute" )
+        .put( LegendSet.class, "legendSetAttribute" )
+        .put( ProgramIndicator.class, "programIndicatorAttribute" )
+        .put( SqlView.class, "sqlViewAttribute" )
+        .put( Section.class, "sectionAttribute" )
+        .put( DataElementCategoryOptionCombo.class, "categoryOptionComboAttribute" )
         .build();
 
     /**

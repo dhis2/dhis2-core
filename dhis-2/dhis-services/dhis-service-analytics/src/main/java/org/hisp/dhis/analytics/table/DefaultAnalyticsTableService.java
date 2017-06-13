@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,24 +28,13 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.analytics.AnalyticsIndex;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
-import org.hisp.dhis.analytics.AnalyticsTableManager;
-import org.hisp.dhis.analytics.AnalyticsTableService;
+import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.commons.util.ConcurrentUtils;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -53,8 +42,12 @@ import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.util.SystemUtils;
+import org.hisp.dhis.system.util.Clock;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Future;
 
 /**
  * @author Lars Helge Overland
@@ -94,18 +87,27 @@ public class DefaultAnalyticsTableService
     // -------------------------------------------------------------------------
     
     @Override
+    public AnalyticsTableType getAnalyticsTableType()
+    {
+        return tableManager.getAnalyticsTableType();
+    }
+    
+    @Override
     public void update( Integer lastYears, TaskId taskId )
     {
         int processNo = getProcessNo();
         int orgUnitLevelNo = organisationUnitService.getNumberOfOrganisationalLevels();
         
-        String tableName = tableManager.getTableName();
+        String tableName = tableManager.getAnalyticsTableType().getTableName();
+
         Date earliest = PartitionUtils.getEarliestDate( lastYears );
         
-        Clock clock = new Clock( log ).startClock().logTime( "Starting update: " + tableName + ", processes: " + processNo + ", org unit levels: " + orgUnitLevelNo );
+        Clock clock = new Clock( log )
+            .startClock()
+            .logTime( String.format( "Starting update: %s, processes: %d, org unit levels: %d", tableName, processNo, orgUnitLevelNo ) );
         
         String validState = tableManager.validState();
-        
+
         if ( validState != null )
         {
             notifier.notify( taskId, validState );
@@ -114,8 +116,8 @@ public class DefaultAnalyticsTableService
                 
         final List<AnalyticsTable> tables = tableManager.getTables( earliest );
                 
-        clock.logTime( "Table update start: " + tableName + ", processes: " + processNo + ", partitions: " + tables + ", last years: " + lastYears + ", earliest: " + earliest );
-        notifier.notify( taskId, "Performing pre-create table work, processes: " + processNo + ", org unit levels: " + orgUnitLevelNo );
+        clock.logTime( "Table update start: " + tableName + ", partitions: " + tables + ", last years: " + lastYears + ", earliest: " + earliest );
+        notifier.notify( taskId, "Performing pre-create table work, org unit levels: " + orgUnitLevelNo );
         
         tableManager.preCreateTables();
         
@@ -140,6 +142,11 @@ public class DefaultAnalyticsTableService
         createIndexes( tables );
         
         clock.logTime( "Created indexes" );
+        notifier.notify( taskId, "Analyzing analytics tables" );
+        
+        tableManager.analyzeTables( tables );
+        
+        clock.logTime( "Analyzed tables" );
         notifier.notify( taskId, "Swapping analytics tables" );
         
         swapTables( tables, clock, taskId );
@@ -156,31 +163,21 @@ public class DefaultAnalyticsTableService
     @Override
     public void dropTables()
     {
-        List<AnalyticsTable> tables = tableManager.getAllTables();
+        Set<String> tables = tableManager.getExistingDatabaseTables();
         
-        for ( AnalyticsTable table : tables )   
-        {
-            tableManager.dropTable( table.getTableName() );
-            tableManager.dropTable( table.getTempTableName() );            
-        }
+        tables.forEach( table -> tableManager.dropTable( table ) );
+        
+        log.info( "Analytics tables dropped" );
     }
 
     @Override
-    public void generateResourceTables()
+    public void analyzeAnalyticsTables()
     {
-        resourceTableService.dropAllSqlViews();
-        resourceTableService.generateOrganisationUnitStructures();
-        resourceTableService.generateDataSetOrganisationUnitCategoryTable();
-        resourceTableService.generateCategoryOptionComboNames();
-        resourceTableService.generateDataElementGroupSetTable();
-        resourceTableService.generateIndicatorGroupSetTable();
-        resourceTableService.generateOrganisationUnitGroupSetTable();
-        resourceTableService.generateCategoryTable();
-        resourceTableService.generateDataElementTable();
-        resourceTableService.generatePeriodTable();
-        resourceTableService.generateDatePeriodTable();
-        resourceTableService.generateDataElementCategoryOptionComboTable();        
-        resourceTableService.createAllSqlViews();
+        Set<String> tables = tableManager.getExistingDatabaseTables();
+        
+        tables.forEach( table -> tableManager.analyzeTable( table ) );
+        
+        log.info( "Analytics tables analyzed" );
     }
     
     // -------------------------------------------------------------------------
@@ -207,7 +204,7 @@ public class DefaultAnalyticsTableService
         
         for ( int i = 0; i < taskNo; i++ )
         {
-            futures.add( tableManager.populateTableAsync( tableQ ) );
+            futures.add( tableManager.populateTablesAsync( tableQ ) );
         }
         
         ConcurrentUtils.waitForCompletion( futures );

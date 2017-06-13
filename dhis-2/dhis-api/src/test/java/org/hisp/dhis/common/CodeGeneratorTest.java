@@ -40,14 +40,14 @@ import static org.junit.Assert.*;
 public class CodeGeneratorTest
 {
     @Test
-    public void testCode()
+    public void testGetUid()
     {
         int numberOfCodes = 500;
 
         Set<String> codes = new HashSet<>();
         for ( int n = 0; n < numberOfCodes; ++n )
         {
-            String code = CodeGenerator.generateCode();
+            String code = CodeGenerator.generateUid();
                         
             // Test syntax
             assertTrue( code.substring( 0, 1 ).matches( "[a-zA-Z]" ) );
@@ -56,5 +56,28 @@ public class CodeGeneratorTest
             // Test uniqueness
             assertTrue( codes.add( code ) );
         }
+    }
+    
+    @Test
+    public void testUidIsValid()
+    {
+        assertTrue( CodeGenerator.isValidUid( "mq4jAnN6fg3" ) );
+        assertTrue( CodeGenerator.isValidUid( "QX4LpiTZmUH" ) );
+        assertTrue( CodeGenerator.isValidUid( "rT1hdSWjfDC" ) );
+        
+        assertFalse( CodeGenerator.isValidUid( "1T1hdSWjfDC" ) );
+        assertFalse( CodeGenerator.isValidUid( "QX4LpiTZmUHg" ) );
+        assertFalse( CodeGenerator.isValidUid( "1T1hdS_WjfD" ) );
+    }
+    
+    @Test
+    public void testGetRandomUrlToken()
+    {
+        assertNotNull( CodeGenerator.getRandomUrlToken() );
+        assertNotNull( CodeGenerator.getRandomUrlToken() );
+        assertNotNull( CodeGenerator.getRandomUrlToken() );
+        assertEquals( 32, CodeGenerator.getRandomUrlToken().length() );
+        assertEquals( 32, CodeGenerator.getRandomUrlToken().length() );
+        assertEquals( 32, CodeGenerator.getRandomUrlToken().length() );
     }
 }

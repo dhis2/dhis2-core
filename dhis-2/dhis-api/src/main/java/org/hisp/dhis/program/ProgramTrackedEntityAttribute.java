@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,40 +32,37 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-import java.util.List;
-
-import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Chau Thu Tran
  */
 @JacksonXmlRootElement( localName = "programTrackedEntityAttribute", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramTrackedEntityAttribute
-    extends BaseDimensionalItemObject
+    extends BaseIdentifiableObject implements EmbeddedObject
 {
     private Program program;
 
     private TrackedEntityAttribute attribute;
 
     private boolean displayInList;
-    
+
     private Integer sortOrder;
 
     private Boolean mandatory;
 
     private Boolean allowFutureDate;
+
+    private Boolean renderOptionsAsRadio = false;
+
+    private Set<ProgramTrackedEntityAttributeGroup> groups = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -73,6 +70,7 @@ public class ProgramTrackedEntityAttribute
 
     public ProgramTrackedEntityAttribute()
     {
+        setAutoFields();
     }
 
     public ProgramTrackedEntityAttribute( Program program, TrackedEntityAttribute attribute )
@@ -89,9 +87,9 @@ public class ProgramTrackedEntityAttribute
         this.displayInList = displayInList;
         this.mandatory = mandatory;
     }
-    
+
     public ProgramTrackedEntityAttribute( Program program, TrackedEntityAttribute attribute, boolean displayInList,
-            Boolean mandatory, Integer sortOrder )
+        Boolean mandatory, Integer sortOrder )
     {
         this( program, attribute );
         this.displayInList = displayInList;
@@ -107,23 +105,32 @@ public class ProgramTrackedEntityAttribute
     }
 
     // -------------------------------------------------------------------------
-    // DimensionalItemObject
-    // -------------------------------------------------------------------------
-
-    @Override
-    public DimensionItemType getDimensionItemType()
-    {
-        return DimensionItemType.PROGRAM_ATTRIBUTE;
-    }
-
-    // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
 
-    @Override
-    public boolean haveUniqueNames()
+    public void addGroup( ProgramTrackedEntityAttributeGroup group )
     {
-        return false;
+        groups.add( group );
+        group.getAttributes().add( this );
+    }
+
+    public void removeGroup( ProgramTrackedEntityAttributeGroup group )
+    {
+        groups.remove( group );
+        group.getAttributes().remove( this );
+    }
+
+    public void updateProgramTrackedEntityAttributeGroups( Set<ProgramTrackedEntityAttributeGroup> updates )
+    {
+        for ( ProgramTrackedEntityAttributeGroup group : new HashSet<>( groups ) )
+        {
+            if ( !updates.contains( group ) )
+            {
+                removeGroup( group );
+            }
+        }
+
+        updates.forEach( this::addGroup );
     }
 
     @Override
@@ -132,8 +139,8 @@ public class ProgramTrackedEntityAttribute
         return (program != null ? program.getDisplayName() + " " : "") + (attribute != null ? attribute.getDisplayName() : "");
     }
 
-    @Override
-    public String getShortName()
+    @JsonProperty
+    public String getDisplayShortName()
     {
         return (program != null ? program.getDisplayShortName() + " " : "") + (attribute != null ? attribute.getDisplayShortName() : "");
     }
@@ -157,28 +164,6 @@ public class ProgramTrackedEntityAttribute
             "\"created\":\"" + created + "\", " +
             "\"lastUpdated\":\"" + lastUpdated + "\" " +
             "}";
-    }
-
-    // -------------------------------------------------------------------------
-    // DimensionalItemObject
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String getDimensionItem()
-    {
-        return (program != null ? program.getUid() : "") + COMPOSITE_DIM_OBJECT_PLAIN_SEP + (attribute != null ? attribute.getUid() : "");
-    }
-
-    @Override
-    public List<LegendSet> getLegendSets()
-    {
-        return attribute != null ? attribute.getLegendSets() : null;
-    }
-
-    @Override
-    public AggregationType getAggregationType()
-    {
-        return attribute != null ? attribute.getAggregationType() : null;
     }
 
     // -------------------------------------------------------------------------
@@ -246,7 +231,7 @@ public class ProgramTrackedEntityAttribute
     {
         this.allowFutureDate = allowFutureDate;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Integer getSortOrder()
@@ -259,32 +244,28 @@ public class ProgramTrackedEntityAttribute
         this.sortOrder = sortOrder;
     }
 
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
+    @JsonProperty( "programTrackedEntityAttributeGroups" )
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( localName = "programTrackedEntityAttributeGroups", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<ProgramTrackedEntityAttributeGroup> getGroups()
     {
-        super.mergeWith( other, mergeMode );
+        return this.groups;
+    }
 
-        if ( other.getClass().isInstance( this ) )
-        {
-            ProgramTrackedEntityAttribute programTrackedEntityAttribute = (ProgramTrackedEntityAttribute) other;
-            displayInList = programTrackedEntityAttribute.isDisplayInList();
+    public void setGroups( Set<ProgramTrackedEntityAttributeGroup> groups )
+    {
+        this.groups = groups;
+    }
 
-            if ( mergeMode.isReplace() )
-            {
-                program = programTrackedEntityAttribute.getProgram();
-                sortOrder = programTrackedEntityAttribute.getSortOrder();
-                attribute = programTrackedEntityAttribute.getAttribute();
-                mandatory = programTrackedEntityAttribute.isMandatory();
-                allowFutureDate = programTrackedEntityAttribute.getAllowFutureDate();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                program = programTrackedEntityAttribute.getProgram() == null ? program : programTrackedEntityAttribute.getProgram();
-                sortOrder = programTrackedEntityAttribute.getSortOrder() == null ? sortOrder : programTrackedEntityAttribute.getSortOrder();
-                attribute = programTrackedEntityAttribute.getAttribute() == null ? attribute : programTrackedEntityAttribute.getAttribute();
-                mandatory = programTrackedEntityAttribute.isMandatory() == null ? mandatory : programTrackedEntityAttribute.isMandatory();
-                allowFutureDate = programTrackedEntityAttribute.getAllowFutureDate() == null ? allowFutureDate : programTrackedEntityAttribute.getAllowFutureDate();
-            }
-        }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getRenderOptionsAsRadio()
+    {
+        return renderOptionsAsRadio;
+    }
+
+    public void setRenderOptionsAsRadio( Boolean renderOptionsAsRadio )
+    {
+        this.renderOptionsAsRadio = renderOptionsAsRadio;
     }
 }

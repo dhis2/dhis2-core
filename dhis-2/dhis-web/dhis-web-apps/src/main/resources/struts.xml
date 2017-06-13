@@ -1,104 +1,128 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE struts PUBLIC
-		"-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
-		"http://struts.apache.org/dtds/struts-2.0.dtd">
+        "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+        "http://struts.apache.org/dtds/struts-2.0.dtd">
 <struts>
 
-	<include file="dhis-web-commons.xml" />
+    <include file="dhis-web-commons.xml" />
 
-	<package name="dhis-web-apps" extends="dhis-web-commons" namespace="/dhis-web-apps">
-		<action name="index" class="org.hisp.dhis.commons.action.NoAction">
-			<result name="success" type="redirect">index.html</result>
-		</action>
-	</package>
+    <package name="dhis-web-apps" extends="dhis-web-commons" namespace="/dhis-web-apps">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">index.html</result>
+        </action>
+    </package>
 
-	<package name="dhis-web-visualizer" extends="dhis-web-commons" namespace="/dhis-web-visualizer">
-		<action name="index" class="org.hisp.dhis.commons.action.NoAction">
-			<result name="success" type="redirect">index.html</result>
-		</action>
-	</package>
+    <!-- Apps pulled from Maven repository -->
 
-	<package name="dhis-web-event-reports" extends="dhis-web-commons" namespace="/dhis-web-event-reports">
-		<action name="index" class="org.hisp.dhis.commons.action.NoAction">
-			<result name="success" type="redirect">index.html</result>
-		</action>
-	</package>
+    <package name="dhis-web-visualizer" extends="dhis-web-commons" namespace="/dhis-web-visualizer">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">index.html</result>
+        </action>
+    </package>
 
-	<package name="dhis-web-event-visualizer" extends="dhis-web-commons" namespace="/dhis-web-event-visualizer">
-		<action name="index" class="org.hisp.dhis.commons.action.NoAction">
-			<result name="success" type="redirect">index.html</result>
-		</action>
-	</package>
+    <package name="dhis-web-event-reports" extends="dhis-web-commons" namespace="/dhis-web-event-reports">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">index.html</result>
+        </action>
+    </package>
 
-    <!-- Pulled from Maven repository -->
+    <package name="dhis-web-event-visualizer" extends="dhis-web-commons" namespace="/dhis-web-event-visualizer">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">index.html</result>
+        </action>
+    </package>
 
-	<package name="dhis-web-settings" extends="dhis-web-commons" namespace="/dhis-web-settings">
-		<action name="index" class="org.hisp.dhis.commons.action.NoAction">
-			<result name="success" type="redirect">#</result>
-		</action>
-	</package>
+    <package name="dhis-web-settings" extends="dhis-web-commons" namespace="/dhis-web-settings">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">#</result>
+        </action>
+    </package>
 
-	<package name="dhis-web-maintenance" extends="dhis-web-commons" namespace="/dhis-web-maintenance">
-		<action name="index" class="org.hisp.dhis.commons.action.NoAction">
-			<result name="success" type="redirect">#</result>
-		</action>
-	</package>
+    <package name="dhis-web-maintenance" extends="dhis-web-commons" namespace="/dhis-web-maintenance">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">#</result>
+        </action>
+    </package>
 
-	<package name="dhis-web-app-management" extends="dhis-web-commons" namespace="/dhis-web-app-management">
-		<action name="index" class="org.hisp.dhis.commons.action.NoAction">
-			<result name="success" type="redirect">#</result>
-		</action>
-	</package>
+    <package name="dhis-web-app-management" extends="dhis-web-commons" namespace="/dhis-web-app-management">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">#</result>
+        </action>
+    </package>
 
-	<package name="dhis-web-pivot" extends="dhis-web-commons" namespace="/dhis-web-pivot">
-		<action name="index" class="org.hisp.dhis.commons.action.NoAction">
-			<result name="success" type="redirect">#</result>
-		</action>
-	</package>
+    <package name="dhis-web-pivot" extends="dhis-web-commons" namespace="/dhis-web-pivot">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">#</result>
+        </action>
+    </package>
 
-	<package name="dhis-web-mapping" extends="dhis-web-commons" namespace="/dhis-web-mapping">
-		<action name="index" class="org.hisp.dhis.commons.action.NoAction">
-			<result name="success" type="redirect">#</result>
-		</action>
-	</package>
+    <package name="dhis-web-mapping" extends="dhis-web-commons" namespace="/dhis-web-mapping">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">#</result>
+        </action>
+    </package>
 
-	<package name="dhis-web-usage-analytics" extends="dhis-web-commons" namespace="/dhis-web-usage-analytics">
-		<action name="index" class="org.hisp.dhis.commons.action.NoAction">
-			<result name="success" type="redirect">index.html</result>
-		</action>
-	</package>
+    <package name="dhis-web-usage-analytics" extends="dhis-web-commons" namespace="/dhis-web-usage-analytics">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">index.html</result>
+        </action>
+    </package>
 
-	<package name="dhis-web-event-capture" extends="dhis-web-commons" namespace="/dhis-web-event-capture">
-		<action name="index" class="org.hisp.dhis.commons.action.NoAction">
-			<result name="success" type="redirect">index.html</result>
-		</action>
-		<action name="cacheManifest" class="org.hisp.dhis.appcache.CacheManifestAction">
-			<param name="appPath">dhis-web-event-capture</param>
-			<param name="i18nPath">i18n</param>
-			<param name="appCache">event-capture.appcache</param>
-			<result type="stream">
-				<param name="contentType">text/cache-manifest</param>
-				<param name="inputName">inputStream</param>
-			</result>
-		</action>
-	</package>
+    <package name="dhis-web-event-capture" extends="dhis-web-commons" namespace="/dhis-web-event-capture">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">index.html</result>
+        </action>
+        <action name="cacheManifest" class="org.hisp.dhis.appcache.CacheManifestAction">
+            <param name="appPath">dhis-web-event-capture</param>
+            <param name="i18nPath">i18n</param>
+            <param name="appCache">event-capture.appcache</param>
+            <result type="stream">
+                <param name="contentType">text/cache-manifest</param>
+                <param name="inputName">inputStream</param>
+            </result>
+        </action>
+    </package>
 
-	<package name="dhis-web-tracker-capture" extends="dhis-web-commons" namespace="/dhis-web-tracker-capture">
-		<action name="index" class="org.hisp.dhis.commons.action.NoAction">
-			<result name="success" type="redirect">index.html</result>
-		</action>
-	</package>
+    <package name="dhis-web-tracker-capture" extends="dhis-web-commons" namespace="/dhis-web-tracker-capture">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">index.html</result>
+        </action>
+    </package>
 
-	<package name="dhis-web-cache-cleaner" extends="dhis-web-commons" namespace="/dhis-web-cache-cleaner">
-		<action name="index" class="org.hisp.dhis.commons.action.NoAction">
-			<result name="success" type="redirect">index.html</result>
-		</action>
-	</package>
+    <package name="dhis-web-dashboard-integration" extends="dhis-web-commons" namespace="/dhis-web-dashboard-integration">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">index.html</result>
+        </action>
+    </package>
 
-	<package name="dhis-web-menu-management" extends="dhis-web-commons" namespace="/dhis-web-menu-management">
-		<action name="index" class="org.hisp.dhis.commons.action.NoAction">
-			<result name="success" type="redirect">index.html</result>
-		</action>
-	</package>
+    <package name="dhis-web-cache-cleaner" extends="dhis-web-commons" namespace="/dhis-web-cache-cleaner">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">index.html</result>
+        </action>
+    </package>
+
+    <package name="dhis-web-translations" extends="dhis-web-commons" namespace="/dhis-web-translations">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">index.html</result>
+        </action>
+    </package>
+
+    <package name="dhis-web-menu-management" extends="dhis-web-commons" namespace="/dhis-web-menu-management">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">index.html</result>
+        </action>
+    </package>
+
+    <package name="dhis-web-interpretation" extends="dhis-web-commons" namespace="/dhis-web-interpretation">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">index.html</result>
+        </action>
+    </package>
+
+    <package name="dhis-web-datastore" extends="dhis-web-commons" namespace="/dhis-web-datastore">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">#</result>
+        </action>
+    </package>
 
 </struts>

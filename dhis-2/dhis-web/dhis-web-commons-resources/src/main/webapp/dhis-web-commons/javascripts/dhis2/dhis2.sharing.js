@@ -27,225 +27,296 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-dhis2.util.namespace('dhis2.sharing');
+dhis2.util.namespace( 'dhis2.sharing' );
 
-function loadSharingSettings( type, uid ) {
-  return $.ajax({
+function loadSharingSettings(type, uid) {
+  return $.ajax( {
     url: '../api/sharing',
     data: {
       type: type,
       id: uid
     },
     dataType: 'json'
-  });
+  } );
 }
 
-function saveSharingSettings( type, uid, data ) {
-  return $.ajax({
+function saveSharingSettings(type, uid, data) {
+  return $.ajax( {
     url: '../api/sharing?type=' + type + '&id=' + uid,
     type: 'POST',
     dataType: 'text',
     contentType: 'application/json; charset=UTF-8',
-    data: JSON.stringify(data)
-  });
+    data: JSON.stringify( data )
+  } );
 }
 
 var sharingSelectedItem;
 
-function renderUserGroupAccessTemplate( item ) {
-  var tmpl = jQuery('#user-group-access-template').html();
-  return _.template(tmpl, item);
+function renderAccessTemplate(item) {
+  var tmpl = jQuery( '#access-template' ).html();
+  return _.template( tmpl, item );
 }
 
-function addUserGroupAccessSelectedItem( e ) {
-  var tmpl_html = renderUserGroupAccessTemplate({
-    label: sharingSelectedItem.label,
+function addAccessSelectedItem(e) {
+  var tmpl_html = renderAccessTemplate( {
     id: sharingSelectedItem.id,
+    type: sharingSelectedItem.type,
+    label: sharingSelectedItem.label,
+    label_can_view : window.i18n_can_view,
+    label_can_edit_and_view : window.i18n_can_edit_and_view,
     access: "r-------"
-  });
+  } );
 
-  $(tmpl_html).insertAfter($('#sharingAccessTable tbody tr').not('[id]').last());
+  $( tmpl_html ).insertAfter( $( '#sharingAccessTable tbody tr' ).not( '[id]' ).last() );
 
-  $('#sharingFindUserGroup').val('');
+  $( '#sharingSearch' ).val( '' );
   sharingSelectedItem = undefined;
 
-  $('#addUserGroupAccess').attr('disabled', true);
+  $( '#addAccess' ).attr( 'disabled', true );
 }
 
-function removeUserGroupAccess( e ) {
+function removeAccess(e) {
   e.preventDefault();
-  $(this).parent().parent().remove();
+  $( this ).parent().parent().remove();
 }
 
-function clearUserGroupAccesses() {
-  $('#sharingAccessTable tbody tr[id]').remove();
+function clearAccesses() {
+  $( '#sharingAccessTable tbody tr[id]' ).remove();
 }
 
-function setUserGroupAccesses( userGroupAccesses ) {
-  clearUserGroupAccesses();
+function setAccesses(userGroupAccesses, userAccesses) {
+  clearAccesses();
 
-  if( userGroupAccesses ) {
+  if ( userGroupAccesses ) {
     userGroupAccesses.reverse();
 
-    $.each(userGroupAccesses, function( idx, item ) {
-      var tmpl_html = renderUserGroupAccessTemplate({
+    $.each( userGroupAccesses, function(idx, item) {
+      var tmpl_html = renderAccessTemplate( {
         label: item.name,
         id: item.id,
+        type: 'userGroup',
+        label_can_view : window.i18n_can_view,
+        label_can_edit_and_view : window.i18n_can_edit_and_view,
         access: item.access
-      });
+      } );
 
-      $(tmpl_html).insertAfter($('#sharingAccessTable tbody tr').not('[id]').last());
-    });
+      $( tmpl_html ).insertAfter( $( '#sharingAccessTable tbody tr' ).not( '[id]' ).last() );
+    } );
+  }
+
+  if ( userAccesses ) {
+    userAccesses.reverse();
+
+    $.each( userAccesses, function(idx, item) {
+      var tmpl_html = renderAccessTemplate( {
+        label: item.name,
+        id: item.id,
+        type: 'user',
+        label_can_view : window.i18n_can_view,
+        label_can_edit_and_view : window.i18n_can_edit_and_view,
+        access: item.access
+      } );
+
+      $( tmpl_html ).insertAfter( $( '#sharingAccessTable tbody tr' ).not( '[id]' ).last() );
+    } );
   }
 }
 
-function setPublicAccess( access ) {
-  $('#sharingPublicAccess option').removeAttr('selected').each(function( idx, item ) {
-    if( $(item).val() == access ) {
-      $(item).attr('selected', true);
+function setPublicAccess(access) {
+  $( '#sharingPublicAccess option' ).removeAttr( 'selected' ).each( function(idx, item) {
+    if ( $( item ).val() == access ) {
+      $( item ).attr( 'selected', true );
     }
-  });
+  } );
 }
 
 function getPublicAccess() {
-  return $('#sharingPublicAccess').val();
+  return $( '#sharingPublicAccess' ).val();
 }
 
-function setExternalAccess( access ) {
-  if( access ) {
-    $('#sharingExternalAccess').attr('checked', true);
+function setExternalAccess(access) {
+  if ( access ) {
+    $( '#sharingExternalAccess' ).attr( 'checked', true );
   } else {
-    $('#sharingExternalAccess').removeAttr('checked');
+    $( '#sharingExternalAccess' ).removeAttr( 'checked' );
   }
 }
 
 function getExternalAccess() {
-  return $('#sharingExternalAccess').is(':checked');
+  return $( '#sharingExternalAccess' ).is( ':checked' );
 }
 
-function getUserGroupAccesses() {
+function getAccesses() {
   var v = [];
 
-  $('#sharingAccessTable tbody tr[id]').each(function( idx, item ) {
-    var jqItem = $(item);
+  $( '#sharingAccessTable tbody tr[id]' ).each( function(idx, item) {
+    var jqItem = $( item );
 
-    var groupName = $(item).find('.sharingGroupName').text();
-    var groupAccess = $(item).find('.sharingGroupAccess').val();
+    var name = $( item ).find( '.sharingName' ).text();
+    var access = $( item ).find( '.sharingAccess' ).val();
 
-    v.push({
-      id: jqItem.attr('id'),
-      name: groupName,
-      access: groupAccess
-    });
-  });
+    v.push( {
+      id: jqItem.attr( 'id' ),
+      type: jqItem.attr( 'type' ),
+      name: name,
+      access: access
+    } );
+  } );
 
   return v;
 }
 
-function setCreatedBy( user ) {
-  if( user && user.name ) {
-    $('#sharingUser').text(user.name);
+function setCreatedBy(user) {
+  if ( user && user.name ) {
+    $( '#sharingUser' ).text( user.name );
   }
   else {
-    $('#sharingUser').text("[None]");
+    $( '#sharingUser' ).text( "[None]" );
   }
 }
 
-function showSharingDialogWithContext( context ) {
+function showSharingDialogWithContext(context) {
   // context always give type which starts with UpperCase
-  var type = context.type.charAt(0).toLowerCase() + context.type.slice(1);
-  showSharingDialog(type, context.uid);
+  var type = context.type.charAt( 0 ).toLowerCase() + context.type.slice( 1 );
+  showSharingDialog( type, context.uid );
 }
 
-function showSharingDialog( type, uid ) {
-  loadSharingSettings(type, uid).done(function( data ) {
-    setCreatedBy(data.object.user);
-    setPublicAccess(data.object.publicAccess);
-    setExternalAccess(data.object.externalAccess);
-    setUserGroupAccesses(data.object.userGroupAccesses);
+function showSharingDialog(type, uid) {
+  loadSharingSettings( type, uid ).done( function(data) {
+    setCreatedBy( data.object.user );
+    setPublicAccess( data.object.publicAccess );
+    setExternalAccess( data.object.externalAccess );
+    setAccesses( data.object.userGroupAccesses, data.object.userAccesses );
 
-    $('#sharingName').text(data.object.name);
+    $( '#sharingName' ).text( data.object.name );
 
-    if( !data.meta.allowExternalAccess ) {
-      $('#sharingExternalAccess').attr('disabled', true);
+    if ( !data.meta.allowExternalAccess ) {
+      $( '#sharingExternalAccess' ).attr( 'disabled', true );
     }
 
-    if( !data.meta.allowPublicAccess ) {
-      $('#sharingPublicAccess').attr('disabled', true);
+    if ( !data.meta.allowPublicAccess ) {
+      $( '#sharingPublicAccess' ).attr( 'disabled', true );
     }
 
-    $('.removeUserGroupAccess').unbind('click');
-    $(document).on('click', '.removeUserGroupAccess', removeUserGroupAccess);
-    $('#addUserGroupAccess').unbind('click').bind('click', addUserGroupAccessSelectedItem);
+    $( '.removeUserGroupAccess' ).unbind( 'click' );
+    $( document ).on( 'click', '.removeUserGroupAccess', removeAccess );
+    $( '#addAccess' ).unbind( 'click' ).bind( 'click', addAccessSelectedItem );
 
-    $('#sharingSettings').dialog({
+    var buttons = {};
+
+    buttons[i18n_cancel] = function() {
+      $( '#sharingSearch' ).autocomplete( 'destroy' );
+      $( this ).dialog( 'destroy' );
+    };
+
+    buttons[i18n_save] = function() {
+      var me = $( this );
+
+      data.object.publicAccess = getPublicAccess();
+      data.object.externalAccess = getExternalAccess();
+
+      var allAccesses = getAccesses();
+
+      data.object.userGroupAccesses = allAccesses.filter( function(item) {
+        return item.type === 'userGroup';
+      } );
+
+      data.object.userAccesses = allAccesses.filter( function(item) {
+        return item.type === 'user';
+      } );
+
+      saveSharingSettings( type, uid, data ).done( function() {
+        $( '#sharingSearch' ).autocomplete( 'destroy' );
+        me.dialog( 'destroy' );
+      } );
+    };
+
+    $( '#sharingSettings' ).dialog( {
       modal: true,
       resizable: false,
       width: 485,
       height: 555,
-      buttons: {
-        'Cancel': function() {
-          $('#sharingFindUserGroup').autocomplete('destroy');
-          $(this).dialog('destroy');
-        },
-        'Save': function() {
-          var me = $(this);
+      buttons: buttons
+    } );
 
-          data.object.publicAccess = getPublicAccess();
-          data.object.externalAccess = getExternalAccess();
-          data.object.userGroupAccesses = getUserGroupAccesses();
-
-          saveSharingSettings(type, uid, data).done(function() {
-            $('#sharingFindUserGroup').autocomplete('destroy');
-            me.dialog('destroy');
-          });
-        }
-      }
-    });
-
-    $('#sharingFindUserGroup').autocomplete({
-      source: function( request, response ) {
-        $.ajax({
+    $( '#sharingSearch' ).autocomplete( {
+      source: function(request, response) {
+        $.ajax( {
           url: '../api/sharing/search',
           dataType: 'json',
           data: {
             key: request.term,
             pageSize: 20
           }
-        }).success(function( data ) {
+        } ).success( function(data) {
           var v = [];
-          var u = getUserGroupAccesses();
 
-          if( data.userGroups ) {
-            $.each(data.userGroups, function( idx, item ) {
+          var allAccesses = getAccesses();
+          var ug = allAccesses.filter( function(item) {
+            return item.type === 'userGroup';
+          } );
+
+          var u = allAccesses.filter( function(item) {
+            return item.type === 'user';
+          } );
+
+          console.log( 'ug', ug );
+          console.log( 'u', u );
+
+          if ( data.userGroups ) {
+            $.each( data.userGroups, function(idx, item) {
               var d = {};
 
+              d.id = item.id;
+              d.type = 'userGroup';
               d.label = item.name;
               d.value = item.name;
-              d.id = item.id;
 
               var found = false;
 
-              $.each(u, function( idx, item ) {
-                if( item.id == d.id ) {
+              $.each( ug, function(idx, item) {
+                if ( item.id == d.id ) {
                   found = true;
                 }
-              });
+              } );
 
-              if( !found ) {
-                v.push(d);
+              if ( !found ) {
+                v.push( d );
               }
-            });
+            } );
           }
 
-          response(v);
-        });
+          if ( data.users ) {
+            $.each( data.users, function(idx, item) {
+              var d = {};
+
+              d.id = item.id;
+              d.type = 'user';
+              d.label = item.name;
+              d.value = item.name;
+
+              var found = false;
+
+              $.each( u, function(idx, item) {
+                if ( item.id == d.id ) {
+                  found = true;
+                }
+              } );
+
+              if ( !found ) {
+                v.push( d );
+              }
+            } );
+          }
+
+          response( v );
+        } );
       },
       minLength: 2,
-      select: function( event, ui ) {
+      select: function(event, ui) {
         sharingSelectedItem = ui.item;
-        $('#addUserGroupAccess').removeAttr('disabled');
+        $( '#addAccess' ).removeAttr( 'disabled' );
       }
-    });
-  });
+    } );
+  } );
 }

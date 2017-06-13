@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,12 @@ package org.hisp.dhis.trackedentity.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
+
+import java.util.List;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -46,19 +46,6 @@ public class HibernateTrackedEntityAttributeStore
     // Implementation methods
     // -------------------------------------------------------------------------
 
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<TrackedEntityAttribute> getOptionalAttributesWithoutGroup()
-    {
-        return getCriteria( Restrictions.isNull( "attributeGroup" ) ).list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<TrackedEntityAttribute> getWithoutGroup()
-    {
-        return getCriteria( Restrictions.isNull( "attributeGroup" ) ).list();
-    }
 
     @Override
     @SuppressWarnings( "unchecked" )

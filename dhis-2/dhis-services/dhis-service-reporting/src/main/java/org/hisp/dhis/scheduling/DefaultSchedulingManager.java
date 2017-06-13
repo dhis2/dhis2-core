@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,12 +29,14 @@ package org.hisp.dhis.scheduling;
  */
 
 import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.credentials.CredentialsExpiryAlertTask;
 import org.hisp.dhis.datastatistics.DataStatisticsTask;
 import org.hisp.dhis.fileresource.FileResourceCleanUpTask;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.scheduling.ScheduledTaskStatus;
 import org.hisp.dhis.system.scheduling.Scheduler;
+import org.hisp.dhis.validation.notification.ValidationResultNotificationTask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -84,6 +86,12 @@ public class DefaultSchedulingManager
     @Autowired
     private DataStatisticsTask dataStatisticsTask;
 
+    @Autowired
+    private ValidationResultNotificationTask validationResultNotificationTask;
+
+    @Autowired
+    private CredentialsExpiryAlertTask credentialsExpiryAlertTask;
+
     // TODO Avoid map, use bean identifier directly and get bean from context
 
     // -------------------------------------------------------------------------
@@ -121,6 +129,8 @@ public class DefaultSchedulingManager
     {
         scheduler.scheduleTask( FileResourceCleanUpTask.KEY_TASK, fileResourceCleanUpTask, Scheduler.CRON_DAILY_2AM );
         scheduler.scheduleTask( DataStatisticsTask.KEY_TASK, dataStatisticsTask, Scheduler.CRON_DAILY_2AM );
+        scheduler.scheduleTask( ValidationResultNotificationTask.KEY_TASK, validationResultNotificationTask, Scheduler.CRON_DAILY_7AM );
+        scheduler.scheduleTask( CredentialsExpiryAlertTask.KEY_TASK, credentialsExpiryAlertTask, Scheduler.CRON_DAILY_2AM );
     }
     
     @Override
@@ -135,6 +145,7 @@ public class DefaultSchedulingManager
     public void stopTasks()
     {
         systemSettingManager.deleteSystemSetting( SettingKey.METADATA_SYNC_CRON);
+        systemSettingManager.deleteSystemSetting( SettingKey.DATA_SYNC_CRON);
         systemSettingManager.saveSystemSetting( SettingKey.SCHEDULED_TASKS, null );
         
         scheduler.stopAllTasks();

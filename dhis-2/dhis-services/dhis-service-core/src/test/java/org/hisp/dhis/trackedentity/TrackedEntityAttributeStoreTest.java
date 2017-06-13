@@ -47,16 +47,11 @@ public class TrackedEntityAttributeStoreTest
     @Autowired
     private TrackedEntityAttributeService attributeService;
 
-    @Autowired
-    private TrackedEntityAttributeGroupService attributeGroupService;
-
     private TrackedEntityAttribute attributeA;
 
     private TrackedEntityAttribute attributeB;
 
     private TrackedEntityAttribute attributeC;
-
-    private TrackedEntityAttributeGroup attributeGroup;
 
     @Override
     public void setUpTest()
@@ -69,7 +64,6 @@ public class TrackedEntityAttributeStoreTest
         attributesA.add( attributeA );
         attributesA.add( attributeB );
 
-        attributeGroup = createTrackedEntityAttributeGroup( 'A', attributesA );
     }
 
     @Test
@@ -150,20 +144,6 @@ public class TrackedEntityAttributeStoreTest
         attributeService.addTrackedEntityAttribute( attributeB );
 
         assertTrue( equals( attributeService.getAllTrackedEntityAttributes(), attributeA, attributeB ) );
-    }
-
-    @Test
-    public void testGetTrackedEntityAttributesWithoutGroup()
-    {
-        attributeService.addTrackedEntityAttribute( attributeA );
-        attributeService.addTrackedEntityAttribute( attributeB );
-        attributeService.addTrackedEntityAttribute( attributeC );
-
-        attributeGroupService.addTrackedEntityAttributeGroup( attributeGroup );
-
-        List<TrackedEntityAttribute> attributes = attributeService.getOptionalAttributesWithoutGroup();
-        assertEquals( 1, attributes.size() );
-        assertTrue( attributes.contains( attributeC ) );
     }
 
     @Test

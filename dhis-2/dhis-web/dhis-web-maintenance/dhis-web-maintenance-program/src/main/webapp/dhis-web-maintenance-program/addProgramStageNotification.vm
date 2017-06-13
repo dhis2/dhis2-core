@@ -56,13 +56,37 @@
             </td>
             <td>
                 <select type="text" id="notificationRecipient" name="notificationRecipient">
-                    <option value="TRACKED_ENTITY_INSTANCE">$i18n.getString( "tracked_entity_instance" )</option>
                     <option value="ORGANISATION_UNIT_CONTACT">$i18n.getString( "orgunit_contact" )</option>
                     <option value="USERS_AT_ORGANISATION_UNIT">$i18n.getString( "users_at_orgunit" )</option>
                     <option value="USER_GROUP">$i18n.getString( "user_group" )</option>
+                    <option value="PROGRAM_ATTRIBUTE">$i18n.getString( "program_attributes" )</option>
                 </select>
             </td>
         </tr>
+
+        <tr id="programAttributeContainer" style="display: none;">
+            <td>
+                <label for="programAttribute">$i18n.getString( "program_attributes" )</label>
+            </td>
+            <td>
+                <select type="text" id="programAttribute" name="programAttribute" class="programAttribute">
+                    #if ( $phoneNumberAttributes.size() > 0 || $emailAttributes.size() > 0 )
+                        <option value="">[$i18n.getString("please_select")]</option>
+                            #foreach( $phoneNumber in $!phoneNumberAttributes )
+                                <option value="$phoneNumber.uid">$phoneNumber.displayName</option>
+                            #end
+
+                            #foreach( $email in $!emailAttributes )
+                                <option value="$email.uid">$email.displayName</option>
+                            #end
+
+                    #else
+                        <option value="">[$i18n.getString("no_phonenumber_email_found")]</option>
+                    #end
+                </select>
+            </td>
+        </tr>
+
         <tr id="userGroupContainer" style="display: none;">
             <td>
                 <label for="userGroup">$i18n.getString( "user_group" )</label>

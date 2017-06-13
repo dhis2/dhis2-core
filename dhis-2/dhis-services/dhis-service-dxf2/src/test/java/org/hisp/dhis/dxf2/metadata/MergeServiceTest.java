@@ -32,13 +32,19 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.merge.Simple;
 import org.hisp.dhis.dxf2.metadata.merge.SimpleCollection;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorType;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.schema.MergeParams;
+import org.hisp.dhis.schema.MergeService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -62,7 +68,7 @@ public class MergeServiceTest
         Simple source = new Simple( "string", 10, date, false, 123, 2.5f );
         Simple target = new Simple();
 
-        mergeService.merge( source, target, MergeMode.REPLACE );
+        mergeService.merge( new MergeParams<>( source, target ).setMergeMode( MergeMode.REPLACE ) );
 
         assertEquals( "string", target.getString() );
         assertEquals( 10, (int) target.getInteger() );
@@ -78,7 +84,7 @@ public class MergeServiceTest
         Simple source = new Simple( null, 10, date, null, 123, 2.5f );
         Simple target = new Simple( "hello", 20, date, true, 123, 2.5f );
 
-        mergeService.merge( source, target, MergeMode.MERGE );
+        mergeService.merge( new MergeParams<>( source, target ).setMergeMode( MergeMode.MERGE ) );
 
         assertEquals( "hello", target.getString() );
         assertEquals( 10, (int) target.getInteger() );
@@ -98,7 +104,7 @@ public class MergeServiceTest
 
         SimpleCollection target = new SimpleCollection( "target" );
 
-        mergeService.merge( source, target, MergeMode.MERGE );
+        mergeService.merge( new MergeParams<>( source, target ).setMergeMode( MergeMode.MERGE ) );
 
         assertEquals( "name", target.getName() );
         assertEquals( 3, target.getSimples().size() );
@@ -106,5 +112,73 @@ public class MergeServiceTest
         assertTrue( target.getSimples().contains( source.getSimples().get( 0 ) ) );
         assertTrue( target.getSimples().contains( source.getSimples().get( 1 ) ) );
         assertTrue( target.getSimples().contains( source.getSimples().get( 2 ) ) );
+    }
+
+    @Test
+    public void mergeOrgUnitGroup()
+    {
+        OrganisationUnit organisationUnitA = createOrganisationUnit( 'A' );
+        OrganisationUnit organisationUnitB = createOrganisationUnit( 'B' );
+        OrganisationUnit organisationUnitC = createOrganisationUnit( 'C' );
+        OrganisationUnit organisationUnitD = createOrganisationUnit( 'D' );
+
+        OrganisationUnitGroup organisationUnitGroupA = createOrganisationUnitGroup( 'A' );
+        OrganisationUnitGroup organisationUnitGroupB = createOrganisationUnitGroup( 'B' );
+
+        organisationUnitGroupA.getMembers().add( organisationUnitA );
+        organisationUnitGroupA.getMembers().add( organisationUnitB );
+        organisationUnitGroupA.getMembers().add( organisationUnitC );
+        organisationUnitGroupA.getMembers().add( organisationUnitD );
+
+        OrganisationUnitGroupSet organisationUnitGroupSetA = createOrganisationUnitGroupSet( 'A' );
+        organisationUnitGroupSetA.addOrganisationUnitGroup( organisationUnitGroupA );
+
+        mergeService.merge( new MergeParams<>( organisationUnitGroupA, organisationUnitGroupB ).setMergeMode( MergeMode.REPLACE ) );
+
+        assertFalse( organisationUnitGroupB.getMembers().isEmpty() );
+        assertEquals( 4, organisationUnitGroupB.getMembers().size() );
+        assertNotNull( organisationUnitGroupB.getGroupSets() );
+        assertFalse( organisationUnitGroupB.getGroupSets().isEmpty() );
+    }
+
+    @Test
+    public void mergeOrgUnitGroupSet()
+    {
+        OrganisationUnit organisationUnitA = createOrganisationUnit( 'A' );
+        OrganisationUnit organisationUnitB = createOrganisationUnit( 'B' );
+        OrganisationUnit organisationUnitC = createOrganisationUnit( 'C' );
+        OrganisationUnit organisationUnitD = createOrganisationUnit( 'D' );
+
+        OrganisationUnitGroup organisationUnitGroupA = createOrganisationUnitGroup( 'A' );
+        organisationUnitGroupA.getMembers().add( organisationUnitA );
+        organisationUnitGroupA.getMembers().add( organisationUnitB );
+        organisationUnitGroupA.getMembers().add( organisationUnitC );
+        organisationUnitGroupA.getMembers().add( organisationUnitD );
+
+        OrganisationUnitGroupSet organisationUnitGroupSetA = createOrganisationUnitGroupSet( 'A' );
+        OrganisationUnitGroupSet organisationUnitGroupSetB = createOrganisationUnitGroupSet( 'B' );
+        organisationUnitGroupSetA.addOrganisationUnitGroup( organisationUnitGroupA );
+
+        mergeService.merge( new MergeParams<>( organisationUnitGroupSetA, organisationUnitGroupSetB ).setMergeMode( MergeMode.REPLACE ) );
+
+        assertFalse( organisationUnitGroupSetB.getOrganisationUnitGroups().isEmpty() );
+        assertEquals( organisationUnitGroupSetA.getName(), organisationUnitGroupSetB.getName() );
+        assertEquals( organisationUnitGroupSetA.getDescription(), organisationUnitGroupSetB.getDescription() );
+        assertEquals( organisationUnitGroupSetA.isCompulsory(), organisationUnitGroupSetB.isCompulsory() );
+        assertEquals( organisationUnitGroupSetA.isIncludeSubhierarchyInAnalytics(), organisationUnitGroupSetB.isIncludeSubhierarchyInAnalytics() );
+        assertEquals( 1, organisationUnitGroupSetB.getOrganisationUnitGroups().size() );
+    }
+
+    @Test
+    public void testIndicatorClone()
+    {
+        IndicatorType indicatorType = createIndicatorType( 'A' );
+        Indicator indicator = createIndicator( 'A', indicatorType );
+        Indicator clone = mergeService.clone( indicator );
+
+        assertEquals( indicator.getName(), clone.getName() );
+        assertEquals( indicator.getUid(), clone.getUid() );
+        assertEquals( indicator.getCode(), clone.getCode() );
+        assertEquals( indicator.getIndicatorType(), clone.getIndicatorType() );
     }
 }

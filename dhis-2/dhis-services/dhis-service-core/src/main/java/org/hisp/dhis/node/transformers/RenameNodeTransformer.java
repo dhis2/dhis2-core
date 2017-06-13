@@ -1,7 +1,7 @@
 package org.hisp.dhis.node.transformers;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ public class RenameNodeTransformer implements NodeTransformer
     public Node transform( Node node, List<String> args )
     {
         checkNotNull( node );
-        checkArgument( args.size() > 0, "rename requires a name parameter, .e.g: property|rename(newName)" );
+        checkArgument( args.size() > 0, "rename requires a name parameter, .e.g: property~rename(newName)" );
         ((AbstractNode) node).setName( args.get( 0 ) );
 
         return node;

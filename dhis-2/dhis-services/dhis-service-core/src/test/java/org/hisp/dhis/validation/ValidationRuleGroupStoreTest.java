@@ -28,18 +28,6 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.expression.Operator.equal_to;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.annotation.Resource;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
@@ -51,6 +39,14 @@ import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.annotation.Resource;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.hisp.dhis.expression.Operator.equal_to;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -81,8 +77,6 @@ public class ValidationRuleGroupStoreTest
 
     private DataElement dataElementD;
 
-    private Set<DataElement> dataElements;
-
     private Set<DataElementCategoryOptionCombo> optionCombos;
 
     private Expression expressionA;
@@ -109,20 +103,13 @@ public class ValidationRuleGroupStoreTest
         dataElementService.addDataElement( dataElementC );
         dataElementService.addDataElement( dataElementD );
 
-        dataElements = new HashSet<>();
-
-        dataElements.add( dataElementA );
-        dataElements.add( dataElementB );
-        dataElements.add( dataElementC );
-        dataElements.add( dataElementD );
-
         DataElementCategoryOptionCombo categoryOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
 
         optionCombos = new HashSet<>();
         optionCombos.add( categoryOptionCombo );
 
-        expressionA = new Expression( "expressionA", "descriptionA", dataElements );
-        expressionB = new Expression( "expressionB", "descriptionB", dataElements );
+        expressionA = new Expression( "expressionA", "descriptionA" );
+        expressionB = new Expression( "expressionB", "descriptionB" );
 
         expressionService.addExpression( expressionB );
         expressionService.addExpression( expressionA );
@@ -137,8 +124,8 @@ public class ValidationRuleGroupStoreTest
     @Test
     public void testAddValidationRuleGroup()
     {
-        ValidationRule ruleA = createValidationRule( 'A', equal_to, null, null, periodType );
-        ValidationRule ruleB = createValidationRule( 'B', equal_to, null, null, periodType );
+        ValidationRule ruleA = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
+        ValidationRule ruleB = createValidationRule( 'B', equal_to, expressionA, expressionB, periodType );
 
         validationRuleStore.save( ruleA );
         validationRuleStore.save( ruleB );
@@ -154,8 +141,11 @@ public class ValidationRuleGroupStoreTest
         groupA.setMembers( rules );
         groupB.setMembers( rules );
 
-        int idA = validationRuleGroupStore.save( groupA );
-        int idB = validationRuleGroupStore.save( groupB );
+        validationRuleGroupStore.save( groupA );
+        int idA = groupA.getId();
+        validationRuleGroupStore.save( groupB );
+        int idB = groupB.getId();
+
 
         assertEquals( groupA, validationRuleGroupStore.get( idA ) );
         assertEquals( groupB, validationRuleGroupStore.get( idB ) );
@@ -164,8 +154,8 @@ public class ValidationRuleGroupStoreTest
     @Test
     public void testUpdateValidationRuleGroup()
     {
-        ValidationRule ruleA = createValidationRule( 'A', equal_to, null, null, periodType );
-        ValidationRule ruleB = createValidationRule( 'B', equal_to, null, null, periodType );
+        ValidationRule ruleA = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
+        ValidationRule ruleB = createValidationRule( 'B', equal_to, expressionA, expressionB, periodType );
 
         validationRuleStore.save( ruleA );
         validationRuleStore.save( ruleB );
@@ -181,8 +171,10 @@ public class ValidationRuleGroupStoreTest
         groupA.setMembers( rules );
         groupB.setMembers( rules );
 
-        int idA = validationRuleGroupStore.save( groupA );
-        int idB = validationRuleGroupStore.save( groupB );
+        validationRuleGroupStore.save( groupA );
+        int idA = groupA.getId();
+        validationRuleGroupStore.save( groupB );
+        int idB = groupB.getId();
 
         assertEquals( groupA, validationRuleGroupStore.get( idA ) );
         assertEquals( groupB, validationRuleGroupStore.get( idB ) );
@@ -200,8 +192,8 @@ public class ValidationRuleGroupStoreTest
     @Test
     public void testDeleteValidationRuleGroup()
     {
-        ValidationRule ruleA = createValidationRule( 'A', equal_to, null, null, periodType );
-        ValidationRule ruleB = createValidationRule( 'B', equal_to, null, null, periodType );
+        ValidationRule ruleA = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
+        ValidationRule ruleB = createValidationRule( 'B', equal_to, expressionA, expressionB, periodType );
 
         validationRuleStore.save( ruleA );
         validationRuleStore.save( ruleB );
@@ -217,8 +209,10 @@ public class ValidationRuleGroupStoreTest
         groupA.setMembers( rules );
         groupB.setMembers( rules );
 
-        int idA = validationRuleGroupStore.save( groupA );
-        int idB = validationRuleGroupStore.save( groupB );
+        validationRuleGroupStore.save( groupA );
+        int idA = groupA.getId();
+        validationRuleGroupStore.save( groupB );
+        int idB = groupB.getId();
 
         assertNotNull( validationRuleGroupStore.get( idA ) );
         assertNotNull( validationRuleGroupStore.get( idB ) );
@@ -237,8 +231,8 @@ public class ValidationRuleGroupStoreTest
     @Test
     public void testGetAllValidationRuleGroup()
     {
-        ValidationRule ruleA = createValidationRule( 'A', equal_to, null, null, periodType );
-        ValidationRule ruleB = createValidationRule( 'B', equal_to, null, null, periodType );
+        ValidationRule ruleA = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
+        ValidationRule ruleB = createValidationRule( 'B', equal_to, expressionA, expressionB, periodType );
 
         validationRuleStore.save( ruleA );
         validationRuleStore.save( ruleB );
@@ -267,8 +261,8 @@ public class ValidationRuleGroupStoreTest
     @Test
     public void testGetValidationRuleGroupByName()
     {
-        ValidationRule ruleA = createValidationRule( 'A', equal_to, null, null, periodType );
-        ValidationRule ruleB = createValidationRule( 'B', equal_to, null, null, periodType );
+        ValidationRule ruleA = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
+        ValidationRule ruleB = createValidationRule( 'B', equal_to, expressionA, expressionB, periodType );
 
         validationRuleStore.save( ruleA );
         validationRuleStore.save( ruleB );

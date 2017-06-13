@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,16 +66,13 @@ import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 
 /**
  * This class is responsible for producing aggregated data values. It reads data
- * from the analytics table. Organisation units provided as arguments must be on
- * the same level in the hierarchy.
+ * from the analytics table.
  *
  * @author Lars Helge Overland
  */
 public class JdbcAnalyticsManager
     implements AnalyticsManager
 {
-    //TODO optimize when all options in dimensions are selected
-
     private static final Log log = LogFactory.getLog( JdbcAnalyticsManager.class );
 
     private static final String COL_APPROVALLEVEL = "approvallevel";
@@ -95,7 +92,7 @@ public class JdbcAnalyticsManager
     private StatementBuilder statementBuilder;
 
     // -------------------------------------------------------------------------
-    // Implementation
+    // AnalyticsManager implementation
     // -------------------------------------------------------------------------
 
     @Override
@@ -104,9 +101,15 @@ public class JdbcAnalyticsManager
     {
         try
         {
-            ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap = params.getDataPeriodAggregationPeriodMap();
+            ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap = 
+                params.getDataPeriodAggregationPeriodMap();
 
-            params.replaceAggregationPeriodsWithDataPeriods( dataPeriodAggregationPeriodMap );
+            if ( params.isDisaggregation() && params.hasDataPeriodType() )
+            {
+                params = DataQueryParams.newBuilder( params )
+                    .withDataPeriodsForAggregationPeriods( dataPeriodAggregationPeriodMap )
+                    .build();
+            }
 
             String sql = getSelectClause( params );
 
@@ -139,8 +142,7 @@ public class JdbcAnalyticsManager
             catch ( BadSqlGrammarException ex )
             {
                 log.info( "Query failed, likely because the requested analytics table does not exist", ex );
-
-                return new AsyncResult<Map<String, Object>>( new HashMap<String, Object>() );
+                return new AsyncResult<>( new HashMap<String, Object>() );
             }
 
             replaceDataPeriodsWithAggregationPeriods( map, params, dataPeriodAggregationPeriodMap );
@@ -156,7 +158,8 @@ public class JdbcAnalyticsManager
     }
 
     @Override
-    public void replaceDataPeriodsWithAggregationPeriods( Map<String, Object> dataValueMap, DataQueryParams params, ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap )
+    public void replaceDataPeriodsWithAggregationPeriods( Map<String, Object> dataValueMap, 
+        DataQueryParams params, ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap )
     {
         if ( params.isDisaggregation() )
         {
@@ -172,10 +175,12 @@ public class JdbcAnalyticsManager
             for ( String key : keys )
             {
                 String[] keyArray = key.split( DIMENSION_SEP );
+                
+                String periodKey = keyArray[periodIndex];
 
-                Assert.notNull( keyArray[periodIndex] );
+                Assert.notNull( periodKey, "Period key cannot be null" );
 
-                List<DimensionalItemObject> periods = dataPeriodAggregationPeriodMap.get( PeriodType.getPeriodFromIsoString( keyArray[periodIndex] ) );
+                List<DimensionalItemObject> periods = dataPeriodAggregationPeriodMap.get( PeriodType.getPeriodFromIsoString( periodKey ) );
 
                 Assert.notNull( periods, dataPeriodAggregationPeriodMap.toString() );
 
@@ -227,7 +232,7 @@ public class JdbcAnalyticsManager
 
         if ( params.isAggregationType( AVERAGE_SUM_INT ) )
         {
-            sql = "sum(daysxvalue) / " + params.getDaysInFirstPeriod();
+            sql = "sum(daysxvalue) / " + params.getDaysForAvgSumIntAggregation();
         }
         else if ( params.isAggregationType( AVERAGE_INT ) || params.isAggregationType( AVERAGE_INT_DISAGGREGATION ) )
         {
@@ -257,7 +262,11 @@ public class JdbcAnalyticsManager
         {
             sql = "max(value)";
         }
-        else // SUM, AVERAGE_SUM_INT_DISAGGREGATION and undefined //TODO
+        else if ( params.isAggregationType( NONE ) )
+        {
+            sql = "value";
+        }
+        else // SUM, AVERAGE_SUM_INT_DISAGGREGATION and null
         {
             sql = "sum(value)";
         }
@@ -310,9 +319,9 @@ public class JdbcAnalyticsManager
      */
     private String getFromWhereClause( DataQueryParams params, String partition )
     {
-        SqlHelper sqlHelper = new SqlHelper();        
+        SqlHelper sqlHelper = new SqlHelper();
 
-        String sql = "from " + getPartition( params, partition ) + " ";
+        String sql = "from " + getPartitionSql( params, partition ) + " ";
 
         // ---------------------------------------------------------------------
         // Dimensions
@@ -382,15 +391,21 @@ public class JdbcAnalyticsManager
         if ( params.isRestrictByOrgUnitOpeningClosedDate() && params.hasStartEndDate() )
         {
             sql += sqlHelper.whereAnd() + " (" +
-                "(ouopeningdate <= '" + getMediumDateString( params.getStartDate() ) + "' or ouopeningdate is null) and " +
-                "(oucloseddate >= '" + getMediumDateString( params.getEndDate() ) + "' or oucloseddate is null)) ";
+                "(" + statementBuilder.columnQuote( "ouopeningdate") + " <= '" + getMediumDateString( params.getStartDate() ) + "' or " + statementBuilder.columnQuote( "ouopeningdate" ) + " is null) and " +
+                "(" + statementBuilder.columnQuote( "oucloseddate" ) + " >= '" + getMediumDateString( params.getEndDate() ) + "' or " + statementBuilder.columnQuote( "oucloseddate" ) + " is null)) ";
         }
         
         if ( params.isRestrictByCategoryOptionStartEndDate() && params.hasStartEndDate() )
         {
             sql += sqlHelper.whereAnd() + " (" +
-                "(costartdate <= '" + getMediumDateString( params.getStartDate() ) + "' or costartdate is null) and " +
-                "(coenddate >= '" + getMediumDateString( params.getEndDate() ) + "' or coenddate is null)) ";
+                "(" + statementBuilder.columnQuote( "costartdate" ) + " <= '" + getMediumDateString( params.getStartDate() ) + "' or " + statementBuilder.columnQuote( "costartdate" ) + " is null) and " +
+                "(" + statementBuilder.columnQuote( "coenddate" ) + " >= '" + getMediumDateString( params.getEndDate() ) + "' or " + statementBuilder.columnQuote( "coenddate" ) +  " is null)) ";
+        }
+
+        if ( !params.isRestrictByOrgUnitOpeningClosedDate() && !params.isRestrictByCategoryOptionStartEndDate() && params.hasStartEndDate() )
+        {
+            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "pestartdate" ) + "  >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+            sql += "and " + statementBuilder.columnQuote( "peenddate" ) + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
         }
 
         if ( params.isTimely() )
@@ -402,10 +417,11 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Generates a subquery if preAggregationMeasureCriteria is given
-     * returns the partition of not.
+     * If preAggregationMeasureCriteria is specified, generates a query which
+     * provides a filtered view of the data according to the criteria .If not, 
+     * returns the full view of the partition.
      */
-    private String getPartition( DataQueryParams params, String partition )
+    private String getPartitionSql( DataQueryParams params, String partition )
     {
         if ( params.isDataType( DataType.NUMERIC ) && !params.getPreAggregateMeasureCriteria().isEmpty() )
         {
@@ -453,7 +469,8 @@ public class JdbcAnalyticsManager
      */
     private String getMeasureCriteriaSql( DataQueryParams params )
     {
-        SqlHelper sqlHelper = new SqlHelper(  );
+        SqlHelper sqlHelper = new SqlHelper();
+        
         String sql = " ";
 
         for ( MeasureFilter filter : params.getMeasureCriteria().keySet() )
@@ -474,7 +491,7 @@ public class JdbcAnalyticsManager
     {
         Map<String, Object> map = new HashMap<>();
 
-        log.debug( "Analytics SQL: " + sql );
+        log.debug( String.format( "Analytics SQL: %s", sql ) );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 

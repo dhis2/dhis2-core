@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,9 @@ import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Objects;
-import org.hisp.dhis.dxf2.metadata.ImportSummary;
+import org.hisp.dhis.dxf2.common.ImportSummary;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.node.NodeUtils;
@@ -56,7 +57,6 @@ import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion.Version;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -81,7 +81,7 @@ import java.util.UUID;
  */
 @Controller
 @RequestMapping( value = SystemController.RESOURCE_PATH )
-@ApiVersion( { Version.DEFAULT, Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class SystemController
 {
     public static final String RESOURCE_PATH = "/system";
@@ -128,7 +128,7 @@ public class SystemController
 
         for ( int i = 0; i < limit; i++ )
         {
-            collectionNode.addChild( new SimpleNode( "code", CodeGenerator.generateCode() ) );
+            collectionNode.addChild( new SimpleNode( "code", CodeGenerator.generateUid() ) );
         }
 
         return rootNode;
@@ -151,7 +151,7 @@ public class SystemController
         for ( int i = 0; i < limit; i++ )
         {
             csvGenerator.writeStartObject();
-            csvGenerator.writeStringField( "uid", CodeGenerator.generateCode() );
+            csvGenerator.writeStringField( "uid", CodeGenerator.generateUid() );
             csvGenerator.writeEndObject();
         }
 
@@ -202,16 +202,18 @@ public class SystemController
             TaskCategory taskCategory = TaskCategory.valueOf( category.toUpperCase() );
 
             TaskId taskId = new TaskId( taskCategory, currentUserService.getCurrentUser() );
+            
+            Object summary = notifier.getTaskSummary( taskId );
 
-            if ( taskCategory.equals( TaskCategory.DATAINTEGRITY ) ) //TODO
+            if ( summary != null && summary.getClass().isAssignableFrom( ImportSummary.class ) ) //TODO improve this
             {
-                renderService.toJson( response.getOutputStream(), notifier.getTaskSummary( taskId ) );
+                ImportSummary importSummary = (ImportSummary) summary;
+                renderService.toJson( response.getOutputStream(), importSummary );
                 return;
             }
             else
             {
-                ImportSummary importSummary = (ImportSummary) notifier.getTaskSummary( taskId );
-                renderService.toJson( response.getOutputStream(), importSummary );
+                renderService.toJson( response.getOutputStream(), summary );
                 return;
             }
         }
@@ -250,14 +252,14 @@ public class SystemController
     }
 
     @RequestMapping( value = "/ping", method = RequestMethod.GET, produces = "text/plain" )
-    @ApiVersion( exclude = { Version.V24, Version.V25, Version.V26 } )
+    @ApiVersion( exclude = { DhisApiVersion.V24, DhisApiVersion.V25, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 } )
     public @ResponseBody String pingLegacy()
     {
         return "pong";
     }
 
     @RequestMapping( value = "/ping", method = RequestMethod.GET )
-    @ApiVersion( exclude = { Version.DEFAULT, Version.V23 } )
+    @ApiVersion( exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.V23 } )
     public @ResponseBody String ping()
     {
         return "pong";

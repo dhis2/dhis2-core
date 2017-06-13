@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,11 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.program.ProgramExpression.OBJECT_PROGRAM_STAGE_DATAELEMENT;
-import static org.hisp.dhis.program.ProgramExpression.OBJECT_PROGRAM_STAGE;
-import static org.hisp.dhis.program.ProgramExpression.REPORT_DATE;
-import static org.hisp.dhis.program.ProgramExpression.DUE_DATE;
-import static org.hisp.dhis.program.ProgramExpression.SEPARATOR_ID;
-import static org.hisp.dhis.program.ProgramExpression.SEPARATOR_OBJECT;
+import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.system.util.DateUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -41,11 +40,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.system.util.DateUtils;
-import org.springframework.transaction.annotation.Transactional;
+import static org.hisp.dhis.program.ProgramExpression.*;
 
 /**
  * @author Chau Thu Tran
@@ -90,7 +85,8 @@ public class DefaultProgramExpressionService
     @Override
     public int addProgramExpression( ProgramExpression programExpression )
     {
-        return programExpressionStore.save( programExpression );
+        programExpressionStore.save( programExpression );
+        return programExpression.getId();
     }
 
     @Override

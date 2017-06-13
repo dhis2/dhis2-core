@@ -1,7 +1,7 @@
 package org.hisp.dhis.query.operators;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
-import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.query.planner.QueryPath;
 
 import java.util.Collection;
 import java.util.Date;
@@ -44,13 +44,18 @@ public class InOperator extends Operator
 {
     public InOperator( Collection<?> arg )
     {
-        super( Typed.from( Collection.class ), arg );
+        super( "in", Typed.from( Collection.class ), arg );
+    }
+
+    public InOperator( String name, Collection<?> arg )
+    {
+        super( name, Typed.from( Collection.class ), arg );
     }
 
     @Override
-    public Criterion getHibernateCriterion( Property property )
+    public Criterion getHibernateCriterion( QueryPath queryPath )
     {
-        return Restrictions.in( property.getFieldName(), getValue( Collection.class, property.getItemKlass(), args.get( 0 ) ) );
+        return Restrictions.in( queryPath.getPath(), getValue( Collection.class, queryPath.getProperty().getItemKlass(), args.get( 0 ) ) );
     }
 
     @Override

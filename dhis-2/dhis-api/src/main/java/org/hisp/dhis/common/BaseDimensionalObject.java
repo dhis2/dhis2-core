@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -106,7 +106,7 @@ public class BaseDimensionalObject
     //--------------------------------------------------------------------------
 
     // TODO displayName collides with translation solution, rename
-    
+
     public BaseDimensionalObject()
     {
     }
@@ -339,43 +339,6 @@ public class BaseDimensionalObject
     public void setFixed( boolean fixed )
     {
         this.fixed = fixed;
-    }
-
-    //--------------------------------------------------------------------------
-    // Supportive methods
-    //--------------------------------------------------------------------------
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DimensionalObject dimensionalObject = (DimensionalObject) other;
-
-            dataDimension = dimensionalObject.isDataDimension();
-
-            if ( mergeMode.isReplace() )
-            {
-                dimensionType = dimensionalObject.getDimensionType();
-                dimensionName = dimensionalObject.getDimensionName();
-                legendSet = dimensionalObject.getLegendSet();
-                aggregationType = dimensionalObject.getAggregationType();
-                filter = dimensionalObject.getFilter();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                dimensionType = dimensionalObject.getDimensionType() == null ? dimensionType : dimensionalObject.getDimensionType();
-                dimensionName = dimensionalObject.getDimensionName() == null ? dimensionName : dimensionalObject.getDimensionName();
-                legendSet = dimensionalObject.getLegendSet() == null ? legendSet : dimensionalObject.getLegendSet();
-                aggregationType = dimensionalObject.getAggregationType() == null ? aggregationType : dimensionalObject.getAggregationType();
-                filter = dimensionalObject.getFilter() == null ? filter : dimensionalObject.getFilter();
-            }
-
-            items.clear();
-            items.addAll( dimensionalObject.getItems() );
-        }
     }
 
     @Override

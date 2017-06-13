@@ -43,9 +43,11 @@ import java.util.Set;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.ValueType;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.api.client.util.Maps;
 import com.google.common.collect.Lists;
 
 /**
@@ -66,9 +68,9 @@ public class GridTest
         gridA = new ListGrid();
         gridB = new ListGrid();
         
-        headerA = new GridHeader( "ColA", "colA", String.class.getName(), false, true );
-        headerB = new GridHeader( "ColB", "colB", String.class.getName(), false, true );
-        headerC = new GridHeader( "ColC", "colC", String.class.getName(), true, false );
+        headerA = new GridHeader( "ColA", "colA", ValueType.TEXT, String.class.getName(), false, true );
+        headerB = new GridHeader( "ColB", "colB", ValueType.TEXT, String.class.getName(), false, true );
+        headerC = new GridHeader( "ColC", "colC", ValueType.TEXT, String.class.getName(), true, false );
         
         gridA.addHeader( headerA );
         gridA.addHeader( headerB );
@@ -106,6 +108,110 @@ public class GridTest
         gridA.addRows( gridB );
         
         assertEquals( 5, gridA.getHeight() );
+    }
+    
+    @Test
+    public void testAddHeaders()
+    {
+        Grid grid = new ListGrid();
+        
+        GridHeader headerA = new GridHeader( "DataElementA", "Data element A" );
+        GridHeader headerB = new GridHeader( "DataElementB", "Data element B" );
+        GridHeader headerC = new GridHeader( "DataElementC", "Data element C" );
+        
+        grid.addHeader( headerA );
+        grid.addHeader( headerB );
+        
+        assertEquals( 2, grid.getHeaders().size() );
+        assertEquals( headerA, grid.getHeaders().get( 0 ) );
+        assertEquals( headerB, grid.getHeaders().get( 1 ) );
+        
+        grid.addHeader( 1, headerC );
+
+        assertEquals( 3, grid.getHeaders().size() );
+        assertEquals( headerA, grid.getHeaders().get( 0 ) );
+        assertEquals( headerC, grid.getHeaders().get( 1 ) );
+        assertEquals( headerB, grid.getHeaders().get( 2 ) );
+    }
+
+    @Test
+    public void testColumnIsEmpty()
+    {
+        Grid grid = new ListGrid()
+            .addRow().addValuesVar( "A1", null, "A3", null )
+            .addRow().addValuesVar( "B1", null, "B3", null )
+            .addRow().addValuesVar( null, null, "C3", null )
+            .addRow().addValuesVar( "D1", null, null, null );
+        
+        assertFalse( grid.columnIsEmpty( 0 ) );
+        assertTrue( grid.columnIsEmpty( 1 ) );
+        assertFalse( grid.columnIsEmpty( 2 ) );
+        assertTrue( grid.columnIsEmpty( 3 ) );        
+    }
+    
+    @Test
+    public void testRemoveEmptyColumns()
+    {
+        Grid grid = new ListGrid()
+            .addHeader( new GridHeader( "H1" ) )
+            .addHeader( new GridHeader( "H2" ) )
+            .addHeader( new GridHeader( "H3" ) )
+            .addHeader( new GridHeader( "H4" ) )
+            .addRow().addValuesVar( "A1", null, "A3", null )
+            .addRow().addValuesVar( "B1", null, "B3", null )
+            .addRow().addValuesVar( null, null, "C3", null )
+            .addRow().addValuesVar( "D1", null, null, null );
+        
+        assertEquals( 4, grid.getHeaders().size() );
+        assertEquals( 4, grid.getWidth() );
+        
+        grid.removeEmptyColumns();
+        
+        assertEquals( 2, grid.getWidth() );        
+    }
+
+    @Test
+    public void testRemoveEmptyColumnsWithoutHeaders()
+    {
+        Grid grid = new ListGrid()
+            .addRow().addValuesVar( "A1", null, "A3", null )
+            .addRow().addValuesVar( "B1", null, "B3", null )
+            .addRow().addValuesVar( null, null, "C3", null )
+            .addRow().addValuesVar( "D1", null, null, null );
+        
+        assertEquals( 4, grid.getWidth() );
+        
+        grid.removeEmptyColumns();
+        
+        assertEquals( 2, grid.getWidth() );        
+    }
+    
+    @Test
+    public void testAddHeaderList()
+    {
+        Grid grid = new ListGrid();
+        
+        GridHeader headerA = new GridHeader( "DataElementA", "Data element A" );
+        GridHeader headerB = new GridHeader( "DataElementB", "Data element B" );
+        GridHeader headerC = new GridHeader( "DataElementC", "Data element C" );
+        GridHeader headerD = new GridHeader( "DataElementC", "Data element D" );
+        GridHeader headerE = new GridHeader( "DataElementC", "Data element E" );
+        
+        grid.addHeader( headerA );
+        grid.addHeader( headerB );
+
+        assertEquals( 2, grid.getHeaders().size() );
+        
+        List<GridHeader> headers = Lists.newArrayList( headerC, headerD, headerE );
+        
+        grid.addHeaders( 1, headers );
+
+        assertEquals( 5, grid.getHeaders().size() );
+        assertEquals( headerA, grid.getHeaders().get( 0 ) );
+        assertEquals( headerC, grid.getHeaders().get( 1 ) );
+        assertEquals( headerD, grid.getHeaders().get( 2 ) );
+        assertEquals( headerE, grid.getHeaders().get( 3 ) );
+        assertEquals( headerB, grid.getHeaders().get( 4 ) );        
     }
     
     @Test
@@ -292,50 +398,109 @@ public class GridTest
         assertTrue( row2.contains( 23 ) );
         assertTrue( row2.contains( 24 ) );
     }
+
+    @Test
+    public void testAddColumnAtIndex()
+    {
+        List<Object> columnValues = new ArrayList<>();
+        columnValues.add( 14 );
+        columnValues.add( 24 );
+        columnValues.add( 34 );
+        columnValues.add( 44 );
+        
+        gridA.addColumn( 1, columnValues );
+        
+        List<Object> column1 = gridA.getColumn( 1 );
+        
+        assertEquals( 4, column1.size() );
+        assertTrue( column1.contains( 14 ) );
+        assertTrue( column1.contains( 24 ) );
+        assertTrue( column1.contains( 34 ) );
+        assertTrue( column1.contains( 44 ) );
+        
+        List<Object> column2 = gridA.getColumn( 2 );
+
+        assertEquals( 4, column2.size() );
+        assertTrue( column2.contains( 12 ) );
+        assertTrue( column2.contains( 22 ) );
+        assertTrue( column2.contains( 32 ) );
+        assertTrue( column2.contains( 42 ) );
+        
+        List<Object> row2 = gridA.getRow( 1 );
+        
+        assertEquals( 4, row2.size() );
+        assertTrue( row2.contains( 21 ) );
+        assertTrue( row2.contains( 24 ) );
+        assertTrue( row2.contains( 22 ) );
+        assertTrue( row2.contains( 23 ) );
+    }
     
     @Test
-    public void testAddAndPopulateColumn()
+    public void testAddAndPopulateColumnsBeforeA()
     {
         assertEquals( 3, gridA.getWidth() );
         
-        gridA.addAndPopulateColumn( 81 );
+        Map<Object, List<?>> valueMap = Maps.newHashMap();
+        valueMap.put( 12, Lists.newArrayList( 101, 102, 103 ) );
+        valueMap.put( 22, Lists.newArrayList( 201, 202, 203 ) );
+        valueMap.put( 32, Lists.newArrayList( 301, 302, 303 ) );
         
-        assertEquals( 4, gridA.getWidth() );
+        gridA.addAndPopulateColumnsBefore( 1, valueMap, 3 );
         
-        List<Object> col = gridA.getColumn( 3 );
+        assertEquals( 6, gridA.getWidth() );
+
+        assertEquals( 11, gridA.getValue( 0, 0 ) );
+        assertEquals( 101, gridA.getValue( 0, 1 ) );
+        assertEquals( 102, gridA.getValue( 0, 2 ) );
+        assertEquals( 103, gridA.getValue( 0, 3 ) );
+        assertEquals( 12, gridA.getValue( 0, 4 ) );
+        assertEquals( 13, gridA.getValue( 0, 5 ) );
         
-        assertEquals( 4, col.size() );
-        
-        for ( Object val : col )
-        {
-            assertEquals( 81, val );
-        }        
+        assertEquals( 21, gridA.getValue( 1, 0 ) );
+        assertEquals( 201, gridA.getValue( 1, 1 ) );
+        assertEquals( 202, gridA.getValue( 1, 2 ) );
+        assertEquals( 203, gridA.getValue( 1, 3 ) );
+        assertEquals( 22, gridA.getValue( 1, 4 ) );
+        assertEquals( 23, gridA.getValue( 1, 5 ) );
+
+        assertEquals( 31, gridA.getValue( 2, 0 ) );
+        assertEquals( 301, gridA.getValue( 2, 1 ) );
+        assertEquals( 302, gridA.getValue( 2, 2 ) );
+        assertEquals( 303, gridA.getValue( 2, 3 ) );
+        assertEquals( 32, gridA.getValue( 2, 4 ) );
+        assertEquals( 33, gridA.getValue( 2, 5 ) );
     }
 
     @Test
-    public void testAddAndPopulateColumns()
+    public void testAddAndPopulateColumnsBeforeB()
     {
         assertEquals( 3, gridA.getWidth() );
         
-        gridA.addAndPopulateColumns( 2, 91 );
+        Map<Object, List<?>> valueMap = Maps.newHashMap();
+        valueMap.put( 22, Lists.newArrayList( 201, 202 ) );
+        valueMap.put( 32, Lists.newArrayList( 301 ) );
+        
+        gridA.addAndPopulateColumnsBefore( 1, valueMap, 2 );
         
         assertEquals( 5, gridA.getWidth() );
-        
-        List<Object> col3 = gridA.getColumn( 3 );
-        List<Object> col4 = gridA.getColumn( 4 );
-        
-        assertEquals( 4, col3.size() );
-        assertEquals( 4, col4.size() );
-        
-        for ( Object val : col3 )
-        {
-            assertEquals( 91, val );
-        }
 
-        for ( Object val : col4 )
-        {
-            assertEquals( 91, val );
-        }
+        assertEquals( 11, gridA.getValue( 0, 0 ) );
+        assertEquals( null, gridA.getValue( 0, 1 ) );
+        assertEquals( null, gridA.getValue( 0, 2 ) );
+        assertEquals( 12, gridA.getValue( 0, 3 ) );
+        assertEquals( 13, gridA.getValue( 0, 4 ) );
+        
+        assertEquals( 21, gridA.getValue( 1, 0 ) );
+        assertEquals( 201, gridA.getValue( 1, 1 ) );
+        assertEquals( 202, gridA.getValue( 1, 2 ) );
+        assertEquals( 22, gridA.getValue( 1, 3 ) );
+        assertEquals( 23, gridA.getValue( 1, 4 ) );
+
+        assertEquals( 31, gridA.getValue( 2, 0 ) );
+        assertEquals( 301, gridA.getValue( 2, 1 ) );
+        assertEquals( null, gridA.getValue( 2, 2 ) );
+        assertEquals( 32, gridA.getValue( 2, 3 ) );
+        assertEquals( 33, gridA.getValue( 2, 4 ) );
     }
     
     @Test

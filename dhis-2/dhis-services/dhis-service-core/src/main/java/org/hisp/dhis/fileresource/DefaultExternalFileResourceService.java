@@ -1,6 +1,6 @@
 package org.hisp.dhis.fileresource;
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,7 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
@@ -55,10 +56,10 @@ public class DefaultExternalFileResourceService
     @Transactional
     public String saveExternalFileResource( ExternalFileResource externalFileResource )
     {
-        Assert.notNull(externalFileResource);
-        Assert.notNull(externalFileResource.getFileResource());
+        Assert.notNull( externalFileResource, "External file resource cannot be null" );
+        Assert.notNull( externalFileResource.getFileResource(), "External file resource entity cannot be null" );
 
-        externalFileResource.setAccessToken( ExternalFileResourceTokenGenerator.generate() );
+        externalFileResource.setAccessToken( CodeGenerator.getRandomUrlToken() );
 
         externalFileResourceStore.save( externalFileResource );
 

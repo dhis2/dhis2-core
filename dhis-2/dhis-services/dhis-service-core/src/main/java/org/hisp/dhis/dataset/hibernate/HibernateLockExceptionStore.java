@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset.hibernate;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,11 +78,11 @@ public class HibernateLockExceptionStore
     // -------------------------------------------------------------------------
 
     @Override
-    public int save( LockException lockException )
+    public void save( LockException lockException )
     {
         lockException.setPeriod( periodService.reloadPeriod( lockException.getPeriod() ) );
 
-        return super.save( lockException );
+        super.save( lockException );
     }
 
     @Override
@@ -179,5 +179,15 @@ public class HibernateLockExceptionStore
             Restrictions.eq( "dataSet", dataSet ) );
 
         return (Long) criteria.setProjection( Projections.rowCount() ).uniqueResult();
+    }
+    
+    @Override
+    public boolean anyExists()
+    {
+        String hql = "from LockException";
+        
+        return getQuery( hql )
+            .setMaxResults( 1 )
+            .list().size() > 0;
     }
 }

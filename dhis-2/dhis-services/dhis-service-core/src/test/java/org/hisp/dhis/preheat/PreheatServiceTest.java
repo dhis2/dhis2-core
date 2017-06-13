@@ -40,6 +40,8 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.render.RenderFormat;
@@ -52,6 +54,7 @@ import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -560,7 +563,8 @@ public class PreheatServiceTest
     /**
      * Fails with:
      * java.lang.ClassCastException: java.util.HashMap cannot be cast to java.util.Set
-        at org.hisp.dhis.preheat.PreheatServiceTest.testPreheatWithAttributeValues(PreheatServiceTest.java:597)
+     * at org.hisp.dhis.preheat.PreheatServiceTest.testPreheatWithAttributeValues(PreheatServiceTest.java:597)
+     *
      * @throws IOException
      */
     @Ignore
@@ -586,6 +590,41 @@ public class PreheatServiceTest
 
         assertFalse( preheat.getMandatoryAttributes().isEmpty() );
         assertEquals( 1, preheat.getMandatoryAttributes().get( DataElement.class ).size() );
+    }
+
+    @Test
+    public void testPreheatWithDataSetElements()
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = new HashMap<>();
+
+        DataElement de1 = createDataElement( 'A' );
+        DataElement de2 = createDataElement( 'B' );
+        DataElement de3 = createDataElement( 'C' );
+
+        manager.save( de1 );
+        manager.save( de2 );
+        manager.save( de3 );
+
+        DataSet dataSet = createDataSet( 'A' );
+        dataSet.setAutoFields();
+
+        dataSet.getDataSetElements().add( new DataSetElement( dataSet, de1 ) );
+        dataSet.getDataSetElements().add( new DataSetElement( dataSet, de2 ) );
+        dataSet.getDataSetElements().add( new DataSetElement( dataSet, de3 ) );
+
+        metadata.put( DataSet.class, new ArrayList<>() );
+        metadata.get( DataSet.class ).add( dataSet );
+
+        PreheatParams params = new PreheatParams();
+        params.setPreheatIdentifier( PreheatIdentifier.UID );
+        params.setPreheatMode( PreheatMode.REFERENCE );
+        params.setObjects( metadata );
+
+        preheatService.validate( params );
+        Preheat preheat = preheatService.preheat( params );
+
+        Map<String, IdentifiableObject> map = preheat.getMap().get( PreheatIdentifier.UID ).get( DataElement.class );
+        assertEquals( 3, map.size() );
     }
 
     private void defaultSetup()

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,10 +32,11 @@ import com.google.api.client.util.Lists;
 import com.google.common.base.Enums;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
-import org.hisp.dhis.dxf2.common.Status;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -45,19 +46,23 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.scheduling.TaskCategory;
 import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -80,6 +85,9 @@ public class DefaultMetadataImportService implements MetadataImportService
     private ObjectBundleValidationService objectBundleValidationService;
 
     @Autowired
+    private AclService aclService;
+
+    @Autowired
     private Notifier notifier;
 
     @Override
@@ -87,8 +95,9 @@ public class DefaultMetadataImportService implements MetadataImportService
     {
         Timer timer = new SystemTimer().start();
 
-        ImportReport report = new ImportReport();
-        report.setStatus( Status.OK );
+        ImportReport importReport = new ImportReport();
+        importReport.setImportParams( params );
+        importReport.setStatus( Status.OK );
 
         if ( params.getUser() == null )
         {
@@ -106,26 +115,31 @@ public class DefaultMetadataImportService implements MetadataImportService
         ObjectBundleParams bundleParams = params.toObjectBundleParams();
         ObjectBundle bundle = objectBundleService.create( bundleParams );
 
+        prepareBundle( bundle );
+
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        report.addTypeReports( validationReport.getTypeReportMap() );
+        importReport.addTypeReports( validationReport.getTypeReportMap() );
 
         if ( !(!validationReport.getErrorReports().isEmpty() && AtomicMode.ALL == bundle.getAtomicMode()) )
         {
             Timer commitTimer = new SystemTimer().start();
 
             ObjectBundleCommitReport commitReport = objectBundleService.commit( bundle );
-            report.addTypeReports( commitReport.getTypeReportMap() );
+            importReport.addTypeReports( commitReport.getTypeReportMap() );
 
-            if ( !report.getErrorReports().isEmpty() )
+            if ( !importReport.getErrorReports().isEmpty() )
             {
-                report.setStatus( Status.WARNING );
+                importReport.setStatus( Status.WARNING );
             }
 
             log.info( "(" + bundle.getUsername() + ") Import:Commit took " + commitTimer.toString() );
         }
         else
         {
-            report.setStatus( Status.ERROR );
+            importReport.getStats().ignored();
+            importReport.getTypeReports().forEach( tr -> tr.getStats().ignored() );
+
+            importReport.setStatus( Status.ERROR );
         }
 
         message = "(" + bundle.getUsername() + ") Import:Done took " + timer.toString();
@@ -135,18 +149,23 @@ public class DefaultMetadataImportService implements MetadataImportService
         if ( bundle.hasTaskId() )
         {
             notifier.notify( bundle.getTaskId(), NotificationLevel.INFO, message, true )
-                .addTaskSummary( bundle.getTaskId(), report );
+                .addTaskSummary( bundle.getTaskId(), importReport );
         }
 
-        Lists.newArrayList( report.getTypeReportMap().keySet() ).forEach( typeReportKey ->
+        if ( ObjectBundleMode.VALIDATE == params.getImportMode() )
         {
-            if ( report.getTypeReportMap().get( typeReportKey ).getStats().getTotal() == 0 )
+            return importReport;
+        }
+
+        Lists.newArrayList( importReport.getTypeReportMap().keySet() ).forEach( typeReportKey ->
+        {
+            if ( importReport.getTypeReportMap().get( typeReportKey ).getStats().getTotal() == 0 )
             {
-                report.getTypeReportMap().remove( typeReportKey );
+                importReport.getTypeReportMap().remove( typeReportKey );
                 return;
             }
 
-            TypeReport typeReport = report.getTypeReportMap().get( typeReportKey );
+            TypeReport typeReport = importReport.getTypeReportMap().get( typeReportKey );
 
             if ( ImportReportMode.ERRORS == params.getImportReportMode() )
             {
@@ -165,7 +184,7 @@ public class DefaultMetadataImportService implements MetadataImportService
             }
         } );
 
-        return report;
+        return importReport;
     }
 
     @Override
@@ -225,5 +244,31 @@ public class DefaultMetadataImportService implements MetadataImportService
         String value = String.valueOf( parameters.get( key ).get( 0 ) );
 
         return Enums.getIfPresent( enumKlass, value ).or( defaultValue );
+    }
+
+    private void prepareBundle( ObjectBundle bundle )
+    {
+        if ( bundle.getUser() == null )
+        {
+            return;
+        }
+
+        for ( Class<? extends IdentifiableObject> klass : bundle.getObjectMap().keySet() )
+        {
+            bundle.getObjectMap().get( klass ).forEach( o -> prepareObject( (BaseIdentifiableObject) o, bundle ) );
+        }
+    }
+
+    private void prepareObject( BaseIdentifiableObject object, ObjectBundle bundle )
+    {
+        if ( StringUtils.isEmpty( object.getPublicAccess() ) )
+        {
+            aclService.resetSharing( object, bundle.getUser() );
+        }
+
+        if ( object.getUser() == null ) object.setUser( bundle.getUser() );
+        if ( object.getUserGroupAccesses() == null ) object.setUserGroupAccesses( new HashSet<>() );
+        if ( object.getUserAccesses() == null ) object.setUserAccesses( new HashSet<>() );
+        object.setLastUpdatedBy( bundle.getUser() );
     }
 }

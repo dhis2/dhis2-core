@@ -3,7 +3,7 @@ package org.hisp.dhis.sms.config;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,14 +37,8 @@ public class ClickatellGatewayConfig
     extends SmsGatewayConfig
 {
     private static final long serialVersionUID = -4286107769356591957L;
-    
-    private final String TOKEN_PREFIX = "Bearer ";
-    
-    private final String URL_TEMPLATE = "https://api.clickatell.com/rest/message";
 
-    private String username;
-
-    private String password;
+    private final String URL_TEMPLATE = "https://platform.clickatell.com/messages";
     
     private String authToken;
 
@@ -56,35 +50,13 @@ public class ClickatellGatewayConfig
 
     public void setAuthToken( String authToken )
     {
-        this.authToken = TOKEN_PREFIX + authToken;
-    }
-
-    @JsonProperty( value = "username" )
-    public String getUsername()
-    {
-        return username;
-    }
-
-    public void setUsername( String username )
-    {
-        this.username = username;
-    }
-
-    @JsonProperty( value = "password" )
-    public String getPassword()
-    {
-        return password;
+        this.authToken = authToken;
     }
 
     @JsonProperty( value = "default" )
     public boolean getStatus()
     {
         return super.isDefault();
-    }
-
-    public void setPassword( String password )
-    {
-        this.password = password;
     }
 
     @JsonProperty( value = "name" )

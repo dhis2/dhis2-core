@@ -34,13 +34,11 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
-import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -53,7 +51,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Bharath
- * @version $Id$
  */
 public class DataEntryFormServiceTest
     extends DhisSpringTest
@@ -206,22 +203,6 @@ public class DataEntryFormServiceTest
         assertEquals( dataEntryForms.size(), 2 );
         assertTrue( dataEntryForms.contains( dataEntryFormA ) );
         assertTrue( dataEntryForms.contains( dataEntryFormB ) );
-    }
-
-    @Test
-    public void testGetOperands()
-    {
-        String html = "<table><tr><td><input id=\"abc-def-val\" style=\"width:4em;text-align:center\" /></td></tr></table>";
-        DataEntryForm dataEntryForm = new DataEntryForm( "FormA", html );
-        DataSet dataSet = createDataSet( 'A', new MonthlyPeriodType() );
-        dataSet.setDataEntryForm( dataEntryForm );
-        
-        Set<DataElementOperand> operands = dataEntryFormService.getOperandsInDataEntryForm( dataSet );
-        
-        DataElementOperand operand = new DataElementOperand( "abc", "def" );
-        
-        assertEquals( 1, operands.size() );
-        assertTrue( operands.contains( operand ) );
     }
     
     @Test

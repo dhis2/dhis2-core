@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,10 +37,7 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.common.MetadataObject;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -50,13 +47,13 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "organisationUnitGroup", namespace = DxfNamespaces.DXF_2_0 )
 public class OrganisationUnitGroup
-    extends BaseDimensionalItemObject
+    extends BaseDimensionalItemObject implements MetadataObject
 {
     private String symbol;
 
     private Set<OrganisationUnit> members = new HashSet<>();
 
-    private OrganisationUnitGroupSet groupSet;
+    private Set<OrganisationUnitGroupSet> groupSets = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -159,46 +156,17 @@ public class OrganisationUnitGroup
         this.members = members;
     }
 
-    @JsonProperty( "organisationUnitGroupSet" )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.REFERENCE, required = Property.Value.FALSE )
-    public OrganisationUnitGroupSet getGroupSet()
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "groupSets", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "groupSet", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<OrganisationUnitGroupSet> getGroupSets()
     {
-        return groupSet;
+        return groupSets;
     }
 
-    public void setGroupSet( OrganisationUnitGroupSet groupSet )
+    public void setGroupSets( Set<OrganisationUnitGroupSet> groupSets )
     {
-        this.groupSet = groupSet;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            OrganisationUnitGroup organisationUnitGroup = (OrganisationUnitGroup) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                groupSet = organisationUnitGroup.getGroupSet();
-                symbol = organisationUnitGroup.getSymbol();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                groupSet = organisationUnitGroup.getGroupSet() == null ? groupSet : organisationUnitGroup.getGroupSet();
-                symbol = organisationUnitGroup.getSymbol() == null ? symbol : organisationUnitGroup.getSymbol();
-            }
-
-            removeAllOrganisationUnits();
-
-            for ( OrganisationUnit organisationUnit : organisationUnitGroup.getMembers() )
-            {
-                addOrganisationUnit( organisationUnit );
-            }
-        }
+        this.groupSets = groupSets;
     }
 }

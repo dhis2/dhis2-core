@@ -32,24 +32,48 @@
     <property name="operator" column="operator" type="org.hisp.dhis.expression.OperatorUserType" not-null="true" />
 
     <many-to-one name="leftSide" column="leftexpressionid" class="org.hisp.dhis.expression.Expression"
-      cascade="all" foreign-key="fk_validationrule_leftexpressionid" />
+      cascade="all" foreign-key="fk_validationrule_leftexpressionid" not-null="true" />
 
     <many-to-one name="rightSide" column="rightexpressionid" class="org.hisp.dhis.expression.Expression"
-      cascade="all" foreign-key="fk_validationrule_rightexpressionid" />
+      cascade="all" foreign-key="fk_validationrule_rightexpressionid" not-null="true" />
 
     <set name="groups" table="validationrulegroupmembers" inverse="true">
       <key column="validationruleid" />
       <many-to-many class="org.hisp.dhis.validation.ValidationRuleGroup" column="validationgroupid" />
     </set>
 
+    <set name="notificationTemplates" table="validationnotificationtemplatevalidationrules" inverse="true">
+      <cache usage="read-write" />
+      <key column="validationruleid" foreign-key="fk_validationrule_validationnotificationtemplateid" />
+      <many-to-many class="org.hisp.dhis.validation.notification.ValidationNotificationTemplate"
+        column="validationnotificationtemplateid" />
+    </set>
+
     <many-to-one name="periodType" class="org.hisp.dhis.period.PeriodType" column="periodtypeid"
       foreign-key="fk_validationrule_periodtypeid" not-null="true" />
 
     <!-- Object Translation -->
-    <set name="translations" table="validationruletranslations" cascade="delete-orphan">
+    <set name="translations" table="validationruletranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="validationruleid" foreign-key="fk_objecttranslation_validationruleid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
+    </set>
+
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_validationrule_userid" />
+
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="validationruleusergroupaccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="validationruleid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="validationruleuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="validationruleid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
   </class>

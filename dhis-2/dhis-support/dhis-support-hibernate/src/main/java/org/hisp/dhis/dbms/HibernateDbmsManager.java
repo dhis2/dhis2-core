@@ -1,7 +1,7 @@
 package org.hisp.dhis.dbms;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,16 @@ package org.hisp.dhis.dbms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -87,10 +89,10 @@ public class HibernateDbmsManager
         emptyTable( "datavalueaudit" );
         emptyTable( "datavalue" );
         emptyTable( "completedatasetregistration" );
-        
+
         emptyTable( "pushanalysisrecipientusergroups" );
         emptyTable( "pushanalysis" );
-        
+
         emptyTable( "dashboarditem_users" );
         emptyTable( "dashboarditem_resources" );
         emptyTable( "dashboarditem_reports" );
@@ -99,25 +101,25 @@ public class HibernateDbmsManager
         emptyTable( "dashboardusergroupaccesses" );
         emptyTable( "dashboard" );
 
-        emptyTable( "delete from interpretation_comments" );
-        emptyTable( "delete from interpretationcommenttranslations" );
-        emptyTable( "delete from interpretationcomment" );
-        emptyTable( "delete from interpretationtranslations" );
-        emptyTable( "delete from interpretationusergroupaccesses" );
-        emptyTable( "delete from interpretation" );
-        
+        emptyTable( "interpretation_comments" );
+        emptyTable( "interpretationcommenttranslations" );
+        emptyTable( "interpretationcomment" );
+        emptyTable( "interpretationtranslations" );
+        emptyTable( "interpretationusergroupaccesses" );
+        emptyTable( "interpretation" );
+
         emptyTable( "delete from reportusergroupaccesses" );
         emptyTable( "delete from report" );
-        
+
         emptyTable( "reporttable_categorydimensions" );
-        emptyTable( "reporttable_categoryoptiongroups" );
+        emptyTable( "reporttable_categoryoptiongroupsetdimensions" );
         emptyTable( "reporttable_columns" );
         emptyTable( "reporttable_datadimensionitems" );
-        emptyTable( "reporttable_dataelementgroups" );
+        emptyTable( "reporttable_dataelementgroupsetdimensions" );
         emptyTable( "reporttable_filters" );
         emptyTable( "reporttable_itemorgunitgroups" );
         emptyTable( "reporttable_organisationunits" );
-        emptyTable( "reporttable_orgunitgroups" );
+        emptyTable( "reporttable_orgunitgroupsetdimensions" );
         emptyTable( "reporttable_orgunitlevels" );
         emptyTable( "reporttable_periods" );
         emptyTable( "reporttable_rows" );
@@ -126,26 +128,26 @@ public class HibernateDbmsManager
         emptyTable( "reporttable" );
 
         emptyTable( "chart_categorydimensions" );
-        emptyTable( "chart_categoryoptiongroups" );
+        emptyTable( "chart_categoryoptiongroupsetdimensions" );
         emptyTable( "chart_datadimensionitems" );
-        emptyTable( "chart_dataelementgroups" );
+        emptyTable( "chart_dataelementgroupsetdimensions" );
         emptyTable( "chart_filters" );
         emptyTable( "chart_itemorgunitgroups" );
         emptyTable( "chart_organisationunits" );
-        emptyTable( "chart_orgunitgroups" );
+        emptyTable( "chart_orgunitgroupsetdimensions" );
         emptyTable( "chart_orgunitlevels" );
         emptyTable( "chart_periods" );
         emptyTable( "chartusergroupaccesses" );
         emptyTable( "charttranslations" );
         emptyTable( "chart" );
-        
+
         emptyTable( "eventreport_attributedimensions" );
         emptyTable( "eventreport_columns" );
         emptyTable( "eventreport_dataelementdimensions" );
         emptyTable( "eventreport_filters" );
         emptyTable( "eventreport_itemorgunitgroups" );
         emptyTable( "eventreport_organisationunits" );
-        emptyTable( "eventreport_orgunitgroups" );
+        emptyTable( "eventreport_orgunitgroupsetdimensions" );
         emptyTable( "eventreport_orgunitlevels" );
         emptyTable( "eventreport_periods" );
         emptyTable( "eventreport_programindicatordimensions" );
@@ -160,7 +162,7 @@ public class HibernateDbmsManager
         emptyTable( "eventchart_filters" );
         emptyTable( "eventchart_itemorgunitgroups" );
         emptyTable( "eventchart_organisationunits" );
-        emptyTable( "eventchart_orgunitgroups" );
+        emptyTable( "eventchart_orgunitgroupsetdimensions" );
         emptyTable( "eventchart_orgunitlevels" );
         emptyTable( "eventchart_periods" );
         emptyTable( "eventchart_programindicatordimensions" );
@@ -169,7 +171,15 @@ public class HibernateDbmsManager
         emptyTable( "eventcharttranslations" );
         emptyTable( "eventchart" );
         
+        emptyTable( "dataelementgroupsetdimension_items" );
+        emptyTable( "dataelementgroupsetdimension" );
+        emptyTable( "categoryoptiongroupsetdimension" );
+        emptyTable( "categoryoptiongroupsetdimension_items" );
+        emptyTable( "orgunitgroupsetdimension_items" );
+        emptyTable( "orgunitgroupsetdimension" );
+
         emptyTable( "users_catdimensionconstraints" );
+        emptyTable( "users_cogsdimensionconstraints" );
         emptyTable( "userrolemembers" );
         emptyTable( "userroledataset" );
         emptyTable( "userroleauthorities" );
@@ -180,7 +190,7 @@ public class HibernateDbmsManager
         emptyTable( "orgunitgroupsetmembers" );
         emptyTable( "orgunitgroupset" );
         emptyTable( "orgunitgroupsetusergroupaccesses" );
-        
+
         emptyTable( "orgunitgroupmembers" );
         emptyTable( "orgunitgroup" );
         emptyTable( "orgunitgroupusergroupaccesses" );
@@ -189,7 +199,9 @@ public class HibernateDbmsManager
         emptyTable( "validationrulegroupmembers" );
         emptyTable( "validationrulegroup" );
         emptyTable( "validationrulegroupusergroupaccesses" );
-        
+
+        emptyTable( "validationresult" );
+
         emptyTable( "validationrule" );
         emptyTable( "validationruleusergroupaccesses" );
 
@@ -204,9 +216,13 @@ public class HibernateDbmsManager
         emptyTable( "datasetusergroupaccesses" );
         emptyTable( "dataset" );
 
+        emptyTable( "dataapprovalaudit" );
         emptyTable( "dataapprovalworkflowlevels" );
         emptyTable( "dataapprovalworkflow" );
         emptyTable( "dataapprovallevel" );
+
+        emptyTable( "predictororgunitlevels" );
+        emptyTable( "predictor" );
 
         emptyTable( "trackedentitydatavalue" );
         emptyTable( "programstageinstance" );
@@ -223,47 +239,49 @@ public class HibernateDbmsManager
         emptyTable( "expressionsampleelement" );
         emptyTable( "expressionoptioncombo" );
         emptyTable( "calculateddataelement" );
-        
+
         emptyTable( "dataelementgroupsetmembers" );
         emptyTable( "dataelementgroupsetusergroupaccesses" );
         emptyTable( "dataelementgroupset" );
-        
+
         emptyTable( "dataelementgroupmembers" );
         emptyTable( "dataelementgroupusergroupaccesses" );
         emptyTable( "dataelementgroup" );
-        
+
         emptyTable( "dataelementaggregationlevels" );
         emptyTable( "dataelementoperand" );
         emptyTable( "dataelementusergroupaccesses" );
         emptyTable( "dataelement" );
-        
+
         emptyTable( "categoryoptioncombos_categoryoptions" );
         emptyTable( "categorycombos_optioncombos" );
         emptyTable( "categorycombos_categories" );
         emptyTable( "categories_categoryoptions" );
 
-        emptyTable( "categoryoption_organisationunits" );        
+        emptyTable( "categoryoption_organisationunits" );
         emptyTable( "organisationunit" );
-        
+        emptyTable( "orgunitlevel" );
+
         emptyTable( "version" );
+        emptyTable( "deletedobject" );
         emptyTable( "mocksource" );
         emptyTable( "period" );
 
         emptyTable( "indicatorgroupsetmembers" );
         emptyTable( "indicatorgroupsetusergroupaccesses" );
         emptyTable( "indicatorgroupset" );
-        
+
         emptyTable( "indicatorgroupmembers" );
         emptyTable( "indicatorgroupusergroupaccesses" );
         emptyTable( "indicatorgroup" );
-        
+
         emptyTable( "indicator" );
         emptyTable( "indicatortype" );
 
         emptyTable( "categoryoptiongroupsetmembers" );
         emptyTable( "categoryoptiongroupsetusergroupaccesses" );
         emptyTable( "categoryoptiongroupset" );
-        
+
         emptyTable( "categoryoptiongroupmembers" );
         emptyTable( "categoryoptiongroupusergroupaccesses" );
         emptyTable( "categoryoptiongroup" );
@@ -289,17 +307,18 @@ public class HibernateDbmsManager
         emptyTable( "users" );
         emptyTable( "userinfo" );
 
+        dropTable( "_orgunitstructure" );
+        dropTable( "_datasetorganisationunitcategory" );
         dropTable( "_categoryoptioncomboname" );
-        dropTable( "_categoryoptiongroupsetstructure" );
-        dropTable( "_categorystructure" );
-        dropTable( "_dataelementcategoryoptioncombo" );
         dropTable( "_dataelementgroupsetstructure" );
-        dropTable( "_dataelementstructure" );
-        dropTable( "_dateperiodstructure" );
         dropTable( "_indicatorgroupsetstructure" );
         dropTable( "_organisationunitgroupsetstructure" );
-        dropTable( "_orgunitstructure" );
+        dropTable( "_categorystructure" );
+        dropTable( "_dataelementstructure" );
+        dropTable( "_dateperiodstructure" );
         dropTable( "_periodstructure" );
+        dropTable( "_dataelementcategoryoptioncombo" );
+        dropTable( "_dataapprovalminlevel" );
 
         log.debug( "Cleared database contents" );
 
@@ -313,6 +332,12 @@ public class HibernateDbmsManager
     {
         sessionFactory.getCurrentSession().flush();
         sessionFactory.getCurrentSession().clear();
+    }
+
+    @Override
+    public void flushSession()
+    {
+        sessionFactory.getCurrentSession().flush();
     }
 
     @Override
@@ -331,14 +356,48 @@ public class HibernateDbmsManager
     @Override
     public boolean tableExists( String tableName )
     {
-        final String sql = 
+        final String sql =
             "select table_name from information_schema.tables " +
-            "where table_name = '" + tableName + "' " +
-            "and table_type = 'BASE TABLE'";
-        
+                "where table_name = '" + tableName + "' " +
+                "and table_type = 'BASE TABLE'";
+
         List<Object> tables = jdbcTemplate.queryForList( sql, Object.class );
-        
+
         return tables != null && tables.size() > 0;
+    }
+
+
+    @Override
+    public List<List<Object>> getTableContent( String table )
+    {
+        List<List<Object>> tableContent = new ArrayList<>();
+
+        SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet( "select * from " + table );
+        int cols = sqlRowSet.getMetaData().getColumnCount() + 1;
+
+        List<Object> headers = new ArrayList<>();
+
+        for ( int i = 1; i < cols; i++ )
+        {
+            headers.add( sqlRowSet.getMetaData().getColumnName( i ) );
+        }
+
+        tableContent.add( headers );
+
+        while ( sqlRowSet.next() )
+        {
+            List<Object> row = new ArrayList<>();
+
+            for ( int i = 1; i < cols; i++ )
+            {
+                row.add( sqlRowSet.getObject( i ) );
+
+            }
+
+            tableContent.add( row );
+        }
+
+        return tableContent;
     }
 
     // -------------------------------------------------------------------------

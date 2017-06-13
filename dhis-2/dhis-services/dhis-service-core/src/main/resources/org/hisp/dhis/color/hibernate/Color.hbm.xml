@@ -20,7 +20,7 @@
     <property name="color" column="color" />
 
     <!-- Object Translation -->
-    <set name="translations" table="colortranslations" cascade="delete-orphan">
+    <set name="translations" table="colortranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="colorid" foreign-key="fk_objecttranslation_colorid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

@@ -3,7 +3,7 @@
   "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
   [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
->
+  >
 
 <hibernate-mapping>
   <class name="org.hisp.dhis.indicator.IndicatorType" table="indicatortype">
@@ -14,7 +14,7 @@
       <generator class="native" />
     </id>
     &identifiableProperties;
-    
+
     <property name="name" column="name" not-null="true" unique="true" length="230" />
 
     <property name="factor" column="indicatorfactor" not-null="true" />
@@ -22,7 +22,7 @@
     <property name="number" column="indicatornumber" />
 
     <!-- Object Translation -->
-    <set name="translations" table="indicatortypetranslations" cascade="delete-orphan">
+    <set name="translations" table="indicatortypetranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="indicatortypeid" foreign-key="fk_objecttranslation_indicatortypeid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

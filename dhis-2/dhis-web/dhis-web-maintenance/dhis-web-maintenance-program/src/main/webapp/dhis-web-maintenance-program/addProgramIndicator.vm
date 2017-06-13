@@ -29,12 +29,12 @@ jQuery( document ).ready( function()
 <table>
 	<thead>
       <tr>
-        <th colspan="2">$i18n.getString( "program_indicator_details" )sadasd</th>
+        <th colspan="2">$i18n.getString( "program_indicator_details" )</th>
       </tr>
     </thead>
 	<tbody>
 		<tr>
-			<td style="width:140px"><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( "required" )" class="required">*</em></label></td>
+			<td style="width:150px"><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( "required" )" class="required">*</em></label></td>
 			<td><input type="text" id="name" name="name" ></td>
 		</tr>	
 		<tr>
@@ -63,21 +63,31 @@ jQuery( document ).ready( function()
 				</select>
 			</td>
 		</tr>
+                <tr #if($program.programType == 'WITHOUT_REGISTRATION')style="display:none"#end>
+                    <td><label for="analyticsType">$i18n.getString( "analytics_type" )</label></td>
+                    <td>
+                        <select id="analyticsType" name="analyticsType" onchange="analyticsTypeChanged()">
+                            <option value="EVENT" #if($program.programType=='WITHOUT_REGISTRATION') selected #end>$i18n.getString( "analytics_type_event" )</option>
+                            <option value="ENROLLMENT">$i18n.getString( "analytics_type_enrollment" )</option>
+                        </select>
+                    </td>
+                    <td></td>
+                </tr>
 		<tr>
-	        <td><label for="aggregationType">$i18n.getString( "aggregation_type" )</label></td>
-	        <td>
-	            <select id="aggregationType" name="aggregationType">
-	                <option value="AVERAGE">$i18n.getString( "average" )</option>
-	                <option value="SUM">$i18n.getString( "sum" )</option>
-	                <option value="COUNT">$i18n.getString( "count" )</option>
-	                <option value="STDDEV">$i18n.getString( "stddev" )</option>
-	                <option value="VARIANCE">$i18n.getString( "variance" )</option>
-	                <option value="MIN">$i18n.getString( "min" )</option>
-	                <option value="MAX">$i18n.getString( "max" )</option>
-	                <option value="CUSTOM">$i18n.getString( "custom" )</option>
-	            </select>
-	        </td>
-			<td></td>
+                    <td><label for="aggregationType">$i18n.getString( "aggregation_type" )</label></td>
+                    <td>
+                        <select id="aggregationType" name="aggregationType">
+                            <option value="AVERAGE">$i18n.getString( "average" )</option>
+                            <option value="SUM">$i18n.getString( "sum" )</option>
+                            <option value="COUNT">$i18n.getString( "count" )</option>
+                            <option value="STDDEV">$i18n.getString( "stddev" )</option>
+                            <option value="VARIANCE">$i18n.getString( "variance" )</option>
+                            <option value="MIN">$i18n.getString( "min" )</option>
+                            <option value="MAX">$i18n.getString( "max" )</option>
+                            <option value="CUSTOM">$i18n.getString( "custom" )</option>
+                        </select>
+                    </td>
+                    <td></td>
 	    </tr>
 	    <tr>
 	        <td><label>$i18n.getString( 'legend_set' )</label></td>            
@@ -94,6 +104,14 @@ jQuery( document ).ready( function()
 			<td><label for="displayInForm">$i18n.getString( "display_in_form" )</label></td>
 			<td><input type="checkbox" id="displayInForm" name="displayInForm" value="true"></td>
 		</tr>
+		<tr>
+            <td><label for="aggregateExportCategoryOptionCombo">$i18n.getString( "aggregate_export_category_option_combo" )</label></td>
+            <td><input type="text" id="aggregateExportCategoryOptionCombo" name="aggregateExportCategoryOptionCombo"></td>
+        </tr>
+        <tr>
+            <td><label for="aggregateExportAttributeOptionCombo">$i18n.getString( "aggregate_export_attribute_option_combo" )</label></td>
+            <td><input type="text" id="aggregateExportAttributeOptionCombo" name="aggregateExportAttributeOptionCombo"></td>
+        </tr>
 </table>
 
 <br>

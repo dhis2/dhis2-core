@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset.hibernate;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,8 @@ package org.hisp.dhis.dataset.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.List;
-
 import com.google.common.collect.Lists;
 import org.hibernate.criterion.Restrictions;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.DataSet;
@@ -41,6 +37,8 @@ import org.hisp.dhis.dataset.DataSetStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+
+import java.util.List;
 
 /**
  * @author Kristian Nordal
@@ -65,13 +63,13 @@ public class HibernateDataSetStore
     // -------------------------------------------------------------------------
 
     @Override
-    public int save( DataSet dataSet )
+    public void save( DataSet dataSet )
     {
         PeriodType periodType = periodService.reloadPeriodType( dataSet.getPeriodType() );
 
         dataSet.setPeriodType( periodType );
 
-        return super.save( dataSet );
+        super.save( dataSet );
     }
 
     @Override
@@ -95,15 +93,6 @@ public class HibernateDataSetStore
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<DataSet> getDataSetsBySources( Collection<OrganisationUnit> sources )
-    {
-        String hql = "select distinct d from DataSet d join d.sources s where s.id in (:ids)";
-
-        return getQuery( hql ).setParameterList( "ids", IdentifiableObjectUtils.getIdentifiers( sources ) ).list();
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
     public List<DataSet> getDataSetsForMobile( OrganisationUnit source )
     {
         String hql = "from DataSet d where :source in elements(d.sources) and d.mobile = true";
@@ -123,14 +112,5 @@ public class HibernateDataSetStore
         final String hql = "from DataSet d where d.dataEntryForm = :dataEntryForm";
 
         return getQuery( hql ).setEntity( "dataEntryForm", dataEntryForm ).list();
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public List<DataSet> getDataSetsForMobile()
-    {
-        String hql = "from DataSet d where d.mobile = true";
-        
-        return getQuery( hql ).list();
     }
 }

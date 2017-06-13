@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,12 +35,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -52,6 +51,10 @@ public class TrackedEntityInstance
     extends BaseIdentifiableObject
 {
     public static String PREFIX_TRACKED_ENTITY_ATTRIBUTE = "attr";
+
+    private Date createdAtClient;
+
+    private Date lastUpdatedAtClient;
 
     private Set<TrackedEntityAttributeValue> trackedEntityAttributeValues = new HashSet<>();
 
@@ -65,12 +68,27 @@ public class TrackedEntityInstance
 
     private Boolean inactive = false;
 
+    private Boolean deleted = false;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
 
     public TrackedEntityInstance()
     {
+    }
+
+    @Override
+    public void setAutoFields()
+    {
+        super.setAutoFields();
+
+        if ( createdAtClient == null )
+        {
+            createdAtClient = created;
+        }
+
+        lastUpdatedAtClient = lastUpdated;
     }
 
     // -------------------------------------------------------------------------
@@ -92,6 +110,30 @@ public class TrackedEntityInstance
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getCreatedAtClient()
+    {
+        return createdAtClient;
+    }
+
+    public void setCreatedAtClient( Date createdAtClient )
+    {
+        this.createdAtClient = createdAtClient;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getLastUpdatedAtClient()
+    {
+        return lastUpdatedAtClient;
+    }
+
+    public void setLastUpdatedAtClient( Date lastUpdatedAtClient )
+    {
+        this.lastUpdatedAtClient = lastUpdatedAtClient;
+    }
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
@@ -170,35 +212,15 @@ public class TrackedEntityInstance
         this.inactive = inactive;
     }
 
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
+    @JsonProperty
+    @JacksonXmlProperty( localName = "deleted", namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean isDeleted()
     {
-        super.mergeWith( other, mergeMode );
+        return deleted;
+    }
 
-        if ( other.getClass().isInstance( this ) )
-        {
-            TrackedEntityInstance trackedEntityInstance = (TrackedEntityInstance) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                organisationUnit = trackedEntityInstance.getOrganisationUnit();
-                inactive = trackedEntityInstance.isInactive();
-                trackedEntity = trackedEntityInstance.getTrackedEntity();
-                representative = trackedEntityInstance.getRepresentative();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                organisationUnit = trackedEntityInstance.getOrganisationUnit() == null ? organisationUnit : trackedEntityInstance.getOrganisationUnit();
-                inactive = trackedEntityInstance.isInactive() == null ? inactive : trackedEntityInstance.isInactive();
-                trackedEntity = trackedEntityInstance.getTrackedEntity() == null ? trackedEntity : trackedEntityInstance.getTrackedEntity();
-                representative = trackedEntityInstance.getRepresentative() == null ? representative : trackedEntityInstance.getRepresentative();
-            }
-
-            trackedEntityAttributeValues.clear();
-            trackedEntityAttributeValues.addAll( trackedEntityInstance.getTrackedEntityAttributeValues() );
-
-            programInstances.clear();
-            programInstances.addAll( trackedEntityInstance.getProgramInstances() );
-        }
+    public void setDeleted( Boolean deleted )
+    {
+        this.deleted = deleted;
     }
 }

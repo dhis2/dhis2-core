@@ -29,8 +29,6 @@
 
 <form id="exportForm" name="exportForm" method="post" action="exportDataValue.action">
 
-<input type="hidden" id="exportFormat" name="exportFormat">
-
 <table width="708">
 	
     <colgroup>
@@ -87,9 +85,24 @@
 		<td><input type="text" id="startDate" name="startDate" value="$!startDate" style="width:190px"></td>
 	</tr>
 	<tr>
-		<td>$i18n.getString( "end_date" )</td>
+        <td>$i18n.getString( "end_date" )</td>
 		<td><input type="text" id="endDate" name="endDate" value="$!endDate" style="width:190px"></td>
 	</tr>
+	<tr>
+	    <td>$i18n.getString( "format" )</td>
+	    <td><select id="exportFormat" name="exportFormat" style="width:190px">
+            <option value="json">JSON</option>
+            <option value="xml">XML</option>
+            <option value="csv">CSV</option>
+        </select></td>
+    </tr>
+	<tr>
+	    <td>$i18n.getString( "compression" )</td>
+	    <td><select id="compression" name="compression" style="width:190px">
+	        <option value="zip">$i18n.getString( "compression_zip" )</option>
+            <option value="none">$i18n.getString( "uncompressed" )</option>
+        </select></td>
+    </tr>
 	<tr>
 		<td></td>
 		<td><a href="javascript:toggleOptions()">$i18n.getString( "more_options" )</a></td>
@@ -100,6 +113,9 @@
 			<option value="UID">$i18n.getString( "uid" )</option>
 			<option value="CODE">$i18n.getString( "code" )</option>
 			<option value="NAME">$i18n.getString( "name" )</option>
+			#foreach( $attr in $dataElementAttributes )
+			    <option value="ATTRIBUTE:${attr.uid}">$encoder.htmlEncode( $attr.displayName )</option>
+			#end
 	    </select></td>
 	</tr>
 	<tr class="moreOptions" style="display:none">
@@ -108,6 +124,9 @@
 			<option value="UID">$i18n.getString( "uid" )</option>
 			<option value="CODE">$i18n.getString( "code" )</option>
 			<option value="NAME">$i18n.getString( "name" )</option>
+            #foreach( $attr in $orgUnitAttributes )
+                <option value="ATTRIBUTE:${attr.uid}">$encoder.htmlEncode( $attr.displayName )</option>
+            #end
 	    </select></td>
 	</tr>
 	<tr class="moreOptions" style="display:none">
@@ -117,20 +136,10 @@
 			<option value="CODE">$i18n.getString( "code" )</option>
 	    </select></td>
 	</tr>
-</table>
-
-<table>
-	
-	<!-- Submit -->
-	
-	<tr>		
-		<td><input type="button" value="$i18n.getString( 'export_as_xml' )" style="width:120px" onclick="exportDataValue( 'xml' )">
-		<td><input type="button" value="$i18n.getString( 'export_as_json' )" style="width:120px" onclick="exportDataValue( 'json' )">
-		<input type="button" value="$i18n.getString( 'export_as_csv' )" style="width:120px" onclick="exportDataValue( 'csv' )"></td>
-		<td></td>
-		<td></td>
+	<tr>
+	    <td></td>
+	    <td><input type="button" value="$i18n.getString( 'export' )" style="width:190px" onclick="exportDataValue()"></td>
 	</tr>
-	
 </table>
 
 </form>

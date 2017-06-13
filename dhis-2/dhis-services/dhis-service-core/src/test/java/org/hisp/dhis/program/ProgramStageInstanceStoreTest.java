@@ -176,10 +176,10 @@ public class ProgramStageInstanceStoreTest
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
 
-        stageDataElementA = createProgramStageDataElement( stageA, dataElementA, false, 1 );
-        stageDataElementB = createProgramStageDataElement( stageA, dataElementB, false, 2 );
-        stageDataElementC = createProgramStageDataElement( stageB, dataElementA, false, 1 );
-        stageDataElementD = createProgramStageDataElement( stageB, dataElementB, false, 2 );
+        stageDataElementA = createProgramStageDataElement( stageA, dataElementA, 1 );
+        stageDataElementB = createProgramStageDataElement( stageA, dataElementB, 2 );
+        stageDataElementC = createProgramStageDataElement( stageB, dataElementA, 1 );
+        stageDataElementD = createProgramStageDataElement( stageB, dataElementB, 2 );
 
         programStageDataElementStore.save( stageDataElementA );
         programStageDataElementStore.save( stageDataElementB );

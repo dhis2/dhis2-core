@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation.hibernate;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,13 +65,13 @@ public class HibernateValidationRuleStore
     // -------------------------------------------------------------------------
 
     @Override
-    public int save( ValidationRule validationRule )
+    public void save( ValidationRule validationRule )
     {
         PeriodType periodType = periodService.reloadPeriodType( validationRule.getPeriodType() );
 
         validationRule.setPeriodType( periodType );
 
-        return super.save( validationRule );
+        super.save( validationRule );
     }
 
     @Override
@@ -101,5 +101,14 @@ public class HibernateValidationRuleStore
         validationRules.addAll( getQuery( hql ).setParameterList( "ids", ids ).list() );
 
         return validationRules;
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public List<ValidationRule> getValidationRulesWithNotificationTemplates()
+    {
+        String hql = "select distinct v from ValidationRule v where v.notificationTemplates is not empty";
+
+        return getQuery( hql ).list();
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.IdScheme;
@@ -43,15 +42,16 @@ import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
-import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.dxf2.utils.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -62,8 +62,8 @@ import org.hisp.dhis.query.Query;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.schema.descriptors.DataSetSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.utils.FormUtils;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
 import org.hisp.dhis.webapi.view.ClassPathUriResolver;
 import org.hisp.dhis.webapi.webdomain.form.Form;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,9 +116,6 @@ public class DataSetController
 
     @Autowired
     private DataEntryFormService dataEntryFormService;
-
-    @Autowired
-    private MetadataExportService exportService;
 
     @Autowired
     private DataValueService dataValueService;
@@ -207,7 +204,7 @@ public class DataSetController
             throw new WebMessageException( WebMessageUtils.conflict( "Data set does not exist: " + uid ) );
         }
 
-         List<DataElementCategoryCombo> categoryCombos = dataSet.getDataSetElements().stream().
+        List<DataElementCategoryCombo> categoryCombos = dataSet.getDataSetElements().stream().
             map( DataSetElement::getResolvedCategoryCombo ).distinct().collect( Collectors.toList() );
 
         Collections.sort( categoryCombos );
@@ -331,7 +328,10 @@ public class DataSetController
             }
             else
             {
-                dataValues = dataValueService.getDataValues( dataSets.get( 0 ).getDataElements(), Sets.newHashSet( pe ), Sets.newHashSet( ou ) );
+                dataValues = dataValueService.getDataValues( new DataExportParams()
+                    .setDataElements( dataSets.get( 0 ).getDataElements() )
+                    .setPeriods( Sets.newHashSet( pe ) )
+                    .setOrganisationUnits( Sets.newHashSet( ou ) ) );
             }
 
             FormUtils.fillWithDataValues( form, dataValues );
@@ -372,7 +372,7 @@ public class DataSetController
     }
 
     @RequestMapping( value = "/{uid}/form", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
-    @ApiVersion( value = ApiVersion.Version.ALL, exclude = ApiVersion.Version.V23 )
+    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V23 )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateCustomDataEntryFormJson( @PathVariable( "uid" ) String uid, HttpServletRequest request ) throws WebMessageException
     {

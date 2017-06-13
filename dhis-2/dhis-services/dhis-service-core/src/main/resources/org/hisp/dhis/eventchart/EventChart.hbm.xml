@@ -16,7 +16,7 @@
     &identifiableProperties;
 
     <property name="name" column="name" not-null="true" unique="false" length="230" />
-    
+
     <property name="description" type="text" />
 
     <list name="organisationUnits" table="eventchart_organisationunits">
@@ -38,14 +38,30 @@
     <many-to-one name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
       cascade="all-delete-orphan" foreign-key="fk_eventchart_relativeperiodsid" />
 
-    <list name="organisationUnitGroups" table="eventchart_orgunitgroups">
+    <list name="categoryDimensions" table="eventchart_categorydimensions" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="eventchartid" foreign-key="fk_eventchart_orgunitunitgroups_eventchartid" />
+      <key column="eventchartid" foreign-key="fk_eventchart_categorydimensions_eventchartid" />
       <list-index column="sort_order" base="0" />
-      <many-to-many column="orgunitgroupid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroup"
-        foreign-key="fk_eventchart_orgunitgroups_orgunitgroupid" />
+      <many-to-many column="categorydimensionid" class="org.hisp.dhis.dataelement.CategoryDimension"
+        foreign-key="fk_eventchart_categorydimensions_categorydimensionid" />
     </list>
-
+    
+    <list name="organisationUnitGroupSetDimensions" table="eventchart_orgunitgroupsetdimensions" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="eventchartid" foreign-key="fk_eventchart_orgunitgroupsetdimensions_eventchartid" />
+      <list-index column="sort_order" />
+      <many-to-many column="orgunitgroupsetdimensionid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension"
+        foreign-key="fk_eventchart_dimensions_ogunitgroupsetdimensionid" />
+    </list>
+    
+    <list name="categoryOptionGroupSetDimensions" table="eventchart_categoryoptiongroupsetdimensions" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="eventchartid" foreign-key="fk_eventchart_catoptiongroupsetdimensions_eventchartid" />
+      <list-index column="sort_order" />
+      <many-to-many column="categoryoptiongroupsetdimensionid" class="org.hisp.dhis.dataelement.CategoryOptionGroupSetDimension"
+        foreign-key="fk_eventchart_dimensions_catoptiongroupsetdimensionid" />
+    </list>
+    
     <list name="organisationUnitLevels" table="eventchart_orgunitlevels">
       <cache usage="read-write" />
       <key column="eventchartid" foreign-key="fk_eventchart_orgunitlevels_eventchartid" />
@@ -116,6 +132,12 @@
 
     <property name="title" />
     
+    <property name="subtitle" />
+
+    <property name="hideTitle" />
+
+    <property name="hideSubtitle" />
+
     <set name="interpretations" inverse="true">
       <key column="eventchartid" />
       <one-to-many class="org.hisp.dhis.interpretation.Interpretation" />
@@ -152,9 +174,35 @@
 
     <property name="showData" />
 
-    <property name="hideEmptyRows" />
-
+    <property name="hideEmptyRowItems" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.HideEmptyItemStrategy</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
     <property name="hideNaData" />
+    
+    <property name="programStatus" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.program.ProgramStatus</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
+    <property name="eventStatus" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.event.EventStatus</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
+    <property name="percentStackedValues" />
+    
+    <property name="cumulativeValues" />
 
     <property name="rangeAxisMaxValue" />
 
@@ -179,10 +227,6 @@
     <property name="rangeAxisLabel" />
 
     <property name="hideLegend" />
-
-    <property name="hideTitle" />
-
-    <property name="hideSubtitle" />
 
     <property name="regressionType" length="40">
       <type name="org.hibernate.type.EnumType">
@@ -215,8 +259,14 @@
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
+    <set name="userAccesses" table="eventchartuseraccesses">
+      <cache usage="read-write" />
+      <key column="eventchartid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
+
     <!-- Object Translation -->
-    <set name="translations" table="eventcharttranslations" cascade="delete-orphan">
+    <set name="translations" table="eventcharttranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="eventchartid" foreign-key="fk_objecttranslation_eventchartid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

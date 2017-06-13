@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,21 +37,21 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.Property.Access;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -111,6 +111,11 @@ public class UserCredentials
      * Category dimensions to constrain data analytics aggregation.
      */
     private Set<DataElementCategory> catDimensionConstraints = new HashSet<>();
+
+    /**
+     * Retaining password history so user cannot pick one of the previous 24 passwords
+     */
+    private List<String> previousPasswords = new ArrayList<>();
 
     /**
      * Date of the user's last login.
@@ -392,7 +397,7 @@ public class UserCredentials
     @Override
     public String getName()
     {
-        return user != null ? user.getName() : username;
+        return userInfo!= null ? userInfo.getName() : username;
     }
 
     /**
@@ -519,12 +524,6 @@ public class UserCredentials
         return username.equals( other.getUsername() );
     }
 
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
-
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
@@ -542,15 +541,15 @@ public class UserCredentials
         this.userInfo = userInfo;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( value = PropertyType.PASSWORD, access = Access.WRITE_ONLY )
+    @PropertyRange( min = 8, max = 60 )
     public String getPassword()
     {
         return password;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( PropertyType.PASSWORD )
-    @PropertyRange( min = 8, max = 35 )
     public void setPassword( String password )
     {
         this.password = password;
@@ -620,6 +619,16 @@ public class UserCredentials
     public void setCogsDimensionConstraints( Set<CategoryOptionGroupSet> cogsDimensionConstraints )
     {
         this.cogsDimensionConstraints = cogsDimensionConstraints;
+    }
+
+    public List<String> getPreviousPasswords()
+    {
+        return previousPasswords;
+    }
+
+    public void setPreviousPasswords( List<String> previousPasswords )
+    {
+        this.previousPasswords = previousPasswords;
     }
 
     @JsonProperty
@@ -734,50 +743,6 @@ public class UserCredentials
     public void setDisabled( boolean disabled )
     {
         this.disabled = disabled;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            UserCredentials userCredentials = (UserCredentials) other;
-
-            username = userCredentials.getUsername();
-            password = StringUtils.isEmpty( userCredentials.getPassword() ) ? password : userCredentials.getPassword();
-            passwordLastUpdated = userCredentials.getPasswordLastUpdated();
-
-            lastLogin = userCredentials.getLastLogin();
-            restoreToken = userCredentials.getRestoreToken();
-            restoreExpiry = userCredentials.getRestoreExpiry();
-            selfRegistered = userCredentials.isSelfRegistered();
-            disabled = userCredentials.isDisabled();
-            externalAuth = userCredentials.isExternalAuth();
-
-            if ( mergeMode.isReplace() )
-            {
-                openId = userCredentials.getOpenId();
-                ldapId = userCredentials.getLdapId();
-                userInfo = userCredentials.getUserInfo();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                openId = userCredentials.getOpenId() == null ? openId : userCredentials.getOpenId();
-                ldapId = userCredentials.getLdapId() == null ? ldapId : userCredentials.getLdapId();
-                userInfo = userCredentials.getUserInfo() == null ? userInfo : userCredentials.getUserInfo();
-            }
-
-            userAuthorityGroups.clear();
-            userAuthorityGroups.addAll( userCredentials.getUserAuthorityGroups() );
-
-            catDimensionConstraints.clear();
-            catDimensionConstraints.addAll( userCredentials.getCatDimensionConstraints() );
-
-            cogsDimensionConstraints.clear();
-            cogsDimensionConstraints.addAll( userCredentials.getCogsDimensionConstraints() );
-        }
     }
 
     @Override

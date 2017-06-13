@@ -38,7 +38,7 @@
     <property name="dataDimension" column="datadimension" not-null="true" />
 
     <!-- Object Translation -->
-    <set name="translations" table="dataelementcategorytranslations" cascade="delete-orphan">
+    <set name="translations" table="dataelementcategorytranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="categoryid" foreign-key="fk_objecttranslation_categoryid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -49,10 +49,16 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="dataelementcategoryusergroupaccesses">
+    <set name="userGroupAccesses" table="dataelementcategoryusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="categoryid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="dataelementcategoryuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="categoryid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
   </class>

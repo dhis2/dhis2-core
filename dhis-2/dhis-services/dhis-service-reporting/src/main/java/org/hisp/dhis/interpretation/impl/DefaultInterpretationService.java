@@ -1,7 +1,7 @@
 package org.hisp.dhis.interpretation.impl;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -109,7 +109,9 @@ public class DefaultInterpretationService
             interpretation.updateSharing();
         }
 
-        return interpretationStore.save( interpretation );
+        interpretationStore.save( interpretation );
+
+        return interpretation.getId();
     }
 
     @Override
@@ -163,7 +165,7 @@ public class DefaultInterpretationService
 
         InterpretationComment comment = new InterpretationComment( text );
         comment.setLastUpdated( new Date() );
-        comment.setUid( CodeGenerator.generateCode() );
+        comment.setUid( CodeGenerator.generateUid() );
 
         if ( user != null )
         {

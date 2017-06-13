@@ -1,7 +1,7 @@
 package org.hisp.dhis.period;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,6 @@ package org.hisp.dhis.period;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -54,6 +53,8 @@ public class QuarterlyPeriodType
     private static final String ISO_FORMAT = "yyyyQn";
 
     private static final String ISO8601_DURATION = "P1Q";
+
+    private static final String ISO_CALENDAR_NAME = org.hisp.dhis.calendar.impl.Iso8601Calendar.getInstance().name();
 
     /**
      * The name of the QuarterlyPeriodType, which is "Quarterly".
@@ -178,8 +179,13 @@ public class QuarterlyPeriodType
     }
 
     @Override
-    public String getIsoDate( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar  )
+    public String getIsoDate( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar )
     {
+        if ( !calendar.name().equals( ISO_CALENDAR_NAME ) && dateTimeUnit.isIso8601() )
+        {
+            dateTimeUnit = calendar.fromIso( dateTimeUnit );
+        }
+
         switch ( dateTimeUnit.getMonth() )
         {
             case 1:
@@ -208,41 +214,6 @@ public class QuarterlyPeriodType
     public String getIso8601Duration()
     {
         return ISO8601_DURATION;
-    }
-
-
-    public enum Quarter
-    {
-        Q1( Calendar.JANUARY ), Q2( Calendar.APRIL ), Q3( Calendar.JULY ), Q4( Calendar.OCTOBER );
-
-        private final int month;
-
-        Quarter( int month )
-        {
-            this.month = month;
-        }
-
-        public int getMonth()
-        {
-            return month;
-        }
-
-        public static Quarter getByMonth( int month )
-        {
-            switch ( month )
-            {
-                case Calendar.JANUARY:
-                    return Q1;
-                case Calendar.APRIL:
-                    return Q2;
-                case Calendar.JULY:
-                    return Q3;
-                case Calendar.OCTOBER:
-                    return Q4;
-                default:
-                    throw new IllegalArgumentException( "Not a valid quarterly starting month" );
-            }
-        }
     }
 
     @Override

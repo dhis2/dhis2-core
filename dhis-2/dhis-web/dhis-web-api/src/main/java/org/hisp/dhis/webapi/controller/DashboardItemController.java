@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,20 +28,14 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dashboard.DashboardItemShape;
 import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
-import org.hisp.dhis.query.Order;
-import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.descriptors.DashboardItemSchemaDescriptor;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
-import org.hisp.dhis.webapi.webdomain.WebMetadata;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -52,7 +46,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -64,29 +57,6 @@ public class DashboardItemController
 {
     @Autowired
     private DashboardService dashboardService;
-
-    @Override
-    protected List<DashboardItem> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
-        throws QueryParserException
-    {
-        List<DashboardItem> entityList;
-
-        if ( options.hasPaging() )
-        {
-            int count = manager.getCount( getEntityClass() );
-
-            Pager pager = new Pager( options.getPage(), count, options.getPageSize() );
-            metadata.setPager( pager );
-
-            entityList = Lists.newArrayList( manager.getBetween( getEntityClass(), pager.getOffset(), pager.getPageSize() ) );
-        }
-        else
-        {
-            entityList = Lists.newArrayList( manager.getAll( getEntityClass() ) );
-        }
-
-        return entityList;
-    }
 
     @RequestMapping( value = "/{uid}/shape/{shape}", method = RequestMethod.PUT )
     @ResponseStatus( HttpStatus.NO_CONTENT )

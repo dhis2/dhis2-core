@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.message;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.sms.BatchResponseStatus;
+import org.hisp.dhis.outboundmessage.BatchResponseStatus;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.user.User;
 
 /**
@@ -44,18 +45,36 @@ public interface ProgramMessageService
     ProgramMessageQueryParams getFromUrl( Set<String> ou, String programInstance, String programStageInstance,
         ProgramMessageStatus messageStatus, Integer page, Integer pageSize, Date afterDate, Date beforeDate );
 
+    /**
+     * To check if {@link ProgramMessage message} exists against the given uid.
+     *
+     * @param uid the uid of ProgramMessage.
+     */
     boolean exists( String uid );
 
     void hasAccess( ProgramMessageQueryParams params, User user );
 
     void validateQueryParameters( ProgramMessageQueryParams params );
 
+    /**
+     * To validate {@link ProgramMessage message} payload in order to make sure
+     * prerequisite values exist before message can be processed.
+     *
+     * @param message the ProgramMessage.
+     */
     void validatePayload( ProgramMessage message );
 
     // -------------------------------------------------------------------------
     // Transport Service methods
     // -------------------------------------------------------------------------
-    
+
+    /**
+     * Send message batch based on their {@link DeliveryChannel channel}.
+     * If the DeliveryChannel is not configured with suitable value, batch will be
+     * invalidated.
+     *
+     * @param programMessages the ProgramMessage.
+     */
     BatchResponseStatus sendMessages( List<ProgramMessage> programMessages );
 
     // -------------------------------------------------------------------------

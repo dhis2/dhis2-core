@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,8 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.MoreObjects;
 import org.hisp.dhis.query.operators.Operator;
+import org.hisp.dhis.query.planner.QueryPath;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -45,6 +45,11 @@ public class Restriction implements Criterion
      * Operator for restriction.
      */
     private Operator operator;
+
+    /**
+     * Query Path.
+     */
+    private QueryPath queryPath;
 
     public Restriction( String path, Operator operator )
     {
@@ -62,12 +67,25 @@ public class Restriction implements Criterion
         return operator;
     }
 
+    public QueryPath getQueryPath()
+    {
+        return queryPath;
+    }
+
+    public Restriction setQueryPath( QueryPath queryPath )
+    {
+        this.queryPath = queryPath;
+        return this;
+    }
+
+    public boolean haveQueryPath()
+    {
+        return queryPath != null;
+    }
+
     @Override
     public String toString()
     {
-        return MoreObjects.toStringHelper( this )
-            .add( "path", path )
-            .add( "operator", operator )
-            .toString();
+        return "[" + path + ", op: " + operator + "]";
     }
 }

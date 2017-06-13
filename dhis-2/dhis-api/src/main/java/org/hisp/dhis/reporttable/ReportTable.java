@@ -1,7 +1,7 @@
 package org.hisp.dhis.reporttable;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
+import org.hisp.dhis.analytics.NumberType;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -48,17 +49,21 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ReportingRate;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.legend.LegendDisplayStrategy;
+import org.hisp.dhis.legend.LegendDisplayStyle;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.user.User;
+import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,7 +79,7 @@ import static org.hisp.dhis.common.DimensionalObject.*;
  */
 @JacksonXmlRootElement( localName = "reportTable", namespace = DxfNamespaces.DXF_2_0 )
 public class ReportTable
-    extends BaseAnalyticalObject
+    extends BaseAnalyticalObject implements MetadataObject
 {
     public static final String REPORTING_MONTH_COLUMN_NAME = "reporting_month_name";
     public static final String PARAM_ORGANISATIONUNIT_COLUMN_NAME = "param_organisationunit_name";
@@ -156,9 +161,14 @@ public class ReportTable
     private boolean colSubTotals;
 
     /**
-     * Indicates rendering of empty rows for the table.
+     * Indicates whether to hide rows with no data values in the table.
      */
     private boolean hideEmptyRows;
+    
+    /**
+     * Indicates whether to hide columns with no data values in the table.
+     */
+    private boolean hideEmptyColumns;
 
     /**
      * The display density of the text in the table.
@@ -175,6 +185,21 @@ public class ReportTable
      */
     private LegendSet legendSet;
 
+    /**
+     * The legend set display strategy.
+     */
+    private LegendDisplayStrategy legendDisplayStrategy;
+
+    /**
+     * The legend set display type.
+     */
+    private LegendDisplayStyle legendDisplayStyle;
+
+    /**
+     * The number type.
+     */
+    private NumberType numberType;
+    
     /**
      * Indicates showing organisation unit hierarchy names.
      */
@@ -370,8 +395,8 @@ public class ReportTable
         gridColumns = new CombinationGenerator<>( tableColumns.toArray( IRT2D ) ).getCombinations();
         gridRows = new CombinationGenerator<>( tableRows.toArray( IRT2D ) ).getCombinations();
 
-        addIfEmpty( gridColumns );
-        addIfEmpty( gridRows );
+        addListIfEmpty( gridColumns );
+        addListIfEmpty( gridRows );
 
         gridTitle = IdentifiableObjectUtils.join( filterItems );
     }
@@ -436,7 +461,7 @@ public class ReportTable
         {
             if ( object != null && object instanceof Period )
             {
-                buffer.append( object.getName() + SEPARATOR );
+                buffer.append( object.getName() ).append( SEPARATOR );
             }
             else
             {
@@ -505,7 +530,7 @@ public class ReportTable
     /**
      * Adds an empty list of DimensionalItemObjects to the given list if empty.
      */
-    public static void addIfEmpty( List<List<DimensionalItemObject>> list )
+    public static void addListIfEmpty( List<List<DimensionalItemObject>> list )
     {
         if ( list != null && list.size() == 0 )
         {
@@ -517,14 +542,13 @@ public class ReportTable
      * Generates a grid for this report table based on the given aggregate value
      * map.
      *
-     * @param grid            the grid, should be empty and not null.
-     * @param valueMap        the mapping of identifiers to aggregate values.
-     * @param displayProperty the display property to use for meta data.
-     * @param paramColumns    whether to include report parameter columns.
+     * @param grid               the grid, should be empty and not null.
+     * @param valueMap           the mapping of identifiers to aggregate values.
+     * @param displayProperty    the display property to use for meta data.
+     * @param reportParamColumns whether to include report parameter columns.
      * @return a grid.
      */
-    @SuppressWarnings( "unchecked" )
-    public Grid getGrid( Grid grid, Map<String, Object> valueMap, DisplayProperty displayProperty, boolean paramColumns )
+    public Grid getGrid( Grid grid, Map<String, Object> valueMap, DisplayProperty displayProperty, boolean reportParamColumns )
     {
         valueMap = new HashMap<>( valueMap );
 
@@ -556,20 +580,20 @@ public class ReportTable
             String name = StringUtils.defaultIfEmpty( metaData.get( row ), row );
             String col = StringUtils.defaultIfEmpty( COLUMN_NAMES.get( row ), row );
 
-            grid.addHeader( new GridHeader( name + " ID", col + "id", String.class.getName(), true, true ) );
-            grid.addHeader( new GridHeader( name, col + "name", String.class.getName(), false, true ) );
-            grid.addHeader( new GridHeader( name + " code", col + "code", String.class.getName(), true, true ) );
-            grid.addHeader( new GridHeader( name + " description", col + "description", String.class.getName(), true, true ) );
+            grid.addHeader( new GridHeader( name + " ID", col + "id", ValueType.TEXT, String.class.getName(), true, true ) );
+            grid.addHeader( new GridHeader( name, col + "name", ValueType.TEXT, String.class.getName(), false, true ) );
+            grid.addHeader( new GridHeader( name + " code", col + "code", ValueType.TEXT, String.class.getName(), true, true ) );
+            grid.addHeader( new GridHeader( name + " description", col + "description", ValueType.TEXT, String.class.getName(), true, true ) );
         }
 
-        if ( paramColumns )
+        if ( reportParamColumns )
         {
             grid.addHeader( new GridHeader( "Reporting month", REPORTING_MONTH_COLUMN_NAME,
-                String.class.getName(), true, true ) );
-            grid.addHeader( new GridHeader( "Organisation unit parameter",
-                PARAM_ORGANISATIONUNIT_COLUMN_NAME, String.class.getName(), true, true ) );
-            grid.addHeader( new GridHeader( "Organisation unit is parent",
-                ORGANISATION_UNIT_IS_PARENT_COLUMN_NAME, String.class.getName(), true, true ) );
+                ValueType.TEXT, String.class.getName(), true, true ) );
+            grid.addHeader( new GridHeader( "Organisation unit parameter", PARAM_ORGANISATIONUNIT_COLUMN_NAME,
+                ValueType.TEXT, String.class.getName(), true, true ) );
+            grid.addHeader( new GridHeader( "Organisation unit is parent", ORGANISATION_UNIT_IS_PARENT_COLUMN_NAME,
+                ValueType.TEXT, String.class.getName(), true, true ) );
         }
 
         final int startColumnIndex = grid.getHeaders().size();
@@ -577,8 +601,8 @@ public class ReportTable
 
         for ( List<DimensionalItemObject> column : gridColumns )
         {
-            grid.addHeader( new GridHeader( getPrettyColumnName( column, displayProperty ), getColumnName( column ), Double.class
-                .getName(), false, false ) );
+            grid.addHeader( new GridHeader( getPrettyColumnName( column, displayProperty ), getColumnName( column ),
+                ValueType.NUMBER, Double.class.getName(), false, false ) );
         }
 
         // ---------------------------------------------------------------------
@@ -601,7 +625,7 @@ public class ReportTable
                 grid.addValue( object.getDisplayDescription() );
             }
 
-            if ( paramColumns )
+            if ( reportParamColumns )
             {
                 grid.addValue( reportingPeriodName );
                 grid.addValue( getParentOrganisationUnitName() );
@@ -622,13 +646,20 @@ public class ReportTable
 
                 grid.addValue( value );
 
-                hasValue = !hasValue ? value != null : true;
+                hasValue = hasValue || value != null;
             }
 
             if ( hideEmptyRows && !hasValue )
             {
                 grid.removeCurrentWriteRow();
             }
+            
+            // TODO hide empty columns
+        }
+        
+        if ( hideEmptyColumns )
+        {
+            grid.removeEmptyColumns();
         }
 
         if ( regression )
@@ -659,12 +690,11 @@ public class ReportTable
         // Show hierarchy option
         // ---------------------------------------------------------------------
 
-        if ( showHierarchy && rowDimensions.contains( ORGUNIT_DIM_ID ) && grid.hasMetaDataKey( AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY.getKey() ) )
+        if ( showHierarchy && rowDimensions.contains( ORGUNIT_DIM_ID ) && grid.hasInternalMetaDataKey( AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS.getKey() ) )
         {
-            int ouIdIndex = (rowDimensions.indexOf( ORGUNIT_DIM_ID ) * 4); // Org unit name position
-            int ouNameIndex = ouIdIndex + 1;
-            Map<Object, Object> hierarchyNameMap = (Map<Object, Object>) grid.getMetaData().get( AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY.getKey() );
-            grid.substituteMetaData( ouIdIndex, ouNameIndex, hierarchyNameMap );
+            int ouIdColumnIndex = rowDimensions.indexOf( ORGUNIT_DIM_ID ) * 4;
+
+            addHierarchyColumns( grid, ouIdColumnIndex );
         }
 
         return grid;
@@ -673,6 +703,34 @@ public class ReportTable
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Adds grid columns for each organisation unit level.
+     */
+    @SuppressWarnings( "unchecked" )
+    private void addHierarchyColumns( Grid grid, int ouIdColumnIndex )
+    {
+        Map<Object, List<?>> ancestorMap = (Map<Object, List<?>>) grid.getInternalMetaData().get( AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS.getKey() );
+
+        Assert.notEmpty( ancestorMap, "Ancestor map cannot be null or empty when show hierarchy is enabled" );
+
+        int newColumns = ancestorMap.values().stream().mapToInt( List::size ).max().orElseGet( () -> 0 );
+
+        List<GridHeader> headers = new ArrayList<>();
+
+        for ( int i = 0; i < newColumns; i++ )
+        {
+            int level = i + 1;
+
+            String name = String.format( "Org unit level %d", level );
+            String column = String.format( "orgunitlevel%d", level );
+
+            headers.add( new GridHeader( name, column, ValueType.TEXT, String.class.getName(), false, true ) );
+        }
+
+        grid.addHeaders( ouIdColumnIndex, headers );
+        grid.addAndPopulateColumnsBefore( ouIdColumnIndex, ancestorMap, newColumns );
+    }
 
     /**
      * Returns the number of empty lists among the argument lists.
@@ -719,12 +777,6 @@ public class ReportTable
     // -------------------------------------------------------------------------
     // Get- and set-methods for persisted properties
     // -------------------------------------------------------------------------
-
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -892,6 +944,18 @@ public class ReportTable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isHideEmptyColumns()
+    {
+        return hideEmptyColumns;
+    }
+
+    public void setHideEmptyColumns( boolean hideEmptyColumns )
+    {
+        this.hideEmptyColumns = hideEmptyColumns;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public DisplayDensity getDisplayDensity()
     {
         return displayDensity;
@@ -924,6 +988,42 @@ public class ReportTable
     public void setLegendSet( LegendSet legendSet )
     {
         this.legendSet = legendSet;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public LegendDisplayStrategy getLegendDisplayStrategy()
+    {
+        return legendDisplayStrategy;
+    }
+
+    public void setLegendDisplayStrategy( LegendDisplayStrategy legendDisplayStrategy )
+    {
+        this.legendDisplayStrategy = legendDisplayStrategy;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public LegendDisplayStyle getLegendDisplayStyle()
+    {
+        return legendDisplayStyle;
+    }
+
+    public void setLegendDisplayStyle( LegendDisplayStyle legendDisplayStyle )
+    {
+        this.legendDisplayStyle = legendDisplayStyle;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public NumberType getNumberType()
+    {
+        return numberType;
+    }
+
+    public void setNumberType( NumberType numberType )
+    {
+        this.numberType = numberType;
     }
 
     @JsonProperty
@@ -974,9 +1074,10 @@ public class ReportTable
     }
 
     @JsonIgnore
-    public void setReportingPeriodName( String reportingPeriodName )
+    public ReportTable setReportingPeriodName( String reportingPeriodName )
     {
         this.reportingPeriodName = reportingPeriodName;
+        return this;
     }
 
     @JsonIgnore
@@ -985,9 +1086,10 @@ public class ReportTable
         return gridColumns;
     }
 
-    public void setGridColumns( List<List<DimensionalItemObject>> gridColumns )
+    public ReportTable setGridColumns( List<List<DimensionalItemObject>> gridColumns )
     {
         this.gridColumns = gridColumns;
+        return this;
     }
 
     @JsonIgnore
@@ -996,9 +1098,10 @@ public class ReportTable
         return gridRows;
     }
 
-    public void setGridRows( List<List<DimensionalItemObject>> gridRows )
+    public ReportTable setGridRows( List<List<DimensionalItemObject>> gridRows )
     {
         this.gridRows = gridRows;
+        return this;
     }
 
     @JsonIgnore
@@ -1007,57 +1110,9 @@ public class ReportTable
         return gridTitle;
     }
 
-    public void setGridTitle( String gridTitle )
+    public ReportTable setGridTitle( String gridTitle )
     {
         this.gridTitle = gridTitle;
-    }
-    
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            ReportTable reportTable = (ReportTable) other;
-
-            regression = reportTable.isRegression();
-            cumulative = reportTable.isCumulative();
-            rowTotals = reportTable.isRowTotals();
-            colTotals = reportTable.isColTotals();
-            rowSubTotals = reportTable.isRowSubTotals();
-            colSubTotals = reportTable.isColSubTotals();
-            hideEmptyRows = reportTable.isHideEmptyRows();
-            showHierarchy = reportTable.isShowHierarchy();
-            showDimensionLabels = reportTable.isShowDimensionLabels();
-            skipRounding = reportTable.isSkipRounding();
-            hideEmptyRows = reportTable.isHideEmptyRows();
-            topLimit = reportTable.getTopLimit();
-            sortOrder = reportTable.getSortOrder();
-
-            if ( mergeMode.isReplace() )
-            {
-                reportParams = reportTable.getReportParams();
-                displayDensity = reportTable.getDisplayDensity();
-                fontSize = reportTable.getFontSize();
-                legendSet = reportTable.getLegendSet();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                reportParams = reportTable.getReportParams() == null ? reportParams : reportTable.getReportParams();
-                displayDensity = reportTable.getDisplayDensity() == null ? displayDensity : reportTable.getDisplayDensity();
-                fontSize = reportTable.getFontSize() == null ? fontSize : reportTable.getFontSize();
-                legendSet = reportTable.getLegendSet() == null ? legendSet : reportTable.getLegendSet();
-            }
-
-            columnDimensions.clear();
-            columnDimensions.addAll( reportTable.getColumnDimensions() );
-
-            rowDimensions.clear();
-            rowDimensions.addAll( reportTable.getRowDimensions() );
-
-            filterDimensions.clear();
-            filterDimensions.addAll( reportTable.getFilterDimensions() );
-        }
+        return this;
     }
 }

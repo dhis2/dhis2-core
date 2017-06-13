@@ -1,7 +1,7 @@
 package org.hisp.dhis.calendar;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,10 @@ import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.SixMonthlyAprilPeriodType;
 import org.hisp.dhis.period.SixMonthlyPeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
+import org.hisp.dhis.period.WeeklySaturdayPeriodType;
+import org.hisp.dhis.period.WeeklySundayPeriodType;
+import org.hisp.dhis.period.WeeklyThursdayPeriodType;
+import org.hisp.dhis.period.WeeklyWednesdayPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 
 /**
@@ -47,6 +51,10 @@ public enum DateUnitType
 {
     DAILY( DailyPeriodType.NAME, "\\b(\\d{4})(\\d{2})(\\d{2})\\b" ),
     WEEKLY( WeeklyPeriodType.NAME, "\\b(\\d{4})W(\\d[\\d]?)\\b" ),
+    WEEKLY_WEDNESDAY( WeeklyWednesdayPeriodType.NAME, "\\b(\\d{4})WedW(\\d[\\d]?)\\b" ),
+    WEEKLY_THURSDAY( WeeklyThursdayPeriodType.NAME, "\\b(\\d{4})ThuW(\\d[\\d]?)\\b" ),
+    WEEKLY_SATURDAY( WeeklySaturdayPeriodType.NAME, "\\b(\\d{4})SatW(\\d[\\d]?)\\b" ),
+    WEEKLY_SUNDAY( WeeklySundayPeriodType.NAME, "\\b(\\d{4})SunW(\\d[\\d]?)\\b" ),
     MONTHLY( MonthlyPeriodType.NAME, "\\b(\\d{4})[-]?(\\d{2})\\b" ),
     BI_MONTHLY( BiMonthlyPeriodType.NAME, "\\b(\\d{4})(\\d{2})B\\b" ),
     QUARTERLY( QuarterlyPeriodType.NAME, "\\b(\\d{4})Q(\\d)\\b" ),
@@ -57,31 +65,31 @@ public enum DateUnitType
     FINANCIAL_JULY( FinancialJulyPeriodType.NAME, "\\b(\\d{4})July\\b" ),
     FINANCIAL_OCTOBER( FinancialOctoberPeriodType.NAME, "\\b(\\d{4})Oct\\b" );
 
-    private final String type;
+    private final String name;
 
-    private final String format;
+    private final String pattern;
 
-    public String getType()
+    public String getName()
     {
-        return type;
+        return name;
     }
 
-    public String getFormat()
+    public String getPattern()
     {
-        return format;
+        return pattern;
     }
 
-    DateUnitType( String type, String format )
+    DateUnitType( String name, String pattern )
     {
-        this.type = type;
-        this.format = format;
+        this.name = name;
+        this.pattern = pattern;
     }
 
-    public static DateUnitType find( String format )
+    public static DateUnitType find( String pattern )
     {
         for ( DateUnitType type : DateUnitType.values() )
         {
-            if ( format.matches( type.format ) )
+            if ( pattern.matches( type.pattern ) )
             {
                 return type;
             }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.util;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,16 +28,15 @@ package org.hisp.dhis.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -46,12 +45,12 @@ public class ObjectUtils
 {
     /**
      * Returns the first non-null argument. Returns null if all arguments are null.
-     * 
+     *
      * @param objects the objects.
      * @return the first non-null argument.
      */
     @SafeVarargs
-    public static final <T> T firstNonNull( T... objects )
+    public static <T> T firstNonNull( T... objects )
     {
         if ( objects != null )
         {
@@ -63,23 +62,23 @@ public class ObjectUtils
                 }
             }
         }
-        
+
         return null;
     }
-    
+
     /**
      * Indicates whether all of the given argument object are not null.
-     * 
+     *
      * @param objects the objects.
      * @return true if all of the given argument object are not null.
      */
-    public static final boolean allNonNull( Object... objects )
+    public static boolean allNonNull( Object... objects )
     {
         if ( objects == null )
         {
             return false;
         }
-       
+
         for ( Object object : objects )
         {
             if ( object == null )
@@ -87,17 +86,17 @@ public class ObjectUtils
                 return false;
             }
         }
-        
+
         return true;
     }
-    
+
     /**
      * Indicates whether any of the given conditions are not null and true.
-     * 
+     *
      * @param conditions the conditions.
      * @return whether any of the given conditions are not null and true.
      */
-    public static final boolean anyIsTrue( Boolean... conditions )
+    public static boolean anyIsTrue( Boolean... conditions )
     {
         if ( conditions != null )
         {
@@ -109,36 +108,58 @@ public class ObjectUtils
                 }
             }
         }
+
+        return false;
+    }
+
+    /**
+     * Indicates whether any of the given conditions are not null and false.
+     *
+     * @param conditions the conditions.
+     * @return whether any of the given conditions are not null and false.
+     */
+    public static boolean anyIsFalse( Boolean... conditions )
+    {
+        if ( conditions != null )
+        {
+            for ( Boolean condition : conditions )
+            {
+                if ( condition != null && !condition.booleanValue() )
+                {
+                    return true;
+                }
+            }
+        }
         
         return false;
     }
-    
+
     /**
      * Returns a list of strings, where the strings are the result of calling
      * String.valueOf( Object ) of each object in the given collection.
-     * 
+     *
      * @param objects the collection of objects.
      * @return a list of strings.
      */
-    public static List<String> asStringList( Collection<? extends Object> objects )
+    public static List<String> asStringList( Collection<?> objects )
     {
         List<String> list = new ArrayList<>();
-        
+
         for ( Object object : objects )
         {
             list.add( String.valueOf( object ) );
         }
-        
+
         return list;
     }
-        
+
     /**
-     * Joins the elements of the provided collection into a string. The 
+     * Joins the elements of the provided collection into a string. The
      * provided string mapping function is used to produce the string for each
      * object. Null is returned if the provided collection is null.
-     * 
-     * @param collection the collection of elements.
-     * @param separator the separator of elements in the returned string.
+     *
+     * @param collection   the collection of elements.
+     * @param separator    the separator of elements in the returned string.
      * @param stringMapper the function to produce the string for each object.
      * @return the joined string.
      */
@@ -148,9 +169,9 @@ public class ObjectUtils
         {
             return null;
         }
-        
+
         List<String> list = collection.stream().map( stringMapper ).collect( Collectors.toList() );
-        
+
         return StringUtils.join( list, separator );
     }
 
@@ -158,16 +179,16 @@ public class ObjectUtils
      * Returns a Set of unique items based on the given collection of items. For
      * each item the given collectionMapper function is applied, and the produced
      * collection of items are added to the final set.
-     * 
-     * @param items a collection of items.
+     *
+     * @param items            a collection of items.
      * @param collectionMapper a function expected to produce a collection for
-     *        each item in the given collection.
+     *                         each item in the given collection.
      * @return a Set of items.
      */
     public static <T, U, V extends Collection<U>> Set<U> getAll( Collection<T> items, Function<T, V> collectionMapper )
     {
-        Set<U> set = Sets.newHashSet();        
-        items.forEach( item -> set.addAll( collectionMapper.apply( item ) ) );        
+        Set<U> set = Sets.newHashSet();
+        items.forEach( item -> set.addAll( collectionMapper.apply( item ) ) );
         return set;
     }
 }

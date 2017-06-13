@@ -1,5 +1,4 @@
 <h2>$i18n.getString( "programs" )</h2>
 <ul>
 	#if( $security.canView( "program" ) )<li><a href="program.action">$i18n.getString( "program" )</a></li>#end
-	#if( $security.canView( "programIndicatorGroup" ) )<li><a href="programIndicatorGroup.action">$i18n.getString( "programIndicatorGroup" )</a></li>#end
 </ul>

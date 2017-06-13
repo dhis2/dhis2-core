@@ -1,7 +1,7 @@
 package org.hisp.dhis.indicator;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
 import java.util.ArrayList;
@@ -53,7 +52,7 @@ import java.util.List;
  */
 @JacksonXmlRootElement( localName = "indicatorGroupSet", namespace = DxfNamespaces.DXF_2_0 )
 public class IndicatorGroupSet
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     private String description;
 
@@ -169,12 +168,6 @@ public class IndicatorGroupSet
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @PropertyRange( min = 2 )
@@ -217,34 +210,5 @@ public class IndicatorGroupSet
     public void setMembers( List<IndicatorGroup> members )
     {
         this.members = members;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            IndicatorGroupSet indicatorGroupSet = (IndicatorGroupSet) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                compulsory = indicatorGroupSet.isCompulsory();
-                description = indicatorGroupSet.getDescription();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                compulsory = indicatorGroupSet.isCompulsory() == null ? compulsory : indicatorGroupSet.isCompulsory();
-                description = indicatorGroupSet.getDescription() == null ? description : indicatorGroupSet.getDescription();
-            }
-
-            removeAllIndicatorGroups();
-
-            for ( IndicatorGroup indicatorGroup : indicatorGroupSet.getMembers() )
-            {
-                addIndicatorGroup( indicatorGroup );
-            }
-        }
     }
 }

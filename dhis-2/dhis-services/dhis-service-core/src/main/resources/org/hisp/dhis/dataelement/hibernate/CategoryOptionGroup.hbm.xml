@@ -26,18 +26,24 @@
         foreign-key="fk_categoryoptiongroupmembers_categoryoptiongroupid" />
     </set>
 
+    <set name="groupSets" table="categoryoptiongroupsetmembers" inverse="true">
+      <cache usage="read-write" />
+      <key column="categoryoptiongroupid" />
+      <many-to-many class="org.hisp.dhis.dataelement.CategoryOptionGroupSet" column="categoryoptiongroupsetid" />    
+    </set>
+    
     <property name="dataDimensionType" column="datadimensiontype" type="org.hisp.dhis.common.DataDimensionTypeUserType" />
 
     <!-- Dynamic attribute values -->
 
-    <set name="attributeValues" table="categoryoptiongroupattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="categoryoptiongroupattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="categoryoptiongroupid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="categoryoptiongrouptranslations" cascade="delete-orphan">
+    <set name="translations" table="categoryoptiongrouptranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="categoryoptiongroupid" foreign-key="fk_objecttranslation_categoryoptiongroupid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -48,16 +54,17 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="categoryoptiongroupusergroupaccesses">
+    <set name="userGroupAccesses" table="categoryoptiongroupusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="categoryoptiongroupid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <join table="categoryoptiongroupsetmembers" inverse="true">
+    <set name="userAccesses" table="categoryoptiongroupuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
       <key column="categoryoptiongroupid" />
-      <many-to-one column="categoryoptiongroupsetid" name="groupSet" />
-    </join>
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
 
   </class>
 

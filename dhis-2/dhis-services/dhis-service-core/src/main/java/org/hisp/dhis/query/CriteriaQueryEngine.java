@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,18 +30,20 @@ package org.hisp.dhis.query;
 
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.Subqueries;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
-import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.query.planner.QueryPlan;
+import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -54,25 +56,28 @@ import java.util.Map;
 public class CriteriaQueryEngine<T extends IdentifiableObject>
     implements QueryEngine<T>
 {
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private final List<InternalHibernateGenericStore<T>> hibernateGenericStores = new ArrayList<>();
+    private final QueryPlanner queryPlanner;
+
+    private final List<InternalHibernateGenericStore<T>> hibernateGenericStores;
 
     private Map<Class<?>, InternalHibernateGenericStore<T>> stores = new HashMap<>();
+
+    @Autowired
+    public CriteriaQueryEngine( CurrentUserService currentUserService, QueryPlanner queryPlanner,
+        List<InternalHibernateGenericStore<T>> hibernateGenericStores )
+    {
+        this.currentUserService = currentUserService;
+        this.queryPlanner = queryPlanner;
+        this.hibernateGenericStores = hibernateGenericStores;
+    }
 
     @Override
     @SuppressWarnings( "unchecked" )
     public List<T> query( Query query )
     {
         Schema schema = query.getSchema();
-
-        if ( schema == null )
-        {
-            return new ArrayList<>();
-        }
-
         InternalHibernateGenericStore<?> store = getStore( (Class<? extends IdentifiableObject>) schema.getKlass() );
 
         if ( store == null )
@@ -85,14 +90,29 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
             query.setUser( currentUserService.getCurrentUser() );
         }
 
-        Criteria criteria = buildCriteria( store.getSharingCriteria( query.getUser() ), query );
+        if ( !query.isPlannedQuery() )
+        {
+            QueryPlan queryPlan = queryPlanner.planQuery( query, true );
+            query = queryPlan.getPersistedQuery();
+        }
+
+        DetachedCriteria detachedCriteria = buildCriteria( store.getSharingDetachedCriteria( query.getUser() ), query );
+        Criteria criteria = store.getCriteria();
 
         if ( criteria == null )
         {
             return new ArrayList<>();
         }
 
-        return criteria.list();
+        criteria.setFirstResult( query.getFirstResult() );
+        criteria.setMaxResults( query.getMaxResults() );
+
+        for ( Order order : query.getOrders() )
+        {
+            criteria.addOrder( getHibernateOrder( order ) );
+        }
+
+        return criteria.add( Subqueries.propertyIn( "id", detachedCriteria ) ).list();
     }
 
     @Override
@@ -100,16 +120,6 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
     public int count( Query query )
     {
         Schema schema = query.getSchema();
-
-        // create a copy of this query using only the restrictions
-        Query countQuery = Query.from( query.getSchema() );
-        countQuery.add( query.getCriterions() );
-
-        if ( schema == null )
-        {
-            return 0;
-        }
-
         InternalHibernateGenericStore<?> store = getStore( (Class<? extends IdentifiableObject>) schema.getKlass() );
 
         if ( store == null )
@@ -122,134 +132,45 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
             query.setUser( currentUserService.getCurrentUser() );
         }
 
-        Criteria criteria = buildCriteria( store.getSharingCriteria( query.getUser() ), countQuery );
+        if ( !query.isPlannedQuery() )
+        {
+            QueryPlan queryPlan = queryPlanner.planQuery( query, true );
+            query = queryPlan.getPersistedQuery();
+        }
+
+        DetachedCriteria detachedCriteria = buildCriteria( store.getSharingDetachedCriteria( query.getUser() ), query );
+        Criteria criteria = store.getCriteria();
 
         if ( criteria == null )
         {
             return 0;
         }
 
-        return ((Number) criteria
+        return ((Number) criteria.add( Subqueries.propertyIn( "id", detachedCriteria ) )
             .setProjection( Projections.countDistinct( "id" ) )
             .uniqueResult()).intValue();
     }
 
-    private Criteria buildCriteria( Criteria criteria, Query query )
+    private DetachedCriteria buildCriteria( DetachedCriteria detachedCriteria, Query query )
     {
-        Query criteriaQuery = getCriteriaQuery( query );
-
-        for ( org.hisp.dhis.query.Criterion criterion : criteriaQuery.getCriterions() )
+        for ( org.hisp.dhis.query.Criterion criterion : query.getCriterions() )
         {
-            addCriterion( criteria, criterion, query.getSchema() );
+            addCriterion( detachedCriteria, criterion );
         }
 
-        // no more criterions available, so we can do our own paging
-        if ( query.isEmpty() )
-        {
-            if ( query.getFirstResult() != null )
-            {
-                criteria.setFirstResult( query.getFirstResult() );
-            }
+        query.getAliases().forEach( alias -> detachedCriteria.createAlias( alias, alias ) );
 
-            if ( query.getMaxResults() != null )
-            {
-                criteria.setMaxResults( query.getMaxResults() );
-            }
-        }
-
-        for ( Order order : criteriaQuery.getOrders() )
-        {
-            criteria.addOrder( getHibernateOrder( order ) );
-        }
-
-        return criteria;
+        return detachedCriteria.setProjection(
+            Projections.distinct( Projections.id() )
+        );
     }
 
-    /**
-     * Remove criterions that can be applied by criteria engine, and return those. The rest of
-     * the criterions will be passed on to the next query engine.
-     *
-     * @param query Query
-     * @return Query instance
-     */
-    private Query getCriteriaQuery( Query query )
-    {
-        Query criteriaQuery = Query.from( query.getSchema() );
-        Iterator<org.hisp.dhis.query.Criterion> criterionIterator = query.getCriterions().iterator();
-
-        while ( criterionIterator.hasNext() )
-        {
-            org.hisp.dhis.query.Criterion criterion = criterionIterator.next();
-
-            if ( Restriction.class.isInstance( criterion ) )
-            {
-                Restriction restriction = (Restriction) criterion;
-
-                if ( !restriction.getPath().contains( "\\." ) )
-                {
-                    if ( criteriaQuery.getSchema().haveProperty( restriction.getPath() ) )
-                    {
-                        Property property = query.getSchema().getProperty( restriction.getPath() );
-
-                        if ( property.isSimple() && property.isPersisted() )
-                        {
-                            criteriaQuery.getCriterions().add( criterion );
-                            criterionIterator.remove();
-                        }
-                    }
-                }
-            }
-        }
-
-        if ( query.ordersPersisted() )
-        {
-            criteriaQuery.addOrders( query.getOrders() );
-            query.clearOrders();
-        }
-
-        return criteriaQuery;
-    }
-
-    private void addJunction( org.hibernate.criterion.Junction junction, org.hisp.dhis.query.Criterion criterion, Schema schema )
+    private void addCriterion( DetachedCriteria criteria, org.hisp.dhis.query.Criterion criterion )
     {
         if ( Restriction.class.isInstance( criterion ) )
         {
             Restriction restriction = (Restriction) criterion;
-            Criterion hibernateCriterion = getHibernateCriterion( schema, restriction );
-
-            if ( hibernateCriterion != null )
-            {
-                junction.add( hibernateCriterion );
-            }
-        }
-        else if ( Junction.class.isInstance( criterion ) )
-        {
-            org.hibernate.criterion.Junction j = null;
-
-            if ( Disjunction.class.isInstance( criterion ) )
-            {
-                j = Restrictions.disjunction();
-            }
-            else if ( Conjunction.class.isInstance( criterion ) )
-            {
-                j = Restrictions.conjunction();
-            }
-
-            junction.add( j );
-
-            for ( org.hisp.dhis.query.Criterion c : ((Junction) criterion).getCriterions() )
-            {
-                addJunction( junction, c, schema );
-            }
-        }
-    }
-
-    private void addCriterion( Criteria criteria, org.hisp.dhis.query.Criterion criterion, Schema schema )
-    {
-        if ( Restriction.class.isInstance( criterion ) )
-        {
-            Restriction restriction = (Restriction) criterion;
-            Criterion hibernateCriterion = getHibernateCriterion( schema, restriction );
+            Criterion hibernateCriterion = getHibernateCriterion( restriction );
 
             if ( hibernateCriterion != null )
             {
@@ -273,21 +194,53 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
 
             for ( org.hisp.dhis.query.Criterion c : ((Junction) criterion).getCriterions() )
             {
-                addJunction( junction, c, schema );
+                addJunction( junction, c );
             }
         }
     }
 
-    private Criterion getHibernateCriterion( Schema schema, Restriction restriction )
+    private void addJunction( org.hibernate.criterion.Junction junction, org.hisp.dhis.query.Criterion criterion )
+    {
+        if ( Restriction.class.isInstance( criterion ) )
+        {
+            Restriction restriction = (Restriction) criterion;
+            Criterion hibernateCriterion = getHibernateCriterion( restriction );
+
+            if ( hibernateCriterion != null )
+            {
+                junction.add( hibernateCriterion );
+            }
+        }
+        else if ( Junction.class.isInstance( criterion ) )
+        {
+            org.hibernate.criterion.Junction j = null;
+
+            if ( Disjunction.class.isInstance( criterion ) )
+            {
+                j = Restrictions.disjunction();
+            }
+            else if ( Conjunction.class.isInstance( criterion ) )
+            {
+                j = Restrictions.conjunction();
+            }
+
+            junction.add( j );
+
+            for ( org.hisp.dhis.query.Criterion c : ((Junction) criterion).getCriterions() )
+            {
+                addJunction( junction, c );
+            }
+        }
+    }
+
+    private Criterion getHibernateCriterion( Restriction restriction )
     {
         if ( restriction == null || restriction.getOperator() == null )
         {
             return null;
         }
 
-        Property property = schema.getProperty( restriction.getPath() );
-
-        return restriction.getOperator().getHibernateCriterion( property );
+        return restriction.getOperator().getHibernateCriterion( restriction.getQueryPath() );
     }
 
     public org.hibernate.criterion.Order getHibernateOrder( Order order )

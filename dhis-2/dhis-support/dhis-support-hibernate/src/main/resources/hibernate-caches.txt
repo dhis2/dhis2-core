@@ -70,12 +70,13 @@ org.hisp.dhis.dataelement.DataElementGroupSet.userGroupAccesses
 org.hisp.dhis.dataelement.DataElementOperand
 org.hisp.dhis.dataentryform.DataEntryForm
 org.hisp.dhis.dataset.DataSet
-org.hisp.dhis.dataset.DataSet.dataElements
+org.hisp.dhis.dataset.DataSet.dataSetElements
 org.hisp.dhis.dataset.DataSet.indicators
 org.hisp.dhis.dataset.DataSet.sources
 org.hisp.dhis.dataset.DataSet.sections
 org.hisp.dhis.dataset.DataSet.attributeValues
 org.hisp.dhis.dataset.DataSet.userGroupAccesses
+org.hisp.dhis.dataset.DataSetElement
 org.hisp.dhis.dataset.Section
 org.hisp.dhis.dataset.Section.dataElements
 org.hisp.dhis.dataset.Section.indicators

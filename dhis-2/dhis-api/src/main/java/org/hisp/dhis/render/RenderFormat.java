@@ -1,7 +1,7 @@
 package org.hisp.dhis.render;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,5 +34,5 @@ package org.hisp.dhis.render;
 public enum RenderFormat
 {
     JSON,
-    XML;
+    XML
 }

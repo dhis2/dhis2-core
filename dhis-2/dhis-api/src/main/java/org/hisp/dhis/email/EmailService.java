@@ -1,7 +1,7 @@
 package org.hisp.dhis.email;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,8 @@ package org.hisp.dhis.email;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Set;
+
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
@@ -39,12 +41,17 @@ public interface EmailService
      */
     boolean emailEnabled();
 
+    boolean emailConfigured();
+
     /**
      * Sends an email to the recipient user from the sender.
      *
      * @param email the email to send.
      */
     void sendEmail( Email email );
+
+
+    void sendEmail( String subject, String message, Set<String> recipients );
 
     /**
      * Sends an automatically generated email message to the current user.

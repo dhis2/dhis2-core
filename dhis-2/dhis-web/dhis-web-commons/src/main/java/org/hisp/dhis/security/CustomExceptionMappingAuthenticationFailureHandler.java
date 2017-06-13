@@ -1,7 +1,7 @@
 package org.hisp.dhis.security;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,11 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.i18n.I18nManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.ExceptionMappingAuthenticationFailureHandler;
 
@@ -39,12 +44,35 @@ import java.io.IOException;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class CustomExceptionMappingAuthenticationFailureHandler extends ExceptionMappingAuthenticationFailureHandler
+public class CustomExceptionMappingAuthenticationFailureHandler 
+    extends ExceptionMappingAuthenticationFailureHandler
 {
+    @Autowired
+    private SecurityService securityService;
+
+    @Autowired
+    private I18nManager i18nManager;
+    
     @Override
     public void onAuthenticationFailure( HttpServletRequest request, HttpServletResponse response, AuthenticationException exception ) throws IOException, ServletException
     {
-        request.getSession().setAttribute( "username", request.getParameter( "j_username" ) );
+        final String username = request.getParameter( "j_username" );
+        
+        request.getSession().setAttribute( "username", username );
+        
+        securityService.registerFailedLogin( username );
+
+        I18n i18n = i18nManager.getI18n();
+
+        if ( ExceptionUtils.indexOfThrowable( exception, LockedException.class )  != -1)
+        {
+            request.getSession().setAttribute( "LOGIN_FAILED_MESSAGE", i18n.getString( "authentication.message.account.locked" ) );
+        }
+        else
+        {
+            request.getSession().setAttribute( "LOGIN_FAILED_MESSAGE", i18n.getString( "authentication.message.account.invalid" ) );
+        }
+
 
         super.onAuthenticationFailure( request, response, exception );
     }

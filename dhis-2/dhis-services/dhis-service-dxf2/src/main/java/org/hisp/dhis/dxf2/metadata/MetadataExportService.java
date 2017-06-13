@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,15 +40,52 @@ import java.util.Set;
  */
 public interface MetadataExportService
 {
+    /**
+     * Exports metadata using provided params.
+     *
+     * @param params Export parameters
+     * @return Map of all exported objects
+     */
     Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> getMetadata( MetadataExportParams params );
 
+    /**
+     * Returns same result as getMetadata, but metadata is returned as Node objects instead.
+     *
+     * @param params Export parameters
+     * @return RootNode instance with children containing all exported objects
+     */
     RootNode getMetadataAsNode( MetadataExportParams params );
 
+    /**
+     * Validates the import params. Not currently implemented.
+     *
+     * @param params Export parameters to validate
+     */
     void validate( MetadataExportParams params );
 
+    /**
+     * Parses, and creates a MetadataExportParams instance based on given map of parameters.
+     *
+     * @param parameters Key-Value map of wanted parameters
+     * @return MetadataExportParams instance created based on input parameters
+     */
     MetadataExportParams getParamsFromMap( Map<String, List<String>> parameters );
 
+    /**
+     * Exports an object including a set of selected dependencies.
+     *
+     * @param object Object to export including dependencies
+     * @return Original object + selected set of dependencies
+     */
     Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> getMetadataWithDependencies( IdentifiableObject object );
 
+    /**
+     * Exports an object including a set of selected dependencies as RootNode.
+     *
+     * @param object Object to export including dependencies
+     * @return Original object + selected set of dependencies, exported as RootNode
+     */
     RootNode getMetadataWithDependenciesAsNode( IdentifiableObject object );
+
+
 }

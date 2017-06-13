@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.notification;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,13 +33,14 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
-import org.hisp.dhis.program.message.DeliveryChannel;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.UserGroup;
 
 import java.util.Set;
@@ -49,7 +50,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramNotificationTemplate
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements NotificationTemplate, MetadataObject
 {
     private String subjectTemplate;
 
@@ -57,7 +58,7 @@ public class ProgramNotificationTemplate
 
     private NotificationTrigger notificationTrigger;
 
-    private NotificationRecipient notificationRecipient;
+    private ProgramNotificationRecipient notificationRecipient;
 
     private Set<DeliveryChannel> deliveryChannels = Sets.newHashSet();
 
@@ -69,6 +70,8 @@ public class ProgramNotificationTemplate
 
     private UserGroup recipientUserGroup = null;
 
+    private TrackedEntityAttribute recipientProgramAttribute = null;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -78,8 +81,8 @@ public class ProgramNotificationTemplate
     }
 
     public ProgramNotificationTemplate( String name, String subjectTemplate, String messageTemplate,
-        NotificationTrigger notificationTrigger, NotificationRecipient notificationRecipient,
-        Set<DeliveryChannel> deliveryChannels, Integer relativeScheduledDays, UserGroup recipientUserGroup )
+        NotificationTrigger notificationTrigger, ProgramNotificationRecipient notificationRecipient,
+        Set<DeliveryChannel> deliveryChannels, Integer relativeScheduledDays, UserGroup recipientUserGroup, TrackedEntityAttribute recipientProgramAttribute )
     {
         this.name = name;
         this.subjectTemplate = subjectTemplate;
@@ -89,6 +92,7 @@ public class ProgramNotificationTemplate
         this.deliveryChannels = deliveryChannels;
         this.relativeScheduledDays = relativeScheduledDays;
         this.recipientUserGroup = recipientUserGroup;
+        this.recipientProgramAttribute = recipientProgramAttribute;
     }
 
     // -------------------------------------------------------------------------
@@ -134,12 +138,12 @@ public class ProgramNotificationTemplate
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public NotificationRecipient getNotificationRecipient()
+    public ProgramNotificationRecipient getNotificationRecipient()
     {
         return notificationRecipient;
     }
 
-    public void setNotificationRecipient( NotificationRecipient notificationRecipient )
+    public void setNotificationRecipient( ProgramNotificationRecipient notificationRecipient )
     {
         this.notificationRecipient = notificationRecipient;
     }
@@ -182,46 +186,15 @@ public class ProgramNotificationTemplate
         this.recipientUserGroup = recipientUserGroup;
     }
 
-    // -------------------------------------------------------------------------
-    // IdObject overrides
-    // -------------------------------------------------------------------------
-
-    @Override
-    public boolean haveUniqueNames()
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public TrackedEntityAttribute getRecipientProgramAttribute()
     {
-        return false;
+        return recipientProgramAttribute;
     }
 
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
+    public void setRecipientProgramAttribute( TrackedEntityAttribute recipientProgramAttribute )
     {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            ProgramNotificationTemplate pnt = (ProgramNotificationTemplate) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                subjectTemplate = pnt.getSubjectTemplate();
-                messageTemplate = pnt.getMessageTemplate();
-                notificationTrigger = pnt.getNotificationTrigger();
-                notificationRecipient = pnt.getNotificationRecipient();
-                relativeScheduledDays = pnt.getRelativeScheduledDays();
-                recipientUserGroup = pnt.getRecipientUserGroup();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                subjectTemplate = pnt.getSubjectTemplate() == null ? subjectTemplate : pnt.getSubjectTemplate();
-                messageTemplate = pnt.getMessageTemplate() == null ? messageTemplate : pnt.getMessageTemplate();
-                notificationTrigger = pnt.getNotificationTrigger() == null ? notificationTrigger : pnt.getNotificationTrigger();
-                notificationRecipient = pnt.getNotificationRecipient() == null ? notificationRecipient : pnt.getNotificationRecipient();
-                relativeScheduledDays = pnt.getRelativeScheduledDays() == null ? relativeScheduledDays : pnt.getRelativeScheduledDays();
-                recipientUserGroup = pnt.getRecipientUserGroup() == null ? recipientUserGroup : pnt.getRecipientUserGroup();
-            }
-
-            deliveryChannels.clear();
-            deliveryChannels.addAll( pnt.getDeliveryChannels() );
-        }
+        this.recipientProgramAttribute = recipientProgramAttribute;
     }
 }

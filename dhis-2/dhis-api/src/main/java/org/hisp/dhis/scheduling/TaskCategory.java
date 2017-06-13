@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,11 +37,14 @@ public enum TaskCategory
     ANALYTICSTABLE_UPDATE,
     MONITORING,
     DATAVALUE_IMPORT,
+    DATAVALUE_IMPORT_INTERNAL,
     EVENT_IMPORT,
     METADATA_IMPORT,
     AGGREGATE_QUERY_BUILDER,
     SENDING_REMINDER_MESSAGE,
     SENDING_SMS,
     DATAINTEGRITY,
-    PUSH_ANALYSIS
+    PUSH_ANALYSIS,
+    SENDING_VALIDATION_RESULT,
+    COMPLETE_DATA_SET_REGISTRATION_IMPORT
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.resourcetable.table;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,6 @@ package org.hisp.dhis.resourcetable.table;
  */
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -65,7 +64,7 @@ public class PeriodResourceTable
     {
         String sql = 
             "CREATE TABLE " + getTempTableName() + 
-            " (periodid INTEGER NOT NULL PRIMARY KEY, iso VARCHAR(15) NOT NULL, daysno INTEGER NOT NULL";
+            " (periodid INTEGER NOT NULL PRIMARY KEY, iso VARCHAR(15) NOT NULL, daysno INTEGER NOT NULL, startdate DATE NOT NULL, enddate DATE NOT NULL";
         
         for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
         {
@@ -96,7 +95,6 @@ public class PeriodResourceTable
         {
             if ( period != null && period.isValid() )
             {
-                final Date startDate = period.getStartDate();
                 final PeriodType rowType = period.getPeriodType();
                 final String isoDate = period.getIsoDate();
 
@@ -111,12 +109,16 @@ public class PeriodResourceTable
                 values.add( period.getId() );
                 values.add( isoDate );
                 values.add( period.getDaysInPeriod() );
+                values.add( period.getStartDate() );
+                values.add( period.getEndDate() );
 
                 for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
                 {
-                    if ( rowType.getFrequencyOrder() <= periodType.getFrequencyOrder() )
+                    if ( rowType.getFrequencyOrder() < periodType.getFrequencyOrder() || rowType.equals( periodType ) )
                     {
-                        values.add( IdentifiableObjectUtils.getLocalPeriodIdentifier( startDate, periodType, calendar ) );
+                        Period targetPeriod = IdentifiableObjectUtils.getPeriodByPeriodType( period, periodType, calendar );
+                                                
+                        values.add( IdentifiableObjectUtils.getLocalPeriodIdentifier( targetPeriod, calendar ) );
                     }
                     else
                     {

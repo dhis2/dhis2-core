@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,24 +28,31 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.io.ByteSource;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.external.location.LocationManager;
-import org.hisp.dhis.external.location.LocationManagerException;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.schema.descriptors.DocumentSchemaDescriptor;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -56,6 +63,9 @@ import java.io.InputStream;
 public class DocumentController
     extends AbstractCrudController<Document>
 {
+
+    private final static Log log = LogFactory.getLog( DocumentController.class );
+
     @Autowired
     private DocumentService documentService;
 
@@ -63,10 +73,14 @@ public class DocumentController
     private LocationManager locationManager;
 
     @Autowired
+    private FileResourceService fileResourceService;
+
+    @Autowired
     private ContextUtils contextUtils;
 
     @RequestMapping( value = "/{uid}/data", method = RequestMethod.GET )
-    public void getDocumentContent( @PathVariable( "uid" ) String uid, HttpServletResponse response ) throws Exception
+    public void getDocumentContent( @PathVariable( "uid" ) String uid, HttpServletResponse response )
+        throws Exception
     {
         Document document = documentService.getDocument( uid );
 
@@ -79,27 +93,88 @@ public class DocumentController
         {
             response.sendRedirect( response.encodeRedirectURL( document.getUrl() ) );
         }
+        else if ( document.getFileResource() != null )
+        {
+            FileResource fileResource = document.getFileResource();
+
+            ByteSource content = fileResourceService.getFileResourceContent( fileResource );
+
+            if ( content == null )
+            {
+                throw new WebMessageException(
+                    WebMessageUtils.notFound( "The referenced file could not be found" ) );
+            }
+
+            // ---------------------------------------------------------------------
+            // Attempt to build signed URL request for content and redirect
+            // ---------------------------------------------------------------------
+
+            URI signedGetUri = fileResourceService.getSignedGetFileResourceContentUri( fileResource.getUid() );
+
+            if ( signedGetUri != null )
+            {
+                response.setStatus( HttpServletResponse.SC_TEMPORARY_REDIRECT );
+                response.setHeader( HttpHeaders.LOCATION, signedGetUri.toASCIIString() );
+
+                return;
+            }
+
+            // ---------------------------------------------------------------------
+            // Build response and return
+            // ---------------------------------------------------------------------
+
+            response.setContentType( fileResource.getContentType() );
+            response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
+            response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
+
+            // ---------------------------------------------------------------------
+            // Request signing is not available, stream content back to client
+            // ---------------------------------------------------------------------
+
+            InputStream inputStream = null;
+
+            try
+            {
+                inputStream = content.openStream();
+                IOUtils.copy( inputStream, response.getOutputStream() );
+            }
+            catch ( IOException e )
+            {
+                log.error( "Could not retrieve file.", e );
+                throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
+                    "There was an exception when trying to fetch the file from the storage backend. " +
+                        "Depending on the provider the root cause could be network or file system related." ) );
+            }
+            finally
+            {
+                IOUtils.closeQuietly( inputStream );
+            }
+        }
         else
         {
-            contextUtils.configureResponse( response, document.getContentType(), CacheStrategy.CACHE_TWO_WEEKS, document.getUrl(),
-                document.getAttachment() );
+            contextUtils.configureResponse( response, document.getContentType(), CacheStrategy.CACHE_TWO_WEEKS,
+                document.getUrl(),
+                document.getAttachment() == null ? false : document.getAttachment() );
 
             InputStream in = null;
 
             try
             {
                 in = locationManager.getInputStream( document.getUrl(), DocumentService.DIR );
-
                 IOUtils.copy( in, response.getOutputStream() );
             }
-            catch ( LocationManagerException ex )
+            catch ( IOException e )
             {
-                throw new WebMessageException( WebMessageUtils.notFound( "Document could not be found: " + document.getUrl() ) );
+                log.error( "Could not retrieve file.", e );
+                throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
+                    "There was an exception when trying to fetch the file from the storage backend. " +
+                        "Depending on the provider the root cause could be network or file system related." ) );
             }
             finally
             {
                 IOUtils.closeQuietly( in );
             }
+
         }
     }
 }

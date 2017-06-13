@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,10 +36,8 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -49,6 +47,7 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -62,19 +61,38 @@ import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElement;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
+import com.google.common.collect.ImmutableMap;
+
 /**
+ * Class representing query parameters for retrieving event data from the
+ * event analytics service. Example instantiation:
+ * 
+ * <pre>
+ * {@code
+ * EventQueryParams params = new EventQueryParams.Builder()
+ *      .addItem( qiA )
+ *      .addItemFilter( qiB )
+ *      .withOrganisationUnits( ouA, ouB )
+ *      .build();
+ * }
+ * </pre>
+ * 
  * @author Lars Helge Overland
- */
+ */ 
 public class EventQueryParams
     extends DataQueryParams
 {
+    public static final String EVENT_COORDINATE_FIELD = "EVENT";
+    
     /**
      * The query items.
      */
@@ -103,12 +121,12 @@ public class EventQueryParams
     /**
      * Columns to sort ascending.
      */
-    private List<String> asc = new ArrayList<>();
+    private List<DimensionalItemObject> asc = new ArrayList<>();
 
     /**
      * Columns to sort descending.
      */
-    private List<String> desc = new ArrayList<>();
+    private List<DimensionalItemObject> desc = new ArrayList<>();
     
     /**
      * The organisation unit selection mode.
@@ -171,6 +189,11 @@ public class EventQueryParams
      * Size of cluster in meter.
      */
     private Long clusterSize;
+    
+    /**
+     * The coordinate field to use as basis for spatial event analytics.
+     */
+    private String coordinateField;
 
     /**
      * Bounding box for events to include in clustering.
@@ -181,7 +204,12 @@ public class EventQueryParams
      * Indicates whether to include underlying points for each cluster.
      */
     private boolean includeClusterPoints;
-    
+
+    /**
+     * Indicates the program status
+     */
+    private ProgramStatus programStatus;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -203,6 +231,7 @@ public class EventQueryParams
         params.skipRounding = this.skipRounding;
         params.startDate = this.startDate;
         params.endDate = this.endDate;
+        params.apiVersion = this.apiVersion;
 
         params.partitions = new Partitions( this.partitions );
         params.periodType = this.periodType;
@@ -229,8 +258,10 @@ public class EventQueryParams
         params.geometryOnly = this.geometryOnly;
         params.aggregateData = this.aggregateData;
         params.clusterSize = this.clusterSize;
+        params.coordinateField = this.coordinateField;
         params.bbox = this.bbox;
         params.includeClusterPoints = this.includeClusterPoints;
+        params.programStatus = this.programStatus;
 
         params.periodType = this.periodType;
 
@@ -247,7 +278,7 @@ public class EventQueryParams
 
         for ( DimensionalItemObject object : dataQueryParams.getProgramDataElements() )
         {
-            ProgramDataElement element = (ProgramDataElement) object;
+            ProgramDataElementDimensionItem element = (ProgramDataElementDimensionItem) object;
             DataElement dataElement = element.getDataElement(); 
             QueryItem item = new QueryItem( dataElement, ( dataElement.getLegendSets().isEmpty() ? null : dataElement.getLegendSets().get( 0 ) ), dataElement.getValueType(), dataElement.getAggregationType(), dataElement.getOptionSet() );
             item.setProgram( element.getProgram() );
@@ -256,7 +287,7 @@ public class EventQueryParams
 
         for ( DimensionalItemObject object : dataQueryParams.getProgramAttributes() )
         {
-            ProgramTrackedEntityAttribute element = (ProgramTrackedEntityAttribute) object;
+            ProgramTrackedEntityAttributeDimensionItem element = (ProgramTrackedEntityAttributeDimensionItem) object;
             TrackedEntityAttribute attribute = element.getAttribute();
             QueryItem item = new QueryItem( attribute, ( attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get( 0 ) ), attribute.getValueType(), attribute.getAggregationType(), attribute.getOptionSet() );
             item.setProgram( element.getProgram() );
@@ -265,7 +296,7 @@ public class EventQueryParams
 
         for ( DimensionalItemObject object : dataQueryParams.getFilterProgramDataElements() )
         {
-            ProgramDataElement element = (ProgramDataElement) object;
+            ProgramDataElementDimensionItem element = (ProgramDataElementDimensionItem) object;
             DataElement dataElement = element.getDataElement(); 
             QueryItem item = new QueryItem( dataElement, ( dataElement.getLegendSets().isEmpty() ? null : dataElement.getLegendSets().get( 0 ) ), dataElement.getValueType(), dataElement.getAggregationType(), dataElement.getOptionSet() );
             item.setProgram( element.getProgram() );
@@ -274,7 +305,7 @@ public class EventQueryParams
 
         for ( DimensionalItemObject object : dataQueryParams.getFilterProgramAttributes() )
         {
-            ProgramTrackedEntityAttribute element = (ProgramTrackedEntityAttribute) object;
+            ProgramTrackedEntityAttributeDimensionItem element = (ProgramTrackedEntityAttributeDimensionItem) object;
             TrackedEntityAttribute attribute = element.getAttribute();
             QueryItem item = new QueryItem( attribute, ( attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get( 0 ) ), attribute.getValueType(), attribute.getAggregationType(), attribute.getOptionSet() );
             builder.addItemFilter( item );
@@ -300,7 +331,7 @@ public class EventQueryParams
      * from the periods as start date and the latest end date from the periods
      * as end date. Remove the period dimension or filter.
      */
-    public void replacePeriodsWithStartEndDates()
+    private void replacePeriodsWithStartEndDates()
     {
         List<Period> periods = asTypedList( getDimensionOrFilterItems( PERIOD_DIM_ID ) );
 
@@ -309,12 +340,12 @@ public class EventQueryParams
             Date start = period.getStartDate();
             Date end = period.getEndDate();
 
-            if ( startDate == null || (start != null && start.before( startDate )) )
+            if ( startDate == null || ( start != null && start.before( startDate ) ) )
             {
                 startDate = start;
             }
 
-            if ( endDate == null || (end != null && end.after( endDate )) )
+            if ( endDate == null || ( end != null && end.after( endDate ) ) )
             {
                 endDate = end;
             }
@@ -403,7 +434,18 @@ public class EventQueryParams
     }
 
     /**
+     * Gets program status
+     */
+    public ProgramStatus getProgramStatus()
+    {
+        return programStatus;
+    }
+
+    /**
      * Removes items and item filters of type program indicators.
+     * 
+     * TODO add support for program indicators in aggregate event 
+     * analytics and remove this method.
      */
     public EventQueryParams removeProgramIndicatorItems()
     {
@@ -521,6 +563,18 @@ public class EventQueryParams
     {
         return programIndicator != null;
     }
+    
+    public boolean hasEventProgramIndicatorDimension()
+    {
+        return programIndicator != null &&
+            AnalyticsType.EVENT.equals( programIndicator.getAnalyticsType() );
+    }
+    
+    public boolean hasEnrollmentProgramIndicatorDimension()
+    {
+        return programIndicator != null &&
+            AnalyticsType.ENROLLMENT.equals( programIndicator.getAnalyticsType() );
+    }
 
     /**
      * Indicates whether the program of this query requires registration of
@@ -534,6 +588,11 @@ public class EventQueryParams
     public boolean hasClusterSize()
     {
         return clusterSize != null;
+    }
+
+    public boolean hasProgramStatus()
+    {
+        return programStatus != null;
     }
     
     public boolean hasBbox()
@@ -553,22 +612,20 @@ public class EventQueryParams
     @Override
     public String toString()
     {
-        Map<String, Object> map = new HashMap<>();
-        
-        map.put( "Program", program );
-        map.put( "Stage", programStage );
-        map.put( "Start date", startDate );
-        map.put( "End date", endDate );
-        map.put( "Items", items );
-        map.put( "Item filters", itemFilters );
-        map.put( "Value", value );
-        map.put( "Item program indicators", itemProgramIndicators );
-        map.put( "Program indicator", programIndicator );
-        map.put( "Aggregation type", aggregationType );
-        map.put( "Dimensions", dimensions );
-        map.put( "Filters", filters );
-        
-        return map.toString(); //TODO
+        return ImmutableMap.<String, Object>builder()
+            .put( "Program", program )
+            .put( "Stage", programStage )
+            .put( "Start date", startDate )
+            .put( "End date", endDate )
+            .put( "Items", items )
+            .put( "Item filters", itemFilters )
+            .put( "Value", value )
+            .put( "Item program indicators", itemProgramIndicators )
+            .put( "Program indicator", programIndicator )
+            .put( "Aggregation type", aggregationType )
+            .put( "Dimensions", dimensions )
+            .put( "Filters", filters )
+            .build().toString();
     }
 
     // -------------------------------------------------------------------------
@@ -600,7 +657,7 @@ public class EventQueryParams
         return programIndicator;
     }
 
-    public List<String> getAsc()
+    public List<DimensionalItemObject> getAsc()
     {
         return asc;
     }
@@ -611,7 +668,7 @@ public class EventQueryParams
         return dimensions;
     }
 
-    public List<String> getDesc()
+    public List<DimensionalItemObject> getDesc()
     {
         return desc;
     }
@@ -666,11 +723,6 @@ public class EventQueryParams
         return geometryOnly;
     }
 
-    public void setGeometryOnly( boolean geometryOnly )
-    {
-        this.geometryOnly = geometryOnly; //TODO builder
-    }
-
     public boolean isAggregateData()
     {
         return aggregateData;
@@ -679,6 +731,11 @@ public class EventQueryParams
     public Long getClusterSize()
     {
         return clusterSize;
+    }
+
+    public String getCoordinateField()
+    {
+        return coordinateField;
     }
 
     public String getBbox()
@@ -844,6 +901,12 @@ public class EventQueryParams
             this.params.coordinatesOnly = coordinatesOnly;
             return this;
         }
+        
+        public Builder withGeometryOnly( boolean geometryOnly )
+        {
+            this.params.geometryOnly = geometryOnly;
+            return this;
+        }
 
         public Builder withDisplayProperty( DisplayProperty displayProperty )
         {
@@ -869,13 +932,13 @@ public class EventQueryParams
             return this;
         }
         
-        public Builder addAscSortItem( String sortItem )
+        public Builder addAscSortItem( DimensionalItemObject sortItem )
         {
             this.params.asc.add( sortItem );
             return this;
         }
         
-        public Builder addDescSortItem( String sortItem )
+        public Builder addDescSortItem( DimensionalItemObject sortItem )
         {
             this.params.desc.add( sortItem );
             return this;
@@ -941,6 +1004,12 @@ public class EventQueryParams
             return this;
         }
         
+        public Builder withCoordinateField( String coordinateField )
+        {
+            this.params.coordinateField = coordinateField;
+            return this;
+        }
+        
         public Builder withBbox( String bbox )
         {
             this.params.bbox = bbox;
@@ -953,6 +1022,24 @@ public class EventQueryParams
             return this;
         }
 
+        public Builder withProgramStatus( ProgramStatus programStatus )
+        {
+            this.params.programStatus = programStatus;
+            return this;
+        }
+        
+        public Builder withStartEndDatesForPeriods()
+        {
+            this.params.replacePeriodsWithStartEndDates();
+            return this;
+        }
+        
+        public Builder withApiVersion( DhisApiVersion apiVersion )
+        {
+            this.params.apiVersion = apiVersion;
+            return this;
+        }
+        
         public EventQueryParams build()
         {
             return params;

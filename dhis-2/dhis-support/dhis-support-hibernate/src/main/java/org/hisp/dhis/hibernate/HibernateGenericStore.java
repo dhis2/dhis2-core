@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,10 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.deletedobject.DeletedObjectQuery;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
@@ -58,6 +61,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -94,6 +98,9 @@ public class HibernateGenericStore<T>
 
     @Autowired
     protected SchemaService schemaService;
+
+    @Autowired
+    protected DeletedObjectService deletedObjectService;
 
     /**
      * Allows injection (e.g. by a unit test)
@@ -192,30 +199,60 @@ public class HibernateGenericStore<T>
     @Override
     public final Criteria getCriteria()
     {
-        return getClazzCriteria().setCacheable( cacheable );
+        DetachedCriteria criteria = DetachedCriteria.forClass( getClazz() );
+
+        preProcessDetachedCriteria( criteria );
+
+        return getExecutableCriteria( criteria );
     }
 
     @Override
     public final Criteria getSharingCriteria()
     {
-        return getSharingCriteria( "r%" );
+        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), "r%" ) );
     }
 
     @Override
     public final Criteria getSharingCriteria( String access )
     {
-        return getSharingCriteria( currentUserService.getCurrentUser(), access );
+        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access ) );
     }
 
     @Override
     public final Criteria getSharingCriteria( User user )
     {
-        return getSharingCriteria( user, "r%" );
+        return getExecutableCriteria( getSharingDetachedCriteria( UserInfo.fromUser( user ), "r%" ) );
     }
 
-    private Criteria getSharingCriteria( User user, String access )
+    @Override
+    public final DetachedCriteria getSharingDetachedCriteria()
     {
-        Criteria criteria = getSession().createCriteria( getClazz(), "c" ).setCacheable( cacheable );
+        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), "r%" );
+    }
+
+    @Override
+    public final DetachedCriteria getSharingDetachedCriteria( String access )
+    {
+        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access );
+    }
+
+    @Override
+    public final DetachedCriteria getSharingDetachedCriteria( User user )
+    {
+        return getSharingDetachedCriteria( UserInfo.fromUser( user ), "r%" );
+    }
+
+    @Override
+    public final Criteria getExecutableCriteria( DetachedCriteria detachedCriteria )
+    {
+        return detachedCriteria.getExecutableCriteria( getSession() ).setCacheable( cacheable );
+    }
+
+    private DetachedCriteria getSharingDetachedCriteria( UserInfo user, String access )
+    {
+        DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
+
+        preProcessDetachedCriteria( criteria );
 
         if ( !sharingEnabled( user ) || user == null )
         {
@@ -231,22 +268,41 @@ public class HibernateGenericStore<T>
         disjunction.add( Restrictions.isNull( "c.user.id" ) );
         disjunction.add( Restrictions.eq( "c.user.id", user.getId() ) );
 
-        DetachedCriteria detachedCriteria = DetachedCriteria.forClass( getClazz(), "dc" );
-        detachedCriteria.createCriteria( "dc.userGroupAccesses", "uga" );
-        detachedCriteria.createCriteria( "uga.userGroup", "ug" );
-        detachedCriteria.createCriteria( "ug.members", "ugm" );
+        DetachedCriteria userGroupDetachedCriteria = DetachedCriteria.forClass( getClazz(), "ugdc" );
+        userGroupDetachedCriteria.createCriteria( "ugdc.userGroupAccesses", "uga" );
+        userGroupDetachedCriteria.createCriteria( "uga.userGroup", "ug" );
+        userGroupDetachedCriteria.createCriteria( "ug.members", "ugm" );
 
-        detachedCriteria.add( Restrictions.eqProperty( "dc.id", "c.id" ) );
-        detachedCriteria.add( Restrictions.eq( "ugm.id", user.getId() ) );
-        detachedCriteria.add( Restrictions.like( "uga.access", access ) );
+        userGroupDetachedCriteria.add( Restrictions.eqProperty( "ugdc.id", "c.id" ) );
+        userGroupDetachedCriteria.add( Restrictions.eq( "ugm.id", user.getId() ) );
+        userGroupDetachedCriteria.add( Restrictions.like( "uga.access", access ) );
 
-        detachedCriteria.setProjection( Property.forName( "uga.id" ) );
+        userGroupDetachedCriteria.setProjection( Property.forName( "uga.id" ) );
 
-        disjunction.add( Subqueries.exists( detachedCriteria ) );
+        disjunction.add( Subqueries.exists( userGroupDetachedCriteria ) );
+
+        DetachedCriteria userDetachedCriteria = DetachedCriteria.forClass( getClazz(), "udc" );
+        userDetachedCriteria.createCriteria( "udc.userAccesses", "ua" );
+        userDetachedCriteria.createCriteria( "ua.user", "u" );
+
+        userDetachedCriteria.add( Restrictions.eqProperty( "udc.id", "c.id" ) );
+        userDetachedCriteria.add( Restrictions.eq( "u.id", user.getId() ) );
+        userDetachedCriteria.add( Restrictions.like( "ua.access", access ) );
+
+        userDetachedCriteria.setProjection( Property.forName( "ua.id" ) );
+
+        disjunction.add( Subqueries.exists( userDetachedCriteria ) );
 
         criteria.add( disjunction );
-
         return criteria;
+    }
+
+    /**
+     * Override to add additional restrictions to criteria before
+     * it is invoked.
+     */
+    protected void preProcessDetachedCriteria( DetachedCriteria detachedCriteria )
+    {
     }
 
     protected Criteria getClazzCriteria()
@@ -271,6 +327,7 @@ public class HibernateGenericStore<T>
         }
 
         criteria.setCacheable( cacheable );
+
         return criteria;
     }
 
@@ -281,7 +338,7 @@ public class HibernateGenericStore<T>
      * @param expressions the Criterions for the Criteria.
      * @return a Criteria instance.
      */
-    protected final Criteria getSharingCriteria( Criterion... expressions )
+    protected final Criteria getSharingDetachedCriteria( Criterion... expressions )
     {
         Criteria criteria = getSharingCriteria();
 
@@ -315,7 +372,7 @@ public class HibernateGenericStore<T>
     @SuppressWarnings( "unchecked" )
     protected final T getSharingObject( Criterion... expressions )
     {
-        return (T) getSharingCriteria( expressions ).uniqueResult();
+        return (T) getSharingDetachedCriteria( expressions ).uniqueResult();
     }
 
     /**
@@ -335,25 +392,25 @@ public class HibernateGenericStore<T>
     // -------------------------------------------------------------------------
 
     @Override
-    public int save( T object )
+    public void save( T object )
     {
-        return save( object, currentUserService.getCurrentUser(), true );
+        save( object, currentUserService.getCurrentUser(), true );
     }
 
     @Override
-    public int save( T object, User user )
+    public void save( T object, User user )
     {
-        return save( object, user, true );
+        save( object, user, true );
     }
 
     @Override
-    public int save( T object, boolean clearSharing )
+    public void save( T object, boolean clearSharing )
     {
-        return save( object, currentUserService.getCurrentUser(), clearSharing );
+        save( object, currentUserService.getCurrentUser(), clearSharing );
     }
 
     @Override
-    public int save( T object, User user, boolean clearSharing )
+    public void save( T object, User user, boolean clearSharing )
     {
         String username = user != null ? user.getUsername() : "system-process";
 
@@ -361,6 +418,7 @@ public class HibernateGenericStore<T>
         {
             BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
             identifiableObject.setAutoFields();
+            identifiableObject.setLastUpdatedBy( user );
 
             if ( clearSharing )
             {
@@ -369,6 +427,11 @@ public class HibernateGenericStore<T>
                 if ( identifiableObject.getUserGroupAccesses() != null )
                 {
                     identifiableObject.getUserGroupAccesses().clear();
+                }
+
+                if ( identifiableObject.getUserAccesses() != null )
+                {
+                    identifiableObject.getUserAccesses().clear();
                 }
             }
 
@@ -384,14 +447,14 @@ public class HibernateGenericStore<T>
 
             if ( clearSharing )
             {
-                if ( aclService.canCreatePublic( user, identifiableObject.getClass() ) )
+                if ( aclService.canMakePublic( user, identifiableObject.getClass() ) )
                 {
                     if ( aclService.defaultPublic( identifiableObject.getClass() ) )
                     {
                         identifiableObject.setPublicAccess( AccessStringHelper.READ_WRITE );
                     }
                 }
-                else if ( aclService.canCreatePrivate( user, identifiableObject.getClass() ) )
+                else if ( aclService.canMakePrivate( user, identifiableObject.getClass() ) )
                 {
                     identifiableObject.setPublicAccess( AccessStringHelper.newInstance().build() );
                 }
@@ -405,13 +468,18 @@ public class HibernateGenericStore<T>
         }
 
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_CREATE );
-        return (Integer) getSession().save( object );
+        getSession().save( object );
+
+        if ( MetadataObject.class.isInstance( object ) )
+        {
+            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( (IdentifiableObject) object ) );
+        }
     }
 
     private boolean checkPublicAccess( User user, IdentifiableObject identifiableObject )
     {
-        return aclService.canCreatePublic( user, identifiableObject.getClass() ) ||
-            (aclService.canCreatePrivate( user, identifiableObject.getClass() ) &&
+        return aclService.canMakePublic( user, identifiableObject.getClass() ) ||
+            (aclService.canMakePrivate( user, identifiableObject.getClass() ) &&
                 !AccessStringHelper.canReadOrWrite( identifiableObject.getPublicAccess() ));
     }
 
@@ -430,6 +498,7 @@ public class HibernateGenericStore<T>
         {
             BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
             identifiableObject.setAutoFields();
+            identifiableObject.setLastUpdatedBy( user );
 
             if ( identifiableObject.getUser() == null )
             {
@@ -448,6 +517,11 @@ public class HibernateGenericStore<T>
         if ( object != null )
         {
             getSession().update( object );
+        }
+
+        if ( MetadataObject.class.isInstance( object ) )
+        {
+            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( (IdentifiableObject) object ) );
         }
     }
 
@@ -487,8 +561,17 @@ public class HibernateGenericStore<T>
             throw new ReadAccessDeniedException( object.toString() );
         }
 
+        return postProcessObject( object );
+    }
+
+    /**
+     * Override to inspect, or alter object before it is returned.
+     */
+    protected T postProcessObject( T object )
+    {
         return object;
     }
+
 
     @Override
     public final T getNoAcl( int id )
@@ -672,6 +755,11 @@ public class HibernateGenericStore<T>
     protected boolean sharingEnabled( User user )
     {
         return forceAcl() || (aclService.isShareable( clazz ) && !(user == null || user.isSuper()));
+    }
+
+    protected boolean sharingEnabled( UserInfo userInfo )
+    {
+        return forceAcl() || (aclService.isShareable( clazz ) && !(userInfo == null || userInfo.isSuper()));
     }
 
     protected boolean isReadAllowed( T object )

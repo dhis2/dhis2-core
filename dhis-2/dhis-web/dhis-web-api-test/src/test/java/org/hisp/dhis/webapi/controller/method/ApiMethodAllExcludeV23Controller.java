@@ -28,8 +28,8 @@ package org.hisp.dhis.webapi.controller.method;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion.Version;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -44,14 +44,14 @@ import java.io.IOException;
 public class ApiMethodAllExcludeV23Controller
 {
     @RequestMapping( "a" )
-    @ApiVersion( value = Version.ALL, exclude = Version.V23 )
+    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V23 )
     public void testAllA( HttpServletResponse response ) throws IOException
     {
         response.getWriter().println( "TEST" );
     }
 
     @RequestMapping( "b" )
-    @ApiVersion( value = Version.ALL, exclude = Version.V23 )
+    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V23 )
     public void testAllB( HttpServletResponse response ) throws IOException
     {
         response.getWriter().println( "TEST" );

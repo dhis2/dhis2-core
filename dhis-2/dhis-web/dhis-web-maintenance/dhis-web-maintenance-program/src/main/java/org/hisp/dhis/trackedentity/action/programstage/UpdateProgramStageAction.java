@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity.action.programstage;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -172,6 +172,13 @@ public class UpdateProgramStageAction
     {
         this.excecutionDateLabel = excecutionDateLabel;
     }
+    
+    private String dueDateLabel;
+
+    public void setDueDateLabel( String dueDateLabel )
+    {
+        this.dueDateLabel = dueDateLabel;
+    }
 
     private Boolean autoGenerateEvent;
 
@@ -291,6 +298,13 @@ public class UpdateProgramStageAction
     {
         this.hideDueDate = hideDueDate;
     }
+    
+    private List<Boolean> renderOptionsAsRadios;
+
+    public void setRenderOptionsAsRadios( List<Boolean> renderOptionsAsRadios )
+    {
+        this.renderOptionsAsRadios = renderOptionsAsRadios;
+    }
 
     // -------------------------------------------------------------------------
     // Action implementation
@@ -333,6 +347,11 @@ public class UpdateProgramStageAction
         programStage.setReportDateToUse( reportDateToUse );
         programStage.setPreGenerateUID( preGenerateUID );
         programStage.setHideDueDate( hideDueDate );
+        
+        if( !hideDueDate )
+        {
+            programStage.setDueDateLabel( StringUtils.trimToNull( dueDateLabel ) );
+        }
 
         periodTypeName = StringUtils.trimToNull( periodTypeName );
 
@@ -363,8 +382,7 @@ public class UpdateProgramStageAction
             attributeService.updateAttributeValues( programStage, jsonAttributeValues );
         }
 
-        Set<ProgramStageDataElement> programStageDataElements = new HashSet<>(
-            programStage.getProgramStageDataElements() );
+        Set<ProgramStageDataElement> programStageDataElements = new HashSet<>( programStage.getProgramStageDataElements() );
         
         for ( int i = 0; i < this.selectedDataElementsValidator.size(); i++ )
         {            
@@ -372,9 +390,9 @@ public class UpdateProgramStageAction
             Boolean allowed = allowProvidedElsewhere.get( i ) == null ? false : allowProvidedElsewhere.get( i );
             Boolean displayInReport = displayInReports.get( i ) == null ? false : displayInReports.get( i );
             Boolean allowDate = allowFutureDates.get( i ) == null ? false : allowFutureDates.get( i );
+            Boolean renderAsRadio = renderOptionsAsRadios.get( i ) == null ? false : renderOptionsAsRadios.get( i );
 
-            ProgramStageDataElement programStageDataElement = programStageDataElementService.get( programStage,
-                dataElement );
+            ProgramStageDataElement programStageDataElement = programStageDataElementService.get( programStage, dataElement );
 
             if ( programStageDataElement == null )
             {
@@ -384,6 +402,7 @@ public class UpdateProgramStageAction
                 programStageDataElement.setDisplayInReports( displayInReport );
                 programStageDataElement.setAllowFutureDate( allowDate );
                 programStageDataElementService.addProgramStageDataElement( programStageDataElement );
+                programStageDataElement.setRenderOptionsAsRadio( renderAsRadio );
             }
             else
             {
@@ -394,12 +413,17 @@ public class UpdateProgramStageAction
                 programStageDataElement.setAllowFutureDate( allowDate );
                 programStageDataElementService.updateProgramStageDataElement( programStageDataElement );
                 programStageDataElements.remove( programStageDataElement );
+                programStageDataElement.setRenderOptionsAsRadio( renderAsRadio );
             }            
         }
         
         for ( ProgramStageSection section : programStage.getProgramStageSections() )
         {
-            section.getProgramStageDataElements().removeAll( programStageDataElements );            
+            for ( ProgramStageDataElement element : programStageDataElements )
+            {
+                section.getDataElements().remove( element.getDataElement() );
+            }
+            
             programStageSectionService.updateProgramStageSection( section );
         }        
         

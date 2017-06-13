@@ -1,7 +1,7 @@
 package org.hisp.dhis.external.conf;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -115,6 +115,13 @@ public interface DhisConfigurationProvider
      * @return true if clustering is enabled.
      */
     boolean isClusterEnabled();
+    
+    /**
+     * Indicates whether {@code memcached} is enabled as cache provider.
+     * 
+     * @return true if {@code memcached} is enabled as cache provider.
+     */
+    boolean isMemcachedCacheProviderEnabled();
     
     /**
      * Indicates whether LDAP authentication is configured.

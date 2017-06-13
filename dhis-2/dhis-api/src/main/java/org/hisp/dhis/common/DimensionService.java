@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,21 +57,22 @@ public interface DimensionService
 
     /**
      * Gets a dimension item object which are among the data dimension item 
-     * objects. The composite dimensional items will be saved if not existing.
-     *
-     * @param idScheme the idScheme to identify the item
-     * @param dimensionItem the dimension item identifier.
-     * @return a dimensional item object.
-     */
-    DimensionalItemObject getOrAddDataDimensionalItemObject( IdScheme idScheme, String dimensionItem );
-
-    /**
-     * Gets a dimension item object which are among the data dimension item 
-     * objects. The composite dimensional items will be transient and the
-     * associated objects will be persistent.
+     * objects. The composite dimensional items themselves will be transient 
+     * and the associated objects will be persistent.
      *
      * @param dimensionItem the dimension item identifier.
      * @return a dimensional item object.
      */
     DimensionalItemObject getDataDimensionalItemObject( String dimensionItem );
+    
+    /**
+     * Gets a dimension item object which are among the data dimension item 
+     * objects. The composite dimensional items will be transient and the
+     * associated objects will be persistent.
+     *
+     * @param idScheme the idScheme to identify the item.
+     * @param dimensionItem the dimension item identifier.
+     * @return a dimensional item object.
+     */
+    DimensionalItemObject getDataDimensionalItemObject( IdScheme idScheme, String dimensionItem );
 }

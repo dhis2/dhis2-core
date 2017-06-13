@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,17 +30,18 @@ package org.hisp.dhis.webapi.controller;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.IOUtils;
-import org.hisp.dhis.dxf2.common.Status;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -69,7 +70,7 @@ import java.util.Map;
  */
 @Controller
 @RequestMapping( "/staticContent" )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class StaticContentController
 {
     @Autowired
@@ -155,8 +156,7 @@ public class StaticContentController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     @RequestMapping( value = "/{key}", method = RequestMethod.POST )
     public void updateStaticContent(
-        @PathVariable( "key" ) String key,
-        @RequestParam( value = "file", required = true ) MultipartFile file )
+        @PathVariable( "key" ) String key, @RequestParam( value = "file" ) MultipartFile file )
         throws WebMessageException, IOException
     {
         if ( file == null || file.isEmpty() )

@@ -1,7 +1,7 @@
 package org.hisp.dhis.commons.action;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,12 +45,12 @@ public abstract class AbstractRelativePeriodsAction
     }
 
     protected boolean reportingBimonth;
-    
+
     public void setReportingBimonth( boolean reportingBimonth )
     {
         this.reportingBimonth = reportingBimonth;
     }
-    
+
     protected boolean reportingQuarter;
 
     public void setReportingQuarter( boolean reportingQuarter )
@@ -71,11 +71,26 @@ public abstract class AbstractRelativePeriodsAction
     {
         this.thisSixMonth = thisSixMonth;
     }
+
+    protected boolean weeksThisYear;
+
+    public void setWeeksThisYear( boolean weeksThisYear )
+    {
+        this.weeksThisYear = weeksThisYear;
+    }
+        
     protected boolean monthsThisYear;
 
     public void setMonthsThisYear( boolean monthsThisYear )
     {
         this.monthsThisYear = monthsThisYear;
+    }
+
+    protected boolean biMonthsThisYear;
+
+    public void setBiMonthsThisYear( boolean biMonthsThisYear )
+    {
+        this.biMonthsThisYear = biMonthsThisYear;
     }
 
     protected boolean quartersThisYear;
@@ -107,19 +122,19 @@ public abstract class AbstractRelativePeriodsAction
     }
 
     protected boolean last5Years;
-    
+
     public void setLast5Years( boolean last5Years )
     {
         this.last5Years = last5Years;
     }
 
     protected boolean lastYear;
-    
+
     public void setLastYear( boolean lastYear )
     {
         this.lastYear = lastYear;
     }
-    
+
     protected boolean last12Months;
 
     public void setLast12Months( boolean last12Months )
@@ -140,14 +155,14 @@ public abstract class AbstractRelativePeriodsAction
     {
         this.last4Quarters = last4Quarters;
     }
-    
+
     protected boolean last2SixMonths;
 
     public void setLast2SixMonths( boolean last2SixMonths )
     {
         this.last2SixMonths = last2SixMonths;
     }
-    
+
     protected boolean thisFinancialYear;
 
     public void setThisFinancialYear( boolean thisFinancialYear )
@@ -163,14 +178,14 @@ public abstract class AbstractRelativePeriodsAction
     }
 
     protected boolean last3Months;
-    
+
     public void setLast3Months( boolean last3Months )
     {
         this.last3Months = last3Months;
     }
 
     protected boolean last6BiMonths;
-    
+
     public void setLast6BiMonths( boolean last6BiMonths )
     {
         this.last6BiMonths = last6BiMonths;
@@ -184,14 +199,14 @@ public abstract class AbstractRelativePeriodsAction
     }
 
     protected boolean lastWeek;
-    
+
     public void setLastWeek( boolean lastWeek )
     {
         this.lastWeek = lastWeek;
     }
 
     protected boolean last4Weeks;
-    
+
     public void setLast4Weeks( boolean last4Weeks )
     {
         this.last4Weeks = last4Weeks;
@@ -205,21 +220,22 @@ public abstract class AbstractRelativePeriodsAction
     }
 
     protected boolean last52Weeks;
-    
+
     public void setLast52Weeks( boolean last52Weeks )
     {
         this.last52Weeks = last52Weeks;
     }
-    
+
     protected RelativePeriods getRelativePeriods()
     {
-        RelativePeriods relatives = new RelativePeriods( reportingMonth, false, reportingBimonth, false, reportingQuarter, false, thisSixMonth, false,
-            monthsThisYear, quartersThisYear, thisYear, 
-            monthsLastYear, quartersLastYear, lastYear, 
+        RelativePeriods relatives = new RelativePeriods( false, false, false, false, false, reportingMonth, false,
+            reportingBimonth, false, reportingQuarter, false, thisSixMonth, false,
+            weeksThisYear, monthsThisYear, biMonthsThisYear, quartersThisYear, thisYear, 
+            monthsLastYear, quartersLastYear, lastYear,
             last5Years, last12Months, last6Months, last3Months, last6BiMonths, last4Quarters, last2SixMonths,
-            thisFinancialYear, lastFinancialYear, last5FinancialYears, 
+            thisFinancialYear, lastFinancialYear, last5FinancialYears,
             false, lastWeek, last4Weeks, last12Weeks, last52Weeks );
-        
+
         return relatives;
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,6 +48,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
@@ -63,9 +64,9 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
 import org.hisp.dhis.webapi.webdomain.approval.Approval;
 import org.hisp.dhis.webapi.webdomain.approval.Approvals;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,7 +101,7 @@ import static com.google.common.collect.Lists.newArrayList;
  */
 @Controller
 @RequestMapping
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class DataApprovalController
 {
     public static final String APPROVALS_PATH = "/dataApprovals";
@@ -152,8 +153,8 @@ public class DataApprovalController
 
     @RequestMapping( value = APPROVALS_PATH, method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
     public void getApprovalPermissions(
-        @RequestParam( required=false ) String ds,
-        @RequestParam( required=false) String wf,
+        @RequestParam( required = false ) String ds,
+        @RequestParam( required = false ) String wf,
         @RequestParam String pe,
         @RequestParam String ou, HttpServletResponse response )
         throws IOException, WebMessageException
@@ -337,8 +338,8 @@ public class DataApprovalController
     @RequestMapping( value = APPROVALS_PATH, method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void saveApproval(
-        @RequestParam( required=false ) String ds,
-        @RequestParam( required=false) String wf,
+        @RequestParam( required = false ) String ds,
+        @RequestParam( required = false ) String wf,
         @RequestParam String pe,
         @RequestParam String ou, HttpServletResponse response ) throws WebMessageException
     {
@@ -417,8 +418,8 @@ public class DataApprovalController
     @RequestMapping( value = ACCEPTANCES_PATH, method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void acceptApproval(
-        @RequestParam( required=false ) String ds,
-        @RequestParam( required=false) String wf,
+        @RequestParam( required = false ) String ds,
+        @RequestParam( required = false ) String wf,
         @RequestParam String pe,
         @RequestParam String ou, HttpServletResponse response ) throws WebMessageException
     {
@@ -528,8 +529,8 @@ public class DataApprovalController
     @RequestMapping( value = ACCEPTANCES_PATH, method = RequestMethod.DELETE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void unacceptApproval(
-        @RequestParam( required=false ) String ds,
-        @RequestParam( required=false) String wf,
+        @RequestParam( required = false ) String ds,
+        @RequestParam( required = false ) String wf,
         @RequestParam String pe,
         @RequestParam String ou, HttpServletResponse response ) throws WebMessageException
     {
@@ -625,7 +626,7 @@ public class DataApprovalController
 
     /**
      * Validates the input parameters and returns a data approval workflow.
-     * 
+     *
      * @param ds the data set identifier.
      * @param wf the data approval workflow identifier.
      * @return a DataApprovalWorkflow.
@@ -637,28 +638,28 @@ public class DataApprovalController
         if ( ds != null )
         {
             DataSet dataSet = dataSetService.getDataSet( ds );
-    
+
             if ( dataSet == null )
             {
                 throw new WebMessageException( WebMessageUtils.conflict( "Data set does not exist: " + ds ) );
             }
-    
+
             if ( dataSet.getWorkflow() == null )
             {
                 throw new WebMessageException( WebMessageUtils.conflict( "Data set does not have an approval workflow: " + ds ) );
             }
-            
+
             return dataSet.getWorkflow();
         }
         else if ( wf != null )
         {
             DataApprovalWorkflow workflow = dataApprovalService.getWorkflow( wf );
-            
+
             if ( workflow == null )
             {
                 throw new WebMessageException( WebMessageUtils.conflict( "Data approval workflow does not exist: " + wf ) );
             }
-            
+
             return workflow;
         }
         else

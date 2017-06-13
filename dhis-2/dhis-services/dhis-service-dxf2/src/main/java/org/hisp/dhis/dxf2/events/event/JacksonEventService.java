@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.event;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.render.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.render.ParseDateStdDeserializer;
 import org.hisp.dhis.render.WriteDateStdSerializer;
@@ -57,7 +58,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Implementation of EventService that uses Jackson for serialization and deserialization.
+ * Implementation of EventService that uses Jackson for serialization and 
+ * deserialization. This class has the prototype scope and can hence have
+ * class scoped variables such as caches.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -228,7 +231,9 @@ public class JacksonEventService extends AbstractEventService
                 }
                 else
                 {
-                    if ( !programStageInstanceService.programStageInstanceExists( event.getEvent() ) )
+                    ProgramStageInstance programStageInstance = manager.getObject( ProgramStageInstance.class, importOptions.getIdSchemes().getProgramStageInstanceIdScheme(), event.getEvent() );
+
+                    if ( programStageInstance == null )
                     {
                         create.add( event );
                     }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.calendar;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -262,5 +262,21 @@ public abstract class AbstractCalendar implements Calendar
     public DateTimeUnit isoStartOfYear( int year )
     {
         return new DateTimeUnit( year, 1, 1 );
+    }
+
+    @Override
+    public boolean isValid( DateTimeUnit dateTime )
+    {
+        if ( dateTime.getMonth() < 1 || dateTime.getMonth() > monthsInYear() )
+        {
+            return false;
+        }
+
+        if ( dateTime.getDay() < 1 || dateTime.getDay() > daysInMonth( dateTime.getYear(), dateTime.getMonth() ) )
+        {
+            return false;
+        }
+
+        return true;
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,24 +30,23 @@ package org.hisp.dhis.program;
 
 /**
  * @author Chau Thu Tran
- *
  * @version $ ProgramType.java Jul 1, 2015 3:09:12 PM $
  */
 public enum ProgramType
 {
-    WITH_REGISTRATION("with_registration"), 
-    WITHOUT_REGISTRATION("without_registration");
-    
+    WITH_REGISTRATION( "with_registration" ),
+    WITHOUT_REGISTRATION( "without_registration" );
+
     private final String value;
 
-    private ProgramType( String value )
+    ProgramType( String value )
     {
         this.value = value;
     }
 
     public static ProgramType fromValue( String value )
     {
-       for ( ProgramType programType : ProgramType.values() )
+        for ( ProgramType programType : ProgramType.values() )
         {
             if ( programType.value.equalsIgnoreCase( value ) )
             {
@@ -57,10 +56,10 @@ public enum ProgramType
 
         return null;
     }
-    
+
     public String getValue()
     {
         return value;
     }
-    
+
 }

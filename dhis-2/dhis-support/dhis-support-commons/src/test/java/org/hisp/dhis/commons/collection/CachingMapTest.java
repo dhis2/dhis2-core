@@ -30,6 +30,7 @@ package org.hisp.dhis.commons.collection;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import org.junit.Test;
 
@@ -37,8 +38,10 @@ import static org.junit.Assert.*;
 
 public class CachingMapTest
 {
+    private static final Callable<Animal> FN = () -> null;
+    
     @Test
-    public void testLoad()
+    public void testGetLoad()
     {
         Set<Animal> animals = new HashSet<>();
         animals.add( new Animal( 1, "horse" ) );
@@ -48,12 +51,12 @@ public class CachingMapTest
         CachingMap<Integer, Animal> cache = new CachingMap<Integer, Animal>().load( animals, a -> a.getId() );
 
         assertEquals( 3, cache.size() );
-        assertEquals( "horse", cache.get( 1 ).getName() );
-        assertEquals( "dog", cache.get( 2 ).getName() );
-        assertEquals( "cat", cache.get( 3 ).getName() );        
+        assertEquals( "horse", cache.get( 1, FN ).getName() );
+        assertEquals( "dog", cache.get( 2, FN ).getName() );
+        assertEquals( "cat", cache.get( 3, FN ).getName() );        
         assertFalse( cache.containsKey( "deer" ) );
     }
-    
+        
     @Test
     public void testLoadWithNull()
     {
@@ -65,7 +68,7 @@ public class CachingMapTest
         CachingMap<String, Animal> cache = new CachingMap<String, Animal>().load( animals, a -> a.getName() );
 
         assertEquals( 2, cache.size() );
-        assertEquals( 1, cache.get( "horse" ).getId() );       
+        assertEquals( 1, cache.get( "horse", FN ).getId() );       
         assertFalse( cache.containsKey( "dog" ) );
     }
     
@@ -77,16 +80,19 @@ public class CachingMapTest
         cache.put( 1, new Animal( 1, "horse" ) );
         cache.put( 2, new Animal( 2, "dog" ) );
         
-        cache.get( 1, () -> null ); // Hit
-        cache.get( 1, () -> null ); // Hit
-        cache.get( 1, () -> null ); // Hit
-        cache.get( 2, () -> null ); // Hit
-        cache.get( 2, () -> null ); // Hit
-        cache.get( 3, () -> null ); // Miss
-        cache.get( 3, () -> null ); // Miss
-        cache.get( 4, () -> null ); // Miss
+        cache.get( 1, FN ); // Hit
+        cache.get( 1, FN ); // Hit
+        cache.get( 1, FN ); // Hit
+        cache.get( 2, FN ); // Hit
+        cache.get( 2, FN ); // Hit
+        cache.get( 3, FN ); // Miss
+        cache.get( 3, FN ); // Hit null-value
+        cache.get( 4, FN ); // Miss
+        cache.get( 4, FN ); // Hit null-value
+        cache.get( 4, FN ); // Hit null-value
+        cache.get( 5, FN ); // Miss
         
-        assertEquals( 5, cache.getCacheHitCount() );
+        assertEquals( 8, cache.getCacheHitCount() );
         assertEquals( 3, cache.getCacheMissCount() );
     }
 
@@ -112,7 +118,6 @@ public class CachingMapTest
     {
         Set<Animal> animals = new HashSet<>();
         animals.add( new Animal( 1, "horse" ) );
-        animals.add( new Animal( 2, "dog" ) );
         animals.add( new Animal( 3, "cat" ) );
 
         CachingMap<Integer, Animal> cache = new CachingMap<Integer, Animal>();
@@ -122,6 +127,27 @@ public class CachingMapTest
         cache.load( animals, a -> a.getId() );
 
         assertTrue( cache.isCacheLoaded() );
+    }
+
+    /**
+     * Only first get should create a miss, entry should be cached
+     * event if value is null.
+     */
+    @Test
+    public void testGetCacheNullValue()
+    {
+        Set<Animal> animals = new HashSet<>();
+        animals.add( new Animal( 1, "horse" ) );
+        animals.add( new Animal( 2, "dog" ) );
+        
+        CachingMap<Integer, Animal> cache = new CachingMap<Integer, Animal>().load( animals, a -> a.getId() );
+        
+        assertNull( cache.get( 5, FN ) ); // Miss
+        assertNull( cache.get( 5, FN ) ); // Hit null-value
+        assertNull( cache.get( 5, FN ) ); // Hit null-value
+        
+        assertEquals( 1, cache.getCacheMissCount() );
+        assertEquals( 2, cache.getCacheHitCount() );
     }
     
     private class Animal

@@ -373,56 +373,6 @@
       "lastUpdated": "2016-03-10T05:00:11.778+0000"
     }
   ],
-  "programStageDataElements": [
-    {
-      "id": "gANqBDSSNu2",
-      "allowProvidedElsewhere": false,
-      "compulsory": false,
-      "dataElement": {
-        "id": "xbww2KLuHnZ"
-      },
-      "allowFutureDate": false,
-      "lastUpdated": "2016-03-10T07:27:58.733+0000",
-      "displayInReports": true,
-      "programStage": {
-        "id": "agYrfZeYx1b"
-      },
-      "created": "2016-03-10T07:27:58.733+0000",
-      "sortOrder": 2
-    },
-    {
-      "sortOrder": 1,
-      "programStage": {
-        "id": "agYrfZeYx1b"
-      },
-      "created": "2016-03-10T07:27:58.726+0000",
-      "displayInReports": false,
-      "lastUpdated": "2016-03-10T07:27:58.727+0000",
-      "allowFutureDate": false,
-      "dataElement": {
-        "id": "HLRGJHHgfxc"
-      },
-      "compulsory": false,
-      "allowProvidedElsewhere": true,
-      "id": "x7wLneg4rTZ"
-    },
-    {
-      "sortOrder": 0,
-      "programStage": {
-        "id": "agYrfZeYx1b"
-      },
-      "created": "2016-03-10T07:27:58.718+0000",
-      "id": "vOdNoOX7l10",
-      "allowProvidedElsewhere": false,
-      "allowFutureDate": false,
-      "dataElement": {
-        "id": "jSmlTqYWkor"
-      },
-      "compulsory": true,
-      "lastUpdated": "2016-03-10T07:27:58.719+0000",
-      "displayInReports": false
-    }
-  ],
   "organisationUnits": [
     {
       "path": "/SR705r4KVRu",
@@ -473,13 +423,52 @@
       "attributeValues": [ ],
       "programStageDataElements": [
         {
-          "id": "vOdNoOX7l10"
+          "id": "gANqBDSSNu2",
+          "allowProvidedElsewhere": false,
+          "compulsory": false,
+          "dataElement": {
+            "id": "xbww2KLuHnZ"
+          },
+          "allowFutureDate": false,
+          "lastUpdated": "2016-03-10T07:27:58.733+0000",
+          "displayInReports": true,
+          "programStage": {
+            "id": "agYrfZeYx1b"
+          },
+          "created": "2016-03-10T07:27:58.733+0000",
+          "sortOrder": 2
         },
         {
+          "sortOrder": 1,
+          "programStage": {
+            "id": "agYrfZeYx1b"
+          },
+          "created": "2016-03-10T07:27:58.726+0000",
+          "displayInReports": false,
+          "lastUpdated": "2016-03-10T07:27:58.727+0000",
+          "allowFutureDate": false,
+          "dataElement": {
+            "id": "HLRGJHHgfxc"
+          },
+          "compulsory": false,
+          "allowProvidedElsewhere": true,
           "id": "x7wLneg4rTZ"
         },
         {
-          "id": "gANqBDSSNu2"
+          "sortOrder": 0,
+          "programStage": {
+            "id": "agYrfZeYx1b"
+          },
+          "created": "2016-03-10T07:27:58.718+0000",
+          "id": "vOdNoOX7l10",
+          "allowProvidedElsewhere": false,
+          "allowFutureDate": false,
+          "dataElement": {
+            "id": "jSmlTqYWkor"
+          },
+          "compulsory": true,
+          "lastUpdated": "2016-03-10T07:27:58.719+0000",
+          "displayInReports": false
         }
       ],
       "generatedByEnrollmentDate": false,

@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,10 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * @author Chau Thu Tran
@@ -58,7 +58,9 @@ public class DefaultTrackedEntityService
     @Override
     public int addTrackedEntity( TrackedEntity trackedEntity )
     {
-        return trackedEntityStore.save( trackedEntity );
+        trackedEntityStore.save( trackedEntity );
+
+        return trackedEntity.getId();
     }
 
     @Override

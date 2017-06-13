@@ -1,7 +1,7 @@
 package org.hisp.dhis;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.orm.hibernate5.SessionFactoryUtils;
 import org.springframework.orm.hibernate5.SessionHolder;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.lang.reflect.Method;
@@ -49,9 +49,8 @@ import java.lang.reflect.Method;
  * TODO remove this class and its usage, too slow.
  *
  * @author Lars Helge Overland
- * @version $Id$
  */
-@RunWith( SpringJUnit4ClassRunner.class )
+@RunWith( SpringRunner.class )
 @ContextConfiguration( locations = { "classpath*:/META-INF/dhis/beans.xml" } )
 public abstract class DhisTest
     extends DhisConvenienceTest implements ApplicationContextAware

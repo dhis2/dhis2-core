@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,8 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ListMap;
 
 /**
+ * Manager for queries for retrieval of analytics data.
+ * 
  * @author Lars Helge Overland
  */
 public interface AnalyticsManager

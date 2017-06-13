@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit.hibernate;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,27 +28,21 @@ package org.hisp.dhis.organisationunit.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.Session;
-import org.hibernate.criterion.Restrictions;
-import org.hisp.dhis.common.AuditLogUtil;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitHierarchy;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.system.objectmapper.OrganisationUnitRelationshipRowMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowCallbackHandler;
-import org.springframework.security.access.AccessDeniedException;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -66,8 +60,6 @@ public class HibernateOrganisationUnitStore
     extends HibernateIdentifiableObjectStore<OrganisationUnit>
     implements OrganisationUnitStore
 {
-    private static final Log log = LogFactory.getLog( HibernateOrganisationUnitStore.class );
-
     @Autowired
     private DbmsManager dbmsManager;
 
@@ -76,29 +68,9 @@ public class HibernateOrganisationUnitStore
     // -------------------------------------------------------------------------
 
     @Override
-    public OrganisationUnit getByUuid( String uuid )
-    {
-        OrganisationUnit object = getObject( Restrictions.eq( "uuid", uuid ) );
-
-        if ( !isReadAllowed( object ) )
-        {
-            AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED );
-            throw new AccessDeniedException( "You do not have read access to object with uuid " + uuid );
-        }
-
-        return object;
-    }
-
-    @Override
     public List<OrganisationUnit> getAllOrganisationUnitsByLastUpdated( Date lastUpdated )
     {
         return getAllGeLastUpdated( lastUpdated );
-    }
-
-    @Override
-    public OrganisationUnit getOrganisationUnitByNameIgnoreCase( String name )
-    {
-        return (OrganisationUnit) getCriteria( Restrictions.eq( "name", name ).ignoreCase() ).uniqueResult();
     }
 
     @Override
@@ -116,10 +88,17 @@ public class HibernateOrganisationUnitStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
-    public List<OrganisationUnit> getOrganisationUnitsWithCategoryOptions()
+    public Long getOrganisationUnitHierarchyMemberCount( OrganisationUnit parent, Object member, String collectionName )
     {
-        return getQuery( "from OrganisationUnit o where size(o.categoryOptions) > 0" ).list();
+        final String hql = 
+            "select count(*) from OrganisationUnit o " +
+            "where o.path like :path " +
+            "and :object in elements(o." + collectionName + ")";
+        
+        return (Long) getQuery( hql )
+            .setString( "path", parent.getPath() + "%" )
+            .setEntity( "object", member )
+            .uniqueResult();
     }
 
     @Override
@@ -128,8 +107,13 @@ public class HibernateOrganisationUnitStore
     {
         SqlHelper hlp = new SqlHelper();
 
-        String hql = "select o from OrganisationUnit o ";
+        String hql = "select distinct o from OrganisationUnit o ";
 
+        if ( params.hasGroups() )
+        {
+            hql += "join o.groups og ";
+        }
+        
         if ( params.hasQuery() )
         {
             hql += hlp.whereAnd() + " (lower(o.name) like :queryLower or o.code = :query or o.uid = :query) ";
@@ -149,14 +133,7 @@ public class HibernateOrganisationUnitStore
 
         if ( params.hasGroups() )
         {
-            hql += hlp.whereAnd() + " (";
-
-            for ( OrganisationUnitGroup group : params.getGroups() )
-            {
-                hql += " :" + group.getUid() + " in elements(o.groups) or ";
-            }
-
-            hql = TextUtils.removeLastOr( hql ) + ") ";
+            hql += hlp.whereAnd() + " og.id in (:groupIds) ";
         }
 
         if ( params.hasLevels() )
@@ -189,12 +166,9 @@ public class HibernateOrganisationUnitStore
 
         if ( params.hasGroups() )
         {
-            for ( OrganisationUnitGroup group : params.getGroups() )
-            {
-                query.setEntity( group.getUid(), group );
-            }
+            query.setParameterList( "groupIds", IdentifiableObjectUtils.getIdentifiers( params.getGroups() ) );
         }
-
+        
         if ( params.hasLevels() )
         {
             query.setParameterList( "levels", params.getLevels() );
@@ -239,17 +213,6 @@ public class HibernateOrganisationUnitStore
         } );
 
         return map;
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<OrganisationUnit> getBetweenByLastUpdated( Date lastUpdated, int first, int max )
-    {
-        Criteria criteria = getCriteria().add( Restrictions.ge( "lastUpdated", lastUpdated ) );
-        criteria.setFirstResult( first );
-        criteria.setMaxResults( max );
-
-        return criteria.list();
     }
 
     @Override

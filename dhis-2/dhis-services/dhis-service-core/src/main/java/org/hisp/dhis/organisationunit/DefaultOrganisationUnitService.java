@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,6 @@ package org.hisp.dhis.organisationunit;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.ObjectUtils;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
@@ -50,11 +49,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 
@@ -113,7 +112,7 @@ public class DefaultOrganisationUnitService
     @Override
     public int addOrganisationUnit( OrganisationUnit organisationUnit )
     {
-        int id = organisationUnitStore.save( organisationUnit );
+        organisationUnitStore.save( organisationUnit );
         User user = currentUserService.getCurrentUser();
 
         if ( organisationUnit.getParent() == null && user != null )
@@ -122,7 +121,7 @@ public class DefaultOrganisationUnitService
             user.getOrganisationUnits().add( organisationUnit );
         }
 
-        return id;
+        return organisationUnit.getId();
     }
 
     @Override
@@ -221,12 +220,6 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    public List<OrganisationUnit> getOrganisationUnitByNameIgnoreCase( String name )
-    {
-        return organisationUnitStore.getAllEqNameIgnoreCase( name );
-    }
-
-    @Override
     public List<OrganisationUnit> getRootOrganisationUnits()
     {
         return organisationUnitStore.getRootOrganisationUnits();
@@ -240,44 +233,6 @@ public class DefaultOrganisationUnitService
         params.setGroups( Sets.newHashSet( groups ) );
 
         return organisationUnitStore.getOrganisationUnits( params );
-    }
-
-    @Override
-    public Set<String> getOrganisationUnitUids( Set<String> parents, OrganisationUnitSelectionMode ouMode )
-    {
-        List<OrganisationUnit> ouParents = new ArrayList<>( organisationUnitStore.getByUid( parents ) );
-        Set<String> ou = new HashSet<>();
-
-        if ( OrganisationUnitSelectionMode.ACCESSIBLE == ouMode )
-        {
-            User user = currentUserService.getCurrentUser();
-
-            if ( user != null )
-            {
-                ouParents = new ArrayList<>( user.getDataViewOrganisationUnitsWithFallback() );
-                ouMode = OrganisationUnitSelectionMode.DESCENDANTS;
-            }
-        }
-
-        for ( OrganisationUnit organisationUnit : ouParents )
-        {
-            if ( OrganisationUnitSelectionMode.DESCENDANTS == ouMode )
-            {
-                ou.add( organisationUnit.getUid() );
-                ou.addAll( getUids( getOrganisationUnitWithChildren( organisationUnit.getUid() ) ) );
-            }
-            else if ( OrganisationUnitSelectionMode.CHILDREN == ouMode )
-            {
-                ou.add( organisationUnit.getUid() );
-                ou.addAll( getUids( organisationUnit.getChildren() ) );
-            }
-            else // SELECTED
-            {
-                ou.add( organisationUnit.getUid() );
-            }
-        }
-
-        return ou;
     }
 
     @Override
@@ -371,6 +326,12 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
+    public List<OrganisationUnit> getOrganisationUnitsAtOrgUnitLevels( Collection<OrganisationUnitLevel> levels, Collection<OrganisationUnit> parents )
+    {
+        return getOrganisationUnitsAtLevels( levels.stream().map( l -> l.getLevel() ).collect( Collectors.toList() ), parents );
+    }
+
+    @Override
     public List<OrganisationUnit> getOrganisationUnitsAtLevels( Collection<Integer> levels, Collection<OrganisationUnit> parents )
     {
         OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
@@ -393,9 +354,9 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    public List<OrganisationUnit> getOrganisationUnitsWithCategoryOptions()
+    public Long getOrganisationUnitHierarchyMemberCount( OrganisationUnit parent, Object member, String collectionName )
     {
-        return organisationUnitStore.getOrganisationUnitsWithCategoryOptions();
+        return organisationUnitStore.getOrganisationUnitHierarchyMemberCount( parent, member, collectionName );
     }
 
     @Override
@@ -518,7 +479,8 @@ public class DefaultOrganisationUnitService
     @Override
     public int addOrganisationUnitLevel( OrganisationUnitLevel organisationUnitLevel )
     {
-        return organisationUnitLevelStore.save( organisationUnitLevel );
+        organisationUnitLevelStore.save( organisationUnitLevel );
+        return organisationUnitLevel.getId();
     }
 
     @Override

@@ -1,7 +1,7 @@
 package org.hisp.dhis.preheat;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,6 @@ package org.hisp.dhis.preheat;
 
 import org.hisp.dhis.common.IdentifiableObject;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -60,23 +59,9 @@ public interface PreheatService
      * @param object Object to scan
      * @return Maps classes to collections of identifiers
      */
-    Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> collectReferences( IdentifiableObject object );
+    Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> collectReferences( Object object );
 
-    /**
-     * Scan object and collect all references (both id object and collections with id objects).
-     *
-     * @param objects Object to scan
-     * @return Maps classes to collections of identifiers
-     */
-    Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> collectReferences( Collection<IdentifiableObject> objects );
-
-    /**
-     * Scan objects and collect all references (both id object and collections with id objects).
-     *
-     * @param objects Objects to scan
-     * @return Maps classes to collections of identifiers
-     */
-    Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> collectReferences( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects );
+    Map<Class<?>, Map<String, Map<String, Object>>> collectObjectReferences( Object object );
 
     /**
      * Scan objects and collect unique values (used to verify object properties with unique=true)
@@ -85,8 +70,6 @@ public interface PreheatService
      * @return Klass -> Property.name -> Value -> UID
      */
     Map<Class<? extends IdentifiableObject>, Map<String, Map<Object, String>>> collectUniqueness( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects );
-
-    Map<Class<?>, Map<String, Map<String, Object>>> collectObjectReferences( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects );
 
     /**
      * Connects id object references on a given object using a given identifier + a preheated Preheat cache.

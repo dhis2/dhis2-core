@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,8 +49,13 @@ import java.util.stream.Collectors;
 public class InMemoryQueryEngine<T extends IdentifiableObject>
     implements QueryEngine<T>
 {
+    private final SchemaService schemaService;
+
     @Autowired
-    private SchemaService schemaService;
+    public InMemoryQueryEngine( SchemaService schemaService )
+    {
+        this.schemaService = schemaService;
+    }
 
     @Override
     public List<T> query( Query query )

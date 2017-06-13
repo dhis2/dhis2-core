@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.notification;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,12 +62,12 @@ public class Notification
 
     public Notification()
     {
-        this.uid = CodeGenerator.generateCode();
+        this.uid = CodeGenerator.generateUid();
     }
 
     public Notification( NotificationLevel level, TaskCategory category, Date time, String message, boolean completed )
     {
-        this.uid = CodeGenerator.generateCode();
+        this.uid = CodeGenerator.generateUid();
         this.level = level;
         this.category = category;
         this.time = time;

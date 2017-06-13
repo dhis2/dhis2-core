@@ -1,7 +1,7 @@
 package org.hisp.dhis.maintenance;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,4 +48,28 @@ public interface MaintenanceStore
      * @return the number of deleted data values.
      */
     int deleteSoftDeletedDataValues();
+
+    /**
+     * Permanently deletes program stage instances which have been soft deleted, i.e.
+     * program stage instances where the deleted property is true.
+     *
+     * @return the number of deleted program stage instances
+     */
+    int deleteSoftDeletedProgramStageInstances();
+
+    /**
+     * Permanently deletes program instances which have been soft deleted, i.e.
+     * program instances where the deleted property is true.
+     *
+     * @return the number of deleted program instances
+     */
+    int deleteSoftDeletedProgramInstances();
+
+    /**
+     * Permanently deletes tracked entity instances which have been soft deleted, i.e.
+     * tracked entity instances where the deleted property is true.
+     *
+     * @return the number of deleted tracked entity instances
+     */
+    int deleteSoftDeletedTrackedEntityInstances();
 }

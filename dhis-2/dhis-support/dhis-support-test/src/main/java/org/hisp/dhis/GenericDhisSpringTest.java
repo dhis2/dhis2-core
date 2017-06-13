@@ -1,7 +1,7 @@
 package org.hisp.dhis;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,10 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-
 import org.hisp.dhis.common.GenericStore;
 import org.junit.Test;
+
+import java.util.Collection;
 
 import static org.junit.Assert.*;
 
@@ -61,10 +61,15 @@ public abstract class GenericDhisSpringTest<T>
     @Test
     public final void genericSaveGet()
     {
-        int idA = genericStore.save( getObjects()[0] );
-        int idB = genericStore.save( getObjects()[1] );
-        int idC = genericStore.save( getObjects()[2] );
-        
+        genericStore.save( getObjects()[0] );
+        int idA = getObjectId( getObjects()[0] );
+
+        genericStore.save( getObjects()[1] );
+        int idB = getObjectId( getObjects()[1] );
+
+        genericStore.save( getObjects()[2] );
+        int idC = getObjectId( getObjects()[2] );
+
         assertEquals( getObjects()[0], genericStore.get( idA ) );
         assertEquals( getObjects()[1], genericStore.get( idB ) );
         assertEquals( getObjects()[2], genericStore.get( idC ) );
@@ -73,9 +78,14 @@ public abstract class GenericDhisSpringTest<T>
     @Test
     public final void genericLoadGet()
     {
-        int idA = genericStore.save( getObjects()[0] );
-        int idB = genericStore.save( getObjects()[1] );
-        int idC = genericStore.save( getObjects()[2] );
+        genericStore.save( getObjects()[0] );
+        int idA = getObjectId( getObjects()[0] );
+
+        genericStore.save( getObjects()[1] );
+        int idB = getObjectId( getObjects()[1] );
+
+        genericStore.save( getObjects()[2] );
+        int idC = getObjectId( getObjects()[2] );
         
         assertEquals( getObjects()[0], genericStore.get( idA ) );
         assertEquals( getObjects()[1], genericStore.get( idB ) );
@@ -85,9 +95,14 @@ public abstract class GenericDhisSpringTest<T>
     @Test
     public final void genericDelete()
     {
-        int idA = genericStore.save( getObjects()[0] );
-        int idB = genericStore.save( getObjects()[1] );
-        int idC = genericStore.save( getObjects()[2] );
+        genericStore.save( getObjects()[0] );
+        int idA = getObjectId( getObjects()[0] );
+
+        genericStore.save( getObjects()[1] );
+        int idB = getObjectId( getObjects()[1] );
+
+        genericStore.save( getObjects()[2] );
+        int idC = getObjectId( getObjects()[2] );
         
         assertNotNull( genericStore.get( idA ) );
         assertNotNull( genericStore.get( idB ) );
@@ -149,4 +164,6 @@ public abstract class GenericDhisSpringTest<T>
      * Should return the Spring bean identifier of the store which is to be tested.
      */
     protected abstract String getGenericBeanId();
+
+    protected abstract int getObjectId( T object );
 }

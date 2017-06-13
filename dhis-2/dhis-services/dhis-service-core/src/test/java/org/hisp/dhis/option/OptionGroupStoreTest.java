@@ -28,16 +28,13 @@ package org.hisp.dhis.option;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Collection;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Collection;
+
+import static org.junit.Assert.*;
 
 
 /**
@@ -70,9 +67,12 @@ public class OptionGroupStoreTest
     @Test
     public void tetAddOptionGroup()
     {
-        int idA = store.save( optionGroupA );
-        int idB = store.save( optionGroupB );
-        int idC = store.save( optionGroupC );
+        store.save( optionGroupA );
+        int idA = optionGroupA.getId();
+        store.save( optionGroupB );
+        int idB = optionGroupB.getId();
+        store.save( optionGroupC );
+        int idC = optionGroupC.getId();
 
         assertEquals( optionGroupA, store.get( idA ));
         assertEquals( optionGroupB, store.get( idB ));
@@ -82,8 +82,10 @@ public class OptionGroupStoreTest
     @Test
     public void testDeleteOptionGroup()
     {
-        int idA = store.save( optionGroupA );
-        int idB = store.save( optionGroupB );
+        store.save( optionGroupA );
+        int idA = optionGroupA.getId();
+        store.save( optionGroupB );
+        int idB = optionGroupB.getId();
 
         store.delete( optionGroupA );
 

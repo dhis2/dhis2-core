@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.schema;
  */
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -93,4 +94,11 @@ public interface SchemaService
      * @return List of all available metadata schemas
      */
     List<Schema> getMetadataSchemas();
+
+    /**
+     * Collect all authorities from schema descriptors.
+     *
+     * @return
+     */
+    Set<String> collectAuthorities();
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema.descriptors;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,14 +44,12 @@ public class FileResourceSchemaDescriptor
 
     public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override 
+    @Override
     public Schema getSchema()
     {
         Schema schema = new Schema( FileResource.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setShareable( false );
-        schema.setMetadata( false );
-        schema.setOrder( 1250 );
+
         return schema;
     }
 }

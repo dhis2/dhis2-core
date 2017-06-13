@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,8 +39,7 @@ import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.RegexUtils;
 
 import java.util.HashSet;
@@ -52,8 +51,10 @@ import java.util.regex.Pattern;
  */
 @JacksonXmlRootElement( localName = "programIndicator", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramIndicator
-    extends BaseDataDimensionalItemObject
+    extends BaseDataDimensionalItemObject implements MetadataObject
 {
+    public static final String DB_SEPARATOR_ID = "_";
+
     public static final String SEPARATOR_ID = "\\.";
     public static final String SEP_OBJECT = ":";
     public static final String KEY_DATAELEMENT = "#";
@@ -61,33 +62,54 @@ public class ProgramIndicator
     public static final String KEY_PROGRAM_VARIABLE = "V";
     public static final String KEY_CONSTANT = "C";
 
+    public static final String VAR_EVENT_DATE = "event_date";
     public static final String VAR_EXECUTION_DATE = "execution_date";
     public static final String VAR_DUE_DATE = "due_date";
-    public static final String VAR_INCIDENT_DATE = "incident_date";
     public static final String VAR_ENROLLMENT_DATE = "enrollment_date";
+    public static final String VAR_INCIDENT_DATE = "incident_date";
+    public static final String VAR_ENROLLMENT_STATUS = "enrollment_status";
     public static final String VAR_CURRENT_DATE = "current_date";
     public static final String VAR_VALUE_COUNT = "value_count";
     public static final String VAR_ZERO_POS_VALUE_COUNT = "zero_pos_value_count";
     public static final String VAR_EVENT_COUNT = "event_count";
     public static final String VAR_ENROLLMENT_COUNT = "enrollment_count";
     public static final String VAR_TEI_COUNT = "tei_count";
+    public static final String VAR_COMPLETED_DATE = "completed_date";
+    public static final String VAR_PROGRAM_STAGE_NAME = "program_stage_name";
+    public static final String VAR_PROGRAM_STAGE_ID = "program_stage_id";
+    public static final String VAR_ANALYTICS_PERIOD_START = "analytics_period_start";
+    public static final String VAR_ANALYTICS_PERIOD_END = "analytics_period_end";
+    
 
     public static final String EXPRESSION_PREFIX_REGEXP = KEY_DATAELEMENT + "|" + KEY_ATTRIBUTE + "|" + KEY_PROGRAM_VARIABLE + "|" + KEY_CONSTANT;
     public static final String EXPRESSION_REGEXP = "(" + EXPRESSION_PREFIX_REGEXP + ")\\{([\\w\\_]+)" + SEPARATOR_ID + "?(\\w*)\\}";
     public static final String SQL_FUNC_REGEXP = "d2:(.+?)\\((.*?)\\)";
     public static final String ARGS_SPLIT = ",";
+    public static final String ATTRIBUTE_REGEX = KEY_ATTRIBUTE + "\\{(\\w{11})\\}";
+    public static final String DATAELEMENT_REGEX = KEY_DATAELEMENT + "\\{(\\w{11})" + SEPARATOR_ID + "(\\w{11})\\}";
+    public static final String VARIABLE_REGEX = KEY_PROGRAM_VARIABLE + "\\{([\\w\\_]+)}";
+    public static final String PROGRAMSTAGE_DATAELEMENT_GROUP_REGEX = KEY_DATAELEMENT + "\\{(\\w{11}" + SEPARATOR_ID + "\\w{11})\\}";
+    public static final String VALUECOUNT_REGEX = "V\\{(" + VAR_VALUE_COUNT + "|" + VAR_ZERO_POS_VALUE_COUNT + ")\\}";
+    public static final String EQUALSEMPTY = " *== *'' *";
+    public static final String EQUALSZERO = " *== *0 *";
+    public static final String EXPRESSION_EQUALSZEROOREMPTY_REGEX = EXPRESSION_REGEXP + "(" + EQUALSEMPTY + "|" + EQUALSZERO + ")?";
+
 
     public static final Pattern EXPRESSION_PATTERN = Pattern.compile( EXPRESSION_REGEXP );
+    public static final Pattern EXPRESSION_EQUALSZEROOREMPTY_PATTERN = Pattern.compile( EXPRESSION_EQUALSZEROOREMPTY_REGEX );
     public static final Pattern SQL_FUNC_PATTERN = Pattern.compile( SQL_FUNC_REGEXP );
-    public static final Pattern DATAELEMENT_PATTERN = Pattern.compile( KEY_DATAELEMENT + "\\{(\\w{11})" + SEPARATOR_ID + "(\\w{11})\\}" );
-    public static final Pattern ATTRIBUTE_PATTERN = Pattern.compile( KEY_ATTRIBUTE + "\\{(\\w{11})\\}" );
-    public static final Pattern VARIABLE_PATTERN = Pattern.compile( KEY_PROGRAM_VARIABLE + "\\{([\\w\\_]+)}" );
-    public static final Pattern VALUECOUNT_PATTERN = Pattern.compile( "V\\{(" + VAR_VALUE_COUNT + "|" + VAR_ZERO_POS_VALUE_COUNT + ")\\}" );
+    public static final Pattern DATAELEMENT_PATTERN = Pattern.compile( DATAELEMENT_REGEX );
+    public static final Pattern PROGRAMSTAGE_DATAELEMENT_GROUP_PATTERN = Pattern.compile( PROGRAMSTAGE_DATAELEMENT_GROUP_REGEX );
+    public static final Pattern ATTRIBUTE_PATTERN = Pattern.compile( ATTRIBUTE_REGEX );
+    public static final Pattern VARIABLE_PATTERN = Pattern.compile( VARIABLE_REGEX );
+    public static final Pattern VALUECOUNT_PATTERN = Pattern.compile( VALUECOUNT_REGEX );
 
     public static final String VALID = "valid";
     public static final String EXPRESSION_NOT_VALID = "expression_not_valid";
     public static final String INVALID_IDENTIFIERS_IN_EXPRESSION = "invalid_identifiers_in_expression";
     public static final String FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE = "filter_not_evaluating_to_true_or_false";
+    public static final String UNKNOWN_VARIABLE = "unknown_variable";
+
 
     private Program program;
 
@@ -103,6 +125,8 @@ public class ProgramIndicator
     private Boolean displayInForm;
 
     private Set<ProgramIndicatorGroup> groups = new HashSet<>();
+
+    private AnalyticsType analyticsType = AnalyticsType.EVENT;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -141,11 +165,27 @@ public class ProgramIndicator
      * @param input the expression.
      * @return a set of UIDs.
      */
-    public static Set<String> getDataElementAndAttributeIdentifiers( String input )
+    public static Set<String> getDataElementAndAttributeIdentifiers( String input, AnalyticsType analyticsType )
     {
-        return Sets.union(
-            RegexUtils.getMatches( DATAELEMENT_PATTERN, input, 2 ),
-            RegexUtils.getMatches( ATTRIBUTE_PATTERN, input, 1 ) );
+        if ( AnalyticsType.ENROLLMENT.equals( analyticsType ) )
+        {
+            Set<String> allElementsAndAttributes = RegexUtils.getMatches( ATTRIBUTE_PATTERN, input, 1 );
+
+            Set<String> programStagesAndDataElements =
+                RegexUtils.getMatches( PROGRAMSTAGE_DATAELEMENT_GROUP_PATTERN, input, 1 );
+            for ( String programStageAndDataElement : programStagesAndDataElements )
+            {
+                allElementsAndAttributes.add( programStageAndDataElement.replace( '.', '_' ) );
+            }
+
+            return allElementsAndAttributes;
+        }
+        else
+        {
+            return Sets.union(
+                RegexUtils.getMatches( DATAELEMENT_PATTERN, input, 2 ),
+                RegexUtils.getMatches( ATTRIBUTE_PATTERN, input, 1 ) );
+        }
     }
 
     public void addProgramIndicatorGroup( ProgramIndicatorGroup group )
@@ -251,7 +291,6 @@ public class ProgramIndicator
         this.displayInForm = displayInForm;
     }
 
-
     @JsonProperty( "programIndicatorGroups" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "programIndicatorGroups", namespace = DxfNamespaces.DXF_2_0 )
@@ -266,31 +305,15 @@ public class ProgramIndicator
         this.groups = groups;
     }
 
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AnalyticsType getAnalyticsType()
     {
-        super.mergeWith( other, mergeMode );
+        return analyticsType;
+    }
 
-        if ( other.getClass().isInstance( this ) )
-        {
-            ProgramIndicator programIndicator = (ProgramIndicator) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                program = programIndicator.getProgram();
-                expression = programIndicator.getExpression();
-                filter = programIndicator.getFilter();
-                decimals = programIndicator.getDecimals();
-                displayInForm = programIndicator.getDisplayInForm();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                program = programIndicator.getProgram() == null ? program : programIndicator.getProgram();
-                expression = programIndicator.getExpression() == null ? expression : programIndicator.getExpression();
-                filter = programIndicator.getFilter() == null ? filter : programIndicator.getFilter();
-                decimals = programIndicator.getDecimals() == null ? decimals : programIndicator.getDecimals();
-                displayInForm = programIndicator.getDisplayInForm() == null ? displayInForm : programIndicator.getDisplayInForm();
-            }
-        }
+    public void setAnalyticsType( AnalyticsType analyticsType )
+    {
+        this.analyticsType = analyticsType;
     }
 }

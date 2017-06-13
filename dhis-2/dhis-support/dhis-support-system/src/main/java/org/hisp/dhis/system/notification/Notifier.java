@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.notification;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,13 +39,23 @@ public interface Notifier
 {
     Notifier notify( TaskId id, String message );
     
-    Notifier notify( TaskId id, NotificationLevel level, String message, boolean completed );
+    Notifier notify( TaskId id, NotificationLevel level, String message );
     
+    Notifier notify( TaskId id, NotificationLevel level, String message, boolean completed );
+
+    Notifier update( TaskId id, String message );
+
+    Notifier update( TaskId id, NotificationLevel level, String message );
+
+    Notifier update( TaskId id, NotificationLevel level, String message, boolean completed );
+
     List<Notification> getNotifications( TaskId id, String lastUid );
     
     Notifier clear( TaskId id );
     
     Notifier addTaskSummary( TaskId id, Object taskSummary );
+    
+    Notifier addTaskSummary( TaskId id, NotificationLevel level, Object taskSummary );
     
     Object getTaskSummary( TaskId id );
 }

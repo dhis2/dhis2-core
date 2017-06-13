@@ -108,6 +108,22 @@ public class OrganisationUnitTest
     }
 
     @Test
+    public void testGetAncestorNames()
+    {
+        unitD.setParent( unitC );
+        unitC.setParent( unitB );
+        unitB.setParent( unitA );
+        
+        List<String> expected = new ArrayList<>( Arrays.asList( unitA.getDisplayName(), unitB.getDisplayName(), unitC.getDisplayName() ) );
+        
+        assertEquals( expected, unitD.getAncestorNames( null, false ) );
+        
+        expected = new ArrayList<>( Arrays.asList( unitA.getDisplayName(), unitB.getDisplayName(), unitC.getDisplayName(), unitD.getDisplayName() ) );
+        
+        assertEquals( expected, unitD.getAncestorNames( null, true ) );
+    }
+
+    @Test
     public void testGetAncestorsWithRoots()
     {
         unitD.setParent( unitC );
@@ -121,24 +137,6 @@ public class OrganisationUnitTest
         assertEquals( expected, unitD.getAncestors( roots ) );
     }
     
-    @Test
-    public void testGetParentGraph()
-    {
-        unitD.setParent( unitC );
-        unitC.setParent( unitB );
-        unitB.setParent( unitA );
-        
-        List<OrganisationUnit> roots = new ArrayList<>( Arrays.asList( unitB ) );
-        
-        String expected = "/uidB/uidC";
-        
-        assertEquals( expected, unitD.getParentGraph( roots ) );
-        
-        expected = "/uidA/uidB/uidC";
-
-        assertEquals( expected, unitD.getParentGraph( null ) );        
-    }
-
     @Test
     public void testGetPath()
     {

@@ -1,11 +1,11 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permi      tted provided that the following conditions are met:
+ * modification, are permitted provided that the following conditions are met:
  * Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
@@ -33,10 +33,10 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.sms.MessageResponseStatus;
-import org.hisp.dhis.sms.OutBoundMessage;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
-import org.hisp.dhis.sms.outbound.MessageBatch;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.sms.outbound.SubmissionType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
@@ -56,7 +56,7 @@ import java.util.Set;
  */
 
 public class BulkSmsGateway
-    implements SmsGateway
+    extends SmsGateway
 {
     private static final Log log = LogFactory.getLog( BulkSmsGateway.class );
 
@@ -83,12 +83,12 @@ public class BulkSmsGateway
     // -------------------------------------------------------------------------
 
     @Override
-    public List<MessageResponseStatus> sendBatch( MessageBatch smsBatch, SmsGatewayConfig config )
+    public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch smsBatch, SmsGatewayConfig config )
     {
         BulkSmsGatewayConfig bulkSmsConfig = (BulkSmsGatewayConfig) config;
 
         UriComponentsBuilder uriBuilder = buildBaseUrl( bulkSmsConfig, SubmissionType.BATCH );
-        uriBuilder.queryParam( "batch_data", buildCsvUrl( smsBatch.getBatch() ) );
+        uriBuilder.queryParam( "batch_data", buildCsvUrl( smsBatch.getMessages() ) );
 
         return Lists.newArrayList( send( uriBuilder ) );
     }
@@ -100,7 +100,7 @@ public class BulkSmsGateway
     }
 
     @Override
-    public MessageResponseStatus send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
+    public OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
     {
         UriComponentsBuilder uriBuilder = createUri( (BulkSmsGatewayConfig) config, recipients, SubmissionType.SINGLE );
         uriBuilder.queryParam( "message", text );
@@ -121,7 +121,7 @@ public class BulkSmsGateway
         return uriBuilder;
     }
 
-    private MessageResponseStatus send( UriComponentsBuilder uriBuilder )
+    private OutboundMessageResponse send( UriComponentsBuilder uriBuilder )
     {
         ResponseEntity<String> responseEntity = null;
 
@@ -147,11 +147,11 @@ public class BulkSmsGateway
         return getResponse( responseEntity );
     }
 
-    private String buildCsvUrl( List<OutBoundMessage> smsBatch )
+    private String buildCsvUrl( List<OutboundMessage> smsBatch )
     {
         String csvData = "msisdn,message\n";
 
-        for ( OutBoundMessage sms : smsBatch )
+        for ( OutboundMessage sms : smsBatch )
         {
             csvData += getRecipients( sms.getRecipients() );
             csvData += "," + sms.getText() + "\n";
@@ -172,7 +172,7 @@ public class BulkSmsGateway
         {
             uriBuilder = UriComponentsBuilder.fromHttpUrl( bulkSmsConfiguration.getUrlTemplate() );
         }
-        else if ( type.equals( SubmissionType.BATCH ) )
+        else // SubmissionType.BATCH
         {
             uriBuilder = UriComponentsBuilder.fromHttpUrl( bulkSmsConfiguration.getUrlTemplateForBatchSms() );
         }
@@ -184,9 +184,9 @@ public class BulkSmsGateway
         return uriBuilder;
     }
 
-    private MessageResponseStatus getResponse( ResponseEntity<String> responseEntity )
+    private OutboundMessageResponse getResponse( ResponseEntity<String> responseEntity )
     {
-        MessageResponseStatus status = new MessageResponseStatus();
+        OutboundMessageResponse status = new OutboundMessageResponse();
 
         if ( responseEntity == null )
         {

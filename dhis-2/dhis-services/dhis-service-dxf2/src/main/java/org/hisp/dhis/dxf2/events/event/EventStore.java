@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.event;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.event;
  */
 
 import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -39,6 +40,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 public interface EventStore
 {
     List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits );
+    
+    List<Map<String, String>> getEventsGrid( EventSearchParams params, List<OrganisationUnit> organisationUnits );
     
     List<EventRow> getEventRows( EventSearchParams params, List<OrganisationUnit> organisationUnits );
     

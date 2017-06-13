@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,10 @@ import java.util.Set;
 public class ProgramInstance
     extends BaseIdentifiableObject
 {
+    private Date createdAtClient;
+
+    private Date lastUpdatedAtClient;
+
     private ProgramStatus status = ProgramStatus.ACTIVE;
 
     private OrganisationUnit organisationUnit;
@@ -83,6 +87,8 @@ public class ProgramInstance
 
     private Double latitude;
 
+    private Boolean deleted = false;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -99,6 +105,19 @@ public class ProgramInstance
         this.program = program;
     }
 
+    @Override
+    public void setAutoFields()
+    {
+        super.setAutoFields();
+
+        if ( createdAtClient == null )
+        {
+            createdAtClient = created;
+        }
+
+        lastUpdatedAtClient = lastUpdated;
+    }
+
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
@@ -112,8 +131,8 @@ public class ProgramInstance
      */
     public void enrollTrackedEntityInstance( TrackedEntityInstance entityInstance, Program program )
     {
-        Assert.notNull( entityInstance );
-        Assert.notNull( program );
+        Assert.notNull( entityInstance, "Tracked entity instance cannot be null" );
+        Assert.notNull( program, "Program cannot be null" );
 
         setEntityInstance( entityInstance );
         entityInstance.getProgramInstances().add( this );
@@ -254,6 +273,30 @@ public class ProgramInstance
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getCreatedAtClient()
+    {
+        return createdAtClient;
+    }
+
+    public void setCreatedAtClient( Date createdAtClient )
+    {
+        this.createdAtClient = createdAtClient;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getLastUpdatedAtClient()
+    {
+        return lastUpdatedAtClient;
+    }
+
+    public void setLastUpdatedAtClient( Date lastUpdatedAtClient )
+    {
+        this.lastUpdatedAtClient = lastUpdatedAtClient;
+    }
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
@@ -425,5 +468,17 @@ public class ProgramInstance
     public void setLatitude( Double latitude )
     {
         this.latitude = latitude;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean isDeleted()
+    {
+        return deleted;
+    }
+
+    public void setDeleted( Boolean deleted )
+    {
+        this.deleted = deleted;
     }
 }

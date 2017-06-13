@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.organisationunit;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -88,10 +88,8 @@ public class OrganisationUnitLocationController
             {
                 for ( OrganisationUnitGroup organisationUnitGroup : organisationUnit.getGroups() )
                 {
-                    if ( organisationUnitGroup.getGroupSet() != null )
+                    for ( OrganisationUnitGroupSet orgunitGroupSet : organisationUnitGroup.getGroupSets() )
                     {
-                        OrganisationUnitGroupSet orgunitGroupSet = organisationUnitGroup.getGroupSet();
-
                         if ( orgunitGroupSet.getUid().compareTo( orgUnitGroupSetId ) == 0 )
                         {
                             AttributeValue attributeValue = new AttributeValue();

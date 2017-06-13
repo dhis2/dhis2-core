@@ -31,8 +31,11 @@ package org.hisp.dhis.query;
 import org.hisp.dhis.common.ValueType;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 
@@ -94,5 +97,54 @@ public class QueryUtilsTest
     {
         QueryUtils.parseValue( Date.class, "2014" );
         QueryUtils.parseValue( Date.class, "ABC" );
+    }
+
+    @Test
+    public void testParseValue()
+    {
+        assertEquals( "'abc'", QueryUtils.parseValue( "abc" ) );
+        assertEquals( "123", QueryUtils.parseValue( "123" ) );
+    }
+
+    @Test
+    public void testParseSelectFields()
+    {
+        List<String> fields = new ArrayList<>();
+        fields.add( "ABC" );
+        fields.add( "DEF" );
+
+        assertEquals( "ABC,DEF", QueryUtils.parseSelectFields( fields ) );
+    }
+
+    @Test
+    public void testParseSelectFieldsNull()
+    {
+        assertEquals( " * ", QueryUtils.parseSelectFields( null ) );
+    }
+
+    @Test
+    public void testTransformCollectionValue()
+    {
+        assertEquals( "('x','y')", QueryUtils.convertCollectionValue( "[x,y]" ) );
+
+        assertEquals( "(1,2)", QueryUtils.convertCollectionValue( "[1,2]" ) );
+    }
+
+    @Test
+    public void testParseFilterOperator()
+    {
+        assertEquals( "= 5", QueryUtils.parseFilterOperator( "eq", "5" ) );
+
+        assertEquals( "= 'ABC'", QueryUtils.parseFilterOperator( "eq", "ABC" ) );
+
+        assertEquals( "like '%abc%'", QueryUtils.parseFilterOperator( "like", "abc") );
+
+        assertEquals( " like '%abc'", QueryUtils.parseFilterOperator( "$like", "abc") );
+
+        assertEquals( "in ('a','b','c')", QueryUtils.parseFilterOperator( "in", "[a,b,c]") );
+
+        assertEquals( "in (1,2,3)", QueryUtils.parseFilterOperator( "in", "[1,2,3]") );
+
+        assertEquals( "is not null", QueryUtils.parseFilterOperator( "!null",  null) );
     }
 }

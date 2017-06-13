@@ -28,17 +28,6 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.annotation.Resource;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.dataelement.DataElement;
@@ -48,6 +37,13 @@ import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.annotation.Resource;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -82,8 +78,6 @@ public class ExpressionStoreTest
     private String descriptionB;
 
     private Set<DataElement> dataElements = new HashSet<>();
-
-    private Set<DataElement> sampleElements = new HashSet<>();
 
     private Set<DataElementCategoryOptionCombo> optionCombos;
 
@@ -122,9 +116,6 @@ public class ExpressionStoreTest
         dataElements.add( dataElementB );
         dataElements.add( dataElementC );
         dataElements.add( dataElementD );
-
-        sampleElements.add( dataElementA );
-        sampleElements.add( dataElementB );
     }
 
     // -------------------------------------------------------------------------
@@ -134,24 +125,24 @@ public class ExpressionStoreTest
     @Test
     public void testAddGetExpression()
     {
-        Expression expr = new Expression( expressionA, descriptionA, dataElements, sampleElements );
+        Expression expr = new Expression( expressionA, descriptionA );
 
-        int id = expressionStore.save( expr );
+        expressionStore.save( expr );
+        int id = expr.getId();
 
         expr = expressionStore.get( id );
 
         assertEquals( expr.getExpression(), expressionA );
         assertEquals( expr.getDescription(), descriptionA );
-        assertEquals( expr.getDataElementsInExpression(), dataElements );
-        assertEquals( expr.getSampleElementsInExpression(), sampleElements );
     }
 
     @Test
     public void testUpdateExpression()
     {
-        Expression expr = new Expression( expressionA, descriptionA, dataElements );
+        Expression expr = new Expression( expressionA, descriptionA );
 
-        int id = expressionStore.save( expr );
+        expressionStore.save( expr );
+        int id = expr.getId();
 
         expr = expressionStore.get( id );
 
@@ -172,11 +163,13 @@ public class ExpressionStoreTest
     @Test
     public void testDeleteExpression()
     {
-        Expression exprA = new Expression( expressionA, descriptionA, dataElements );
-        Expression exprB = new Expression( expressionB, descriptionB, dataElements );
+        Expression exprA = new Expression( expressionA, descriptionA );
+        Expression exprB = new Expression( expressionB, descriptionB );
 
-        int idA = expressionStore.save( exprA );
-        int idB = expressionStore.save( exprB );
+        expressionStore.save( exprA );
+        int idA = exprA.getId();
+        expressionStore.save( exprB );
+        int idB = exprB.getId();
 
         assertNotNull( expressionStore.get( idA ) );
         assertNotNull( expressionStore.get( idB ) );
@@ -195,8 +188,8 @@ public class ExpressionStoreTest
     @Test
     public void testGetAllExpressions()
     {
-        Expression exprA = new Expression( expressionA, descriptionA, dataElements );
-        Expression exprB = new Expression( expressionB, descriptionB, dataElements );
+        Expression exprA = new Expression( expressionA, descriptionA );
+        Expression exprB = new Expression( expressionB, descriptionB );
 
         expressionStore.save( exprA );
         expressionStore.save( exprB );

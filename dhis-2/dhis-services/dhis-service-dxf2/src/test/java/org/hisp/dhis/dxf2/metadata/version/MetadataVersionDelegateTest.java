@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.metadata.version;
 
 import org.apache.http.HttpResponse;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
@@ -45,6 +46,7 @@ import org.hisp.dhis.system.util.HttpUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -70,6 +72,7 @@ import static org.mockito.Mockito.*;
  */
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( HttpUtils.class )
+@Category( IntegrationTest.class )
 public class MetadataVersionDelegateTest
     extends DhisSpringTest
 {
@@ -137,7 +140,6 @@ public class MetadataVersionDelegateTest
         metadataVersionDelegate.getRemoteMetadataVersion( "testVersion" );
     }
 
-
     @Test
     public void testShouldGetRemoteVersionNullWhenDhisResponseReturnsNull() throws Exception
     {
@@ -163,8 +165,6 @@ public class MetadataVersionDelegateTest
         PowerMockito.when( HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) ).thenThrow( new Exception( "" ) );
 
         expectedException.expect( MetadataVersionServiceException.class );
-        expectedException.expectMessage( "Exception occurred while trying to make the GET call to" + versionUrl );
-
         metadataVersionDelegate.getRemoteMetadataVersion( "testVersion" );
     }
 
@@ -366,7 +366,7 @@ public class MetadataVersionDelegateTest
 
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
         PowerMockito.when( HttpUtils.httpGET( downloadUrl, true, username, password, null, DOWNLOAD_TIMEOUT, true ) ).thenReturn( dhisHttpResponse );
-        String actualVersionSnapShot = metadataVersionDelegate.downloadMetadataVersion( metadataVersion );
+        String actualVersionSnapShot = metadataVersionDelegate.downloadMetadataVersionSnapshot( metadataVersion );
 
         assertEquals( response, actualVersionSnapShot );
     }
@@ -385,7 +385,7 @@ public class MetadataVersionDelegateTest
 
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
         PowerMockito.when( HttpUtils.httpGET( downloadUrl, true, username, password, null, DOWNLOAD_TIMEOUT, true ) ).thenReturn( null );
-        String actualMetadataVersionSnapshot = metadataVersionDelegate.downloadMetadataVersion( metadataVersion );
+        String actualMetadataVersionSnapshot = metadataVersionDelegate.downloadMetadataVersionSnapshot( metadataVersion );
 
         assertEquals( null, actualMetadataVersionSnapshot );
     }

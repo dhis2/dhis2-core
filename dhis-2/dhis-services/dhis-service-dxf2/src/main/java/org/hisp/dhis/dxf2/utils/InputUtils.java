@@ -14,7 +14,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,16 +53,16 @@ public class InputUtils
     private IdentifiableObjectManager idObjectManager;
 
     /**
-     * Validates and retrieves the attribute option combo. 409 conflict as status
-     * code along with a textual message will be set on the response in case of
-     * invalid input.
+     * Validates and retrieves the attribute option combo. 409 conflict as
+     * status code along with a textual message will be set on the response in
+     * case of invalid input.
      *
-     * @param cc           the category combo identifier.
-     * @param cp           the category and option query string.
+     * @param cc the category combo identifier.
+     * @param cp the category and option query string.
      * @param skipFallback whether to skip fallback to default option combo if
-     *                     attribute option combo is not found.
-     * @return the attribute option combo identified from the given input, or null
-     * if the input was invalid.
+     *        attribute option combo is not found.
+     * @return the attribute option combo identified from the given input, or
+     *         null. if the input was invalid.
      */
     public DataElementCategoryOptionCombo getAttributeOptionCombo( String cc, String cp, boolean skipFallback )
     {
@@ -94,37 +94,55 @@ public class InputUtils
             categoryCombo = categoryService.getDefaultDataElementCategoryCombo();
         }
 
-        return getAttributeOptionCombo( categoryCombo, cp, IdScheme.UID );
+        return getAttributeOptionCombo( categoryCombo, cp, null, IdScheme.UID );
     }
 
     /**
-     * Validates and retrieves the attribute option combo. 409 conflict as status
-     * code along with a textual messagewill be set on the response in case of
-     * invalid input.
+     * Validates and retrieves the attribute option combo. 409 conflict as
+     * status code along with a textual message will be set on the response in
+     * case of invalid input.
      *
      * @param categoryCombo the category combo.
-     * @param cp            the category option query string.
-     * @return the attribute option combo identified from the given input, or null
-     * if the input was invalid.
+     * @param cp the category option query string.
+     * @param attributeOptionCombo the explicit attribute option combo identifier.
+     * @return the attribute option combo identified from the given input, or
+     *         null if the input was invalid.
      */
-    public DataElementCategoryOptionCombo getAttributeOptionCombo( DataElementCategoryCombo categoryCombo, String cp, IdScheme idScheme )
+    public DataElementCategoryOptionCombo getAttributeOptionCombo( DataElementCategoryCombo categoryCombo, String cp, String attributeOptionCombo, IdScheme idScheme )
     {
         Set<String> opts = TextUtils.splitToArray( cp, TextUtils.SEMICOLON );
 
-        return getAttributeOptionCombo( categoryCombo, opts, idScheme );
+        return getAttributeOptionCombo( categoryCombo, opts, attributeOptionCombo, idScheme );
     }
 
     /**
-     * Validates and retrieves the attribute option combo. 409 conflict as status
-     * code along with a textual messagewill be set on the response in case of
-     * invalid input.
+     * Validates and retrieves the attribute option combo. 409 conflict as
+     * status code along with a textual message will be set on the response in
+     * case of invalid input.
      *
      * @param categoryCombo the category combo.
-     * @param opts          list of category option uid.
-     * @return the attribute option combo identified from the given input, or null
-     * if the input was invalid.
+     * @param opts list of category option uid.
+     * @return the attribute option combo identified from the given input, or
+     *         null if the input was invalid.
      */
     public DataElementCategoryOptionCombo getAttributeOptionCombo( DataElementCategoryCombo categoryCombo, Set<String> opts, IdScheme idScheme )
+    {
+        return getAttributeOptionCombo( categoryCombo, opts, null, idScheme );
+    }
+
+    /**
+     * Validates and retrieves the attribute option combo. 409 conflict as
+     * status code along with a textual message will be set on the response in
+     * case of invalid input.
+     *
+     * @param categoryCombo the category combo.
+     * @param opts list of category option uid.
+     * @param attributeOptionCombo the explicit attribute option combo
+     *        identifier.
+     * @return the attribute option combo identified from the given input, or
+     *         null if the input was invalid.
+     */
+    public DataElementCategoryOptionCombo getAttributeOptionCombo( DataElementCategoryCombo categoryCombo, Set<String> opts, String attributeOptionCombo, IdScheme idScheme )
     {
         if ( categoryCombo == null )
         {
@@ -135,7 +153,7 @@ public class InputUtils
         // Attribute category options validation
         // ---------------------------------------------------------------------
 
-        DataElementCategoryOptionCombo attributeOptionCombo = null;
+        DataElementCategoryOptionCombo attrOptCombo = null;
 
         if ( opts != null )
         {
@@ -153,24 +171,32 @@ public class InputUtils
                 categoryOptions.add( categoryOption );
             }
 
-            attributeOptionCombo = categoryService.getDataElementCategoryOptionCombo( categoryCombo, categoryOptions );
+            attrOptCombo = categoryService.getDataElementCategoryOptionCombo( categoryCombo, categoryOptions );
 
-            if ( attributeOptionCombo == null )
+            if ( attrOptCombo == null )
             {
                 throw new IllegalQueryException( "Attribute option combo does not exist for given category combo and category options" );
             }
         }
-
-        if ( attributeOptionCombo == null )
+        else if ( attributeOptionCombo != null )
         {
-            attributeOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+            attrOptCombo = categoryService.getDataElementCategoryOptionCombo( attributeOptionCombo );
         }
 
-        if ( attributeOptionCombo == null )
+        // ---------------------------------------------------------------------
+        // Fall back to default category option combination
+        // ---------------------------------------------------------------------
+
+        if ( attrOptCombo == null )
+        {
+            attrOptCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        }
+
+        if ( attrOptCombo == null )
         {
             throw new IllegalQueryException( "Default attribute option combo does not exist" );
         }
 
-        return attributeOptionCombo;
+        return attrOptCombo;
     }
 }

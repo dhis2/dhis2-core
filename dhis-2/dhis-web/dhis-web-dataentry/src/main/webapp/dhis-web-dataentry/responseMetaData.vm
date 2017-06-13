@@ -42,6 +42,7 @@
 "endDate":"${dataSet.endDate}",
 #end
 "openFuturePeriods":${dataSet.openFuturePeriods},"fieldCombinationRequired":${dataSet.fieldCombinationRequired},
+"dataInputPeriods":[#foreach( $dip in ${dataSet.dataInputPeriods} ) {"period":{"periodType":"${dip.period.periodType.getName()}", "startDate":"${dip.period.startDate}", "endDate":"${dip.period.endDate}", "isoPeriod":"${dip.period.getIsoDate()}"}, "openingDate":"$!{dip.openingDate}", "closingDate":"$!{dip.closingDate}"}#if( $foreach.hasNext ),#end #end],
 "validCompleteOnly":${dataSet.validCompleteOnly},"skipOffline":${dataSet.skipOffline}, "renderAsTabs":${dataSet.renderAsTabs}, "renderHorizontally":${dataSet.renderHorizontally}}#if( $velocityCount < $size ),#end
 #end },
 

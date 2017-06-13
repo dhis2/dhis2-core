@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.notification;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,14 +57,6 @@ public interface ProgramNotificationService
      *             scheduled notifications for which to send messages.
      */
     void sendScheduledNotificationsForDay( Date day );
-
-    /**
-     * Send immediate notifications for the {@link ProgramStageInstance }, if any.
-     *
-     * @param programStageInstance the ProgramStageInstance.
-     * @param immediateTrigger the NotificationTrigger for which to send notifications.
-     *                         Example: 'COMPLETION'. Non-applicable triggers will be ignored.
-     */
 
     /**
      * Send completion notifications for the ProgramStageInstance.

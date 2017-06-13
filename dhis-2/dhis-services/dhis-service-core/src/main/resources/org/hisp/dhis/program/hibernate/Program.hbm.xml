@@ -16,8 +16,8 @@
     &identifiableProperties;
 
     <property name="name" column="name" not-null="true" length="230" />
-    
-    <property name="shortName" column="shortname" unique="true" length="50" />
+
+    <property name="shortName" column="shortname" not-null="true" unique="true" length="50" />
 
     <property name="description" type="text" />
 
@@ -27,8 +27,7 @@
 
     <property name="incidentDateLabel" column="incidentdatelabel" type="text" />
 
-    <set name="programStages" order-by="sortOrder" cascade="all">
-      <cache usage="read-write" />
+    <set name="programStages" order-by="sortOrder">
       <key column="programid" />
       <one-to-many class="org.hisp.dhis.program.ProgramStage" />
     </set>
@@ -46,28 +45,28 @@
         class="org.hisp.dhis.validation.ValidationCriteria" foreign-key="fk_program_criteria_validationcriteriaid" />
     </set>
 
-    <property name="programType" column="type" type="org.hisp.dhis.program.ProgramTypeUserType" not-null="true"  />
+    <property name="programType" column="type" type="org.hisp.dhis.program.ProgramTypeUserType" not-null="true" />
 
     <property name="displayIncidentDate" />
 
     <property name="onlyEnrollOnce" />
-    
+
     <property name="skipOffline" not-null="true" />
-    
+
     <property name="displayFrontPageList" column="displayfrontpagelist" />
-    
+
     <property name="useFirstStageDuringRegistration" />
-    
+
     <property name="captureCoordinates" />
-    
+
     <property name="expiryDays" />
-    
+
     <property name="completeEventsExpiryDays" />
-      
+
     <many-to-one name="expiryPeriodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="expiryperiodtypeid"
       foreign-key="fk_program_expiryperiodtypeid" />
 
-    <list name="programAttributes" cascade="all">
+    <list name="programAttributes" cascade="all-delete-orphan">
       <key column="programid" />
       <list-index column="sort_order" base="1" />
       <one-to-many class="org.hisp.dhis.program.ProgramTrackedEntityAttribute" />
@@ -85,18 +84,18 @@
       <key column="programid" />
       <one-to-many class="org.hisp.dhis.program.ProgramIndicator" />
     </set>
-    
+
     <set name="programRules" inverse="true">
       <key column="programid" />
       <one-to-many class="org.hisp.dhis.programrule.ProgramRule" />
     </set>
-    
+
     <set name="programRuleVariables" inverse="true">
       <key column="programid" />
       <one-to-many class="org.hisp.dhis.programrule.ProgramRuleVariable" />
     </set>
 
-    <set name="notificationTemplates" cascade="all">
+    <set name="notificationTemplates">
       <key column="programid" />
       <one-to-many class="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
     </set>
@@ -115,11 +114,9 @@
     <many-to-one name="relatedProgram" class="org.hisp.dhis.program.Program"
       column="relatedprogramid" foreign-key="fk_program_relatedprogram" />
 
-    <property name="dataEntryMethod" />
-
-	<many-to-one name="categoryCombo" class="org.hisp.dhis.dataelement.DataElementCategoryCombo"
+    <many-to-one name="categoryCombo" class="org.hisp.dhis.dataelement.DataElementCategoryCombo"
       column="categorycomboid" not-null="true" foreign-key="fk_program_categorycomboid" />
-      
+
     <many-to-one name="trackedEntity" class="org.hisp.dhis.trackedentity.TrackedEntity"
       column="trackedentityid" foreign-key="fk_program_trackedentityid" />
 
@@ -127,18 +124,18 @@
       column="dataentryformid" foreign-key="fk_program_dataentryformid" cascade="all" />
 
     <many-to-one name="workflow" lazy="false" class="org.hisp.dhis.dataapproval.DataApprovalWorkflow" column="workflowid"
-                 foreign-key="fk_program_workflowid" />
+      foreign-key="fk_program_workflowid" />
 
     <!-- Dynamic attribute values -->
 
-    <set name="attributeValues" table="programattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="programattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="programid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="programtranslations" cascade="delete-orphan">
+    <set name="translations" table="programtranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="programid" foreign-key="fk_objecttranslation_programid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -146,16 +143,20 @@
 
     <!-- Access properties -->
 
-    <many-to-one name="user" class="org.hisp.dhis.user.User"
-      column="userid" foreign-key="fk_program_userid" />
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_program_userid" />
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="programusergroupaccesses">
+    <set name="userGroupAccesses" table="programusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="programid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess"
-        column="usergroupaccessid" unique="true" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="programuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="programid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
   </class>

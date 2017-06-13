@@ -1,7 +1,7 @@
 package org.hisp.dhis.eventchart;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,13 +44,14 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EventAnalyticalObject;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
@@ -65,7 +66,7 @@ import java.util.List;
 @JacksonXmlRootElement( localName = "eventChart", namespace = DxfNamespaces.DXF_2_0 )
 public class EventChart
     extends BaseChart
-    implements EventAnalyticalObject
+    implements EventAnalyticalObject, MetadataObject
 {
     /**
      * Program. Required.
@@ -122,6 +123,16 @@ public class EventChart
      */
     private boolean hideNaData;
 
+    /**
+     * The program status.
+     */
+    private ProgramStatus programStatus;
+
+    /**
+     * The event status.
+     */
+    private EventStatus eventStatus;
+    
     // -------------------------------------------------------------------------
     // Analytical properties
     // -------------------------------------------------------------------------
@@ -355,6 +366,30 @@ public class EventChart
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramStatus getProgramStatus()
+    {
+        return programStatus;
+    }
+
+    public void setProgramStatus( ProgramStatus programStatus )
+    {
+        this.programStatus = programStatus;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public EventStatus getEventStatus()
+    {
+        return eventStatus;
+    }
+
+    public void setEventStatus( EventStatus eventStatus )
+    {
+        this.eventStatus = eventStatus;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isHideNaData()
     {
         return hideNaData;
@@ -381,47 +416,5 @@ public class EventChart
     public void setValue( DimensionalItemObject value )
     {
         this.value = value;
-    }
-
-    // -------------------------------------------------------------------------
-    // Merge with
-    // -------------------------------------------------------------------------
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            EventChart chart = (EventChart) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                dataElementValueDimension = chart.getDataElementValueDimension();
-                attributeValueDimension = chart.getAttributeValueDimension();
-                program = chart.getProgram();
-                programStage = chart.getProgramStage();
-                startDate = chart.getStartDate();
-                endDate = chart.getEndDate();
-                outputType = chart.getOutputType();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                dataElementValueDimension = chart.getDataElementValueDimension() == null ? dataElementValueDimension : chart.getDataElementValueDimension();
-                attributeValueDimension = chart.getAttributeValueDimension() == null ? attributeValueDimension : chart.getAttributeValueDimension();
-                program = chart.getProgram() == null ? program : chart.getProgram();
-                programStage = chart.getProgramStage() == null ? programStage : chart.getProgramStage();
-                startDate = chart.getStartDate() == null ? startDate : chart.getStartDate();
-                endDate = chart.getEndDate() == null ? endDate : chart.getEndDate();
-                outputType = chart.getOutputType() == null ? outputType : chart.getOutputType();
-            }
-
-            columnDimensions.clear();
-            columnDimensions.addAll( chart.getColumnDimensions() );
-
-            rowDimensions.clear();
-            rowDimensions.addAll( chart.getRowDimensions() );
-        }
     }
 }

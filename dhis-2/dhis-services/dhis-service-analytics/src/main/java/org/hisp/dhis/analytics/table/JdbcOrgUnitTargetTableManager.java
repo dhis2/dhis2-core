@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
@@ -41,12 +42,20 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Sets;
+
 /**
  * @author Lars Helge Overland
  */
 public class JdbcOrgUnitTargetTableManager
     extends AbstractJdbcTableManager
 {
+    @Override
+    public AnalyticsTableType getAnalyticsTableType()
+    {
+        return AnalyticsTableType.ORG_UNIT_TARGET;
+    }
+    
     @Override
     @Transactional
     public List<AnalyticsTable> getTables( Date earliest )
@@ -57,9 +66,9 @@ public class JdbcOrgUnitTargetTableManager
     }
 
     @Override
-    public List<AnalyticsTable> getAllTables()
+    public Set<String> getExistingDatabaseTables()
     {
-        return getTables( null );
+        return Sets.newHashSet( getTableName() );
     }
     
     @Override
@@ -68,12 +77,6 @@ public class JdbcOrgUnitTargetTableManager
         return null;
     }    
     
-    @Override
-    public String getTableName()
-    {
-        return ORGUNIT_TARGET_TABLE_NAME;
-    }
-
     @Override
     public void createTable( AnalyticsTable table )
     {
@@ -94,10 +97,8 @@ public class JdbcOrgUnitTargetTableManager
             sqlCreate += col.getName() + " " + col.getDataType() + ",";
         }
         
-        sqlCreate += "value double precision) ";
+        sqlCreate += "value double precision)";
         
-        sqlCreate += statementBuilder.getTableOptions( false );
-
         log.info( "Creating table: " + tableName + ", columns: " + columns.size() );
         
         log.debug( "Create SQL: " + sqlCreate );
@@ -106,49 +107,36 @@ public class JdbcOrgUnitTargetTableManager
     }
 
     @Override
-    @Async
-    public Future<?> populateTableAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
+    protected void populateTable( AnalyticsTable table )
     {
-        taskLoop: while ( true )
+        final String tableName = table.getTempTableName();
+
+        String sql = "insert into " + table.getTempTableName() + " (";
+
+        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
+        
+        validateDimensionColumns( columns );
+        
+        for ( AnalyticsTableColumn col : columns )
         {
-            AnalyticsTable table = tables.poll();
-                
-            if ( table == null )
-            {
-                break taskLoop;
-            }
+            sql += col.getName() + ",";
+        }
 
-            final String tableName = table.getTempTableName();
+        sql += "value) select ";
 
-            String sql = "insert into " + table.getTempTableName() + " (";
-    
-            List<AnalyticsTableColumn> columns = getDimensionColumns( table );
-            
-            validateDimensionColumns( columns );
-            
-            for ( AnalyticsTableColumn col : columns )
-            {
-                sql += col.getName() + ",";
-            }
-    
-            sql += "value) select ";
-    
-            for ( AnalyticsTableColumn col : columns )
-            {
-                sql += col.getAlias() + ",";
-            }
-            
-            sql +=
-                "1 as value " +
-                "from orgunitgroupmembers ougm " +
-                "inner join orgunitgroup oug on ougm.orgunitgroupid=oug.orgunitgroupid " +
-                "left join _orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid " +
-                "left join _organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid";            
-
-            populateAndLog( sql, tableName );
+        for ( AnalyticsTableColumn col : columns )
+        {
+            sql += col.getAlias() + ",";
         }
         
-        return null;
+        sql +=
+            "1 as value " +
+            "from orgunitgroupmembers ougm " +
+            "inner join orgunitgroup oug on ougm.orgunitgroupid=oug.orgunitgroupid " +
+            "left join _orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid " +
+            "left join _organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid";            
+
+        populateAndLog( sql, tableName );
     }
 
     @Override
@@ -162,20 +150,14 @@ public class JdbcOrgUnitTargetTableManager
         for ( OrganisationUnitLevel level : levels )
         {
             String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
-            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column ) );
+            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column, level.getCreated() ) );
         }
 
         AnalyticsTableColumn ds = new AnalyticsTableColumn( quote( "oug" ), "character(11) not null", "oug.uid" );
         
         columns.add( ds );
         
-        return columns;
-    }
-
-    @Override
-    public List<Integer> getDataYears( Date earliest )
-    {
-        return null; // Not relevant
+        return filterDimensionColumns( columns );
     }
     
     @Override

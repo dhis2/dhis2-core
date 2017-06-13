@@ -1,7 +1,7 @@
 package org.hisp.dhis.query.operators;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
+import org.hisp.dhis.query.planner.QueryPath;
 import org.hisp.dhis.schema.Property;
 
 import java.util.Collection;
@@ -46,12 +47,14 @@ public class GreaterEqualOperator extends Operator
 {
     public GreaterEqualOperator( Object arg )
     {
-        super( Typed.from( String.class, Boolean.class, Number.class, Date.class ), arg );
+        super( "ge", Typed.from( String.class, Boolean.class, Number.class, Date.class ), arg );
     }
 
     @Override
-    public Criterion getHibernateCriterion( Property property )
+    public Criterion getHibernateCriterion( QueryPath queryPath )
     {
+        Property property = queryPath.getProperty();
+
         if ( property.isCollection() )
         {
             Integer value = QueryUtils.parseValue( Integer.class, args.get( 0 ) );
@@ -61,10 +64,10 @@ public class GreaterEqualOperator extends Operator
                 throw new QueryException( "Left-side is collection, and right-side is not a valid integer, so can't compare by size." );
             }
 
-            return Restrictions.sizeGe( property.getFieldName(), value );
+            return Restrictions.sizeGe( queryPath.getPath(), value );
         }
 
-        return Restrictions.ge( property.getFieldName(), args.get( 0 ) );
+        return Restrictions.ge( queryPath.getPath(), args.get( 0 ) );
     }
 
     @Override
@@ -77,6 +80,13 @@ public class GreaterEqualOperator extends Operator
 
         Type type = new Type( value );
 
+        if ( type.isString() )
+        {
+            String s1 = getValue( String.class );
+            String s2 = (String) value;
+
+            return s1 != null && (s2.equals( s1 ) || s2.compareTo( s1 ) > 0);
+        }
         if ( type.isInteger() )
         {
             Integer s1 = getValue( Integer.class );

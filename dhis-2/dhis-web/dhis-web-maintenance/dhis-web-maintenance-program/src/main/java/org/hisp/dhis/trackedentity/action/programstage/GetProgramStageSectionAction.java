@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity.action.programstage;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,9 +32,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.program.ProgramStageService;
@@ -99,9 +99,9 @@ public class GetProgramStageSectionAction
         return section;
     }
 
-    private List<ProgramStageDataElement> availableDataElements;
+    private List<DataElement> availableDataElements;
 
-    public List<ProgramStageDataElement> getAvailableDataElements()
+    public List<DataElement> getAvailableDataElements()
     {
         return availableDataElements;
     }
@@ -127,14 +127,14 @@ public class GetProgramStageSectionAction
 
         if ( programStage != null && programStage.getProgram() != null )
         {
-            availableDataElements = new ArrayList<>( programStage.getProgramStageDataElements() );
+            availableDataElements = new ArrayList<>( programStage.getAllDataElements() );
             
             availableProgramIndicators = new ArrayList<>( programStage.getProgram().getProgramIndicators() );
             availableProgramIndicators.removeAll( section.getProgramIndicators() );
             
             for ( ProgramStageSection section : programStage.getProgramStageSections() )
             {
-                availableDataElements.removeAll( section.getProgramStageDataElements() );
+                availableDataElements.removeAll( section.getDataElements() );
             }
 
             Collections.sort( availableDataElements );

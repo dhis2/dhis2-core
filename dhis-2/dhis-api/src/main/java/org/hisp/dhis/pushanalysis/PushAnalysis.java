@@ -1,6 +1,6 @@
 package org.hisp.dhis.pushanalysis;
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.user.UserGroup;
 
@@ -49,9 +48,8 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "pushanalysis", namespace = DxfNamespaces.DXF_2_0 )
 public class PushAnalysis
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
-
     /**
      * PushAnalysis uses a dashboard to base it's reports on
      */
@@ -202,10 +200,16 @@ public class PushAnalysis
         return (schedulingFrequency != null && enabled);
     }
 
-    @Override
-    public boolean haveUniqueNames()
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getTitle()
     {
-        return false;
+        return title;
+    }
+
+    public void setTitle( String title )
+    {
+        this.title = title;
     }
 
     @Override
@@ -221,60 +225,5 @@ public class PushAnalysis
             .add( "schedulingFrequency", schedulingFrequency )
             .add( "schedulingDayOfFrequency", schedulingDayOfFrequency )
             .toString();
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-
-            PushAnalysis pushAnalysis = (PushAnalysis) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                dashboard = pushAnalysis.getDashboard();
-                recipientUserGroups = pushAnalysis.getRecipientUserGroups();
-                name = pushAnalysis.getName();
-                title = pushAnalysis.getTitle();
-                message = pushAnalysis.getMessage();
-                enabled = pushAnalysis.getEnabled();
-                schedulingDayOfFrequency = pushAnalysis.getSchedulingDayOfFrequency();
-                schedulingFrequency = pushAnalysis.getSchedulingFrequency();
-            }
-
-            if ( mergeMode.isMerge() )
-            {
-                dashboard = pushAnalysis.getDashboard() == null ? dashboard : pushAnalysis.getDashboard();
-                recipientUserGroups = pushAnalysis.getRecipientUserGroups() == null ?
-                    recipientUserGroups :
-                    pushAnalysis.getRecipientUserGroups();
-                title = pushAnalysis.getTitle() == null ? title : pushAnalysis.getTitle();
-                name = pushAnalysis.getName() == null ? name : pushAnalysis.getName();
-                message = pushAnalysis.getMessage() == null ? message : pushAnalysis.getMessage();
-                enabled = pushAnalysis.getEnabled();
-                schedulingDayOfFrequency = pushAnalysis.getSchedulingDayOfFrequency() == null ?
-                    schedulingDayOfFrequency :
-                    pushAnalysis.getSchedulingDayOfFrequency();
-                schedulingFrequency = pushAnalysis.getSchedulingFrequency() == null ?
-                    schedulingFrequency :
-                    pushAnalysis.getSchedulingFrequency();
-            }
-        }
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getTitle()
-    {
-        return title;
-    }
-
-    public void setTitle( String title )
-    {
-        this.title = title;
     }
 }

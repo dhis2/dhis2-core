@@ -1,7 +1,7 @@
 package org.hisp.dhis.legend;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,18 +34,20 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.legend.comparator.LegendValueComparator;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Jan Henrik Overland
  */
 @JacksonXmlRootElement( localName = "legendSet", namespace = DxfNamespaces.DXF_2_0 )
 public class LegendSet
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     private String symbolizer;
 
@@ -84,6 +86,11 @@ public class LegendSet
         return null;
     }
 
+    public List<Legend> getSortedLegends()
+    {
+        return legends.stream().sorted( LegendValueComparator.INSTANCE ).collect( Collectors.toList() );
+    }
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
@@ -111,28 +118,5 @@ public class LegendSet
     public void setLegends( Set<Legend> legends )
     {
         this.legends = legends;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            LegendSet legendSet = (LegendSet) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                symbolizer = legendSet.getSymbolizer();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                symbolizer = legendSet.getSymbolizer() == null ? symbolizer : legendSet.getSymbolizer();
-            }
-
-            removeAllLegends();
-            legends.addAll( legendSet.getLegends() );
-        }
     }
 }

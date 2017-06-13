@@ -106,3 +106,24 @@ fieldset
     padding: 3px 0 3px 1px;
     text-align: left;
 }
+
+.bordered-table {    
+    border-collapse: collapse;
+}
+
+.bordered-table tr th {
+    border: 1px solid #cad5e5;
+}
+
+.bordered-table tr td {
+    border: 1px solid #cad5e5;
+}
+
+.bordered-table>thead>tr,
+.bordered-table>tbody>tr,
+.bordered-table>tfoot>tr,
+.bordered-table>thead>tr,
+.bordered-table>tbody>tr,
+.bordered-table>tfoot>tr {
+    border-bottom: 1px solid #cad5e5;
+}

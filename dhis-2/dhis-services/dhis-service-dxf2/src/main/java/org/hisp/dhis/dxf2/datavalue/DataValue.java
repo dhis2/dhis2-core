@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.datavalue;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -94,6 +94,28 @@ public class DataValue
         return creat != null && !creat.isEmpty();
     }
     
+    public String getPrimaryKey()
+    {
+        return new StringBuilder()
+            .append( dataElement )
+            .append( period )
+            .append( orgUnit )
+            .append( categoryOptionCombo )
+            .append( attributeOptionCombo )
+            .toString();
+    }
+    
+    public boolean isNullValue()
+    {
+        return getValue() == null && getComment() == null;
+    }
+    
+    public boolean isDeletedValue()
+    {
+        Boolean deleted = getDeleted();
+        return deleted != null && deleted;
+    }
+    
     @Override
     public String toString()
     {
@@ -181,6 +203,11 @@ public class DataValue
     }
 
     public void setValue( String value )
+    {
+        this.value = value;
+    }
+
+    public void setValueForced( String value )
     {
         this.value = value;
     }

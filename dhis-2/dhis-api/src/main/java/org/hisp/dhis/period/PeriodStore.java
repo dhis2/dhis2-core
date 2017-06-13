@@ -1,7 +1,7 @@
 package org.hisp.dhis.period;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,10 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.GenericStore;
+
 import java.util.Date;
 import java.util.List;
-
-import org.hisp.dhis.common.GenericStore;
 
 /**
  * Defines the functionality for persisting Periods and PeriodTypes.
@@ -52,9 +52,8 @@ public interface PeriodStore
      * Adds a Period.
      *
      * @param period the Period to add.
-     * @return a generated unique id of the added Period.
      */
-    int addPeriod( Period period );
+    void addPeriod( Period period );
 
     /**
      * Returns a Period.

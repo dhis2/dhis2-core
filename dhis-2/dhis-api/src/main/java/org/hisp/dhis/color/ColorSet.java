@@ -1,7 +1,7 @@
 package org.hisp.dhis.color;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +44,7 @@ import java.util.List;
  */
 @JacksonXmlRootElement( localName = "colorSet", namespace = DxfNamespaces.DXF_2_0 )
 public class ColorSet
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     private List<Color> colors = new ArrayList<>();
 
@@ -81,19 +80,5 @@ public class ColorSet
     public void setColors( List<Color> colors )
     {
         this.colors = colors;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            ColorSet colorSet = (ColorSet) other;
-
-            removeAllColors();
-            colors.addAll( colorSet.getColors() );
-        }
     }
 }

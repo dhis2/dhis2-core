@@ -1,7 +1,7 @@
 package org.hisp.dhis.resourcetable.table;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,13 @@ package org.hisp.dhis.resourcetable.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Optional;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTable;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Lars Helge Overland
@@ -81,19 +80,46 @@ public class OrganisationUnitGroupSetResourceTable
         
         for ( OrganisationUnitGroupSet groupSet : objects )
         {
-            sql += "(" + 
-                "select oug.name from orgunitgroup oug " +
-                "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
-                "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " + groupSet.getId() + " " +
-                "where ougm.organisationunitid = ou.organisationunitid " +
-                "limit 1) as " + columnQuote + groupSet.getName() + columnQuote + ", ";
-            
-            sql += "(" +
-                "select oug.uid from orgunitgroup oug " +
-                "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
-                "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " + groupSet.getId() + " " +
-                "where ougm.organisationunitid = ou.organisationunitid " +
-                "limit 1) as " + columnQuote + groupSet.getUid() + columnQuote + ", ";
+            if ( !groupSet.isIncludeSubhierarchyInAnalytics() )
+            {
+                sql += "(" +
+                    "select oug.name from orgunitgroup oug " +
+                    "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
+                    "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " +
+                    groupSet.getId() + " " +
+                    "where ougm.organisationunitid = ou.organisationunitid " +
+                    "limit 1) as " + columnQuote + groupSet.getName() + columnQuote + ", ";
+
+                sql += "(" +
+                    "select oug.uid from orgunitgroup oug " +
+                    "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
+                    "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " +
+                    groupSet.getId() + " " +
+                    "where ougm.organisationunitid = ou.organisationunitid " +
+                    "limit 1) as " + columnQuote + groupSet.getUid() + columnQuote + ", ";
+            }
+            else
+            {
+                sql += "(" +
+                    "select oug.name " +
+                    "from orgunitgroup oug " +
+                    "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
+                    "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " + groupSet.getId() + " " +
+                    "inner join organisationunit ou2 ON ou2.organisationunitid = ougm.organisationunitid AND ou.path LIKE concat(ou2.path, '%') " +
+                    "where ougm.orgunitgroupid is not null " +
+                    "order by hierarchylevel desc " +
+                    "limit 1) as " + columnQuote + groupSet.getName() + columnQuote + ", ";
+
+                sql += "(" +
+                    "select oug.uid " +
+                    "from orgunitgroup oug " +
+                    "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
+                    "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " + groupSet.getId() + " " +
+                    "inner join organisationunit ou2 ON ou2.organisationunitid = ougm.organisationunitid AND ou.path LIKE concat(ou2.path, '%') " +
+                    "where ougm.orgunitgroupid is not null " +
+                    "order by hierarchylevel desc " +
+                    "limit 1) as " + columnQuote + groupSet.getName() + columnQuote + ", ";
+            }
         }
         
         sql = TextUtils.removeLastComma( sql ) + " ";

@@ -16,7 +16,7 @@
     &identifiableProperties;
 
     <property name="name" column="name" not-null="true" unique="true" length="230" />
-    <property name="description" column="description"  type="text" />
+    <property name="description" column="description" type="text" />
 
     <set name="members" table="programindicatorgroupmembers">
       <cache usage="read-write" />
@@ -26,27 +26,31 @@
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="programindicatorgrouptranslations" cascade="delete-orphan">
+    <set name="translations" table="programindicatorgrouptranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="programindicatorgroupid" foreign-key="fk_objecttranslation_programindicatorgroupid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
-
 
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_programindicatorgroup_userid" />
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="programindicatorgroupusergroupaccesses">
+    <set name="userGroupAccesses" table="programindicatorgroupusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="programindicatorgroupid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <!-- Dynamic attribute values -->
+    <set name="userAccesses" table="programindicatorgroupuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="programindicatorgroupid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
 
-    <set name="attributeValues" table="programindicatorgroupattributevalues" cascade="delete-orphan">
+    <!-- Dynamic attribute values -->
+    <set name="attributeValues" table="programindicatorgroupattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="programindicatorgroupid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />

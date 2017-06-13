@@ -17,6 +17,10 @@
 
     <property name="name" column="name" not-null="true" unique="true" length="230" />
 
+    <property name="shortName" column="shortname" not-null="false" unique="false" length="50" />
+
+    <property name="description" type="text" />
+
     <property name="valueType" length="50" not-null="true">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.common.ValueType</param>
@@ -77,16 +81,35 @@
 
     <property name="sectionAttribute" not-null="false" />
 
+    <property name="categoryOptionComboAttribute" not-null="false" />
+
     <property name="sortOrder" />
 
     <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid"
       foreign-key="fk_attribute_optionsetid" />
 
     <!-- Object Translation -->
-    <set name="translations" table="attributetranslations" cascade="delete-orphan">
+    <set name="translations" table="attributetranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="attributeid" foreign-key="fk_objecttranslation_attributeid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
+    </set>
+
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_attribute_userid" />
+
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="attributeusergroupaccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="attributeid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="attributeuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="attributeid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
   </class>

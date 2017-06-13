@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,16 +28,11 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.period.PeriodType;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Defines service functionality for DataElements and DataElementGroups.
@@ -103,23 +98,6 @@ public interface DataElementService
     DataElement getDataElementByCode( String code );
 
     /**
-     * Returns List of DataElements with a given key.
-     *
-     * @param key the name of the DataElement to return.
-     * @return List of DataElements with a given key, or all dataelements if no
-     * match.
-     */
-    List<DataElement> searchDataElementsByName( String key );
-
-    /**
-     * Returns a DataElement with a given short name.
-     *
-     * @param shortName the short name of the DataElement to return.
-     * @return the DataElement with the given short name, or null if no match.
-     */
-    DataElement getDataElementByShortName( String shortName );
-    
-    /**
      * Returns all DataElements.
      *
      * @return a list of all DataElements, or an empty list if there
@@ -128,64 +106,12 @@ public interface DataElementService
     List<DataElement> getAllDataElements();
 
     /**
-     * Returns all DataElements with corresponding identifiers. Returns all
-     * DataElements if the given argument is null.
-     *
-     * @param uids the collection of uids.
-     * @return a list of DataElements.
-     */
-    List<DataElement> getDataElementsByUid( Collection<String> uids );
-
-    /**
-     * Returns all DataElements with types that are possible to aggregate. The
-     * types are currently INT and BOOL.
-     *
-     * @return all DataElements with types that are possible to aggregate.
-     */
-    List<DataElement> getAggregateableDataElements();
-
-    /**
-     * Returns all DataElements with a given aggregation operator.
-     *
-     * @param aggregationType the aggregation type of the DataElements
-     *                        to return.
-     * @return a list of all DataElements with the given aggregation
-     * operator, or an empty collection if no DataElements have the
-     * aggregation operator.
-     */
-    List<DataElement> getDataElementsByAggregationType( AggregationType aggregationType );
-
-    /**
      * Returns all DataElements with the given domain type.
      *
      * @param domainType the DataElementDomainType.
      * @return all DataElements with the given domainType.
      */
     List<DataElement> getDataElementsByDomainType( DataElementDomain domainType );
-
-    /**
-     * Returns all DataElements with the given domain type.
-     *
-     * @param domainType the DataElementDomainType.
-     * @return all DataElements with the given domainType.
-     */
-    List<DataElement> getDataElementsByDomainType( DataElementDomain domainType, int first, int max );
-
-    /**
-     * Returns all DataElements with the given value types.
-     *
-     * @param valueTypes The value types.
-     * @return all DataElements with the given value types.
-     */
-    List<DataElement> getDataElementsByValueTypes( Collection<ValueType> valueTypes );
-
-    /**
-     * Returns all DataElements with the given type.
-     *
-     * @param valueType The value type.
-     * @return all DataElements with the given value type.
-     */
-    List<DataElement> getDataElementsByValueType( ValueType valueType );
 
     /**
      * Returns the DataElements with the given PeriodType.
@@ -202,15 +128,6 @@ public interface DataElementService
      * @return all DataElements with the given category combo.
      */
     List<DataElement> getDataElementByCategoryCombo( DataElementCategoryCombo categoryCombo );
-
-    /**
-     * Returns all DataElements which are associated with one or more
-     * DataElementGroupSets.
-     *
-     * @return all DataElements which are associated with one or more
-     * DataElementGroupSets.
-     */
-    List<DataElement> getDataElementsWithGroupSets();
 
     /**
      * Returns all DataElements which are not member of any DataElementGroups.
@@ -241,19 +158,6 @@ public interface DataElementService
      */
     List<DataElement> getDataElementsByAggregationLevel( int aggregationLevel );
 
-    List<DataElement> getDataElementsLikeName( String name );
-
-    /**
-     * Returns a mapping of data element uid and associated category option combo
-     * uids.
-     *
-     * @param dataElementUids the uids of the data elements to include in the map.
-     * @return a ListMap.
-     */
-    ListMap<String, String> getDataElementCategoryOptionComboMap( Set<String> dataElementUids );
-
-    Map<String, Integer> getDataElementUidIdMap();
-    
     // -------------------------------------------------------------------------
     // DataElementGroup
     // -------------------------------------------------------------------------
@@ -338,39 +242,12 @@ public interface DataElementService
     DataElementGroup getDataElementGroupByCode( String code );
 
     /**
-     * Returns data elements with identifier in the given id.
-     *
-     * @param groupId is the id of data element group.
-     * @return data elements with identifier in the given id.
-     */
-    Set<DataElement> getDataElementsByGroupId( int groupId );
-
-    /**
-     * Defines the given data elements as zero is significant. All other data
-     * elements are defined as zero is in-significant.
-     *
-     * @param dataElementIds identifiers of data elements where zero is
-     *                       significant.
-     */
-    void setZeroIsSignificantForDataElements( Collection<Integer> dataElementIds );
-
-    /**
      * Returns all DataElement which zeroIsSignificant property is true or false
      *
      * @param list is zeroIsSignificant property
      * @return a collection of all DataElement
      */
     List<DataElement> getDataElementsByZeroIsSignificant( boolean zeroIsSignificant );
-
-    /**
-     * Returns all DataElement which zeroIsSignificant property is true or false
-     *
-     * @param zeroIsSignificant is zeroIsSignificant property
-     * @param dataElementGroup  is group contain data elements
-     * @return a set of data elements.
-     */
-    Set<DataElement> getDataElementsByZeroIsSignificantAndGroup( boolean zeroIsSignificant,
-        DataElementGroup dataElementGroup );
 
     // -------------------------------------------------------------------------
     // DataElementGroupSet
@@ -388,9 +265,5 @@ public interface DataElementService
 
     DataElementGroupSet getDataElementGroupSetByName( String name );
 
-    List<DataElementGroupSet> getCompulsoryDataElementGroupSetsWithMembers();
-
     List<DataElementGroupSet> getAllDataElementGroupSets();
-
-    List<DataElementGroupSet> getDataElementGroupSetsByUid( Collection<String> uids );
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,10 @@ package org.hisp.dhis.common;
  */
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -91,6 +94,21 @@ public class QueryFilter
         return OPERATOR_MAP.get( operator );
     }
     
+    public String getJavaOperator()
+    {
+        if ( operator == null || operator == QueryOperator.LIKE || operator == QueryOperator.IN )
+        {
+            return null;
+        }
+        
+        if ( operator == QueryOperator.EQ ) //TODO why special case?
+        {
+            return "==";
+        }
+        
+        return OPERATOR_MAP.get( operator );
+    }
+    
     public String getSqlFilter( String encodedFilter )
     {
         if ( operator == null || encodedFilter == null )
@@ -104,13 +122,13 @@ public class QueryFilter
         }
         else if ( QueryOperator.IN.equals( operator ) )
         {
-            String[] split =  getFilterItems( encodedFilter );
+            List<String> filterItems =  getFilterItems( encodedFilter );
             
             final StringBuffer buffer = new StringBuffer( "(" );        
             
-            for ( String el : split )
+            for ( String filterItem : filterItems )
             {
-                buffer.append( "'" ).append( el ).append( "'," );
+                buffer.append( "'" ).append( filterItem ).append( "'," );
             }
             
             return buffer.deleteCharAt( buffer.length() - 1 ).append( ")" ).toString();
@@ -118,13 +136,23 @@ public class QueryFilter
         
         return "'" + encodedFilter + "'";
     }
+
+    /**
+     * Returns the items of the filter.
+     * 
+     * @param encodedFilter the encoded filter.
+     */
+    public static List<String> getFilterItems( String encodedFilter )
+    {
+        return Lists.newArrayList( encodedFilter.split( OPTION_SEP ) );
+    }
     
     /**
-     * Returns the items of the filter. Items are separated with the ";" character.
+     * Returns a string representation of the query operator and filter.
      */
-    public static String[] getFilterItems( String filter )
+    public String getFilterAsString()
     {
-        return filter.split( OPTION_SEP );
+        return operator.getValue() + " " + filter;
     }
     
     // -------------------------------------------------------------------------

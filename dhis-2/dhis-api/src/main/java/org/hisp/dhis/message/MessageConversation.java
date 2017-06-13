@@ -1,7 +1,7 @@
 package org.hisp.dhis.message;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
 
@@ -73,6 +71,8 @@ public class MessageConversation
 
     private int messageCount;
 
+    private MessageType messageType;
+
     private MessageConversationPriority priority;
 
     private MessageConversationStatus status;
@@ -105,11 +105,12 @@ public class MessageConversation
         this.status = MessageConversationStatus.NONE;
     }
 
-    public MessageConversation( String subject, User lastSender )
+    public MessageConversation( String subject, User lastSender, MessageType messageType )
     {
         this.subject = subject;
         this.lastSender = lastSender;
         this.lastMessage = new Date();
+        this.messageType = messageType;
         this.priority = MessageConversationPriority.NONE;
         this.status = MessageConversationStatus.NONE;
     }
@@ -489,38 +490,6 @@ public class MessageConversation
         this.messageCount = messageCount;
     }
 
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            MessageConversation messageConversation = (MessageConversation) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                subject = messageConversation.getSubject();
-                lastSender = messageConversation.getLastSender();
-                lastMessage = messageConversation.getLastMessage();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                subject = messageConversation.getSubject() == null ? subject : messageConversation.getSubject();
-                lastSender =
-                    messageConversation.getLastSender() == null ? lastSender : messageConversation.getLastSender();
-                lastMessage =
-                    messageConversation.getLastMessage() == null ? lastMessage : messageConversation.getLastMessage();
-            }
-
-            removeAllUserMessages();
-            userMessages.addAll( messageConversation.getUserMessages() );
-
-            removeAllMessages();
-            messages.addAll( messageConversation.getMessages() );
-        }
-    }
-
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
@@ -565,5 +534,17 @@ public class MessageConversation
     public void setAssignee( User assignee )
     {
         this.assignee = assignee;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public MessageType getMessageType()
+    {
+        return messageType;
+    }
+
+    public void setMessageType( MessageType messageType )
+    {
+        this.messageType = messageType;
     }
 }

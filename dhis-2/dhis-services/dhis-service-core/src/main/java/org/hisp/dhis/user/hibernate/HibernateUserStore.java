@@ -1,7 +1,7 @@
 package org.hisp.dhis.user.hibernate;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,6 @@ package org.hisp.dhis.user.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
 import org.hibernate.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -40,6 +36,10 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserStore;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Nguyen Hong Duc
@@ -51,6 +51,13 @@ public class HibernateUserStore
     @Override
     @SuppressWarnings("unchecked")
     public List<User> getUsers( UserQueryParams params )
+    {
+        return getUserQuery( params, false ).list();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<User> getExpiringUsers( UserQueryParams params )
     {
         return getUserQuery( params, false ).list();
     }
@@ -72,6 +79,20 @@ public class HibernateUserStore
             "from User u " +
             "inner join u.userCredentials uc " +
             "left join u.groups g ";
+
+        if ( params.getOrganisationUnit() != null )
+        {
+            hql += "left join u.organisationUnits ou ";
+
+            if ( params.getIncludeOrgUnitChildren() )
+            {
+                hql += hlp.whereAnd() + " ou.path like :organisationUnitUid ";
+            }
+            else
+            {
+                hql += hlp.whereAnd() + " ou = :organisationUnit ";
+            }
+        }
 
         if ( params.getQuery() != null )
         {
@@ -122,6 +143,11 @@ public class HibernateUserStore
         {
             hql += hlp.whereAnd() + " uc.lastLogin < :inactiveSince ";
         }
+
+        if ( params.getDaysPassedSincePasswordChange() != null )
+        {
+            hql += hlp.whereAnd() + " uc.passwordLastUpdated < :daysPassedSincePasswordChange ";
+        }
         
         if ( params.isSelfRegistered() )
         {
@@ -141,17 +167,12 @@ public class HibernateUserStore
                 "and uc.restoreExpiry is not null " +
                 "and uc.restoreExpiry < current_timestamp() ";
         }
-                
-        if ( params.getOrganisationUnit() != null )
-        {
-            hql += hlp.whereAnd() + " :organisationUnit in elements(u.organisationUnits) ";
-        }
         
         if ( !count )
         {
             hql += "order by u.surname, u.firstName";
         }
-        
+
         Query query = sessionFactory.getCurrentSession().createQuery( hql );
         
         if ( params.getQuery() != null )
@@ -189,7 +210,12 @@ public class HibernateUserStore
         {
             query.setTimestamp( "lastLogin", params.getLastLogin() );
         }
-        
+
+        if ( params.getDaysPassedSincePasswordChange() != null )
+        {
+            query.setTimestamp( "daysPassedSincePasswordChange", params.getDaysPassedSincePasswordChange() );
+        }
+
         if ( params.getInactiveSince() != null )
         {
             query.setTimestamp( "inactiveSince", params.getInactiveSince() );
@@ -197,7 +223,15 @@ public class HibernateUserStore
         
         if ( params.getOrganisationUnit() != null )
         {
-            query.setEntity( "organisationUnit", params.getOrganisationUnit() );
+            if ( params.getIncludeOrgUnitChildren() )
+            {
+                // Match self and all children of selv in the path column.
+                query.setString( "organisationUnitUid", "%/" + params.getOrganisationUnit().getUid() + "%" );
+            }
+            else
+            {
+                query.setEntity( "organisationUnit", params.getOrganisationUnit() );
+            }
         }
         
         if ( params.getFirst() != null )
@@ -209,7 +243,7 @@ public class HibernateUserStore
         {
             query.setMaxResults( params.getMax() ).list();
         }
-        
+
         return query;
     }
 

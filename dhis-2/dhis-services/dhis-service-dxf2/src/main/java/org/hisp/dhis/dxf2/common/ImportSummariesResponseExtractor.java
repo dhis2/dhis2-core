@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,18 +28,13 @@ package org.hisp.dhis.dxf2.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.springframework.http.HttpStatus;
+import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResponseExtractor;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
 
 /**
  * @author aamerm
@@ -50,31 +45,15 @@ public class ImportSummariesResponseExtractor
     @Override
     public ImportSummaries extractData( ClientHttpResponse response ) throws IOException
     {
-        HttpStatus status = response.getStatusCode();
-
-        if ( !(HttpStatus.CREATED.equals( status ) || HttpStatus.OK.equals( status )) )
-        {
-            throw new HttpServerErrorException( status, "Event sync failed on remote server" );
-        }
-
-        ImportSummaries summary = null;
         InputStream stream = response.getBody();
 
+        ImportSummaries summary = null;
+        
         if ( stream != null )
         {
-            StringWriter writer = new StringWriter();
-            IOUtils.copy( stream, writer, "UTF-8" );
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode objectNode = objectMapper.readTree( writer.toString() );
-            JsonNode responseNode = objectNode.get( "response" );
-
-            if ( responseNode != null && responseNode.get( "responseType" ) != null )
-            {
-                summary = objectMapper.readValue( responseNode.toString(), ImportSummaries.class );
-            }
+            summary = WebMessageParseUtils.fromWebMessageResponse( stream, ImportSummaries.class );
         }
-
+        
         return summary;
     }
 }

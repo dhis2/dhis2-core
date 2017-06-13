@@ -1,7 +1,7 @@
 package org.hisp.dhis.node.serializers;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,8 @@ package org.hisp.dhis.node.serializers;
  */
 
 import com.google.common.collect.Lists;
-import org.apache.poi.ss.usermodel.Hyperlink;
+
+import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFCreationHelper;
@@ -156,7 +157,7 @@ public class ExcelNodeSerializer extends AbstractNodeSerializer
 
                             if ( node.haveProperty() && PropertyType.URL.equals( node.getProperty().getPropertyType() ) )
                             {
-                                XSSFHyperlink hyperlink = creationHelper.createHyperlink( Hyperlink.LINK_URL );
+                                XSSFHyperlink hyperlink = creationHelper.createHyperlink( HyperlinkType.URL );
                                 hyperlink.setAddress( getValue( (SimpleNode) node ) );
                                 hyperlink.setLabel( getValue( (SimpleNode) node ) );
 
@@ -164,7 +165,7 @@ public class ExcelNodeSerializer extends AbstractNodeSerializer
                             }
                             else if ( node.haveProperty() && PropertyType.EMAIL.equals( node.getProperty().getPropertyType() ) )
                             {
-                                XSSFHyperlink hyperlink = creationHelper.createHyperlink( Hyperlink.LINK_EMAIL );
+                                XSSFHyperlink hyperlink = creationHelper.createHyperlink( HyperlinkType.EMAIL );
                                 hyperlink.setAddress( getValue( (SimpleNode) node ) );
                                 hyperlink.setLabel( getValue( (SimpleNode) node ) );
 

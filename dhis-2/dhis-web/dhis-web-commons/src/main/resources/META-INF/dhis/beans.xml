@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="
-		http://www.springframework.org/schema/beans	http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+		http://www.springframework.org/schema/beans	http://www.springframework.org/schema/beans/spring-beans-4.3.xsd">
 
   <!-- Web Portal -->
 
@@ -42,14 +42,13 @@
         <value>dhis-web-mobile</value>
         <value>dhis-web-reporting</value>
         <value>dhis-web-sms</value>
+        <value>dhis-web-dashboard</value>
       </list>
     </property>
   </bean>
 
   <bean id="org.hisp.dhis.webportal.module.CurrentModuleDetectorFilter" class="org.hisp.dhis.webportal.module.CurrentModuleDetectorFilter">
-    <property name="moduleManager">
-      <ref bean="org.hisp.dhis.webportal.module.ModuleManager" />
-    </property>
+    <property name="moduleManager" ref="org.hisp.dhis.webportal.module.ModuleManager" />
   </bean>
 
   <bean id="org.hisp.dhis.webportal.interceptor.XWorkPortalParamsInterceptor"
@@ -79,7 +78,7 @@
 
   <bean id="org.hisp.dhis.webportal.menu.MenuStateManager" class="org.hisp.dhis.webportal.menu.SessionMenuStateManager" />
 
-  <bean id="org.hisp.dhis.webportal.menu.action.SetMenuStateAction" class="org.hisp.dhis.webportal.menu.action.SetMenuStateAction"/>
+  <bean id="org.hisp.dhis.webportal.menu.action.SetMenuStateAction" class="org.hisp.dhis.webportal.menu.action.SetMenuStateAction" />
 
   <bean id="org.hisp.dhis.webportal.menu.action.GetModulesAction" class="org.hisp.dhis.webportal.menu.action.GetModulesAction" />
 
@@ -250,7 +249,7 @@
     </property>
   </bean>
 
-  <bean id="org.hisp.dhis.oust.action.GetUserCountAction" class="org.hisp.dhis.oust.action.GetUserCountAction" scope="prototype"/>
+  <bean id="org.hisp.dhis.oust.action.GetUserCountAction" class="org.hisp.dhis.oust.action.GetUserCountAction" scope="prototype" />
 
   <!-- Security import -->
   <import resource="security.xml" />
@@ -259,7 +258,6 @@
 
   <bean id="org.hisp.dhis.i18n.action.I18nAction" class="org.hisp.dhis.i18n.action.I18nAction" scope="prototype">
     <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
-    <property name="localeManager" ref="org.hisp.dhis.i18n.locale.LocaleManager" />
     <property name="identifiableObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
   </bean>
 
@@ -271,7 +269,7 @@
     <property name="identifiableObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
   </bean>
 
-  <bean id="org.hisp.dhis.i18n.action.GetStringsFromLocaleAction" class="org.hisp.dhis.i18n.action.GetStringsFromLocaleAction"/>
+  <bean id="org.hisp.dhis.i18n.action.GetStringsFromLocaleAction" class="org.hisp.dhis.i18n.action.GetStringsFromLocaleAction" />
 
   <!-- About -->
 
@@ -374,7 +372,7 @@
     <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
   </bean>
-  
+
   <bean id="org.hisp.dhis.commons.action.GetSectionIndicatorsAction" class="org.hisp.dhis.commons.action.GetSectionIndicatorsAction"
     scope="prototype">
     <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
@@ -401,7 +399,7 @@
     scope="prototype">
     <property name="programService" ref="org.hisp.dhis.program.ProgramService" />
   </bean>
-  
+
   <bean id="org.hisp.dhis.commons.action.GetIndicatorAction" class="org.hisp.dhis.commons.action.GetIndicatorAction"
     scope="prototype">
     <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
@@ -430,19 +428,6 @@
   <bean id="org.hisp.dhis.commons.action.GetIndicatorsAction" class="org.hisp.dhis.commons.action.GetIndicatorsAction"
     scope="prototype">
     <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
-    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.commons.action.GetDataElementOperandsAction" class="org.hisp.dhis.commons.action.GetDataElementOperandsAction"
-    scope="prototype">
-    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
-    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.commons.action.GetOperandsAction" class="org.hisp.dhis.commons.action.GetOperandsAction"
-    scope="prototype">
-    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
     <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
   </bean>
 
@@ -587,7 +572,7 @@
     <property name="localeManager" ref="org.hisp.dhis.i18n.locale.LocaleManager" />
     <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
     <property name="styleManager" ref="org.hisp.dhis.setting.StyleManager" />
-    <property name="i18nLocaleService" ref="org.hisp.dhis.i18n.118nLocaleService"/>
+    <property name="i18nLocaleService" ref="org.hisp.dhis.i18n.118nLocaleService" />
   </bean>
 
   <bean id="org.hisp.dhis.settings.user.action.SetGeneralSettingsAction"
@@ -611,5 +596,7 @@
   <bean id="org.hisp.dhis.appcache.AppCacheAction" class="org.hisp.dhis.appcache.AppCacheAction" />
 
   <bean id="org.hisp.dhis.appcache.CacheManifestAction" class="org.hisp.dhis.appcache.CacheManifestAction" />
+
+  <bean class="org.hisp.dhis.security.DefaultRolesPrefixPostProcessor" />
 
 </beans>

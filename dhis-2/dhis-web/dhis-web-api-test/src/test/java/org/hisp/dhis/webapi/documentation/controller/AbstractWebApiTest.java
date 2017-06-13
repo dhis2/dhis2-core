@@ -53,6 +53,7 @@ import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.mapping.ExternalMapLayer;
 import org.hisp.dhis.mapping.ImageFormat;
 import org.hisp.dhis.mapping.MapLayerPosition;
 import org.hisp.dhis.mapping.MapService;
@@ -60,14 +61,15 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionGroup;
 import org.hisp.dhis.option.OptionGroupSet;
 import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.mapping.ExternalMapLayer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElement;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.hisp.dhis.webapi.documentation.common.ResponseDocumentation;
@@ -122,7 +124,6 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
     @Test
     public void testGetAll() throws Exception
     {
-
         Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaultObjectMap = manager.getDefaults();
         IdentifiableObject defaultTestObject = defaultObjectMap.get( testClass );
         int valueToTest = defaultTestObject != null ? 5 : 4;
@@ -311,7 +312,7 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
 
             return (T) erA;
         }
-        else if ( ProgramDataElement.class.isAssignableFrom( clazz ) )
+        else if ( ProgramDataElementDimensionItem.class.isAssignableFrom( clazz ) )
         {
             Program prA = createProgram( uniqueName );
             manager.save( prA );
@@ -319,7 +320,7 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
             DataElement deA = createDataElement( uniqueName );
             manager.save( deA );
 
-            return (T) new ProgramDataElement( prA, deA );
+            return (T) new ProgramDataElementDimensionItem( prA, deA );
         }
         else if ( ProgramIndicator.class.isAssignableFrom( clazz ) )
         {
@@ -423,6 +424,23 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
         else if ( OptionSet.class.isAssignableFrom( clazz ))
         {
             return (T) new OptionSet( "OptionSet" +uniqueName, ValueType.TEXT );
+        }
+        else if ( ProgramTrackedEntityAttributeGroup.class.isAssignableFrom( clazz ) )
+        {
+            ProgramTrackedEntityAttributeGroup group = createProgramTrackedEntityAttributeGroup( uniqueName );
+
+            ProgramTrackedEntityAttribute attr = createProgramTrackedEntityAttribute( uniqueName );
+            group.addAttribute( attr );
+
+            return (T) group;
+        }
+        else if ( ProgramTrackedEntityAttribute.class.isAssignableFrom( clazz ))
+        {
+            return (T) createProgramTrackedEntityAttribute( uniqueName );
+        }
+        else if ( ProgramDataElementDimensionItem.class.isAssignableFrom( clazz ) )
+        {
+            return (T) createProgramDataElement( uniqueName );
         }
 
         return null;

@@ -26,24 +26,26 @@
 
     <property name="repeatable" column="repeatable" not-null="true" />
 
-    <set name="programStageDataElements" order-by="sort_order" cascade="all">
+    <set name="programStageDataElements" order-by="sort_order" cascade="all-delete-orphan">
       <key column="programstageid" />
       <one-to-many class="org.hisp.dhis.program.ProgramStageDataElement" />
     </set>
 
     <many-to-one name="dataEntryForm" class="org.hisp.dhis.dataentryform.DataEntryForm"
-      column="dataentryformid" foreign-key="fk_programstage_dataentryform" cascade="all" />
+      column="dataentryformid" foreign-key="fk_programstage_dataentryform" />
 
     <property name="standardInterval" />
 
-    <set name="programStageSections" order-by="sortOrder" cascade="save-update">
+    <set name="programStageSections" order-by="sortOrder">
       <key column="programstageid" />
       <one-to-many class="org.hisp.dhis.program.ProgramStageSection" />
     </set>
 
     <property name="executionDateLabel" column="executiondatelabel" />
 
-    <set name="notificationTemplates" cascade="all">
+    <property name="dueDateLabel" column="duedatelabel" />
+
+    <set name="notificationTemplates">
       <key column="programstageid" />
       <one-to-many class="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
     </set>
@@ -79,14 +81,14 @@
 
     <!-- Dynamic attribute values -->
 
-    <set name="attributeValues" table="programstageattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="programstageattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="programstageid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="programstagetranslations" cascade="delete-orphan">
+    <set name="translations" table="programstagetranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="programstageid" foreign-key="fk_objecttranslation_programstageid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

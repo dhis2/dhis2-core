@@ -1,7 +1,7 @@
 package org.hisp.dhis.web.ohie.csd.domain;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,6 @@ package org.hisp.dhis.web.ohie.csd.domain;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.springframework.util.Assert;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -68,7 +66,6 @@ public class Name
 
     public Name( CommonName commonName )
     {
-        Assert.notNull( commonName );
         getCommonNames().add( commonName );
     }
 

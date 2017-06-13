@@ -1,7 +1,7 @@
 package org.hisp.dhis.datastatistics;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,14 +44,14 @@ public enum DataStatisticsEventType
     DASHBOARD_VIEW( "dashboard" ),
     DATA_SET_REPORT_VIEW( "dataset" ),
     TOTAL_VIEW( null );
-    
+
     private String table;
-    
-    private DataStatisticsEventType( String table )
+
+    DataStatisticsEventType( String table )
     {
         this.table = table;
     }
-    
+
     public String getTable()
     {
         return table;

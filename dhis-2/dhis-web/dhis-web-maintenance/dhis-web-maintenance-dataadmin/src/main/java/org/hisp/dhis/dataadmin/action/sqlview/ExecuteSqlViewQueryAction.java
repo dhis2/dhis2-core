@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataadmin.action.sqlview;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,8 @@ package org.hisp.dhis.dataadmin.action.sqlview;
  */
 
 import com.opensymphony.xwork2.Action;
+
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewService;
@@ -99,7 +101,16 @@ public class ExecuteSqlViewQueryAction
 
         String viewName = sqlView.getViewName();
 
-        message = sqlViewService.createViewTable( sqlView );
+        try
+        {
+            message = sqlViewService.createViewTable( sqlView );
+        }
+        catch ( IllegalQueryException ex )
+        {
+            message = ex.getMessage();
+            
+            return ERROR;
+        }
 
         if ( message != null && !message.isEmpty() )
         {

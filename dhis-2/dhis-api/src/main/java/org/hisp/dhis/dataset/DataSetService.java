@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -98,35 +98,6 @@ public interface DataSetService
     DataSet getDataSetNoAcl( String uid );
 
     /**
-     * Returns a DataSets with the given name.
-     *
-     * @param name The name.
-     * @return A DataSet with the given name.
-     */
-    List<DataSet> getDataSetByName( String name );
-
-    /**
-     * Returns the DataSet with the given short name.
-     *
-     * @param shortName The short name.
-     * @return The DataSet with the given short name.
-     */
-    List<DataSet> getDataSetByShortName( String shortName );
-
-    /**
-     * Returns the DataSet with the given code.
-     *
-     * @param code The code.
-     * @return The DataSet with the given code.
-     */
-    DataSet getDataSetByCode( String code );
-
-    /**
-     * Returns all DataSets associated with the specified sources.
-     */
-    List<DataSet> getDataSetsBySources( Collection<OrganisationUnit> sources );
-
-    /**
      * Returns all DataSets associated with the given DataEntryForm.
      *
      * @param dataEntryForm the DataEntryForm.
@@ -158,24 +129,10 @@ public interface DataSetService
     List<DataSet> getDataSetsByUid( Collection<String> uids );
 
     /**
-     * Returns a list of data sets with the given uids. Bypasses the ACL system.
-     *
-     * @param uids the collection of uids.
-     * @return a list of data sets.
-     */
-    List<DataSet> getDataSetsByUidNoAcl( Collection<String> uids );
-
-    /**
      * Returns all DataSets that can be collected through mobile (one
      * organisation unit).
      */
     List<DataSet> getDataSetsForMobile( OrganisationUnit source );
-
-    /**
-     * Returns all DataSets that can be collected through mobile (all
-     * organisation unit).
-     */
-    List<DataSet> getDataSetsForMobile();
 
     /**
      * Returns the data sets associated with the current user. If the current
@@ -257,7 +214,6 @@ public interface DataSetService
      */
     void deleteLockExceptionCombination( DataSet dataSet, Period period );
 
-
     /**
      * Delete a dataSet + period + organisationUnit combination
      *
@@ -277,7 +233,7 @@ public interface DataSetService
      * @param now              the base date for deciding locked date, current date if null.
      * @return true or false indicating whether the system is locked or not.
      */
-    boolean isLockedPeriod( DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now );
+    boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now );
 
     /**
      * Checks whether the system is locked for data entry for the given input,
@@ -320,19 +276,10 @@ public interface DataSetService
     boolean isLocked( DataElement dataElement, Period period, OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo, Date now );
 
     /**
-     * Take
-     *
-     * @param dataSet
-     * @param organisationUnits
-     */
-    void mergeWithCurrentUserOrganisationUnits( DataSet dataSet, Collection<OrganisationUnit> organisationUnits );
-
-    /**
      * Return a list of LockException with given filter list
      *
      * @param filters
      * @return a list of LockException with given filter list
      */
     List<LockException> filterLockExceptions( List<String> filters );
-
 }

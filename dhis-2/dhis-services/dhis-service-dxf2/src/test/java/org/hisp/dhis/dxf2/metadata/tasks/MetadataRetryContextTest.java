@@ -29,7 +29,7 @@
 package org.hisp.dhis.dxf2.metadata.tasks;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.dxf2.common.Status;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.metadata.version.MetadataVersion;

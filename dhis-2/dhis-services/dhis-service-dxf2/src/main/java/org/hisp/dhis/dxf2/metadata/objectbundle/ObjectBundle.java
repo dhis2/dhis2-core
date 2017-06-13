@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,34 +52,79 @@ import java.util.Set;
  */
 public class ObjectBundle
 {
+    /**
+     * User to use for import job (important for threaded imports).
+     */
     private final User user;
 
+    /**
+     * Should import be imported or just validated.
+     */
     private final ObjectBundleMode objectBundleMode;
 
+    /**
+     * What identifiers to match on.
+     */
     private final PreheatIdentifier preheatIdentifier;
 
+    /**
+     * Preheat mode to use (default is REFERENCE and should not be changed).
+     */
     private final PreheatMode preheatMode;
 
+    /**
+     * Sets import strategy (create, update, etc).
+     */
     private final ImportStrategy importMode;
 
+    /**
+     * Should import be treated as a atomic import (all or nothing).
+     */
     private final AtomicMode atomicMode;
 
+    /**
+     * Merge mode for object updates (default is REPLACE).
+     */
     private final MergeMode mergeMode;
 
+    /**
+     * Flush for every object or per type.
+     */
     private final FlushMode flushMode;
 
+    /**
+     * Internal preheat bundle.
+     */
     private final Preheat preheat;
 
+    /**
+     * Should sharing be considered when importing objects.
+     */
     private final boolean skipSharing;
 
+    /**
+     * Skip validation of objects (not recommended).
+     */
     private final boolean skipValidation;
 
+    /**
+     * Task id to use for threaded imports.
+     */
     private TaskId taskId;
 
+    /**
+     * Current status of object bundle.
+     */
     private ObjectBundleStatus objectBundleStatus = ObjectBundleStatus.CREATED;
 
+    /**
+     * Objects to import.
+     */
     private Map<Boolean, Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>>> objects = new HashMap<>();
 
+    /**
+     * Pre-scanned map of all object references (mainly used for object book hundle).
+     */
     private Map<Class<?>, Map<String, Map<String, Object>>> objectReferences = new HashMap<>();
 
     /**

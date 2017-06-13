@@ -19,7 +19,7 @@
 
     <property name="shortName" column="shortname" unique="true" length="50" />
 
-    <property name="startDate" type="date"/>
+    <property name="startDate" type="date" />
 
     <property name="endDate" type="date" />
 
@@ -30,14 +30,14 @@
         foreign-key="fk_categoryoption_organisationunits_organisationunitid" />
     </set>
 
-    <set name="categoryOptionCombos" table="categoryoptioncombos_categoryoptions" inverse="true" lazy="false">
+    <set name="categoryOptionCombos" table="categoryoptioncombos_categoryoptions" inverse="true">
       <cache usage="read-write" />
       <key column="categoryoptionid" foreign-key="fk_categoryoptioncombos_categoryoptions_categoryoptionid" />
       <many-to-many class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo" column="categoryoptioncomboid"
         foreign-key="fk_categoryoption_categoryoptioncomboid" />
     </set>
 
-    <set name="categories" table="categories_categoryoptions" inverse="true" lazy="false">
+    <set name="categories" table="categories_categoryoptions" inverse="true">
       <cache usage="read-write" />
       <key column="categoryoptionid" />
       <many-to-many class="org.hisp.dhis.dataelement.DataElementCategory" column="categoryid" />
@@ -50,7 +50,7 @@
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="categoryoptiontranslations" cascade="delete-orphan">
+    <set name="translations" table="categoryoptiontranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="categoryoptionid" foreign-key="fk_objecttranslation_categoryoptionid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -58,7 +58,7 @@
 
     <!-- Dynamic attribute values -->
 
-    <set name="attributeValues" table="dataelementcategoryoptionattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="dataelementcategoryoptionattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="categoryoptionid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
@@ -69,10 +69,16 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="dataelementcategoryoptionusergroupaccesses">
+    <set name="userGroupAccesses" table="dataelementcategoryoptionusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="categoryoptionid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="dataelementcategoryoptionuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="categoryoptionid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
   </class>

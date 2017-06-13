@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.sms;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,10 @@ package org.hisp.dhis.webapi.controller.sms;
  */
 
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.sms.MessageResponseStatus;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -39,10 +40,10 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
-import org.springframework.http.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -63,7 +64,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping( value = "/sms" )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class SmsController
 {
     @Autowired
@@ -139,7 +140,7 @@ public class SmsController
             throw new WebMessageException( WebMessageUtils.conflict( "Message must be specified" ) );
         }
 
-        MessageResponseStatus status = smsSender.sendMessage( null, message, recipient );
+        OutboundMessageResponse status = smsSender.sendMessage( null, message, recipient );
 
         if ( status.isOk() )
         {
@@ -147,7 +148,7 @@ public class SmsController
         }
         else
         {
-            throw new WebMessageException( WebMessageUtils.error( "SMS failed" ) );
+            throw new WebMessageException( WebMessageUtils.error( status.getDescription() ) );
         }
     }
 
@@ -158,7 +159,7 @@ public class SmsController
     {
         OutboundSms sms = renderService.fromJson( request.getInputStream(), OutboundSms.class );
 
-        MessageResponseStatus status = smsSender.sendMessage( null, sms.getMessage(), sms.getRecipients() );
+        OutboundMessageResponse status = smsSender.sendMessage( null, sms.getMessage(), sms.getRecipients() );
 
         if ( status.isOk() )
         {
@@ -166,7 +167,7 @@ public class SmsController
         }
         else
         {
-            throw new WebMessageException( WebMessageUtils.error( "SMS failed" ) );
+            throw new WebMessageException( WebMessageUtils.error( status.getDescription() ) );
         }
     }
 

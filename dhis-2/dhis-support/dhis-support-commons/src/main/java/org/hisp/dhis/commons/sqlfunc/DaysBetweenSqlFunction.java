@@ -1,7 +1,7 @@
 package org.hisp.dhis.commons.sqlfunc;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,21 +34,12 @@ package org.hisp.dhis.commons.sqlfunc;
  * @author Lars Helge Overland
  */
 public class DaysBetweenSqlFunction
-    implements SqlFunction
+    extends BaseDateComparatorSqlFunction
 {
     public static final String KEY = "daysBetween";
     
-    @Override
-    public String evaluate( String... args )
+    protected String compare( String startDate, String endDate )
     {
-        if ( args == null || args.length != 2 )
-        {
-            throw new IllegalArgumentException( "Illegal arguments, expected 2 arguments: start-date, end-date" );
-        }
-        
-        String startDate = args[0];
-        String endDate = args[1];
-        
         return "(cast(" + endDate + " as date) - cast(" + startDate + " as date))";
     }
 }

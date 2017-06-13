@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,8 +42,7 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +53,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "categoryOptionGroupSet", namespace = DxfNamespaces.DXF_2_0 )
 public class CategoryOptionGroupSet
-    extends BaseDimensionalObject
+    extends BaseDimensionalObject implements MetadataObject
 {
     private List<CategoryOptionGroup> members = new ArrayList<>();
 
@@ -165,39 +164,12 @@ public class CategoryOptionGroupSet
     public void addCategoryOptionGroup( CategoryOptionGroup categoryOptionGroup )
     {
         members.add( categoryOptionGroup );
-        categoryOptionGroup.setGroupSet( this );
+        categoryOptionGroup.getGroupSets().add( this );
     }
 
     public void removeCategoryOptionGroup( CategoryOptionGroup categoryOptionGroup )
     {
         members.remove( categoryOptionGroup );
-        categoryOptionGroup.setGroupSet( null );
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            CategoryOptionGroupSet categoryOptionGroupSet = (CategoryOptionGroupSet) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                dataDimensionType = categoryOptionGroupSet.getDataDimensionType();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                dataDimensionType = categoryOptionGroupSet.getDataDimensionType() == null ? dataDimensionType : categoryOptionGroupSet.getDataDimensionType();
-            }
-
-            members.clear();
-
-            for ( CategoryOptionGroup categoryOptionGroup : categoryOptionGroupSet.getMembers() )
-            {
-                addCategoryOptionGroup( categoryOptionGroup );
-            }
-        }
+        categoryOptionGroup.getGroupSets().remove( this );
     }
 }

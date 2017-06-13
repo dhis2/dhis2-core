@@ -28,15 +28,13 @@ package org.hisp.dhis.setting;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import java.util.List;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Stian Strandli
@@ -71,7 +69,8 @@ public class SystemSettingStoreTest
     @Test
     public void testAddSystemSetting()
     {
-        int idA = systemSettingStore.save( settingA );
+        systemSettingStore.save( settingA );
+        int idA = settingA.getId();
         systemSettingStore.save( settingB );
         systemSettingStore.save( settingC );
 
@@ -92,8 +91,9 @@ public class SystemSettingStoreTest
     @Test
     public void testUpdateSystemSetting()
     {
-        int id = systemSettingStore.save( settingA );
-        
+        systemSettingStore.save( settingA );
+        int id = settingA.getId();
+
         settingA = systemSettingStore.get( id );
         
         assertEquals( "Value1", settingA.getValue() );
@@ -110,8 +110,10 @@ public class SystemSettingStoreTest
     @Test
     public void testDeleteSystemSetting()
     {
-        int idA = systemSettingStore.save( settingA );
-        int idB = systemSettingStore.save( settingB );
+        systemSettingStore.save( settingA );
+        int idA = settingA.getId();
+        systemSettingStore.save( settingB );
+        int idB = settingB.getId();
         systemSettingStore.save( settingC );
 
         systemSettingStore.delete( settingA );

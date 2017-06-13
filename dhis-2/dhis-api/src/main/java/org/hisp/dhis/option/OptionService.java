@@ -1,7 +1,7 @@
 package org.hisp.dhis.option;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,6 @@ package org.hisp.dhis.option;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -58,8 +57,6 @@ public interface OptionService
 
     List<OptionSet> getAllOptionSets();
 
-    List<Option> getOptions( String optionSetUid, String key, Integer max );
-    
     List<Option> getOptions( int optionSetId, String name, Integer max );
     
     // -------------------------------------------------------------------------
@@ -73,9 +70,7 @@ public interface OptionService
     Option getOptionByCode( String code );
         
     void deleteOption( Option option  );
-        
-    List<Option> getOptions( OptionSet optionSet, String option, Integer min, Integer max );
-
+    
     // -------------------------------------------------------------------------
     // OptionGroup
     // -------------------------------------------------------------------------
@@ -88,23 +83,15 @@ public interface OptionService
 
     OptionGroup getOptionGroup( String uid );
 
-    List<OptionGroup> getOptionGroupsByUid( Collection<String> uids );
-
     void deleteOptionGroup( OptionGroup group );
 
     List<OptionGroup> getAllOptionGroups();
-
-    List<OptionGroup> getOptionGroups( OptionGroupSet groupSet );
 
     OptionGroup getOptionGroupByName( String name );
 
     OptionGroup getOptionGroupByCode( String code );
 
     OptionGroup getOptionGroupByShortName( String shortName );
-
-    int getOptionGroupCount();
-
-    int getOptionGroupCountByName( String name );
 
     // -------------------------------------------------------------------------
     // OptionGroupSet
@@ -118,16 +105,9 @@ public interface OptionService
 
     OptionGroupSet getOptionGroupSet( String uid );
 
-    List<OptionGroupSet> getOptionGroupSetsByUid( Collection<String> uids );
-
     void deleteOptionGroupSet( OptionGroupSet group );
 
     List<OptionGroupSet> getAllOptionGroupSets();
 
     OptionGroupSet getOptionGroupSetByName( String name );
-
-    int getOptionGroupSetCount();
-
-    int getOptionGroupSetCountByName( String name );
-
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.feedback;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,11 @@ public class ErrorReport
 
     protected final Class<?> mainKlass;
 
+    protected String mainId;
+
     protected Class<?> errorKlass;
+
+    protected String errorProperty;
 
     protected Object value;
 
@@ -83,6 +87,19 @@ public class ErrorReport
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getMainId()
+    {
+        return mainId;
+    }
+
+    public ErrorReport setMainId( String mainId )
+    {
+        this.mainId = mainId;
+        return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Class<?> getErrorKlass()
     {
         return errorKlass;
@@ -91,6 +108,19 @@ public class ErrorReport
     public ErrorReport setErrorKlass( Class<?> errorKlass )
     {
         this.errorKlass = errorKlass;
+        return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getErrorProperty()
+    {
+        return errorProperty;
+    }
+
+    public ErrorReport setErrorProperty( String errorProperty )
+    {
+        this.errorProperty = errorProperty;
         return this;
     }
 

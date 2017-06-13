@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.datavalue;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,8 @@ package org.hisp.dhis.dxf2.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.amplecode.staxwax.reader.XMLReader;
-import org.amplecode.staxwax.writer.XMLWriter;
+import org.hisp.staxwax.reader.XMLReader;
+import org.hisp.staxwax.writer.XMLWriter;
 
 import static org.hisp.dhis.commons.util.TextUtils.valueOf;
 

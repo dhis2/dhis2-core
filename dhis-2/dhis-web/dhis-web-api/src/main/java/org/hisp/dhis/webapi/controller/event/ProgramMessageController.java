@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.event;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,16 +29,17 @@ package org.hisp.dhis.webapi.controller.event;
  */
 
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageBatch;
 import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.sms.BatchResponseStatus;
+import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -59,7 +60,7 @@ import java.util.Set;
  */
 @RestController
 @RequestMapping( value = "/messages" )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class ProgramMessageController
     extends AbstractCrudController<ProgramMessage>
 {
@@ -119,7 +120,7 @@ public class ProgramMessageController
         }
 
         BatchResponseStatus status = programMessageService.sendMessages( batch.getProgramMessages() );
-        
+
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
 
         renderService.toJson( response.getOutputStream(), status );

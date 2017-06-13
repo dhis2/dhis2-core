@@ -1,7 +1,7 @@
 package org.hisp.dhis.maintenance.jdbc;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,7 +60,7 @@ public class JdbcMaintenanceStore
               "where de.aggregationtype = 'SUM' " +
               "and de.zeroissignificant is false ) " +
             "and dv.value = '0';";
-        
+
         return jdbcTemplate.update( sql );
     }
 
@@ -70,7 +70,37 @@ public class JdbcMaintenanceStore
         String sql =
             "delete from datavalue dv " +
             "where dv.deleted is true;";
-        
+
+        return jdbcTemplate.update( sql );
+    }
+
+    @Override
+    public int deleteSoftDeletedProgramStageInstances()
+    {
+        String sql =
+            "delete from programstageinstance " +
+            "where deleted is true";
+
+        return jdbcTemplate.update( sql );
+    }
+
+    @Override
+    public int deleteSoftDeletedProgramInstances()
+    {
+        String sql =
+            "delete from programinstance " +
+            "where deleted is true";
+
+        return jdbcTemplate.update( sql );
+    }
+
+    @Override
+    public int deleteSoftDeletedTrackedEntityInstances()
+    {
+        String sql =
+            "delete from trackedentityinstance " +
+                "where deleted is true";
+
         return jdbcTemplate.update( sql );
     }
 }

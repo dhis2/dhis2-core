@@ -24,7 +24,14 @@
     <many-to-one name="periodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="periodtypeid"
       not-null="true" foreign-key="fk_dataset_periodtypeid" />
 
+    <set name="dataInputPeriods" table="datasetdatainputperiods" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="datasetid" foreign-key="fk_datasetdatainputperiods_datasetid" />
+      <one-to-many class="org.hisp.dhis.dataset.DataInputPeriod" />
+    </set>
+
     <set name="dataSetElements" table="datasetelement" cascade="all-delete-orphan">
+      <cache usage="read-write" />
       <key column="datasetid" foreign-key="fk_datasetmembers_datasetid" />
       <one-to-many class="org.hisp.dhis.dataset.DataSetElement" />
     </set>
@@ -69,10 +76,6 @@
 
     <property name="timelyDays" />
 
-    <property name="startDate" type="timestamp" />
-
-    <property name="endDate" type="timestamp" />
-
     <many-to-one name="notificationRecipients" class="org.hisp.dhis.user.UserGroup"
       foreign-key="fk_dataset_notificationrecipients" />
 
@@ -103,23 +106,19 @@
       <cache usage="read-write" />
       <key column="datasetid" />
       <list-index column="sort_order" base="0" />
-      <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_dataset_legendsetid" ></many-to-many>
+      <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_dataset_legendsetid"></many-to-many>
     </list>
-
-    <property name="aggregateExportCategoryOptionCombo" column="aggregateexportcategoryoptioncombo" />
-
-    <property name="aggregateExportAttributeOptionCombo" column="aggregateexportattributeoptioncombo" />
 
     <!-- Dynamic attribute values -->
 
-    <set name="attributeValues" table="datasetattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="datasetattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="datasetid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="datasettranslations" cascade="delete-orphan">
+    <set name="translations" table="datasettranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="datasetid" foreign-key="fk_objecttranslation_datasetid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -130,10 +129,16 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="datasetusergroupaccesses">
+    <set name="userGroupAccesses" table="datasetusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="datasetid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="datasetuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="datasetid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
   </class>

@@ -25,14 +25,14 @@
       <cache usage="read-write" />
       <key column="categoryoptiongroupsetid" foreign-key="fk_categoryoptiongroupsetmembers_categoryoptiongroupsetid" />
       <list-index column="sort_order" base="1" />
-      <many-to-many class="org.hisp.dhis.dataelement.CategoryOptionGroup" column="categoryoptiongroupid" unique="true"
+      <many-to-many class="org.hisp.dhis.dataelement.CategoryOptionGroup" column="categoryoptiongroupid"
         foreign-key="fk_categoryoptiongroupsetmembers_categoryoptiongroupid" />
     </list>
 
     <property name="dataDimensionType" column="datadimensiontype" type="org.hisp.dhis.common.DataDimensionTypeUserType" />
 
     <!-- Object Translation -->
-    <set name="translations" table="categoryoptiongroupsettranslations" cascade="delete-orphan">
+    <set name="translations" table="categoryoptiongroupsettranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="categoryoptiongroupsetid" foreign-key="fk_objecttranslation_categoryoptiongroupsetid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -43,10 +43,16 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="categoryoptiongroupsetusergroupaccesses">
+    <set name="userGroupAccesses" table="categoryoptiongroupsetusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="categoryoptiongroupsetid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="categoryoptiongroupsetuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="categoryoptiongroupsetid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
   </class>

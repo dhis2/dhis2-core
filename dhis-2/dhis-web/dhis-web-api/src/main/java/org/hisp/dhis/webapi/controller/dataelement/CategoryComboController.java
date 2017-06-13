@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.dataelement;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,11 +30,20 @@ package org.hisp.dhis.webapi.controller.dataelement;
 
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.schema.descriptors.CategoryComboSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -46,6 +55,20 @@ public class CategoryComboController
 {
     @Autowired
     private DataElementCategoryService categoryService;
+
+    @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
+    public @ResponseBody RootNode getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid, HttpServletResponse response )
+        throws WebMessageException, IOException
+    {
+        DataElementCategoryCombo categoryCombo = categoryService.getDataElementCategoryCombo( pvUid );
+
+        if ( categoryCombo == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "CategoryCombo not found for uid: " + pvUid ) );
+        }
+
+        return exportService.getMetadataWithDependenciesAsNode( categoryCombo );
+    }
 
     @Override
     public void postCreateEntity( DataElementCategoryCombo categoryCombo )

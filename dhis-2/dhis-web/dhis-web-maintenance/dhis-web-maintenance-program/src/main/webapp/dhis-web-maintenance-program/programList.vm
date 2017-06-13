@@ -7,12 +7,8 @@
     <li data-enabled="canManage"><a data-target-fn="showSharingDialogWithContext"><i class="fa fa-share"></i>&nbsp;&nbsp;$i18n.getString( "sharing_settings" )</a></li>
     <li data-enabled="canUpdate"><a data-target-fn="showUpdateProgramForm"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "edit" )</a></li>
     <li data-enabled="canUpdate"><a data-target-fn="defineProgramAssociationsForm"><i class="fa fa-plus"></i>&nbsp;&nbsp;$i18n.getString( "assign_program_to_orgunits" )</a></li>
-		<li data-enabled="canDefinedProgramEntryForm"><a data-target-fn="viewProgramEntryForm"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "design_custom_registration_form" )</a></li>
+	<li data-enabled="canManageProgramEntryForm"><a data-target-fn="viewProgramEntryForm"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "design_custom_registration_form" )</a></li>
     <li data-enabled="canUpdate"><a data-target-fn="programStageManagement"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "view_program_stages" )</a></li>
-    <li data-enabled="canUpdate"><a data-target-fn="programIndicatorManagementForm"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "view_program_indicators" )</a></li>
-		<li data-enabled="canManageProgramRule"><a data-target-fn="programRule"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "view_program_rule" )</a></li>
-    <!--<li data-enabled="canUpdate"><a data-target-fn="validationCriteria"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "view_validation_criteria" )</a></li>-->
-    <li data-enabled="canUpdate"><a data-target-fn="programValidationManagement"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "view_validation_rules" )</a></li>
 	<li data-enabled="canManageProgramNotification"><a data-target-fn="programNotification"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "view_program_notifications" )</a></li>
     <li data-enabled="canUpdate"><a data-target-fn="translateWithContext"><i class="fa fa-globe"></i>&nbsp;&nbsp;$i18n.getString( "translation_translate" )</a></li>
     <li data-enabled="canDelete"><a data-target-fn="removeProgram"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
@@ -47,11 +43,11 @@
       <tr id="tr${program.id}" data-id="$!program.id" data-uid="$!program.uid" data-type="Program" data-name="$encoder.htmlEncode( $!program.displayName )"
           data-can-manage="$security.canManage( $program )"
           data-can-update="$security.canUpdate( $program )"
-          data-can-defined-program-entry-form="#if($program.type!=3)true#{else}false#end"
+          data-can-manage-program-entry-form="#if( $security.canManage( $program ) && $program.programType.value=="with_registration" ) true #{else}false#end"
           data-can-manage-program-notification="#if($program.programType.value=="with_registration")true#{else}false#end"
           data-can-manage-program-rule="#if( $auth.hasAccess( "dhis-web-maintenance-program", "programRule" ) ) true #{else}false#end"
           data-can-delete="$security.canDelete( $program )"
-          data-can-manage-form="#if( $auth.hasAccess( "dhis-web-maintenance-program", "programIndicator" ) && $program.programType.value=="with_registration")true#{else}false#end">
+          data-can-manage-form="#if( $program.programType.value=="with_registration")true#{else}false#end">
           <td>$encoder.htmlEncode( $!program.displayName )</td>
       </tr>
       #end

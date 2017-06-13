@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,9 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
-import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.ValueType;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Defines the functionality for persisting DataElements and DataElementGroups.
@@ -52,65 +47,6 @@ public interface DataElementStore
     // -------------------------------------------------------------------------
 
     /**
-     * Returns List of DataElements with a given key.
-     *
-     * @param key the name of the DataElement to return.
-     * @return List of DataElements with a given key, or all dataelements if no match.
-     */
-    List<DataElement> searchDataElementsByName( String key );
-
-    /**
-     * Returns all DataElements with types that are possible to aggregate. The
-     * types are currently INT and BOOL.
-     *
-     * @return all DataElements with types that are possible to aggregate.
-     */
-    List<DataElement> getAggregateableDataElements();
-
-    /**
-     * Returns all DataElements with a given aggregation operator.
-     *
-     * @param aggregationType the aggregation operator of the DataElements
-     *                            to return.
-     * @return a collection of all DataElements with the given aggregation
-     * operator, or an empty collection if no DataElements have the
-     * aggregation operator.
-     */
-    List<DataElement> getDataElementsByAggregationType( AggregationType aggregationType );
-
-    /**
-     * Returns all DataElements with the given domain type.
-     *
-     * @param domainType the domainType.
-     * @return all DataElements with the given domainType.
-     */
-    List<DataElement> getDataElementsByDomainType( DataElementDomain domainType );
-
-    /**
-     * Returns all DataElements with the given domain type.
-     *
-     * @param domainType the domainType.
-     * @return all DataElements with the given domainType.
-     */
-    List<DataElement> getDataElementsByDomainType( DataElementDomain domainType, int first, int max );
-
-    /**
-     * Returns all DataElements with the given value types.
-     *
-     * @param valueTypes The value types.
-     * @return all DataElements with the given value types.
-     */
-    List<DataElement> getDataElementsByValueTypes( Collection<ValueType> valueTypes );
-
-    /**
-     * Returns all DataElements with the given value type.
-     *
-     * @param valueType The value type.
-     * @return all DataElements with the given value type.
-     */
-    List<DataElement> getDataElementsByValueType( ValueType valueType );
-
-    /**
      * Returns all DataElements with the given category combo.
      *
      * @param categoryCombo the DataElementCategoryCombo.
@@ -119,28 +55,20 @@ public interface DataElementStore
     List<DataElement> getDataElementByCategoryCombo( DataElementCategoryCombo categoryCombo );
 
     /**
-     * Returns all DataElements which are associated with one or more
-     * DataElementGroupSets.
-     *
-     * @return all DataElements which are associated with one or more
-     * DataElementGroupSets.
-     */
-    List<DataElement> getDataElementsWithGroupSets();
-
-    /**
-     * Defines the given data elements as zero is significant.
-     *
-     * @param dataElementIds identifiers of data elements where zero is significant.
-     */
-    void setZeroIsSignificantForDataElements( Collection<Integer> dataElementIds );
-
-    /**
      * Returns all DataElement which zeroIsSignificant property is true or false
      *
      * @param zeroIsSignificant is zeroIsSignificant property
      * @return a collection of all DataElement
      */
     List<DataElement> getDataElementsByZeroIsSignificant( boolean zeroIsSignificant );
+
+    /**
+     * Returns all DataElements of the given domain type.
+     *
+     * @param domainType the domain type.
+     * @return all DataElements of the given domain type.
+     */
+    List<DataElement> getDataElementsByDomainType( DataElementDomain domainType );
 
     /**
      * Returns all DataElements which are not member of any DataElementGroups.
@@ -170,15 +98,4 @@ public interface DataElementStore
      * @return all DataElements which have the given aggregation level assigned.
      */
     List<DataElement> getDataElementsByAggregationLevel( int aggregationLevel );
-
-    /**
-     * Returns a mapping of data element uid and associated category option combo
-     * uids.
-     *
-     * @param dataElementUids the uids of the data elements to include in the map.
-     * @return a ListMap.
-     */
-    ListMap<String, String> getDataElementCategoryOptionComboMap( Set<String> dataElementUids );
-
-    int getCountByDomainType( DataElementDomain domainType );
 }

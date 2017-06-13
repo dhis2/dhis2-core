@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.utils;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,8 @@ import org.hisp.dhis.system.util.CodecUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.http.MediaType;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -47,10 +49,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.apache.commons.lang3.StringUtils.trimToNull;
@@ -79,6 +78,7 @@ public class ContextUtils
 
     public static final String HEADER_USER_AGENT = "User-Agent";
     public static final String HEADER_CACHE_CONTROL = "Cache-Control";
+    public static final String HEADER_LOCATION = "Location";
     public static final String HEADER_EXPIRES = "Expires";
     public static final String HEADER_CONTENT_DISPOSITION = "Content-Disposition";
     public static final String HEADER_CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding";
@@ -94,6 +94,22 @@ public class ContextUtils
     public void configureResponse( HttpServletResponse response, String contentType, CacheStrategy cacheStrategy )
     {
         configureResponse( response, contentType, cacheStrategy, null, false );
+    }
+
+    public void configureAnalyticsResponse( HttpServletResponse response, String contentType, CacheStrategy cacheStrategy, String filename, boolean attachment, Date latestEndDate )
+    {
+        int cacheThreshold = (int) systemSettingManager.getSystemSetting( SettingKey.CACHE_ANALYTICS_DATA_YEAR_THRESHOLD );
+        Calendar threshold = Calendar.getInstance();
+        threshold.add( Calendar.YEAR, cacheThreshold * -1 );
+
+        if ( latestEndDate != null && cacheThreshold > 0 && threshold.getTime().before( latestEndDate ) )
+        {
+            configureResponse( response, contentType, CacheStrategy.NO_CACHE, filename, attachment );
+        }
+        else
+        {
+            configureResponse( response, contentType, cacheStrategy, filename, attachment );
+        }
     }
 
     public void configureResponse( HttpServletResponse response, String contentType, CacheStrategy cacheStrategy,
@@ -117,6 +133,10 @@ public class ContextUtils
         {
             cacheControl = CacheControl.maxAge( 15, TimeUnit.MINUTES );
         }
+        else if ( CacheStrategy.CACHE_30_MINUTES.equals( cacheStrategy ) )
+        {
+            cacheControl = CacheControl.maxAge( 30, TimeUnit.MINUTES );
+        }
         else if ( CacheStrategy.CACHE_1_HOUR.equals( cacheStrategy ) )
         {
             cacheControl = CacheControl.maxAge( 1, TimeUnit.HOURS );
@@ -133,7 +153,6 @@ public class ContextUtils
         {
             cacheControl = CacheControl.noCache();
         }
-
 
         if ( cacheStrategy != null && cacheStrategy != CacheStrategy.NO_CACHE )
         {
@@ -243,12 +262,30 @@ public class ContextUtils
 
     public static String getRootPath( HttpServletRequest request )
     {
-        StringBuilder builder = new StringBuilder( getContextPath( request ) );
-        builder.append( request.getServletPath() );
-
-        return builder.toString();
+        return getContextPath( request ) + request.getServletPath();
     }
 
+    /**
+     * Indicates whether the media type (content type) of the
+     * given HTTP request is compatible with the given media type.
+     * 
+     * @param request the HTTP response.
+     * @param mediaType the media type.
+     */
+    public static boolean isCompatibleWith( HttpServletResponse response, MediaType mediaType )
+    {                
+        try
+        {
+            String contentType = response.getContentType();
+            
+            return contentType != null && MediaType.parseMediaType( contentType ).isCompatibleWith( mediaType );
+        }
+        catch ( InvalidMediaTypeException ex )
+        {
+            return false;
+        }
+    }
+        
     /**
      * Returns a mapping of dimension identifiers and dimension option identifiers
      * based on the given set of dimension strings. Splits the strings using : as

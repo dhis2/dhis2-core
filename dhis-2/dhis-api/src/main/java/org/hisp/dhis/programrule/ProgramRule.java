@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
@@ -44,11 +43,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * @author markusbekken
+ * @author Markus Bekken
  */
 @JacksonXmlRootElement( localName = "programRule", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramRule
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     /**
      * The description of the program rule
@@ -80,12 +79,6 @@ public class ProgramRule
      * Null means that the rule is run last(together will all other null-rules)
      */
     private Integer priority;
-
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -185,36 +178,5 @@ public class ProgramRule
     public void setPriority( Integer priority )
     {
         this.priority = priority;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            ProgramRule programRule = (ProgramRule) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                description = programRule.getDescription();
-                priority = programRule.getPriority();
-                condition = programRule.getCondition();
-                program = programRule.getProgram();
-                programStage = programRule.getProgramStage();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                description = programRule.getDescription() == null ? description : programRule.getDescription();
-                priority = programRule.getPriority() == null ? priority : programRule.getPriority();
-                condition = programRule.getCondition() == null ? condition : programRule.getCondition();
-                program = programRule.getProgram() == null ? program : programRule.getProgram();
-                programStage = programRule.getProgramStage() == null ? programStage : programRule.getProgramStage();
-            }
-
-            programRuleActions.clear();
-            programRuleActions.addAll( programRule.getProgramRuleActions() );
-        }
     }
 }

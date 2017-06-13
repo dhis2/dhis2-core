@@ -28,19 +28,17 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -86,10 +84,13 @@ public class SectionStoreTest
     @Test
     public void testAddGet()
     {        
-        int idA = sectionStore.save( sectionA );
-        int idB = sectionStore.save( sectionB );
-        int idC = sectionStore.save( sectionC );
-        
+        sectionStore.save( sectionA );
+        int idA = sectionA.getId();
+        sectionStore.save( sectionB );
+        int idB = sectionB.getId();
+        sectionStore.save( sectionC );
+        int idC = sectionC.getId();
+
         assertEquals( sectionA, sectionStore.get( idA ) );
         assertEquals( sectionB, sectionStore.get( idB ) );
         assertEquals( sectionC, sectionStore.get( idC ) );
@@ -101,10 +102,13 @@ public class SectionStoreTest
     
     @Test
     public void testDelete()
-    {        
-        int idA = sectionStore.save( sectionA );
-        int idB = sectionStore.save( sectionB );
-        int idC = sectionStore.save( sectionC );
+    {
+        sectionStore.save( sectionA );
+        int idA = sectionA.getId();
+        sectionStore.save( sectionB );
+        int idB = sectionB.getId();
+        sectionStore.save( sectionC );
+        int idC = sectionC.getId();
 
         assertNotNull( sectionStore.get( idA ) );
         assertNotNull( sectionStore.get( idB ) );

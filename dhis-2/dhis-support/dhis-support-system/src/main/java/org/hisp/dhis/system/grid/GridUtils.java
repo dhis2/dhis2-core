@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.grid;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,16 +28,28 @@ package org.hisp.dhis.system.grid;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.csvreader.CsvWriter;
-import com.lowagie.text.Document;
-import com.lowagie.text.pdf.PdfPTable;
-import jxl.Workbook;
-import jxl.WorkbookSettings;
-import jxl.write.*;
-import jxl.write.Number;
-import net.sf.jasperreports.engine.*;
-import org.amplecode.staxwax.factory.XMLFactory;
-import org.amplecode.staxwax.writer.XMLWriter;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.system.util.PDFUtils.addTableToDocument;
+import static org.hisp.dhis.system.util.PDFUtils.closeDocument;
+import static org.hisp.dhis.system.util.PDFUtils.getEmptyCell;
+import static org.hisp.dhis.system.util.PDFUtils.getItalicCell;
+import static org.hisp.dhis.system.util.PDFUtils.getSubtitleCell;
+import static org.hisp.dhis.system.util.PDFUtils.getTextCell;
+import static org.hisp.dhis.system.util.PDFUtils.getTitleCell;
+import static org.hisp.dhis.system.util.PDFUtils.openDocument;
+import static org.hisp.dhis.system.util.PDFUtils.resetPaddings;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -53,6 +65,8 @@ import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
+import org.hisp.staxwax.factory.XMLFactory;
+import org.hisp.staxwax.writer.XMLWriter;
 import org.htmlparser.Node;
 import org.htmlparser.NodeFilter;
 import org.htmlparser.Parser;
@@ -64,15 +78,23 @@ import org.htmlparser.tags.TableRow;
 import org.htmlparser.tags.TableTag;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import com.csvreader.CsvWriter;
+import com.lowagie.text.Document;
+import com.lowagie.text.pdf.PdfPTable;
 
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.system.util.PDFUtils.*;
+import jxl.Workbook;
+import jxl.WorkbookSettings;
+import jxl.write.Label;
+import jxl.write.Number;
+import jxl.write.WritableCellFormat;
+import jxl.write.WritableFont;
+import jxl.write.WritableSheet;
+import jxl.write.WritableWorkbook;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
 
 /**
  * @author Lars Helge Overland
@@ -262,7 +284,7 @@ public class GridUtils
 
         WritableSheet sheet = workbook.createSheet( sheetName, sheetNo );
 
-        int rowNumber = 1;
+        int rowNumber = 0;
 
         int columnIndex = 0;
 
@@ -638,7 +660,7 @@ public class GridUtils
     // -------------------------------------------------------------------------
 
     /**
-     * Returns a string explaning when the grid was generated.
+     * Returns a string indicating when the grid was generated.
      */
     private static String getGeneratedString()
     {

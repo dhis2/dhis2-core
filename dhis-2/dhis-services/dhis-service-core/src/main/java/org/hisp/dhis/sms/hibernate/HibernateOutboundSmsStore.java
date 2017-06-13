@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.hibernate;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,18 +45,14 @@ public class HibernateOutboundSmsStore
     implements OutboundSmsStore
 {
     // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveOutboundSms( OutboundSms sms )
+    public void saveOutboundSms( OutboundSms sms )
     {
         checkDate( sms );
-        return save( sms );
+        save( sms );
     }
 
     private void checkDate( OutboundSms sms )

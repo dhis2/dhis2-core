@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.report;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,6 +61,8 @@ public class EventRow
     
     private boolean trackedEntityInstanceInactive;
     
+    private String uid;
+
     private String event;
     
     private String program;
@@ -87,10 +89,22 @@ public class EventRow
     
     private String attributeCategoryOptions;
 
+    private boolean deleted;
+
     public EventRow()
     {
     }
-    
+
+    public String getUid()
+    {
+        return uid;
+    }
+
+    public void setUid( String uid )
+    {
+        this.uid = uid;
+    }
+
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public String getTrackedEntityInstance()
@@ -307,7 +321,20 @@ public class EventRow
     public void setAttributeCategoryOptions( String attributeCategoryOptions )
     {
         this.attributeCategoryOptions = attributeCategoryOptions;
-    } 
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+
+    public boolean getDeleted()
+    {
+        return this.deleted;
+    }
+
+    public void setDeleted(boolean deleted)
+    {
+        this.deleted = deleted;
+    }
 
     @Override
     public boolean equals( Object o )

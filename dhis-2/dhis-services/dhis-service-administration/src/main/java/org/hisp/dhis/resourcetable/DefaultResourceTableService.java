@@ -1,7 +1,7 @@
 package org.hisp.dhis.resourcetable;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,18 +28,14 @@ package org.hisp.dhis.resourcetable;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import com.google.common.collect.Lists;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -47,23 +43,14 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.resourcetable.table.CategoryOptionComboNameResourceTable;
-import org.hisp.dhis.resourcetable.table.CategoryOptionComboResourceTable;
-import org.hisp.dhis.resourcetable.table.CategoryResourceTable;
-import org.hisp.dhis.resourcetable.table.DataApprovalMinLevelResourceTable;
-import org.hisp.dhis.resourcetable.table.DataElementGroupSetResourceTable;
-import org.hisp.dhis.resourcetable.table.DataElementResourceTable;
-import org.hisp.dhis.resourcetable.table.DataSetOrganisationUnitCategoryResourceTable;
-import org.hisp.dhis.resourcetable.table.DatePeriodResourceTable;
-import org.hisp.dhis.resourcetable.table.IndicatorGroupSetResourceTable;
-import org.hisp.dhis.resourcetable.table.OrganisationUnitGroupSetResourceTable;
-import org.hisp.dhis.resourcetable.table.OrganisationUnitStructureResourceTable;
-import org.hisp.dhis.resourcetable.table.PeriodResourceTable;
+import org.hisp.dhis.resourcetable.table.*;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewService;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -71,6 +58,8 @@ import com.google.common.collect.Lists;
 public class DefaultResourceTableService
     implements ResourceTableService
 {
+    private static final Log log = LogFactory.getLog( DefaultResourceTableService.class );
+    
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -258,7 +247,15 @@ public class DefaultResourceTableService
         {
             if ( !view.isQuery() )
             {
-                sqlViewService.createViewTable( view );
+                try
+                {
+                    sqlViewService.createViewTable( view );
+                }
+                catch ( IllegalQueryException ex )
+                {
+                    log.warn( String.format( "Ignoring SQL view which failed validation: %s, %s, message: %s", 
+                        view.getUid(), view.getName(), ex.getMessage() ) );
+                }
             }
         }
     }

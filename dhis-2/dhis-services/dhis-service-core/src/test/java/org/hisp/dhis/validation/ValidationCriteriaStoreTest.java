@@ -28,18 +28,14 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-
-import javax.annotation.Resource;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.junit.Test;
+
+import javax.annotation.Resource;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Chau Thu Tran
@@ -84,8 +80,9 @@ public class ValidationCriteriaStoreTest
         ValidationCriteria validationCriteria = createValidationCriteria( 'A', propertyA,
             ValidationCriteria.OPERATOR_EQUAL_TO, valueA );
 
-        int id = validationCriteriaStore.save( validationCriteria );
-        
+        validationCriteriaStore.save( validationCriteria );
+        int id = validationCriteria.getId();
+
         validationCriteria = validationCriteriaStore.get( id );
 
         assertEquals( validationCriteria.getName(), "ValidationCriteriaA" );
@@ -101,7 +98,8 @@ public class ValidationCriteriaStoreTest
         ValidationCriteria validationCriteria = createValidationCriteria( 'A', propertyA,
             ValidationCriteria.OPERATOR_EQUAL_TO, valueA );
 
-        int id = validationCriteriaStore.save( validationCriteria );
+        validationCriteriaStore.save( validationCriteria );
+        int id = validationCriteria.getId();
         validationCriteria = validationCriteriaStore.get( id );
         
         assertEquals( validationCriteria.getName(), "ValidationCriteriaA" );
@@ -134,8 +132,10 @@ public class ValidationCriteriaStoreTest
         ValidationCriteria validationCriteriaB = createValidationCriteria( 'B', propertyB,
             ValidationCriteria.OPERATOR_EQUAL_TO, valueB );
 
-        int idA = validationCriteriaStore.save( validationCriteriaA );
-        int idB = validationCriteriaStore.save( validationCriteriaB );
+        validationCriteriaStore.save( validationCriteriaA );
+        int idA = validationCriteriaA.getId();
+        validationCriteriaStore.save( validationCriteriaB );
+        int idB = validationCriteriaB.getId();
 
         assertNotNull( validationCriteriaStore.get( idA ) );
         assertNotNull( validationCriteriaStore.get( idB ) );
@@ -159,7 +159,8 @@ public class ValidationCriteriaStoreTest
         ValidationCriteria validationCriteriaB = createValidationCriteria( 'B', propertyB,
             ValidationCriteria.OPERATOR_EQUAL_TO, valueB );
 
-        int id = validationCriteriaStore.save( validationCriteriaA );
+        validationCriteriaStore.save( validationCriteriaA );
+        int id = validationCriteriaA.getId();
         validationCriteriaStore.save( validationCriteriaB );
 
         ValidationCriteria validationCriteria = validationCriteriaStore.getByName( "ValidationCriteriaA" );

@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity.action.notification;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@ package org.hisp.dhis.trackedentity.action.notification;
 import com.google.common.collect.Lists;
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -38,6 +39,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -105,6 +107,20 @@ public class ShowUpdateProgramNotificationAction
         return attributes;
     }
 
+    private List<TrackedEntityAttribute> phoneNumbers;
+
+    public List<TrackedEntityAttribute> getPhoneNumbers()
+    {
+        return phoneNumbers;
+    }
+
+    private List<TrackedEntityAttribute> emails;
+
+    public List<TrackedEntityAttribute> getEmails()
+    {
+        return emails;
+    }
+
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -126,6 +142,14 @@ public class ShowUpdateProgramNotificationAction
             attributes = Lists.newArrayList();
         }
 
+        phoneNumbers = getAttributeBasedOnValueType( attributes, ValueType.PHONE_NUMBER );
+        emails = getAttributeBasedOnValueType( attributes, ValueType.EMAIL );
+
         return SUCCESS;
+    }
+
+    private List<TrackedEntityAttribute> getAttributeBasedOnValueType( List<TrackedEntityAttribute> attributes, ValueType valueType )
+    {
+        return attributes.stream().filter( attr -> attr.getValueType().equals( valueType ) ).collect( Collectors.toList() );
     }
 }

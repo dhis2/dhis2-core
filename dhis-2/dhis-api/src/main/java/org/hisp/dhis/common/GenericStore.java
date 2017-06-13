@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,27 +48,24 @@ public interface GenericStore<T>
      * Saves the given object instance, with clear sharing set to true.
      *
      * @param object the object instance.
-     * @return the generated identifier.
      */
-    int save( T object );
+    void save( T object );
 
     /**
      * Saves the given object instance, with clear sharing set to true.
      *
      * @param object the object instance.
      * @param user   User
-     * @return the generated identifier.
      */
-    int save( T object, User user );
+    void save( T object, User user );
 
     /**
      * Saves the given object instance.
      *
      * @param object       the object instance.
      * @param clearSharing Should we clear all sharing related properties?
-     * @return the generated identifier.
      */
-    int save( T object, boolean clearSharing );
+    void save( T object, boolean clearSharing );
 
     /**
      * Saves the given object instance.
@@ -76,9 +73,8 @@ public interface GenericStore<T>
      * @param object       the object instance.
      * @param user         User
      * @param clearSharing Should we clear all sharing related properties?
-     * @return the generated identifier.
      */
-    int save( T object, User user, boolean clearSharing );
+    void save( T object, User user, boolean clearSharing );
 
     /**
      * Updates the given object instance.

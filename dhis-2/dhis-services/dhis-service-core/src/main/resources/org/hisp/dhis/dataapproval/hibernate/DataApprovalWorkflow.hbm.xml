@@ -9,7 +9,7 @@
   <class name="org.hisp.dhis.dataapproval.DataApprovalWorkflow" table="dataapprovalworkflow">
 
     <cache usage="read-write" />
-    
+
     <id name="id" column="workflowid">
       <generator class="native" />
     </id>
@@ -26,14 +26,14 @@
       <key column="workflowid" foreign-key="fk_dataapprovalworkflowlevels_workflowid" />
       <many-to-many class="org.hisp.dhis.dataapproval.DataApprovalLevel" column="dataapprovallevelid" foreign-key="fk_dataapprovalworkflowlevels_levelid" />
     </set>
-    
+
     <set name="dataSets" inverse="true">
       <key column="workflowid" />
       <one-to-many class="org.hisp.dhis.dataset.DataSet" />
     </set>
 
     <!-- Object Translation -->
-    <set name="translations" table="dataapprovalworkflowtranslations" cascade="delete-orphan">
+    <set name="translations" table="dataapprovalworkflowtranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="workflowid" foreign-key="fk_objecttranslation_workflowid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -44,12 +44,18 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="dataapprovalworkflowusergroupaccesses">
+    <set name="userGroupAccesses" table="dataapprovalworkflowusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="workflowid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    </class>
+    <set name="userAccesses" table="dataapprovalworkflowuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="workflowid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
+
+  </class>
 
 </hibernate-mapping>

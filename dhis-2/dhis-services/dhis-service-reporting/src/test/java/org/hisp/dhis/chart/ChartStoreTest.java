@@ -28,16 +28,6 @@ package org.hisp.dhis.chart;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.annotation.Resource;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.indicator.Indicator;
@@ -51,6 +41,12 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -160,9 +156,12 @@ public class ChartStoreTest
     @Test
     public void testSaveGet()
     {
-        int idA = chartStore.save( chartA );
-        int idB = chartStore.save( chartB );
-        int idC = chartStore.save( chartC );
+        chartStore.save( chartA );
+        int idA = chartA.getId();
+        chartStore.save( chartB );
+        int idB = chartB.getId();
+        chartStore.save( chartC );
+        int idC = chartC.getId();
 
         assertEquals( chartA, chartStore.get( idA ) );
         assertEquals( chartB, chartStore.get( idB ) );
@@ -177,9 +176,12 @@ public class ChartStoreTest
     @Test
     public void testDelete()
     {
-        int idA = chartStore.save( chartA );
-        int idB = chartStore.save( chartB );
-        int idC = chartStore.save( chartC );
+        chartStore.save( chartA );
+        int idA = chartA.getId();
+        chartStore.save( chartB );
+        int idB = chartB.getId();
+        chartStore.save( chartC );
+        int idC = chartC.getId();
 
         assertNotNull( chartStore.get( idA ) );
         assertNotNull( chartStore.get( idB ) );

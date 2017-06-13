@@ -1,7 +1,7 @@
 package org.hisp.dhis.minmax;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +28,20 @@ package org.hisp.dhis.minmax;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
+import java.io.Serializable;
+
 /**
  * @author Kristian Nordal
  */
+@JacksonXmlRootElement( localName = "minMaxDataElement", namespace = DxfNamespaces.DXF_2_0 )
 public class MinMaxDataElement
     implements Serializable
 {
@@ -129,7 +134,7 @@ public class MinMaxDataElement
     // -------------------------------------------------------------------------
     // Setters and getters
     // ------------------------------------------------------------------------- 
-    
+
     public int getId()
     {
         return id;
@@ -140,6 +145,8 @@ public class MinMaxDataElement
         this.id = id;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public OrganisationUnit getSource()
     {
         return source;
@@ -150,6 +157,8 @@ public class MinMaxDataElement
         this.source = source;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public DataElement getDataElement()
     {
         return dataElement;
@@ -160,6 +169,8 @@ public class MinMaxDataElement
         this.dataElement = dataElement;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public DataElementCategoryOptionCombo getOptionCombo()
     {
         return optionCombo;
@@ -169,7 +180,9 @@ public class MinMaxDataElement
     {
         this.optionCombo = optionCombo;
     }
-    
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getMin()
     {
         return min;
@@ -180,6 +193,8 @@ public class MinMaxDataElement
         this.min = min;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getMax()
     {
         return max;
@@ -190,6 +205,8 @@ public class MinMaxDataElement
         this.max = max;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isGenerated()
     {
         return generated;
@@ -198,5 +215,15 @@ public class MinMaxDataElement
     public void setGenerated( boolean generated )
     {
         this.generated = generated;
+    }
+
+    public void mergeWith( MinMaxDataElement other )
+    {
+       source = other.getSource() == null ? source : other.getSource();
+       dataElement = other.getDataElement() == null ? dataElement : other.getDataElement();
+       optionCombo = other.getOptionCombo() == null ? optionCombo : other.getOptionCombo();
+       min = other.getMin();
+       max = other.getMax();
+       generated = other.isGenerated();
     }
 }

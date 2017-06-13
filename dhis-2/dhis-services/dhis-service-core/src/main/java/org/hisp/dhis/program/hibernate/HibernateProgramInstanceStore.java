@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.hibernate;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,7 @@ public class HibernateProgramInstanceStore
     extends HibernateIdentifiableObjectStore<ProgramInstance>
     implements ProgramInstanceStore
 {
-    private final static Set<NotificationTrigger> SCHEDULED_PROGRAM_INSTANCE_TRIGGERS =
+    private static final Set<NotificationTrigger> SCHEDULED_PROGRAM_INSTANCE_TRIGGERS =
         Sets.intersection(
             NotificationTrigger.getAllApplicableToProgramInstance(),
             NotificationTrigger.getAllScheduledTriggers()
@@ -238,5 +238,11 @@ public class HibernateProgramInstanceStore
         }
 
         return null;
+    }
+
+    @Override
+    protected ProgramInstance postProcessObject( ProgramInstance programInstance )
+    {
+        return ( programInstance == null || programInstance.isDeleted() ) ? null : programInstance;
     }
 }

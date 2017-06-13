@@ -1,7 +1,7 @@
 package org.hisp.dhis.commons.action;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,6 @@ import java.util.List;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.paging.ActionPagingSupport;
-import org.hisp.dhis.system.filter.DataElementGroupWithoutGroupSetFilter;
-import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 
 /**
@@ -68,13 +66,6 @@ public class GetDataElementGroupsAction
         this.key = key;
     }
 
-    public boolean filterNoGroupSet;
-
-    public void setFilterNoGroupSet( boolean filterNoGroupSet )
-    {
-        this.filterNoGroupSet = filterNoGroupSet;
-    }
-
     private List<DataElementGroup> dataElementGroups;
 
     public List<DataElementGroup> getDataElementGroups()
@@ -91,11 +82,6 @@ public class GetDataElementGroupsAction
         throws Exception
     {
         dataElementGroups = new ArrayList<>( dataElementService.getAllDataElementGroups() );
-
-        if ( filterNoGroupSet )
-        {
-            FilterUtils.filter( dataElementGroups, new DataElementGroupWithoutGroupSetFilter() );
-        }
 
         if ( key != null )
         {

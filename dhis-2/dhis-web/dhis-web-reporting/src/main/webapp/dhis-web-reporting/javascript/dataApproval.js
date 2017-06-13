@@ -20,7 +20,7 @@ dhis2.appr.uiState = {};
  */
 $( document ).ready( function() 
 {
-	$.getJSON( "../api/dataSets.json?fields=id,displayName,periodType,workflow,categoryCombo[id,displayName]", function( json ) {
+	$.getJSON( "../api/dataSets.json?fields=id,displayName,periodType,workflow,categoryCombo[id,displayName]&paging=false", function( json ) {
 				
 		var dsHtml = "<option value=''>[ Select ]</option>";
 		

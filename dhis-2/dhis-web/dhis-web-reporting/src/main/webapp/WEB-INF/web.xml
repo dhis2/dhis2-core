@@ -33,7 +33,15 @@
     <async-supported>true</async-supported>
     <init-param>
       <param-name>excludeUriRegex</param-name>
-      <param-value>/api/dataValueSets|/api/dataValues|/api/dataValues/files|/api/fileResources|/api/analytics</param-value>
+      <param-value>/api/(\d{2}/)?dataValueSets|/api/(\d{2}/)?dataValues|/api/(\d{2}/)?fileResources</param-value>
+    </init-param>
+  </filter>
+  <filter>
+    <filter-name>httpNoCacheFilter</filter-name>
+    <filter-class>org.hisp.dhis.servlet.filter.HttpNoCacheFilter</filter-class>
+    <init-param>
+      <param-name>urlPattern</param-name>
+      <param-value>index\.action|index\.html|/$</param-value>
     </init-param>
   </filter>
   <filter>
@@ -84,6 +92,10 @@
   <filter-mapping>
     <filter-name>shallowEtagHeaderFilter</filter-name>
     <url-pattern>/api/*</url-pattern>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>httpNoCacheFilter</filter-name>
+    <url-pattern>/*</url-pattern>
   </filter-mapping>
   <filter-mapping>
     <filter-name>springSecurityFilterChain</filter-name>

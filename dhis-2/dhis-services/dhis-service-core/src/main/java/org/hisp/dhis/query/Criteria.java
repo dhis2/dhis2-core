@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,9 @@ import org.hisp.dhis.schema.Schema;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -40,6 +42,8 @@ import java.util.List;
 public abstract class Criteria
 {
     protected List<Criterion> criterions = new ArrayList<>();
+
+    protected Set<String> aliases = new HashSet<>();
 
     protected final Schema schema;
 
@@ -53,18 +57,31 @@ public abstract class Criteria
         return criterions;
     }
 
+    public Set<String> getAliases()
+    {
+        return aliases;
+    }
+
+    public Criteria add( Criterion criterion )
+    {
+        if ( !Restriction.class.isInstance( criterion ) )
+        {
+            this.criterions.add( criterion ); // if conjunction/disjunction just add it and move forward
+            return this;
+        }
+
+        Restriction restriction = (Restriction) criterion;
+
+        this.criterions.add( restriction );
+
+        return this;
+    }
+
     public Criteria add( Criterion... criterions )
     {
         for ( Criterion criterion : criterions )
         {
-            if ( !Restriction.class.isInstance( criterion ) )
-            {
-                this.criterions.add( criterion ); // if conjunction/disjunction just add it and move forward
-                continue;
-            }
-
-            Restriction restriction = (Restriction) criterion;
-            this.criterions.add( restriction );
+            add( criterion );
         }
 
         return this;
@@ -72,7 +89,7 @@ public abstract class Criteria
 
     public Criteria add( Collection<Criterion> criterions )
     {
-        this.criterions.addAll( criterions );
+        criterions.forEach( this::add );
         return this;
     }
 }

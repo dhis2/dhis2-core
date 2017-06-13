@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd">
 
   <!-- Program -->
 
@@ -152,8 +152,6 @@
     scope="prototype">
     <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
     <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="programStageDataElementService"
-      ref="org.hisp.dhis.program.ProgramStageDataElementService" />
   </bean>
 
   <bean
@@ -161,11 +159,7 @@
     class="org.hisp.dhis.trackedentity.action.programstage.UpdateProgramStageSectionAction"
     scope="prototype">
     <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="programStageSectionService"
-      ref="org.hisp.dhis.program.ProgramStageSectionService" />
-    <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
-    <property name="programStageDataElementService"
-      ref="org.hisp.dhis.program.ProgramStageDataElementService" />
+    <property name="programStageSectionService" ref="org.hisp.dhis.program.ProgramStageSectionService" />
   </bean>
 
   <bean
@@ -194,9 +188,6 @@
     id="org.hisp.dhis.trackedentity.action.programstage.ValidateProgramStageSectionAction"
     class="org.hisp.dhis.trackedentity.action.programstage.ValidateProgramStageSectionAction"
     scope="prototype">
-    <property name="programStageSectionService"
-      ref="org.hisp.dhis.program.ProgramStageSectionService" />
-    <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
   </bean>
 
   <bean
@@ -437,119 +428,11 @@
   <!-- Program Validation -->
 
   <bean
-    id="org.hisp.dhis.trackedentity.action.validation.AddProgramValidationAction"
-    class="org.hisp.dhis.trackedentity.action.validation.AddProgramValidationAction"
-    scope="prototype">
-    <property name="programValidationService">
-      <ref bean="org.hisp.dhis.program.ProgramValidationService" />
-    </property>
-    <property name="programService">
-      <ref bean="org.hisp.dhis.program.ProgramService" />
-    </property>
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.validation.GetProgramValidationAction"
-    class="org.hisp.dhis.trackedentity.action.validation.GetProgramValidationAction"
-    scope="prototype">
-    <property name="programValidationService">
-      <ref bean="org.hisp.dhis.program.ProgramValidationService" />
-    </property>
-    <property name="programExpressionService">
-      <ref bean="org.hisp.dhis.program.ProgramExpressionService" />
-    </property>
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.validation.GetProgramValidationListAction"
-    class="org.hisp.dhis.trackedentity.action.validation.GetProgramValidationListAction"
-    scope="prototype">
-    <property name="programValidationService">
-      <ref bean="org.hisp.dhis.program.ProgramValidationService" />
-    </property>
-    <property name="programService">
-      <ref bean="org.hisp.dhis.program.ProgramService" />
-    </property>
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.validation.RemoveProgramValidationAction"
-    class="org.hisp.dhis.trackedentity.action.validation.RemoveProgramValidationAction"
-    scope="prototype">
-    <property name="programValidationService">
-      <ref bean="org.hisp.dhis.program.ProgramValidationService" />
-    </property>
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.validation.UpdateProgramValidationAction"
-    class="org.hisp.dhis.trackedentity.action.validation.UpdateProgramValidationAction"
-    scope="prototype">
-    <property name="programValidationService">
-      <ref bean="org.hisp.dhis.program.ProgramValidationService" />
-    </property>
-  </bean>
-
-  <bean
     id="org.hisp.dhis.trackedentity.action.validation.GetProgramExpressionDescriptionAction"
     class="org.hisp.dhis.trackedentity.action.validation.GetProgramExpressionDescriptionAction"
     scope="prototype">
     <property name="programExpressionService"
       ref="org.hisp.dhis.program.ProgramExpressionService" />
-  </bean>
-
-  <!-- Program Indicator -->
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.programindicator.AddProgramIndicatorAction"
-    class="org.hisp.dhis.trackedentity.action.programindicator.AddProgramIndicatorAction"
-    scope="prototype">
-    <property name="programService" ref="org.hisp.dhis.program.ProgramService" />
-    <property name="programIndicatorService">
-      <ref bean="org.hisp.dhis.program.ProgramIndicatorService" />
-    </property>
-  </bean>
-
-
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.programindicator.RemoveProgramIndicatorAction"
-    class="org.hisp.dhis.trackedentity.action.programindicator.RemoveProgramIndicatorAction"
-    scope="prototype">
-    <property name="programIndicatorService">
-      <ref bean="org.hisp.dhis.program.ProgramIndicatorService" />
-    </property>
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.programindicator.GetProgramIndicatorAction"
-    class="org.hisp.dhis.trackedentity.action.programindicator.GetProgramIndicatorAction"
-    scope="prototype">
-    <property name="programIndicatorService"
-      ref="org.hisp.dhis.program.ProgramIndicatorService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.programindicator.GetProgramIndicatorListAction"
-    class="org.hisp.dhis.trackedentity.action.programindicator.GetProgramIndicatorListAction"
-    scope="prototype"/>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.programindicator.UpdateProgramIndicatorAction"
-    class="org.hisp.dhis.trackedentity.action.programindicator.UpdateProgramIndicatorAction"
-    scope="prototype">
-    <property name="programIndicatorService">
-      <ref bean="org.hisp.dhis.program.ProgramIndicatorService" />
-    </property>
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.programindicator.ValidateProgramIndicatorAction"
-    class="org.hisp.dhis.trackedentity.action.programindicator.ValidateProgramIndicatorAction"
-    scope="prototype">
-    <property name="programIndicatorService">
-      <ref bean="org.hisp.dhis.program.ProgramIndicatorService" />
-    </property>
   </bean>
 
   <!-- Program notifications -->
@@ -581,32 +464,5 @@
     <property name="manager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
     <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
   </bean>
-
-  <!-- Program Rule -->
-  
-  <bean
-    id="org.hisp.dhis.trackedentity.action.programrule.ValidateProgramRuleAction"
-    class="org.hisp.dhis.trackedentity.action.programrule.ValidateProgramRuleAction"
-    scope="prototype">
-  </bean>
-   
-   <bean
-    id="org.hisp.dhis.trackedentity.action.programrule.GetProgramRuleAction"
-    class="org.hisp.dhis.trackedentity.action.programrule.GetProgramRuleAction"
-    scope="prototype">
-  </bean>
-     
-  <bean
-    id="org.hisp.dhis.trackedentity.action.programrule.GetProgramRuleListAction"
-    class="org.hisp.dhis.trackedentity.action.programrule.GetProgramRuleListAction"
-    scope="prototype">
-  </bean>
-  
-  <bean
-    id="org.hisp.dhis.trackedentity.action.programrule.ShowAddProgramRuleFormAction"
-    class="org.hisp.dhis.trackedentity.action.programrule.ShowAddProgramRuleFormAction"
-    scope="prototype">
-  </bean>
-  
 
 </beans>

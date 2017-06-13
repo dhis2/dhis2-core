@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,14 +44,29 @@ import java.util.Set;
  */
 public class PreheatParams
 {
+    /**
+     * User to use for database queries.
+     */
     private User user;
 
+    /**
+     * Mode to use for preheating.
+     */
     private PreheatMode preheatMode = PreheatMode.REFERENCE;
 
+    /**
+     * Identifiers to match on.
+     */
     private PreheatIdentifier preheatIdentifier = PreheatIdentifier.UID;
 
+    /**
+     * If preheat mode is ALL, only do full preheating on these classes.
+     */
     private Set<Class<? extends IdentifiableObject>> classes = new HashSet<>();
 
+    /**
+     * Objects to scan (if preheat mode is REFERENCE).
+     */
     private Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects = new HashMap<>();
 
     public PreheatParams()

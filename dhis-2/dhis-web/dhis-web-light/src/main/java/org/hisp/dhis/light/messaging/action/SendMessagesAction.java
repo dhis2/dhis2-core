@@ -1,7 +1,7 @@
 package org.hisp.dhis.light.messaging.action;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,7 @@ package org.hisp.dhis.light.messaging.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashSet;
-import java.util.Set;
-
+import com.opensymphony.xwork2.Action;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.struts2.ServletActionContext;
@@ -40,7 +38,8 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.opensymphony.xwork2.Action;
+import java.util.HashSet;
+import java.util.Set;
 
 public class SendMessagesAction
     implements Action
@@ -135,7 +134,7 @@ public class SendMessagesAction
 //        users.add( user );
 
 //        messageService.sendMessage( subject, text, metaData, users );
-        messageService.sendMessage( subject, text, metaData, recipient );
+        messageService.sendPrivateMessage( subject, text, metaData, recipient );
 
         log.debug( "SendMessagesAction.execute() exit: " + SUCCESS);
                 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.option.hibernate;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@ import java.util.List;
 import org.hibernate.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.option.Option;
-import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.option.OptionStore;
 
 /**
@@ -70,61 +69,6 @@ public class HibernateOptionStore
             query.setMaxResults( max );
         }
 
-        return query.list();
-    }
-
-    @Override
-    public Option getOptionByName( OptionSet optionSet, String name )
-    {
-        String hql = 
-            "select option from OptionSet as optionset " +
-            "join optionset.options as option where optionset = :optionSet and option.name = :name";
-
-        Query query = getQuery( hql );
-        query.setEntity( "optionSet", optionSet );
-        query.setString( "name", name );
-
-        return (Option) query.uniqueResult();
-    }
-
-    @Override
-    public Option getOptionByCode( OptionSet optionSet, String code )
-    {
-        String hql = 
-            "select option from OptionSet as optionset " +
-            "join optionset.options as option where optionset = :optionSet and option.code = :code";
-
-        Query query = getQuery( hql );
-        query.setEntity( "optionSet", optionSet );
-        query.setString( "code", code );
-
-        return (Option) query.uniqueResult();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<Option> getOptions( OptionSet optionSet, String option, Integer min, Integer max )
-    {
-        String hql = 
-            "select option from OptionSet as optionset " +
-            "join optionset.options as option where optionset = :optionSet ";
-
-        if ( option != null )
-        {
-            hql += "and lower(option.name) like ('%" + option.toLowerCase() + "%') ";
-        }
-
-        hql += " order by index(option)";
-
-        Query query = getQuery( hql );
-        query.setEntity( "optionSet", optionSet );
-
-        if ( min != null && max != null )
-        {
-            query.setFirstResult( min );
-            query.setMaxResults( max );
-        }
-        
         return query.list();
     }
 }

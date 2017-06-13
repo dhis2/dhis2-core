@@ -1,7 +1,7 @@
 package org.hisp.dhis.query.operators;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@ import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
-import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.query.planner.QueryPath;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -46,21 +46,28 @@ public class LikeOperator extends Operator
 
     public LikeOperator( Object arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode )
     {
-        super( Typed.from( String.class ), arg );
+        super( "like", Typed.from( String.class ), arg );
+        this.caseSensitive = caseSensitive;
+        this.matchMode = getMatchMode( matchMode );
+    }
+
+    public LikeOperator( String name, Object arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode )
+    {
+        super( name, Typed.from( String.class ), arg );
         this.caseSensitive = caseSensitive;
         this.matchMode = getMatchMode( matchMode );
     }
 
     @Override
-    public Criterion getHibernateCriterion( Property property )
+    public Criterion getHibernateCriterion( QueryPath queryPath )
     {
         if ( caseSensitive )
         {
-            return Restrictions.like( property.getFieldName(), String.valueOf( args.get( 0 ) ), matchMode );
+            return Restrictions.like( queryPath.getPath(), String.valueOf( args.get( 0 ) ).replace( "%", "\\%" ), matchMode );
         }
         else
         {
-            return Restrictions.ilike( property.getFieldName(), String.valueOf( args.get( 0 ) ), matchMode );
+            return Restrictions.ilike( queryPath.getPath(), String.valueOf( args.get( 0 ) ).replace( "%", "\\%" ), matchMode );
         }
     }
 

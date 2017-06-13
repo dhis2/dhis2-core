@@ -26,6 +26,14 @@
     <property name="sortOrder" column="sort_order" />
 
     <property name="allowFutureDate" column="allowFutureDate" />
+    
+    <property name="renderOptionsAsRadio" column="renderoptionsasradio" />
+
+    <set name="groups" table="programtrackedentityattributegroupmembers" >
+      <cache usage="read-write" />
+      <key column="programtrackedentityattributeid" foreign-key="fk_programtrackedentityattributegroupmembers_attributeid" />
+      <many-to-many class="org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup"  column="programtrackedentityattributegroupid"   foreign-key="fk_programtrackedentityattributegroupmembers_groupid" />
+    </set>
 
   </class>
 

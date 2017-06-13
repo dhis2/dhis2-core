@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,9 +38,9 @@ import com.google.common.collect.ImmutableSet;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.program.ProgramDataElement;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 
 import java.util.Map;
 import java.util.Set;
@@ -53,13 +53,13 @@ public class DataDimensionItem
 {
     public static final Set<Class<? extends IdentifiableObject>> DATA_DIMENSION_CLASSES = ImmutableSet.<Class<? extends IdentifiableObject>>builder().
         add( Indicator.class ).add( DataElement.class ).add( DataElementOperand.class ).add( ReportingRate.class ).
-        add( ProgramIndicator.class ).add( ProgramDataElement.class ).add( ProgramTrackedEntityAttribute.class ).build();
+        add( ProgramIndicator.class ).add( ProgramDataElementDimensionItem.class ).add( ProgramTrackedEntityAttributeDimensionItem.class ).build();
 
     public static final Map<DataDimensionItemType, Class<? extends NameableObject>> DATA_DIMENSION_TYPE_CLASS_MAP = ImmutableMap.<DataDimensionItemType, Class<? extends NameableObject>>builder().
         put( DataDimensionItemType.INDICATOR, Indicator.class ).put( DataDimensionItemType.DATA_ELEMENT, DataElement.class ).
         put( DataDimensionItemType.DATA_ELEMENT_OPERAND, DataElementOperand.class ).put( DataDimensionItemType.REPORTING_RATE, ReportingRate.class ).
-        put( DataDimensionItemType.PROGRAM_INDICATOR, ProgramIndicator.class ).put( DataDimensionItemType.PROGRAM_DATA_ELEMENT, ProgramDataElement.class ).
-        put( DataDimensionItemType.PROGRAM_ATTRIBUTE, ProgramTrackedEntityAttribute.class ).build();
+        put( DataDimensionItemType.PROGRAM_INDICATOR, ProgramIndicator.class ).put( DataDimensionItemType.PROGRAM_DATA_ELEMENT, ProgramDataElementDimensionItem.class ).
+        put( DataDimensionItemType.PROGRAM_ATTRIBUTE, ProgramTrackedEntityAttributeDimensionItem.class ).build();
 
     private int id;
 
@@ -77,9 +77,9 @@ public class DataDimensionItem
 
     private ProgramIndicator programIndicator;
 
-    private ProgramDataElement programDataElement;
+    private ProgramDataElementDimensionItem programDataElement;
 
-    private ProgramTrackedEntityAttribute programAttribute;
+    private ProgramTrackedEntityAttributeDimensionItem programAttribute;
 
     // -------------------------------------------------------------------------
     // Constructor
@@ -113,13 +113,13 @@ public class DataDimensionItem
         {
             dimension.setProgramIndicator( (ProgramIndicator) object );
         }
-        else if ( ProgramDataElement.class.isAssignableFrom( object.getClass() ) )
+        else if ( ProgramDataElementDimensionItem.class.isAssignableFrom( object.getClass() ) )
         {
-            dimension.setProgramDataElement( (ProgramDataElement) object );
+            dimension.setProgramDataElement( (ProgramDataElementDimensionItem) object );
         }
-        else if ( ProgramTrackedEntityAttribute.class.isAssignableFrom( object.getClass() ) )
+        else if ( ProgramTrackedEntityAttributeDimensionItem.class.isAssignableFrom( object.getClass() ) )
         {
-            dimension.setProgramAttribute( (ProgramTrackedEntityAttribute) object );
+            dimension.setProgramAttribute( (ProgramTrackedEntityAttributeDimensionItem) object );
         }
         else
         {
@@ -336,12 +336,12 @@ public class DataDimensionItem
     @JsonProperty
     @JsonSerialize( as = BaseNameableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramDataElement getProgramDataElement()
+    public ProgramDataElementDimensionItem getProgramDataElement()
     {
         return programDataElement;
     }
 
-    public void setProgramDataElement( ProgramDataElement programDataElement )
+    public void setProgramDataElement( ProgramDataElementDimensionItem programDataElement )
     {
         this.programDataElement = programDataElement;
     }
@@ -349,12 +349,12 @@ public class DataDimensionItem
     @JsonProperty
     @JsonSerialize( as = BaseNameableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramTrackedEntityAttribute getProgramAttribute()
+    public ProgramTrackedEntityAttributeDimensionItem getProgramAttribute()
     {
         return programAttribute;
     }
 
-    public void setProgramAttribute( ProgramTrackedEntityAttribute programAttribute )
+    public void setProgramAttribute( ProgramTrackedEntityAttributeDimensionItem programAttribute )
     {
         this.programAttribute = programAttribute;
     }

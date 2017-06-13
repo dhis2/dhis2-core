@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,7 @@ public class BaseDimensionalItemObject
     /**
      * The legend sets for this dimension.
      */
-    protected List<LegendSet> legendSets = new ArrayList<>(  );
+    protected List<LegendSet> legendSets = new ArrayList<>();
 
     /**
      * The aggregation type for this dimension.
@@ -75,7 +75,7 @@ public class BaseDimensionalItemObject
     }
 
     // -------------------------------------------------------------------------
-    // Logic
+    // DimensionalItemObject
     // -------------------------------------------------------------------------
 
     @Override
@@ -90,17 +90,23 @@ public class BaseDimensionalItemObject
         return getAggregationType() != null;
     }
 
-    // -------------------------------------------------------------------------
-    // Get and set methods
-    // -------------------------------------------------------------------------
-
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDimensionItem()
     {
-        return uid;
+        return getUid();
     }
+
+    @Override
+    public String getDimensionItem( IdScheme idScheme )
+    {
+        return getPropertyValue( idScheme );
+    }
+
+    // -------------------------------------------------------------------------
+    // Get and set methods
+    // -------------------------------------------------------------------------
 
     @Override
     @JsonProperty
@@ -129,7 +135,7 @@ public class BaseDimensionalItemObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public LegendSet getLegendSet()
     {
-        return legendSets.isEmpty() ? null : legendSets.get(0);
+        return legendSets.isEmpty() ? null : legendSets.get( 0 );
     }
 
     public void setLegendSets( List<LegendSet> legendSets )
@@ -148,33 +154,5 @@ public class BaseDimensionalItemObject
     public void setAggregationType( AggregationType aggregationType )
     {
         this.aggregationType = aggregationType;
-    }
-
-    // -------------------------------------------------------------------------
-    // Merge
-    // -------------------------------------------------------------------------
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DimensionalItemObject object = (DimensionalItemObject) other;
-
-            if ( mergeMode.isReplace() )
-            {
-//                legendSets = object.getLegendSets();
-                aggregationType = object.getAggregationType();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-//                legendSets = object.getLegendSets() == null ? legendSets : object.getLegendSets();
-                aggregationType = object.getAggregationType() == null ? aggregationType : object.getAggregationType();
-            }
-
-            legendSets.clear();
-        }
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@ import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dataelement.DataElementCategoryDimension;
+import org.hisp.dhis.dataelement.CategoryDimension;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.schema.Schema;
@@ -88,6 +88,11 @@ public class AnalyticalObjectObjectBundleHook
 
         for ( DataDimensionItem dataDimensionItem : analyticalObject.getDataDimensionItems() )
         {
+            if ( dataDimensionItem == null )
+            {
+                continue;
+            }
+
             dataDimensionItem.setDataElement( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataDimensionItem.getDataElement() ) );
             dataDimensionItem.setIndicator( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataDimensionItem.getIndicator() ) );
             dataDimensionItem.setProgramIndicator( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataDimensionItem.getProgramIndicator() ) );
@@ -102,7 +107,8 @@ public class AnalyticalObjectObjectBundleHook
 
             if ( dataDimensionItem.getReportingRate() != null )
             {
-                preheatService.connectReferences( dataDimensionItem.getReportingRate(), bundle.getPreheat(), bundle.getPreheatIdentifier() );
+                dataDimensionItem.getReportingRate().setDataSet( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
+                    dataDimensionItem.getReportingRate().getDataSet() ) );
             }
 
             preheatService.connectReferences( dataDimensionItem, bundle.getPreheat(), bundle.getPreheatIdentifier() );
@@ -114,8 +120,13 @@ public class AnalyticalObjectObjectBundleHook
     {
         if ( !schema.havePersistedProperty( "categoryDimensions" ) ) return;
 
-        for ( DataElementCategoryDimension categoryDimension : analyticalObject.getCategoryDimensions() )
+        for ( CategoryDimension categoryDimension : analyticalObject.getCategoryDimensions() )
         {
+            if ( categoryDimension == null )
+            {
+                continue;
+            }
+
             categoryDimension.setDimension( bundle.getPreheat().get( bundle.getPreheatIdentifier(), categoryDimension.getDimension() ) );
             List<DataElementCategoryOption> categoryOptions = new ArrayList<>( categoryDimension.getItems() );
             categoryDimension.getItems().clear();
@@ -137,6 +148,11 @@ public class AnalyticalObjectObjectBundleHook
 
         for ( TrackedEntityDataElementDimension dataElementDimension : analyticalObject.getDataElementDimensions() )
         {
+            if ( dataElementDimension == null )
+            {
+                continue;
+            }
+
             dataElementDimension.setDataElement( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataElementDimension.getDataElement() ) );
             dataElementDimension.setLegendSet( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataElementDimension.getLegendSet() ) );
 
@@ -151,6 +167,11 @@ public class AnalyticalObjectObjectBundleHook
 
         for ( TrackedEntityAttributeDimension attributeDimension : analyticalObject.getAttributeDimensions() )
         {
+            if ( attributeDimension == null )
+            {
+                continue;
+            }
+
             attributeDimension.setAttribute( bundle.getPreheat().get( bundle.getPreheatIdentifier(), attributeDimension.getAttribute() ) );
             attributeDimension.setLegendSet( bundle.getPreheat().get( bundle.getPreheatIdentifier(), attributeDimension.getLegendSet() ) );
 
@@ -166,6 +187,11 @@ public class AnalyticalObjectObjectBundleHook
 
         for ( TrackedEntityProgramIndicatorDimension programIndicatorDimension : analyticalObject.getProgramIndicatorDimensions() )
         {
+            if ( programIndicatorDimension == null )
+            {
+                continue;
+            }
+
             programIndicatorDimension.setProgramIndicator( bundle.getPreheat().get( bundle.getPreheatIdentifier(), programIndicatorDimension.getProgramIndicator() ) );
             programIndicatorDimension.setLegendSet( bundle.getPreheat().get( bundle.getPreheatIdentifier(), programIndicatorDimension.getLegendSet() ) );
 

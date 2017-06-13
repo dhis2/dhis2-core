@@ -1,6 +1,6 @@
 package org.hisp.dhis.fileresource;
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,7 @@ package org.hisp.dhis.fileresource;
  */
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 
 import java.util.Date;
 
@@ -37,9 +36,8 @@ import java.util.Date;
  * @author Stian Sandvold
  */
 public class ExternalFileResource
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
-
     /**
      * FileResource containing the file we are exposing
      */
@@ -83,36 +81,5 @@ public class ExternalFileResource
     public void setFileResource( FileResource fileResource )
     {
         this.fileResource = fileResource;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-
-            ExternalFileResource externalFileResource = (ExternalFileResource) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                fileResource = externalFileResource.getFileResource();
-                accessToken = externalFileResource.getAccessToken();
-                expires = externalFileResource.getExpires();
-            }
-
-            if ( mergeMode.isMerge() )
-            {
-                fileResource = (externalFileResource.getFileResource() != null ?
-                    externalFileResource.getFileResource() :
-                    null);
-                accessToken = (externalFileResource.getAccessToken() != null ?
-                    externalFileResource.getAccessToken() :
-                    null);
-                expires = (externalFileResource.getExpires() != null ? externalFileResource.getExpires() : null);
-            }
-        }
     }
 }

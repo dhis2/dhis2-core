@@ -1,7 +1,7 @@
 package org.hisp.dhis.mock;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserInfo;
 
 /**
  * @author Lars Helge Overland
@@ -71,6 +72,8 @@ public class MockCurrentUserService
         credentials.setAutoFields();
         
         User user = new User();
+        user.setFirstName( "Current" );
+        user.setSurname( "User" );
         user.setOrganisationUnits( organisationUnits );
         user.setDataViewOrganisationUnits( dataViewOrganisationUnits );
         user.setUserCredentials( credentials );
@@ -93,6 +96,13 @@ public class MockCurrentUserService
     }
 
     @Override
+    public UserInfo getCurrentUserInfo()
+    {
+        return new UserInfo( currentUser.getId(), 
+            currentUser.getUsername(), currentUser.getUserCredentials().getAllAuthorities() );
+    }
+
+    @Override
     public Set<OrganisationUnit> getCurrentUserOrganisationUnits()
     {
         return currentUser != null ? currentUser.getOrganisationUnits() : new HashSet<>();
@@ -111,7 +121,7 @@ public class MockCurrentUserService
     }
 
     @Override
-    public boolean currenUserIsAuthorized( String auth )
+    public boolean currentUserIsAuthorized( String auth )
     {
         return true;
     }

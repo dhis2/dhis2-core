@@ -18,7 +18,9 @@
         foreign-key="fk_completedatasetregistration_attributeoptioncomboid" />
     </composite-id>
 
+    <!-- TODO Consider renaming to 'created' -->
     <property name="date" column="date" type="timestamp" />
+
     <property name="storedBy" column="storedby" />
 
   </class>

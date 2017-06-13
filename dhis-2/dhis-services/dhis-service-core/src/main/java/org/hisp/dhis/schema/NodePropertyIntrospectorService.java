@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ import com.google.common.primitives.Primitives;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.node.annotation.NodeAnnotation;
 import org.hisp.dhis.node.annotation.NodeCollection;
@@ -94,15 +95,9 @@ public class NodePropertyIntrospectorService extends AbstractPropertyIntrospecto
                             Class<?> itemKlass = (Class<?>) parameterizedType.getActualTypeArguments()[0];
                             property.setItemKlass( itemKlass );
 
-                            if ( IdentifiableObject.class.isAssignableFrom( itemKlass ) )
-                            {
-                                property.setIdentifiableObject( true );
-
-                                if ( NameableObject.class.isAssignableFrom( itemKlass ) )
-                                {
-                                    property.setNameableObject( true );
-                                }
-                            }
+                            property.setIdentifiableObject( IdentifiableObject.class.isAssignableFrom( itemKlass ) );
+                            property.setNameableObject( NameableObject.class.isAssignableFrom( itemKlass ) );
+                            property.setEmbeddedObject( EmbeddedObject.class.isAssignableFrom( klass ) );
                         }
                     }
 

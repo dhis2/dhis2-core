@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,8 @@ package org.hisp.dhis.query;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.query.planner.QueryPlan;
+import org.hisp.dhis.query.planner.QueryPlanner;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -45,14 +47,24 @@ public class DefaultQueryService
 {
     private static final Log log = LogFactory.getLog( DefaultQueryService.class );
 
-    @Autowired
-    private QueryParser queryParser;
+    private final QueryParser queryParser;
+
+    private final QueryPlanner queryPlanner;
+
+    private final CriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine;
+
+    private final InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine;
 
     @Autowired
-    private CriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine;
-
-    @Autowired
-    private InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine;
+    public DefaultQueryService( QueryParser queryParser, QueryPlanner queryPlanner,
+        CriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine,
+        InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine )
+    {
+        this.queryParser = queryParser;
+        this.queryPlanner = queryPlanner;
+        this.criteriaQueryEngine = criteriaQueryEngine;
+        this.inMemoryQueryEngine = inMemoryQueryEngine;
+    }
 
     @Override
     public List<? extends IdentifiableObject> query( Query query )
@@ -106,23 +118,30 @@ public class DefaultQueryService
     {
         List<? extends IdentifiableObject> objects = query.getObjects();
 
-        if ( objects == null )
+        if ( objects != null )
         {
-            objects = criteriaQueryEngine.query( query );
+            return inMemoryQueryEngine.query( query.setObjects( objects ) );
+        }
 
-            if ( query.isEmpty() )
-            {
-                return objects;
-            }
+        QueryPlan queryPlan = queryPlanner.planQuery( query );
+
+        Query pQuery = queryPlan.getPersistedQuery();
+        Query npQuery = queryPlan.getNonPersistedQuery();
+
+        objects = criteriaQueryEngine.query( pQuery );
+
+        if ( npQuery.isEmpty() )
+        {
+            return objects;
         }
 
         if ( log.isDebugEnabled() )
         {
-            log.debug( "Doing in-memory for " + query.getCriterions().size() + " criterions and " + query.getOrders().size() + " orders." );
+            log.debug( "Doing in-memory for " + npQuery.getCriterions().size() + " criterions and " + npQuery.getOrders().size() + " orders." );
         }
 
-        query.setObjects( objects );
+        npQuery.setObjects( objects );
 
-        return inMemoryQueryEngine.query( query );
+        return inMemoryQueryEngine.query( npQuery );
     }
 }

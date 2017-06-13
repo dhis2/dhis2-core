@@ -1,7 +1,7 @@
 package org.hisp.dhis;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,18 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
@@ -64,6 +68,8 @@ import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -73,19 +79,21 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.program.message.DeliveryChannel;
+import org.hisp.dhis.program.UniqunessType;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
-import org.hisp.dhis.program.notification.NotificationRecipient;
 import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
@@ -98,7 +106,6 @@ import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
@@ -109,6 +116,7 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.validation.ValidationCriteria;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
+import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.joda.time.DateTime;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
@@ -135,7 +143,6 @@ import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -622,11 +629,28 @@ public abstract class DhisConvenienceTest
         for ( CategoryOptionGroup categoryOptionGroup : categoryOptionGroups )
         {
             categoryOptionGroupSet.addCategoryOptionGroup( categoryOptionGroup );
-
-            categoryOptionGroup.setGroupSet( categoryOptionGroupSet );
         }
 
         return categoryOptionGroupSet;
+    }
+
+    /**
+     * @param uniqueCharacter A unique character to identify the object.
+     */
+    public static Attribute createAttribute( char uniqueCharacter )
+    {
+        Attribute attribute = new Attribute( "Attribute" + uniqueCharacter, ValueType.TEXT );
+        attribute.setAutoFields();
+
+        return attribute;
+    }
+
+    public static AttributeValue createAttributeValue( Attribute attribute, String value )
+    {
+        AttributeValue attributeValue = new AttributeValue( value, attribute );
+        attributeValue.setAutoFields();
+
+        return attributeValue;
     }
 
     /**
@@ -732,10 +756,10 @@ public abstract class DhisConvenienceTest
     {
         DataSet dataSet = createDataSet( uniqueCharacter, null );
         dataSet.setPeriodType( new MonthlyPeriodType() );
-        
+
         return dataSet;
     }
-    
+
     /**
      * @param uniqueCharacter A unique character to identify the object.
      * @param periodType      The period type.
@@ -783,7 +807,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param html the form HTML content.
+     * @param html            the form HTML content.
      */
     public static DataEntryForm createDataEntryForm( char uniqueCharacter, String html )
     {
@@ -803,7 +827,6 @@ public abstract class DhisConvenienceTest
         unit.setShortName( "OrganisationUnitShort" + uniqueCharacter );
         unit.setCode( "OrganisationUnitCode" + uniqueCharacter );
         unit.setOpeningDate( date );
-        unit.setClosedDate( date );
         unit.setComment( "Comment" + uniqueCharacter );
 
         return unit;
@@ -831,12 +854,11 @@ public abstract class DhisConvenienceTest
         OrganisationUnit unit = new OrganisationUnit();
         unit.setAutoFields();
 
-        unit.setUid( CodeGenerator.generateCode() );
+        unit.setUid( CodeGenerator.generateUid() );
         unit.setName( name );
         unit.setShortName( name );
         unit.setCode( name );
         unit.setOpeningDate( date );
-        unit.setClosedDate( date );
         unit.setComment( "Comment " + name );
 
         return unit;
@@ -890,7 +912,6 @@ public abstract class DhisConvenienceTest
     /**
      * @param type      The PeriodType.
      * @param startDate The start date.
-     * @param endDate   The end date.
      */
     public static Period createPeriod( PeriodType type, Date startDate )
     {
@@ -1008,7 +1029,7 @@ public abstract class DhisConvenienceTest
      * @param lastupdated          The last updated date.
      */
     public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
-        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo, 
+        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo,
         String value, String comment, String storedBy, Date created, Date lastupdated )
     {
         DataValue dataValue = new DataValue();
@@ -1035,6 +1056,9 @@ public abstract class DhisConvenienceTest
     public static ValidationRule createValidationRule( String uniqueCharacter, Operator operator, Expression leftSide,
         Expression rightSide, PeriodType periodType )
     {
+        Assert.notNull( leftSide, "Left side expression must be specified" );
+        Assert.notNull( rightSide, "Rigth side expression must be specified" );
+
         ValidationRule validationRule = new ValidationRule();
         validationRule.setAutoFields();
 
@@ -1082,14 +1106,12 @@ public abstract class DhisConvenienceTest
      * @param dataElementsInExpression A collection of the data elements
      *                                 entering into the expression.
      */
-    public static Expression createExpression( char uniqueCharacter, String expressionString,
-        Set<DataElement> dataElementsInExpression, Set<DataElementCategoryOptionCombo> optionCombosInExpression )
+    public static Expression createExpression2( char uniqueCharacter, String expressionString )
     {
         Expression expression = new Expression();
 
         expression.setExpression( expressionString );
         expression.setDescription( "Description" + uniqueCharacter );
-        expression.setDataElementsInExpression( dataElementsInExpression );
 
         return expression;
     }
@@ -1097,31 +1119,35 @@ public abstract class DhisConvenienceTest
     /**
      * Creates a Predictor
      *
-     * @param uniqueCharacter A unique character to identify the object.
-     * @param expr The right side expression.
-     * @param skipTest The skiptest expression
-     * @param periodType The period-type.
+     * @param output                the data element where the predictor stores its predictions
+     * @param combo                 the category option combo (or null) under which the predictors are stored
+     * @param uniqueCharacter       A unique character to identify the object.
+     * @param generator             The right side expression.
+     * @param skipTest              The skiptest expression
+     * @param periodType            The period-type.
      * @param organisationUnitLevel The unit level of organisations to be
-     *        evaluated by this rule.
+     *                              evaluated by this rule.
      * @param sequentialSampleCount How many sequential past periods to sample.
-     * @param annualSampleCount How many years of past periods to sample.
-     * @param sequentialSkipCount How many periods in the current year to skip
+     * @param annualSampleCount     How many years of past periods to sample.
+     * @param sequentialSkipCount   How many periods in the current year to skip
      */
-    public static Predictor createPredictor( DataElement writes, String uniqueCharacter, Expression expr,
-        Expression skipTest, PeriodType periodType, OrganisationUnitLevel organisationUnitLevel, int sequentialSampleCount,
+    public static Predictor createPredictor( DataElement output, DataElementCategoryOptionCombo combo,
+        String uniqueCharacter, Expression generator, Expression skipTest, PeriodType periodType,
+        OrganisationUnitLevel organisationUnitLevel, int sequentialSampleCount,
         int sequentialSkipCount, int annualSampleCount )
     {
         Predictor predictor = new Predictor();
-        Set<OrganisationUnitLevel> orglevels = Sets.newHashSet( organisationUnitLevel );
+        Set<OrganisationUnitLevel> orgUnitlevels = Sets.newHashSet( organisationUnitLevel );
         predictor.setAutoFields();
 
-        predictor.setOutput( writes );
+        predictor.setOutput( output );
+        predictor.setOutputCombo( combo );
         predictor.setName( "Predictor" + uniqueCharacter );
         predictor.setDescription( "Description" + uniqueCharacter );
-        predictor.setGenerator( expr );
+        predictor.setGenerator( generator );
         predictor.setSampleSkipTest( skipTest );
         predictor.setPeriodType( periodType );
-        predictor.setOrganisationUnitLevels( orglevels );
+        predictor.setOrganisationUnitLevels( orgUnitlevels );
         predictor.setSequentialSampleCount( sequentialSampleCount );
         predictor.setAnnualSampleCount( annualSampleCount );
         predictor.setSequentialSkipCount( sequentialSkipCount );
@@ -1260,7 +1286,8 @@ public abstract class DhisConvenienceTest
         program.setAutoFields();
 
         program.setName( "Program" + uniqueCharacter );
-        program.setShortName( "ProgramShort" + uniqueCharacter  );
+        program.setCode( "ProgramCode" + uniqueCharacter );
+        program.setShortName( "ProgramShort" + uniqueCharacter );
         program.setDescription( "Description" + uniqueCharacter );
         program.setEnrollmentDateLabel( "DateOfEnrollmentDescription" );
         program.setIncidentDateLabel( "DateOfIncidentDescription" );
@@ -1281,7 +1308,7 @@ public abstract class DhisConvenienceTest
             {
                 ProgramTrackedEntityAttribute ptea = new ProgramTrackedEntityAttribute( program, attribute, false, false );
                 ptea.setAutoFields();
-                
+
                 program.getProgramAttributes().add( ptea );
             }
         }
@@ -1299,7 +1326,7 @@ public abstract class DhisConvenienceTest
         {
             program.setCategoryCombo( categoryService.getDefaultDataElementCategoryCombo() );
         }
-        
+
         return program;
     }
 
@@ -1307,7 +1334,7 @@ public abstract class DhisConvenienceTest
     {
         ProgramRule programRule = new ProgramRule();
         programRule.setAutoFields();
-        
+
         programRule.setName( "ProgramRule" + uniqueCharacter );
         programRule.setProgram( parentProgram );
         programRule.setCondition( "true" );
@@ -1319,7 +1346,7 @@ public abstract class DhisConvenienceTest
     {
         ProgramRuleAction programRuleAction = new ProgramRuleAction();
         programRuleAction.setAutoFields();
-        
+
         programRuleAction.setName( "ProgramRuleAction" + uniqueCharacter );
         programRuleAction.setProgramRuleActionType( ProgramRuleActionType.HIDEFIELD );
 
@@ -1338,7 +1365,7 @@ public abstract class DhisConvenienceTest
     {
         ProgramRuleVariable programRuleVariable = new ProgramRuleVariable();
         programRuleVariable.setAutoFields();
-        
+
         programRuleVariable.setName( "ProgramRuleVariable" + uniqueCharacter );
         programRuleVariable.setProgram( parentProgram );
         programRuleVariable.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
@@ -1350,7 +1377,7 @@ public abstract class DhisConvenienceTest
     {
         ProgramStage stage = createProgramStage( uniqueCharacter, 0, false );
         stage.setProgram( program );
-        
+
         return stage;
     }
 
@@ -1379,29 +1406,28 @@ public abstract class DhisConvenienceTest
         if ( dataElements != null )
         {
             int sortOrder = 1;
-            
+
             for ( DataElement dataElement : dataElements )
             {
-                ProgramStageDataElement psd = createProgramStageDataElement( programStage, dataElement, false, sortOrder );
+                ProgramStageDataElement psd = createProgramStageDataElement( programStage, dataElement, sortOrder );
                 psd.setAutoFields();
-                
+
                 programStage.getProgramStageDataElements().add( psd );
             }
         }
 
         return programStage;
     }
-    
-    public static ProgramStageDataElement createProgramStageDataElement( ProgramStage programStage, DataElement dataElement, 
-        boolean compulsory, Integer sortOrder )
+
+    public static ProgramStageDataElement createProgramStageDataElement( ProgramStage programStage, DataElement dataElement, Integer sortOrder )
     {
-        ProgramStageDataElement psde = new ProgramStageDataElement( programStage, dataElement, compulsory, sortOrder );
+        ProgramStageDataElement psde = new ProgramStageDataElement( programStage, dataElement, false, sortOrder );
         psde.setAutoFields();
-        
+
         return psde;
     }
-    
-    public static ProgramMessage createProgramMessage( String text, String subject, 
+
+    public static ProgramMessage createProgramMessage( String text, String subject,
         ProgramMessageRecipients recipients, ProgramMessageStatus status, Set<DeliveryChannel> channels )
     {
         ProgramMessage message = new ProgramMessage();
@@ -1410,7 +1436,7 @@ public abstract class DhisConvenienceTest
         message.setRecipients( recipients );
         message.setMessageStatus( status );
         message.setDeliveryChannels( channels );
-        
+
         return message;
     }
 
@@ -1428,14 +1454,14 @@ public abstract class DhisConvenienceTest
 
         return indicator;
     }
-    
+
     public static ProgramStageSection createProgramStageSection( char uniqueCharacter, Integer sortOrder )
     {
         ProgramStageSection section = new ProgramStageSection();
-        section.setAutoFields();        
+        section.setAutoFields();
         section.setName( "ProgramStageSection" + uniqueCharacter );
         section.setSortOrder( sortOrder );
-        
+
         return section;
     }
 
@@ -1501,8 +1527,20 @@ public abstract class DhisConvenienceTest
         attribute.setAutoFields();
 
         attribute.setName( "Attribute" + uniqueChar );
+        attribute.setCode( "AttributeCode" + uniqueChar );
         attribute.setDescription( "Attribute" + uniqueChar );
         attribute.setValueType( ValueType.TEXT );
+        attribute.setAggregationType( AggregationType.NONE );
+
+        return attribute;
+    }
+
+    public static ProgramTrackedEntityAttribute createProgramTrackedEntityAttribute( char uniqueChar )
+    {
+        ProgramTrackedEntityAttribute attribute = new ProgramTrackedEntityAttribute();
+        attribute.setAutoFields();
+
+        attribute.setName( "Attribute" + uniqueChar );
 
         return attribute;
     }
@@ -1517,24 +1555,36 @@ public abstract class DhisConvenienceTest
         attribute.setAutoFields();
 
         attribute.setName( "Attribute" + uniqueChar );
+        attribute.setCode( "AttributeCode" + uniqueChar );
         attribute.setDescription( "Attribute" + uniqueChar );
         attribute.setValueType( valueType );
+        attribute.setAggregationType( AggregationType.NONE );
 
         return attribute;
     }
 
-    /**
-     * @param uniqueChar A unique character to identify the object.
-     * @return TrackedEntityAttributeGroup
-     */
-    public static TrackedEntityAttributeGroup createTrackedEntityAttributeGroup( char uniqueChar, List<TrackedEntityAttribute> attributes )
+    public static ProgramTrackedEntityAttributeGroup createProgramTrackedEntityAttributeGroup( char uniqueChar, Set<ProgramTrackedEntityAttribute> attributes )
     {
-        TrackedEntityAttributeGroup attributeGroup = new TrackedEntityAttributeGroup();
+        ProgramTrackedEntityAttributeGroup attributeGroup = new ProgramTrackedEntityAttributeGroup();
         attributeGroup.setAutoFields();
 
-        attributeGroup.setName( "TrackedEntityAttributeGroup" + uniqueChar );
-        attributeGroup.setDescription( "TrackedEntityAttributeGroup" + uniqueChar );
-        attributeGroup.setAttributes( attributes );
+        attributeGroup.setName( "ProgramTrackedEntityAttributeGroup" + uniqueChar );
+        attributeGroup.setCode( "ProgramTrackedEntityAttributeGroupCode" + uniqueChar );
+        attributeGroup.setDescription( "ProgramTrackedEntityAttributeGroup" + uniqueChar );
+        attributes.forEach( attributeGroup::addAttribute );
+        attributeGroup.setUniqunessType( UniqunessType.NONE );
+
+        return attributeGroup;
+    }
+
+    public static ProgramTrackedEntityAttributeGroup createProgramTrackedEntityAttributeGroup( char uniqueChar )
+    {
+        ProgramTrackedEntityAttributeGroup attributeGroup = new ProgramTrackedEntityAttributeGroup();
+        attributeGroup.setAutoFields();
+
+        attributeGroup.setName( "ProgramTrackedEntityAttributeGroup" + uniqueChar );
+        attributeGroup.setDescription( "ProgramTrackedEntityAttributeGroup" + uniqueChar );
+        attributeGroup.setUniqunessType( UniqunessType.NONE );
 
         return attributeGroup;
     }
@@ -1617,13 +1667,48 @@ public abstract class DhisConvenienceTest
             "Subject",
             "Message",
             trigger,
-            NotificationRecipient.TRACKED_ENTITY_INSTANCE,
+            ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE,
             Sets.newHashSet(),
             days,
-            null
+            null, null
         );
     }
 
+    protected static ValidationNotificationTemplate createValidationNotificationTemplate( String name )
+    {
+        ValidationNotificationTemplate template = new ValidationNotificationTemplate();
+        template.setAutoFields();
+        
+        template.setName( name );
+        template.setSubjectTemplate( "Subject" );
+        template.setMessageTemplate( "Message" );
+        template.setNotifyUsersInHierarchyOnly( false );
+
+        return template;
+    }
+
+    protected static OptionSet createOptionSet( char uniqueCharacter )
+    {
+        OptionSet optionSet = new OptionSet();
+        optionSet.setAutoFields();
+        
+        optionSet.setName( "OptionSet" + uniqueCharacter );
+        optionSet.setCode( "OptionSetCode" + uniqueCharacter );
+        
+        return optionSet;
+    }
+    
+    protected static Option createOption( char uniqueCharacter )
+    {
+        Option option = new Option();
+        option.setAutoFields();
+        
+        option.setName( "Option" + uniqueCharacter );
+        option.setCode( "OptionCode" + uniqueCharacter );
+        
+        return option;
+    }
+    
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
@@ -1676,7 +1761,7 @@ public abstract class DhisConvenienceTest
                 for ( String aChildren : children )
                 {
                     boolean success = deleteDir( new File( dir, aChildren ) );
-    
+
                     if ( !success )
                     {
                         return false;
@@ -1784,21 +1869,21 @@ public abstract class DhisConvenienceTest
     {
         Assert.notNull( userService, "UserService must be injected in test" );
 
-        UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
-        userAuthorityGroup.setName( "Superuser" );
+        Set<String> authorities = new HashSet<>();
 
         if ( allAuth )
         {
-            userAuthorityGroup.getAuthorities().add( "ALL" );
+            authorities.add( UserAuthorityGroup.AUTHORITY_ALL );
         }
 
         if ( auths != null )
         {
-            for ( String auth : auths )
-            {
-                userAuthorityGroup.getAuthorities().add( auth );
-            }
+            authorities.addAll( Lists.newArrayList( auths ) );
         }
+
+        UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
+        userAuthorityGroup.setName( "Superuser" );
+        userAuthorityGroup.getAuthorities().addAll( authorities );
 
         userService.addUserAuthorityGroup( userAuthorityGroup );
 
@@ -1819,23 +1904,22 @@ public abstract class DhisConvenienceTest
         user.getUserCredentials().setUserInfo( user );
         userService.addUserCredentials( user.getUserCredentials() );
 
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add( new SimpleGrantedAuthority( "ALL" ) );
+        Set<GrantedAuthority> grantedAuths = authorities.stream().map( a -> new SimpleGrantedAuthority( a ) ).collect( Collectors.toSet() );
 
         UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-            user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), authorities );
+            user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuths );
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", authorities );
+        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuths );
         SecurityContextHolder.getContext().setAuthentication( authentication );
 
         return user;
     }
-    
+
     protected void saveAndInjectUserSecurityContext( User user )
     {
         userService.addUser( user );
         userService.addUserCredentials( user.getUserCredentials() );
-        
+
         List<GrantedAuthority> grantedAuthorities = user.getUserCredentials().getAllAuthorities()
             .stream().map( SimpleGrantedAuthority::new ).collect( Collectors.toList() );
 
@@ -1844,6 +1928,43 @@ public abstract class DhisConvenienceTest
 
         Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
         SecurityContextHolder.getContext().setAuthentication( authentication );
+    }
+
+    protected User createUser( String username, String... authorities )
+    {
+        Assert.notNull( userService, "UserService must be injected in test" );
+
+        String password = "district";
+
+        UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
+        userAuthorityGroup.setCode( username );
+        userAuthorityGroup.setName( username );
+        userAuthorityGroup.setDescription( username );
+        userAuthorityGroup.setAuthorities( Sets.newHashSet( authorities ) );
+
+        userService.addUserAuthorityGroup( userAuthorityGroup );
+
+        User user = new User();
+        user.setCode( username );
+        user.setFirstName( username );
+        user.setSurname( username );
+
+        userService.addUser( user );
+
+        UserCredentials userCredentials = new UserCredentials();
+        userCredentials.setCode( username );
+        userCredentials.setUser( user );
+        userCredentials.setUserInfo( user );
+        userCredentials.setUsername( username );
+        userCredentials.getUserAuthorityGroups().add( userAuthorityGroup );
+
+        userService.encodeAndSetPassword( userCredentials, password );
+        userService.addUserCredentials( userCredentials );
+
+        user.setUserCredentials( userCredentials );
+        userService.updateUser( user );
+
+        return user;
     }
 
     protected User createAdminUser( String... authorities )
@@ -1864,7 +1985,7 @@ public abstract class DhisConvenienceTest
 
         User user = new User();
         user.setUid( "M5zQapPyTZI" );
-        user.setCode( "admin" );
+        user.setCode( username );
         user.setFirstName( username );
         user.setSurname( username );
 
@@ -1917,6 +2038,23 @@ public abstract class DhisConvenienceTest
         sw.flush();
 
         return sw.toString();
+    }
+
+    protected ProgramDataElementDimensionItem createProgramDataElement( char name )
+    {
+        Program pr = new Program();
+
+        pr.setUid( "P123456789" + name );
+
+        pr.setCode( "PCode" + name );
+
+        DataElement de = new DataElement( "Name" + name );
+
+        de.setUid( "D123456789" + name );
+
+        de.setCode( "DCode" + name );
+
+        return new ProgramDataElementDimensionItem( pr, de );
     }
 
 }

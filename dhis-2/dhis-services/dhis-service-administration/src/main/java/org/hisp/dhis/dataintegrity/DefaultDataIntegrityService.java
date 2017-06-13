@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataintegrity;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -513,7 +513,7 @@ public class DefaultDataIntegrityService
     {
         Collection<OrganisationUnitGroup> groups = organisationUnitGroupService.getAllOrganisationUnitGroups();
         
-        return groups.stream().filter( g -> g == null || g.getGroupSet() == null ).collect( Collectors.toList() );
+        return groups.stream().filter( g -> g == null || g.getGroupSets().isEmpty() ).collect( Collectors.toList() );
     }
 
     // -------------------------------------------------------------------------

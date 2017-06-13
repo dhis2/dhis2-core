@@ -1,7 +1,7 @@
 package org.hisp.dhis.mapping;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -113,12 +113,18 @@ public class DefaultMappingService
     @Override
     public int addMap( Map map )
     {
-        return mapStore.save( map );
+        map.getMapViews().forEach( mapView -> mapView.setAutoFields() );
+        
+        mapStore.save( map );
+
+        return map.getId();
     }
 
     @Override
     public void updateMap( Map map )
     {
+        map.getMapViews().forEach( mapView -> mapView.setAutoFields() );
+        
         mapStore.update( map );
     }
 
@@ -152,12 +158,6 @@ public class DefaultMappingService
         return mapStore.getAll();
     }
 
-    @Override
-    public List<Map> getMapsBetweenLikeName( String name, int first, int max )
-    {
-        return mapStore.getAllLikeName( name, first, max );
-    }
-
     // -------------------------------------------------------------------------
     // MapView
     // -------------------------------------------------------------------------
@@ -165,7 +165,8 @@ public class DefaultMappingService
     @Override
     public int addMapView( MapView mapView )
     {
-        return mapViewStore.save( mapView );
+        mapViewStore.save( mapView );
+        return mapView.getId();
     }
 
     @Override
@@ -233,12 +234,6 @@ public class DefaultMappingService
     }
 
     @Override
-    public List<MapView> getMapViewsBetweenByName( String name, int first, int max )
-    {
-        return mapViewStore.getAllLikeName( name, first, max );
-    }
-
-    @Override
     public int countMapViewMaps( MapView mapView )
     {
         return mapStore.countMapViewMaps( mapView );
@@ -251,7 +246,8 @@ public class DefaultMappingService
     @Override
     public int addExternalMapLayer( ExternalMapLayer externalMapLayer )
     {
-        return externalMapLayerStore.save( externalMapLayer );
+        externalMapLayerStore.save( externalMapLayer );
+        return externalMapLayer.getId();
     }
 
     @Override

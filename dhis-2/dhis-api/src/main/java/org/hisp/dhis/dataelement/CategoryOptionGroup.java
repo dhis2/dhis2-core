@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,10 +38,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.common.MetadataObject;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -51,11 +48,11 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "categoryOptionGroup", namespace = DxfNamespaces.DXF_2_0 )
 public class CategoryOptionGroup
-    extends BaseDimensionalItemObject
+    extends BaseDimensionalItemObject implements MetadataObject
 {
     private Set<DataElementCategoryOption> members = new HashSet<>();
 
-    private CategoryOptionGroupSet groupSet;
+    private Set<CategoryOptionGroupSet> groupSets = new HashSet<>();
 
     private DataDimensionType dataDimensionType;
 
@@ -103,18 +100,18 @@ public class CategoryOptionGroup
         this.members = members;
     }
 
-    @JsonProperty( "categoryOptionGroupSet" )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( localName = "categoryOptionGroupSet", namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.REFERENCE, required = Property.Value.FALSE )
-    public CategoryOptionGroupSet getGroupSet()
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "groupSets", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "groupSet", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<CategoryOptionGroupSet> getGroupSets()
     {
-        return groupSet;
+        return groupSets;
     }
 
-    public void setGroupSet( CategoryOptionGroupSet groupSet )
+    public void setGroupSets( Set<CategoryOptionGroupSet> groupSets )
     {
-        this.groupSet = groupSet;
+        this.groupSets = groupSets;
     }
 
     @JsonProperty
@@ -143,34 +140,5 @@ public class CategoryOptionGroup
     {
         members.remove( categoryOption );
         categoryOption.getGroups().remove( this );
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            CategoryOptionGroup categoryOptionGroup = (CategoryOptionGroup) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                groupSet = categoryOptionGroup.getGroupSet();
-                dataDimensionType = categoryOptionGroup.getDataDimensionType();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                groupSet = categoryOptionGroup.getGroupSet() == null ? groupSet : categoryOptionGroup.getGroupSet();
-                dataDimensionType = categoryOptionGroup.getDataDimensionType() == null ? dataDimensionType : categoryOptionGroup.getDataDimensionType();
-            }
-
-            members.clear();
-
-            for ( DataElementCategoryOption categoryOption : categoryOptionGroup.getMembers() )
-            {
-                addCategoryOption( categoryOption );
-            }
-        }
     }
 }

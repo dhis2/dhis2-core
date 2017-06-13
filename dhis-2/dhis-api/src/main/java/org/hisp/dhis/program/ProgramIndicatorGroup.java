@@ -2,7 +2,7 @@ package org.hisp.dhis.program;
 
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
 import java.util.HashSet;
@@ -48,9 +47,9 @@ import java.util.Set;
  * @author Viet Nguyen <viet@dhis2.org>
  */
 
-@JacksonXmlRootElement( localName = "programIndicatorGroup", namespace = DxfNamespaces.DXF_2_0)
+@JacksonXmlRootElement( localName = "programIndicatorGroup", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramIndicatorGroup
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     private Set<ProgramIndicator> members = new HashSet<>();
 
@@ -140,34 +139,4 @@ public class ProgramIndicatorGroup
     {
         this.members = members;
     }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            ProgramIndicatorGroup indicatorGroup = ( ProgramIndicatorGroup ) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                this.name = indicatorGroup.getName();
-                this.description = indicatorGroup.getDescription();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                this.name = indicatorGroup.getName() == null ? this.name : indicatorGroup.getName();
-                this.description = indicatorGroup.getDescription() == null ? this.description : indicatorGroup.getDescription();
-            }
-
-            removeAllProgramIndicators();
-
-            for ( ProgramIndicator indicator : indicatorGroup.getMembers() )
-            {
-                addProgramIndicator( indicator );
-            }
-        }
-    }
 }
-

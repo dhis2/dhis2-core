@@ -1,7 +1,7 @@
 package org.hisp.dhis.minmax;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,13 @@ package org.hisp.dhis.minmax;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.List;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -49,7 +49,7 @@ public class DefaultMinMaxDataElementService
     // -------------------------------------------------------------------------
 
     private MinMaxDataElementStore minMaxDataElementStore;
-    
+
     public void setMinMaxDataElementStore( MinMaxDataElementStore minMaxDataElementStore )
     {
         this.minMaxDataElementStore = minMaxDataElementStore;
@@ -62,7 +62,9 @@ public class DefaultMinMaxDataElementService
     @Override
     public int addMinMaxDataElement( MinMaxDataElement minMaxDataElement )
     {
-        return minMaxDataElementStore.save( minMaxDataElement );
+        minMaxDataElementStore.save( minMaxDataElement );
+
+        return minMaxDataElement.getId();
     }
 
     @Override
@@ -88,19 +90,19 @@ public class DefaultMinMaxDataElementService
     {
         return minMaxDataElementStore.get( source, dataElement, optionCombo );
     }
-    
+
     @Override
     public List<MinMaxDataElement> getMinMaxDataElements( OrganisationUnit source, DataElement dataElement )
     {
         return minMaxDataElementStore.get( source, dataElement );
-    }   
+    }
 
     @Override
     public List<MinMaxDataElement> getMinMaxDataElements( OrganisationUnit source, Collection<DataElement> dataElements )
     {
         return minMaxDataElementStore.get( source, dataElements );
     }
-    
+
     @Override
     public List<MinMaxDataElement> getAllMinMaxDataElements()
     {
@@ -108,26 +110,40 @@ public class DefaultMinMaxDataElementService
     }
 
     @Override
+    public List<MinMaxDataElement> getMinMaxDataElements( MinMaxDataElementQueryParams query )
+    {
+        return minMaxDataElementStore.query( query );
+    }
+
+    @Override
+    public int countMinMaxDataElements( MinMaxDataElementQueryParams query )
+    {
+        return minMaxDataElementStore.countMinMaxDataElements( query );
+    }
+
+    @Override
     public void removeMinMaxDataElements( OrganisationUnit organisationUnit )
     {
         minMaxDataElementStore.delete( organisationUnit );
     }
-    
+
     @Override
     public void removeMinMaxDataElements( DataElement dataElement )
     {
         minMaxDataElementStore.delete( dataElement );
     }
-    
+
     @Override
     public void removeMinMaxDataElements( DataElementCategoryOptionCombo optionCombo )
     {
         minMaxDataElementStore.delete( optionCombo );
     }
-    
+
     @Override
     public void removeMinMaxDataElements( Collection<DataElement> dataElements, Collection<OrganisationUnit> organisationUnits )
     {
         minMaxDataElementStore.delete( dataElements, organisationUnits );
     }
 }
+
+

@@ -30,8 +30,6 @@ package org.hisp.dhis.dataelement;
 
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -42,51 +40,6 @@ import static org.junit.Assert.*;
  */
 public class OperandTest
 {
-    @Test
-    public void testGetRelevantAggregationLevel()
-    {
-        DataElementOperand operand = new DataElementOperand( "a", "a", "Operand", null, new ArrayList<>(), 0 );
-
-        assertNull( operand.getRelevantAggregationLevel( 1 ) );
-
-        operand = new DataElementOperand( "a", "a", "Operand", null, Arrays.asList( 3, 5 ), 0 );
-
-        assertEquals( new Integer( 3 ), operand.getRelevantAggregationLevel( 1 ) );
-        assertEquals( new Integer( 3 ), operand.getRelevantAggregationLevel( 2 ) );
-        assertEquals( new Integer( 3 ), operand.getRelevantAggregationLevel( 3 ) );
-        assertEquals( new Integer( 5 ), operand.getRelevantAggregationLevel( 4 ) );
-        assertEquals( new Integer( 5 ), operand.getRelevantAggregationLevel( 5 ) );
-        assertNull( operand.getRelevantAggregationLevel( 6 ) );
-    }
-
-    @Test
-    public void testAggregationLevelIsValid()
-    {
-        DataElementOperand operand = new DataElementOperand( "a", "a", "Operand", null, new ArrayList<>(), 0 );
-
-        assertTrue( operand.aggregationLevelIsValid( 1, 3 ) );
-        assertTrue( operand.aggregationLevelIsValid( 4, 3 ) );
-
-        operand = new DataElementOperand( "a", "a", "Operand", null, Arrays.asList( 3, 5 ), 0 );
-
-        assertTrue( operand.aggregationLevelIsValid( 2, 2 ) );
-        assertTrue( operand.aggregationLevelIsValid( 2, 3 ) );
-        assertFalse( operand.aggregationLevelIsValid( 2, 4 ) );
-
-        assertTrue( operand.aggregationLevelIsValid( 3, 3 ) );
-        assertFalse( operand.aggregationLevelIsValid( 3, 4 ) );
-
-        assertTrue( operand.aggregationLevelIsValid( 4, 4 ) );
-        assertTrue( operand.aggregationLevelIsValid( 4, 5 ) );
-        assertFalse( operand.aggregationLevelIsValid( 4, 6 ) );
-
-        assertTrue( operand.aggregationLevelIsValid( 5, 5 ) );
-        assertFalse( operand.aggregationLevelIsValid( 5, 6 ) );
-
-        assertTrue( operand.aggregationLevelIsValid( 6, 6 ) );
-        assertTrue( operand.aggregationLevelIsValid( 6, 7 ) );
-    }
-
     @Test
     public void testHashCode()
     {

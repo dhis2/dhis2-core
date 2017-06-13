@@ -1,7 +1,7 @@
 package org.hisp.dhis.security;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,18 +30,25 @@ package org.hisp.dhis.security;
 
 import java.io.IOException;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.intercept.LoginInterceptor;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.ObjectUtils;
+import org.joda.time.DateTimeConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.util.Assert;
 
 /**
  * Since ActionContext is not available at this point, we set a mark in the
@@ -53,30 +60,55 @@ import org.springframework.security.web.authentication.SavedRequestAwareAuthenti
 public class DefaultAuthenticationSuccessHandler
     extends SavedRequestAwareAuthenticationSuccessHandler
 {
-    /**
-     * Default is 1 hour of inactivity, this is mostly for when we are using the mobile
-     * client, since entering data can take time, and data will be lost if the session
-     * times out while entering data.
-     */
-    public static final int DEFAULT_SESSION_TIMEOUT = 60 * 60;
-
+    private static final Log log = LogFactory.getLog( DefaultAuthenticationSuccessHandler.class );
+    
+    private static final int SESSION_MIN = DateTimeConstants.SECONDS_PER_MINUTE * 10;
+    private static final int SESSION_DEFAULT = Integer.parseInt( ConfigurationKey.SYSTEM_SESSION_TIMEOUT.getDefaultValue() ); // 3600 s
+    private static final String SESSION_MIN_MSG = "Session timeout must be greater than %d seconds";
+    private static final String SESSION_INFO_MSG = "Session timeout set to %d seconds";
+    
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private SecurityService securityService;
 
     @Autowired
     private DhisConfigurationProvider config;
     
+    private int systemSessionTimeout;
+    
+    /**
+     * Configurable session timeout.
+     */
+    private Integer sessionTimeout;
+    
+    public void setSessionTimeout( Integer sessionTimeout )
+    {
+        this.sessionTimeout = sessionTimeout;
+    }
+    
+    @PostConstruct
+    public void init()
+    {
+        systemSessionTimeout = ObjectUtils.firstNonNull( sessionTimeout, SESSION_DEFAULT );
+        
+        Assert.isTrue( systemSessionTimeout >= SESSION_MIN, String.format( SESSION_MIN_MSG, SESSION_MIN ) );
+        
+        log.info( String.format( SESSION_INFO_MSG, systemSessionTimeout ) );
+    }
+
     @Override
     public void onAuthenticationSuccess( HttpServletRequest request, HttpServletResponse response, Authentication authentication )
         throws ServletException, IOException
-    {
+    {   
         HttpSession session = request.getSession();
         
-        String username = authentication.getName();
+        final String username = authentication.getName();
         
         session.setAttribute( "userIs", username );
         session.setAttribute( LoginInterceptor.JLI_SESSION_VARIABLE, Boolean.TRUE );
-        session.setMaxInactiveInterval( DefaultAuthenticationSuccessHandler.DEFAULT_SESSION_TIMEOUT );
+        session.setMaxInactiveInterval( systemSessionTimeout );
 
         UserCredentials credentials = userService.getUserCredentialsByUsername( username );
 
@@ -86,6 +118,11 @@ public class DefaultAuthenticationSuccessHandler
         {
             credentials.updateLastLogin();
             userService.updateUserCredentials( credentials );            
+        }
+        
+        if ( credentials != null )
+        {
+            securityService.registerSuccessfulLogin( username );
         }
         
         super.onAuthenticationSuccess( request, response, authentication );

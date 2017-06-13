@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.cfg.Configuration;
+import org.hibernate.cfg.Environment;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManagerException;
@@ -72,6 +73,13 @@ public class DefaultHibernateConfigurationProvider
     private static final String FORMAT_CLUSTER_INSTANCE_HOSTNAME = "cluster.instance%d.hostname";
     private static final String FORMAT_CLUSTER_INSTANCE_CACHE_PORT = "cluster.instance%d.cache.port";
     private static final String FILENAME_EHCACHE_REPLICATION = "/ehcache-replication.xml";
+
+    private static final String PROP_MEMCACHED_CONNECTION_FACTORY = "hibernate.memcached.connectionFactory";
+    private static final String PROP_MEMCACHED_OPERATION_TIMEOUT = "hibernate.memcached.operationTimeout";
+    private static final String PROP_MEMCACHED_HASH_ALGORITHM = "hibernate.memcached.hashAlgorithm";
+    private static final String PROP_MEMCACHED_CLEAR_SUPPORTED = "hibernate.memcached.clearSupported";    
+    private static final String PROP_MEMCACHED_SERVERS = "hibernate.memcached.servers";
+    private static final String PROP_MEMCACHED_CACHE_TIME_SECONDS = "hibernate.memcached.cacheTimeSeconds";
     
     private static final int MAX_CLUSTER_INSTANCES = 5;
 
@@ -104,7 +112,7 @@ public class DefaultHibernateConfigurationProvider
     public void init()
         throws Exception
     {
-        Configuration configuration = new Configuration();
+        Configuration config = new Configuration();
 
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
@@ -128,9 +136,9 @@ public class DefaultHibernateConfigurationProvider
                 
                 jarResources.add( new FileSystemResource( file.getAbsolutePath() ) );
                 
-                log.debug( "Adding jar in which to search for hbm.xml files: " + file.getAbsolutePath() );
+                log.debug( String.format( "Adding jar in which to search for hbm.xml files: %s", file.getAbsolutePath() ) );
 
-                configuration.addJar( file );
+                config.addJar( file );
             }
             else
             {
@@ -138,9 +146,9 @@ public class DefaultHibernateConfigurationProvider
 
                 dirResources.add( new FileSystemResource( file ) );
                 
-                log.debug( "Adding directory in which to search for hbm.xml files: " + file.getAbsolutePath() );
+                log.debug( String.format( "Adding directory in which to search for hbm.xml files: %s", file.getAbsolutePath() ) );
                 
-                configuration.addDirectory( file );
+                config.addDirectory( file );
             }
         }
 
@@ -150,7 +158,7 @@ public class DefaultHibernateConfigurationProvider
 
         Properties defaultProperties = getProperties( defaultPropertiesFile );
 
-        configuration.addProperties( defaultProperties );
+        config.addProperties( defaultProperties );
 
         // ---------------------------------------------------------------------
         // Add custom properties from file system
@@ -166,17 +174,28 @@ public class DefaultHibernateConfigurationProvider
 
                 if ( configurationProvider.isReadOnlyMode() )
                 {
-                    fileProperties.setProperty( "hibernate.hbm2ddl.auto", "validate" );
+                    fileProperties.setProperty( Environment.HBM2DDL_AUTO, "validate" );
                     
                     log.info( "Read-only mode enabled, setting hibernate.hbm2ddl.auto to 'validate'" );
                 }
                 
-                configuration.addProperties( fileProperties );
+                config.addProperties( fileProperties );
             }
             catch ( LocationManagerException ex )
             {
                 log.info( "Could not read external configuration from file system" );
             }
+        }
+
+        // ---------------------------------------------------------------------
+        // Second-level cache
+        // ---------------------------------------------------------------------
+        
+        if ( configurationProvider.isMemcachedCacheProviderEnabled() )
+        {
+            setMemcachedCacheProvider( config );
+            
+            log.info( String.format( "Memcached set as cache provider, using server: %s", config.getProperty( PROP_MEMCACHED_SERVERS ) ) );
         }
         
         // ---------------------------------------------------------------------
@@ -185,12 +204,12 @@ public class DefaultHibernateConfigurationProvider
         
         if ( configurationProvider.isClusterEnabled() )
         {
-            configuration.setProperty( "net.sf.ehcache.configurationResourceName", FILENAME_EHCACHE_REPLICATION );
+            config.setProperty( "net.sf.ehcache.configurationResourceName", FILENAME_EHCACHE_REPLICATION );
             
             setCacheReplicationConfigSystemProperties();
             
             log.info( "Clustering and cache replication enabled" );
-        }        
+        }
 
         // ---------------------------------------------------------------------
         // Disable second-level cache during testing
@@ -198,13 +217,14 @@ public class DefaultHibernateConfigurationProvider
 
         if ( testing )
         {
-            configuration.setProperty( "hibernate.cache.use_second_level_cache", "false" );
-            configuration.setProperty( "hibernate.cache.use_query_cache", "false" );
+            config.setProperty( Environment.USE_SECOND_LEVEL_CACHE, "false" );
+            config.setProperty( Environment.USE_QUERY_CACHE, "false" );
         }
 
-        log.info( "Hibernate configuration loaded, using dialect: " + configuration.getProperty( "hibernate.dialect" ) );
+        log.info( String.format( "Hibernate configuration loaded, using dialect: %s, region factory: %s",
+            config.getProperty( Environment.DIALECT ), config.getProperty( Environment.CACHE_REGION_FACTORY ) ) );
         
-        this.configuration = configuration;
+        this.configuration = config;
     }
     
     // -------------------------------------------------------------------------
@@ -241,13 +261,13 @@ public class DefaultHibernateConfigurationProvider
 
     private void mapToHibernateProperties( Properties properties )
     {
-        putIfExists( properties, ConfigurationKey.CONNECTION_DIALECT.getKey(), "hibernate.dialect" );
-        putIfExists( properties, ConfigurationKey.CONNECTION_DRIVER_CLASS.getKey(), "hibernate.connection.driver_class" );
-        putIfExists( properties, ConfigurationKey.CONNECTION_URL.getKey(), "hibernate.connection.url" );
-        putIfExists( properties, ConfigurationKey.CONNECTION_USERNAME.getKey(), "hibernate.connection.username" );
-        putIfExists( properties, ConfigurationKey.CONNECTION_PASSWORD.getKey(), "hibernate.connection.password" );
-        putIfExists( properties, ConfigurationKey.CONNECTION_SCHEMA.getKey(), "hibernate.hbm2ddl.auto" );
-        putIfExists( properties, ConfigurationKey.CONNECTION_POOL_MAX_SIZE.getKey(), "hibernate.c3p0.max_size" );
+        putIfExists( properties, ConfigurationKey.CONNECTION_DIALECT.getKey(), Environment.DIALECT );
+        putIfExists( properties, ConfigurationKey.CONNECTION_DRIVER_CLASS.getKey(), Environment.DRIVER );
+        putIfExists( properties, ConfigurationKey.CONNECTION_URL.getKey(), Environment.URL );
+        putIfExists( properties, ConfigurationKey.CONNECTION_USERNAME.getKey(), Environment.USER );
+        putIfExists( properties, ConfigurationKey.CONNECTION_PASSWORD.getKey(), Environment.PASS );
+        putIfExists( properties, ConfigurationKey.CONNECTION_SCHEMA.getKey(), Environment.HBM2DDL_AUTO );
+        putIfExists( properties, ConfigurationKey.CONNECTION_POOL_MAX_SIZE.getKey(), Environment.C3P0_MAX_SIZE );
     }
     
     private void putIfExists( Properties properties, String from, String to )
@@ -293,6 +313,23 @@ public class DefaultHibernateConfigurationProvider
         {
             inputStream.close();
         }
+    }
+    
+    /**
+     * Sets Hibernate configuration for using {@code memcached} as second-level 
+     * cache provider.
+     * 
+     * @param config the Hibernate configuration object.
+     */
+    private void setMemcachedCacheProvider( Configuration config )
+    {
+        config.setProperty( Environment.CACHE_REGION_FACTORY, "com.mc.hibernate.memcached.MemcachedRegionFactory" );
+        config.setProperty( PROP_MEMCACHED_CONNECTION_FACTORY, "KetamaConnectionFactory" );
+        config.setProperty( PROP_MEMCACHED_OPERATION_TIMEOUT, "5000" );
+        config.setProperty( PROP_MEMCACHED_HASH_ALGORITHM, "HashAlgorithm.FNV1_64_HASH" );
+        config.setProperty( PROP_MEMCACHED_CLEAR_SUPPORTED, "true" );
+        config.setProperty( PROP_MEMCACHED_SERVERS, configurationProvider.getProperty( ConfigurationKey.CACHE_SERVERS ) );
+        config.setProperty( PROP_MEMCACHED_CACHE_TIME_SECONDS, configurationProvider.getProperty( ConfigurationKey.CACHE_TIME ) );
     }
     
     /**

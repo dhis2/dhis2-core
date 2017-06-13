@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,8 @@ package org.hisp.dhis.query;
 import com.google.common.base.Enums;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.hisp.dhis.system.util.DateUtils;
 
 import java.util.ArrayList;
@@ -64,26 +66,26 @@ public final class QueryUtils
 
         String value = (String) objectValue;
 
-        if ( Boolean.class.isAssignableFrom( klass ) )
-        {
-            try
-            {
-                return (T) Boolean.valueOf( value );
-            }
-            catch ( Exception ignored )
-            {
-                throw new QueryParserException( "Unable to parse `" + value + "` as `Boolean`." );
-            }
-        }
-        else if ( Integer.class.isAssignableFrom( klass ) )
+        if ( Integer.class.isAssignableFrom( klass ) )
         {
             try
             {
                 return (T) Integer.valueOf( value );
             }
-            catch ( Exception ignored )
+            catch ( Exception ex )
             {
                 throw new QueryParserException( "Unable to parse `" + value + "` as `Integer`." );
+            }
+        }
+        else if ( Boolean.class.isAssignableFrom( klass ) )
+        {
+            try
+            {
+                return (T) Boolean.valueOf( value );
+            }
+            catch ( Exception ex )
+            {
+                throw new QueryParserException( "Unable to parse `" + value + "` as `Boolean`." );
             }
         }
         else if ( Float.class.isAssignableFrom( klass ) )
@@ -92,7 +94,7 @@ public final class QueryUtils
             {
                 return (T) Float.valueOf( value );
             }
-            catch ( Exception ignored )
+            catch ( Exception ex )
             {
                 throw new QueryParserException( "Unable to parse `" + value + "` as `Float`." );
             }
@@ -103,7 +105,7 @@ public final class QueryUtils
             {
                 return (T) Double.valueOf( value );
             }
-            catch ( Exception ignored )
+            catch ( Exception ex )
             {
                 throw new QueryParserException( "Unable to parse `" + value + "` as `Double`." );
             }
@@ -187,4 +189,220 @@ public final class QueryUtils
     private QueryUtils()
     {
     }
+
+    public static Object parseValue( String value )
+    {
+        if ( value == null || StringUtils.isEmpty( value ) )
+        {
+            return null;
+        }
+        else if ( NumberUtils.isNumber( value ) )
+        {
+            return value;
+        }
+        else
+        {
+            return "'" + value + "'";
+        }
+    }
+
+    /**
+     * Convert a List of select fields into a string as in sql select query.
+     *
+     * @param fields: list of fields in a select query
+     * @return a string which is concat of list fields, separate by comma character.
+     * If input is null, return "*" means the query will select all fields.
+     */
+    public static String parseSelectFields( List<String> fields )
+    {
+        if ( fields == null || fields.isEmpty() )
+        {
+            return " * ";
+        }
+        else
+        {
+            String str = StringUtils.EMPTY;
+            for ( int i = 0; i < fields.size(); i++ )
+            {
+                str += fields.get( i );
+                if ( i < fields.size() - 1 )
+                {
+                    str += ",";
+                }
+            }
+            return str;
+        }
+    }
+
+
+    /**
+     * Convert a String with json format [x,y,z] into sql query collection format (x,y,z)
+     *
+     * @param value a string contains a collection with json format [x,y,z]
+     * @return a string contains a collection with sql query format (x,y,z)
+     */
+    public static String convertCollectionValue( String value )
+    {
+        if ( StringUtils.isEmpty( value ) )
+        {
+            throw new QueryParserException( "Value is null" );
+        }
+
+        if ( !value.startsWith( "[" ) || !value.endsWith( "]" ) )
+        {
+            throw new QueryParserException( "Invalid query value" );
+        }
+
+        String[] split = value.substring( 1, value.length() - 1 ).split( "," );
+        List<String> items = Lists.newArrayList( split );
+        String str = "(";
+
+        for ( int i = 0; i < items.size(); i++ )
+        {
+            Object item = QueryUtils.parseValue( items.get( i ) );
+            if ( item != null )
+            {
+                str += item;
+                if ( i < items.size() - 1 )
+                {
+                    str += ",";
+                }
+            }
+        }
+
+        str += ")";
+
+        return str;
+    }
+
+
+    /**
+     * Convert a DHIS2 filter operator into SQl operator
+     *
+     * @param operator the filter operator of DHIS2
+     * @param value    value of the current sql query condition
+     * @return a string contains an sql expression with operator and value.
+     * Example parseFilterOperator('eq', 5)  will return "=5"
+     */
+    public static String parseFilterOperator( String operator, String value )
+    {
+
+        if ( StringUtils.isEmpty( operator ) )
+        {
+            throw new QueryParserException( "Filter Operator is null" );
+        }
+
+        switch ( operator )
+        {
+            case "eq":
+            {
+                return "= " + QueryUtils.parseValue( value );
+            }
+            case "!eq":
+            {
+                return "!= " + QueryUtils.parseValue( value );
+            }
+            case "ne":
+            {
+                return "!= " + QueryUtils.parseValue( value );
+            }
+            case "neq":
+            {
+                return "!= " + QueryUtils.parseValue( value );
+            }
+            case "gt":
+            {
+                return "> " + QueryUtils.parseValue( value );
+            }
+            case "lt":
+            {
+                return "< " + QueryUtils.parseValue( value );
+            }
+            case "gte":
+            {
+                return ">= " + QueryUtils.parseValue( value );
+            }
+            case "ge":
+            {
+                return ">= " + QueryUtils.parseValue( value );
+            }
+            case "lte":
+            {
+                return "<= " + QueryUtils.parseValue( value );
+            }
+            case "le":
+            {
+                return "<= " + QueryUtils.parseValue( value );
+            }
+            case "like":
+            {
+                return "like '%" + value + "%'";
+            }
+            case "!like":
+            {
+                return "not like '%" + value + "%'";
+            }
+            case "^like":
+            {
+                return " like '" + value + "%'";
+            }
+            case "!^like":
+            {
+                return " not like '" + value + "%'";
+            }
+            case "$like":
+            {
+                return " like '%" + value + "'";
+            }
+            case "!$like":
+            {
+                return " not like '%" + value + "'";
+            }
+            case "ilike":
+            {
+                return " ilike '%" + value + "%'";
+            }
+            case "!ilike":
+            {
+                return " not ilike '%" + value + "%'";
+            }
+            case "^ilike":
+            {
+                return " ilike '" + value + "%'";
+            }
+            case "!^ilike":
+            {
+                return " not ilike '" + value + "%'";
+            }
+            case "$ilike":
+            {
+                return " ilike '%" + value + "'";
+            }
+            case "!$ilike":
+            {
+                return " not ilike '%" + value + "'";
+            }
+            case "in":
+            {
+                return "in " + QueryUtils.convertCollectionValue( value );
+            }
+            case "!in":
+            {
+                return " not in " + QueryUtils.convertCollectionValue( value );
+            }
+            case "null":
+            {
+                return "is null";
+            }
+            case "!null":
+            {
+                return "is not null";
+            }
+            default:
+            {
+                throw new QueryParserException( "`" + operator + "` is not a valid operator." );
+            }
+        }
+    }
+
 }

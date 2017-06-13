@@ -35,7 +35,7 @@
     </list>
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="optionsetattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="optionsetattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="optionsetid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
@@ -46,14 +46,20 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="optionsetusergroupaccesses">
+    <set name="userGroupAccesses" table="optionsetusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="optionsetid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
+    <set name="userAccesses" table="optionsetuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="optionsetid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
+
     <!-- Object Translation -->
-    <set name="translations" table="optionsettranslations" cascade="delete-orphan">
+    <set name="translations" table="optionsettranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="optionsetid" foreign-key="fk_objecttranslation_optionsetid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

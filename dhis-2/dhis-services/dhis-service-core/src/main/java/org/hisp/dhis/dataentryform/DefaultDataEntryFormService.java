@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataentryform;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,19 +30,18 @@ package org.hisp.dhis.dataentryform;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
-import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Maps;
@@ -113,7 +112,8 @@ public class DefaultDataEntryFormService
             dataEntryForm.setFormat( DataEntryForm.CURRENT_FORMAT );
         }
 
-        return dataEntryFormStore.save( dataEntryForm );
+        dataEntryFormStore.save( dataEntryForm );
+        return dataEntryForm.getId();
     }
 
     @Override
@@ -190,6 +190,10 @@ public class DefaultDataEntryFormService
     @Override
     public String prepareDataEntryFormForEdit( DataEntryForm dataEntryForm, DataSet dataSet, I18n i18n )
     {
+        // ------------------------------------------------------------------------
+        // Only called for creation of CustomDataForm
+        // ------------------------------------------------------------------------
+
         //TODO HTML encode names
 
         if ( dataEntryForm == null || !dataEntryForm.hasForm() || dataSet == null )
@@ -200,9 +204,6 @@ public class DefaultDataEntryFormService
         CachingMap<String, DataElementCategoryOptionCombo> optionComboMap = new CachingMap<>();
 
         optionComboMap.putAll( IdentifiableObjectUtils.getUidObjectMap( dataSet.getDataElementOptionCombos() ) );
-
-        IdentifiableObjectCallable<DataElementCategoryOptionCombo> optionComboCallabel =
-            new IdentifiableObjectCallable<>( idObjectManager, DataElementCategoryOptionCombo.class, null );
 
         StringBuffer sb = new StringBuffer();
 
@@ -226,7 +227,7 @@ public class DefaultDataEntryFormService
 
                 String optionComboId = identifierMatcher.group( 2 );
 
-                DataElementCategoryOptionCombo categoryOptionCombo = optionComboMap.get( optionComboId, optionComboCallabel.setId( optionComboId ) );
+                DataElementCategoryOptionCombo categoryOptionCombo = optionComboMap.get( optionComboId, () -> idObjectManager.getObject( DataElementCategoryOptionCombo.class, IdScheme.UID, optionComboId ) );
 
                 String optionComboName = categoryOptionCombo != null ? escapeHtml3( categoryOptionCombo.getName() ) : "[ " + i18n.getString( "cat_option_combo_not_exist" ) + " ]";
 
@@ -296,9 +297,6 @@ public class DefaultDataEntryFormService
 
         optionComboMap.putAll( IdentifiableObjectUtils.getUidObjectMap( dataSet.getDataElementOptionCombos() ) );
 
-        IdentifiableObjectCallable<DataElementCategoryOptionCombo> optionComboCallabel =
-            new IdentifiableObjectCallable<>( idObjectManager, DataElementCategoryOptionCombo.class, null );
-
         int i = 1;
 
         StringBuffer sb = new StringBuffer();
@@ -329,7 +327,7 @@ public class DefaultDataEntryFormService
                     return i18n.getString( "dataelement_with_id" ) + ": " + dataElementId + " " + i18n.getString( "does_not_exist_in_data_set" );
                 }
 
-                DataElementCategoryOptionCombo categoryOptionCombo = optionComboMap.get( optionComboId, optionComboCallabel.setId( optionComboId ) );
+                DataElementCategoryOptionCombo categoryOptionCombo = optionComboMap.get( optionComboId, () -> idObjectManager.getObject( DataElementCategoryOptionCombo.class, IdScheme.UID, optionComboId ) );
 
                 if ( categoryOptionCombo == null )
                 {
@@ -400,8 +398,13 @@ public class DefaultDataEntryFormService
                                     "<input type=\"file\" style=\"display: none;\">" +
                                 "</div>";
                 }
-                else if ( ValueType.TIME == valueType ) {
+                else if ( ValueType.TIME == valueType ) 
+                {
                     appendCode += " type=\"text\" name=\"entrytime\" class=\"entrytime\" tabindex=\"" + i++ + "\" id=\""+ dataElementId + "-" + optionComboId + "\">";
+                }
+                else if ( ValueType.URL == valueType )
+                {
+                    appendCode += " type=\"url\" name=\"entryfield\" class=\"entryfield\" tabindex=\"" + i++ + "\"" + TAG_CLOSE;
                 }
                 else
                 {
@@ -474,38 +477,6 @@ public class DefaultDataEntryFormService
     }
 
     @Override
-    public Set<DataElementOperand> getOperandsInDataEntryForm( DataSet dataSet )
-    {
-        if ( dataSet == null || !dataSet.hasDataEntryForm() )
-        {
-            return null;
-        }
-
-        Set<DataElementOperand> operands = new HashSet<>();
-
-        Matcher inputMatcher = INPUT_PATTERN.matcher( dataSet.getDataEntryForm().getHtmlCode() );
-
-        while ( inputMatcher.find() )
-        {
-            String inputHtml = inputMatcher.group();
-
-            Matcher identifierMatcher = IDENTIFIER_PATTERN.matcher( inputHtml );
-
-            if ( identifierMatcher.find() && identifierMatcher.groupCount() > 0 )
-            {
-                String dataElementId = identifierMatcher.group( 1 );
-                String categoryOptionComboId = identifierMatcher.group( 2 );
-
-                DataElementOperand operand = new DataElementOperand( dataElementId, categoryOptionComboId );
-
-                operands.add( operand );
-            }
-        }
-
-        return operands;
-    }
-
-    @Override
     public List<DataEntryForm> listDistinctDataEntryFormByProgramStageIds( List<Integer> programStageIds )
     {
         if ( programStageIds == null || programStageIds.isEmpty() )
@@ -514,16 +485,5 @@ public class DefaultDataEntryFormService
         }
 
         return dataEntryFormStore.listDistinctDataEntryFormByProgramStageIds( programStageIds );
-    }
-
-    @Override
-    public List<DataEntryForm> listDistinctDataEntryFormByDataSetIds( List<Integer> dataSetIds )
-    {
-        if ( dataSetIds == null || dataSetIds.size() == 0 )
-        {
-            return null;
-        }
-
-        return dataEntryFormStore.listDistinctDataEntryFormByDataSetIds( dataSetIds );
     }
 }

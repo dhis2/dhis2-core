@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,9 +36,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
@@ -54,7 +53,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "user", namespace = DxfNamespaces.DXF_2_0 )
 public class User
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     /**
      * Required.
@@ -408,12 +407,6 @@ public class User
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @PropertyRange( min = 2 )
@@ -660,63 +653,6 @@ public class User
     public void setApps( List<String> apps )
     {
         this.apps = apps;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            User user = (User) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                surname = user.getSurname();
-                firstName = user.getFirstName();
-                email = user.getEmail();
-                phoneNumber = user.getPhoneNumber();
-                jobTitle = user.getJobTitle();
-                introduction = user.getIntroduction();
-                gender = user.getGender();
-                birthday = user.getBirthday();
-                nationality = user.getNationality();
-                employer = user.getEmployer();
-                education = user.getEducation();
-                interests = user.getInterests();
-                languages = user.getLanguages();
-                lastCheckedInterpretations = user.getLastCheckedInterpretations();
-                userCredentials = user.getUserCredentials();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                surname = user.getSurname() == null ? surname : user.getSurname();
-                firstName = user.getFirstName() == null ? firstName : user.getFirstName();
-                email = user.getEmail() == null ? email : user.getEmail();
-                phoneNumber = user.getPhoneNumber() == null ? phoneNumber : user.getPhoneNumber();
-                jobTitle = user.getJobTitle() == null ? jobTitle : user.getJobTitle();
-                introduction = user.getIntroduction() == null ? introduction : user.getIntroduction();
-                gender = user.getGender() == null ? gender : user.getGender();
-                birthday = user.getBirthday() == null ? birthday : user.getBirthday();
-                nationality = user.getNationality() == null ? nationality : user.getNationality();
-                employer = user.getEmployer() == null ? employer : user.getEmployer();
-                education = user.getEducation() == null ? education : user.getEducation();
-                interests = user.getInterests() == null ? interests : user.getInterests();
-                languages = user.getLanguages() == null ? languages : user.getLanguages();
-                lastCheckedInterpretations = user.getLastCheckedInterpretations() == null ? lastCheckedInterpretations : user.getLastCheckedInterpretations();
-                userCredentials = user.getUserCredentials() == null ? userCredentials : user.getUserCredentials();
-            }
-
-            organisationUnits.clear();
-            organisationUnits.addAll( user.getOrganisationUnits() );
-
-            dataViewOrganisationUnits.clear();
-            dataViewOrganisationUnits.addAll( user.getDataViewOrganisationUnits() );
-
-            teiSearchOrganisationUnits.clear();
-            teiSearchOrganisationUnits.addAll( user.getTeiSearchOrganisationUnits() );
-        }
     }
 
     @Override

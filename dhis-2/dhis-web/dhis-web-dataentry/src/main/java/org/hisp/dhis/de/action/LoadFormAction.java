@@ -1,7 +1,7 @@
 package org.hisp.dhis.de.action;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -351,7 +351,7 @@ public class LoadFormAction
                 String name = !categoryCombo.isDefault() ? categoryCombo.getName() : dataSetCopy.getName();
 
                 Section section = new Section();
-                section.setUid( CodeGenerator.generateCode() );
+                section.setUid( CodeGenerator.generateUid() );
                 section.setId( i );
                 section.setName( name );
                 section.setSortOrder( i );
@@ -369,7 +369,7 @@ public class LoadFormAction
         // For multi-org unit only section forms supported
         // ---------------------------------------------------------------------
 
-        if ( CodeGenerator.isValidCode( multiOrganisationUnit ) )
+        if ( CodeGenerator.isValidUid( multiOrganisationUnit ) )
         {
             OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( multiOrganisationUnit );
             List<OrganisationUnit> organisationUnitChildren = new ArrayList<>();

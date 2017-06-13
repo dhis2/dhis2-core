@@ -39,7 +39,7 @@ import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpSession;
-import org.springframework.restdocs.RestDocumentation;
+import org.springframework.restdocs.JUnitRestDocumentation;
 import org.springframework.restdocs.mockmvc.RestDocumentationResultHandler;
 import org.springframework.restdocs.snippet.Snippet;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -50,7 +50,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -70,7 +70,7 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@RunWith( SpringJUnit4ClassRunner.class )
+@RunWith( SpringRunner.class )
 @ContextConfiguration( locations = {
     "classpath*:/META-INF/dhis/beans.xml",
     "classpath*:/META-INF/dhis/servlet.xml" }
@@ -101,7 +101,7 @@ public abstract class DhisWebSpringTest
     protected SchemaService schemaService;
 
     @Rule
-    public RestDocumentation restDocumentation = new RestDocumentation( "target/generated-snippets" );
+    public JUnitRestDocumentation restDocumentation = new JUnitRestDocumentation( "target/generated-snippets" );
 
     @Before
     public void setup() throws Exception

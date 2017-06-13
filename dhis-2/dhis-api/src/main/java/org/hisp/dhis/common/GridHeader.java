@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,21 +29,22 @@ package org.hisp.dhis.common;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.Arrays;
-import java.util.List;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Lars Helge Overland
  */
 public class GridHeader
 {
-    private static final List<String> NUMERIC_TYPES = Arrays.asList( Float.class.getName(), Double.class.getName(), Long.class.getName(), Integer.class.getName() );
+    private static final ImmutableSet<String> NUMERIC_TYPES = 
+        ImmutableSet.of( Float.class.getName(), Double.class.getName(), Long.class.getName(), Integer.class.getName() );
 
     private String name;
 
     private String column;
 
+    private ValueType valueType;
+    
     private String type;
 
     private boolean hidden;
@@ -74,7 +75,7 @@ public class GridHeader
     }
 
     /**
-     * @param name   name
+     * @param name name
      * @param column column
      */
     public GridHeader( String name, String column )
@@ -84,22 +85,12 @@ public class GridHeader
     }
 
     /**
-     * @param name   name
-     * @param column column
-     * @param type   type
-     */
-    public GridHeader( String name, String column, String type )
-    {
-        this( name, column );
-        this.type = type;
-    }
-
-    /**
-     * Sets the column property to the name value. Sets the type property to String.
+     * Sets the column property to the name value. Sets the type property to
+     * String.
      *
-     * @param name   name
+     * @param name name
      * @param hidden hidden
-     * @param meta   meta
+     * @param meta meta
      */
     public GridHeader( String name, boolean hidden, boolean meta )
     {
@@ -110,30 +101,34 @@ public class GridHeader
     }
 
     /**
-     * @param name   name
+     * @param name name
      * @param column column
-     * @param type   type
+     * @param valueType valueType
+     * @param type type
      * @param hidden hidden
-     * @param meta   meta
+     * @param meta meta
      */
-    public GridHeader( String name, String column, String type, boolean hidden, boolean meta )
+    public GridHeader( String name, String column, ValueType valueType, String type, boolean hidden, boolean meta )
     {
-        this( name, column, type );
+        this( name, column );
+        this.valueType = valueType;
+        this.type = type;
         this.hidden = hidden;
         this.meta = meta;
     }
 
     /**
-     * @param name      name
-     * @param column    column
-     * @param type      type
-     * @param hidden    hidden
-     * @param meta      meta
+     * @param name name
+     * @param column column
+     * @param type type
+     * @param hidden hidden
+     * @param meta meta
      * @param optionSet optionSet
+     * @param legendSet legendSet
      */
-    public GridHeader( String name, String column, String type, boolean hidden, boolean meta, String optionSet, String legendSet )
+    public GridHeader( String name, String column, ValueType valueType, String type, boolean hidden, boolean meta, String optionSet, String legendSet )
     {
-        this( name, column, type, hidden, meta );
+        this( name, column, valueType, type, hidden, meta );
         this.optionSet = optionSet;
         this.legendSet = legendSet;
     }
@@ -176,6 +171,17 @@ public class GridHeader
     public void setColumn( String column )
     {
         this.column = column;
+    }
+
+    @JsonProperty
+    public ValueType getValueType()
+    {
+        return valueType;
+    }
+
+    public void setValueType( ValueType valueType )
+    {
+        this.valueType = valueType;
     }
 
     @JsonProperty
@@ -269,6 +275,6 @@ public class GridHeader
     @Override
     public String toString()
     {
-        return "[Name: " + name + ", column: " + column + ", type: " + type + "]";
+        return "[Name: " + name + ", column: " + column + ", value type: " + valueType + ", type: " + type + "]";
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataapproval;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,7 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -54,7 +47,15 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.hisp.dhis.dataapproval.DataApprovalAction.*;
 
 /**
  * @author Jim Grace
@@ -74,6 +75,13 @@ public class DefaultDataApprovalService
     public void setDataApprovalStore( DataApprovalStore dataApprovalStore )
     {
         this.dataApprovalStore = dataApprovalStore;
+    }
+
+    private DataApprovalAuditStore dataApprovalAuditStore;
+
+    public void setDataApprovalAuditStore( DataApprovalAuditStore dataApprovalAuditStore )
+    {
+        this.dataApprovalAuditStore = dataApprovalAuditStore;
     }
 
     private DataApprovalWorkflowStore workflowStore;
@@ -125,7 +133,9 @@ public class DefaultDataApprovalService
     @Override
     public int addWorkflow( DataApprovalWorkflow workflow )
     {
-        return workflowStore.save( workflow );
+        workflowStore.save( workflow );
+
+        return workflow.getId();
     }
 
     @Override
@@ -157,7 +167,7 @@ public class DefaultDataApprovalService
     {
         return workflowStore.getAll();
     }
-    
+
     // -------------------------------------------------------------------------
     // Data approval logic
     // -------------------------------------------------------------------------
@@ -240,6 +250,8 @@ public class DefaultDataApprovalService
         {
             log.debug( "-> approving " + da );
 
+            audit( da, APPROVE );
+
             dataApprovalStore.addDataApproval( da );
         }
         
@@ -292,6 +304,8 @@ public class DefaultDataApprovalService
 
                 throw new DataMayNotBeUnapprovedException();
             }
+
+            audit( d, UNAPPROVE );
 
             dataApprovalStore.deleteDataApproval( d );
         }
@@ -351,6 +365,8 @@ public class DefaultDataApprovalService
 
             d.setAccepted( true );
 
+            audit( d, ACCEPT );
+
             dataApprovalStore.updateDataApproval( d );
         }
         
@@ -406,6 +422,8 @@ public class DefaultDataApprovalService
 
             d.setAccepted( false );
 
+            audit( d, UNACCEPT );
+
             dataApprovalStore.updateDataApproval( d );
         }
         
@@ -419,35 +437,6 @@ public class DefaultDataApprovalService
     }
 
     @Override
-    public DataApproval lowestApproval( DataApproval dataApproval )
-    {
-        OrganisationUnit orgUnit = dataApproval.getOrganisationUnit();
-
-        List<DataApprovalLevel> approvalLevels = dataApproval.getWorkflow().getSortedLevels();
-
-        Collections.reverse( approvalLevels );
-
-        DataApproval da = null;
-
-        for ( DataApprovalLevel approvalLevel : approvalLevels )
-        {
-            if ( approvalLevel.getOrgUnitLevel() <= orgUnit.getLevel() )
-            {
-                if ( approvalLevel.getOrgUnitLevel() < orgUnit.getLevel() )
-                {
-                    orgUnit = orgUnit.getAncestors().get( approvalLevel.getOrgUnitLevel() - 1 );
-                }
-                da = new DataApproval( approvalLevel, dataApproval.getWorkflow(),
-                    dataApproval.getPeriod(), orgUnit, dataApproval.getAttributeOptionCombo() );
-
-                break;
-            }
-        }
-
-        return da;
-    }
-
-    @Override
     public boolean isApproved( DataApprovalWorkflow workflow, Period period,
         OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo )
     {
@@ -456,9 +445,9 @@ public class DefaultDataApprovalService
             return false;
         }
 
-        DataApproval da = new DataApproval ( null, workflow, period, organisationUnit, attributeOptionCombo );
+        DataApproval da = new DataApproval( null, workflow, period, organisationUnit, attributeOptionCombo );
 
-        da = lowestApproval ( da );
+        da = DataApproval.getLowestApproval( da );
 
         if ( da != null )
         {
@@ -541,6 +530,22 @@ public class DefaultDataApprovalService
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Audits a data approval action.
+     *
+     * @param da the details of the action.
+     * @param action the data approval action to audit.
+     */
+    private void audit( DataApproval da, DataApprovalAction action )
+    {
+        DataApprovalAudit audit = new DataApprovalAudit( da, action );
+
+        audit.setCreated( new Date() );
+        audit.setCreator( currentUserService.getCurrentUser() );
+
+        dataApprovalAuditStore.save( audit );
+    }
 
     /**
      * Returns the next higher (lower number) level within a workflow.

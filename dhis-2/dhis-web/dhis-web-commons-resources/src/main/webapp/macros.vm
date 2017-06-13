@@ -2,7 +2,7 @@
 #macro( objectList $objectName $objects )
     <table class="objectListTable">
         <col>
-        <col width="80">    
+        <col width="80">
         <tr>
             <td class="filter"><label for="filter">$i18n.getString( "filter_by_name" )</label>: <form action="none" onsubmit="filterValues(this.firstChild.firstChild.value);return false"><div><input id="filter" type="text"><input type="submit" value="$i18n.getString( 'filter' )"></div></form></td>
             <td style="text-align:right"><input type="button" value="$i18n.getString( 'add_new' )" onclick="window.location.href='showAdd${objectName}Form.action'"></td>
@@ -95,7 +95,7 @@
 	#parse( "/dhis-web-commons/oust/selectionTreeMultipleSelect.vm" )
 #else
 	#parse( "/dhis-web-commons/oust/selectionTreeSingleSelect.vm" )
-#end	
+#end
 #end
 
 #macro( filterDiv $action )
@@ -223,7 +223,7 @@ jQuery(function() {
 </tr>
 #end
 
-#macro( trIntegerInput $args ) 
+#macro( trIntegerInput $args )
 #if( "$!args.name" == "" )
 	#set( $name = $!args.id )
 #else
@@ -392,6 +392,11 @@ jQuery.each(attributes, function(i, item) {
 
 #macro( sharingDialog )
 
+<script>
+  var i18n_cancel = "$i18n.getString( "cancel" )";
+  var i18n_save = "$i18n.getString( "save" )";
+</script>
+
 <div id="sharingSettings" title='$i18n.getString( "sharing_settings" )' style="display: none;" class="page">
     <table style="width: 100%;">
         <tbody>
@@ -399,8 +404,8 @@ jQuery.each(attributes, function(i, item) {
                 <td colspan="2" style="height: 40px"><span class="settingHeader" id="sharingName"></span></td>
             </tr>
             <tr>
-                <td><input style="width: 100%;" id="sharingFindUserGroup" placeholder="$i18n.getString( 'search_for_user_groups' )"/></td>
-                <td style="width: 24px;"><button id="addUserGroupAccess" disabled="disabled" style="width:24px; margin-left:2px; text-align:center;">+</button></td>
+                <td><input style="width: 100%;" id="sharingSearch" placeholder="$i18n.getString( 'search_for_user_groups' )"/></td>
+                <td style="width: 24px;"><button id="addAccess" disabled="disabled" style="width:24px; margin-left:2px; text-align:center;">+</button></td>
             </tr>
         </tbody>
     </table>
@@ -432,11 +437,11 @@ jQuery.each(attributes, function(i, item) {
     </table>
 </div>
 
-<script id="user-group-access-template" type="text/template">
-<tr id="<%= id %>">
-    <td class="sharingGroupName" style="width: 300px;"><%= label %></td>
+<script id="access-template" type="text/template">
+<tr id="<%= id %>" type="<%= type %>">
+    <td class="sharingName" style="width: 300px;"><%= label %></td>
     <td>
-        <select class="sharingGroupAccess" style="width: 150px;">
+        <select class="sharingAccess" style="width: 150px;">
             <option value="r-------" <% if(access == 'r-------') { %>selected<% } %>>$i18n.getString( "can_view" )</option>
             <option value="rw------" <% if(access == 'rw------') { %>selected<% } %>>$i18n.getString( "can_edit_and_view" )</option>
         </select>

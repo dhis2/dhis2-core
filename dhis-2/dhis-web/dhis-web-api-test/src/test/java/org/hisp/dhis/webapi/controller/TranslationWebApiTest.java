@@ -53,12 +53,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-
-
 public class TranslationWebApiTest
     extends DhisWebSpringTest
 {
-
     @Autowired
     private IdentifiableObjectManager identifiableObjectManager;
 
@@ -83,13 +80,13 @@ public class TranslationWebApiTest
             .content( TestUtils.convertObjectToJsonBytes( dataElementA ) ) )
             .andExpect( status().is( HttpStatus.SC_NO_CONTENT ) );
 
-        MvcResult result = mvc.perform( get( "/dataElements/" + dataElementA.getUid() +"?locale=" + locale.getLanguage() ).session( session )
+        MvcResult result = mvc.perform( get( "/dataElements/" + dataElementA.getUid() + "?locale=" + locale.getLanguage() ).session( session )
             .contentType( TestUtils.APPLICATION_JSON_UTF8 ) ).andReturn();
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree( result.getResponse().getContentAsString() );
 
-        assertEquals( valueToCheck,  node.get( "displayName" ).asText() );
+        assertEquals( valueToCheck, node.get( "displayName" ).asText() );
 
     }
 }

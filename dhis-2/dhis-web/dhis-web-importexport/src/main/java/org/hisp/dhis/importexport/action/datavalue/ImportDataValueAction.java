@@ -1,7 +1,7 @@
 package org.hisp.dhis.importexport.action.datavalue;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,6 @@ package org.hisp.dhis.importexport.action.datavalue;
  */
 
 import com.opensymphony.xwork2.Action;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -67,7 +66,7 @@ public class ImportDataValueAction
 
     @Autowired
     private CurrentUserService currentUserService;
-    
+
     @Autowired
     private SessionFactory sessionFactory;
 
@@ -86,6 +85,13 @@ public class ImportDataValueAction
     public void setUpload( File upload )
     {
         this.upload = upload;
+    }
+
+    private String uploadFileName;
+
+    public void setUploadFileName( String uploadFileName )
+    {
+        this.uploadFileName = uploadFileName;
     }
 
     private boolean dryRun;
@@ -143,7 +149,7 @@ public class ImportDataValueAction
     {
         this.importFormat = importFormat;
     }
-    
+
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -168,11 +174,12 @@ public class ImportDataValueAction
             .setSkipExistingCheck( skipExistingCheck )
             .setIdScheme( StringUtils.trimToNull( idScheme ) )
             .setDataElementIdScheme( StringUtils.trimToNull( dataElementIdScheme ) )
-            .setOrgUnitIdScheme( StringUtils.trimToNull( orgUnitIdScheme ) );
+            .setOrgUnitIdScheme( StringUtils.trimToNull( orgUnitIdScheme ) )
+            .setFilename( uploadFileName );
 
         log.info( options );
 
-        scheduler.executeTask( new ImportDataValueTask( dataValueSetService, 
+        scheduler.executeTask( new ImportDataValueTask( dataValueSetService,
             adxDataService, sessionFactory, in, options, taskId, importFormat ) );
 
         return SUCCESS;

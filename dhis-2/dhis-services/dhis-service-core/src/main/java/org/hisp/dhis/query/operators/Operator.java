@@ -1,7 +1,7 @@
 package org.hisp.dhis.query.operators;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
-import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.query.planner.QueryPath;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,20 +44,23 @@ import java.util.List;
  */
 public abstract class Operator
 {
+    protected final String name;
+
     protected final List<Object> args = new ArrayList<>();
 
     protected final Typed typed;
 
     protected Type argumentType;
 
-    public Operator( Typed typed )
+    public Operator( String name, Typed typed )
     {
+        this.name = name;
         this.typed = typed;
     }
 
-    public Operator( Typed typed, Object arg )
+    public Operator( String name, Typed typed, Object arg )
     {
-        this( typed );
+        this( name, typed );
         this.argumentType = new Type( arg );
         this.args.add( arg );
         validate();
@@ -74,9 +77,9 @@ public abstract class Operator
         }
     }
 
-    public Operator( Typed typed, Object... args )
+    public Operator( String name, Typed typed, Object... args )
     {
-        this( typed );
+        this( name, typed );
         this.argumentType = new Type( args[0] );
         Collections.addAll( this.args, args );
     }
@@ -116,7 +119,14 @@ public abstract class Operator
         return typed.isValid( klass );
     }
 
-    public abstract Criterion getHibernateCriterion( Property property );
+    public abstract Criterion getHibernateCriterion( QueryPath queryPath );
 
     public abstract boolean test( Object value );
+
+
+    @Override
+    public String toString()
+    {
+        return "[" + name + ", args: " + args + "]";
+    }
 }

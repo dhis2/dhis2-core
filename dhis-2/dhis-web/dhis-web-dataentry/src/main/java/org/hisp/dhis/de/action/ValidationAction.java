@@ -1,7 +1,7 @@
 package org.hisp.dhis.de.action;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.validation.ValidationResult;
-import org.hisp.dhis.validation.ValidationRuleService;
+import org.hisp.dhis.validation.ValidationService;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -65,13 +65,6 @@ public class ValidationAction
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-
-    private ValidationRuleService validationRuleService;
-
-    public void setValidationRuleService( ValidationRuleService validationRuleService )
-    {
-        this.validationRuleService = validationRuleService;
-    }
 
     private PeriodService periodService;
 
@@ -108,6 +101,13 @@ public class ValidationAction
         this.dataElementCategoryService = dataElementCategoryService;
     }
 
+    private ValidationService validationService;
+
+    public void setValidationService( ValidationService validationService )
+    {
+        this.validationService = validationService;
+    }
+    
     @Autowired
     private InputUtils inputUtils;
 
@@ -241,14 +241,14 @@ public class ValidationAction
                 dataValues.put( organisationUnit.getUid(), values );
             }
 
-            List<ValidationResult> results = new ArrayList<>( validationRuleService.validate( dataSet, period, organisationUnit, attributeOptionCombo ) );
+            List<ValidationResult> results = new ArrayList<>( validationService.startInteractiveValidationAnalysis( dataSet, period, organisationUnit, attributeOptionCombo ) );
 
             if ( !results.isEmpty() )
             {
                 validationResults.put( organisationUnit.getUid(), results );
             }
 
-            List<DataElementOperand> violations = validationRuleService.validateRequiredComments( dataSet, period, organisationUnit, attributeOptionCombo );
+            List<DataElementOperand> violations = validationService.validateRequiredComments( dataSet, period, organisationUnit, attributeOptionCombo );
 
             if ( !violations.isEmpty() )
             {

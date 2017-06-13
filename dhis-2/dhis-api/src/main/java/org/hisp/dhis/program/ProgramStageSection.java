@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.dataelement.DataElement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,11 +46,11 @@ import java.util.List;
  */
 @JacksonXmlRootElement( localName = "programStageSection", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramStageSection
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     private ProgramStage programStage;
 
-    private List<ProgramStageDataElement> programStageDataElements = new ArrayList<>();
+    private List<DataElement> dataElements = new ArrayList<>();
 
     private List<ProgramIndicator> programIndicators = new ArrayList<>();
 
@@ -64,15 +64,15 @@ public class ProgramStageSection
     {
     }
 
-    public ProgramStageSection( String name, List<ProgramStageDataElement> programStageDataElements )
+    public ProgramStageSection( String name, List<DataElement> dataElements )
     {
         this.name = name;
-        this.programStageDataElements = programStageDataElements;
+        this.dataElements = dataElements;
     }
 
-    public ProgramStageSection( String name, List<ProgramStageDataElement> programStageDataElements, Integer sortOrder )
+    public ProgramStageSection( String name, List<DataElement> dataElements, Integer sortOrder )
     {
-        this( name, programStageDataElements );
+        this( name, dataElements );
         this.sortOrder = sortOrder;
     }
 
@@ -104,16 +104,16 @@ public class ProgramStageSection
 
     @JsonProperty
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "programStageDataElements", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "programStageDataElement", namespace = DxfNamespaces.DXF_2_0 )
-    public List<ProgramStageDataElement> getProgramStageDataElements()
+    @JacksonXmlElementWrapper( localName = "dataElements", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "dataElement", namespace = DxfNamespaces.DXF_2_0 )
+    public List<DataElement> getDataElements()
     {
-        return programStageDataElements;
+        return dataElements;
     }
 
-    public void setProgramStageDataElements( List<ProgramStageDataElement> programStageDataElements )
+    public void setDataElements( List<DataElement> dataElements )
     {
-        this.programStageDataElements = programStageDataElements;
+        this.dataElements = dataElements;
     }
 
     @JsonProperty
@@ -140,33 +140,5 @@ public class ProgramStageSection
     public void setSortOrder( Integer sortOrder )
     {
         this.sortOrder = sortOrder;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            ProgramStageSection programStageSection = (ProgramStageSection) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                programStage = programStageSection.getProgramStage();
-                sortOrder = programStageSection.getSortOrder();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                programStage = programStageSection.getProgramStage() == null ? programStage : programStageSection.getProgramStage();
-                sortOrder = programStageSection.getSortOrder() == null ? sortOrder : programStageSection.getSortOrder();
-            }
-
-            programStageDataElements.clear();
-            programStageDataElements.addAll( programStageSection.getProgramStageDataElements() );
-
-            programIndicators.clear();
-            programIndicators.addAll( programStageSection.getProgramIndicators() );
-        }
     }
 }

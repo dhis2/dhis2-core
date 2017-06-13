@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.mapping;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,10 +46,12 @@ import org.hisp.dhis.system.filter.OrganisationUnitWithValidCoordinatesFilter;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.GeoFeature;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -66,16 +68,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Lars Helge Overland
  */
 @Controller
 @RequestMapping( value = GeoFeatureController.RESOURCE_PATH )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class GeoFeatureController
 {
     public static final String RESOURCE_PATH = "/geoFeatures";
+
+    private static final CacheControl GEOFEATURE_CACHE = CacheControl.maxAge( 2, TimeUnit.HOURS ).cachePrivate();
 
     private static final Map<FeatureType, Integer> FEATURE_TYPE_MAP = ImmutableMap.<FeatureType, Integer>builder().
         put( FeatureType.POINT, GeoFeature.TYPE_POINT ).
@@ -106,18 +111,20 @@ public class GeoFeatureController
         @RequestParam( required = false ) String userOrgUnit,
         @RequestParam( defaultValue = "false", value = "includeGroupSets" ) boolean rpIncludeGroupSets,
         @RequestParam Map<String, String> parameters,
+        DhisApiVersion apiVersion,
         HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
         WebOptions options = new WebOptions( parameters );
         boolean includeGroupSets = "detailed".equals( options.getViewClass() ) || rpIncludeGroupSets;
 
-        List<GeoFeature> features = getGeoFeatures( ou, displayProperty, relativePeriodDate, userOrgUnit, request, response, includeGroupSets );
+        List<GeoFeature> features = getGeoFeatures( ou, displayProperty, relativePeriodDate, userOrgUnit, request, response, includeGroupSets, apiVersion );
 
         if ( features == null )
         {
             return;
         }
 
+        ContextUtils.setCacheControl( response, GEOFEATURE_CACHE );
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         renderService.toJson( response.getOutputStream(), features );
     }
@@ -131,18 +138,20 @@ public class GeoFeatureController
         @RequestParam( defaultValue = "callback" ) String callback,
         @RequestParam( defaultValue = "false", value = "includeGroupSets" ) boolean rpIncludeGroupSets,
         @RequestParam Map<String, String> parameters,
+        DhisApiVersion apiVersion,
         HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
         WebOptions options = new WebOptions( parameters );
         boolean includeGroupSets = "detailed".equals( options.getViewClass() ) || rpIncludeGroupSets;
 
-        List<GeoFeature> features = getGeoFeatures( ou, displayProperty, relativePeriodDate, userOrgUnit, request, response, includeGroupSets );
+        List<GeoFeature> features = getGeoFeatures( ou, displayProperty, relativePeriodDate, userOrgUnit, request, response, includeGroupSets, apiVersion );
 
         if ( features == null )
         {
             return;
         }
 
+        ContextUtils.setCacheControl( response, GEOFEATURE_CACHE );
         response.setContentType( "application/javascript" );
         renderService.toJsonP( response.getOutputStream(), features, callback );
     }
@@ -165,13 +174,13 @@ public class GeoFeatureController
      * @return a list of geo features or null.
      */
     private List<GeoFeature> getGeoFeatures( String ou, DisplayProperty displayProperty, Date relativePeriodDate,
-        String userOrgUnit, HttpServletRequest request, HttpServletResponse response, boolean includeGroupSets )
+        String userOrgUnit, HttpServletRequest request, HttpServletResponse response, boolean includeGroupSets, DhisApiVersion apiVersion )
     {
         Set<String> set = new HashSet<>();
         set.add( ou );
 
-        DataQueryParams params = dataQueryService.getFromUrl( set, null, AggregationType.SUM, null, null,
-            false, false, false, false, false, false, false, false, false, displayProperty, null, null, null, relativePeriodDate, userOrgUnit );
+        DataQueryParams params = dataQueryService.getFromUrl( set, null, AggregationType.SUM, null, null, null, null, false, false,
+            false, false, false, false, false, false, false, false, displayProperty, null, null, false, null, relativePeriodDate, userOrgUnit, false, apiVersion );
 
         DimensionalObject dim = params.getDimension( DimensionalObject.ORGUNIT_DIM_ID );
 
@@ -195,9 +204,9 @@ public class GeoFeatureController
         for ( OrganisationUnit unit : organisationUnits )
         {
             GeoFeature feature = new GeoFeature();
-            
+
             Integer ty = unit.getFeatureType() != null ? FEATURE_TYPE_MAP.get( unit.getFeatureType() ) : null;
-            
+
             feature.setId( unit.getUid() );
             feature.setCode( unit.getCode() );
             feature.setHcd( unit.hasChildrenWithCoordinates() );
@@ -218,7 +227,7 @@ public class GeoFeatureController
 
                     if ( group != null )
                     {
-                        feature.getDimensions().put( groupSet.getUid(), group.getName() );
+                        feature.getDimensions().put( groupSet.getUid(), group.getUid() );
                     }
                 }
             }

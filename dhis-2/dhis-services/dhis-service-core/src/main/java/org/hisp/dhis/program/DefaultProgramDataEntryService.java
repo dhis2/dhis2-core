@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,8 +40,8 @@ import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -91,13 +91,6 @@ public class DefaultProgramDataEntryService
         this.programStageService = programStageService;
     }
 
-    private ProgramStageDataElementService programStageDataElementService;
-
-    public void setProgramStageDataElementService( ProgramStageDataElementService programStageDataElementService )
-    {
-        this.programStageDataElementService = programStageDataElementService;
-    }
-
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------
@@ -128,7 +121,7 @@ public class DefaultProgramDataEntryService
         // Iterate through all matching data element fields
         // ---------------------------------------------------------------------
 
-        Map<String, DataElement> dataElementMap = getDataElementMap( programStage );
+        Map<String, ProgramStageDataElement> programStageDataElementMap = getProgramStageDataElementMap( programStage );
 
         while ( dataElementMatcher.find() )
         {
@@ -154,6 +147,8 @@ public class DefaultProgramDataEntryService
                 String dataElementUid = identifierMatcher.group( 2 );
 
                 DataElement dataElement = null;
+                
+                ProgramStageDataElement programStageDataElement = null;
 
                 String programStageName = programStage.getDisplayName();
 
@@ -165,18 +160,19 @@ public class DefaultProgramDataEntryService
                     programStageName = otherProgramStage != null ? otherProgramStage.getDisplayName() : "N/A";
                 }
                 else
-                {
-                    dataElement = dataElementMap.get( dataElementUid );
+                {                    
+                    programStageDataElement = programStageDataElementMap.get( dataElementUid );
+                    
+                    dataElement = programStageDataElement.getDataElement();
+                    
                     if ( dataElement == null )
                     {
                         return i18n.getString( "some_data_element_not_exist" );
-                    }
-
-                    ProgramStageDataElement psde = programStageDataElementService.get( programStage, dataElement );
-
-                    compulsory = BooleanUtils.toStringTrueFalse( psde.isCompulsory() );
-                    allowProvidedElsewhere = psde.getAllowProvidedElsewhere();
-                    if ( psde.getAllowFutureDate() )
+                    }                    
+                    
+                    compulsory = BooleanUtils.toStringTrueFalse( programStageDataElement.isCompulsory() );
+                    allowProvidedElsewhere = programStageDataElement.getAllowProvidedElsewhere();
+                    if ( programStageDataElement.getAllowFutureDate() )
                     {
                         dateMethod = "datePicker";
                     }
@@ -243,11 +239,14 @@ public class DefaultProgramDataEntryService
 
                 ValueType valueType = dataElement.getValueType();
 
-                if ( dataElement.getOptionSet() != null && dataElement.getOptionSet().getOptions().size() < 7
-                    && programStage.getProgram().getDataEntryMethod() )
+                if ( dataElement.getOptionSet() != null && dataElement.getOptionSet().getOptions().size() < 7 )
                 {
-                    String idField = programStageUid + "-" + dataElementUid + "-val";
-                    inputHTML = populateCustomDataEntryForOptionSet( dataElement, idField, entityInstanceDataValue, i18n );
+                    if( programStageDataElement != null && programStageDataElement.getRenderOptionsAsRadio() )
+                    {
+                        String idField = programStageUid + "-" + dataElementUid + "-val";
+                        inputHTML = populateCustomDataEntryForOptionSet( dataElement, idField, entityInstanceDataValue, i18n );
+                    }
+                    
                 }
                 else if ( valueType.isText() || valueType.isNumeric() || ValueType.USERNAME == valueType )
                 {
@@ -339,7 +338,7 @@ public class DefaultProgramDataEntryService
         // Iterate through all matching data element fields
         // ---------------------------------------------------------------------
 
-        Map<String, DataElement> dataElementMap = getDataElementMap( programStage );
+        Map<String, ProgramStageDataElement> programStageDataElementMap = getProgramStageDataElementMap( programStage );
 
         while ( dataElementMatcher.find() )
         {
@@ -357,7 +356,7 @@ public class DefaultProgramDataEntryService
             if ( identifierMatcher.find() && identifierMatcher.groupCount() > 0 )
             {
                 // -------------------------------------------------------------
-                // Get data element ID of data element
+                // Get ID of data element
                 // -------------------------------------------------------------
 
                 String programStageUid = identifierMatcher.group( 1 );
@@ -377,13 +376,14 @@ public class DefaultProgramDataEntryService
                 }
                 else
                 {
-                    dataElement = dataElementMap.get( dataElementUid );
-                    if ( dataElement == null )
+                    ProgramStageDataElement psde = programStageDataElementMap.get( dataElementUid );
+                    
+                    if ( psde == null )
                     {
                         return i18n.getString( "some_data_element_not_exist" );
                     }
-
-                    ProgramStageDataElement psde = programStageDataElementService.get( programStage, dataElement );
+                    
+                    dataElement = psde.getDataElement();                    
 
                     compulsory = BooleanUtils.toStringTrueFalse( psde.isCompulsory() );
                     allowProvidedElsewhere = psde.getAllowProvidedElsewhere();
@@ -810,20 +810,20 @@ public class DefaultProgramDataEntryService
      * Returns a Map of all DataElements in the given ProgramStage where the key
      * is the DataElement identifier and the value is the DataElement.
      */
-    private Map<String, DataElement> getDataElementMap( ProgramStage programStage )
+    private Map<String, ProgramStageDataElement> getProgramStageDataElementMap( ProgramStage programStage )
     {
         if ( programStage == null )
         {
             return null;
         }
 
-        List<DataElement> dataElements = programStage.getAllDataElements();
+        Set<ProgramStageDataElement> programStageDataElements = programStage.getProgramStageDataElements();//.getAllDataElements();
 
-        Map<String, DataElement> map = new HashMap<>();
+        Map<String, ProgramStageDataElement> map = new HashMap<>();
 
-        for ( DataElement element : dataElements )
+        for ( ProgramStageDataElement element : programStageDataElements )
         {
-            map.put( element.getUid(), element );
+            map.put( element.getDataElement().getUid(), element );
         }
 
         return map;

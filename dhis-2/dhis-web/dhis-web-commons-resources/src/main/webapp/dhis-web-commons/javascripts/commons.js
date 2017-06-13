@@ -1374,6 +1374,20 @@ function checkValueIsExist( inputId, url, params )
 	});
 }
 
+function checkPassword( inputId, password ) {
+    var parameter = $("#" + inputId ).val();
+    var passWord = $("#" +  password).val();
+    if (passWord) {
+        if (parameter) {
+            if ((passWord.indexOf(parameter) !== -1) ||  (parameter.indexOf(passWord) !== -1)) {
+                alert("Username/Email cannot be part of password");
+                $("#" +  password).val("");
+            }
+        }
+    }
+
+}
+
 function checkValueIsExistWarning( inputId, url, params )
 {
 	jQuery("#" + inputId).rules("add",{
@@ -1910,15 +1924,15 @@ var months =
 
 var generate =
 {
-    month: function (id)
+    month: function (id, parentClass)
     {
         var options = Object.keys(months).map(function (month)
         {
             return "<option value='" + months[month].index + "'>" + i18n_months[month] + "</option>";
         }).join("");
-        $("#" + id).html(options);
+        $(parentClass+" #" + id).html(options);
     },
-    days: function (id, monthIndex)
+    days: function (id, monthIndex, parentClass)
     {
         var month = Object.keys(months)[--monthIndex];
         var noOfDays = months[month].noOfDays;
@@ -1927,9 +1941,9 @@ var generate =
         {
             options += "<option value='" + count + "'>" + count + "</option>"
         }
-        $("#" + id).html(options);
+        $(parentClass+" #" + id).html(options);
     },
-    time: function (id)
+    time: function (id, parentClass)
     {
         var hours = 24;
         var times = [];
@@ -1943,7 +1957,7 @@ var generate =
         {
             return "<option value='" + time + "'>" + time + "</option>"
         }).join("");
-        $("#" + id).html(timeOptions);
+        $(parentClass+" #" + id).html(timeOptions);
     }
 };
 

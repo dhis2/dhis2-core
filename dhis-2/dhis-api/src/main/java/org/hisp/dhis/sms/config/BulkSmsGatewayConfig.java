@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,10 +43,6 @@ public class BulkSmsGatewayConfig
 
     private final String URL_TEMPLATE = "https://bulksms.vsms.net/eapi/submission/send_sms/2/2.0";
 
-    private String username;
-
-    private String password;
-
     @JsonProperty( value = "urlTemplateForBatchSms" )
     public String getUrlTemplateForBatchSms()
     {
@@ -60,32 +56,10 @@ public class BulkSmsGatewayConfig
         return this.URL_TEMPLATE;
     }
 
-    @JsonProperty( value = "username" )
-    public String getUsername()
-    {
-        return username;
-    }
-
-    public void setUsername( String username )
-    {
-        this.username = username;
-    }
-
     @JsonProperty( value = "name" )
     public String getName()
     {
         return super.getName();
-    }
-
-    @JsonProperty( value = "password" )
-    public String getPassword()
-    {
-        return password;
-    }
-
-    public void setPassword( String password )
-    {
-        this.password = password;
     }
 
     @JsonProperty( value = "default" )

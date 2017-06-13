@@ -1,7 +1,7 @@
 package org.hisp.dhis.dashboard.impl;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -276,7 +276,9 @@ public class DefaultDashboardService
     @Override
     public int saveDashboard( Dashboard dashboard )
     {
-        return dashboardStore.save( dashboard );
+        dashboardStore.save( dashboard );
+
+        return dashboard.getId();
     }
 
     @Override

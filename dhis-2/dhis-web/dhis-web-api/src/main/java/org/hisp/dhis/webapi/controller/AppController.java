@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.DefaultRenderService;
@@ -44,12 +46,12 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StreamUtils;
@@ -75,10 +77,12 @@ import java.util.Map;
  */
 @Controller
 @RequestMapping( AppController.RESOURCE_PATH )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class AppController
 {
     public static final String RESOURCE_PATH = "/apps";
+
+    private final ResourceLoader resourceLoader = new DefaultResourceLoader();
 
     @Autowired
     private AppManager appManager;
@@ -89,11 +93,8 @@ public class AppController
     @Autowired
     private I18nManager i18nManager;
 
-    private final ResourceLoader resourceLoader = new DefaultResourceLoader();
-
     @Autowired
-    protected ContextService contextService;
-
+    private ContextService contextService;
 
     // -------------------------------------------------------------------------
     // Resources
@@ -130,11 +131,12 @@ public class AppController
             apps = appManager.getApps( contextPath );
         }
 
+        response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
         renderService.toJson( response.getOutputStream(), apps );
     }
 
     @RequestMapping( method = RequestMethod.POST )
-    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-maintenance-appmanager')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void installApp( @RequestParam( "file" ) MultipartFile file )
         throws IOException, WebMessageException
@@ -153,7 +155,7 @@ public class AppController
     }
 
     @RequestMapping( method = RequestMethod.PUT )
-    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-maintenance-appmanager')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void reloadApps()
     {
@@ -209,7 +211,7 @@ public class AppController
             return;
         }
 
-        if ( new ServletWebRequest( request ).checkNotModified( resource.lastModified() ) )
+        if ( new ServletWebRequest( request, response ).checkNotModified( resource.lastModified() ) )
         {
             response.setStatus( HttpServletResponse.SC_NOT_MODIFIED );
             return;
@@ -228,7 +230,7 @@ public class AppController
     }
 
     @RequestMapping( value = "/{app}", method = RequestMethod.DELETE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-maintenance-appmanager')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteApp( @PathVariable( "app" ) String app, @RequestParam( required = false ) boolean deleteAppData )
         throws WebMessageException
@@ -246,7 +248,7 @@ public class AppController
 
     @SuppressWarnings( "unchecked" )
     @RequestMapping( value = "/config", method = RequestMethod.POST, consumes = ContextUtils.CONTENT_TYPE_JSON )
-    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-maintenance-appmanager')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void setConfig( HttpServletRequest request )
         throws IOException, WebMessageException

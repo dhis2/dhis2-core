@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,37 +32,60 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.apache.commons.lang.builder.CompareToBuilder;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
-import java.io.Serializable;
+import java.util.Date;
 
 /**
+ * Class representing a validation violation. The validationRule, period and org unit
+ * properties make up a composite unique key.
+ *
  * @author Margrethe Store
  */
 @JacksonXmlRootElement( localName = "validationResult", namespace = DxfNamespaces.DXF_2_0 )
-public class ValidationResult
-    implements Serializable, Comparable<ValidationResult>
+public class ValidationResult implements Comparable<ValidationResult>
 {
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = -4118317796752962296L;
 
-    private OrganisationUnit orgUnit;
+    private int id;
 
-    private Period period;
-
-    private DataElementCategoryOptionCombo attributeOptionCombo;
+    private Date created;
 
     private ValidationRule validationRule;
 
+    private Period period;
+
+    private OrganisationUnit organisationUnit;
+
+    private DataElementCategoryOptionCombo attributeOptionCombo;
+
+    /**
+     * The leftsideValue at the time of the violation
+     */
     private Double leftsideValue;
 
+    /**
+     * The rightsideValue at the time of the violation
+     */
     private Double rightsideValue;
+
+    /**
+     * This property is a reference to which data was used to generate the result.
+     * For rules comparing fixed periods, this dayInPeriod only indicates when in a period the validation was done
+     * For rules comparing sliding windows, this will indicate where the end-position of the sliding window was
+     * during the validation (IE: the window will span over the days:
+     * (period.startDate + dayInPeriod - period.daysInPeriod) to (period.startDate + dayInPeriod)
+     */
+    private int dayInPeriod;
+
+    /**
+     * Indicated whether this ValidationResult has generated a notification for users or not.
+     */
+    private Boolean notificationSent = false;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -72,30 +95,31 @@ public class ValidationResult
     {
     }
 
-    public ValidationResult( Period period, OrganisationUnit orgUnit,
-        DataElementCategoryOptionCombo attributeOptionCombo, ValidationRule validationRule,
-        Double leftsideValue, Double rightsideValue )
+    public ValidationResult( ValidationRule validationRule, Period period,
+        OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo,
+        Double leftsideValue, Double rightsideValue, int dayInPeriod )
     {
-        this.orgUnit = orgUnit;
-        this.period = period;
-        this.attributeOptionCombo = attributeOptionCombo;
         this.validationRule = validationRule;
+        this.period = period;
+        this.organisationUnit = organisationUnit;
+        this.attributeOptionCombo = attributeOptionCombo;
         this.leftsideValue = leftsideValue;
         this.rightsideValue = rightsideValue;
+        this.dayInPeriod = dayInPeriod;
     }
 
     // -------------------------------------------------------------------------
     // Equals, compareTo, hashCode and toString
-    // -------------------------------------------------------------------------     
+    // -------------------------------------------------------------------------
 
     @Override
     public int hashCode()
     {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((period == null) ? 0 : period.hashCode());
-        result = prime * result + ((orgUnit == null) ? 0 : orgUnit.hashCode());
         result = prime * result + ((validationRule == null) ? 0 : validationRule.hashCode());
+        result = prime * result + ((period == null) ? 0 : period.hashCode());
+        result = prime * result + ((organisationUnit == null) ? 0 : organisationUnit.hashCode());
 
         return result;
     }
@@ -149,14 +173,14 @@ public class ValidationResult
             return false;
         }
 
-        if ( orgUnit == null )
+        if ( organisationUnit == null )
         {
-            if ( other.orgUnit != null )
+            if ( other.organisationUnit != null )
             {
                 return false;
             }
         }
-        else if ( !orgUnit.equals( other.orgUnit ) )
+        else if ( !organisationUnit.equals( other.organisationUnit ) )
         {
             return false;
         }
@@ -200,7 +224,7 @@ public class ValidationResult
         {
             return false;
         }
-        else if ( Math.round( 100.0 * leftsideValue ) != Math.round( 100.0 * other.leftsideValue ) )
+        else if ( Math.round( 100.0 * rightsideValue ) != Math.round( 100.0 * other.rightsideValue ) )
         {
             return false;
         }
@@ -208,101 +232,32 @@ public class ValidationResult
         return true;
     }
 
-    /**
-     * Note: this method is called from threads in which it may not be possible
-     * to initialize lazy Hibernate properties. So object properties to compare
-     * must be chosen accordingly.
-     */
-    @Override
-    public int compareTo( ValidationResult other )
-    {
-        int result = orgUnit.getName().compareTo( other.orgUnit.getName() );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = period.getStartDate().compareTo( other.period.getStartDate() );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = period.getEndDate().compareTo( other.period.getEndDate() );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = attributeOptionCombo.getId() - other.attributeOptionCombo.getId();
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = validationImportanceOrder( validationRule.getImportance() ) - validationImportanceOrder( other.validationRule.getImportance() );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = validationRule.getLeftSide().getDescription().compareTo( other.validationRule.getLeftSide().getDescription() );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = validationRule.getOperator().compareTo( other.validationRule.getOperator() );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = validationRule.getRightSide().getDescription().compareTo( other.validationRule.getRightSide().getDescription() );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = (int) Math.signum( Math.round( 100.0 * leftsideValue ) - Math.round( 100.0 * other.leftsideValue ) );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        result = (int) Math.signum( Math.round( 100.0 * rightsideValue ) - Math.round( 100.0 * other.rightsideValue ) );
-
-        if ( result != 0 )
-        {
-            return result;
-        }
-
-        return 0;
-    }
-
-    private int validationImportanceOrder( Importance importance )
-    {
-        return importance == Importance.HIGH ? 0 : importance == Importance.MEDIUM ? 1 : 2;
-    }
-
     @Override
     public String toString()
     {
-        return "[Org unit: " + orgUnit.getUid() +
+        return "[Org unit: " + organisationUnit.getUid() +
             ", period: " + period.getUid() +
             ", validation rule: " + validationRule.getUid() +
-            "(" + validationRule.getDisplayName() + ")"+
+            "(" + validationRule.getDisplayName() + ")" +
             ", left side value: " + leftsideValue +
             ", right side value: " + rightsideValue + "]";
+    }
+
+    /**
+     * Comparing validation results is done by priority, then time
+     *
+     * @param identifiableObject
+     * @return
+     */
+    public int compareTo( ValidationResult other )
+    {
+        return new CompareToBuilder()
+            .append( this.validationRule, other.getValidationRule() )
+            .append( this.period, other.getPeriod() )
+            .append( this.attributeOptionCombo, other.getAttributeOptionCombo() )
+            .append( this.organisationUnit, other.getOrganisationUnit() )
+            .append( this.id, other.getId() )
+            .toComparison();
     }
 
     // -------------------------------------------------------------------------
@@ -310,16 +265,28 @@ public class ValidationResult
     // -------------------------------------------------------------------------     
 
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public OrganisationUnit getOrgUnit()
+    public int getId()
     {
-        return orgUnit;
+        return id;
     }
 
-    public void setOrgUnit( OrganisationUnit orgUnit )
+    public void setId( int id )
     {
-        this.orgUnit = orgUnit;
+        this.id = id;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public OrganisationUnit getOrganisationUnit()
+    {
+        return organisationUnit;
+    }
+
+    public void setOrganisationUnit( OrganisationUnit organisationUnit )
+    {
+        this.organisationUnit = organisationUnit;
     }
 
     @JsonProperty
@@ -383,5 +350,39 @@ public class ValidationResult
     public void setRightsideValue( Double rightsideValue )
     {
         this.rightsideValue = rightsideValue;
+    }
+
+    public int getDayInPeriod()
+    {
+        return dayInPeriod;
+    }
+
+    public void setDayInPeriod( int dayInPeriod )
+    {
+        this.dayInPeriod = dayInPeriod;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getNotificationSent()
+    {
+        return notificationSent;
+    }
+
+    public void setNotificationSent( Boolean notificationSent )
+    {
+        this.notificationSent = notificationSent;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty
+    public Date getCreated()
+    {
+        return created;
+    }
+
+    public void setCreated( Date created )
+    {
+        this.created = created;
     }
 }

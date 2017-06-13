@@ -12,7 +12,7 @@
       <generator class="native" />
     </id>
     &identifiableProperties;
-    
+
     <property name="description" type="text" />
 
     <property name="layer" not-null="true" />
@@ -60,9 +60,9 @@
       <many-to-many column="orgunitgroupid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroup"
         foreign-key="fk_mapview_itemorgunitgroups_orgunitgroupid" />
     </list>
-    
+
     <!-- EventAnalyticalObject -->
-    
+
     <list name="attributeDimensions" table="mapview_attributedimensions" cascade="all, delete-orphan">
       <key column="mapviewid" foreign-key="fk_mapview_attributedimensions_mapviewid" />
       <list-index column="sort_order" base="0" />
@@ -75,7 +75,7 @@
       <list-index column="sort_order" base="0" />
       <many-to-many column="trackedentitydataelementdimensionid" class="org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension"
         foreign-key="fk_mapview_dataelementdimensions_dataelementdimensionid" />
-    </list>    
+    </list>
 
     <list name="columnDimensions" table="mapview_columns">
       <cache usage="read-write" />
@@ -83,7 +83,7 @@
       <list-index column="sort_order" base="0" />
       <element type="string" column="dimension" />
     </list>
-    
+
     <property name="userOrganisationUnit" />
 
     <property name="userOrganisationUnitChildren" />
@@ -115,7 +115,7 @@
     <property name="colorLow" />
 
     <property name="colorHigh" />
-    
+
     <property name="colorScale" />
 
     <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
@@ -143,17 +143,19 @@
     <property name="labelFontStyle" />
 
     <property name="labelFontColor" />
-    
+
     <property name="eventClustering" />
-    
+
+    <property name="eventCoordinateField" />
+
     <property name="eventPointColor" />
-    
+
     <property name="eventPointRadius" />
-    
+
     <property name="config" type="text" />
 
     <!-- Object Translation -->
-    <set name="translations" table="mapviewtranslations" cascade="delete-orphan">
+    <set name="translations" table="mapviewtranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="mapviewid" foreign-key="fk_objecttranslation_mapviewid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

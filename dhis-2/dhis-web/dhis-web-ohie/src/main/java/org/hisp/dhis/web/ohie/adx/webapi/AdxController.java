@@ -1,7 +1,7 @@
 package org.hisp.dhis.web.ohie.adx.webapi;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -66,11 +66,12 @@ public class AdxController
     public void postXMLDataValueSet( ImportOptions importOptions,
         HttpServletResponse response, InputStream in, Model model ) throws IOException
     {
-        ImportSummaries importSummaries = adxService.saveDataValueSet( in, importOptions, null );
+        ImportSummary importSummary = adxService.saveDataValueSet( in, importOptions, null );
+        importSummary.setImportOptions( importOptions );
 
         log.debug( "Data values set saved" );
 
         response.setContentType( CONTENT_TYPE_XML );
-        DefaultRenderService.getXmlMapper().writeValue( response.getOutputStream(), importSummaries );
+        DefaultRenderService.getXmlMapper().writeValue( response.getOutputStream(), importSummary );
     }
 }

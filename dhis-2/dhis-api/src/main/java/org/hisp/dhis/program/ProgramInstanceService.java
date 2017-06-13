@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,11 +54,20 @@ public interface ProgramInstanceService
     int addProgramInstance( ProgramInstance programInstance );
 
     /**
-     * Deletes a {@link ProgramInstance}.
+     * Soft deletes a {@link ProgramInstance}.
      *
      * @param programInstance the ProgramInstance to delete.
      */
     void deleteProgramInstance( ProgramInstance programInstance );
+
+    /**
+     * Deletes a program instance. Based on the forceDelete parameter, the program instance is
+     * either soft deleted (false) or hard deleted (true)
+     * @param programInstance to delete
+     * @param forceDelete soft delete or hard delete
+     */
+    void deleteProgramInstance( ProgramInstance programInstance, boolean forceDelete );
+
 
     /**
      * Updates an {@link ProgramInstance}.

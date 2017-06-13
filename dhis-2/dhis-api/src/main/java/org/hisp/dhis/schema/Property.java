@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
+import org.hisp.dhis.translation.TranslationProperty;
 import org.springframework.core.Ordered;
 
 import java.lang.reflect.Method;
@@ -164,6 +166,11 @@ public class Property implements Ordered, Klass
     private boolean nameableObject;
 
     /**
+     * Does this class implement {@link EmbeddedObject} ?
+     */
+    private boolean embeddedObject;
+
+    /**
      * Can this property be read.
      */
     private boolean readable;
@@ -276,6 +283,7 @@ public class Property implements Ordered, Klass
     {
         this.identifiableObject = IdentifiableObject.class.isAssignableFrom( klass );
         this.nameableObject = NameableObject.class.isAssignableFrom( klass );
+        this.embeddedObject = EmbeddedObject.class.isAssignableFrom( klass );
         this.klass = klass;
     }
 
@@ -505,6 +513,18 @@ public class Property implements Ordered, Klass
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isEmbeddedObject()
+    {
+        return embeddedObject;
+    }
+
+    public void setEmbeddedObject( boolean embeddedObject )
+    {
+        this.embeddedObject = embeddedObject;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isReadable()
     {
         return readable;
@@ -657,6 +677,30 @@ public class Property implements Ordered, Klass
     public void setInverseRole( String inverseRole )
     {
         this.inverseRole = inverseRole;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public TranslationProperty getTranslationKey()
+    {
+        if ( !isPersisted() )
+        {
+            return null;
+        }
+
+        switch ( name )
+        {
+            case "name":
+                return TranslationProperty.NAME;
+            case "shortName":
+                return TranslationProperty.SHORT_NAME;
+            case "description":
+                return TranslationProperty.DESCRIPTION;
+            case "formName":
+                return TranslationProperty.FORM_NAME;
+        }
+
+        return null;
     }
 
     @JsonProperty

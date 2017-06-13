@@ -1,7 +1,7 @@
 package org.hisp.dhis.pushanalysis;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,7 +56,7 @@ import org.hisp.dhis.scheduling.TaskCategory;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.sms.MessageResponseStatus;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
@@ -285,7 +285,7 @@ public class DefaultPushAnalysisService
 
                 // TODO: Better handling of messageStatus; Might require refactoring of EmailMessageSender
                 @SuppressWarnings( "unused" )
-                MessageResponseStatus status = messageSender
+                OutboundMessageResponse status = messageSender
                     .sendMessage( title, html, "", null, Sets.newHashSet( user ), true );
 
             }
@@ -529,6 +529,8 @@ public class DefaultPushAnalysisService
 
         switch ( notificationLevel )
         {
+            case DEBUG:
+                log.debug( message );
             case INFO:
                 log.info( message );
                 break;
@@ -537,6 +539,8 @@ public class DefaultPushAnalysisService
                 break;
             case ERROR:
                 log.error( message, exception );
+                break;
+            default:
                 break;
         }
     }

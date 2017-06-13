@@ -26,10 +26,6 @@ function programStageManagement( context ) {
   location.href = 'programStage.action?id=' + context.id;
 }
 
-function programValidationManagement( context ) {
-  location.href = 'programValidation.action?programId=' + context.id;
-}
-
 function defineProgramAssociationsForm( context ) {
   location.href = 'defineProgramAssociationsForm.action?id=' + context.id;
 }
@@ -74,10 +70,7 @@ function showProgramDetails( context ) {
 
     var selectIncidentDatesInFuture = ( json.program.selectIncidentDatesInFuture == 'true') ? i18n_yes : i18n_no;
     setInnerHTML('selectIncidentDatesInFutureField', selectIncidentDatesInFuture);
-
-    var dataEntryMethod = ( json.program.dataEntryMethod == 'true') ? i18n_yes : i18n_no;
-    setInnerHTML('dataEntryMethodField', dataEntryMethod);
-
+    
     setInnerHTML('enrollmentDateLabelField', json.program.enrollmentDateLabel);
     setInnerHTML('incidentDateLabelField', json.program.incidentDateLabel);
     setInnerHTML('programStageCountField', json.program.programStageCount);
@@ -192,7 +185,15 @@ function selectProperties() {
 	  }
 	  else{
 		html += "<td align='center'><input type='hidden' name='allowFutureDate'></td>";
+	  }	  
+	  
+	  if( jQuery(item).attr('valuetype') =='optionset'){
+		html += "<td align='center'><input type='checkbox' name='renderOptionsAsRadio'></td>";
+	  }            
+	  else{
+		html += "<td align='center'><input type='hidden' name='renderOptionsAsRadio'></td>";
 	  }
+	  
 	  html += "</tr>";
 		
       selectedList.append(html);
@@ -218,6 +219,14 @@ function selectAllProperties() {
 	else{
 		html += "<td align='center'><input type='hidden' name='allowFutureDate'></td>";
 	}
+    
+    if( jQuery(item).attr('valuetype') =='optionset'){
+    	html += "<td align='center'><input type='checkbox' name='renderOptionsAsRadio'></td>";
+    }            
+    else{
+    	html += "<td align='center'><input type='hidden' name='renderOptionsAsRadio'></td>";
+    }
+    
 	html += "</tr>";
 	
 	selectedList.append(html);

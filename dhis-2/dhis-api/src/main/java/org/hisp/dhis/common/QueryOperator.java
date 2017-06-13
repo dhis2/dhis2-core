@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,24 +34,24 @@ package org.hisp.dhis.common;
 public enum QueryOperator
 {
     EQ( "=" ), GT( ">" ), GE( ">=" ), LT( "<" ), LE( "<=" ), NE( "!=" ), LIKE( "like" ), IN( "in" );
-    
+
     private final String value;
-    
-    private QueryOperator( String value )
+
+    QueryOperator( String value )
     {
         this.value = value;
-    }    
-    
-    public static final QueryOperator fromString( String string )
+    }
+
+    public static QueryOperator fromString( String string )
     {
         if ( string == null || string.isEmpty() )
         {
             return null;
         }
-        
+
         return valueOf( string.toUpperCase() );
     }
-    
+
     public String getValue()
     {
         return value;

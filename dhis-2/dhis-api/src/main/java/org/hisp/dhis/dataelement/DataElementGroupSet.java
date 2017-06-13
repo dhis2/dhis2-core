@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,8 +40,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,7 +56,7 @@ import java.util.List;
  */
 @JacksonXmlRootElement( localName = "dataElementGroupSet", namespace = DxfNamespaces.DXF_2_0 )
 public class DataElementGroupSet
-    extends BaseDimensionalObject
+    extends BaseDimensionalObject implements MetadataObject
 {
     private Boolean compulsory = false;
 
@@ -103,23 +102,20 @@ public class DataElementGroupSet
     public void addDataElementGroup( DataElementGroup dataElementGroup )
     {
         members.add( dataElementGroup );
-        dataElementGroup.setGroupSet( this );
+        dataElementGroup.getGroupSets().add( this );
     }
 
     public void removeDataElementGroup( DataElementGroup dataElementGroup )
     {
         members.remove( dataElementGroup );
-        dataElementGroup.setGroupSet( null );
+        dataElementGroup.getGroupSets().remove( this );
     }
 
     public void removeAllDataElementGroups()
     {
         for ( DataElementGroup dataElementGroup : members )
         {
-            if ( dataElementGroup.getGroupSet() != null && dataElementGroup.getGroupSet().equals( this ) )
-            {
-                dataElementGroup.setGroupSet( null );
-            }
+            dataElementGroup.getGroupSets().remove( this );
         }
 
         members.clear();
@@ -243,34 +239,5 @@ public class DataElementGroupSet
     public void setMembers( List<DataElementGroup> members )
     {
         this.members = members;
-    }
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mode )
-    {
-        super.mergeWith( other, mode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DataElementGroupSet dataElementGroupSet = (DataElementGroupSet) other;
-
-            if ( mode.isReplace() )
-            {
-                description = dataElementGroupSet.getDescription();
-                compulsory = dataElementGroupSet.isCompulsory();
-            }
-            else if ( mode.isMerge() )
-            {
-                description = dataElementGroupSet.getDescription() == null ? description : dataElementGroupSet.getDescription();
-                compulsory = dataElementGroupSet.isCompulsory() == null ? compulsory : dataElementGroupSet.isCompulsory();
-            }
-
-            removeAllDataElementGroups();
-
-            for ( DataElementGroup dataElementGroup : dataElementGroupSet.getMembers() )
-            {
-                addDataElementGroup( dataElementGroup );
-            }
-        }
     }
 }

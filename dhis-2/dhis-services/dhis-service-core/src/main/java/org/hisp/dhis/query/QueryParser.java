@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,9 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.Schema;
+
 import java.util.List;
 
 /**
@@ -51,4 +54,8 @@ public interface QueryParser
     Query parse( Class<?> klass, List<String> filters, Junction.Type rootJunction ) throws QueryParserException;
 
     Query parse( Class<?> klass, List<String> filters ) throws QueryParserException;
+
+    Property getProperty( Schema schema, String path ) throws QueryParserException;
+
+    Restriction getRestriction( Schema schema, String path, String operator, Object arg ) throws QueryParserException;
 }

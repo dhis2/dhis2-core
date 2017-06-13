@@ -1,7 +1,7 @@
 package org.hisp.dhis.predictor;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,15 +31,17 @@ package org.hisp.dhis.predictor;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodType;
@@ -54,12 +56,17 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "Predictor", namespace = DxfNamespaces.DXF_2_0 )
 public class Predictor
-    extends BaseNameableObject
+    extends BaseNameableObject implements MetadataObject
 {
     /**
      * The data element into which the predictor writes
      */
     private DataElement output;
+
+    /**
+     * The category option combo into which the predictor writes
+     */
+    private DataElementCategoryOptionCombo outputCombo;
 
     /**
      * The generator used to compute the value of the predictor.
@@ -127,22 +134,6 @@ public class Predictor
         return description != null && !description.trim().isEmpty() ? description : name;
     }
 
-    /**
-     * Gets the data sources needed from the target period to evaluate the predictor
-     */
-    public Set<DataElement> getPresentDataNeeded()
-    {
-        return generator.getDataElementsInExpression();
-    }
-
-    /**
-     * Gets the data sources needed from past sample periods to evaluate the predictor
-     */
-    public Set<DataElement> getSampleDataNeeded()
-    {
-        return generator.getSampleElementsInExpression();
-    }
-
     // -------------------------------------------------------------------------
     // Set and get methods
     // -------------------------------------------------------------------------
@@ -161,6 +152,18 @@ public class Predictor
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DataElementCategoryOptionCombo getOutputCombo()
+    {
+        return outputCombo;
+    }
+
+    public void setOutputCombo( DataElementCategoryOptionCombo combo )
+    {
+        this.outputCombo = combo;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Expression getGenerator()
     {
         return generator;
@@ -172,7 +175,9 @@ public class Predictor
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( localName = "organisationUnitLevel", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "organisationUnitLevels", namespace = DxfNamespaces.DXF_2_0 )
     public Set<OrganisationUnitLevel> getOrganisationUnitLevels()
     {
         return organisationUnitLevels;
@@ -212,7 +217,7 @@ public class Predictor
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = 0, max = 10 )
+    @PropertyRange( max = 10 )
     public Integer getAnnualSampleCount()
     {
         return annualSampleCount;
@@ -247,55 +252,8 @@ public class Predictor
         this.sampleSkipTest = sampleSkipTest;
     }
 
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        // TODO: what else needs to be merged?
-
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            Predictor predictor = (Predictor) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                description = predictor.getDescription();
-                output = predictor.getOutput();
-                generator = predictor.getGenerator();
-                periodType = predictor.getPeriodType();
-                sequentialSampleCount = predictor.getSequentialSampleCount();
-                sequentialSkipCount = predictor.getSequentialSkipCount();
-                annualSampleCount = predictor.getAnnualSampleCount();
-                organisationUnitLevels = predictor.getOrganisationUnitLevels();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                description = predictor.getDescription() == null ? description : predictor.getDescription();
-                periodType = predictor.getPeriodType() == null ? periodType : predictor.getPeriodType();
-                output = predictor.getOutput() == null ? output : predictor.getOutput();
-                sequentialSampleCount = predictor.getSequentialSampleCount() == null ? sequentialSampleCount : predictor.getSequentialSampleCount();
-                sequentialSkipCount = predictor.getSequentialSkipCount() == null ? sequentialSkipCount : predictor.getSequentialSkipCount();
-                annualSampleCount = predictor.getAnnualSampleCount() == null ? annualSampleCount : predictor.getAnnualSampleCount();
-                organisationUnitLevels = predictor.getOrganisationUnitLevels() == null ? organisationUnitLevels : predictor.getOrganisationUnitLevels();
-            }
-
-            if ( generator != null && predictor.getGenerator() != null )
-            {
-                generator.mergeWith( predictor.getGenerator() );
-            }
-
-            if ( sampleSkipTest != null && predictor.getSampleSkipTest() != null )
-            {
-                sampleSkipTest.mergeWith( predictor.getSampleSkipTest() );
-            }
-        }
-    }
-
     /**
-     * Clears the generator and skipTest expressions. This can be useful, for
-     * example, before changing the validation rule period type, because the
-     * data elements allowed in the expressions depend on the period type.
+     * Clears the generator and skipTest expressions.
      */
     public void clearExpressions()
     {

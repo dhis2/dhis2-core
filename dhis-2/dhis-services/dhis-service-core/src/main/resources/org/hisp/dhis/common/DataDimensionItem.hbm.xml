@@ -12,20 +12,25 @@
       <generator class="native" />
     </id>
 
-    <many-to-one name="indicator" class="org.hisp.dhis.indicator.Indicator" 
+    <many-to-one name="indicator" class="org.hisp.dhis.indicator.Indicator"
       column="indicatorid" foreign-key="fk_datadimensionitem_indicatorid" />
 
-    <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" 
+    <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement"
       column="dataelementid" foreign-key="fk_datadimensionitem_dataelementid" />
 
-    <many-to-one name="dataElementOperand" class="org.hisp.dhis.dataelement.DataElementOperand"
-	  column="dataelementoperandid" foreign-key="fk_datadimensionitem_dataelementoperandid" />
+    <component name="dataElementOperand" class="org.hisp.dhis.dataelement.DataElementOperand">
+      <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement"
+        column="dataelementoperand_dataelementid" foreign-key="fk_datadimensionitem_dataelementoperand_dataelementid" />
+        
+      <many-to-one name="categoryOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo"
+        column="dataelementoperand_categoryoptioncomboid" foreign-key="fk_datadimensionitem_dataelementoperand_categoryoptioncomboid" />
+    </component>
 
     <component name="reportingRate" class="org.hisp.dhis.common.ReportingRate">
       <many-to-one name="dataSet" class="org.hisp.dhis.dataset.DataSet"
         column="datasetid" foreign-key="fk_datadimensionitem_datasetid" />
 
-      <property name="metric" length="50" column="metric"> <!-- not null true -->
+      <property name="metric" length="50" column="metric">
         <type name="org.hibernate.type.EnumType">
           <param name="enumClass">org.hisp.dhis.common.ReportingRateMetric</param>
           <param name="useNamed">true</param>
@@ -34,14 +39,24 @@
       </property>
     </component>
 
-    <many-to-one name="programIndicator" class="org.hisp.dhis.program.ProgramIndicator" 
+    <many-to-one name="programIndicator" class="org.hisp.dhis.program.ProgramIndicator"
       column="programindicatorid" foreign-key="fk_datadimensionitem_programindicatorid" />
 
-    <many-to-one name="programDataElement" class="org.hisp.dhis.program.ProgramDataElement"
-      column="programdataelementid" foreign-key="fk_datadimensionitem_programdataelementid" />
+    <component name="programDataElement" class="org.hisp.dhis.program.ProgramDataElementDimensionItem">
+      <many-to-one name="program"  class="org.hisp.dhis.program.Program"
+        column="programdataelement_programid" foreign-key="fk_datadimensionitem_programdataelement_programid" />
+        
+      <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement"
+        column="programdataelement_dataelementid" foreign-key="fk_datadimensionitem_programdataelement_dataelementid" />
+    </component>
 
-    <many-to-one name="programAttribute" class="org.hisp.dhis.program.ProgramTrackedEntityAttribute" 
-      column="programattributeid" foreign-key="fk_datadimensionitem_programattributeid" />
-
+    <component name="programAttribute" class="org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem">
+      <many-to-one name="program" class="org.hisp.dhis.program.Program"
+        column="programattribute_programid" foreign-key="fk_datadimensionitem_programattribute_programid" />
+    
+      <many-to-one name="attribute" class="org.hisp.dhis.trackedentity.TrackedEntityAttribute"
+        column="programattribute_attributeid" foreign-key="fk_datadimensionitem_programattribute_attributeid" />
+    </component>
+    
   </class>
 </hibernate-mapping>

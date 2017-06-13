@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.acl;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,10 @@ package org.hisp.dhis.security.acl;
  */
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.user.User;
+
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -69,21 +72,6 @@ public interface AclService
     boolean isShareable( Class<?> klass );
 
     /**
-     * Can user write to this object (create)
-     * <p/>
-     * 1. Does user have ACL_OVERRIDE_AUTHORITIES authority?
-     * 2. Is the user for the object null?
-     * 3. Is the user of the object equal to current user?
-     * 4. Is the object public write?
-     * 5. Does any of the userGroupAccesses contain public write and the current user is in that group
-     *
-     * @param user   User to check against
-     * @param object Object to check
-     * @return Result of test
-     */
-    boolean canWrite( User user, IdentifiableObject object );
-
-    /**
      * Can user read this object
      * <p/>
      * 1. Does user have ACL_OVERRIDE_AUTHORITIES authority?
@@ -97,6 +85,21 @@ public interface AclService
      * @return Result of test
      */
     boolean canRead( User user, IdentifiableObject object );
+
+    /**
+     * Can user write to this object (create)
+     * <p/>
+     * 1. Does user have ACL_OVERRIDE_AUTHORITIES authority?
+     * 2. Is the user for the object null?
+     * 3. Is the user of the object equal to current user?
+     * 4. Is the object public write?
+     * 5. Does any of the userGroupAccesses contain public write and the current user is in that group
+     *
+     * @param user   User to check against
+     * @param object Object to check
+     * @return Result of test
+     */
+    boolean canWrite( User user, IdentifiableObject object );
 
     /**
      * Can user update this object
@@ -162,7 +165,7 @@ public interface AclService
      * @param klass Class to check
      * @return Result of test
      */
-    <T extends IdentifiableObject> boolean canCreatePublic( User user, Class<T> klass );
+    <T extends IdentifiableObject> boolean canMakePublic( User user, Class<T> klass );
 
     /**
      * Checks if a user can create a private instance of a certain object.
@@ -174,7 +177,7 @@ public interface AclService
      * @param klass Class to check
      * @return Result of test
      */
-    <T extends IdentifiableObject> boolean canCreatePrivate( User user, Class<T> klass );
+    <T extends IdentifiableObject> boolean canMakePrivate( User user, Class<T> klass );
 
     /**
      * Can user make this object external? (read with no login)
@@ -183,7 +186,7 @@ public interface AclService
      * @param klass Type to check
      * @return Result of test
      */
-    <T extends IdentifiableObject> boolean canExternalize( User user, Class<T> klass );
+    <T extends IdentifiableObject> boolean canMakeExternal( User user, Class<T> klass );
 
     /**
      * Is the default for this type to be private?
@@ -219,4 +222,21 @@ public interface AclService
      * @return Populated access instance
      */
     <T extends IdentifiableObject> Access getAccess( T object, User user );
+
+    /**
+     * Sets default sharing props on object, disregarding what is already there.
+     *
+     * @param object Object to update
+     * @param user   User to base ACL on
+     */
+    <T extends IdentifiableObject> void resetSharing( T object, User user );
+
+    /**
+     * Verify that sharing props are correctly set according to user.
+     *
+     * @param object Object to update
+     * @param user   User to base ACL on
+     * @return List of error reports (if any)
+     */
+    <T extends IdentifiableObject> List<ErrorReport> verifySharing( T object, User user );
 }

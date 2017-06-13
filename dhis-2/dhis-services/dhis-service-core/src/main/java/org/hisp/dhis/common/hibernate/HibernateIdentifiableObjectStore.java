@@ -1,9 +1,7 @@
 package org.hisp.dhis.common.hibernate;
 
-import org.apache.commons.lang3.StringUtils;
-
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
@@ -84,10 +83,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     // -------------------------------------------------------------------------
 
     @Override
-    public int save( T object )
+    public void save( T object )
     {
         object.setAutoFields();
-        return super.save( object );
+        super.save( object );
     }
 
     @Override
@@ -122,6 +121,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public final void updateNoAcl( T object )
     {
+        object.setAutoFields();
         getSession().update( object );
     }
 

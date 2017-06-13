@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -93,33 +93,5 @@ public class BaseDataDimensionalItemObject
     public void setAggregateExportAttributeOptionCombo( String aggregateExportAttributeOptionCombo )
     {
         this.aggregateExportAttributeOptionCombo = aggregateExportAttributeOptionCombo;
-    }
-
-    // -------------------------------------------------------------------------
-    // Merge
-    // -------------------------------------------------------------------------
-
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
-    {
-        super.mergeWith( other, mergeMode );
-
-        if ( other.getClass().isInstance( this ) )
-        {
-            DataDimensionalItemObject object = (DataDimensionalItemObject) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                aggregateExportCategoryOptionCombo = object.getAggregateExportCategoryOptionCombo();
-                aggregateExportAttributeOptionCombo = object.getAggregateExportAttributeOptionCombo();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                aggregateExportCategoryOptionCombo = object.getAggregateExportCategoryOptionCombo() == null ? 
-                    aggregateExportCategoryOptionCombo : object.getAggregateExportCategoryOptionCombo();
-                aggregateExportAttributeOptionCombo = object.getAggregateExportAttributeOptionCombo() == null ?
-                    aggregateExportAttributeOptionCombo : object.getAggregateExportAttributeOptionCombo();
-            }
-        }
     }
 }

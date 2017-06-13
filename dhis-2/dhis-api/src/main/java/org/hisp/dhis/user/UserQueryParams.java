@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,10 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-
+import com.google.common.base.MoreObjects;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-import com.google.common.base.MoreObjects;
+import java.util.Date;
 
 /**
  * @author Lars Helge Overland
@@ -54,6 +53,8 @@ public class UserQueryParams
     private Date lastLogin;
     
     private Date inactiveSince;
+
+    private Date daysPassedSincePasswordChange;
     
     private Integer inactiveMonths;
     
@@ -66,6 +67,8 @@ public class UserQueryParams
     private Integer first;
     
     private Integer max;
+
+    private boolean includeOrgUnitChildren;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -260,5 +263,26 @@ public class UserQueryParams
     {
         this.max = max;
         return this;
-    }    
+    }
+
+    public boolean getIncludeOrgUnitChildren()
+    {
+        return includeOrgUnitChildren;
+    }
+
+    public UserQueryParams setIncludeOrgUnitChildren( boolean includeOrgUnitChildren )
+    {
+        this.includeOrgUnitChildren = includeOrgUnitChildren;
+        return this;
+    }
+
+    public Date getDaysPassedSincePasswordChange()
+    {
+        return daysPassedSincePasswordChange;
+    }
+
+    public void setDaysPassedSincePasswordChange( Date daysPassedSincePasswordChange )
+    {
+        this.daysPassedSincePasswordChange = daysPassedSincePasswordChange;
+    }
 }

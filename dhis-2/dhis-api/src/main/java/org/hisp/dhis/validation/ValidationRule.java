@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,17 +36,16 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -56,7 +55,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "validationRule", namespace = DxfNamespaces.DXF_2_0 )
 public class ValidationRule
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     /**
      * A description of the ValidationRule.
@@ -98,6 +97,11 @@ public class ValidationRule
      * The set of ValidationRuleGroups to which this ValidationRule belongs.
      */
     private Set<ValidationRuleGroup> groups = new HashSet<>();
+
+    /**
+     * Notification templates for this ValidationRule
+     */
+    private Set<ValidationNotificationTemplate> notificationTemplates = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -174,39 +178,6 @@ public class ValidationRule
     public String getDescriptionNameFallback()
     {
         return description != null && !description.trim().isEmpty() ? description : name;
-    }
-
-    /**
-     * Gets the data elements to evaluate for the current period. For
-     * validation-type rules this means all data elements. For monitoring-type
-     * rules this means just the left side elements.
-     *
-     * @return the data elements to evaluate for the current period.
-     */
-    public Set<DataElement> getCurrentDataElements()
-    {
-        Set<DataElement> currentDataElements =
-            new HashSet<>( leftSide.getDataElementsInExpression() );
-
-        currentDataElements.addAll( rightSide.getDataElementsInExpression() );
-
-        return currentDataElements;
-    }
-
-    /**
-     * Indicates whether this validation rule has user groups to alert.
-     */
-    public boolean hasUserGroupsToAlert()
-    {
-        for ( ValidationRuleGroup group : groups )
-        {
-            if ( group.hasUserGroupsToAlert() )
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -337,39 +308,16 @@ public class ValidationRule
         this.groups = groups;
     }
 
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "notificationTemplates", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<ValidationNotificationTemplate> getNotificationTemplates()
     {
-        super.mergeWith( other, mergeMode );
+        return notificationTemplates;
+    }
 
-        if ( other.getClass().isInstance( this ) )
-        {
-            ValidationRule validationRule = (ValidationRule) other;
-
-            if ( mergeMode.isReplace() )
-            {
-                description = validationRule.getDescription();
-                operator = validationRule.getOperator();
-                periodType = validationRule.getPeriodType();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                description = validationRule.getDescription() == null ? description : validationRule.getDescription();
-                operator = validationRule.getOperator() == null ? operator : validationRule.getOperator();
-                periodType = validationRule.getPeriodType() == null ? periodType : validationRule.getPeriodType();
-            }
-
-            if ( leftSide != null && validationRule.getLeftSide() != null )
-            {
-                leftSide.mergeWith( validationRule.getLeftSide() );
-            }
-
-            if ( rightSide != null && validationRule.getRightSide() != null )
-            {
-                rightSide.mergeWith( validationRule.getRightSide() );
-            }
-
-            groups.clear();
-        }
+    public void setNotificationTemplates( Set<ValidationNotificationTemplate> notificationTemplates )
+    {
+        this.notificationTemplates = notificationTemplates;
     }
 }

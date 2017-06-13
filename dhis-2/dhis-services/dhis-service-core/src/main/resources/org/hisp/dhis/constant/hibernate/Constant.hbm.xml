@@ -24,7 +24,7 @@
     <property name="value" not-null="true" />
 
     <!-- Object Translation -->
-    <set name="translations" table="constanttranslations" cascade="delete-orphan">
+    <set name="translations" table="constanttranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="colorid" foreign-key="fk_objecttranslation_colorid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
@@ -35,14 +35,20 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="constantusergroupaccesses">
+    <set name="userGroupAccesses" table="constantusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="constantid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
+    <set name="userAccesses" table="constantuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="constantid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
+
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="constantattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="constantattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="constantid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />

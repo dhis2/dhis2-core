@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,13 +31,14 @@ package org.hisp.dhis.trackedentity;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
 
 /**
  * @author Chau Thu Tran
  */
 @JacksonXmlRootElement( localName = "trackedEntity", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntity
-    extends BaseNameableObject
+    extends BaseNameableObject implements MetadataObject
 {
     // -------------------------------------------------------------------------
     // Constructor

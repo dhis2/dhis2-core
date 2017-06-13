@@ -1,7 +1,7 @@
 package org.hisp.dhis.resourcetable.jdbc;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,16 +28,17 @@ package org.hisp.dhis.resourcetable.jdbc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Optional;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableStore;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.jdbc.core.JdbcTemplate;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Lars Helge Overland
@@ -46,7 +47,7 @@ public class JdbcResourceTableStore
     implements ResourceTableStore
 {
     private static final Log log = LogFactory.getLog( JdbcResourceTableStore.class );
-    
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -58,6 +59,13 @@ public class JdbcResourceTableStore
         this.jdbcTemplate = jdbcTemplate;
     }
     
+    private StatementBuilder statementBuilder;
+    
+    public void setStatementBuilder( StatementBuilder statementBuilder )
+    {
+        this.statementBuilder = statementBuilder;
+    }
+
     private DbmsManager dbmsManager;
 
     public void setDbmsManager( DbmsManager dbmsManager )
@@ -76,6 +84,7 @@ public class JdbcResourceTableStore
         final Optional<String> populateTableSql = resourceTable.getPopulateTempTableStatement();
         final Optional<List<Object[]>> populateTableContent = resourceTable.getPopulateTempTableContent();
         final List<String> createIndexSql = resourceTable.getCreateIndexStatements();
+        final String analyzeTableSql = statementBuilder.getAnalyze( resourceTable.getTableName() );
 
         // ---------------------------------------------------------------------
         // Drop temporary table if it exists
@@ -140,7 +149,20 @@ public class JdbcResourceTableStore
         
         jdbcTemplate.execute( resourceTable.getRenameTempTableStatement() );
         
-        log.info( "Swapped resource table, done: " + resourceTable.getTableName() + " in: " + clock.time() );
+        log.info( "Swapped resource table: " + resourceTable.getTableName() );
+
+        // ---------------------------------------------------------------------
+        // Analyze
+        // ---------------------------------------------------------------------
+
+        if ( analyzeTableSql != null )
+        {
+            log.info( "Analyze table SQL: " + analyzeTableSql );
+            
+            jdbcTemplate.execute( analyzeTableSql );
+        }
+        
+        log.info( "Analyzed resource table: " + resourceTable.getTableName() + ", done in: " + clock.time() );
     }
     
     @Override

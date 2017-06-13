@@ -60,6 +60,7 @@ public class MetadataSystemSettingServiceTest
         systemSettingManager.saveSystemSetting( SettingKey.REMOTE_INSTANCE_URL, "http://localhost:9080" );
         systemSettingManager.saveSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME, "username" );
         systemSettingManager.saveSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD, "password" );
+        systemSettingManager.saveSystemSetting( SettingKey.STOP_METADATA_SYNC, true );
     }
 
     @Test
@@ -108,5 +109,22 @@ public class MetadataSystemSettingServiceTest
         String versionHistoryUrl = metadataSystemSettingService.getEntireVersionHistory();
 
         assertEquals("http://localhost:9080/api/metadata/version/history", versionHistoryUrl );
+    }
+
+    @Test
+    public void testShouldGetStopMetadataSyncSettingValue()
+    {
+        Boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting(  );
+
+        assertEquals( true, stopMetadataSync );
+    }
+
+    @Test
+    public void testShouldReturnFalseIfStopMetadataSyncSettingValueIsNull()
+    {
+        systemSettingManager.saveSystemSetting( SettingKey.STOP_METADATA_SYNC, null );
+        Boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting(  );
+
+        assertEquals( false, stopMetadataSync );
     }
 }

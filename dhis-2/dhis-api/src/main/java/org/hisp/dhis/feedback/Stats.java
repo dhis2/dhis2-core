@@ -1,7 +1,7 @@
 package org.hisp.dhis.feedback;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,8 +40,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 @JacksonXmlRootElement( localName = "stats", namespace = DxfNamespaces.DXF_2_0 )
 public class Stats
 {
-    private int total;
-
     private int created;
 
     private int updated;
@@ -56,7 +54,6 @@ public class Stats
 
     public void merge( Stats stats )
     {
-        total += stats.getTotal();
         created += stats.getCreated();
         updated += stats.getUpdated();
         deleted += stats.getDeleted();
@@ -67,7 +64,7 @@ public class Stats
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getTotal()
     {
-        return total;
+        return created + updated + deleted + ignored;
     }
 
     @JsonProperty
@@ -80,13 +77,11 @@ public class Stats
     public void incCreated()
     {
         created++;
-        total++;
     }
 
     public void incCreated( int n )
     {
         created += n;
-        total += n;
     }
 
     @JsonProperty
@@ -99,13 +94,11 @@ public class Stats
     public void incUpdated()
     {
         updated++;
-        total++;
     }
 
     public void incUpdated( int n )
     {
         updated += n;
-        total += n;
     }
 
     @JsonProperty
@@ -118,13 +111,11 @@ public class Stats
     public void incDeleted()
     {
         deleted++;
-        total++;
     }
 
     public void incDeleted( int n )
     {
         deleted += n;
-        total += n;
     }
 
     @JsonProperty
@@ -137,20 +128,28 @@ public class Stats
     public void incIgnored()
     {
         ignored++;
-        total++;
     }
 
     public void incIgnored( int n )
     {
         ignored += n;
-        total += n;
+    }
+
+    public void ignored()
+    {
+        ignored += created;
+        ignored += updated;
+        ignored += deleted;
+
+        created = 0;
+        updated = 0;
+        deleted = 0;
     }
 
     @Override
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-            .add( "total", total )
             .add( "created", created )
             .add( "updated", updated )
             .add( "deleted", deleted )

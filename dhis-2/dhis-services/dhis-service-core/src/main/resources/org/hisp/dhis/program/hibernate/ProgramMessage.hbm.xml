@@ -21,7 +21,7 @@
       <key column="programmessagedeliverychannelsid" />
       <element column="deliverychannel">
         <type name="org.hibernate.type.EnumType">
-          <param name="enumClass">org.hisp.dhis.program.message.DeliveryChannel</param>
+          <param name="enumClass">org.hisp.dhis.common.DeliveryChannel</param>
           <param name="useNamed">true</param>
           <param name="type">12</param>
         </type>
@@ -63,7 +63,7 @@
       column="programstageinstanceid" foreign-key="fk_programmessage_programstageinstanceid" not-null="false" />
 
     <!-- Object Translation -->
-    <set name="translations" table="programmessagetranslations" cascade="delete-orphan">
+    <set name="translations" table="programmessagetranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="id" foreign-key="fk_objecttranslation_programmessageid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />

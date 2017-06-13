@@ -27,11 +27,11 @@ package org.hisp.dhis.webapi.utils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheability;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.Calendar;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -49,14 +50,13 @@ import static org.junit.Assert.assertNotNull;
 public class ContextUtilsTest
     extends DhisWebSpringTest
 {
+    @Autowired
+    private ContextUtils contextUtils;
 
     @Autowired
-    ContextUtils contextUtils;
+    private SystemSettingManager systemSettingManager;
 
-    @Autowired
-    SystemSettingManager systemSettingManager;
-
-    HttpServletResponse response;
+    private HttpServletResponse response;
 
     @Before
     public void init()
@@ -93,12 +93,6 @@ public class ContextUtilsTest
         contextUtils.configureResponse( response, null, CacheStrategy.CACHE_TWO_WEEKS, null, false );
         assertEquals( "max-age=1209600, public", response.getHeader( "Cache-Control" ) );
 
-        long seconds = DateUtils.getSecondsUntilTomorrow( 6 );
-
-        response.reset();
-        contextUtils.configureResponse( response, null, CacheStrategy.CACHE_6AM_TOMORROW, null, false );
-        assertEquals( "max-age=" + seconds + ", public", response.getHeader( "Cache-Control" ) );
-
         systemSettingManager.saveSystemSetting( SettingKey.CACHE_STRATEGY, CacheStrategy.CACHE_1_HOUR.toString() );
 
         response.reset();
@@ -121,5 +115,29 @@ public class ContextUtilsTest
         response.reset();
         contextUtils.configureResponse( response, null, CacheStrategy.CACHE_1_HOUR, null, false );
         assertEquals( "max-age=3600, private", response.getHeader( "Cache-Control" ) );
+    }
+
+    @Test
+    public void testConfigureAnalyticsResponseReturnsCorrectCacheHeaders()
+    {
+
+        Calendar thisYear = Calendar.getInstance();
+        Calendar fiveYearBack = Calendar.getInstance();
+
+        thisYear.set( 2017, 01, 01 );
+        fiveYearBack.set( 2012, 01, 01 );
+
+        DataQueryParams withinThreshold = DataQueryParams.newBuilder().withEndDate( thisYear.getTime() ).build();
+        DataQueryParams outsideThreshold = DataQueryParams.newBuilder().withEndDate( fiveYearBack.getTime() ).build();
+
+        systemSettingManager.saveSystemSetting( SettingKey.CACHE_ANALYTICS_DATA_YEAR_THRESHOLD, 3 );
+
+        response.reset();
+        contextUtils.configureAnalyticsResponse( response, null, CacheStrategy.CACHE_1_HOUR, null, false, withinThreshold.getLatestEndDate() );
+        assertEquals( "no-cache", response.getHeader( "Cache-Control" ) );
+
+        response.reset();
+        contextUtils.configureAnalyticsResponse( response, null, CacheStrategy.CACHE_1_HOUR, null, false, outsideThreshold.getLatestEndDate() );
+        assertEquals( "max-age=3600, public", response.getHeader( "Cache-Control" ) );
     }
 }

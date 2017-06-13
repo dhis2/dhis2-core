@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate.encryption;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,9 @@ public final class HibernateEncryptorRegistry
 
     private final Map<String, PBEStringEncryptor> encryptors = Maps.newHashMap();
 
-    private HibernateEncryptorRegistry() {} // Private constructor
+    private HibernateEncryptorRegistry()
+    {   
+    }
 
     /**
      * Returns the (singleton) instance of the registry.

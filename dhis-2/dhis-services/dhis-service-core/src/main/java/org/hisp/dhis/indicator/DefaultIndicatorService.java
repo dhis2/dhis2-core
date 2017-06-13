@@ -1,7 +1,7 @@
 package org.hisp.dhis.indicator;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,6 @@ package org.hisp.dhis.indicator;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -81,7 +79,9 @@ public class DefaultIndicatorService
     @Override
     public int addIndicator( Indicator indicator )
     {
-        return indicatorStore.save( indicator );
+        indicatorStore.save( indicator );
+
+        return indicator.getId();
     }
 
     @Override
@@ -115,12 +115,6 @@ public class DefaultIndicatorService
     }
 
     @Override
-    public List<Indicator> getIndicatorsByUid( Collection<String> uids )
-    {
-        return indicatorStore.getByUid( uids );
-    }
-
-    @Override
     public List<Indicator> getIndicatorsWithGroupSets()
     {
         return indicatorStore.getIndicatorsWithGroupSets();
@@ -145,7 +139,9 @@ public class DefaultIndicatorService
     @Override
     public int addIndicatorType( IndicatorType indicatorType )
     {
-        return indicatorTypeStore.save( indicatorType );
+        indicatorTypeStore.save( indicatorType );
+
+        return indicatorType.getId();
     }
 
     @Override
@@ -185,7 +181,9 @@ public class DefaultIndicatorService
     @Override
     public int addIndicatorGroup( IndicatorGroup indicatorGroup )
     {
-        return indicatorGroupStore.save( indicatorGroup );
+        indicatorGroupStore.save( indicatorGroup );
+
+        return indicatorGroup.getId();
     }
 
     @Override
@@ -225,7 +223,9 @@ public class DefaultIndicatorService
     @Override
     public int addIndicatorGroupSet( IndicatorGroupSet groupSet )
     {
-        return indicatorGroupSetStore.save( groupSet );
+        indicatorGroupSetStore.save( groupSet );
+
+        return groupSet.getId();
     }
 
     @Override
@@ -251,13 +251,6 @@ public class DefaultIndicatorService
     {
         return indicatorGroupSetStore.getByUid( uid );
     }
-
-    @Override
-    public List<IndicatorGroupSet> getIndicatorGroupSetByName( String name )
-    {
-        return new ArrayList<>( indicatorGroupSetStore.getAllEqName( name ) );
-    }
-
 
     @Override
     public List<IndicatorGroupSet> getAllIndicatorGroupSets()

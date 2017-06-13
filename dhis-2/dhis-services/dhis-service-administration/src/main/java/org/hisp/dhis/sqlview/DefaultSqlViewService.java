@@ -1,7 +1,7 @@
 package org.hisp.dhis.sqlview;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,6 @@ package org.hisp.dhis.sqlview;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,8 +35,15 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Dang Duy Hieu
@@ -52,8 +53,6 @@ public class DefaultSqlViewService
     implements SqlViewService
 {
     private static final Log log = LogFactory.getLog( DefaultSqlViewService.class );
-
-    private static final String PREFIX_SELECT_QUERY = "select * from ";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -80,7 +79,9 @@ public class DefaultSqlViewService
     @Override
     public int saveSqlView( SqlView sqlView )
     {
-        return sqlViewStore.save( sqlView );
+        sqlViewStore.save( sqlView );
+
+        return sqlView.getId();
     }
 
     @Override
@@ -167,12 +168,16 @@ public class DefaultSqlViewService
     @Override
     public String createViewTable( SqlView sqlView )
     {
+        validateSqlView( sqlView, null, null );
+        
         return sqlViewStore.createViewTable( sqlView );
     }
     
     @Override
-    public Grid getSqlViewGrid( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables )
+    public Grid getSqlViewGrid( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables, List<String> filters, List<String> fields  )
     {
+        validateSqlView( sqlView, criteria, variables );
+        
         Grid grid = new ListGrid();
         grid.setTitle( sqlView.getName() );
         grid.setSubtitle( sqlView.getDescription() );
@@ -180,27 +185,70 @@ public class DefaultSqlViewService
         validateSqlView( sqlView, criteria, variables );
 
         String sql = sqlView.isQuery() ?
-            getSqlForQuery( grid, sqlView, criteria, variables ) :
-            getSqlForView( grid, sqlView, criteria );
+            getSqlForQuery( grid, sqlView, criteria, variables, filters, fields ) :
+            getSqlForView( grid, sqlView, criteria, filters, fields );
 
         sqlViewStore.populateSqlViewGrid( grid, sql );
 
         return grid;
     }
 
-    private String getSqlForQuery( Grid grid, SqlView sqlView, Map<String, String> criteria, Map<String, String> variables )
+    private String parseFilters(List<String> filters, SqlHelper sqlHelper ) throws QueryParserException
+    {
+        String query = StringUtils.EMPTY;
+
+        for ( String filter : filters )
+        {
+            String[] split = filter.split( ":" );
+
+            if ( split.length == 3 )
+            {
+                int index = split[0].length() + ":".length() + split[1].length() + ":".length();
+                query +=  getFilterQuery(sqlHelper, split[0], split[1], filter.substring( index ) ) ;
+            }
+            else
+            {
+                throw new QueryParserException( "Invalid filter => " + filter );
+            }
+        }
+
+        return query;
+    }
+
+    private String getFilterQuery( SqlHelper sqlHelper, String columnName, String operator, String value ) {
+
+        String query = StringUtils.EMPTY;
+
+        query += sqlHelper.whereAnd() + " " + columnName + " " + QueryUtils.parseFilterOperator( operator, value );
+
+        return query;
+    }
+
+    private String getSqlForQuery( Grid grid, SqlView sqlView, Map<String, String> criteria, Map<String, String> variables, List<String> filters, List<String> fields )
     {
         boolean hasCriteria = criteria != null && !criteria.isEmpty();
 
+        boolean hasFilter = filters != null && !filters.isEmpty();
+
         String sql = SqlViewUtils.substituteSqlVariables( sqlView.getSqlQuery(), variables );
 
-        if ( hasCriteria )
+        if ( hasCriteria || hasFilter )
         {
             sql = SqlViewUtils.removeQuerySeparator( sql );
 
-            String outerSql = PREFIX_SELECT_QUERY + "(" + sql + ") as qry ";
+            String outerSql = "select " + QueryUtils.parseSelectFields( fields ) + " from " + "(" + sql + ") as qry ";
 
-            outerSql += getCriteriaSqlClause( criteria );
+            SqlHelper sqlHelper = new SqlHelper();
+
+            if ( hasCriteria )
+            {
+                outerSql += getCriteriaSqlClause( criteria, sqlHelper );
+            }
+
+            if ( hasFilter )
+            {
+                outerSql += parseFilters( filters, sqlHelper );
+            }
 
             sql = outerSql;
         }
@@ -208,33 +256,50 @@ public class DefaultSqlViewService
         return sql;
     }
 
-    private String getSqlForView( Grid grid, SqlView sqlView, Map<String, String> criteria )
+    private String getSqlForView( Grid grid, SqlView sqlView, Map<String, String> criteria, List<String> filters, List<String> fields )
     {
-        String sql = PREFIX_SELECT_QUERY + statementBuilder.columnQuote( sqlView.getViewName() ) + " ";
+        String sql = "select " + QueryUtils.parseSelectFields( fields ) + " from " + statementBuilder.columnQuote( sqlView.getViewName() ) + " ";
 
-        sql += getCriteriaSqlClause( criteria );
+        boolean hasCriteria = criteria != null && !criteria.isEmpty();
 
-        return sql;
-    }
+        boolean hasFilter = filters != null && !filters.isEmpty();
 
-    @Override
-    public String getCriteriaSqlClause( Map<String, String> criteria )
-    {
-        String sql = StringUtils.EMPTY;
-
-        if ( criteria != null && !criteria.isEmpty() )
+        if ( hasCriteria || hasFilter )
         {
-            SqlHelper helper = new SqlHelper();
+            SqlHelper sqlHelper = new SqlHelper();
 
-            for ( String filter : criteria.keySet() )
+            if ( hasCriteria )
             {
-                sql += helper.whereAnd() + " " + statementBuilder.columnQuote( filter ) + "='" + criteria.get( filter ) + "' ";
+                sql += getCriteriaSqlClause( criteria, sqlHelper );
+            }
+
+            if ( hasFilter )
+            {
+                sql += parseFilters( filters, sqlHelper );
             }
         }
 
         return sql;
     }
 
+    @Override
+    public String getCriteriaSqlClause(Map<String, String> criteria,  SqlHelper sqlHelper )
+    {
+        String sql = StringUtils.EMPTY;
+
+        if ( criteria != null && !criteria.isEmpty() )
+        {
+            sqlHelper = ObjectUtils.firstNonNull( sqlHelper, new SqlHelper() );
+
+            for ( String filter : criteria.keySet() )
+            {
+                sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( filter ) + "='" + criteria.get( filter ) + "' ";
+            }
+        }
+
+        return sql;
+    }
+    
     @Override
     public void validateSqlView( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables )
         throws IllegalQueryException
@@ -247,7 +312,7 @@ public class DefaultSqlViewService
         }
         
         final Set<String> sqlVars = SqlViewUtils.getVariables( sqlView.getSqlQuery() );
-        final String sql = sqlView.getSqlQuery().toLowerCase();
+        final String sql = sqlView.getSqlQuery().replaceAll("\\r|\\n"," ").toLowerCase();
         
         if ( !SELECT_PATTERN.matcher( sql ).matches() )
         {
@@ -306,11 +371,10 @@ public class DefaultSqlViewService
         
         if ( violation != null )
         {
-            log.warn( "Validation failed: " + violation );
+            log.warn( String.format( "Validation failed for SQL view '%s': %s", sqlView.getUid(), violation ) );
             
             throw new IllegalQueryException( violation );
         }
-
     }
 
     @Override

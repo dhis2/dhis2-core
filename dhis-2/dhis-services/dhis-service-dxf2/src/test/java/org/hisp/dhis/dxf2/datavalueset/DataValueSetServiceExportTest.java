@@ -30,14 +30,20 @@ package org.hisp.dhis.dxf2.datavalueset;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -79,15 +85,29 @@ public class DataValueSetServiceExportTest
 
     @Autowired
     private DataValueService dataValueService;
+    
+    @Autowired
+    private AttributeService attributeService;
+    
+    @Autowired
+    private DbmsManager dbmsManager;
 
     private DataElement deA;
     private DataElement deB;
+    private DataElement deC;
 
     private DataElementCategoryCombo ccA;
 
     private DataElementCategoryOptionCombo cocA;
     private DataElementCategoryOptionCombo cocB;
 
+    private Attribute atA;
+    
+    private AttributeValue avA;
+    private AttributeValue avB;
+    private AttributeValue avC;
+    private AttributeValue avD;
+    
     private DataSet dsA;
     private DataSet dsB;
 
@@ -104,9 +124,11 @@ public class DataValueSetServiceExportTest
     {
         deA = createDataElement( 'A' );
         deB = createDataElement( 'B' );
+        deC = createDataElement( 'C' );
 
         idObjectManager.save( deA );
         idObjectManager.save( deB );
+        idObjectManager.save( deC );
 
         ccA = createCategoryCombo( 'A' );
 
@@ -120,7 +142,14 @@ public class DataValueSetServiceExportTest
 
         categoryService.addDataElementCategoryOptionCombo( cocA );
         categoryService.addDataElementCategoryOptionCombo( cocB );
-
+        
+        atA = createAttribute( 'A' );
+        atA.setDataElementAttribute( true );
+        atA.setOrganisationUnitAttribute( true );
+        atA.setCategoryOptionComboAttribute( true );
+        
+        idObjectManager.save( atA );
+        
         dsA = createDataSet( 'A' );
         dsA.addDataSetElement( deA );
         dsA.addDataSetElement( deB );
@@ -140,22 +169,36 @@ public class DataValueSetServiceExportTest
         organisationUnitService.addOrganisationUnit( ouA );
         organisationUnitService.addOrganisationUnit( ouB );
 
+        avA = new AttributeValue( "AttributeValueA", atA );
+        avB = new AttributeValue( "AttributeValueB", atA );
+        avC = new AttributeValue( "AttributeValueC", atA );
+        avD = new AttributeValue( "AttributeValueD", atA );
+        
+        attributeService.addAttributeValue( deA, avA );
+        attributeService.addAttributeValue( ouA, avB );
+        attributeService.addAttributeValue( cocA, avC );
+        attributeService.addAttributeValue( cocB, avD );
+
         // Data values
 
-        dataValueService.addDataValue( new DataValue( deA, peA, ouA, cocA, cocA, "1", "storedBy", new Date(), "comment" ) );
-        dataValueService.addDataValue( new DataValue( deA, peA, ouA, cocB, cocA, "1", "storedBy", new Date(), "comment" ) );
-        dataValueService.addDataValue( new DataValue( deA, peA, ouB, cocA, cocA, "1", "storedBy", new Date(), "comment" ) );
-        dataValueService.addDataValue( new DataValue( deA, peA, ouB, cocB, cocA, "1", "storedBy", new Date(), "comment" ) );
+        dataValueService.addDataValue( new DataValue( deA, peA, ouA, cocA, cocA, "1" ) );
+        dataValueService.addDataValue( new DataValue( deA, peA, ouA, cocB, cocB, "1" ) );
+        dataValueService.addDataValue( new DataValue( deA, peA, ouB, cocA, cocA, "1" ) );
+        dataValueService.addDataValue( new DataValue( deA, peA, ouB, cocB, cocB, "1" ) );
 
-        dataValueService.addDataValue( new DataValue( deA, peB, ouA, cocA, cocA, "1", "storedBy", new Date(), "comment" ) );
-        dataValueService.addDataValue( new DataValue( deA, peB, ouA, cocB, cocA, "1", "storedBy", new Date(), "comment" ) );
-        dataValueService.addDataValue( new DataValue( deA, peB, ouB, cocA, cocA, "1", "storedBy", new Date(), "comment" ) );
-        dataValueService.addDataValue( new DataValue( deA, peB, ouB, cocB, cocA, "1", "storedBy", new Date(), "comment" ) );
+        dataValueService.addDataValue( new DataValue( deA, peB, ouA, cocA, cocA, "1" ) );
+        dataValueService.addDataValue( new DataValue( deA, peB, ouA, cocB, cocB, "1" ) );
+        dataValueService.addDataValue( new DataValue( deA, peB, ouB, cocA, cocA, "1" ) );
+        dataValueService.addDataValue( new DataValue( deA, peB, ouB, cocB, cocB, "1" ) );
 
-        dataValueService.addDataValue( new DataValue( deB, peA, ouA, cocA, cocA, "1", "storedBy", new Date(), "comment" ) );
-        dataValueService.addDataValue( new DataValue( deB, peA, ouA, cocB, cocA, "1", "storedBy", new Date(), "comment" ) );
-        dataValueService.addDataValue( new DataValue( deB, peA, ouB, cocA, cocA, "1", "storedBy", new Date(), "comment" ) );
-        dataValueService.addDataValue( new DataValue( deB, peA, ouB, cocB, cocA, "1", "storedBy", new Date(), "comment" ) );
+        dataValueService.addDataValue( new DataValue( deB, peA, ouA, cocA, cocA, "1" ) );
+        dataValueService.addDataValue( new DataValue( deB, peA, ouA, cocB, cocB, "1" ) );
+        dataValueService.addDataValue( new DataValue( deB, peA, ouB, cocA, cocA, "1" ) );
+        dataValueService.addDataValue( new DataValue( deB, peA, ouB, cocB, cocB, "1" ) );
+        
+        // Flush session to make data values visible to JDBC query
+        
+        dbmsManager.flushSession();
 
         // Service mocks
 
@@ -197,6 +240,33 @@ public class DataValueSetServiceExportTest
             assertEquals( peA.getUid(), dv.getPeriod() );
         }
     }
+    
+    @Test
+    public void testExportAttributeOptionCombo()
+    {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        DataExportParams params = new DataExportParams()
+            .setDataSets( Sets.newHashSet( dsA ) )
+            .setOrganisationUnits( Sets.newHashSet( ouB ) )
+            .setPeriods( Sets.newHashSet( peA ) )
+            .setAttributeOptionCombos( Sets.newHashSet( cocA ) );
+
+        dataValueSetService.writeDataValueSetJson( params, out );
+
+        DataValueSet dvs = JacksonUtils.fromJson( out.toByteArray(), DataValueSet.class );
+
+        assertNotNull( dvs );
+        assertNotNull( dvs.getDataSet() );
+        assertEquals( 2, dvs.getDataValues().size() );
+
+        for ( org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues() )
+        {
+            assertNotNull( dv );
+            assertEquals( ouB.getUid(), dv.getOrgUnit() );
+            assertEquals( peA.getUid(), dv.getPeriod() );
+        }        
+    }
 
     @Test
     public void testExportOrgUnitChildren()
@@ -217,7 +287,7 @@ public class DataValueSetServiceExportTest
         assertNotNull( dvs );
         assertNotNull( dvs.getDataSet() );
         assertEquals( dsA.getUid(), dvs.getDataSet() );
-        // TODO assert data values size = 8
+        assertEquals( 8, dvs.getDataValues().size() );
 
         for ( org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues() )
         {
@@ -227,14 +297,15 @@ public class DataValueSetServiceExportTest
     }
 
     @Test
-    public void testExportOutputIdSchemeCode()
+    public void testExportOutputSingleDataValueSetIdSchemeCode()
         throws Exception
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         IdSchemes idSchemes = new IdSchemes()
             .setOrgUnitIdScheme( IdentifiableProperty.CODE.name() )
-            .setDataElementIdScheme( IdentifiableProperty.CODE.name() );
+            .setDataElementIdScheme( IdentifiableProperty.CODE.name() )
+            .setDataSetIdScheme( IdentifiableProperty.CODE.name() );
 
         DataExportParams params = new DataExportParams()
             .setDataSets( Sets.newHashSet( dsB ) )
@@ -248,7 +319,9 @@ public class DataValueSetServiceExportTest
 
         assertNotNull( dvs );
         assertNotNull( dvs.getDataSet() );
-        assertEquals( dsB.getUid(), dvs.getDataSet() );
+        assertNotNull( dvs.getOrgUnit() );
+        assertEquals( dsB.getCode(), dvs.getDataSet() );
+        assertEquals( ouA.getCode(), dvs.getOrgUnit() );
         assertEquals( 2, dvs.getDataValues().size() );
 
         for ( org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues() )
@@ -257,5 +330,95 @@ public class DataValueSetServiceExportTest
             assertEquals( deA.getCode(), dv.getDataElement() );
             assertEquals( ouA.getCode(), dv.getOrgUnit() );
         }
+    }
+    
+    @Test
+    public void testExportOutputIdSchemeAttribute()
+    {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        String attributeIdScheme = IdScheme.ATTR_ID_SCHEME_PREFIX + atA.getUid();
+        
+        IdSchemes idSchemes = new IdSchemes()
+            .setDataElementIdScheme( attributeIdScheme )
+            .setOrgUnitIdScheme( attributeIdScheme )
+            .setCategoryOptionComboIdScheme( attributeIdScheme );
+
+        DataExportParams params = new DataExportParams()
+            .setDataSets( Sets.newHashSet( dsB ) )
+            .setOrganisationUnits( Sets.newHashSet( ouA ) )
+            .setPeriods( Sets.newHashSet( peB ) )
+            .setOutputIdSchemes( idSchemes );
+
+        dataValueSetService.writeDataValueSetJson( params, out );
+
+        DataValueSet dvs = JacksonUtils.fromJson( out.toByteArray(), DataValueSet.class );
+        
+        assertNotNull( dvs );
+        assertNotNull( dvs.getDataSet() );
+        assertEquals( dsB.getUid(), dvs.getDataSet() );
+        assertEquals( 2, dvs.getDataValues().size() );
+
+        for ( org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues() )
+        {
+            assertNotNull( dv );
+            assertEquals( avA.getValue(), dv.getDataElement() );
+            assertEquals( avB.getValue(), dv.getOrgUnit() );
+        }
+    }
+
+    @Test
+    public void testExportLastUpdated()
+    {
+        Date lastUpdated = getDate( 1970, 1, 1 );
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        
+        dataValueSetService.writeDataValueSetJson( lastUpdated, out, new IdSchemes() );
+
+        DataValueSet dvs = JacksonUtils.fromJson( out.toByteArray(), DataValueSet.class );
+        
+        assertNotNull( dvs );
+        assertEquals( 12, dvs.getDataValues().size() );
+
+        for ( org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues() )
+        {
+            assertNotNull( dv );
+        }
+    }
+
+    @Test
+    public void testExportLastUpdatedWithDeletedValues()
+    {
+        DataValue dvA = new DataValue( deC, peA, ouA, cocA, cocA, "1" );
+        DataValue dvB = new DataValue( deC, peB, ouA, cocA, cocA, "2" );
+        
+        dataValueService.addDataValue( dvA );
+        dataValueService.addDataValue( dvB );
+        
+        dbmsManager.flushSession();
+        
+        Date lastUpdated = getDate( 1970, 1, 1 );
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        
+        dataValueSetService.writeDataValueSetJson( lastUpdated, out, new IdSchemes() );
+
+        DataValueSet dvs = JacksonUtils.fromJson( out.toByteArray(), DataValueSet.class );
+        
+        assertNotNull( dvs );
+        assertEquals( 14, dvs.getDataValues().size() );
+        
+        dataValueService.deleteDataValue( dvA );
+        dataValueService.deleteDataValue( dvB );
+
+        dbmsManager.flushSession();
+        
+        out = new ByteArrayOutputStream();
+        
+        dataValueSetService.writeDataValueSetJson( lastUpdated, out, new IdSchemes() );
+
+        dvs = JacksonUtils.fromJson( out.toByteArray(), DataValueSet.class );
+        
+        assertNotNull( dvs );
+        assertEquals( 14, dvs.getDataValues().size() );        
     }
 }

@@ -9,7 +9,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import org.hisp.dhis.common.ValueType;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -80,7 +80,8 @@ public class DataElement
         this.type = type;
     }
     
-    public void setType (ValueType type) {
+    public void setType (ValueType type) 
+    {
         if ( type == ValueType.BOOLEAN )
         {
             this.setType( TYPE_BOOL );

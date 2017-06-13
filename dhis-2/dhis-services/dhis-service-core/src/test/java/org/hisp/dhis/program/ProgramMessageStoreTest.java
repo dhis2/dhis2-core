@@ -30,26 +30,26 @@ package org.hisp.dhis.program;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.message.DeliveryChannel;
-import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.program.message.ProgramMessage;
+import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.message.ProgramMessageStore;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.joda.time.DateTime;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import org.junit.Test;
-import static org.junit.Assert.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -257,7 +257,8 @@ public class ProgramMessageStoreTest
     @Test
     public void testGetProgramMessage()
     {
-        Integer id = programMessageStore.save( pmsgA );
+        programMessageStore.save( pmsgA );
+        Integer id = pmsgA.getId();
         ProgramMessage actual = programMessageStore.get( id.intValue() );
 
         assertNotNull( id );
@@ -278,7 +279,8 @@ public class ProgramMessageStoreTest
     @Test
     public void testDeleteProgramMessage()
     {
-        int pmsgAId = programMessageStore.save( pmsgA );
+        programMessageStore.save( pmsgA );
+        int pmsgAId = pmsgA.getId();
 
         programMessageStore.delete( pmsgA );
 

@@ -28,20 +28,18 @@ package org.hisp.dhis.setting;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNull;
-
-import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.ImmutableSet;
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 import static org.hisp.dhis.setting.SettingKey.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Stian Strandli
@@ -58,7 +56,7 @@ public class SystemSettingManagerTest
     {
         systemSettingManager.invalidateCache();
     }
-    
+
     @Test
     public void testSaveGetSystemSetting()
     {
@@ -91,22 +89,22 @@ public class SystemSettingManagerTest
     {
         assertNull( systemSettingManager.getSystemSetting( APPLICATION_INTRO ) );
         assertEquals( HELP_PAGE_LINK.getDefaultValue(), systemSettingManager.getSystemSetting( HELP_PAGE_LINK ) );
-        
+
         systemSettingManager.saveSystemSetting( APPLICATION_INTRO, "valueA" );
         systemSettingManager.saveSystemSetting( HELP_PAGE_LINK, "valueB" );
 
         assertEquals( "valueA", systemSettingManager.getSystemSetting( APPLICATION_INTRO ) );
         assertEquals( "valueB", systemSettingManager.getSystemSetting( HELP_PAGE_LINK ) );
-        
+
         systemSettingManager.deleteSystemSetting( APPLICATION_INTRO );
 
         assertNull( systemSettingManager.getSystemSetting( APPLICATION_INTRO ) );
         assertEquals( "valueB", systemSettingManager.getSystemSetting( HELP_PAGE_LINK ) );
 
         systemSettingManager.deleteSystemSetting( HELP_PAGE_LINK );
-        
+
         assertNull( systemSettingManager.getSystemSetting( APPLICATION_INTRO ) );
-        assertEquals( HELP_PAGE_LINK.getDefaultValue(), systemSettingManager.getSystemSetting( HELP_PAGE_LINK ) );        
+        assertEquals( HELP_PAGE_LINK.getDefaultValue(), systemSettingManager.getSystemSetting( HELP_PAGE_LINK ) );
     }
 
     @Test
@@ -115,9 +113,9 @@ public class SystemSettingManagerTest
         systemSettingManager.saveSystemSetting( "settingA", "valueA" );
         systemSettingManager.saveSystemSetting( "settingB", "valueB" );
         systemSettingManager.saveSystemSetting( "settingC", "valueC" );
-        
+
         List<SystemSetting> settings = systemSettingManager.getAllSystemSettings();
-        
+
         assertNotNull( settings );
         assertEquals( 3, settings.size() );
     }
@@ -134,11 +132,34 @@ public class SystemSettingManagerTest
         assertTrue( settingsMap.containsKey( SettingKey.APP_STORE_URL.getName() ) );
         assertTrue( settingsMap.containsKey( SettingKey.APPLICATION_TITLE.getName() ) );
         assertTrue( settingsMap.containsKey( SettingKey.APPLICATION_NOTIFICATION.getName() ) );
-        
+
         assertEquals( "valueA", settingsMap.get( SettingKey.APP_STORE_URL.getName() ) );
         assertEquals( "valueB", settingsMap.get( SettingKey.APPLICATION_TITLE.getName() ) );
         assertEquals( "valueC", settingsMap.get( SettingKey.APPLICATION_NOTIFICATION.getName() ) );
         assertEquals( SettingKey.CACHE_STRATEGY.getDefaultValue(), settingsMap.get( SettingKey.CACHE_STRATEGY.getName() ) );
         assertEquals( SettingKey.CREDENTIALS_EXPIRES.getDefaultValue(), settingsMap.get( SettingKey.CREDENTIALS_EXPIRES.getName() ) );
+    }
+
+    @Test
+    public void testGetSystemSettingsByCollection()
+    {
+        Collection<SettingKey> keys = ImmutableSet
+            .of( SettingKey.APP_STORE_URL, SettingKey.APPLICATION_TITLE, SettingKey.APPLICATION_INTRO );
+
+        systemSettingManager.saveSystemSetting( APP_STORE_URL, "valueA" );
+        systemSettingManager.saveSystemSetting( APPLICATION_TITLE, "valueB" );
+        systemSettingManager.saveSystemSetting( APPLICATION_INTRO, "valueC" );
+
+        assertEquals( systemSettingManager.getSystemSettings( keys ).size(), 3);
+    }
+
+    @Test
+    public void testIsConfidential()
+    {
+        assertEquals( SettingKey.EMAIL_PASSWORD.isConfidential(), true );
+        assertEquals( systemSettingManager.isConfidential( SettingKey.EMAIL_PASSWORD.getName() ), true );
+
+        assertEquals( SettingKey.EMAIL_HOST_NAME.isConfidential(), false );
+        assertEquals( systemSettingManager.isConfidential( SettingKey.EMAIL_HOST_NAME.getName() ), false);
     }
 }

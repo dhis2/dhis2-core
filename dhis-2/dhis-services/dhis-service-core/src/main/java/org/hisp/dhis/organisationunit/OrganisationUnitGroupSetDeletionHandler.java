@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,9 +54,7 @@ public class OrganisationUnitGroupSetDeletionHandler
     @Override
     public void deleteOrganisationUnitGroup( OrganisationUnitGroup group )
     {
-        OrganisationUnitGroupSet groupSet = group.getGroupSet();
-        
-        if ( groupSet != null )
+        for ( OrganisationUnitGroupSet groupSet : group.getGroupSets() )
         {
             groupSet.getOrganisationUnitGroups().remove( group );
             idObjectManager.updateNoAcl( groupSet );

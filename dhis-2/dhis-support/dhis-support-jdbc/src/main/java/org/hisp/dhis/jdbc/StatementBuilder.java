@@ -1,7 +1,7 @@
 package org.hisp.dhis.jdbc;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -88,8 +88,8 @@ public interface StatementBuilder
     String getAutoIncrementValue();
     
     /**
-     * Returns statement for vacuum and analyze operations for a table. Returns
-     * null if such statement is not relevant.
+     * Returns statement for vacuum operation for a table. Returns null if 
+     * such statement is not relevant.
      * 
      * @param table the table to vacuum.
      * @return vacuum and analyze operations for a table.
@@ -97,12 +97,21 @@ public interface StatementBuilder
     String getVacuum( String table );
     
     /**
-     * Returns a sql statement to include in create table statements with applies
+     * Returns statement for analytics operation for a table. Returns null if 
+     * such statement is not relevant.
+     * 
+     * @param table the table to analyze.
+     * @return statement for analytics operation for a table.
+     */
+    String getAnalyze( String table );
+    
+    /**
+     * Returns an SQL statement to include in create table statements with applies
      * options to the table. Returns an empty string if all options are set to the
      * default value.
      * 
      * @param autoVacuum whether to enable automatic vacuum, default is true.
-     * @return a sql option string.
+     * @return statement part with applies options to the table.
      */
     String getTableOptions( boolean autoVacuum );
     
@@ -192,8 +201,8 @@ public interface StatementBuilder
      * Returns a statement which calculates the number of days between the two
      * given dates or columns of type date.
      * 
-     * @param from the from date column.
-     * @param to the to date column.
+     * @param fromColumn the from date column.
+     * @param toColumn the to date column.
      * @return statement which calculates the number of days between the given dates.
      */
     String getDaysBetweenDates( String fromColumn, String toColumn );

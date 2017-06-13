@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement.hibernate;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,6 @@ public class HibernateCategoryComboStore
     @SuppressWarnings("unchecked")
     public List<DataElementCategoryCombo> getCategoryCombosByDimensionType( DataDimensionType dataDimensionType )
     {
-        return getSharingCriteria( Restrictions.or( Restrictions.eq( "dataDimensionType", dataDimensionType ), Restrictions.eq( "name", "default" ) ) ).list();
+        return getSharingDetachedCriteria( Restrictions.or( Restrictions.eq( "dataDimensionType", dataDimensionType ), Restrictions.eq( "name", "default" ) ) ).list();
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.api.mobile.model;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -113,7 +113,7 @@ public class MobileModel
     {
         this.clientVersion = clientVersion;
     }
-    
+
     public List<SMSCommand> getSmsCommands()
     {
         return smsCommands;
@@ -279,7 +279,7 @@ public class MobileModel
     public void serializeVersion2_10( DataOutputStream dout )
         throws IOException
     {
-       
+
         if ( programs == null )
         {
             dout.writeInt( 0 );
@@ -343,7 +343,8 @@ public class MobileModel
         if ( smsCommands != null )
         {
             dout.writeInt( smsCommands.size() );
-            for (SMSCommand smsCommand : smsCommands) {
+            for ( SMSCommand smsCommand : smsCommands )
+            {
                 smsCommand.setClientVersion( getClientVersion() );
                 smsCommand.serialize( dout );
             }

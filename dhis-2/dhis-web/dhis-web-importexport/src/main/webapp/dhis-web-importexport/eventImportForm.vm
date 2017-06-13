@@ -47,13 +47,20 @@ $(function() {
     </td>
 </tr>
 <tr>
-	<td>$i18n.getString( "org_unit_id_scheme" )</td>
-	<td><select id="orgUnitIdScheme" name="orgUnitIdScheme" style="width:190px">
+	<td>$i18n.getString( "event_id_scheme" )</td>
+	<td><select id="eventIdScheme" name="eventIdScheme" style="width:190px">
 		<option value="UID">$i18n.getString( "uid" )</option>
-		<option value="UUID">$i18n.getString( "uuid" )</option>
 		<option value="CODE">$i18n.getString( "code" )</option>
-		<option value="NAME">$i18n.getString( "name" )</option>
     </select></td>
+</tr>
+
+<tr>
+  <td>$i18n.getString( "org_unit_id_scheme" )</td>
+  <td><select id="orgUnitIdScheme" name="orgUnitIdScheme" style="width:190px">
+    <option value="UID">$i18n.getString( "uid" )</option>
+    <option value="CODE">$i18n.getString( "code" )</option>
+    <option value="NAME">$i18n.getString( "name" )</option>
+  </select></td>
 </tr>
 
 <tr>

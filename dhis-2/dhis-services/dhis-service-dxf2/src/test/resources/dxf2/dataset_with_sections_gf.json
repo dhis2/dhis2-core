@@ -1,32 +1,24 @@
 {
-  "dataSetElements": [
-    {
-      "id": "WTOZ7gqbASV",
-      "dataElement": {
-        "id": "nHwIqKAudKN"
-      },
-      "dataSet": {
-        "id": "em8Bg4LCr5k"
-      }
-    },
-    {
-      "id": "rSChycu6mOY",
-      "dataElement": {
-        "id": "VolAzjFe5zP"
-      },
-      "dataSet": {
-        "id": "em8Bg4LCr5k"
-      }
-    }
-  ],
   "dataSets": [
     {
       "dataSetElements": [
         {
-          "id": "WTOZ7gqbASV"
+          "id": "WTOZ7gqbASV",
+          "dataElement": {
+            "id": "nHwIqKAudKN"
+          },
+          "dataSet": {
+            "id": "em8Bg4LCr5k"
+          }
         },
         {
-          "id": "rSChycu6mOY"
+          "id": "rSChycu6mOY",
+          "dataElement": {
+            "id": "VolAzjFe5zP"
+          },
+          "dataSet": {
+            "id": "em8Bg4LCr5k"
+          }
         }
       ],
       "version": 5,

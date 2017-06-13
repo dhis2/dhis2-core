@@ -20,8 +20,4 @@
 
   </class>
 
-  <filter-def name="locale">
-    <filter-param name="locale" type="string" />
-  </filter-def>
-
 </hibernate-mapping>

@@ -17,7 +17,7 @@ $(function() {
 // -----------------------------------------------------------------------------
 
 function showUpdateProgramIndicator( context ) {
-  location.href = 'showUpdateProgramIndicator.action?id=' + context.id;
+    location.href = 'showUpdateProgramIndicator.action?id=' + context.id;
 }
 
 function removeIndicator( context ) {
@@ -34,7 +34,8 @@ function showProgramIndicatorDetails( context ) {
     setInnerHTML('expressionField', json.programIndicator.expression);
     setInnerHTML('filterField', json.programIndicator.filter);
     setInnerHTML('idField', json.programIndicator.uid);
-
+    setInnerHTML('programIndicatorAnalayticsTypeField', json.programIndicator.programIndicatorAnalayticsType);
+        
     showDetails();
   });
 }
@@ -42,6 +43,10 @@ function showProgramIndicatorDetails( context ) {
 // -----------------------------------------------------------------------------
 // Remove Program Indicator
 // -----------------------------------------------------------------------------
+
+jQuery(document).ready(function() {
+    analyticsTypeChanged();
+});
 
 function removeProgramIndicator( context ) {
   removeItem(context.id, context.name, i18n_confirm_delete, 'removeProgramIndicator.action');
@@ -73,7 +78,7 @@ function getTrackedEntityDataElements( type ) {
 	var programStageId = getFieldValue(psSelectId);
 
 	if(programStageId) {
-		jQuery.getJSON('../api/programStages/' + programStageId + '.json?fields=programStageDataElements[dataElement[id,displayName|rename(name),valueType]',
+		jQuery.getJSON('../api/programStages/' + programStageId + '.json?fields=programStageDataElements[dataElement[id,displayName,valueType]',
 		{
 			programId: getFieldValue('programId'),
 			programStageUid: programStageId
@@ -83,7 +88,7 @@ function getTrackedEntityDataElements( type ) {
 			$.each( json.programStageDataElements, function(inx, val) {
 				var de = val.dataElement;
 				if ( !('expression' == type && de.valueType && dhis2.pi.aggregatableValueTypes.indexOf(de.valueType) == -1)) {
-					dataElements.append("<option value='" + de.id + "'>" + de.name + "</option>");
+					dataElements.append("<option value='" + de.id + "'>" + de.displayName + "</option>");
 				}
 			} );
 		});
@@ -159,28 +164,30 @@ function getExpressionDescription( type ) {
 	}
 }
 
-function programIndicatorOnChange() {
-  var valueType = getFieldValue('valueType');
-  if( valueType == 'int' ) {
-    hideById('rootDateTR');
-    disable('rootDate');
-  }
-  else {
-    showById('rootDateTR');
-    enable('rootDate');
-  }
+function analyticsTypeChanged() {
+    var analyticsType = getFieldValue('analyticsType');
+    if ('ENROLLMENT' === analyticsType && !$("#event_count_variable").parent().is("span")) {
+        $("#event_count_variable").wrap('<span/>');
+        $("#program_stage_name_variable").wrap('<span/>');
+        $("#program_stage_id_variable").wrap('<span/>');
+    }
+    else if ($("#event_count_variable").parent().is("span")) {
+        $("#event_count_variable").unwrap();
+        $("#program_stage_name_variable").unwrap();
+        $("#program_stage_id_variable").unwrap();
+    }
 }
 
 function setExpressionCount(type) {
 	$('#aggregationType').val('COUNT');
 	
-	if ('psi' == type) {
+	if ('psi' === type) {
 		$('#expression').val('V{event_count}');
 	}
-	else if ('pi' == type) {
+	else if ('pi' === type) {
 		$('#expression').val('V{enrollment_count}');
 	}
-	else if ('tei' == type) {
+	else if ('tei' === type) {
 		$('#expression').val('V{tei_count}');
 	}
 }

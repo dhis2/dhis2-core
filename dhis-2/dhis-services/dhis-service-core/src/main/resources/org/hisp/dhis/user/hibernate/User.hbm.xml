@@ -18,7 +18,7 @@
 
     <property name="lastUpdated" type="timestamp" not-null="true" />
 
-    <property name="created" type="timestamp"  not-null="true" />
+    <property name="created" type="timestamp" not-null="true" />
 
     <property name="surname" not-null="true" length="160" />
 
@@ -79,7 +79,7 @@
 
     <!-- Dynamic attribute values -->
 
-    <set name="attributeValues" table="userattributevalues" cascade="delete-orphan">
+    <set name="attributeValues" table="userattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="userinfoid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />

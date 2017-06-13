@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity.action.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -251,13 +251,6 @@ public class UpdateProgramAction
         this.relatedProgramId = relatedProgramId;
     }
 
-    private Boolean dataEntryMethod;
-
-    public void setDataEntryMethod( Boolean dataEntryMethod )
-    {
-        this.dataEntryMethod = dataEntryMethod;
-    }
-
     private Integer trackedEntityId;
 
     public void setTrackedEntityId( Integer trackedEntityId )
@@ -341,6 +334,13 @@ public class UpdateProgramAction
     {
         this.periodTypeName = periodTypeName;
     }
+    
+    private List<Boolean> renderOptionsAsRadios = new ArrayList<>();
+
+    public void setRenderOptionsAsRadios( List<Boolean> renderOptionsAsRadios )
+    {
+        this.renderOptionsAsRadios = renderOptionsAsRadios;
+    }
 
     // -------------------------------------------------------------------------
     // Action implementation
@@ -358,7 +358,6 @@ public class UpdateProgramAction
         remindCompleted = (remindCompleted == null) ? false : remindCompleted;
         selectEnrollmentDatesInFuture = (selectEnrollmentDatesInFuture == null) ? false : selectEnrollmentDatesInFuture;
         selectIncidentDatesInFuture = (selectIncidentDatesInFuture == null) ? false : selectIncidentDatesInFuture;
-        dataEntryMethod = (dataEntryMethod == null) ? false : dataEntryMethod;
 
         Program program = programService.getProgram( id );
         program.setName( StringUtils.trimToNull( name ) );
@@ -371,7 +370,6 @@ public class UpdateProgramAction
         program.setOnlyEnrollOnce( onlyEnrollOnce );
         program.setSelectEnrollmentDatesInFuture( selectEnrollmentDatesInFuture );
         program.setSelectIncidentDatesInFuture( selectIncidentDatesInFuture );
-        program.setDataEntryMethod( dataEntryMethod );
         program.setSkipOffline( skipOffline );
         program.setDisplayFrontPageList( displayFrontPageList );
         program.setUseFirstStageDuringRegistration( useFirstStageDuringRegistration );
@@ -445,6 +443,7 @@ public class UpdateProgramAction
                     .parseInt( ids[1] ) );
                 ProgramTrackedEntityAttribute programAttribute = new ProgramTrackedEntityAttribute( program, attribute,
                     personDisplayNames.get( index ), mandatory.get( index ), allowFutureDate.get( index ) );
+                programAttribute.setRenderOptionsAsRadio( renderOptionsAsRadios.get( index ) );
                 programAttribute.setAutoFields();
                 program.getProgramAttributes().add( programAttribute );
             }

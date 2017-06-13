@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.predictor.Predictor;
 
 /**
@@ -47,29 +46,22 @@ public class PredictorObjectBundleHook
         {
             return;
         }
-        
+
         Predictor predictor = (Predictor) object;
         Expression skipTest = predictor.getSampleSkipTest();
 
-        preheatService.connectReferences( predictor.getGenerator(), bundle.getPreheat(),
-            bundle.getPreheatIdentifier() );
-        
+        preheatService.connectReferences( predictor.getGenerator(), bundle.getPreheat(), bundle.getPreheatIdentifier() );
+
         if ( skipTest != null )
         {
             preheatService.connectReferences( skipTest, bundle.getPreheat(), bundle.getPreheatIdentifier() );
         }
 
         sessionFactory.getCurrentSession().save( predictor.getGenerator() );
-        
+
         if ( skipTest != null )
         {
             sessionFactory.getCurrentSession().save( skipTest );
-        }
-
-        if ( predictor.getPeriodType() != null )
-        {
-            PeriodType periodType = bundle.getPreheat().getPeriodTypeMap().get( predictor.getPeriodType().getName() );
-            predictor.setPeriodType( periodType );
         }
     }
 
@@ -80,29 +72,23 @@ public class PredictorObjectBundleHook
         {
             return;
         }
-        
+
         Predictor predictor = (Predictor) object;
         Expression skipTest = predictor.getSampleSkipTest();
 
         preheatService.connectReferences( predictor.getGenerator(), bundle.getPreheat(),
             bundle.getPreheatIdentifier() );
-        
+
         if ( skipTest != null )
         {
             preheatService.connectReferences( skipTest, bundle.getPreheat(), bundle.getPreheatIdentifier() );
         }
 
         sessionFactory.getCurrentSession().save( predictor.getGenerator() );
-        
+
         if ( skipTest != null )
         {
             sessionFactory.getCurrentSession().save( skipTest );
-        }
-
-        if ( predictor.getPeriodType() != null )
-        {
-            PeriodType periodType = bundle.getPreheat().getPeriodTypeMap().get( predictor.getPeriodType().getName() );
-            predictor.setPeriodType( periodType );
         }
     }
 }

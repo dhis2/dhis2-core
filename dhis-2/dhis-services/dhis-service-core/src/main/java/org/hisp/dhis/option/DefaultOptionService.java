@@ -1,7 +1,7 @@
 package org.hisp.dhis.option;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -78,7 +77,9 @@ public class DefaultOptionService
     @Override
     public int saveOptionSet( OptionSet optionSet )
     {
-        return optionSetStore.save( optionSet );
+        optionSetStore.save( optionSet );
+
+        return optionSet.getId();
     }
 
     @Override
@@ -128,14 +129,6 @@ public class DefaultOptionService
     // -------------------------------------------------------------------------
 
     @Override
-    public List<Option> getOptions( String optionSetUid, String key, Integer max )
-    {
-        OptionSet optionSet = getOptionSet( optionSetUid );
-
-        return getOptions( optionSet.getId(), key, max );
-    }
-
-    @Override
     public List<Option> getOptions( int optionSetId, String key, Integer max )
     {
         List<Option> options = null;
@@ -177,12 +170,6 @@ public class DefaultOptionService
     }
 
     @Override
-    public List<Option> getOptions( OptionSet optionSet, String option, Integer min, Integer max )
-    {
-        return optionStore.getOptions( optionSet, option, min, max );
-    }
-
-    @Override
     public void deleteOption( Option option )
     {
         optionStore.delete( option );
@@ -195,7 +182,9 @@ public class DefaultOptionService
     @Override
     public int saveOptionGroup( OptionGroup group )
     {
-        return optionGroupStore.save( group );
+        optionGroupStore.save( group );
+
+        return group.getId();
     }
 
     @Override
@@ -217,12 +206,6 @@ public class DefaultOptionService
     }
 
     @Override
-    public List<OptionGroup> getOptionGroupsByUid( Collection<String> uids )
-    {
-        return optionGroupStore.getByUid( uids );
-    }
-
-    @Override
     public void deleteOptionGroup( OptionGroup group )
     {
         optionGroupStore.delete( group );
@@ -232,12 +215,6 @@ public class DefaultOptionService
     public List<OptionGroup> getAllOptionGroups()
     {
         return optionGroupStore.getAll();
-    }
-
-    @Override
-    public List<OptionGroup> getOptionGroups( OptionGroupSet groupSet )
-    {
-        return optionGroupStore.getOptionGroups( groupSet );
     }
 
     @Override
@@ -266,18 +243,6 @@ public class DefaultOptionService
         return OptionGroups.get( 0 );
     }
 
-    @Override
-    public int getOptionGroupCount()
-    {
-        return optionGroupStore.getCount();
-    }
-
-    @Override
-    public int getOptionGroupCountByName( String name )
-    {
-        return optionGroupStore.getCountLikeName( name );
-    }
-
     // -------------------------------------------------------------------------
     // OptionGroupSet
     // -------------------------------------------------------------------------
@@ -285,7 +250,9 @@ public class DefaultOptionService
     @Override
     public int saveOptionGroupSet( OptionGroupSet group )
     {
-        return optionGroupSetStore.save( group );
+        optionGroupSetStore.save( group );
+
+        return group.getId();
     }
 
     @Override
@@ -307,12 +274,6 @@ public class DefaultOptionService
     }
 
     @Override
-    public List<OptionGroupSet> getOptionGroupSetsByUid( Collection<String> uids )
-    {
-        return optionGroupSetStore.getByUid( uids );
-    }
-
-    @Override
     public void deleteOptionGroupSet( OptionGroupSet group )
     {
         optionGroupSetStore.delete( group );
@@ -329,17 +290,4 @@ public class DefaultOptionService
     {
         return optionGroupSetStore.getByName( name );
     }
-
-    @Override
-    public int getOptionGroupSetCount()
-    {
-        return optionGroupSetStore.getCount();
-    }
-
-    @Override
-    public int getOptionGroupSetCountByName( String name )
-    {
-        return optionGroupSetStore.getCountLikeName( name );
-    }
-
 }

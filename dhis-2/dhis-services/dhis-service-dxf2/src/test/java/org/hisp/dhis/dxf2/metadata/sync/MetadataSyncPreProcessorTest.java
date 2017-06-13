@@ -29,6 +29,7 @@
 package org.hisp.dhis.dxf2.metadata.sync;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -47,6 +48,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.ExpectedException;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -65,6 +67,7 @@ import static org.mockito.Mockito.*;
 /**
  * @author aamerm
  */
+@Category( IntegrationTest.class )
 public class MetadataSyncPreProcessorTest
     extends DhisSpringTest
 {
@@ -146,7 +149,7 @@ public class MetadataSyncPreProcessorTest
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
 
         metadataSyncPreProcessor.handleEventDataPush( mockRetryContext );
-        verify( synchronizationManager, times( 1 ) ).executeAnonymousEventPush();
+        verify( synchronizationManager, times( 1 ) ).executeEventPush();
     }
 
     @Test( expected = MetadataSyncServiceException.class )

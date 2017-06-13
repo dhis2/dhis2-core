@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.event;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.event;
  */
 
 import com.google.common.collect.Lists;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -39,6 +40,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.node.NodeUtils;
@@ -46,13 +48,11 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -82,7 +82,7 @@ import java.util.stream.Collectors;
  */
 @Controller
 @RequestMapping( value = EnrollmentController.RESOURCE_PATH )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class EnrollmentController
 {
     public static final String RESOURCE_PATH = "/enrollments";
@@ -102,14 +102,12 @@ public class EnrollmentController
     @Autowired
     private WebMessageService webMessageService;
 
-    @Autowired
-    private RenderService renderService;
-
     // -------------------------------------------------------------------------
     // READ
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "", method = RequestMethod.GET )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_ENROLLMENT') or hasRole('F_PROGRAM_UNENROLLMENT') or hasRole('F_PROGRAM_ENROLLMENT_READ')" )
     public @ResponseBody RootNode getEnrollments(
         @RequestParam( required = false ) String ou,
         @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
@@ -149,7 +147,7 @@ public class EnrollmentController
         else
         {
             Set<String> enrollmentIds = TextUtils.splitToArray( enrollment, TextUtils.SEMICOLON );
-            enrollments = enrollmentIds != null ?  enrollmentIds.stream().map( enrollmentId -> enrollmentService.getEnrollment( enrollmentId ) ).collect( Collectors.toList() ) : null;
+            enrollments = enrollmentIds != null ? enrollmentIds.stream().map( enrollmentId -> enrollmentService.getEnrollment( enrollmentId ) ).collect( Collectors.toList() ) : null;
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
@@ -159,6 +157,7 @@ public class EnrollmentController
     }
 
     @RequestMapping( value = "/{id}", method = RequestMethod.GET )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_ENROLLMENT') or hasRole('F_PROGRAM_UNENROLLMENT') or hasRole('F_PROGRAM_ENROLLMENT_READ')" )
     public @ResponseBody Enrollment getEnrollment( @PathVariable String id, @RequestParam Map<String, String> parameters, Model model ) throws NotFoundException
     {
         return getEnrollment( id );
@@ -168,35 +167,6 @@ public class EnrollmentController
     // CREATE
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_ENROLLMENT')" )
-    public void postEnrollmentXml( @RequestParam( defaultValue = "CREATE" ) ImportStrategy strategy,
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response ) throws IOException
-    {
-        importOptions.setStrategy( strategy );
-        InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-        ImportSummaries importSummaries = enrollmentService.addEnrollmentsXml( inputStream, importOptions );
-        response.setContentType( MediaType.APPLICATION_XML_VALUE );
-
-        if ( importSummaries.getImportSummaries().size() > 1 )
-        {
-            response.setStatus( HttpServletResponse.SC_CREATED );
-            renderService.toXml( response.getOutputStream(), importSummaries );
-        }
-        else
-        {
-            response.setStatus( HttpServletResponse.SC_CREATED );
-            ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
-
-            if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
-            {
-                response.setHeader( "Location", getResourcePath( request, importSummary ) );
-            }
-
-            webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
-        }
-    }
-
     @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_ENROLLMENT')" )
     public void postEnrollmentJson( @RequestParam( defaultValue = "CREATE" ) ImportStrategy strategy,
@@ -205,29 +175,62 @@ public class EnrollmentController
         importOptions.setStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummaries importSummaries = enrollmentService.addEnrollmentsJson( inputStream, importOptions );
+        importSummaries.setImportOptions( importOptions );
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
 
-        if ( importSummaries.getImportSummaries().isEmpty() || importSummaries.getImportSummaries().size() > 1 )
+        importSummaries.getImportSummaries().stream()
+            .filter( importSummary -> !importOptions.isDryRun() && !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
+                !importOptions.getImportStrategy().isDelete() )
+            .forEach( importSummary -> importSummary.setHref(
+                ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + importSummary.getReference() ) );
+
+        if ( importSummaries.getImportSummaries().size() == 1 )
         {
-            response.setStatus( HttpServletResponse.SC_CREATED );
-            renderService.toJson( response.getOutputStream(), importSummaries );
-        }
-        else
-        {
-            response.setStatus( HttpServletResponse.SC_CREATED );
             ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
+            importSummary.setImportOptions( importOptions );
 
             if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
             {
                 response.setHeader( "Location", getResourcePath( request, importSummary ) );
             }
-
-            webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
         }
+
+        response.setStatus( HttpServletResponse.SC_CREATED );
+        webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
     }
 
+    @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_ENROLLMENT')" )
+    public void postEnrollmentXml( @RequestParam( defaultValue = "CREATE" ) ImportStrategy strategy,
+        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response ) throws IOException
+    {
+        importOptions.setStrategy( strategy );
+        InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
+        ImportSummaries importSummaries = enrollmentService.addEnrollmentsXml( inputStream, importOptions );
+        importSummaries.setImportOptions( importOptions );
+        response.setContentType( MediaType.APPLICATION_XML_VALUE );
+
+        if ( importSummaries.getImportSummaries().size() == 1 )
+        {
+            ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
+            importSummary.setImportOptions( importOptions );
+
+            if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
+            {
+                response.setHeader( "Location", getResourcePath( request, importSummary ) );
+            }
+        }
+
+        response.setStatus( HttpServletResponse.SC_CREATED );
+        webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
+    }
+
+    // -------------------------------------------------------------------------
+    // UPDATE
+    // -------------------------------------------------------------------------
+
     @RequestMapping( value = "/{id}/note", method = RequestMethod.POST, consumes = "application/json" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_UNENROLLMENT')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_ENROLLMENT')" )
     public void updateEnrollmentForNoteJson( @PathVariable String id, HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
@@ -235,25 +238,25 @@ public class EnrollmentController
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
-    // -------------------------------------------------------------------------
-    // UPDATE
-    // -------------------------------------------------------------------------
-
     @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_UNENROLLMENT')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_ENROLLMENT')" )
     public void updateEnrollmentXml( @PathVariable String id, ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummary importSummary = enrollmentService.updateEnrollmentXml( id, inputStream, importOptions );
+        importSummary.setImportOptions( importOptions );
+
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
     @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_UNENROLLMENT')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_ENROLLMENT')" )
     public void updateEnrollmentJson( @PathVariable String id, ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummary importSummary = enrollmentService.updateEnrollmentJson( id, inputStream, importOptions );
+        importSummary.setImportOptions( importOptions );
+
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
@@ -271,7 +274,7 @@ public class EnrollmentController
     }
 
     @RequestMapping( value = "/{id}/completed", method = RequestMethod.PUT )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_UNENROLLMENT')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_ENROLLMENT')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void completeEnrollment( @PathVariable String id ) throws NotFoundException, WebMessageException
     {

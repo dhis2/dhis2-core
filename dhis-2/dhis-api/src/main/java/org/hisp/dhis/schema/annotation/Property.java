@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema.annotation;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,8 +48,25 @@ public @interface Property
 
     Value owner() default Value.DEFAULT;
 
+    Access access() default Access.READ_WRITE;
+
     enum Value
     {
         TRUE, FALSE, DEFAULT
+    }
+
+    enum Access
+    {
+        READ_ONLY, WRITE_ONLY, READ_WRITE;
+
+        public boolean isReadable()
+        {
+            return READ_ONLY == this || READ_WRITE == this;
+        }
+
+        public boolean isWritable()
+        {
+            return WRITE_ONLY == this || READ_WRITE == this;
+        }
     }
 }

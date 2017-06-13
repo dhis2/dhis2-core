@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,12 +36,12 @@ public enum UserInvitationStatus
     NONE( "none" ), ALL( "all" ), EXPIRED( "expired" );
 
     private final String value;
-    
-    private UserInvitationStatus( String value )
+
+    UserInvitationStatus( String value )
     {
         this.value = value;
     }
-    
+
     public static UserInvitationStatus fromValue( String value )
     {
         for ( UserInvitationStatus status : UserInvitationStatus.values() )
@@ -51,7 +51,7 @@ public enum UserInvitationStatus
                 return status;
             }
         }
-        
+
         return null;
     }
 }

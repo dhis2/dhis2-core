@@ -1,7 +1,7 @@
 package org.hisp.dhis.datavalue.hibernate;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -91,6 +91,15 @@ public class HibernateDataValueAuditStore
         
         sessionFactory.getCurrentSession().createQuery( hql ).
             setEntity( "unit", organisationUnit ).executeUpdate();
+    }
+
+    @Override
+    public void deleteDataValueAudits( DataElement dataElement )
+    {
+        String hql = "delete from DataValueAudit d where d.dataElement = :dataElement";
+
+        sessionFactory.getCurrentSession().createQuery( hql )
+            .setEntity( "dataElement", dataElement ).executeUpdate();
     }
 
     @Override

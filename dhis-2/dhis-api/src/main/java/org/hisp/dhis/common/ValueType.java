@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,12 @@ package org.hisp.dhis.common;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.opengis.geometry.primitive.Point;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Set;
 
@@ -49,8 +52,8 @@ public enum ValueType
     EMAIL( String.class, false ),
     BOOLEAN( Boolean.class, true ),
     TRUE_ONLY( Boolean.class, true ),
-    DATE( Date.class, false ),
-    DATETIME( Date.class, false ),
+    DATE( LocalDate.class, false ),
+    DATETIME( LocalDateTime.class, false ),
     TIME( String.class, false ),
     NUMBER( Double.class, true ),
     UNIT_INTERVAL( Double.class, true ),
@@ -62,8 +65,10 @@ public enum ValueType
     TRACKER_ASSOCIATE( TrackedEntityInstance.class, false ),
     USERNAME( String.class, false ),
     FILE_RESOURCE( String.class, false ),
-    COORDINATE( String.class, true ),
-    ORGANISATION_UNIT( OrganisationUnit.class, false );
+    COORDINATE( Point.class, true ),
+    ORGANISATION_UNIT( OrganisationUnit.class, false ),
+    AGE( Date.class, false ),
+    URL( String.class, false );
 
     public static final Set<ValueType> INTEGER_TYPES = ImmutableSet.<ValueType>builder().add(
         INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE ).build();
@@ -79,17 +84,17 @@ public enum ValueType
 
     public static final Set<ValueType> DATE_TYPES = ImmutableSet.<ValueType>builder().add(
         DATE, DATETIME ).build();
-    
+
     private final Class<?> javaClass;
-    
+
     private boolean aggregateable;
 
-    private ValueType()
+    ValueType()
     {
         this.javaClass = null;
     }
 
-    private ValueType( Class<?> javaClass, boolean aggregateable )
+    ValueType( Class<?> javaClass, boolean aggregateable )
     {
         this.javaClass = javaClass;
         this.aggregateable = aggregateable;
@@ -134,7 +139,7 @@ public enum ValueType
     {
         return this == COORDINATE;
     }
-    
+
     public boolean isAggregateable()
     {
         return aggregateable;

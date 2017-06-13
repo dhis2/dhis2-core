@@ -1,7 +1,7 @@
 package org.hisp.dhis.common.adapter;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,8 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
 /**
+ * TODO switch to <code>jgen.writeObject( field )</code>
+ * 
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class JacksonRowDataSerializer

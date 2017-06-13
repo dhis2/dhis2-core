@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -89,14 +89,6 @@ public interface DataElementCategoryService
      * @return the DataElementCategory with the given uid, or null if no match.
      */
     DataElementCategory getDataElementCategory( String uid );
-
-    /**
-     * Retrieves the DataElementCategories with the given uids.
-     *
-     * @param uids the uids of the DataElementCategories to retrieve.
-     * @return a list of DataElementCategories.
-     */
-    List<DataElementCategory> getDataElementCategoriesByUid( Collection<String> uids );
 
     /**
      * Retrieves the DataElementCategory with the given name.
@@ -194,14 +186,6 @@ public interface DataElementCategoryService
      * match.
      */
     DataElementCategoryOption getDataElementCategoryOption( String uid );
-
-    /**
-     * Retrieves the DataElementCategoryOptions with the given uids.
-     *
-     * @param uids the uids of the DataElementCategoryOption to retrieve.
-     * @return a list of DataElementCategoryOptions.
-     */
-    List<DataElementCategoryOption> getDataElementCategoryOptionsByUid( Collection<String> uids );
 
     /**
      * Retrieves the DataElementCategoryOption with the given name.
@@ -399,15 +383,6 @@ public interface DataElementCategoryService
     DataElementCategoryOptionCombo getDataElementCategoryOptionComboByCode( String code );
 
     /**
-     * Retrieves the DataElementCategoryOptionCombos with the given uids.
-     *
-     * @param uids the uids of the
-     *             DataElementCategoryOptionCombos.
-     * @return a List of DataElementCategoryOptionCombos.
-     */
-    List<DataElementCategoryOptionCombo> getDataElementCategoryOptionCombosByUid( Collection<String> uids );
-
-    /**
      * Retrieves the DataElementCategoryOptionCombo with the given Collection of
      * DataElementCategoryOptions.
      *
@@ -542,8 +517,6 @@ public interface DataElementCategoryService
 
     CategoryOptionGroup getCategoryOptionGroup( String uid );
 
-    List<CategoryOptionGroup> getCategoryOptionGroupsByUid( Collection<String> uids );
-
     void deleteCategoryOptionGroup( CategoryOptionGroup group );
 
     List<CategoryOptionGroup> getAllCategoryOptionGroups();
@@ -570,8 +543,6 @@ public interface DataElementCategoryService
     CategoryOptionGroupSet getCategoryOptionGroupSet( int id );
 
     CategoryOptionGroupSet getCategoryOptionGroupSet( String uid );
-
-    List<CategoryOptionGroupSet> getCategoryOptionGroupSetsByUid( Collection<String> uids );
 
     void deleteCategoryOptionGroupSet( CategoryOptionGroupSet group );
 

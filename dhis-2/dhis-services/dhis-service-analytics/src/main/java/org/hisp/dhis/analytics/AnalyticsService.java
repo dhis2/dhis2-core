@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,19 +28,16 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Map;
-
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 
+import java.util.List;
+import java.util.Map;
+
 /**
- * <p>
  * This interface is responsible for retrieving aggregated data. Data will be
  * returned in a grid object or as a dimensional key-value mapping.
- * </p>
- * 
  * <p>
  * Most objects accept a DataQueryParams object which encapsulates the query
  * parameters. The dimensions in the response will appear in the same order as
@@ -48,8 +45,6 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
  * setting indicators, data elements, data sets, periods, organisation units,
  * categories, data element group sets and organisation unit group sets on the
  * the DataQueryParams object. Objects can be defined as dimensions or filters.
- * </p>
- * 
  * <p>
  * Example usage for setting multiple indicators and a period as dimensions and
  * an organisation unit as filter. In the grid response the first column will
@@ -57,7 +52,6 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
  * identifiers and the third column will contain aggregated values. Note that
  * the organisation unit is excluded since it is defined as a filter:
  * </p>
- * 
  * <pre>
  * {@code
  * DataQueryParams params = new DataQueryParams();
@@ -69,11 +63,10 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
  * Grid grid = analyticsService.getAggregatedDataValues( params );
  * }
  * </pre>
- * 
- * <p>The returned grid has a metaData object which contains metadata about the
+ * <p>
+ * The returned grid has a metaData object which contains metadata about the
  * response, such as a mapping between the UIDs and names of metadata objects.
  * For valid keys refer to the key property of {@link AnalyticsMetaDataKey}.</p>
- * 
  * <p>
  * Example usage for including category option combos in the response. Note that
  * the index position of category option combos will follow the order of when
@@ -84,7 +77,6 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
  * option combo identifier and an organisation unit identifier in that order.
  * The map values will be the aggregated values of type Double:
  * </p>
- * 
  * <pre>
  * {@code
  * DataQueryParams params = DataQueryParams.newBuilder();
@@ -129,6 +121,17 @@ public interface AnalyticsService
     Grid getAggregatedDataValues( DataQueryParams params, List<String> columns, List<String> rows );
     
     /**
+     * Generates a raw data value grid for the given query. The grid will
+     * represent a table with denormalized raw data. This means that no 
+     * aggregation will be performed on the data, and dimensions specified
+     * in the query will be present for each row.
+     * 
+     * @param params the data query parameters.
+     * @return raw data as a Grid object.
+     */
+    Grid getRawDataValues( DataQueryParams params );
+    
+    /**
      * Generates a data value set for the given query. The query must contain
      * a data, period and organisation unit dimension.
      * 
@@ -136,7 +139,7 @@ public interface AnalyticsService
      * @return a data value set representing aggregated data.
      */
     DataValueSet getAggregatedDataValueSet( DataQueryParams params );
-    
+
     /**
      * Generates an aggregated value grid for the given query based on the given
      * analytical object.

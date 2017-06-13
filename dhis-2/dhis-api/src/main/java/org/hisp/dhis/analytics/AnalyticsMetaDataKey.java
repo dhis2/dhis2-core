@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,21 +29,23 @@ package org.hisp.dhis.analytics;
  */
 
 /**
-* Represents keys for the meta data part of analytics responses.
-* 
-* @author Lars Helge Overland
-*/
+ * Represents keys for the meta data part of analytics responses.
+ *
+ * @author Lars Helge Overland
+ */
 public enum AnalyticsMetaDataKey
 {
+    ITEMS( "items" ),
+    DIMENSIONS( "dimensions" ),
     NAMES( "names" ),
-    DIMENSION_ITEMS( "dimensionItems" ),
     PAGER( "pager" ),
     ORG_UNIT_HIERARCHY( "ouHierarchy" ),
-    ORG_UNIT_NAME_HIERARCHY( "ouNameHierarchy" );
-    
+    ORG_UNIT_NAME_HIERARCHY( "ouNameHierarchy" ),
+    ORG_UNIT_ANCESTORS( "ouAncestors");
+
     private String key;
 
-    private AnalyticsMetaDataKey( String key )
+    AnalyticsMetaDataKey( String key )
     {
         this.key = key;
     }

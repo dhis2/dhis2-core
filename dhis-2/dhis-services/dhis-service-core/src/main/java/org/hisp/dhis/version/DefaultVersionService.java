@@ -1,7 +1,7 @@
 package org.hisp.dhis.version;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,10 @@ package org.hisp.dhis.version;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.UUID;
-
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author mortenoh
@@ -58,7 +58,8 @@ public class DefaultVersionService
     @Override
     public int addVersion( Version version )
     {
-        return versionStore.save( version );
+        versionStore.save( version );
+        return version.getId();
     }
 
     @Override

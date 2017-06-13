@@ -1,7 +1,7 @@
 package org.hisp.dhis.resourcetable;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,7 +67,7 @@ public interface ResourceTableService
      * Generates a resource table for all organisation units 
      */
     void generateOrganisationUnitGroupSetTable();
-    
+
     /**
      * Generates a resource table for all category option combos.
      * 

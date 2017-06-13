@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.service;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,11 @@ package org.hisp.dhis.webapi.service;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.render.RenderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -83,6 +85,12 @@ public class WebMessageService
         String type = request.getHeader( "Accept" );
         type = !StringUtils.isEmpty( type ) ? type : request.getContentType();
         type = !StringUtils.isEmpty( type ) ? type : MediaType.APPLICATION_JSON_VALUE;
+        HttpStatus httpStatus = HttpStatus.valueOf( webMessage.getHttpStatusCode() );
+
+        if ( httpStatus.is4xxClientError() || httpStatus.is5xxServerError() )
+        {
+            response.setHeader( "Cache-Control", CacheControl.noCache().cachePrivate().getHeaderValue() );
+        }
 
         // allow type to be overridden by path extension
         if ( request.getPathInfo().endsWith( ".json" ) )

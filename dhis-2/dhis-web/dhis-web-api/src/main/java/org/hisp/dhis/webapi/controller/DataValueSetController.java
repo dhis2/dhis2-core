@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,15 +29,16 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
 import org.hisp.dhis.dxf2.adx.AdxException;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.datavalueset.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.datavalueset.tasks.ImportDataValueTask;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.TaskCategory;
@@ -45,6 +46,7 @@ import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -71,9 +73,11 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.*;
  */
 @Controller
 @RequestMapping( value = DataValueSetController.RESOURCE_PATH )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class DataValueSetController
 {
+    private static final Log log = LogFactory.getLog( DataValueSetController.class );
+
     public static final String RESOURCE_PATH = "/dataValueSets";
 
     @Autowired
@@ -108,6 +112,7 @@ public class DataValueSetController
         @RequestParam( required = false ) Set<String> orgUnit,
         @RequestParam( required = false ) boolean children,
         @RequestParam( required = false ) Set<String> orgUnitGroup,
+        @RequestParam( required = false ) Set<String> attributeOptionCombo,
         @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) String lastUpdatedDuration,
@@ -117,7 +122,8 @@ public class DataValueSetController
         response.setContentType( CONTENT_TYPE_XML );
 
         DataExportParams params = dataValueSetService.getFromUrl( dataSet, dataElementGroup,
-            period, startDate, endDate, orgUnit, children, orgUnitGroup, includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
+            period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo, 
+            includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
 
         dataValueSetService.writeDataValueSetXml( params, response.getOutputStream() );
     }
@@ -153,6 +159,7 @@ public class DataValueSetController
         @RequestParam( required = false ) Set<String> orgUnit,
         @RequestParam( required = false ) boolean children,
         @RequestParam( required = false ) Set<String> orgUnitGroup,
+        @RequestParam( required = false ) Set<String> attributeOptionCombo,
         @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) String lastUpdatedDuration,
@@ -162,7 +169,8 @@ public class DataValueSetController
         response.setContentType( CONTENT_TYPE_JSON );
 
         DataExportParams params = dataValueSetService.getFromUrl( dataSet, dataElementGroup,
-            period, startDate, endDate, orgUnit, children, orgUnitGroup, includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
+            period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo,
+            includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
 
         dataValueSetService.writeDataValueSetJson( params, response.getOutputStream() );
     }
@@ -177,6 +185,7 @@ public class DataValueSetController
         @RequestParam( required = false ) Set<String> orgUnit,
         @RequestParam( required = false ) boolean children,
         @RequestParam( required = false ) Set<String> orgUnitGroup,
+        @RequestParam( required = false ) Set<String> attributeOptionCombo,
         @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) String lastUpdatedDuration,
@@ -187,7 +196,8 @@ public class DataValueSetController
         response.setContentType( CONTENT_TYPE_CSV );
 
         DataExportParams params = dataValueSetService.getFromUrl( dataSet, dataElementGroup,
-            period, startDate, endDate, orgUnit, children, orgUnitGroup, includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
+            period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo,
+            includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
 
         dataValueSetService.writeDataValueSetCsv( params, response.getWriter() );
     }
@@ -208,6 +218,7 @@ public class DataValueSetController
         else
         {
             ImportSummary summary = dataValueSetService.saveDataValueSet( request.getInputStream(), importOptions );
+            summary.setImportOptions( importOptions );
 
             response.setContentType( CONTENT_TYPE_XML );
             renderService.toXml( response.getOutputStream(), summary );
@@ -225,10 +236,21 @@ public class DataValueSetController
         }
         else
         {
-            ImportSummaries summaries = adxDataService.saveDataValueSet( request.getInputStream(), importOptions, null );
+            try
+            {
+                ImportSummary summary = adxDataService.saveDataValueSet( request.getInputStream(), importOptions, null );
 
-            response.setContentType( CONTENT_TYPE_XML );
-            renderService.toXml( response.getOutputStream(), summaries );
+                summary.setImportOptions( importOptions );
+
+                response.setContentType( CONTENT_TYPE_XML );
+                renderService.toXml( response.getOutputStream(), summary );
+            }
+            catch ( Exception ex )
+            {
+                log.error( "ADX Import error: ", ex );
+
+                throw ex;
+            }
         }
     }
 
@@ -244,6 +266,7 @@ public class DataValueSetController
         else
         {
             ImportSummary summary = dataValueSetService.saveDataValueSetJson( request.getInputStream(), importOptions );
+            summary.setImportOptions( importOptions );
 
             response.setContentType( CONTENT_TYPE_JSON );
             renderService.toJson( response.getOutputStream(), summary );
@@ -262,6 +285,7 @@ public class DataValueSetController
         else
         {
             ImportSummary summary = dataValueSetService.saveDataValueSetCsv( request.getInputStream(), importOptions );
+            summary.setImportOptions( importOptions );
 
             response.setContentType( CONTENT_TYPE_XML );
             renderService.toXml( response.getOutputStream(), summary );

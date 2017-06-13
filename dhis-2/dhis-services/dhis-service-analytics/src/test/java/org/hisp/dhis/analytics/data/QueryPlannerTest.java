@@ -36,6 +36,7 @@ import org.hisp.dhis.analytics.DimensionItem;
 import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
+import org.hisp.dhis.analytics.table.AnalyticsTableType;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -50,6 +51,8 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -63,7 +66,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElement;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
@@ -78,7 +81,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import static org.hisp.dhis.analytics.AnalyticsTableManager.ANALYTICS_TABLE_NAME;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.junit.Assert.*;
@@ -90,6 +92,8 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_P
 public class QueryPlannerTest
     extends DhisSpringTest
 {
+    private static final String ANALYTICS_TABLE_NAME = AnalyticsTableType.DATA_VALUE.getTableName();
+    
     @Autowired
     private QueryPlanner queryPlanner;
 
@@ -127,8 +131,8 @@ public class QueryPlannerTest
     private DataElement deG;
     private DataElement deH;
     
-    private ProgramDataElement pdeA;
-    private ProgramDataElement pdeB;
+    private ProgramDataElementDimensionItem pdeA;
+    private ProgramDataElementDimensionItem pdeB;
 
     private ReportingRate rrA;
     private ReportingRate rrB;
@@ -145,8 +149,10 @@ public class QueryPlannerTest
     private OrganisationUnit ouC;
     private OrganisationUnit ouD;
     private OrganisationUnit ouE;
-
-    //TODO test for indicators, periods in filter
+    
+    private DataElementGroup degA;
+    
+    private DataElementGroupSet dgsA;
 
     @Override
     public void setUpTest()
@@ -185,11 +191,8 @@ public class QueryPlannerTest
         dataElementService.addDataElement( deG );
         dataElementService.addDataElement( deH );
 
-        pdeA = new ProgramDataElement( prA, deA );
-        pdeB = new ProgramDataElement( prA, deB );
-
-        idObjectManager.save( pdeA );
-        idObjectManager.save( pdeB );
+        pdeA = new ProgramDataElementDimensionItem( prA, deA );
+        pdeB = new ProgramDataElementDimensionItem( prA, deB );
 
         DataSet dsA = createDataSet( 'A', pt );
         DataSet dsB = createDataSet( 'B', pt );
@@ -222,6 +225,17 @@ public class QueryPlannerTest
         organisationUnitService.addOrganisationUnit( ouC );
         organisationUnitService.addOrganisationUnit( ouD );
         organisationUnitService.addOrganisationUnit( ouE );
+        
+        degA = createDataElementGroup( 'A' );
+        degA.addDataElement( deA );
+        degA.addDataElement( deB );
+        
+        dataElementService.addDataElementGroup( degA );
+        
+        dgsA = createDataElementGroupSet( 'A' );
+        dgsA.getMembers().add( degA );
+        
+        dataElementService.addDataElementGroupSet( dgsA );
     }
 
     // -------------------------------------------------------------------------
@@ -1029,7 +1043,7 @@ public class QueryPlannerTest
     }
     
     @Test( expected = IllegalQueryException.class )
-    public void validateFailureA()
+    public void validateFailureSingleIndicatorAsFilter()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
@@ -1045,6 +1059,17 @@ public class QueryPlannerTest
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
             .addFilter( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( inA, inB ) ) ).build();
+        
+        queryPlanner.validate( params );
+    }
+
+    @Test( expected = IllegalQueryException.class )
+    public void validateFailureReportingRatesAndDataElementGroupSetAsDimensions()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( rrA, inA ) ) )
+            .addDimension( new BaseDimensionalObject( dgsA.getDimension(), DimensionType.DATA_ELEMENT_GROUP_SET, getList( deA ) ) ).build();
         
         queryPlanner.validate( params );
     }
@@ -1076,6 +1101,18 @@ public class QueryPlannerTest
     }
 
     @Test( expected = IllegalQueryException.class )
+    public void validateFailureOptionCombosWithIndicators()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, inA ) ) )
+            .addDimension( new BaseDimensionalObject( CATEGORYOPTIONCOMBO_DIM_ID, DimensionType.DATA_X, getList() ) )
+            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) ).build();
+        
+        queryPlanner.validate( params );
+    }
+
+    @Test( expected = IllegalQueryException.class )
     public void validateMissingOrgUnitDimensionOutputFormatDataValueSet()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
@@ -1084,8 +1121,35 @@ public class QueryPlannerTest
             .withOutputFormat( OutputFormat.DATA_VALUE_SET ).build();
         
         queryPlanner.validate( params );
-    }    
+    }
     
+    @Test
+    public void testGroupByPartition()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withStartDate( getDate( 2014, 4, 1 ) )
+            .withEndDate( getDate( 2016, 8, 1 ) ).build();
+        
+        assertTrue( params.hasStartEndDate() );
+        
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withTableName( ANALYTICS_TABLE_NAME ).build();
+        
+        List<DataQueryParams> queries = queryPlanner.groupByPartition( params, plannerParams );
+        
+        assertEquals( 1, queries.size() );
+        
+        DataQueryParams query = queries.get( 0 );
+        
+        List<String> partitions = query.getPartitions().getPartitions();
+        
+        assertNotNull( partitions );
+        assertEquals( 3, partitions.size() );
+        assertEquals( ANALYTICS_TABLE_NAME + "_2014", partitions.get( 0 ) );
+        assertEquals( ANALYTICS_TABLE_NAME + "_2015", partitions.get( 1 ) );
+        assertEquals( ANALYTICS_TABLE_NAME + "_2016", partitions.get( 2 ) );
+    }
+        
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------

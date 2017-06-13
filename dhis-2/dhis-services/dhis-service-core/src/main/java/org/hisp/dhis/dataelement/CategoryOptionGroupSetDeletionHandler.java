@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,10 +53,8 @@ public class CategoryOptionGroupSetDeletionHandler
 
     @Override
     public void deleteCategoryOptionGroup( CategoryOptionGroup categoryOptionGroup )
-    {
-        CategoryOptionGroupSet groupSet = categoryOptionGroup.getGroupSet();
-        
-        if ( groupSet != null )
+    {        
+        for ( CategoryOptionGroupSet groupSet : categoryOptionGroup.getGroupSets() )
         {
             groupSet.getMembers().remove( categoryOptionGroup );
             idObjectManager.updateNoAcl( groupSet );

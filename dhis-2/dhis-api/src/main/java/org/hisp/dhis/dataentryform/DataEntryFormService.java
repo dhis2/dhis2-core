@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataentryform;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.i18n.I18n;
 
@@ -132,9 +131,5 @@ public interface DataEntryFormService
     
     Set<DataElement> getDataElementsInDataEntryForm( DataSet dataSet );
     
-    Set<DataElementOperand> getOperandsInDataEntryForm( DataSet dataSet );
-    
     List<DataEntryForm> listDistinctDataEntryFormByProgramStageIds( List<Integer> programStageIds );
-    
-    List<DataEntryForm> listDistinctDataEntryFormByDataSetIds( List<Integer> dataSetIds );
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.message;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.message;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.api.client.util.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -65,6 +66,7 @@ public class DefaultMessageService
     private static final String COMPLETE_SUBJECT = "Form registered as complete";
     private static final String COMPLETE_TEMPLATE = "completeness_message";
     private static final String MESSAGE_EMAIL_FOOTER_TEMPLATE = "message_email_footer";
+    private static final String MESSAGE_PATH = "/dhis-web-messaging/readMessage.action";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -134,53 +136,68 @@ public class DefaultMessageService
     // -------------------------------------------------------------------------
 
     @Override
-    public int sendMessage( String subject, String text, String metaData, Set<User> users )
+    public int sendPrivateMessage( String subject, String text, String metaData, Set<User> users )
     {
-        return sendMessage( subject, text, metaData, users, null, false, false );
+        User sender = currentUserService.getCurrentUser();
+        users.add( sender );
+
+        return sendMessage( subject, text, metaData, users, sender, MessageType.PRIVATE, false );
     }
 
     @Override
-    public int sendMessage( String subject, String text, String metaData, Set<User> users_, User sender,
-        boolean includeFeedbackRecipients, boolean forceNotifications )
+    public int sendTicketMessage( String subject, String text, String metaData )
     {
-        Set<User> users = new HashSet<>( users_ );
+        UserGroup userGroup = configurationService.getConfiguration().getFeedbackRecipients();
+        User sender = currentUserService.getCurrentUser();
+        Set<User> users = Sets.newHashSet();
 
-        // ---------------------------------------------------------------------
-        // Add feedback recipients to users if they are not there
-        // ---------------------------------------------------------------------
-
-        if ( includeFeedbackRecipients )
+        if ( userGroup != null && userGroup.getMembers().size() > 0 )
         {
-            UserGroup userGroup = configurationService.getConfiguration().getFeedbackRecipients();
-
-            if ( userGroup != null && userGroup.getMembers().size() > 0 )
-            {
-                users.addAll( userGroup.getMembers() );
-            }
+            users.addAll( userGroup.getMembers() );
         }
 
-        if ( sender == null )
+        users.add( sender );
+
+        return sendMessage( subject, text, metaData, users, sender, MessageType.TICKET, false );
+    }
+
+    @Override
+    public int sendSystemMessage( String subject, String text )
+    {
+        UserGroup userGroup = configurationService.getConfiguration().getFeedbackRecipients();
+        Set<User> users = Sets.newHashSet();
+
+        if ( userGroup != null && userGroup.getMembers().size() > 0 )
         {
-            sender = currentUserService.getCurrentUser();
-
-            if ( sender != null )
-            {
-                users.add( sender );
-            }
+            users.addAll( userGroup.getMembers() );
         }
-        else
+
+        emailService.sendSystemEmail( new Email( subject, text ) );
+
+        return sendMessage( subject, text, null, users, null, MessageType.SYSTEM, false );
+    }
+
+    @Override
+    public int sendValidationResultMessage( String subject, String text, Set<User> users )
+    {
+        return sendMessage( subject, text, null, users, null, MessageType.VALIDATION_RESULT, false );
+    }
+
+    @Override
+    public int sendMessage( String subject, String text, String metaData, Set<User> users, User sender,
+        MessageType messageType, boolean forceNotifications )
+    {
+        MessageConversation conversation = new MessageConversation( subject, sender, messageType );
+
+        if ( messageType.equals( MessageType.TICKET ) )
         {
-            users.add( sender );
+            conversation.setStatus( MessageConversationStatus.OPEN );
         }
 
-        // ---------------------------------------------------------------------
-        // Instantiate message, content and user messages
-        // ---------------------------------------------------------------------
-
-        MessageConversation conversation = new MessageConversation( subject, sender );
-
+        // This message will be the initial message in the conversation and must always be created
         conversation.addMessage( new Message( text, metaData, sender ) );
 
+        // It is possible to have an empty Set, for example when working with SystemMessages and Tickets.
         for ( User user : users )
         {
             boolean read = user != null && user.equals( sender );
@@ -200,70 +217,11 @@ public class DefaultMessageService
     }
 
     @Override
-    public int sendFeedback( String subject, String text, String metaData )
-    {
-        Set<User> users = new HashSet<>();
-
-        // ---------------------------------------------------------------------
-        // Add feedback recipients to users if they are not there
-        // ---------------------------------------------------------------------
-
-        UserGroup userGroup = configurationService.getConfiguration().getFeedbackRecipients();
-
-        if ( userGroup != null && userGroup.getMembers().size() > 0 )
-        {
-            users.addAll( userGroup.getMembers() );
-        }
-
-        User sender = currentUserService.getCurrentUser();
-
-        if ( sender != null )
-        {
-            users.add( sender );
-        }
-
-        // ---------------------------------------------------------------------
-        // Instantiate message, content and user messages
-        // ---------------------------------------------------------------------
-
-        MessageConversation conversation = new MessageConversation( subject, sender );
-
-        conversation.setStatus( MessageConversationStatus.OPEN );
-
-        conversation.addMessage( new Message( text, metaData, sender ) );
-
-        for ( User user : users )
-        {
-            boolean read = user != null && user.equals( sender );
-
-            conversation.addUserMessage( new UserMessage( user, read ) );
-        }
-
-        int id = saveMessageConversation( conversation );
-
-        users.remove( sender );
-
-        String footer = getMessageFooter( conversation );
-
-        invokeMessageSenders( subject, text, footer, sender, users, false );
-
-        return id;
-    }
-
-    @Override
-    public int sendSystemNotification( String subject, String text )
-    {
-        emailService.sendSystemEmail( new Email( subject, text ) );
-
-        return sendFeedback( subject, text, null );
-    }
-
-    @Override
     public int sendSystemErrorNotification( String subject, Throwable t )
     {
         String title = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
         String baseUrl = (String) systemSettingManager.getSystemSetting( SettingKey.INSTANCE_BASE_URL );
-        
+
         String text = new StringBuilder()
             .append( subject + LN + LN )
             .append( "System title: " + title + LN )
@@ -271,10 +229,10 @@ public class DefaultMessageService
             .append( "Time: " + new DateTime().toString() + LN )
             .append( "Message: " + t.getMessage() + LN + LN )
             .append( "Cause: " + DebugUtils.getStackTrace( t.getCause() ) ).toString();
-        
-        return sendSystemNotification( subject, text );
+
+        return sendSystemMessage( subject, text );
     }
-    
+
     @Override
     public void sendReply( MessageConversation conversation, String text, String metaData, boolean internal )
     {
@@ -288,7 +246,7 @@ public class DefaultMessageService
 
         Set<User> users = conversation.getUsers();
 
-        if ( internal )
+        if ( conversation.getMessageType().equals( MessageType.TICKET ) && internal )
         {
             users = users.stream().filter( this::hasAccessToManageFeedbackMessages )
                 .collect( Collectors.toSet() );
@@ -330,7 +288,7 @@ public class DefaultMessageService
 
         String text = new VelocityManager().render( registration, COMPLETE_TEMPLATE );
 
-        MessageConversation conversation = new MessageConversation( COMPLETE_SUBJECT, sender );
+        MessageConversation conversation = new MessageConversation( COMPLETE_SUBJECT, sender, MessageType.SYSTEM );
 
         conversation.addMessage( new Message( text, null, sender ) );
 
@@ -355,7 +313,8 @@ public class DefaultMessageService
     @Override
     public int saveMessageConversation( MessageConversation conversation )
     {
-        return messageConversationStore.save( conversation );
+        messageConversationStore.save( conversation );
+        return conversation.getId();
     }
 
     @Override
@@ -474,7 +433,7 @@ public class DefaultMessageService
     @Override
     public boolean hasAccessToManageFeedbackMessages( User user )
     {
-        user = ( user == null ? currentUserService.getCurrentUser() : user );
+        user = (user == null ? currentUserService.getCurrentUser() : user);
         return configurationService.isUserInFeedbackRecipientUserGroup( user ) || user.isAuthorized( "ALL" );
     }
 
@@ -508,8 +467,7 @@ public class DefaultMessageService
 
         locale = ObjectUtils.firstNonNull( locale, LocaleManager.DEFAULT_LOCALE );
 
-        values.put( "responseUrl",
-            baseUrl + "/dhis-web-dashboard-integration/readMessage.action?id=" + conversation.getUid() );
+        values.put( "responseUrl", baseUrl + MESSAGE_PATH + "?id=" + conversation.getUid() );
         values.put( "i18n", i18nManager.getI18n( locale ) );
 
         return new VelocityManager().render( values, MESSAGE_EMAIL_FOOTER_TEMPLATE );

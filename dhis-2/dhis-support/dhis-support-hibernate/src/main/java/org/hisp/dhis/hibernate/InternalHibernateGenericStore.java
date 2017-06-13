@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,23 +29,32 @@ package org.hisp.dhis.hibernate;
  */
 
 import org.hibernate.Criteria;
+import org.hibernate.criterion.DetachedCriteria;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.user.User;
 
 /**
  * Interface which extends GenericStore and exposes support methods for retrieving
  * criteria.
- * 
+ *
  * @author Lars Helge Overland
  */
 public interface InternalHibernateGenericStore<T>
     extends GenericStore<T>
 {
     Criteria getCriteria();
-    
+
     Criteria getSharingCriteria();
 
     Criteria getSharingCriteria( String access );
 
     Criteria getSharingCriteria( User user );
+
+    Criteria getExecutableCriteria( DetachedCriteria detachedCriteria );
+
+    DetachedCriteria getSharingDetachedCriteria();
+
+    DetachedCriteria getSharingDetachedCriteria( String access );
+
+    DetachedCriteria getSharingDetachedCriteria( User user );
 }

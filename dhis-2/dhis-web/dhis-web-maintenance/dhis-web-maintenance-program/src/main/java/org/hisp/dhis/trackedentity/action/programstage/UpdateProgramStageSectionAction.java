@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity.action.programstage;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,12 +36,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionService;
-import org.hisp.dhis.program.ProgramStageService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.opensymphony.xwork2.Action;
@@ -58,13 +54,6 @@ public class UpdateProgramStageSectionAction
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private ProgramStageService programStageService;
-
-    public void setProgramStageService( ProgramStageService programStageService )
-    {
-        this.programStageService = programStageService;
-    }
-
     private ProgramStageSectionService programStageSectionService;
 
     public void setProgramStageSectionService( ProgramStageSectionService programStageSectionService )
@@ -77,13 +66,6 @@ public class UpdateProgramStageSectionAction
     public void setDataElementService( DataElementService dataElementService )
     {
         this.dataElementService = dataElementService;
-    }
-
-    private ProgramStageDataElementService programStageDataElementService;
-
-    public void setProgramStageDataElementService( ProgramStageDataElementService programStageDataElementService )
-    {
-        this.programStageDataElementService = programStageDataElementService;
     }
 
     @Autowired
@@ -141,24 +123,21 @@ public class UpdateProgramStageSectionAction
     public String execute()
         throws Exception
     {
-        ProgramStage programStage = programStageService.getProgramStage( programStageId );
-
         // ---------------------------------------------------------------------
         // Section
         // ---------------------------------------------------------------------
 
         ProgramStageSection section = programStageSectionService.getProgramStageSection( id );
         section.setName( StringUtils.trimToNull( name ) );
+
+        List<DataElement> dataElements = new ArrayList<>();
         
-        List<ProgramStageDataElement> psDataElements = new ArrayList<>();
         for ( Integer id : dataElementIds )
         {
-            DataElement dataElement = dataElementService.getDataElement( id );
-            ProgramStageDataElement psDataElement = programStageDataElementService.get( programStage, dataElement );
-            psDataElements.add( psDataElement );
+            dataElements.add( dataElementService.getDataElement( id ) );
         }
-
-        section.setProgramStageDataElements( psDataElements );
+        
+        section.setDataElements( dataElements );
         
         // ---------------------------------------------------------------------
         // Program indicators

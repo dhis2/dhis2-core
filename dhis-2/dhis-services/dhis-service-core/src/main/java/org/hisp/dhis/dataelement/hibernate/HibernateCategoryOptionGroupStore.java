@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement.hibernate;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,9 @@ public class HibernateCategoryOptionGroupStore
     @SuppressWarnings("unchecked")
     public List<CategoryOptionGroup> getCategoryOptionGroups( CategoryOptionGroupSet groupSet )
     {
-        return getSharingCriteria( Restrictions.eq( "groupSet", groupSet ) ).list();
+        return getSharingCriteria()
+            .createAlias( "groupSets", "groupSet" )
+            .add( Restrictions.eqOrIsNull( "groupSet.id", groupSet.getId() ) ).list();
     }
 
     @Override

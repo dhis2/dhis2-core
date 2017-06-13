@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,9 +54,7 @@ public class DataElementGroupSetDeletionHandler
     @Override
     public void deleteDataElementGroup( DataElementGroup dataElementGroup )
     {
-        DataElementGroupSet groupSet = dataElementGroup.getGroupSet();
-        
-        if ( groupSet != null )
+        for ( DataElementGroupSet groupSet : dataElementGroup.getGroupSets() )
         {
             groupSet.getMembers().remove( dataElementGroup );
             idObjectManager.updateNoAcl( groupSet );

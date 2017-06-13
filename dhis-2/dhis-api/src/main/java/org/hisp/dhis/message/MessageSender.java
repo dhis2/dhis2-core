@@ -1,7 +1,7 @@
 package org.hisp.dhis.message;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,9 @@ package org.hisp.dhis.message;
 
 import java.util.Set;
 
-import org.hisp.dhis.program.message.DeliveryChannel;
-import org.hisp.dhis.sms.MessageResponseStatus;
-import org.hisp.dhis.sms.MessageResponseSummary;
-import org.hisp.dhis.sms.outbound.MessageBatch;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.user.User;
 
 /**
@@ -53,17 +52,20 @@ public interface MessageSender
      * @param forceSend force sending the message despite potential user
      *        settings.
      */
-    MessageResponseStatus sendMessage( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend );
+    OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend );
 
-    MessageResponseStatus sendMessage( String subject, String text, Set<String> recipient );
+    OutboundMessageResponse sendMessage( String subject, String text, Set<String> recipient );
 
-    MessageResponseStatus sendMessage( String subject, String text, String recipient );
-   
-    MessageResponseSummary sendMessageBatch( MessageBatch batch );
+    OutboundMessageResponse sendMessage( String subject, String text, String recipient );
 
-    boolean accept( Set<DeliveryChannel> channels );
+    /**
+     * Sends message batch based on DeliveryChannels configured.
+     * @param batch batch of messages to be processed.
+     */
+    OutboundMessageResponseSummary sendMessageBatch( OutboundMessageBatch batch );
 
-    boolean isServiceReady();
-
-    DeliveryChannel getDeliveryChannel();
+    /**
+     * To check if given service is configured and ready to use.
+     */
+    boolean isConfigured();
 }

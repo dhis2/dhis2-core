@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
 
 import java.io.Serializable;
 
@@ -42,18 +43,24 @@ import java.io.Serializable;
  */
 @JacksonXmlRootElement( localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0 )
 public class UserGroupAccess
-    implements Serializable
+    implements Serializable, EmbeddedObject
 {
     private int id;
+
+    private String access;
 
     private UserGroup userGroup;
 
     private transient String uid;
 
-    private transient String access;
-
     public UserGroupAccess()
     {
+    }
+
+    public UserGroupAccess( UserGroup userGroup, String access )
+    {
+        this.userGroup = userGroup;
+        this.access = access;
     }
 
     public int getId()
@@ -126,7 +133,7 @@ public class UserGroupAccess
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-            .add( "id", id )
+            .add( "uid", uid )
             .add( "access", access )
             .toString();
     }

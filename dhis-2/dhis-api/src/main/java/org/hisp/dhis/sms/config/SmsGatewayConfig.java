@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@ package org.hisp.dhis.sms.config;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -49,6 +50,10 @@ public abstract class SmsGatewayConfig
     private String uid;
 
     private String name;
+
+    private String username;
+
+    private String password;
 
     private boolean isDefault;
 
@@ -99,4 +104,26 @@ public abstract class SmsGatewayConfig
     public abstract boolean isInbound();
 
     public abstract boolean isOutbound();
+
+    @JsonIgnore
+    public String getPassword()
+    {
+        return password;
+    }
+
+    public void setPassword(String password)
+    {
+        this.password = password;
+    }
+
+    @JsonProperty
+    public String getUsername()
+    {
+        return username;
+    }
+
+    public void setUsername(String username)
+    {
+        this.username = username;
+    }
 }

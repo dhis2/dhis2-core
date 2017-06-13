@@ -1,7 +1,7 @@
 package org.hisp.dhis.document;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,22 +33,44 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.fileresource.FileResource;
 
 /**
  * @author Lars Helge Overland
  */
 @JacksonXmlRootElement( localName = "document", namespace = DxfNamespaces.DXF_2_0 )
 public class Document
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
+    /**
+     * Can be either a valid URL, or the path (filename) of a file.
+     * If the external property is true, this should be an URL.
+     * If the external property is false, this should be the filename
+     */
     private String url;
 
+    /**
+     * A reference to the file associated with the Document. If document represents
+     * an URL or a file uploaded before this property was added, this will be null.
+     */
+    private FileResource fileResource;
+
+    /**
+     * Determines if this document refers to a file (!external) or URL (external).
+     */
     private boolean external;
 
+    /**
+     * The content type of the file referred to by the document, or null if document
+     * refers to an URL
+     */
     private String contentType;
 
+    /**
+     * Flags whether the file should be displayed in-browser or downloaded.
+     * true should trigger a download of the file when accessing the document data
+     */
     private Boolean attachment = false;
 
     public Document()
@@ -61,12 +83,6 @@ public class Document
         this.url = url;
         this.external = external;
         this.contentType = contentType;
-    }
-
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
     }
 
     @JsonProperty
@@ -118,27 +134,14 @@ public class Document
         this.attachment = attachment;
     }
 
-    @Override
-    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
+    // Should not be exposed in the api
+    public FileResource getFileResource()
     {
-        super.mergeWith( other, mergeMode );
+        return fileResource;
+    }
 
-        if ( other.getClass().isInstance( this ) )
-        {
-            Document document = (Document) other;
-
-            external = document.isExternal();
-
-            if ( mergeMode.isReplace() )
-            {
-                url = document.getUrl();
-                contentType = document.getContentType();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                url = document.getUrl() == null ? url : document.getUrl();
-                contentType = document.getContentType() == null ? contentType : document.getContentType();
-            }
-        }
+    public void setFileResource( FileResource fileResource )
+    {
+        this.fileResource = fileResource;
     }
 }

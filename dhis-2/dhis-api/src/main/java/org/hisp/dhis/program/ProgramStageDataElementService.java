@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,9 @@ import java.util.List;
 import org.hisp.dhis.dataelement.DataElement;
 
 /**
+ * TODO do we need this service given cascade all on 
+ * program stage -> program stage data element?
+ * 
  * @author Viet Nguyen
  */
 public interface ProgramStageDataElementService

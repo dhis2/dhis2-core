@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,6 @@ package org.hisp.dhis.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 
 import java.util.Collection;
@@ -165,14 +164,6 @@ public interface OrganisationUnitService
     List<OrganisationUnit> getOrganisationUnitByName( String name );
 
     /**
-     * Returns an OrganisationUnit with a given name. Case is ignored.
-     *
-     * @param name the name of the OrganisationUnit to return.
-     * @return the OrganisationUnit with the given name, or null if not match.
-     */
-    List<OrganisationUnit> getOrganisationUnitByNameIgnoreCase( String name );
-
-    /**
      * Returns all root OrganisationUnits. A root OrganisationUnit is an
      * OrganisationUnit with no parent/the parent set to null.
      *
@@ -192,15 +183,6 @@ public interface OrganisationUnitService
      * @return A list of OrganisationUnits.
      */
     List<OrganisationUnit> getOrganisationUnits( Collection<OrganisationUnitGroup> groups, Collection<OrganisationUnit> parents );
-
-    /**
-     * Returns organisation unit UIDs for the given parameters.
-     * 
-     * @param parents the set of boundary parent organisation units.
-     * @param ouMode the organisation unit selection mode.
-     * @return a set of strings.
-     */
-    Set<String> getOrganisationUnitUids( Set<String> parents, OrganisationUnitSelectionMode ouMode );
 
     /**
      * Returns an OrganisationUnit and all its children.
@@ -295,10 +277,21 @@ public interface OrganisationUnitService
     /**
      * Returns all OrganisationUnits which are children of the given unit and are
      * at the given hierarchical levels. The root OrganisationUnits are at level 1.
-     * If parent is null, then all OrganisationUnits at the given level are returned.
      *
-     * @param levels the hierarchical levels.
-     * @param parent the parent unit.
+     * @param levels  the OrganisationUnitLevels.
+     * @param parents the parent units.
+     * @return all OrganisationUnits which are children of the given unit and are
+     * at the given hierarchical level.
+     * @throws IllegalArgumentException if the level is illegal.
+     */
+    List<OrganisationUnit> getOrganisationUnitsAtOrgUnitLevels( Collection<OrganisationUnitLevel> levels, Collection<OrganisationUnit> parents );
+
+    /**
+     * Returns all OrganisationUnits which are children of the given unit and are
+     * at the given hierarchical levels. The root OrganisationUnits are at level 1.
+     *
+     * @param levels  the hierarchical levels.
+     * @param parents the parent units.
      * @return all OrganisationUnits which are children of the given unit and are
      * at the given hierarchical level.
      * @throws IllegalArgumentException if the level is illegal.
@@ -320,11 +313,16 @@ public interface OrganisationUnitService
     List<OrganisationUnit> getOrganisationUnitsWithoutGroups();
     
     /**
-     * Returns all OrganisationUnits with at least one CategoryOption.
+     * Returns the count of OrganisationUnits which are part of the
+     * sub-hierarchy of the given parent OrganisationUnit and members of 
+     * the given object based on the collection of the given collection name.
      * 
-     * @return all OrganisationUnits with at least one CategoryOption.
+     * @param parent the parent OrganisationUnit.
+     * @param member the member object.
+     * @param collectionName the name of the collection.
+     * @return the count of member OrganisationUnits.
      */
-    List<OrganisationUnit> getOrganisationUnitsWithCategoryOptions();
+    Long getOrganisationUnitHierarchyMemberCount( OrganisationUnit parent, Object member, String collectionName );
 
     OrganisationUnitDataSetAssociationSet getOrganisationUnitDataSetAssociationSet( Integer maxlevels );
 

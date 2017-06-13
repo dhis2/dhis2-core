@@ -1,7 +1,7 @@
 package org.hisp.dhis.eventreport;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,12 @@ package org.hisp.dhis.eventreport;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.GenericAnalyticalObjectService;
 import org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
 * @author Lars Helge Overland
@@ -63,7 +63,8 @@ public class DefaultEventReportService
     @Override
     public int saveEventReport( EventReport report )
     {
-        return eventReportStore.save( report );
+        eventReportStore.save( report );
+        return report.getId();
     }
     
     @Override

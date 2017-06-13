@@ -8,7 +8,7 @@
 
 <ul>
     <li><a href="../dhis-web-dashboard-integration/index.action">$i18n.getString( "dashboard" )&nbsp;</a></li>
-    <li><a href="../dhis-web-dashboard-integration/profile.action?id=${currentUser.uid}">$i18n.getString( "profile" )&nbsp;</a></li>
-    <li><a href="../dhis-web-dashboard-integration/message.action">$i18n.getString( "messages" )&nbsp;</a></li>
-    <li><a href="../dhis-web-dashboard-integration/interpretation.action">$i18n.getString( "interpretations" )&nbsp;</a></li>
+    <li><a href="../dhis-web-messaging/profile.action?id=${currentUser.uid}">$i18n.getString( "profile" )&nbsp;</a></li>
+    <li><a href="../dhis-web-messaging/message.action">$i18n.getString( "messages" )&nbsp;</a></li>
+    <li><a href="../dhis-web-messaging/interpretation.action">$i18n.getString( "interpretations" )&nbsp;</a></li>
 </ul>

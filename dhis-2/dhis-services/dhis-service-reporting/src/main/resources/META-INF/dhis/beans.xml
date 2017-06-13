@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:aop="http://www.springframework.org/schema/aop"
-  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
-    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.2.xsd">
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd">
 
-
+  <!-- PushAnalysis -->
 
   <bean id="org.hisp.dhis.pushanalysis.PushAnalysisService" class="org.hisp.dhis.pushanalysis.DefaultPushAnalysisService">
     <property name="pushAnalysisStore" ref="org.hisp.dhis.pushanalysis.PushAnalysisStore" />
@@ -21,11 +21,13 @@
   </bean>
 
   <bean id="org.hisp.dhis.datastatistics.DataStatisticsStore" class="org.hisp.dhis.datastatistics.hibernate.HibernateDataStatisticsStore">
-    <property name="clazz" value="org.hisp.dhis.datastatistics.DataStatistics"/>
-    <property name="sessionFactory" ref="sessionFactory"/>
+    <property name="clazz" value="org.hisp.dhis.datastatistics.DataStatistics" />
+    <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
-  <bean id="dataStatisticsTask" class="org.hisp.dhis.datastatistics.DataStatisticsTask" scope="prototype"/>
+  <bean id="dataStatisticsTask" class="org.hisp.dhis.datastatistics.DataStatisticsTask" scope="prototype" />
+
+  <bean id="credentialsExpiryAlertTask" class="org.hisp.dhis.credentials.CredentialsExpiryAlertTask" scope="prototype"/>
 
   <!-- ReportTable -->
 
@@ -112,7 +114,9 @@
     <property name="dashboardStore" ref="org.hisp.dhis.dashboard.DashboardStore" />
   </bean>
 
-  <bean id="org.hisp.dhis.dashboard.impl.DashboardItemDeletionHandler" class="org.hisp.dhis.dashboard.DashboardItemDeletionHandler" />
+  <bean id="org.hisp.dhis.dashboard.DashboardDeletionHandler" class="org.hisp.dhis.dashboard.DashboardDeletionHandler" />
+
+  <bean id="org.hisp.dhis.dashboard.DashboardItemDeletionHandler" class="org.hisp.dhis.dashboard.DashboardItemDeletionHandler" />
 
   <!-- Organisation Unit Distribution -->
 
@@ -148,6 +152,18 @@
     <property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
   </bean>
 
+  <!-- Validation -->
+
+  <bean id="org.hisp.dhis.validation.ValidationService" class="org.hisp.dhis.validation.DefaultValidationService" >
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validation.ValidationRunContext" class="org.hisp.dhis.validation.ValidationRunContext" scope="prototype" />
+
+  <bean id="validationTask" class="org.hisp.dhis.validation.DataValidationTask" scope="prototype" />
+
+  <bean id="monitoringLastDayTask" class="org.hisp.dhis.validation.scheduling.MonitoringTask" scope="prototype" />
+
   <!-- Scheduling -->
 
   <bean id="org.hisp.dhis.scheduling.SchedulingManager" class="org.hisp.dhis.scheduling.DefaultSchedulingManager">
@@ -155,7 +171,7 @@
     <property name="scheduler" ref="scheduler" />
     <property name="tasks">
       <map>
-        <entry key="dataStatisticsTask" value-ref="dataStatisticsTask"/>
+        <entry key="dataStatisticsTask" value-ref="dataStatisticsTask" />
         <entry key="resourceTableTask" value-ref="resourceTableTask" />
         <entry key="resourceTable15MinTask" value-ref="resourceTable15MinTask" />
         <entry key="analyticsAllTask" value-ref="analyticsAllTask" />
@@ -165,6 +181,8 @@
         <entry key="metadataSyncTask" value-ref="metadataSyncTask" />
         <entry key="sendScheduledMessageTaskNow" value-ref="sendScheduledMessageTaskNow" />
         <entry key="scheduledProgramNotificationsTask" value-ref="scheduledProgramNotificationsTask" />
+        <entry key="validationResultNotificationTask" value-ref="validationResultNotificationTask" />
+        <entry key="credentialsExpiryAlertTask" value-ref="credentialsExpiryAlertTask" />
       </map>
     </property>
   </bean>

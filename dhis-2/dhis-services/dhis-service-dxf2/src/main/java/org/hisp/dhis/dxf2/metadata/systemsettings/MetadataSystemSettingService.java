@@ -1,5 +1,7 @@
+package org.hisp.dhis.dxf2.metadata.systemsettings;
+
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata.systemsettings;
 
 /**
  * MetadataSystemSettingService is the helper class for getting the Versioning
@@ -50,4 +51,6 @@ public interface MetadataSystemSettingService
     void setSystemMetadataVersion(String versionName);
 
     String getSystemMetadataVersion();
+
+    Boolean getStopMetadataSyncSetting();
 }

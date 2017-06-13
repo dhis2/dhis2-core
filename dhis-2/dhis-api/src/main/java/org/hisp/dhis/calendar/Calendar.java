@@ -1,7 +1,7 @@
 package org.hisp.dhis.calendar;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -407,4 +407,12 @@ public interface Calendar
      * @return
      */
     DateTimeUnit isoStartOfYear( int year );
+
+    /**
+     * Is DateTimeUnit valid for this calendar.
+     *
+     * @param dateTime DateTime to check
+     * @return true if valid, false if not
+     */
+    boolean isValid( DateTimeUnit dateTime );
 }

@@ -2,7 +2,7 @@ package org.hisp.dhis.sms.outbound;
 
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Simple {@link OutboundSmsService sms service} storing the sms in a store and
- * forwards the request to a {@link OutboundSmsTransportService sms transport
+ * forwards the request to a {@link org.hisp.dhis.sms.config.SmsMessageSender sms transport
  * service} for sending.
  */
 
@@ -79,7 +79,8 @@ public class DefaultOutboundSmsService
     @Override
     public int saveOutboundSms( OutboundSms sms )
     {
-        return outboundSmsStore.saveOutboundSms( sms );
+        outboundSmsStore.saveOutboundSms( sms );
+        return sms.getId();
     }
 
     @Override
