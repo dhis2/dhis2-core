@@ -1,1 +1,7 @@
-The form '$!{object.dataSet.name}' was registered as complete for period $!{object.periodName} and organisation unit '$!{object.source.name}'.
+#if( $!{object.AttributeOptionCombo.name} ne "default")
+  #set( $attrComboName = ", '" + $object.AttributeOptionCombo.name +"'" )
+#else
+	#set ( $attrComboName = "" )
+#end
+
+The form '$!{object.dataSet.name}' was registered as complete for period '$!{object.periodName}' ${attrComboName} and organisation unit '$!{object.source.name}'.
