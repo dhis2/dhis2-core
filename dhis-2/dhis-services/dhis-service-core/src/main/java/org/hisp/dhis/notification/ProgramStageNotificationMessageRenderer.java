@@ -34,8 +34,10 @@ import com.google.common.collect.Maps;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.notification.ProgramStageTemplateVariable;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -59,7 +61,7 @@ public class ProgramStageNotificationMessageRenderer
             .build();
 
     private static final Set<ExpressionType> SUPPORTED_EXPRESSION_TYPES =
-        ImmutableSet.of( ExpressionType.ATTRIBUTE, ExpressionType.VARIABLE );
+        ImmutableSet.of( ExpressionType.ATTRIBUTE, ExpressionType.VARIABLE, ExpressionType.ELEMENT );
 
     // -------------------------------------------------------------------------
     // Singleton instance
@@ -99,6 +101,19 @@ public class ProgramStageNotificationMessageRenderer
     }
 
     @Override
+    protected Map<String, String> resolveElementValues( Set<String> elementKeys, ProgramStageInstance entity )
+    {
+        if ( elementKeys.isEmpty() )
+        {
+            return Maps.newHashMap();
+        }
+
+        return entity.getDataValues().stream()
+            .filter( dv -> elementKeys.contains( dv.getDataElement().getUid() ) )
+            .collect( Collectors.toMap( dv -> dv.getDataElement().getUid() , ProgramStageNotificationMessageRenderer::filterValue ) );
+    }
+
+    @Override
     protected TemplateVariable fromVariableName( String name )
     {
         return ProgramStageTemplateVariable.fromVariableName( name );
@@ -127,6 +142,24 @@ public class ProgramStageNotificationMessageRenderer
         if ( av.getAttribute().hasOptionSet() )
         {
             value = av.getAttribute().getOptionSet().getOptionByCode( value ).getName();
+        }
+
+        return value != null ? value : MISSING_VALUE_REPLACEMENT;
+    }
+
+    private static String filterValue( TrackedEntityDataValue dv )
+    {
+        String value = dv.getValue();
+
+        if ( value == null )
+        {
+            return CONFIDENTIAL_VALUE_REPLACEMENT;
+        }
+
+        // If the AV has an OptionSet -> substitute value with the name of the Option
+        if ( dv.getDataElement().hasOptionSet() )
+        {
+            value = dv.getDataElement().getOptionSet().getOptionByCode( value ).getName();
         }
 
         return value != null ? value : MISSING_VALUE_REPLACEMENT;

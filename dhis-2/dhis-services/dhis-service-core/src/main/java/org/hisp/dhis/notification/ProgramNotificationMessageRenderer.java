@@ -35,6 +35,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.notification.ProgramTemplateVariable;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
@@ -101,6 +102,13 @@ public class ProgramNotificationMessageRenderer
     protected Set<ExpressionType> getSupportedExpressionTypes()
     {
         return SUPPORTED_EXPRESSION_TYPES;
+    }
+
+    @Override
+    protected Map<String, String> resolveElementValues( Set<String> elementKeys, ProgramInstance entity )
+    {
+        // DataElements are not supported for program notifications
+        return Collections.emptyMap();
     }
 
     // -------------------------------------------------------------------------

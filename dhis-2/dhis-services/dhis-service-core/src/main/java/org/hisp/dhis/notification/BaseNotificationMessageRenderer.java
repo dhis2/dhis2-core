@@ -81,17 +81,20 @@ public abstract class BaseNotificationMessageRenderer<T>
 
     private static final Pattern VARIABLE_PATTERN  = Pattern.compile( "V\\{([a-z_]*)}" ); // Matches the variable in group 1
     private static final Pattern ATTRIBUTE_PATTERN = Pattern.compile( "A\\{([A-Za-z][A-Za-z0-9]{10})}" ); // Matches the uid in group 1
+    private static final Pattern ELEMENT_PATTERN = Pattern.compile( "E\\{([A-Za-z][A-Za-z0-9]{10})}" ); // Matches the uid in group 1
 
     private ImmutableMap<ExpressionType, BiFunction<T, Set<String>, Map<String, String>>> EXPRESSION_TO_VALUE_RESOLVERS =
         new ImmutableMap.Builder<ExpressionType, BiFunction<T, Set<String>, Map<String, String>>>()
             .put( ExpressionType.VARIABLE, (entity, keys) -> resolveVariableValues( keys, entity ) )
             .put( ExpressionType.ATTRIBUTE, (entity, keys) -> resolveAttributeValues( keys, entity ) )
+            .put( ExpressionType.ELEMENT, ( entity, keys ) -> resolveElementValues( keys, entity ) )
             .build();
 
     protected enum ExpressionType
     {
         VARIABLE ( VARIABLE_PATTERN, VAR_CONTENT_PATTERN ),
-        ATTRIBUTE ( ATTRIBUTE_PATTERN, ATTR_CONTENT_PATTERN );
+        ATTRIBUTE ( ATTRIBUTE_PATTERN, ATTR_CONTENT_PATTERN ),
+        ELEMENT ( ELEMENT_PATTERN, ATTR_CONTENT_PATTERN );
 
         private final Pattern expressionPattern;
         private final Pattern contentPattern;
@@ -156,6 +159,15 @@ public abstract class BaseNotificationMessageRenderer<T>
      * @return a Map of values, keyed by the corresponding attribute UID.
      */
     protected abstract Map<String, String> resolveAttributeValues( Set<String> attributeKeys, T entity );
+
+    /**
+     * Resolves values for the given data element UIDs.
+     *
+     * @param elementKeys the Set of attribute UIDs.
+     * @param entity the entity to resolve the values from/for.
+     * @return a Map of values, keyed by the corresponding data element UID.
+     */
+    protected abstract Map<String, String> resolveElementValues( Set<String> elementKeys, T entity );
 
     /**
      * Converts a string to the TemplateVariable supported by the implementor.

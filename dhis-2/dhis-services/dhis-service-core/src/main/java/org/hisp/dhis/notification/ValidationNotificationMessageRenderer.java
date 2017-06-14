@@ -110,4 +110,11 @@ public class ValidationNotificationMessageRenderer
     {
         return SUPPORTED_EXPRESSION_TYPES;
     }
+
+    @Override
+    protected Map<String, String> resolveElementValues( Set<String> elementKeys, ValidationResult entity )
+    {
+        // DataElements are not supported for validation notifications
+        return Collections.emptyMap();
+    }
 }

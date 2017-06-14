@@ -39,10 +39,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 
 import static java.lang.String.format;
@@ -294,6 +291,12 @@ public class BaseNotificationMessageRendererTest
         protected Set<ExpressionType> getSupportedExpressionTypes()
         {
             return Sets.newHashSet( BaseNotificationMessageRenderer.ExpressionType.values() );
+        }
+
+        @Override
+        protected Map<String, String> resolveElementValues( Set<String> elementKeys, Entity entity )
+        {
+            return Collections.emptyMap();
         }
     }
 
