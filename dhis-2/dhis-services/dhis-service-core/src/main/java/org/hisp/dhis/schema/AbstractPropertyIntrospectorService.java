@@ -138,7 +138,7 @@ public abstract class AbstractPropertyIntrospectorService
         Map<String, List<String>> joinTableToRoles = new HashMap<>();
 
         SessionFactoryImplementor sessionFactoryImplementor = (SessionFactoryImplementor) sessionFactory;
-        MetamodelImplementor metamodelImplementor = (MetamodelImplementor) sessionFactory.getMetamodel();
+        MetamodelImplementor metamodelImplementor = ( MetamodelImplementor ) sessionFactory.getMetamodel();
 
         Iterator<?> collectionIterator = metamodelImplementor.collectionPersisters().values().iterator();
 
@@ -204,7 +204,7 @@ public abstract class AbstractPropertyIntrospectorService
         {
             metamodelImplementor.entityPersister( klass );
         }
-        catch ( MappingException e )
+        catch ( MappingException ex )
         {
             // class is not persisted with hibernate
             return new HashMap<>();

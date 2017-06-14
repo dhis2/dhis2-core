@@ -181,7 +181,7 @@ public class DefaultSchemaService
         {
             Schema schema = descriptor.getSchema();
 
-            MetamodelImplementor metamodelImplementor = (MetamodelImplementor) sessionFactory.getMetamodel();
+            MetamodelImplementor metamodelImplementor = ( MetamodelImplementor ) sessionFactory.getMetamodel();
 
             try
             {
@@ -190,6 +190,7 @@ public class DefaultSchemaService
             }
             catch ( MappingException e )
             {
+                // class is not persisted with hibernate
                 schema.setPersisted( false );
             }
 
