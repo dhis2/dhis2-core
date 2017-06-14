@@ -1665,6 +1665,9 @@ public class TableAlteror
                     " t.value " +
                     " from  translation as t " +
                     " where t.objectclass = '" + table.get( "className" ) + "'" +
+                    " and t.objectproperty is not null " +
+                    " and t.locale is not null " +
+                    " and t.value is not null " +
                     " and not exists ( select 1 from objecttranslation where objecttranslationid = t.translationid )  " +
                     " and ( " +
                     " exists ( select 1 from " + table.get( "objectTable" ) + "  where " + table.get( "objectId" ) + " = t.objectid )  " +
