@@ -29,7 +29,7 @@ package org.hisp.dhis.dataapproval;
  */
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
@@ -52,14 +52,15 @@ import java.util.Date;
 import java.util.List;
 
 import static com.google.common.collect.Sets.newHashSet;
-import static org.hisp.dhis.dataapproval.DataApprovalAction.*;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.APPROVE;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.UNAPPROVE;
 import static org.junit.Assert.assertEquals;
 
 /**
  * @author Jim Grace
  */
 public class DataApprovalAuditStoreTest
-    extends DhisTest
+    extends DhisSpringTest
 {
     @Autowired
     private DataApprovalAuditStore dataApprovalAuditStore;
@@ -126,6 +127,8 @@ public class DataApprovalAuditStoreTest
     @Override
     public void setUpTest() throws Exception
     {
+        setDependency( dataApprovalAuditStore, "currentUserService", currentUserService, CurrentUserService.class );
+
         // ---------------------------------------------------------------------
         // Add supporting data
         // ---------------------------------------------------------------------
@@ -178,18 +181,6 @@ public class DataApprovalAuditStoreTest
         DataApproval approvalB = new DataApproval( level2, workflowB, periodB, sourceB, optionComboB, false, dateB, userA );
         auditA = new DataApprovalAudit(approvalA, APPROVE );
         auditB = new DataApprovalAudit(approvalB, UNAPPROVE );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
-    public void tearDownTest()
-    {
-        setDependency( dataApprovalAuditStore, "currentUserService", currentUserService, CurrentUserService.class );
     }
 
     // -------------------------------------------------------------------------
