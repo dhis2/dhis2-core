@@ -1,4 +1,5 @@
 package org.hisp.dhis.fileresource;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -32,7 +33,14 @@ import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 /**
  * @author Stian Sandvold
  */
-public interface ExternalFileResourceStore extends GenericIdentifiableObjectStore<ExternalFileResource>
+public interface ExternalFileResourceStore 
+    extends GenericIdentifiableObjectStore<ExternalFileResource>
 {
+    /**
+     * Returns a single ExternalFileResource with the given (unique) accessToken.
+     * 
+     * @param accessToken unique string belonging to a single ExternalFileResource.
+     * @return ExternalFileResource
+     */
     ExternalFileResource getExternalFileResourceByAccessToken( String accessToken );
 }

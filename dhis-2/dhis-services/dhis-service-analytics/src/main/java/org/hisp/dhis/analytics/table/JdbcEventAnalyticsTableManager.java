@@ -212,10 +212,9 @@ public class JdbcEventAnalyticsTableManager
 
         for ( DataElement dataElement : table.getProgram().getDataElements() )
         {
-            ValueType valueType = dataElement.getValueType();
-            String dataType = getColumnType( valueType );
+            String dataType = getColumnType( dataElement.getValueType() );
             String dataClause = dataElement.isNumericType() ? numericClause : dataElement.getValueType().isDate() ? dateClause : "";
-            String select = getSelectClause( valueType );
+            String select = getSelectClause( dataElement.getValueType() );
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( dataElement.getValueType() ) && !dataElement.hasOptionSet();
 
             String sql = "(select " + select + " from trackedentitydatavalue where programstageinstanceid=psi.programstageinstanceid " +
