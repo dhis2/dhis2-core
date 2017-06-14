@@ -306,7 +306,8 @@ public class DataElement
     public Set<DataSet> getDataSets()
     {
         return ImmutableSet.copyOf( dataSetElements.stream().map( DataSetElement::getDataSet ).filter(
-            dataSet -> dataSet != null ).collect( Collectors.toSet() ) );    }
+            dataSet -> dataSet != null ).collect( Collectors.toSet() ) );
+    }
 
     /**
      * Returns the attribute category combinations associated with the data sets
