@@ -366,7 +366,6 @@ function ValueSaver( de, pe, co, value, fieldId, resultColor )
         $.ajax( {
             url: '../api/dataValues',
             data: dataValue,
-            dataType: 'json',
             type: 'post',
             success: handleSuccess,
             error: handleError
