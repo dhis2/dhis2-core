@@ -511,9 +511,9 @@ public class JdbcEventStore
             + "inner join programinstance pi on pi.programinstanceid=psi.programinstanceid "
             + "inner join program p on p.programid=pi.programid "
             + "inner join programstage ps on ps.programstageid=psi.programstageid "
-            + "INNER JOIN categoryoptioncombo coc ON coc.categoryoptioncomboid=psi.attributeoptioncomboid "
-            + "INNER JOIN categoryoptioncombos_categoryoptions cocco ON psi.attributeoptioncomboid=cocco.categoryoptioncomboid "
-            + "INNER JOIN dataelementcategoryoption deco ON cocco.categoryoptionid=deco.categoryoptionid "
+            + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid=psi.attributeoptioncomboid "
+            + "inner join categoryoptioncombos_categoryoptions cocco on psi.attributeoptioncomboid=cocco.categoryoptioncomboid "
+            + "inner join dataelementcategoryoption deco on cocco.categoryoptionid=deco.categoryoptionid "
             + "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid "
             + "left join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) "
             + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) ";
