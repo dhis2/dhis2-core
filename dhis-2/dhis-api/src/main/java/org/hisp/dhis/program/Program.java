@@ -136,6 +136,10 @@ public class Program
      */
     private DataApprovalWorkflow workflow;
 
+    /**
+     * Property indicating whether a list of tracked entity instances should be
+     * displayed, or whether a query must be made.
+     */
     private Boolean displayFrontPageList = false;
 
     /**
@@ -155,7 +159,9 @@ public class Program
     private int expiryDays;
 
     /**
-     * The PeriodType indicating the frequency that this program will use to decide on expiry
+     * The PeriodType indicating the frequency that this program will use to decide on expiration. This
+     * relates to the {@link Program#expiryDays} property. The end date of the relevant period is used
+     * as basis for the number of expiration days.
      */
     private PeriodType expiryPeriodType;
 

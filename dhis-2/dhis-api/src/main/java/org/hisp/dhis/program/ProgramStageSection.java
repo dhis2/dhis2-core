@@ -48,6 +48,8 @@ import java.util.List;
 public class ProgramStageSection
     extends BaseIdentifiableObject implements MetadataObject
 {
+    private String description;
+    
     private ProgramStage programStage;
 
     private List<DataElement> dataElements = new ArrayList<>();
@@ -88,6 +90,18 @@ public class ProgramStageSection
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDescription()
+    {
+        return description;
+    }
+
+    public void setDescription( String description )
+    {
+        this.description = description;
+    }
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
