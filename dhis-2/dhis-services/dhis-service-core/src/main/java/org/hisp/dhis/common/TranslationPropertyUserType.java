@@ -29,7 +29,7 @@ package org.hisp.dhis.common;
  */
 
 import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hisp.dhis.hibernate.EnumUserType;
 import org.hisp.dhis.translation.TranslationProperty;
 
@@ -48,7 +48,7 @@ public class TranslationPropertyUserType
     }
 
     @Override
-    public Object nullSafeGet( ResultSet resultSet, String[] names, SessionImplementor impl, Object owner )
+    public Object nullSafeGet( ResultSet resultSet, String[] names, SharedSessionContractImplementor impl, Object owner )
         throws HibernateException, SQLException
     {
         String name = resultSet.getString( names[0] );
