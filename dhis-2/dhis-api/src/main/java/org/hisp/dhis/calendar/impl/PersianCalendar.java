@@ -171,15 +171,8 @@ public class PersianCalendar extends AbstractCalendar
 
         if ( year > START_ISO.getYear() )
         {
-
-            if ( month < 4 )
-            {
-                newYear = year - 622;
-            }
-            else
-            {
-                newYear = year - 621;
-            }
+            Calendar gregorianCalendar = GregorianCalendar.getInstance();
+            return gregorianCalendar.daysInMonth(year,month);
         }
 
         return getDaysFromMap( newYear, month );
@@ -277,6 +270,12 @@ public class PersianCalendar extends AbstractCalendar
     @Override
     public DateTimeUnit minusYears( DateTimeUnit dateTimeUnit, int years )
     {
+
+        if (dateTimeUnit.getYear() > START_ISO.getYear()) {
+            Calendar gregorianCalendar = GregorianCalendar.getInstance();
+            return gregorianCalendar.minusYears(dateTimeUnit, years);
+        }
+
         DateTimeUnit result = new DateTimeUnit( dateTimeUnit.getYear() - years, dateTimeUnit.getMonth(),
             dateTimeUnit.getDay(), dateTimeUnit.getDayOfWeek() );
         updateDateUnit( result );
@@ -287,6 +286,12 @@ public class PersianCalendar extends AbstractCalendar
     @Override
     public DateTimeUnit minusMonths( DateTimeUnit dateTimeUnit, int months )
     {
+
+        if (dateTimeUnit.getYear() > START_ISO.getYear()) {
+            Calendar gregorianCalendar = GregorianCalendar.getInstance();
+            return gregorianCalendar.minusMonths(dateTimeUnit, months);
+        }
+
         DateTimeUnit result = new DateTimeUnit( dateTimeUnit );
         int newMonths = months;
 
@@ -311,12 +316,23 @@ public class PersianCalendar extends AbstractCalendar
     @Override
     public DateTimeUnit minusWeeks( DateTimeUnit dateTimeUnit, int weeks )
     {
+
+        if (dateTimeUnit.getYear() > START_ISO.getYear()) {
+            Calendar gregorianCalendar = GregorianCalendar.getInstance();
+            return gregorianCalendar.minusWeeks(dateTimeUnit, weeks);
+        }
         return minusDays( dateTimeUnit, weeks * daysInWeek() );
     }
 
     @Override
     public DateTimeUnit minusDays( DateTimeUnit dateTimeUnit, int days )
     {
+
+        if (dateTimeUnit.getYear() > START_ISO.getYear()) {
+            Calendar gregorianCalendar = GregorianCalendar.getInstance();
+            return gregorianCalendar.minusDays(dateTimeUnit, days);
+        }
+
         int curYear = dateTimeUnit.getYear();
         int curMonth = dateTimeUnit.getMonth();
         int curDay = dateTimeUnit.getDay();
@@ -356,6 +372,12 @@ public class PersianCalendar extends AbstractCalendar
     @Override
     public DateTimeUnit plusYears( DateTimeUnit dateTimeUnit, int years )
     {
+
+        if (dateTimeUnit.getYear() > START_ISO.getYear()) {
+            Calendar gregorianCalendar = GregorianCalendar.getInstance();
+            return gregorianCalendar.plusYears(dateTimeUnit, years);
+        }
+
         DateTimeUnit result = new DateTimeUnit( dateTimeUnit.getYear() + years, dateTimeUnit.getMonth(),
             dateTimeUnit.getDay(), dateTimeUnit.getDayOfWeek() );
         updateDateUnit( result );
@@ -366,6 +388,12 @@ public class PersianCalendar extends AbstractCalendar
     @Override
     public DateTimeUnit plusMonths( DateTimeUnit dateTimeUnit, int months )
     {
+
+        if (dateTimeUnit.getYear() > START_ISO.getYear()) {
+            Calendar gregorianCalendar = GregorianCalendar.getInstance();
+            return gregorianCalendar.plusMonths(dateTimeUnit, months);
+        }
+
         DateTimeUnit result = new DateTimeUnit( dateTimeUnit );
         int newMonths = months;
 
@@ -390,12 +418,24 @@ public class PersianCalendar extends AbstractCalendar
     @Override
     public DateTimeUnit plusWeeks( DateTimeUnit dateTimeUnit, int weeks )
     {
+
+        if (dateTimeUnit.getYear() > START_ISO.getYear()) {
+            Calendar gregorianCalendar = GregorianCalendar.getInstance();
+            return gregorianCalendar.plusWeeks(dateTimeUnit, weeks);
+        }
+
         return plusDays( dateTimeUnit, weeks * daysInWeek() );
     }
 
     @Override
     public DateTimeUnit plusDays( DateTimeUnit dateTimeUnit, int days )
     {
+
+        if (dateTimeUnit.getYear() > START_ISO.getYear()) {
+            Calendar gregorianCalendar = GregorianCalendar.getInstance();
+            return gregorianCalendar.plusDays(dateTimeUnit, days);
+        }
+
         int curYear = dateTimeUnit.getYear();
         int curMonth = dateTimeUnit.getMonth();
         int curDay = dateTimeUnit.getDay();
