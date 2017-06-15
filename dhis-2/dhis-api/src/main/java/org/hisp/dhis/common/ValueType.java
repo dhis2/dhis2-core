@@ -80,7 +80,7 @@ public enum ValueType
         BOOLEAN, TRUE_ONLY ).build();
 
     public static final Set<ValueType> TEXT_TYPES = ImmutableSet.<ValueType>builder().add(
-        TEXT, LONG_TEXT, LETTER, COORDINATE, TIME, USERNAME, EMAIL, PHONE_NUMBER ).build();
+        TEXT, LONG_TEXT, LETTER, COORDINATE, TIME, USERNAME, EMAIL, PHONE_NUMBER, URL ).build();
 
     public static final Set<ValueType> DATE_TYPES = ImmutableSet.<ValueType>builder().add(
         DATE, DATETIME ).build();
