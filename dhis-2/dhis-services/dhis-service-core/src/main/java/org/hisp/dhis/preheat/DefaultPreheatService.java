@@ -815,7 +815,7 @@ public class DefaultPreheatService implements PreheatService
                 IdentifiableObject refObject = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
                 IdentifiableObject ref = getPersistedObject( preheat, identifier, refObject );
 
-                if ( !DataSetElement.class.isInstance( property.getKlass() )
+                if ( !DataSetElement.class.isInstance( object )
                     && (Preheat.isDefaultClass( property.getKlass() ) && (ref == null || refObject == null || "default".equals( refObject.getName() ))) )
                 {
                     ref = defaults.get( property.getKlass() );
@@ -838,12 +838,6 @@ public class DefaultPreheatService implements PreheatService
                 for ( IdentifiableObject refObject : refObjects )
                 {
                     IdentifiableObject ref = getPersistedObject( preheat, identifier, refObject );
-
-                    if ( Preheat.isDefaultClass( refObject ) && (ref == null || "default".equals( refObject.getName() )) )
-                    {
-                        ref = defaults.get( refObject.getClass() );
-                    }
-
                     if ( ref != null && ref.getId() != 0 ) objects.add( ref );
                 }
 
