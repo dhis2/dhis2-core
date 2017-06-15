@@ -156,7 +156,7 @@ public class ProgramStageNotificationMessageRenderer
             return CONFIDENTIAL_VALUE_REPLACEMENT;
         }
 
-        // If the AV has an OptionSet -> substitute value with the name of the Option
+        // If the DV has an OptionSet -> substitute value with the name of the Option
         if ( dv.getDataElement().hasOptionSet() )
         {
             value = dv.getDataElement().getOptionSet().getOptionByCode( value ).getName();
