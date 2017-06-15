@@ -12,6 +12,9 @@
         var programAttributeContainer=qs('#programAttributeContainer');
         var programAttribute = qs('#programAttribute');
 
+        var dataElementContainer=qs('#dataElementContainer');
+        var dataElement = qs('#dataElement');
+
         var notificationTrigger = qs( '#notificationTrigger' );
         var daysContainer = qs( '#daysContainer' );
         var days = qs( '#days' );
@@ -60,6 +63,15 @@
                 programAttributeContainer.style.display = 'none';
                 programAttribute.value = "";
                 programAttribute.disabled = true;
+            }
+
+            if ( recipient === 'DATA_ELEMENT' ) {
+                dataElementContainer.style.display = 'table-row';
+                dataElement.disabled = false;
+            } else {
+                dataElementContainer.style.display = 'none';
+                dataElement.value = "";
+                dataElement.disabled = true;
             }
 
             if ( isExternalRecipient( recipient ) ) {
@@ -123,12 +135,16 @@
             var uid = qs( '#userGroup' ).value || undefined;
             return ( uid === undefined ) ? undefined : { 'id' : uid };
         }
-        
+
         function getProgramAttribute() {
             var uid = qs( '#programAttribute' ).value || undefined;
             return ( uid === undefined ) ? undefined : { 'id' : uid };
         }
 
+        function getDataElement() {
+            var uid = qs( '#dataElement' ).value || undefined;
+            return ( uid === undefined ) ? undefined : { 'id' : uid };
+        }
 
         function getScheduledDays() {
             return ( days.value || 0 ) * ( qs( '#daysModifier' ).value );
@@ -142,7 +158,8 @@
                 notificationRecipient : qs( '#notificationRecipient' ).value,
                 recipientUserGroup : getUserGroup(),
                 recipientProgramAttribute: getProgramAttribute(),
-                  deliveryChannels : getSelectedDeliveryChannels(),
+                recipientDataElement: getDataElement(),
+                deliveryChannels : getSelectedDeliveryChannels(),
                 subjectTemplate : qs( '#subjectTemplate' ).value,
                 messageTemplate : qs( '#messageTemplate' ).value
             };
@@ -172,11 +189,11 @@
                     return saveToProgramStage( ownerUid, result.response.uid )
                 }
             } ).done( function( result ) {
-                returnToListing();
-            } )
-            .fail( function( jqXhr, textStatus, error ) {
-                onSaveFail( jqXhr, textStatus, error );
-            } );
+                    returnToListing();
+                } )
+                .fail( function( jqXhr, textStatus, error ) {
+                    onSaveFail( jqXhr, textStatus, error );
+                } );
         }
 
         function saveToProgram( programUid, templateUid ) {

@@ -36,6 +36,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
@@ -71,6 +72,8 @@ public class ProgramNotificationTemplate
     private UserGroup recipientUserGroup = null;
 
     private TrackedEntityAttribute recipientProgramAttribute = null;
+
+    private DataElement recipientDataElement = null;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -196,5 +199,17 @@ public class ProgramNotificationTemplate
     public void setRecipientProgramAttribute( TrackedEntityAttribute recipientProgramAttribute )
     {
         this.recipientProgramAttribute = recipientProgramAttribute;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DataElement getRecipientDataElement()
+    {
+        return recipientDataElement;
+    }
+
+    public void setRecipientDataElement( DataElement recipientDataElement )
+    {
+        this.recipientDataElement = recipientDataElement;
     }
 }

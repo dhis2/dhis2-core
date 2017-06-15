@@ -65,6 +65,7 @@
                     <option value="USERS_AT_ORGANISATION_UNIT" #if ( $rcpt == "USERS_AT_ORGANISATION_UNIT" ) selected #end>$i18n.getString( "users_at_orgunit" )</option>
                     <option value="USER_GROUP" #if ( $rcpt == "USER_GROUP" ) selected #end>$i18n.getString( "user_group" )</option>
                     <option value="PROGRAM_ATTRIBUTE" #if ( $rcpt == "PROGRAM_ATTRIBUTE" ) selected #end>$i18n.getString( "program_attributes" )</option>
+                    <option value="DATA_ELEMENT" #if ( $rcpt == "DATA_ELEMENT" ) selected #end>$i18n.getString( "recipient_data_element" )</option>
                 </select>
             </td>
         </tr>
@@ -93,6 +94,33 @@
                 </select>
             </td>
         </tr>
+
+
+        <tr id="dataElementContainer" #if ( $rcpt != "DATA_ELEMENT" ) style="display: none;" #end>
+            <td>
+                <label for="dataElement">$i18n.getString( "recipient_data_element" )</label>
+            </td>
+            <td>
+                #set( $pAttr = $template.recipientDataElement )
+                <select type="text" id="dataElement" name="dataElement" class="dataElement">
+                    #if ( $phoneNumberDataElements.size() > 0 || $emailDataElements.size() > 0 )
+
+                        <option value="">[$i18n.getString("please_select")]</option>
+                        #foreach( $phoneNumber in $!phoneNumberDataElements )
+                            <option value="$phoneNumber.uid" #if ( $pAttr && $pAttr.uid.equals( $phoneNumber.uid ) ) selected #end>$phoneNumber.displayName</option>
+                        #end
+
+                        #foreach( $email in $!emailDataElements )
+                            <option value="$email.uid" #if ( $pAttr && $pAttr.uid.equals( $email.uid ) ) selected #end>$email.displayName</option>
+                        #end
+                    #else
+                        <option value="">[$i18n.getString("no_phonenumber_email_found")]</option>
+                    #end
+
+                </select>
+            </td>
+        </tr>
+
 
         <tr id="userGroupContainer" #if ( $rcpt != "USER_GROUP" ) style="display: none;" #end>
             <td>

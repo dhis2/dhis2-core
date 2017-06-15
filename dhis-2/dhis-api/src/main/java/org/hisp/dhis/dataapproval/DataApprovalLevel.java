@@ -177,6 +177,7 @@ public class DataApprovalLevel
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( value = PropertyType.INTEGER, required = Property.Value.TRUE, persisted = Property.Value.TRUE, owner = Property.Value.TRUE )
     public int getOrgUnitLevel()
     {
         return orgUnitLevel;

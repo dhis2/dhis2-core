@@ -47,15 +47,16 @@ public class ProgramNotificationTemplateObjectBundleHook
     extends AbstractObjectBundleHook
 {
     private ImmutableMap<ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>>
-            RECIPIENT_RESOLVER = new ImmutableMap.Builder<ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>>()
-            .put( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE, template -> template.getRecipientProgramAttribute().getValueType() )
-            .build();
+        RECIPIENT_TO_VALUETYPE_RESOLVER = new ImmutableMap.Builder<ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>>()
+        .put( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE, template -> template.getRecipientProgramAttribute().getValueType() )
+        .put( ProgramNotificationRecipient.DATA_ELEMENT, template -> template.getRecipientDataElement().getValueType() )
+        .build();
 
     private static  final  ImmutableMap<ValueType,Set<DeliveryChannel>>
-            CHANNEL_MAPPER = new ImmutableMap.Builder<ValueType, Set<DeliveryChannel>>()
-            .put( ValueType.PHONE_NUMBER, Sets.newHashSet( DeliveryChannel.SMS ) )
-            .put( ValueType.EMAIL, Sets.newHashSet( DeliveryChannel.EMAIL ) )
-            .build();
+        CHANNEL_MAPPER = new ImmutableMap.Builder<ValueType, Set<DeliveryChannel>>()
+        .put( ValueType.PHONE_NUMBER, Sets.newHashSet( DeliveryChannel.SMS ) )
+        .put( ValueType.EMAIL, Sets.newHashSet( DeliveryChannel.EMAIL ) )
+        .build();
 
     @Override
     public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
@@ -113,6 +114,11 @@ public class ProgramNotificationTemplateObjectBundleHook
             template.setRecipientProgramAttribute( null );
         }
 
+        if ( ProgramNotificationRecipient.DATA_ELEMENT != template.getNotificationRecipient() )
+        {
+            template.setRecipientDataElement( null );
+        }
+
         if ( ! ( template.getNotificationRecipient().isExternalRecipient() ) )
         {
             template.setDeliveryChannels( Sets.newHashSet() );
@@ -125,15 +131,20 @@ public class ProgramNotificationTemplateObjectBundleHook
         {
             resolveTemplateRecipients( template, ProgramNotificationRecipient.PROGRAM_ATTRIBUTE );
         }
+
+        if ( ProgramNotificationRecipient.DATA_ELEMENT == template.getNotificationRecipient() )
+        {
+            resolveTemplateRecipients( template, ProgramNotificationRecipient.DATA_ELEMENT );
+        }
     }
 
     private void resolveTemplateRecipients( ProgramNotificationTemplate pnt, ProgramNotificationRecipient pnr )
     {
-        Function<ProgramNotificationTemplate,ValueType> resolver = RECIPIENT_RESOLVER.get( pnr );
+        Function<ProgramNotificationTemplate,ValueType> resolver = RECIPIENT_TO_VALUETYPE_RESOLVER.get( pnr );
 
         ValueType valueType = null;
 
-        if ( resolver != null && pnt.getRecipientProgramAttribute() != null )
+        if ( resolver != null && ( pnt.getRecipientProgramAttribute() != null || pnt.getRecipientDataElement() != null ) )
         {
             valueType = resolver.apply( pnt );
         }

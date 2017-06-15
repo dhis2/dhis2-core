@@ -40,7 +40,8 @@ public enum ProgramNotificationRecipient
     ORGANISATION_UNIT_CONTACT( true ),
     USERS_AT_ORGANISATION_UNIT( false ),
     USER_GROUP( false ),
-    PROGRAM_ATTRIBUTE( true );
+    PROGRAM_ATTRIBUTE( true ),
+    DATA_ELEMENT( true );
 
     private boolean external;
 

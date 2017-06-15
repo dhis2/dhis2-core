@@ -447,7 +447,7 @@ public class AccountController
             return;
         }
 
-        CredentialsInfo credentialsInfo = new CredentialsInfo( credentials.getUsername(), password, credentials.getUser().getEmail(), false );
+        CredentialsInfo credentialsInfo = new CredentialsInfo( credentials.getUsername(), password, credentials.getUserInfo().getEmail(), false );
 
         if ( userService.credentialsNonExpired( credentials ) )
         {
