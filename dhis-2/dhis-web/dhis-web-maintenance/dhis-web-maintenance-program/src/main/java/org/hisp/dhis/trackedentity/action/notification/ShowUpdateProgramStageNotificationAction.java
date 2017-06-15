@@ -181,7 +181,7 @@ public class ShowUpdateProgramStageNotificationAction
         return attributes.stream().filter( attr -> attr.getValueType().equals( valueType ) ).collect( Collectors.toList() );
     }
 
-    private List<DataElement> getDataElementBasedOnValueType(List<DataElement> dataElements, ValueType valueType )
+    private List<DataElement> getDataElementBasedOnValueType( List<DataElement> dataElements, ValueType valueType )
     {
         return dataElements.stream().filter( de -> de.getValueType().equals( valueType ) ).collect( Collectors.toList() );
     }
