@@ -25,6 +25,8 @@
         var optionComboId = split.optionComboId;
         var orgUnitid = split.organisationUnitId;
         var periodId = $( '#selectedPeriodId' ).val();
+        var cc = dhis2.de.getCurrentCategoryCombo();
+        var cp = dhis2.de.getCurrentCategoryOptionsQueryValue
 
         var formData = {
             'de': dataElementId,
@@ -32,6 +34,12 @@
             'ou': orgUnitid,
             'pe': periodId
         };
+
+        if ( cc && cp )
+        {
+            formData.cc = cc;
+            formData.cp = cp;
+        }
 
         var deleteFileDataValue = function() {
             var postData = formData;
