@@ -60,6 +60,7 @@
                     <option value="USERS_AT_ORGANISATION_UNIT">$i18n.getString( "users_at_orgunit" )</option>
                     <option value="USER_GROUP">$i18n.getString( "user_group" )</option>
                     <option value="PROGRAM_ATTRIBUTE">$i18n.getString( "program_attributes" )</option>
+                    <option value="DATA_ELEMENT">$i18n.getString( "recipient_data_element" )</option>
                 </select>
             </td>
         </tr>
@@ -86,6 +87,31 @@
                 </select>
             </td>
         </tr>
+
+
+        <tr id="dataElementContainer" style="display: none;">
+            <td>
+                <label for="dataElement">$i18n.getString( "recipient_data_element" )</label>
+            </td>
+            <td>
+                <select type="text" id="dataElement" name="dataElement" class="dataElement">
+                    #if ( $phoneNumberDataElements.size() > 0 || $emailDataElements.size() > 0 )
+                        <option value="">[$i18n.getString("please_select")]</option>
+                        #foreach( $phoneNumber in $!phoneNumberDataElements )
+                            <option value="$phoneNumber.uid">$phoneNumber.displayName</option>
+                        #end
+
+                        #foreach( $email in $!emailDataElements )
+                            <option value="$email.uid">$email.displayName</option>
+                        #end
+
+                    #else
+                        <option value="">[$i18n.getString("no_phonenumber_email_found")]</option>
+                    #end
+                </select>
+            </td>
+        </tr>
+
 
         <tr id="userGroupContainer" style="display: none;">
             <td>

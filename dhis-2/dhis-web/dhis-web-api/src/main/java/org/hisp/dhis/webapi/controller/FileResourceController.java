@@ -44,11 +44,11 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.schema.descriptors.FileResourceSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.InvalidMimeTypeException;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,11 +57,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.ServletContext;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.util.Date;
 
 /**
@@ -85,9 +83,6 @@ public class FileResourceController
 
     @Autowired
     private CurrentUserService currentUserService;
-
-    @Autowired
-    private ServletContext servletContext;
 
     // -------------------------------------------------------------------------
     // Controller methods
@@ -114,7 +109,7 @@ public class FileResourceController
         String filename = StringUtils.defaultIfBlank( FilenameUtils.getName( file.getOriginalFilename() ), DEFAULT_FILENAME );
 
         String contentType = file.getContentType();
-        contentType = isValidContentType( contentType ) ? contentType : DEFAULT_CONTENT_TYPE;
+        contentType = FileResourceUtils.isValidContentType( contentType ) ? contentType : DEFAULT_CONTENT_TYPE;
 
         long contentLength = file.getSize();
 
@@ -132,7 +127,7 @@ public class FileResourceController
         fileResource.setCreated( new Date() );
         fileResource.setUser( currentUserService.getCurrentUser() );
 
-        File tmpFile = toTempFile( file );
+        File tmpFile = FileResourceUtils.toTempFile( file );
 
         String uid = fileResourceService.saveFileResource( fileResource, tmpFile );
 
@@ -145,35 +140,6 @@ public class FileResourceController
         webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );
 
         return webMessage;
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private boolean isValidContentType( String contentType )
-    {
-        try
-        {
-            MimeTypeUtils.parseMimeType( contentType );
-        }
-        catch ( InvalidMimeTypeException e )
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    private File toTempFile( MultipartFile multipartFile )
-        throws IOException
-    {
-        File tempDir = (File) servletContext.getAttribute( ServletContext.TEMPDIR );
-        File tmpFile = Files.createTempFile( tempDir.toPath(), "org.hisp.dhis", null ).toFile();
-
-        multipartFile.transferTo( tmpFile );
-
-        return tmpFile;
     }
 
     // -------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.webapi.utils;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,41 +28,53 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.CodeGenerator;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+
+import org.springframework.util.InvalidMimeTypeException;
+import org.springframework.util.MimeTypeUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
- * @author Stian Sandvold
+ * @author Lars Helge Overland
  */
-public class DefaultExternalFileResourceService
-    implements ExternalFileResourceService
+public class FileResourceUtils
 {
-    private ExternalFileResourceStore externalFileResourceStore;
-
-    public void setExternalFileResourceStore(
-        ExternalFileResourceStore externalFileResourceStore )
+    /**
+     * Transfers the given multipart file content to a local temporary file.
+     *  
+     * @param multipartFile the multipart file.
+     * @return a temporary local file.
+     * @throws IOException if the file content could not be transferred.
+     */
+    public static File toTempFile( MultipartFile multipartFile )
+        throws IOException
     {
-        this.externalFileResourceStore = externalFileResourceStore;
+        File tmpFile = Files.createTempFile( "org.hisp.dhis", ".tmp" ).toFile();
+        tmpFile.deleteOnExit();
+        multipartFile.transferTo( tmpFile );
+        return tmpFile;
     }
 
-    @Override
-    public ExternalFileResource getExternalFileResourceByAccessToken( String accessToken )
+    /**
+     * Indicates whether the content type represented by the given string
+     * is a valid, known content type.
+     * 
+     * @param contentType the content type string.
+     * @return true if the content is valid, false if not.
+     */
+    public static boolean isValidContentType( String contentType )
     {
-        return externalFileResourceStore.getExternalFileResourceByAccessToken( accessToken );
-    }
+        try
+        {
+            MimeTypeUtils.parseMimeType( contentType );
+        }
+        catch ( InvalidMimeTypeException ignored )
+        {
+            return false;
+        }
 
-    @Override
-    @Transactional
-    public String saveExternalFileResource( ExternalFileResource externalFileResource )
-    {
-        Assert.notNull( externalFileResource, "External file resource cannot be null" );
-        Assert.notNull( externalFileResource.getFileResource(), "External file resource entity cannot be null" );
-
-        externalFileResource.setAccessToken( CodeGenerator.getRandomUrlToken() );
-
-        externalFileResourceStore.save( externalFileResource );
-
-        return externalFileResource.getAccessToken();
+        return true;
     }
 }
