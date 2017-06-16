@@ -73,6 +73,8 @@ public class TrackedEntityAttributeValue
      */
     private String value;
 
+    private String storedBy;
+
     // -------------------------------------------------------------------------
     // Transient properties
     // -------------------------------------------------------------------------
@@ -306,6 +308,18 @@ public class TrackedEntityAttributeValue
         valueIsSet = true;
 
         this.value = value;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getStoredBy()
+    {
+        return storedBy;
+    }
+
+    public void setStoredBy( String storedBy )
+    {
+        this.storedBy = storedBy;
     }
 
     @JsonProperty( "trackedEntityAttribute" )
