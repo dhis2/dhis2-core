@@ -1,4 +1,5 @@
 package org.hisp.dhis.fileresource;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -37,7 +38,6 @@ import org.springframework.util.Assert;
 public class DefaultExternalFileResourceService
     implements ExternalFileResourceService
 {
-
     private ExternalFileResourceStore externalFileResourceStore;
 
     public void setExternalFileResourceStore(

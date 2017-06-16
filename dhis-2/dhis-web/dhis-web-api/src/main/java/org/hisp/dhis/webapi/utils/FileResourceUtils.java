@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.color;
+package org.hisp.dhis.webapi.utils;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,18 +28,53 @@ package org.hisp.dhis.webapi.controller.color;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.color.ColorSet;
-import org.hisp.dhis.schema.descriptors.ColorSetSchemaDescriptor;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+
+import org.springframework.util.InvalidMimeTypeException;
+import org.springframework.util.MimeTypeUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author Lars Helge Overland
  */
-@Controller
-@RequestMapping( value = ColorSetSchemaDescriptor.API_ENDPOINT )
-public class ColorSetController
-    extends AbstractCrudController<ColorSet>
+public class FileResourceUtils
 {
+    /**
+     * Transfers the given multipart file content to a local temporary file.
+     *  
+     * @param multipartFile the multipart file.
+     * @return a temporary local file.
+     * @throws IOException if the file content could not be transferred.
+     */
+    public static File toTempFile( MultipartFile multipartFile )
+        throws IOException
+    {
+        File tmpFile = Files.createTempFile( "org.hisp.dhis", ".tmp" ).toFile();
+        tmpFile.deleteOnExit();
+        multipartFile.transferTo( tmpFile );
+        return tmpFile;
+    }
+
+    /**
+     * Indicates whether the content type represented by the given string
+     * is a valid, known content type.
+     * 
+     * @param contentType the content type string.
+     * @return true if the content is valid, false if not.
+     */
+    public static boolean isValidContentType( String contentType )
+    {
+        try
+        {
+            MimeTypeUtils.parseMimeType( contentType );
+        }
+        catch ( InvalidMimeTypeException ignored )
+        {
+            return false;
+        }
+
+        return true;
+    }
 }

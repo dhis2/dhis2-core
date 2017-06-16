@@ -1077,19 +1077,6 @@ public class Metadata
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "colors", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "color", namespace = DxfNamespaces.DXF_2_0 )
-    public List<Color> getColors()
-    {
-        return colors;
-    }
-
-    public void setColors( List<Color> colors )
-    {
-        this.colors = colors;
-    }
-
-    @JsonProperty
     @JacksonXmlElementWrapper( localName = "colorSets", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "colorSet", namespace = DxfNamespaces.DXF_2_0 )
     public List<ColorSet> getColorSets()

@@ -103,6 +103,7 @@ public class SqlViewController
         {
             throw new WebMessageException( WebMessageUtils.notFound( "SQL view does not exist: " + uid ) );
         }
+        
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -124,6 +125,7 @@ public class SqlViewController
         {
             throw new WebMessageException( WebMessageUtils.notFound( "SQL view does not exist: " + uid ) );
         }
+        
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -221,7 +223,6 @@ public class SqlViewController
 
         Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters, fields );
 
-
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, sqlView.getCacheStrategy() );
 
         GridUtils.toPdf( grid, response.getOutputStream() );
@@ -239,7 +240,7 @@ public class SqlViewController
 
         if ( sqlView == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "SQL view not found" ) );
+            throw new WebMessageException( WebMessageUtils.notFound( "SQL view does not exist: " + uid ) );
         }
 
         if ( sqlView.isQuery() )
@@ -268,7 +269,7 @@ public class SqlViewController
 
         if ( sqlView == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "SQL view not found" ) );
+            throw new WebMessageException( WebMessageUtils.notFound( "SQL view does not exist: " + uid ) );
         }
 
         boolean result = sqlViewService.refreshMaterializedView( sqlView );
