@@ -31,10 +31,6 @@ package org.hisp.dhis.schema.descriptors;
 import org.hisp.dhis.color.Color;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -50,13 +46,6 @@ public class ColorSchemaDescriptor implements SchemaDescriptor
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( Color.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1090 );
-
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_COLOR_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_COLOR_DELETE" ) ) );
-
-        return schema;
+        return new Schema( Color.class, SINGULAR, PLURAL );
     }
 }
