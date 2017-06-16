@@ -57,6 +57,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -106,6 +108,9 @@ public abstract class AbstractTrackedEntityInstanceService
 
     @Autowired
     protected ProgramInstanceService programInstanceService;
+
+    @Autowired
+    protected CurrentUserService currentUserService;
 
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
@@ -223,6 +228,7 @@ public abstract class AbstractTrackedEntityInstanceService
             attribute.setValueType( attributeValue.getAttribute().getValueType() );
             attribute.setCode( attributeValue.getAttribute().getCode() );
             attribute.setValue( attributeValue.getValue() );
+            attribute.setStoredBy( attributeValue.getStoredBy() );
 
             trackedEntityInstance.getAttributes().add( attribute );
         }
@@ -509,8 +515,11 @@ public abstract class AbstractTrackedEntityInstanceService
         return importSummaries;
     }
 
-    private void updateAttributeValues( TrackedEntityInstance trackedEntityInstance, org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance )
+    private void updateAttributeValues( TrackedEntityInstance trackedEntityInstance,
+        org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance )
     {
+        User user = currentUserService.getCurrentUser();
+
         for ( Attribute attribute : trackedEntityInstance.getAttributes() )
         {
             TrackedEntityAttribute entityAttribute = manager.get( TrackedEntityAttribute.class,
@@ -522,6 +531,9 @@ public abstract class AbstractTrackedEntityInstanceService
                 attributeValue.setEntityInstance( entityInstance );
                 attributeValue.setValue( attribute.getValue() );
                 attributeValue.setAttribute( entityAttribute );
+
+                String storedBy = getStoredBy( attributeValue, new ImportSummary(), user );
+                attributeValue.setStoredBy( storedBy );
 
                 trackedEntityAttributeValueService.addTrackedEntityAttributeValue( attributeValue );
             }
@@ -733,4 +745,27 @@ public abstract class AbstractTrackedEntityInstanceService
             entityInstance.setLastUpdatedAtClient( DateUtils.parseDate( lastUpdatedAtClient ) );
         }
     }
+
+    private String getStoredBy( TrackedEntityAttributeValue attributeValue, ImportSummary importSummary, User fallbackUser )
+    {
+        String storedBy = attributeValue.getStoredBy();
+
+        if ( StringUtils.isEmpty( storedBy ) )
+        {
+            storedBy = User.getSafeUsername( fallbackUser );
+        }
+        else if ( storedBy.length() >= 31 )
+        {
+            if ( importSummary != null )
+            {
+                importSummary.getConflicts().add( new ImportConflict( "stored by",
+                    storedBy + " is more than 31 characters, using current username instead" ) );
+            }
+
+            storedBy = User.getSafeUsername( fallbackUser );
+        }
+
+        return storedBy;
+    }
 }
+
