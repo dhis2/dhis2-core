@@ -73,4 +73,9 @@ public class IdentifiableObjectCallable<T extends IdentifiableObject>
         this.id = id;
         return this;
     }
+
+    public IdScheme getIdScheme()
+    {
+        return idScheme;
+    }
 }
