@@ -22,5 +22,7 @@
 
     <property name="encryptedValue" column="encryptedvalue" access="property" type="Aes128EncryptedString" length="50000" />
 
+    <property name="storedBy" column="storedby" not-null="false" />
+
   </class>
 </hibernate-mapping>
