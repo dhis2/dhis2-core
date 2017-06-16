@@ -474,7 +474,13 @@ public abstract class PeriodType
         final DateTimeUnit from = cal.toIso( dateInterval.getFrom() );
         final DateTimeUnit to = cal.toIso( dateInterval.getTo() );
 
-        return new Period( this, from.toJdkDate(), to.toJdkDate(), getIsoDate( from ) );
+        String isoPeriod = getIsoDate( from );
+        if (cal.name() == "persian" )
+        {
+            isoPeriod = getIsoDate( dateInterval.getFrom() );
+        }
+
+        return new Period( this, from.toJdkDate(), to.toJdkDate(), isoPeriod );
     }
 
     /**

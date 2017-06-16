@@ -189,9 +189,40 @@ public class PersianCalendar extends AbstractCalendar
     @Override
     public int isoWeek( DateTimeUnit dateTimeUnit )
     {
-        DateTime dateTime = toIso( dateTimeUnit )
-            .toJodaDateTime( ISOChronology.getInstance( DateTimeZone.getDefault() ) );
-        return dateTime.getWeekOfWeekyear();
+
+        if (dateTimeUnit.getYear() > START_ISO.getYear()) {
+            Calendar gregorianCalendar = GregorianCalendar.getInstance();
+            return gregorianCalendar.isoWeek(dateTimeUnit);
+        }
+
+        int theFourth = weekday(new DateTimeUnit (dateTimeUnit.getYear(), 1, 4));
+        int startWeek2 = (7 - theFourth) + 4 + 1;
+        int ordinalDay = ordinalDayInYear(dateTimeUnit);
+        if (ordinalDay < startWeek2)
+        {
+            if (ordinalDay < (startWeek2 - 7)) return 53;
+            return 1;
+        }
+
+        int res = (int) ( (ordinalDay-startWeek2) / 7 ) + 2;
+
+        if (res == 53)
+        {
+            int dayOfExistingYear = getYearTotal(dateTimeUnit.getYear());
+            int theFourthNextYear = weekday(new DateTimeUnit (dateTimeUnit.getYear() + 1, 1, 4));
+            int startDayWeek1NextYear = 4 - (theFourthNextYear -1 );
+
+            int diffStart = startDayWeek1NextYear - theFourthNextYear;
+            int diffEnd = dayOfExistingYear - ordinalDay;
+
+            if (diffStart < 0 && (diffEnd <= Math.abs(diffEnd)))
+            {
+                res = 1;
+            }
+        }
+
+        return res;
+
     }
 
     @Override
@@ -204,6 +235,11 @@ public class PersianCalendar extends AbstractCalendar
     public int isoWeekday( DateTimeUnit dateTimeUnit )
     {
 
+        if (dateTimeUnit.getYear() > START_ISO.getYear()) {
+            Calendar gregorianCalendar = GregorianCalendar.getInstance();
+            return gregorianCalendar.isoWeekday(dateTimeUnit);
+        }
+
         DateTime dateTime = toIso( dateTimeUnit )
             .toJodaDateTime( ISOChronology.getInstance( DateTimeZone.getDefault() ) );
         return dateTime.getDayOfWeek();
@@ -213,14 +249,20 @@ public class PersianCalendar extends AbstractCalendar
     public int weekday( DateTimeUnit dateTimeUnit )
     {
 
-        int dayOfWeek = (isoWeekday( dateTimeUnit ) + 1);
+        if (dateTimeUnit.getYear() > START_ISO.getYear()) {
+            Calendar gregorianCalendar = GregorianCalendar.getInstance();
+            return gregorianCalendar.weekday(dateTimeUnit);
+        }
 
-        if ( dayOfWeek > 7 )
+        int dayOfWeek = isoWeekday( dateTimeUnit );
+
+        if ( dayOfWeek == 0 )
         {
-            return 1;
+            dayOfWeek = 7;
         }
 
         return dayOfWeek;
+
     }
 
     @Override
@@ -611,6 +653,21 @@ public class PersianCalendar extends AbstractCalendar
         to = toIso( to );
 
         return new DateInterval( from, to, DateIntervalType.ISO8601_DAY );
+    }
+
+    private int ordinalDayInYear(DateTimeUnit dateTimeUnit)
+    {
+
+        int year = dateTimeUnit.getYear();
+        int month = dateTimeUnit.getMonth() - 1;
+        int day = dateTimeUnit.getDay();
+
+        while ( month != 0 ) {
+            day = day + getDaysFromMap(year, month);
+            month--;
+        }
+
+        return day;
     }
 
     private boolean contains( final int[] arr, final int key )
