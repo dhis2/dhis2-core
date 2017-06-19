@@ -262,7 +262,7 @@ public class PersianCalendarTest
     @Test
     public void testWeekday()
     {
-        assertEquals( 2, calendar.weekday( new DateTimeUnit( 1372, 1, 2 ) ) );
+        assertEquals( 1, calendar.weekday( new DateTimeUnit( 1372, 1, 2 ) ) );
     }
 
 }
