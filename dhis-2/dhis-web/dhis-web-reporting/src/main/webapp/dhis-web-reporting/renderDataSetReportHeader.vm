@@ -6,7 +6,7 @@
 
 <h3>$encoder.htmlEncode( $selectedOrgunit.name ) - $format.formatPeriod( $selectedPeriod )</h3>
 
-#if( $registration )<div style="margin-bottom:6px">$i18n.getString( "completed_by" ): <a href="javascript:setUserInfo( '$!{registration.storedBy}' )">$!{registration.storedBy}</a></div>#end
+#if( $registration )<div style="margin-bottom:6px">$i18n.getString( "completed_by" ): <a href="javascript:dhis2.dsr.setUserInfo( '$!{registration.storedBy}' )">$!{registration.storedBy}</a></div>#end
 
 <div id="shareForm">
 <textarea id="interpretationArea" class="interpretationArea" placeholder="$i18n.getString( 'write_your_interpretation_of_report' )"></textarea><br>
