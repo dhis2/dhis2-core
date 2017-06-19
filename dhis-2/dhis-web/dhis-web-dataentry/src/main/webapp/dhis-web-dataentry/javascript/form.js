@@ -1831,6 +1831,15 @@ function insertDataValues( json )
                     'pe': $( '#selectedPeriodId' ).val()
                 };
 
+                var cc = dhis2.de.getCurrentCategoryCombo();
+                var cp = dhis2.de.getCurrentCategoryOptionsQueryValue;
+
+                if( cc && cp )
+                {
+                    dvParams.cc = cc;
+                    dvParams.cp = cp;
+                }
+
                 var name = "", size = "";
 
                 if ( value.fileMeta )
