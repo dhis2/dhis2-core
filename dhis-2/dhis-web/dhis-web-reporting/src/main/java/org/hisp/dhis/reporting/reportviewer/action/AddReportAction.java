@@ -28,8 +28,6 @@ package org.hisp.dhis.reporting.reportviewer.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.File;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.logging.Log;
@@ -43,6 +41,8 @@ import org.hisp.dhis.report.ReportType;
 import org.hisp.dhis.reporttable.ReportParams;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
+
+import java.io.File;
 
 /**
  * @author Lars Helge Overland
@@ -220,7 +220,7 @@ public class AddReportAction
         report.setReportTable( reportTable );
         report.setRelatives( getRelativePeriods() );
         report.setReportParams( reportParams );
-        
+
         log.info( "Upload file name: " + fileName + ", content type: " + contentType );
 
         // ---------------------------------------------------------------------
