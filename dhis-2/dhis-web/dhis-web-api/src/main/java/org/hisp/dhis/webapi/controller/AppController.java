@@ -71,6 +71,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * @author Lars Helge Overland
@@ -81,6 +82,8 @@ import java.util.Map;
 public class AppController
 {
     public static final String RESOURCE_PATH = "/apps";
+
+    public final Pattern REGEX_REMOVE_PROTOCOL = Pattern.compile( ".+:/+" );
 
     private final ResourceLoader resourceLoader = new DefaultResourceLoader();
 
@@ -167,12 +170,13 @@ public class AppController
         HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
+        String folderPath = appManager.getAppFolderPath() + "/" + app + "/";
+
         Iterable<Resource> locations = Lists.newArrayList(
-            resourceLoader.getResource( "file:" + appManager.getAppFolderPath() + "/" + app + "/" ),
-            resourceLoader.getResource( "classpath*:/apps/" + app + "/" )
+            resourceLoader.getResource( "file:" + folderPath )
         );
 
-        Resource manifest = findResource( locations, "manifest.webapp" );
+        Resource manifest = findResource( locations, folderPath, "manifest.webapp" );
 
         if ( manifest == null )
         {
@@ -203,7 +207,7 @@ public class AppController
             }
         }
 
-        Resource resource = findResource( locations, pageName );
+        Resource resource = findResource( locations, folderPath, pageName );
 
         if ( resource == null )
         {
@@ -272,7 +276,7 @@ public class AppController
     // Helpers
     //--------------------------------------------------------------------------
 
-    private Resource findResource( Iterable<Resource> locations, String resourceName )
+    private Resource findResource( Iterable<Resource> locations, String folder, String resourceName )
         throws IOException
     {
         for ( Resource location : locations )
@@ -281,7 +285,12 @@ public class AppController
 
             if ( resource.exists() && resource.isReadable() )
             {
-                return resource;
+                File file = resource.getFile();
+
+                if ( file != null && file.toPath().startsWith( folder ) )
+                {
+                    return resource;
+                }
             }
         }
 
@@ -296,6 +305,8 @@ public class AppController
         {
             path = path.substring( prefix.length() );
         }
+
+        path = REGEX_REMOVE_PROTOCOL.matcher( path ).replaceAll( "" );
 
         return path;
     }
