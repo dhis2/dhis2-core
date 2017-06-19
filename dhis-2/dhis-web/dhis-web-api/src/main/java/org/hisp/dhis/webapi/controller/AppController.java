@@ -287,6 +287,7 @@ public class AppController
             {
                 File file = resource.getFile();
 
+                // make sure that file resolves into path app folder
                 if ( file != null && file.toPath().startsWith( folder ) )
                 {
                     return resource;
@@ -306,6 +307,7 @@ public class AppController
             path = path.substring( prefix.length() );
         }
 
+        // if path is prefixed by any protocol, clear it out (this is to ensure that only files inside app directory can be resolved)
         path = REGEX_REMOVE_PROTOCOL.matcher( path ).replaceAll( "" );
 
         return path;
