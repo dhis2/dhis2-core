@@ -80,6 +80,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElement;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
@@ -225,6 +226,8 @@ public class Metadata
     private List<ProgramStage> programStages = new ArrayList<>();
 
     private List<ProgramStageDataElement> programStageDataElements = new ArrayList<>();
+
+    private List<ProgramDataElement> programDataElements = new ArrayList<>();
 
     private List<ProgramIndicator> programIndicators = new ArrayList<>();
 
@@ -943,6 +946,19 @@ public class Metadata
     }
 
     @JsonProperty
+    @JacksonXmlElementWrapper( localName = "programDataElements", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "programDataElement", namespace = DxfNamespaces.DXF_2_0 )
+    public List<ProgramDataElement> getProgramDataElements()
+    {
+        return programDataElements;
+    }
+
+    public void setProgramDataElements( List<ProgramDataElement> programDataElements )
+    {
+        this.programDataElements = programDataElements;
+    }
+
+    @JsonProperty
     @JacksonXmlElementWrapper( localName = "programIndicators", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "programIndicator", namespace = DxfNamespaces.DXF_2_0 )
     public List<ProgramIndicator> getProgramIndicators()
@@ -1201,6 +1217,7 @@ public class Metadata
             ", dataSets=" + dataSets +
             ", programs=" + programs +
             ", programStages=" + programStages +
+            ", programDataElements=" + programDataElements +
             ", relationshipTypes=" + relationshipTypes +
             ", trackedEntities=" + trackedEntities +
             ", trackedEntityAttributes=" + trackedEntityAttributes +
