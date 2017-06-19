@@ -41,6 +41,21 @@
     <script type="text/javascript" src="../dhis-web-commons/javascripts/ext/ext-all.js"></script>
 
     <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.min.js?_rev=$!{buildRevision}"></script>
+    <script>
+      $.ajaxSetup( {
+        beforeSend: function(xhr) {
+          xhr.setRequestHeader(
+              'X-Requested-With',
+              {
+                toString: function() {
+                  return '';
+                }
+              }
+          );
+        }
+      } );
+    </script>
+
     <!-- Menu dependencies -->
     <script type="text/javascript" src="../dhis-web-core-resource/react-15/react-15.min.js"></script>
     <script type="text/javascript" src="../dhis-web-core-resource/rxjs/4.1.0/rx.lite.min.js"></script>
