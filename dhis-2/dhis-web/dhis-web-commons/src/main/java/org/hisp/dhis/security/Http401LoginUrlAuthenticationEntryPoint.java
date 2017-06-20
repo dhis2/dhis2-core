@@ -26,15 +26,15 @@ package org.hisp.dhis.security;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.render.RenderService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.LockedException;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.authentication.ExceptionMappingAuthenticationFailureHandler;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -44,36 +44,27 @@ import java.io.IOException;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class CustomExceptionMappingAuthenticationFailureHandler
-    extends ExceptionMappingAuthenticationFailureHandler
+public class Http401LoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint
 {
     @Autowired
-    private SecurityService securityService;
+    private RenderService renderService;
 
-    @Autowired
-    private I18nManager i18nManager;
+    public Http401LoginUrlAuthenticationEntryPoint( String loginFormUrl )
+    {
+        super( loginFormUrl );
+    }
 
     @Override
-    public void onAuthenticationFailure( HttpServletRequest request, HttpServletResponse response, AuthenticationException exception ) throws IOException, ServletException
+    public void commence( HttpServletRequest request, HttpServletResponse response, AuthenticationException authException ) throws IOException, ServletException
     {
-        final String username = request.getParameter( "j_username" );
-
-        request.getSession().setAttribute( "username", username );
-
-        securityService.registerFailedLogin( username );
-
-        I18n i18n = i18nManager.getI18n();
-
-        if ( ExceptionUtils.indexOfThrowable( exception, LockedException.class )  != -1)
+        if ( "XMLHttpRequest".equals( request.getHeader( "X-Requested-With" ) ) )
         {
-            request.getSession().setAttribute( "LOGIN_FAILED_MESSAGE", i18n.getString( "authentication.message.account.locked" ) );
-        }
-        else
-        {
-            request.getSession().setAttribute( "LOGIN_FAILED_MESSAGE", i18n.getString( "authentication.message.account.invalid" ) );
+            response.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
+            response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
+            renderService.toJson( response.getOutputStream(), WebMessageUtils.unathorized( "Unauthorized" ) );
+            return;
         }
 
-
-        super.onAuthenticationFailure( request, response, exception );
+        super.commence( request, response, authException );
     }
 }
