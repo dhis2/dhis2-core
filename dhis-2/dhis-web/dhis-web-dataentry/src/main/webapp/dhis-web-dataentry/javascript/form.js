@@ -3189,7 +3189,7 @@ dhis2.de.searchOptionSet = function( uid, query, success )
 dhis2.de.getOptions = function( uid, query, success ) 
 {
     return $.ajax( {
-        url: '../api/optionSets/' + uid + '.json?links=false&q=' + query,
+        url: '../api/optionSets/' + uid + '.json?fields=:all,options[:all]&links=false&q=' + query,
         dataType: "json",
         cache: false,
         type: 'GET',
