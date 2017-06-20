@@ -1,4 +1,4 @@
-package org.hisp.dhis.color;
+package org.hisp.dhis.webapi.utils;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,48 +28,53 @@ package org.hisp.dhis.color;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.EmbeddedObject;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+
+import org.springframework.util.InvalidMimeTypeException;
+import org.springframework.util.MimeTypeUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "color", namespace = DxfNamespaces.DXF_2_0 )
-public class Color
-    extends BaseIdentifiableObject implements EmbeddedObject
+public class FileResourceUtils
 {
-    private String color;
-
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-
-    public Color()
+    /**
+     * Transfers the given multipart file content to a local temporary file.
+     *  
+     * @param multipartFile the multipart file.
+     * @return a temporary local file.
+     * @throws IOException if the file content could not be transferred.
+     */
+    public static File toTempFile( MultipartFile multipartFile )
+        throws IOException
     {
+        File tmpFile = Files.createTempFile( "org.hisp.dhis", ".tmp" ).toFile();
+        tmpFile.deleteOnExit();
+        multipartFile.transferTo( tmpFile );
+        return tmpFile;
     }
 
-    public Color( String color )
+    /**
+     * Indicates whether the content type represented by the given string
+     * is a valid, known content type.
+     * 
+     * @param contentType the content type string.
+     * @return true if the content is valid, false if not.
+     */
+    public static boolean isValidContentType( String contentType )
     {
-        this.color = color;
-    }
+        try
+        {
+            MimeTypeUtils.parseMimeType( contentType );
+        }
+        catch ( InvalidMimeTypeException ignored )
+        {
+            return false;
+        }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getColor()
-    {
-        return color;
-    }
-
-    public void setColor( String color )
-    {
-        this.color = color;
+        return true;
     }
 }

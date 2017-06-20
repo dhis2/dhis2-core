@@ -44,7 +44,7 @@ import java.io.IOException;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class CustomExceptionMappingAuthenticationFailureHandler 
+public class CustomExceptionMappingAuthenticationFailureHandler
     extends ExceptionMappingAuthenticationFailureHandler
 {
     @Autowired
@@ -52,14 +52,14 @@ public class CustomExceptionMappingAuthenticationFailureHandler
 
     @Autowired
     private I18nManager i18nManager;
-    
+
     @Override
     public void onAuthenticationFailure( HttpServletRequest request, HttpServletResponse response, AuthenticationException exception ) throws IOException, ServletException
     {
         final String username = request.getParameter( "j_username" );
-        
+
         request.getSession().setAttribute( "username", username );
-        
+
         securityService.registerFailedLogin( username );
 
         I18n i18n = i18nManager.getI18n();

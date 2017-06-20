@@ -33,7 +33,7 @@ import java.util.List;
 import org.hisp.dhis.common.DeliveryChannel;
 
 /**
- * @author gZubair <rajazubair.asghar@gmail.com>
+ * @author Zubair <rajazubair.asghar@gmail.com>
  */
 
 public class OutboundMessageBatch

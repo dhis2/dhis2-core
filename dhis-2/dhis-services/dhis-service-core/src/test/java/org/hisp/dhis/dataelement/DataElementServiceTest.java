@@ -29,6 +29,7 @@ package org.hisp.dhis.dataelement;
  */
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.ValueType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -366,5 +367,16 @@ public class DataElementServiceTest
         assertTrue( degsB.getMembers().contains( degC ) );
         assertTrue( degB.getGroupSets().contains( degsB ) );
         assertTrue( degC.getGroupSets().contains( degsB ) );        
+    }
+
+    @Test
+    public void testDataElementUrl()
+    {
+        DataElement de = createDataElement( 'A', ValueType.URL, AggregationType.DEFAULT );
+
+        int id = dataElementService.addDataElement( de );
+
+        assertNotNull( dataElementService.getDataElement( id ) );
+
     }
 }
