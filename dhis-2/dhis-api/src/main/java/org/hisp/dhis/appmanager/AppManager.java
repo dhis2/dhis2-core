@@ -42,8 +42,6 @@ public interface AppManager
 {
     String ID = AppManager.class.getName();
 
-    String APPS_DIR = "/apps";
-
     /**
      * Returns a list of all the installed apps at @see getAppFolderPath
      *
@@ -100,8 +98,7 @@ public interface AppManager
      * @param fileName the name of the app file.
      * @throws IOException if the app manifest file could not be read.
      */
-    AppStatus installApp( File file, String fileName )
-        throws IOException;
+    AppStatus installApp( File file, String fileName );
 
     /**
      * Does the app with name appName exist?
@@ -126,13 +123,6 @@ public interface AppManager
      * Reload list of apps.
      */
     void reloadApps();
-
-    /**
-     * Returns the full path to the folder where apps are extracted
-     *
-     * @return app folder path
-     */
-    String getAppFolderPath();
 
     /**
      * Returns the url of the app repository

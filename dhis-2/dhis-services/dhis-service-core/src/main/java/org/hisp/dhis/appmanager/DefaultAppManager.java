@@ -28,18 +28,10 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.ant.compress.taskdefs.Unzip;
-import org.apache.commons.io.FileUtils;
+import com.google.api.client.util.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.datavalue.DefaultDataValueService;
-import org.hisp.dhis.external.location.LocationManager;
-import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.setting.SettingKey;
@@ -51,18 +43,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
-import java.util.zip.ZipFile;
 
 /**
  * @author Saptarshi Purkayastha
@@ -70,27 +52,7 @@ import java.util.zip.ZipFile;
 public class DefaultAppManager
     implements AppManager
 {
-    private static final Log log = LogFactory.getLog( DefaultDataValueService.class );
-
-    private static final String MANIFEST_FILENAME = "manifest.webapp";
-
-    /**
-     * In-memory singleton list holding state for apps.
-     */
-    private List<App> apps = new ArrayList<>();
-
-    /**
-     * Mapping dataStore-namespaces and apps
-     */
-    private HashMap<String, App> appNamespaces = new HashMap<>();
-
-    @PostConstruct
-    private void init()
-    {
-        verifyAppFolder();
-
-        reloadApps();
-    }
+    private static final Log log = LogFactory.getLog( DefaultAppManager.class );
 
     @Autowired
     private SystemSettingManager appSettingManager;
@@ -99,10 +61,16 @@ public class DefaultAppManager
     private CurrentUserService currentUserService;
 
     @Autowired
-    private LocationManager locationManager;
+    private LocalAppStorageService localAppStorageService;
 
     @Autowired
     private KeyJsonValueService keyJsonValueService;
+
+    @PostConstruct
+    private void init()
+    {
+        localAppStorageService.init();
+    }
 
     // -------------------------------------------------------------------------
     // AppManagerService implementation
@@ -111,6 +79,8 @@ public class DefaultAppManager
     @Override
     public List<App> getApps( String contextPath )
     {
+        List<App> apps = Lists.newArrayList( localAppStorageService.getApps().values() );
+
         apps.forEach( a -> a.init( contextPath ) );
 
         return apps;
@@ -127,9 +97,9 @@ public class DefaultAppManager
     @Override
     public List<App> getAppsByName( final String name, Collection<App> apps, final String operator )
     {
-        return apps.stream().filter( app -> ( 
-            ( "ilike".equalsIgnoreCase( operator ) && app.getName().toLowerCase().contains( name.toLowerCase() ) ) ||
-            ( "eq".equalsIgnoreCase( operator ) && app.getName().equals( name ) ) ) ).
+        return apps.stream().filter( app -> (
+            ("ilike".equalsIgnoreCase( operator ) && app.getName().toLowerCase().contains( name.toLowerCase() )) ||
+                ("eq".equalsIgnoreCase( operator ) && app.getName().equals( name ))) ).
             collect( Collectors.toList() );
     }
 
@@ -183,157 +153,43 @@ public class DefaultAppManager
     {
         User user = currentUserService.getCurrentUser();
 
-        return getApps( contextPath ).stream().filter( a -> this.isAccessible( a, user ) ).collect( Collectors.toList() );
+        return getApps( contextPath ).stream().filter( a -> this.isAccessible( a, user ) )
+            .collect( Collectors.toList() );
     }
 
     @Override
     public AppStatus installApp( File file, String fileName )
     {
-        try
-        {
-            // -----------------------------------------------------------------
-            // Parse ZIP file and it's manifest.webapp file.
-            // -----------------------------------------------------------------
-
-            ZipFile zip = new ZipFile( file );
-
-            ZipEntry entry = zip.getEntry( MANIFEST_FILENAME );
-            InputStream inputStream = zip.getInputStream( entry );
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-
-            App app = mapper.readValue( inputStream, App.class );
-
-            // -----------------------------------------------------------------
-            // Check for namespace and if it's already taken by another app
-            // -----------------------------------------------------------------
-
-            String namespace = app.getActivities().getDhis().getNamespace();
-
-            if ( namespace != null && (this.appNamespaces.containsKey( namespace ) &&
-                !app.equals( appNamespaces.get( namespace ) )) )
-            {
-                zip.close();
-                return AppStatus.NAMESPACE_TAKEN;
-            }
-
-            // -----------------------------------------------------------------
-            // Delete if app is already installed, assuming app update so no 
-            // data is deleted
-            // -----------------------------------------------------------------
-
-            deleteApp( app.getName(), false );
-
-            // -----------------------------------------------------------------
-            // Unzip the app
-            // -----------------------------------------------------------------
-
-            log.info( "Installing app, namespace: " + namespace );
-
-            String dest = getAppFolderPath() + File.separator + fileName.substring( 0, fileName.lastIndexOf( '.' ) );
-            Unzip unzip = new Unzip();
-            unzip.setSrc( file );
-            unzip.setDest( new File( dest ) );
-            unzip.execute();
-
-            log.info( "Installed app: " + app );
-
-            // -----------------------------------------------------------------
-            // Installation complete. Closing zip, reloading apps and return OK
-            // -----------------------------------------------------------------
-
-            zip.close();
-
-            reloadApps();
-
-            return AppStatus.OK;
-
-        }
-        catch ( ZipException e )
-        {
-            return AppStatus.INVALID_ZIP_FORMAT;
-        }
-        catch ( JsonParseException e )
-        {
-            return AppStatus.INVALID_MANIFEST_JSON;
-        }
-        catch ( JsonMappingException e )
-        {
-            return AppStatus.INVALID_MANIFEST_JSON;
-        }
-        catch ( IOException e )
-        {
-            return AppStatus.INSTALLATION_FAILED;
-        }
+        return localAppStorageService.installApp( file, fileName );
     }
 
     @Override
     public boolean exists( String appName )
     {
-        for ( App app : getApps( null ) )
-        {
-            if ( app.getName().equals( appName ) || app.getFolderName().equals( appName ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return getAppMap().containsKey( appName );
     }
 
     @Override
     public boolean deleteApp( String name, boolean deleteAppData )
     {
-        for ( App app : getApps( null ) )
+        App app = getAppMap().get( name );
+        boolean deleted = false;
+
+        if ( app != null )
         {
-            if ( app.getName().equals( name ) || app.getFolderName().equals( name ) )
+            if ( app.getAppStorageSource().equals( AppStorageSource.LOCAL ) )
             {
-                try
-                {
-                    String folderPath = getAppFolderPath() + File.separator + app.getFolderName();
-                    FileUtils.forceDelete( new File( folderPath ) );
-
-                    // Delete if deleteAppData is true and a namespace associated with the app exists
-
-                    if ( deleteAppData && appNamespaces.containsValue( app ) )
-                    {
-                        appNamespaces.forEach( ( namespace, app1 ) -> {
-                            if ( app1 == app )
-                            {
-                                keyJsonValueService.deleteNamespace( namespace );
-                            }
-                        } );
-                    }
-
-                    return true;
-                }
-                catch ( IOException ex )
-                {
-                    log.error( "Could not delete app: " + name, ex );
-                    return false;
-                }
-                finally
-                {
-                    reloadApps(); // Reload app state
-                }
+                deleted = localAppStorageService.deleteApp( app );
             }
         }
 
-        return false;
-    }
+        if ( deleted && deleteAppData )
+        {
+            keyJsonValueService.deleteNamespace( app.getActivities().getDhis().getNamespace() );
+            log.info( String.format( "Deleted app namespace '%s'", app.getActivities().getDhis().getNamespace() ) );
+        }
 
-    @Override
-    public String getAppFolderPath()
-    {
-        try
-        {
-            return locationManager.getExternalDirectoryPath() + APPS_DIR;
-        }
-        catch ( LocationManagerException ex )
-        {
-            log.info( "Could not get app folder path, external directory not set" );
-            return null;
-        }
+        return deleted;
     }
 
     @Override
@@ -349,62 +205,12 @@ public class DefaultAppManager
     }
 
     /**
-     * Sets the list of apps with detected apps from the file system.
+     * Triggers AppStorageServices to re-discover apps
      */
     @Override
     public void reloadApps()
     {
-        List<App> appList = new ArrayList<>();
-        HashMap<String, App> appNamespaces = new HashMap<>();
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-
-        if ( null != getAppFolderPath() )
-        {
-            File appFolderPath = new File( getAppFolderPath() );
-
-            if ( appFolderPath.isDirectory() )
-            {
-                File[] listFiles = appFolderPath.listFiles();
-
-                if ( listFiles != null )
-                {
-                    for ( File folder : listFiles )
-                    {
-                        if ( folder.isDirectory() )
-                        {
-                            File appManifest = new File( folder, "manifest.webapp" );
-    
-                            if ( appManifest.exists() )
-                            {
-                                try
-                                {
-                                    App app = mapper.readValue( appManifest, App.class );
-                                    app.setFolderName( folder.getName() );
-                                    appList.add( app );
-    
-                                    String appNamespace = app.getActivities().getDhis().getNamespace();
-    
-                                    if ( appNamespace != null )
-                                    {
-                                        appNamespaces.put( appNamespace, app );
-                                    }
-                                }
-                                catch ( IOException ex )
-                                {
-                                    log.error( ex.getLocalizedMessage(), ex );
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        this.apps = appList;
-        this.appNamespaces = appNamespaces;
-
-        log.info( "Detected apps: " + apps );
+        localAppStorageService.discoverInstalledApps();
     }
 
     @Override
@@ -431,35 +237,20 @@ public class DefaultAppManager
     @Override
     public App getAppByNamespace( String namespace )
     {
-        return appNamespaces.get( namespace );
+        return getNamespaceMap().get( namespace );
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    /**
-     * Creates the app folder if it does not exist already.
-     */
-    private void verifyAppFolder()
+    private Map<String, App> getAppMap()
     {
-        String appFolderPath = getAppFolderPath();
+        return localAppStorageService.getApps();
+    }
 
-        if ( appFolderPath != null && !appFolderPath.isEmpty() )
-        {
-            try
-            {
-                File folder = new File( appFolderPath );
-
-                if ( !folder.exists() )
-                {
-                    FileUtils.forceMkdir( folder );
-                }
-            }
-            catch ( IOException ex )
-            {
-                log.error( ex.getMessage(), ex );
-            }
-        }
+    private Map<String, App> getNamespaceMap()
+    {
+        return localAppStorageService.getReservedNamespaces();
     }
 }

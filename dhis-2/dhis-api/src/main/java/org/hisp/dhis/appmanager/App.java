@@ -59,6 +59,8 @@ public class App
 
     private String defaultLocale;
 
+    private AppStorageSource appStorageSource;
+
     /**
      * Optional.
      */
@@ -261,6 +263,17 @@ public class App
     public void setBaseUrl( String baseUrl )
     {
         this.baseUrl = baseUrl;
+    }
+
+    @JsonProperty
+    public AppStorageSource getAppStorageSource()
+    {
+        return appStorageSource;
+    }
+
+    public void setAppStorageSource( AppStorageSource appStorageSource )
+    {
+        this.appStorageSource = appStorageSource;
     }
 
     // -------------------------------------------------------------------------
