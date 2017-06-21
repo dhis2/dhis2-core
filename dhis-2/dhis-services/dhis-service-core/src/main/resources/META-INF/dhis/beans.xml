@@ -754,12 +754,6 @@
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
-  <bean id="org.hisp.dhis.color.ColorStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
-    <property name="clazz" value="org.hisp.dhis.color.Color" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="cacheable" value="true" />
-  </bean>
-
   <bean id="org.hisp.dhis.color.ColorSetStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
     <property name="clazz" value="org.hisp.dhis.color.ColorSet" />
     <property name="sessionFactory" ref="sessionFactory" />
@@ -1264,7 +1258,6 @@
   <bean id="org.hisp.dhis.system.SystemService" class="org.hisp.dhis.system.DefaultSystemService" />
 
   <bean id="org.hisp.dhis.color.ColorService" class="org.hisp.dhis.color.DefaultColorService">
-    <property name="colorStore" ref="org.hisp.dhis.color.ColorStore" />
     <property name="colorSetStore" ref="org.hisp.dhis.color.ColorSetStore" />
   </bean>
 
