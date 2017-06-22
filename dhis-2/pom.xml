@@ -602,12 +602,12 @@
       <dependency>
         <groupId>org.apache.poi</groupId>
         <artifactId>poi</artifactId>
-        <version>3.10.1</version>
+        <version>3.15</version>
       </dependency>
       <dependency>
         <groupId>org.apache.poi</groupId>
         <artifactId>poi-ooxml</artifactId>
-        <version>3.10.1</version>
+        <version>3.15</version>
       </dependency>
       <dependency>
         <groupId>org.hisp</groupId>
@@ -1091,7 +1091,7 @@
     <!-- unit test dependencies-->
     <powermock.version>1.6.4</powermock.version>
     <!-- Keep in sync with Hibernate -->
-    <jackson.version>2.6.6</jackson.version>
+    <jackson.version>2.7.4</jackson.version>
     <slf4j.version>1.7.21</slf4j.version>
     <geotools.version>14.3</geotools.version>
     <jasperreports.version>6.3.1</jasperreports.version>
