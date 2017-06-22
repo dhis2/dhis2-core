@@ -29,7 +29,6 @@ package org.hisp.dhis.sms.config;
  */
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
