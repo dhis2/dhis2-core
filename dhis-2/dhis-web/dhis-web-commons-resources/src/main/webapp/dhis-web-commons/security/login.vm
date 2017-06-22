@@ -6,11 +6,26 @@
         <meta name="keywords" content="DHIS 2">
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <script type="text/javascript" src="../javascripts/jQuery/jquery.min.js"></script>
+        <script>
+        $.ajaxSetup( {
+          beforeSend: function(xhr) {
+            xhr.setRequestHeader(
+                'X-Requested-With',
+                {
+                  toString: function() {
+                    return '';
+                  }
+                }
+            );
+          }
+        } );
+        </script>
         <script type="text/javascript" src="login.js"></script>
         <link type="text/css" rel="stylesheet" href="../css/widgets.css">
         <link type="text/css" rel="stylesheet" href="../css/login.css">
         <link type="text/css" rel="stylesheet" href="../../api/files/style/external" />
     </head>
+
     <body class="loginPage">
     	<h1 style="display:none">$!encoder.htmlEncode( ${applicationTitle} )</h1>
     	<div style="display:none">DHIS 2</div>

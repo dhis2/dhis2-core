@@ -54,6 +54,8 @@ public class Attribute
 
     private String value;
 
+    private String storedBy;
+
     public Attribute()
     {
     }
@@ -152,6 +154,18 @@ public class Attribute
     public void setValue( String value )
     {
         this.value = value;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public String getStoredBy()
+    {
+        return storedBy;
+    }
+
+    public void setStoredBy( String storedBy )
+    {
+        this.storedBy = storedBy;
     }
 
     @Override

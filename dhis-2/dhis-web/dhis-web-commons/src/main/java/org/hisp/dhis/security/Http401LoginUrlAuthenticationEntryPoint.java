@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.color;
+package org.hisp.dhis.security;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,20 +26,45 @@ package org.hisp.dhis.webapi.controller.color;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import org.hisp.dhis.color.ColorSet;
-import org.hisp.dhis.schema.descriptors.ColorSetSchemaDescriptor;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.render.RenderService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Controller
-@RequestMapping( value = ColorSetSchemaDescriptor.API_ENDPOINT )
-public class ColorSetController
-    extends AbstractCrudController<ColorSet>
+public class Http401LoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint
 {
+    @Autowired
+    private RenderService renderService;
+
+    public Http401LoginUrlAuthenticationEntryPoint( String loginFormUrl )
+    {
+        super( loginFormUrl );
+    }
+
+    @Override
+    public void commence( HttpServletRequest request, HttpServletResponse response, AuthenticationException authException ) throws IOException, ServletException
+    {
+        if ( "XMLHttpRequest".equals( request.getHeader( "X-Requested-With" ) ) )
+        {
+            response.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
+            response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
+            renderService.toJson( response.getOutputStream(), WebMessageUtils.unathorized( "Unauthorized" ) );
+            return;
+        }
+
+        super.commence( request, response, authException );
+    }
 }
