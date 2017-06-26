@@ -88,6 +88,8 @@ public class Enrollment
 
     private Coordinate coordinate;
 
+    private Boolean deleted;
+
     public Enrollment()
     {
     }
@@ -331,5 +333,17 @@ public class Enrollment
     public void setCoordinate( Coordinate coordinate )
     {
         this.coordinate = coordinate;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getDeleted()
+    {
+        return deleted;
+    }
+
+    public void setDeleted( Boolean deleted )
+    {
+        this.deleted = deleted;
     }
 }
