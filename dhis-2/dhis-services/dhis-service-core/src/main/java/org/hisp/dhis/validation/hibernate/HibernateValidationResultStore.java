@@ -28,17 +28,27 @@ package org.hisp.dhis.validation.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Criteria;
-import org.hibernate.Session;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hibernate.Query;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.deletedobject.DeletedObject;
+import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
+import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultStore;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Stian Sandvold
@@ -47,43 +57,48 @@ public class HibernateValidationResultStore
     extends HibernateGenericStore<ValidationResult>
     implements ValidationResultStore
 {
+    private static final Log log = LogFactory.getLog( HibernateValidationResultStore.class );
+
+    @Autowired
+    private StatementBuilder statementBuilder;
+
     @Override
     @SuppressWarnings( "unchecked" )
     public List<ValidationResult> getAllUnreportedValidationResults()
     {
-        return getQuery( "from ValidationResult where notificationSent is false" ).list();
+        return getQuery( "from ValidationResult vr where vr.notificationSent = false"
+            + getRestrictions( "and") ).list();
     }
 
     @Override
     public ValidationResult getById( int id )
     {
-        return (ValidationResult) getQuery( "from ValidationResult where id = :id" ).setInteger( "id", id )
-            .uniqueResult();
+        return (ValidationResult) getQuery( "from ValidationResult vr where vr.id = :id"
+            + getRestrictions( "and") ).setInteger( "id", id ).uniqueResult();
     }
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public List<ValidationResult> query( ValidationResultQuery query )
+    public List<ValidationResult> query( ValidationResultQuery validationResultQuery )
     {
+        Query hibernateQuery = getQuery( "from ValidationResult vr" + getRestrictions( "where" ) );
 
-        Criteria criteria = getCurrentSession().createCriteria( ValidationResult.class );
-
-        if ( !query.isSkipPaging() )
+        if ( !validationResultQuery.isSkipPaging() )
         {
-            Pager pager = query.getPager();
-            criteria.setFirstResult( pager.getOffset() );
-            criteria.setMaxResults( pager.getPageSize() );
+            Pager pager = validationResultQuery.getPager();
+            hibernateQuery.setFirstResult( pager.getOffset() );
+            hibernateQuery.setMaxResults( pager.getPageSize() );
         }
 
-        return criteria.list();
+        return hibernateQuery.list();
     }
 
     @Override
-    public int count( ValidationResultQuery query )
+    public int count( ValidationResultQuery validationResultQuery )
     {
-        Criteria criteria = getCurrentSession().createCriteria( DeletedObject.class );
+        Query hibernateQuery = getQuery( "from ValidationResult vr" + getRestrictions( "where" ) );
 
-        return criteria.list().size();
+        return hibernateQuery.list().size();
     }
 
     @Override
@@ -93,8 +108,109 @@ public class HibernateValidationResultStore
         super.save( validationResult );
     }
 
-    private Session getCurrentSession()
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * If we should, restrict which validation results the user is entitled
+     * to see, based on the user's organisation units and on the user's
+     * dimension constraints if the user has them.
+     * <p>
+     * If the current user is null (e.g. running a system process or
+     * a JUnit test) or superuser, there is no restriction.
+     *
+     * @param whereAnd "where" or "and", to add restrictions to where clause.
+     * @return String to add restrictions to the HQL query.
+     */
+    private String getRestrictions( String whereAnd )
     {
-        return sessionFactory.getCurrentSession();
+        String restrictions = "";
+
+        final User user = currentUserService.getCurrentUser();
+
+        if ( user == null || currentUserService.currentUserIsSuper() )
+        {
+            return restrictions;
+        }
+
+        // ---------------------------------------------------------------------
+        // Restrict by the user's organisation unit sub-trees, if any
+        // ---------------------------------------------------------------------
+
+        Set<OrganisationUnit> userOrgUnits = user.getDataViewOrganisationUnitsWithFallback();
+
+        if ( !userOrgUnits.isEmpty() )
+        {
+            for ( OrganisationUnit ou : userOrgUnits )
+            {
+                restrictions += ( restrictions.length() == 0 ? " " + whereAnd + " (" : " or " )
+                    + "locate('" + ou.getUid() + "',vr.organisationUnit.path) <> 0";
+            }
+            restrictions += ")";
+            whereAnd = "and";
+        }
+
+        // ---------------------------------------------------------------------
+        // Restrict by the user's category dimension constraints, if any
+        // ---------------------------------------------------------------------
+
+        Set<DataElementCategory> categories = user.getUserCredentials().getCatDimensionConstraints();
+
+        if ( !CollectionUtils.isEmpty( categories ) )
+        {
+            String validCategoryOptionByCategory =
+                isReadable( "co", user ) +
+                " and exists (select 'x' from DataElementCategory c where co in elements(c.categoryOptions)" +
+                " and c.id in (" + StringUtils.join( IdentifiableObjectUtils.getIdentifiers( categories ), "," ) + ") )";
+
+            restrictions += " " + whereAnd + " 1 = (select min(case when " +  validCategoryOptionByCategory + " then 1 else 0 end)" +
+                " from DataElementCategoryOption co" +
+                " where co in elements(vr.attributeOptionCombo.categoryOptions) )";
+
+            whereAnd = "and";
+        }
+
+        // ---------------------------------------------------------------------
+        // Restrict by the user's cat option group dimension constraints, if any
+        // ---------------------------------------------------------------------
+
+        Set<CategoryOptionGroupSet> cogsets = user.getUserCredentials().getCogsDimensionConstraints();
+
+        if ( !CollectionUtils.isEmpty( cogsets ) )
+        {
+            String validCategoryOptionByCategoryOptionGroup =
+                "exists (select 'x' from CategoryOptionGroup g" +
+                    " join CategoryOptionGroupSet s on s in elements(g.groupSets)" +
+                    " where g.id in elements(co.groups)" +
+                    " and s.id in (" + StringUtils.join( IdentifiableObjectUtils.getIdentifiers( cogsets ), "," ) + ")" +
+                    " and " + isReadable( "g", user ) + " )";
+
+            restrictions += " " + whereAnd +
+                " 1 = (select min(case when " +  validCategoryOptionByCategoryOptionGroup + " then 1 else 0 end)" +
+                " from DataElementCategoryOption co" +
+                " where co in elements(vr.attributeOptionCombo.categoryOptions) )";
+        }
+
+        log.debug( "Restrictions = " + restrictions );
+
+        return restrictions;
+    }
+
+    /**
+     * Returns a HQL string that determines whether an object is readable
+     * by a user.
+     *
+     * @param x the object to test for readability.
+     * @param u the user who might be able to read the object.
+     * @return HQL that evaluates to true or false depending on readability.
+     */
+    private String isReadable( String x, User u )
+    {
+        return "( " + x + ".publicAccess is null" +
+            " or substring(" + x + ".publicAccess, 0, 1) = 'r'" +
+            " or " + x + ".user is not null and " + x + ".user.id = " + u.getId() +
+            " or exists (select 'x' from UserGroupAccess a join a.userGroup.members u" +
+            " where a in elements(" + x + ".userGroupAccesses) and u.id = " + u.getId() + ") )";
     }
 }
