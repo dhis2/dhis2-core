@@ -176,7 +176,7 @@ public class HibernateValidationResultStore
         {
             String validCategoryOptionByCategoryOptionGroup =
                 "exists (select 'x' from CategoryOptionGroup g" +
-                    " join CategoryOptionGroupSet s on s in elements(g.groupSets)" +
+                    " join g.groupSets s" +
                     " where g.id in elements(co.groups)" +
                     " and s.id in (" + StringUtils.join( IdentifiableObjectUtils.getIdentifiers( cogsets ), "," ) + ")" +
                     " and " + isReadable( "g", user ) + " )";
