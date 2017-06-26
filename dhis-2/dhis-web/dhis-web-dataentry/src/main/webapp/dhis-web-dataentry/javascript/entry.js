@@ -274,6 +274,11 @@ function saveBoolean( dataElementId, optionComboId, _fieldId )
     
     var value = $('input[id=' + _fieldId + ']:checked').val();
 
+    if ( value === undefined )
+    {
+        value = ""; // save no_value
+    }
+
     $( fieldId ).css( 'background-color', dhis2.de.cst.colorYellow );
 
     var periodId = $( '#selectedPeriodId' ).val();

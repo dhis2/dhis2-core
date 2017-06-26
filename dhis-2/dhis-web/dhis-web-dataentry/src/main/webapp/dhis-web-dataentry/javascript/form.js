@@ -573,16 +573,34 @@ dhis2.de.addEventListeners = function()
         }
     } );
 
-    $( '.entryselect' ).each( function( i )
+    $( '.entryselect' ).each( function()
     {
         var id = $( this ).attr( 'id' );
         var split = dhis2.de.splitFieldId( id );
 
         var dataElementId = split.dataElementId;
-        var optionComboId = split.optionComboId;       
+        var optionComboId = split.optionComboId;
+        var name = dataElementId + "-" + optionComboId + "-val";
 
-        $( this ).change( function()
+        $( this ).click( function()
         {
+            if ( $(this).hasClass( "checked" ) )
+            {
+                $( this ).removeClass( "checked" );
+                $( this ).prop('checked', false );
+            }
+            else
+            {
+                $(  '[name='+ name +']' ).each( function()
+                {
+                    $( this ).removeClass( 'checked' );
+                    $( this ).prop( 'checked', false );
+                });
+
+                $( this ).prop( 'checked', true );
+                $( this ).addClass( 'checked' );
+            }
+
             saveBoolean( dataElementId, optionComboId, id );
         } );
     } );
@@ -690,7 +708,7 @@ dhis2.de.loadForm = function()
 
 	                dhis2.de.enableSectionFilter();	               
 	                $( document ).trigger( dhis2.de.event.formLoaded, dhis2.de.currentDataSetId );
-	
+
 	                loadDataValues();
                     var table = $( '.sectionTable' );
                     table.floatThead({
@@ -698,6 +716,8 @@ dhis2.de.loadForm = function()
                         top: 44,
                         zIndex: 9
                     });
+
+
 
                   dhis2.de.insertOptionSets();
 
@@ -1803,17 +1823,20 @@ function insertDataValues( json )
             else if ( $( fieldId ).attr( 'class' ) == 'entryselect' )
             {                
                 var fId = fieldId.substring(1, fieldId.length);
+
+                console.log("id "+fId);
     
                 if( value.val == 'true' )
                 {
-                    $('input[id=' + fId + ']')[1].checked = true;
+                  $('input[id=' + fId + ']')[0].click();
                 }
                 else if ( value.val == 'false')
                 {
-                    $('input[id=' + fId + ']')[2].checked = true;
+                  $('input[id=' + fId + ']')[1].click();
                 }
                 else{
-                    $('input[id=' + fId + ']')[0].checked = true;
+                    $('input[id=' + fId + ']')[0].prop('checked',false);
+                    $('input[id=' + fId + ']')[1].prop('checked',false);
                 }
             }
             else if ( $( fieldId ).attr( 'class' ) == 'entryfileresource' )
