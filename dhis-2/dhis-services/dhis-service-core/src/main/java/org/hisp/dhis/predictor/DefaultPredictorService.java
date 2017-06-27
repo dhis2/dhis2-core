@@ -212,9 +212,13 @@ public class DefaultPredictorService
 
                     if ( value != null && !value.isNaN() && !value.isInfinite() )
                     {
+                        String valueString = outputDataElement.getValueType().isInteger() ?
+                            Long.toString( Math.round( value ) ) :
+                            Double.toString( MathUtils.roundFraction( value, 4 ) );
+
                         writeDataValue( outputDataElement, period, orgUnit, outputOptionCombo,
                             categoryService.getDataElementCategoryOptionCombo( aoc ),
-                            value.toString(), currentUser.getUsername() );
+                            valueString, currentUser.getUsername() );
 
                         predictionCount++;
                     }
