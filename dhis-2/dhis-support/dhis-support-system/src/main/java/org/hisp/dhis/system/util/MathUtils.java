@@ -283,6 +283,33 @@ public class MathUtils
     }
 
     /**
+     * Rounds the fractional part of a number to a given number of significant
+     * decimal digits. Digits to the left of the decimal point will not
+     * be rounded. For example, rounding 12345 to 3 digits will be 12345,
+     * whereas 12.345 will be 12.3, and 0.12345 will be 0.123.
+     *
+     * @param value the value to round off.
+     * @param n     the number of significant fraction decimal digits desired.
+     * @return a rounded off number.
+     */
+    public static double roundFraction( double value, int n )
+    {
+        if ( isEqual( value, 0.0 ) )
+        {
+            return 0.0;
+        }
+
+        final double d = Math.ceil( Math.log10( value < 0.0 ? -value : value ) );
+
+        if ( d >= n )
+        {
+            return (double) Math.round( value );
+        }
+
+        return roundToSignificantDigits( value ,n );
+    }
+
+    /**
      * Returns the given number if larger or equal to minimun, otherwise minimum.
      *
      * @param number the number.
