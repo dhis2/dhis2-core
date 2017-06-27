@@ -705,7 +705,7 @@ public class PredictorServiceTest
         Predictor p = createPredictor( dataElementY, defaultCombo, "PredictInteger",
             expressionC, null, periodTypeMonthly, orgUnitLevel1, 0, 0, 0 );
 
-        assertEquals( 6, predictorService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 9 ) ) );
+        assertEquals( 3, predictorService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 8 ) ) );
 
         assertEquals( "136", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
         assertEquals( "136", getDataValue( dataElementY, defaultCombo, sourceB, makeMonth( 2001, 7 ) ) );
