@@ -286,7 +286,7 @@ public class MathUtils
      * Rounds the fractional part of a number to a given number of significant
      * decimal digits. Digits to the left of the decimal point will not
      * be rounded. For example, rounding 12345 to 3 digits will be 12345,
-     * whereas 12.345 will be 12.3, and  0.12345 will be 0.123.
+     * whereas 12.345 will be 12.3, and 0.12345 will be 0.123.
      *
      * @param value the value to round off.
      * @param n     the number of significant fraction decimal digits desired.
