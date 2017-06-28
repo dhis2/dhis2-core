@@ -29,6 +29,7 @@ package org.hisp.dhis.appmanager;
  */
 
 import org.hisp.dhis.user.User;
+import org.springframework.core.io.Resource;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,6 +50,8 @@ public interface AppManager
      * @return list of installed apps
      */
     List<App> getApps( String contextPath );
+
+    App getApp( String appName );
 
     /**
      * Returns a list of all installed apps with AppType equal the given Type
@@ -162,4 +165,13 @@ public interface AppManager
      * @return App or null
      */
     App getAppByNamespace( String namespace );
+
+    /**
+     * Looks up and returns the file associated with the app and pageName, if it exists
+     * @param app the app to look up files for
+     * @param pageName the page requested
+     * @return the Resource representing the file, or null if no file was found
+     */
+    Resource getAppResource( App app, String pageName )
+        throws IOException;
 }

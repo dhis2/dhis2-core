@@ -28,7 +28,6 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.appmanager.App;
@@ -55,11 +54,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StreamUtils;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -168,69 +163,68 @@ public class AppController
     @RequestMapping( value = "/{app}/**", method = RequestMethod.GET )
     public void renderApp( @PathVariable( "app" ) String app,
         HttpServletRequest request, HttpServletResponse response )
-        throws IOException
+        throws IOException, WebMessageException
     {
-        String folderPath = appManager.getAppFolderPath() + "/" + app + "/";
+        App application = appManager.getApp( app );
 
-        Iterable<Resource> locations = Lists.newArrayList(
-            resourceLoader.getResource( "file:" + folderPath )
-        );
-
-        Resource manifest = findResource( locations, folderPath, "manifest.webapp" );
-
-        if ( manifest == null )
+        if ( application == null )
         {
-            response.sendError( HttpServletResponse.SC_NOT_FOUND );
-            return;
+            throw new WebMessageException( WebMessageUtils.notFound( "App '" + app + "' not found." ) );
         }
 
-        ObjectMapper jsonMapper = DefaultRenderService.getJsonMapper();
-        App application = jsonMapper.readValue( manifest.getInputStream(), App.class );
-
-        if ( application.getName() == null || !appManager.isAccessible( application ) )
+        if ( !appManager.isAccessible( application ) )
         {
             throw new ReadAccessDeniedException( "You don't have access to application " + app + "." );
         }
 
+        // Get page requested
         String pageName = getUrl( request.getPathInfo(), app );
 
-        // if request was for manifest.webapp, check for * and replace with host
+        // Special handling for manifest.webapp
         if ( "manifest.webapp".equals( pageName ) )
         {
+            // If request was for manifest.webapp, check for * and replace with host
             if ( "*".equals( application.getActivities().getDhis().getHref() ) )
             {
                 String contextPath = ContextUtils.getContextPath( request );
 
                 application.getActivities().getDhis().setHref( contextPath );
-                jsonMapper.writeValue( response.getOutputStream(), application );
+            }
+
+            DefaultRenderService.getJsonMapper()
+                .writeValue( response.getOutputStream(), application );
+        }
+
+        // Any other page
+        else
+        {
+
+            // Retrieve file
+            Resource resource = appManager.getAppResource( application, pageName );
+
+            if ( resource == null )
+            {
+                response.sendError( HttpServletResponse.SC_NOT_FOUND );
                 return;
             }
+
+            if ( new ServletWebRequest( request, response ).checkNotModified( resource.lastModified() ) )
+            {
+                response.setStatus( HttpServletResponse.SC_NOT_MODIFIED );
+                return;
+            }
+
+            String mimeType = request.getSession().getServletContext().getMimeType( resource.getFilename() );
+
+            if ( mimeType != null )
+            {
+                response.setContentType( mimeType );
+            }
+
+            response.setContentLength( (int) resource.contentLength() );
+            response.setHeader( "Last-Modified", DateUtils.getHttpDateString( new Date( resource.lastModified() ) ) );
+            StreamUtils.copy( resource.getInputStream(), response.getOutputStream() );
         }
-
-        Resource resource = findResource( locations, folderPath, pageName );
-
-        if ( resource == null )
-        {
-            response.sendError( HttpServletResponse.SC_NOT_FOUND );
-            return;
-        }
-
-        if ( new ServletWebRequest( request, response ).checkNotModified( resource.lastModified() ) )
-        {
-            response.setStatus( HttpServletResponse.SC_NOT_MODIFIED );
-            return;
-        }
-
-        String mimeType = request.getSession().getServletContext().getMimeType( resource.getFilename() );
-
-        if ( mimeType != null )
-        {
-            response.setContentType( mimeType );
-        }
-
-        response.setContentLength( (int) resource.contentLength() );
-        response.setHeader( "Last-Modified", DateUtils.getHttpDateString( new Date( resource.lastModified() ) ) );
-        StreamUtils.copy( resource.getInputStream(), response.getOutputStream() );
     }
 
     @RequestMapping( value = "/{app}", method = RequestMethod.DELETE )
@@ -275,28 +269,6 @@ public class AppController
     //--------------------------------------------------------------------------
     // Helpers
     //--------------------------------------------------------------------------
-
-    private Resource findResource( Iterable<Resource> locations, String folder, String resourceName )
-        throws IOException
-    {
-        for ( Resource location : locations )
-        {
-            Resource resource = location.createRelative( resourceName );
-
-            if ( resource.exists() && resource.isReadable() )
-            {
-                File file = resource.getFile();
-
-                // make sure that file resolves into path app folder
-                if ( file != null && file.toPath().startsWith( folder ) )
-                {
-                    return resource;
-                }
-            }
-        }
-
-        return null;
-    }
 
     private String getUrl( String path, String app )
     {

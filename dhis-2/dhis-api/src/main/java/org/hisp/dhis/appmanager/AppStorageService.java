@@ -27,7 +27,10 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.core.io.Resource;
+
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -38,11 +41,6 @@ public interface AppStorageService
 
     String MANIFEST_FILENAME = "manifest.webapp";
     String APPS_DIR = "/apps";
-
-    /**
-     * Sets up necessary folders for using the AppStorageService
-     */
-    void init();
 
     /**
      * Looks trough the appropriate directory of apps to find all installed apps
@@ -77,4 +75,14 @@ public interface AppStorageService
      * @return true if app is deleted, false if something fails
      */
     boolean deleteApp( App app );
+
+    /**
+     * Looks up and returns a resource representing the page for the app requested. If
+     * the resource is not found, return null
+     * @param app the app to look up
+     * @param pageName the name of the page to look up
+     * @return The resource representing the page, or null if not found
+     */
+    Resource getAppResource( App app, String pageName )
+        throws IOException;
 }

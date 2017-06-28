@@ -31,6 +31,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import org.apache.ant.compress.taskdefs.Unzip;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
@@ -38,7 +39,11 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -59,6 +64,8 @@ public class LocalAppStorageService
 {
     private static final Log log = LogFactory.getLog( LocalAppStorageService.class );
 
+    private final ResourceLoader resourceLoader = new DefaultResourceLoader();
+
     private Map<String, App> apps = new HashMap<>();
 
     private Map<String, App> reservedNamespaces = new HashMap<>();
@@ -66,7 +73,7 @@ public class LocalAppStorageService
     @Autowired
     LocationManager locationManager;
 
-    @Override
+    @PostConstruct
     public void init()
     {
         setUpAppsFolder();
@@ -333,5 +340,32 @@ public class LocalAppStorageService
                 log.error( "Failed to set up apps folder on local filesystem", ex );
             }
         }
+    }
+
+    public Resource getAppResource( App app, String pageName )
+        throws IOException
+    {
+        Iterable<Resource> locations = Lists.newArrayList(
+            resourceLoader.getResource( "file:" + getAppFolderPath() + "/" + app.getFolderName() + "/" ),
+            resourceLoader.getResource( "classpath*:/apps/" + app.getFolderName() + "/" )
+        );
+
+        for ( Resource location : locations )
+        {
+            Resource resource = location.createRelative( pageName );
+
+            if ( resource.exists() && resource.isReadable() )
+            {
+                File file = resource.getFile();
+
+                // Make sure that file resolves into path app folder
+                if ( file != null && file.toPath().startsWith( getAppFolderPath() ) )
+                {
+                    return resource;
+                }
+            }
+        }
+
+        return null;
     }
 }

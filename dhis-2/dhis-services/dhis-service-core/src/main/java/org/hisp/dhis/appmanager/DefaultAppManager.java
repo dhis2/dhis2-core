@@ -40,11 +40,14 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 
-import javax.annotation.PostConstruct;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.hisp.dhis.appmanager.AppStorageSource.LOCAL;
 
 /**
  * @author Saptarshi Purkayastha
@@ -66,12 +69,6 @@ public class DefaultAppManager
     @Autowired
     private KeyJsonValueService keyJsonValueService;
 
-    @PostConstruct
-    private void init()
-    {
-        localAppStorageService.init();
-    }
-
     // -------------------------------------------------------------------------
     // AppManagerService implementation
     // -------------------------------------------------------------------------
@@ -84,6 +81,25 @@ public class DefaultAppManager
         apps.forEach( a -> a.init( contextPath ) );
 
         return apps;
+    }
+
+    @Override
+    public App getApp( String appName )
+    {
+        if ( getAppMap().containsKey( appName ) )
+        {
+            return getAppMap().get( appName );
+        }
+
+        for ( App app : getAppMap().values() )
+        {
+            if ( app.getFolderName().equals( appName ) )
+            {
+                return app;
+            }
+        }
+
+        return null;
     }
 
     @Override
@@ -177,7 +193,7 @@ public class DefaultAppManager
 
         if ( app != null )
         {
-            if ( app.getAppStorageSource().equals( AppStorageSource.LOCAL ) )
+            if ( app.getAppStorageSource().equals( LOCAL ) )
             {
                 deleted = localAppStorageService.deleteApp( app );
             }
@@ -240,9 +256,33 @@ public class DefaultAppManager
         return getNamespaceMap().get( namespace );
     }
 
+    @Override
+    public Resource getAppResource( App app, String pageName )
+        throws IOException
+    {
+        AppStorageService storageService = getAppStorageServiceByApp( app );
+        if ( storageService != null )
+        {
+            return storageService.getAppResource( app, pageName );
+        }
+
+        return null;
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    private AppStorageService getAppStorageServiceByApp( App app )
+    {
+        switch ( app.getAppStorageSource() )
+        {
+        case LOCAL:
+            return localAppStorageService;
+        default:
+            return null;
+        }
+    }
 
     private Map<String, App> getAppMap()
     {
