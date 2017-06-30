@@ -38,6 +38,7 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.util.Assert;
 
 import java.util.Date;
@@ -94,7 +95,7 @@ public class HibernateDataStatisticsEventStore
 
         if ( username != null )
         {
-            sql += "where username = '" + username + "' ";
+            sql += "where username = ? ";
         }
 
         sql +=
@@ -103,7 +104,16 @@ public class HibernateDataStatisticsEventStore
             "order by events.views " + sortOrder.getValue() + " " +
             "limit " + pageSize;
 
-        return jdbcTemplate.query( sql, ( resultSet, i ) -> {
+        PreparedStatementSetter pss = ( ps ) -> {
+            int i = 1;
+
+            if ( username != null )
+            {
+                ps.setString( i++, username );
+            }
+        };
+
+        return jdbcTemplate.query( sql, pss, ( resultSet, i ) -> {
             FavoriteStatistics favoriteStatistics = new FavoriteStatistics();
 
             favoriteStatistics.setPosition( i + 1 );
