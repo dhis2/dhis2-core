@@ -64,14 +64,14 @@ public class DataSetNotificationTemplate
 
     private Set<DataSet> dataSets = new HashSet<>();
 
-    private Set<UserGroup> userGroups = new HashSet<>();
+    private UserGroup recipientUserGroup;
 
     public DataSetNotificationTemplate()
     {
     }
 
     public DataSetNotificationTemplate( Set<DataSet> dataSets, Set<DeliveryChannel> deliveryChannels, String messageTemplate,
-        NotificationRecipient notificationRecipient, NotificationTrigger notificationTrigger, String subjectTemplate, Set<UserGroup> userGroups )
+        NotificationRecipient notificationRecipient, NotificationTrigger notificationTrigger, String subjectTemplate, UserGroup userGroup )
     {
         this.dataSets = dataSets;
         this.deliveryChannels = deliveryChannels;
@@ -79,7 +79,7 @@ public class DataSetNotificationTemplate
         this.notificationRecipient = notificationRecipient;
         this.notificationTrigger = notificationTrigger;
         this.subjectTemplate = subjectTemplate;
-        this.userGroups = userGroups;
+        this.recipientUserGroup = userGroup;
     }
 
     // -------------------------------------------------------------------------
@@ -163,13 +163,13 @@ public class DataSetNotificationTemplate
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Set<UserGroup> getUserGroups()
+    public UserGroup getRecipientUserGroup()
     {
-        return userGroups;
+        return recipientUserGroup;
     }
 
-    public void setUserGroups( Set<UserGroup> userGroups )
+    public void setRecipientUserGroup( UserGroup userGroup )
     {
-        this.userGroups = userGroups;
+        this.recipientUserGroup = userGroup;
     }
 }

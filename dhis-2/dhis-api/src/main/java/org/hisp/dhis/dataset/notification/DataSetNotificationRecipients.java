@@ -8,7 +8,6 @@ import org.hisp.dhis.notification.NotificationRecipient;
 public enum DataSetNotificationRecipients implements NotificationRecipient
 {
     ORGANISATION_UNIT_CONTACT( true ),
-    USERS_AT_ORGANISATION_UNIT( false ),
     USER_GROUP( false );
 
     private boolean external;
