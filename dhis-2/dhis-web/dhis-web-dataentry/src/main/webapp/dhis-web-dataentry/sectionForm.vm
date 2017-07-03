@@ -158,7 +158,12 @@
                                     </td>
                                 #elseif( $dataElement.valueType == "TIME" )
                                     <td>
-                                        <input #if( $compulsory ) required="required" #end type="text" name="entrytime" class="entryfield" id="${dataEntryId}" tabindex="${tabIndex}" />
+                                        <input #if( $compulsory ) required="required" #end type="text" name="entrytime" class="entryfield" id="${dataEntryId}" tabindex="${tabIndex}" #if( $greyedField || !$hasAccess ) disabled="disabled"#end/>
+                                    </td>
+                                #elseif( $dataElement.valueType == "DATETIME" )
+                                    <td>
+                                        <input name="entryfield" class="entryfield" id="$dataEntryId" type="text" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end>
+                                        <input type="time" class="entrytime" name="entrytime" id="${dataEntryId}-time" tabindex="$tabIndex" #if( $greyedField || !$hasAccess ) disabled="disabled"#end/>
                                     </td>
                                 #else
                                     #if( $dataElement.optionSet )

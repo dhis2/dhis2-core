@@ -503,9 +503,10 @@ dhis2.de.uploadLocalData = function()
 
 dhis2.de.addEventListeners = function()
 {
-    $( '.entryfield' ).each( function( i )
+    $( '.entryfield, .entrytime' ).each( function( i )
     {
         var id = $( this ).attr( 'id' );
+        var isTimeField = $( this ).hasClass('entrytime');
 
         // If entry field is a date picker, remove old target field, and change id
         if( /-dp$/.test( id ) )
@@ -548,7 +549,7 @@ dhis2.de.addEventListeners = function()
             keyPress( event, this );
         } );
 
-        if ( type === 'DATE' )
+        if ( ( type === 'DATE' || type === 'DATETIME' ) && !isTimeField )
         {
             // Fake event, needed for valueBlur / valueFocus when using date-picker
             var fakeEvent = {
@@ -1633,6 +1634,7 @@ function getAndInsertDataValues()
     // Clear existing values and colors, grey disabled fields
 
     $( '.entryfield' ).val( '' );
+    $( '.entrytime' ).val( '' );
     $( '.entryselect' ).removeAttr( 'checked' );
     $( '.entrytrueonly' ).removeAttr( 'checked' );
     $( '.entrytrueonly' ).removeAttr( 'onclick' );
@@ -1863,8 +1865,19 @@ function insertDataValues( json )
 
                 $field.find( '.upload-fileinfo-size' ).text( size );
             }
+            else if ( $( fieldId ).hasClass( 'entrytime') )
+            {
+                console.log("value : "+  value.val.substring( value.val.indexOf( 'T' ), value.val.length ));
+                $( fieldId ).val( value.val.substring( value.val.indexOf( 'T' ), value.val.length ) );
+            }
+            else if ( $( fieldId ).hasClass( 'hasCalendarsPicker' ) )
+            {
+              console.log("value : "+  value.val.substring(0, value.val.indexOf( 'T' ) ));
+                $( fieldId ).val( value.val.substring(0, value.val.indexOf( 'T' ) ) );
+            }
             else 
             {                
+                console.log("fieldId : "+ fieldId);
                 $( fieldId ).val( value.val );
             }
         }

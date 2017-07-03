@@ -400,7 +400,14 @@ public class DefaultDataEntryFormService
                 }
                 else if ( ValueType.TIME == valueType ) 
                 {
-                    appendCode += " type=\"text\" name=\"entrytime\" class=\"entrytime\" tabindex=\"" + i++ + "\" id=\""+ dataElementId + "-" + optionComboId + "\">";
+                    appendCode += " type=\"time\" name=\"entrytime\" class=\"entrytime\" tabindex=\"" + i++ + "\" id=\""+ dataElementId +
+                        "-" + optionComboId + "\">";
+                }
+                else if ( ValueType.DATETIME == valueType )
+                {
+                    appendCode += " type=\"text\" name=\"entryfield\" class=\"entryfield\" tabindex=\"" + i++ + "\">&nbsp;";
+                    appendCode += "<input type=\"time\" name=\"entrytime\" class=\"entrytime\" tabindex=\"" + i++ + "\" id=\""+
+                        dataElementId + "-" + optionComboId +"-time" +"\">";
                 }
                 else if ( ValueType.URL == valueType )
                 {
