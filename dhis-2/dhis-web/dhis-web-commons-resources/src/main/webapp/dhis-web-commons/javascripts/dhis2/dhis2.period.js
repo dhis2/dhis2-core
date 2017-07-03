@@ -124,8 +124,7 @@ dhis2.period.DatePicker.prototype.updateDate = function(fieldId) {
 
   if ( $el.length > 0 ) {
     var value = $isoField.val();
-
-    value = value.substring(0, value.indexOf( 'T' ) );
+    value = value.indexOf('T') ? value.split('T')[0] : value;
     var date = this.calendar.parseDate( 'yyyy-mm-dd', value );
     var localDate = this.calendar.formatDate( this.format, date );
 

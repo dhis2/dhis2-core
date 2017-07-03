@@ -1679,7 +1679,7 @@ function getAndInsertDataValues()
 	    	$( '#infoDiv' ).hide();
 	    	
 	    	var json = getOfflineDataValueJson( params );
-	    	
+
 	    	insertDataValues( json );
 	    },
 	    success: function( json ) // online
@@ -1791,7 +1791,6 @@ function insertDataValues( json )
     {
         var fieldId = '#' + value.id + '-val';
         var commentId = '#' + value.id + '-comment';
-
         if ( $( fieldId ).length > 0 ) // Set values
         {
             if ( $( fieldId ).attr( 'name' ) == 'entrytrueonly' && 'true' == value.val ) 
@@ -1865,19 +1864,13 @@ function insertDataValues( json )
 
                 $field.find( '.upload-fileinfo-size' ).text( size );
             }
-            else if ( $( fieldId ).hasClass( 'entrytime') )
+            else if ( $( fieldId.replace('val', 'time') ).length > 0 )
             {
-                console.log("value : "+  value.val.substring( value.val.indexOf( 'T' ), value.val.length ));
-                $( fieldId ).val( value.val.substring( value.val.indexOf( 'T' ), value.val.length ) );
-            }
-            else if ( $( fieldId ).hasClass( 'hasCalendarsPicker' ) )
-            {
-              console.log("value : "+  value.val.substring(0, value.val.indexOf( 'T' ) ));
-                $( fieldId ).val( value.val.substring(0, value.val.indexOf( 'T' ) ) );
+                $( fieldId ).val( value.val );
+                $( fieldId.replace('val', 'time') ).val( value.val.split('T')[1] );
             }
             else 
             {                
-                console.log("fieldId : "+ fieldId);
                 $( fieldId ).val( value.val );
             }
         }
@@ -2894,7 +2887,9 @@ function StorageManager()
     this.clearDataValue = function( de, co, pe, ou )
     {
         var id = this.getDataValueIdentifier( de, co, pe, ou );
+        console.log(" clear id :"+id);
         var dataValues = this.getAllDataValues();
+        console.log("dataValues : "+ JSON.stringify( dataValues ));
 
         if ( dataValues != null && dataValues[id] != null )
         {

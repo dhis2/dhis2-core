@@ -169,12 +169,15 @@ function saveVal( dataElementId, optionComboId, fieldId, feedbackId )
 
     if( type === 'DATETIME' )
     {
+        console.log("fieldId : "+ fieldId);
+        console.log("my id : "+  '#' + dataElementId + '-' + optionComboId + '-val-dp');
         var date = $( '#' + dataElementId + '-' + optionComboId + '-val-dp').val();
         var time = $( '#' + dataElementId + '-' + optionComboId + '-time').val();
+        console.log( "dateaaa : "+ date + "-- time : "+ time);
         if ( date )
         {
-          console.log( 'date-time : '+ date + 'T' + time );
-          value = date + 'T' + time;
+          console.log( 'date-time : '+ date + 'T' +  ( time  ? time :  '00:00') );
+          value = date + 'T' + ( time  ? time :  '00:00');
         }
         else
         {
