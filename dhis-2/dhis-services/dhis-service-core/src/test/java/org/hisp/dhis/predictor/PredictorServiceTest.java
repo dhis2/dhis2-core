@@ -103,6 +103,7 @@ public class PredictorServiceTest
     private DataElement dataElementC;
     private DataElement dataElementD;
     private DataElement dataElementX;
+    private DataElement dataElementY;
 
     private DataElementCategoryOptionCombo defaultCombo;
 
@@ -144,12 +145,14 @@ public class PredictorServiceTest
         dataElementC = createDataElement( 'C' );
         dataElementD = createDataElement( 'D' );
         dataElementX = createDataElement( 'X', ValueType.NUMBER, AggregationType.NONE );
+        dataElementY = createDataElement( 'Y', ValueType.INTEGER, AggregationType.NONE );
 
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
         dataElementService.addDataElement( dataElementC );
         dataElementService.addDataElement( dataElementD );
         dataElementService.addDataElement( dataElementX );
+        dataElementService.addDataElement( dataElementY );
 
         dataElements = new HashSet<>();
 
@@ -182,6 +185,7 @@ public class PredictorServiceTest
         dataSetMonthly.addDataSetElement( dataElementC );
         dataSetMonthly.addDataSetElement( dataElementD );
         dataSetMonthly.addDataSetElement( dataElementX );
+        dataSetMonthly.addDataSetElement( dataElementY );
 
         dataSetMonthly.addOrganisationUnit( sourceA );
         dataSetMonthly.addOrganisationUnit( sourceB );
@@ -215,7 +219,7 @@ public class PredictorServiceTest
         expressionA = new Expression(
             "AVG(#{" + dataElementA.getUid() + "})+1.5*STDDEV(#{" + dataElementA.getUid() + "})", "descriptionA" );
         expressionB = new Expression( "AVG(#{" + dataElementB.getUid() + "." + defaultCombo.getUid() + "})", "descriptionB" );
-        expressionC = new Expression( "1234", "descriptionC" );
+        expressionC = new Expression( "135.79", "descriptionC" );
         expressionD = new Expression( SYMBOL_DAYS, "descriptionD" );
 
         expressionService.addExpression( expressionA );
@@ -264,13 +268,13 @@ public class PredictorServiceTest
         dataValueService.addDataValue( createDataValue( e, p, s, value.toString(), defaultCombo, defaultCombo ) );
     }
 
-    private Double getDataValue( DataElement dataElement, DataElementCategoryOptionCombo combo, OrganisationUnit source, Period period )
+    private String getDataValue( DataElement dataElement, DataElementCategoryOptionCombo combo, OrganisationUnit source, Period period )
     {
-        DataValue dv =  dataValueService.getDataValue( dataElement, period, source, combo, defaultCombo );
+        DataValue dv = dataValueService.getDataValue( dataElement, period, source, combo, defaultCombo );
 
         if ( dv != null )
         {
-            return Double.valueOf( dv.getValue() );
+            return dv.getValue();
         }
 
         return null;
@@ -596,7 +600,7 @@ public class PredictorServiceTest
 
         assertEquals( 1, predictorService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 8 ) ) );
 
-        assertEquals( new Double( 5.0 ), getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
+        assertEquals( "5.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
     }
 
     @Test
@@ -610,15 +614,15 @@ public class PredictorServiceTest
 
         assertEquals( 8, predictorService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ) ) );
 
-        assertEquals( new Double( 5.0 ), getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) );
-        assertEquals( new Double( 5.5 ), getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 9 ) ) );
-        assertEquals( new Double( 9.25 ), getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 10 ) ) );
-        assertEquals( new Double( 9.0 ), getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 11 ) ) );
+        assertEquals( "5.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) );
+        assertEquals( "5.5", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 9 ) ) );
+        assertEquals( "9.25", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 10 ) ) );
+        assertEquals( "9.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 11 ) ) );
 
-        assertEquals( new Double( 11.0 ), getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 8 ) ) );
-        assertEquals( new Double( 12.0 ), getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 9 ) ) );
-        assertEquals( new Double( 15.75 ), getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 10 ) ) );
-        assertEquals( new Double( 15.25 ), getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 11 ) ) );
+        assertEquals( "11.0", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 8 ) ) );
+        assertEquals( "12.0", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 9 ) ) );
+        assertEquals( "15.75", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 10 ) ) );
+        assertEquals( "15.25", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 11 ) ) );
 
         // Make sure we can do it again.
         assertEquals( 8, predictorService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ) ) );
@@ -635,15 +639,15 @@ public class PredictorServiceTest
 
         assertEquals( 100, predictorService.predict( p, monthStart( 2001, 7 ), monthStart( 2005, 12 ) ) );
 
-        assertEquals( new Double( 5.0 ), getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 8 ) ) );
-        assertEquals( new Double( 5.5 ), getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 9 ) ) );
-        assertEquals( new Double( 7.0 ), getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2003, 1 ) ) );
-        assertEquals( new Double( 8.75 ), getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2003, 3 ) ) );
-        assertEquals( new Double( 10.93693177121688 ), getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2004, 7 ) ) );
-        assertEquals( new Double( 10.846601043114951 ), getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2004, 8 ) ) );
+        assertEquals( "5.0", getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 8 ) ) );
+        assertEquals( "5.5", getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 9 ) ) );
+        assertEquals( "7.0", getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2003, 1 ) ) );
+        assertEquals( "8.75", getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2003, 3 ) ) );
+        assertEquals( "10.94", getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2004, 7 ) ) );
+        assertEquals( "10.85", getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2004, 8 ) ) );
 
         // This value is derived from organisation units beneath the actual *sourceB*.
-        assertEquals( new Double( 18.143692420072007 ), getDataValue( dataElementX, altCombo, sourceB, makeMonth( 2004, 7 ) ) );
+        assertEquals( "18.14", getDataValue( dataElementX, altCombo, sourceB, makeMonth( 2004, 7 ) ) );
     }
 
     @Test
@@ -660,15 +664,15 @@ public class PredictorServiceTest
 
         assertEquals( 99, predictorService.predict( p, monthStart( 2001, 7 ), monthStart( 2005, 12 ) ) );
 
-        assertEquals( new Double( 5.0 ), getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 8 ) ) );
-        assertEquals( new Double( 5.5 ), getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 9 ) ) );
-        assertEquals( new Double( 7.0 ), getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2003, 1 ) ) );
-        assertEquals( new Double( 8.75 ), getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2003, 3 ) ) );
-        assertEquals( new Double( 10.088860517433634 ), getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2004, 7 ) ) );
-        assertEquals( new Double( 10.095418256997062 ), getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2004, 8 ) ) );
+        assertEquals( "5.0", getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 8 ) ) );
+        assertEquals( "5.5", getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 9 ) ) );
+        assertEquals( "7.0", getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2003, 1 ) ) );
+        assertEquals( "8.75", getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2003, 3 ) ) );
+        assertEquals( "10.09", getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2004, 7 ) ) );
+        assertEquals( "10.1", getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2004, 8 ) ) );
 
         // This value is derived from organisation units beneath the actual *sourceB*.
-        assertEquals( new Double( 15.754231583479712 ), getDataValue( dataElementX, altCombo, sourceB, makeMonth( 2004, 7 ) ) );
+        assertEquals( "15.75", getDataValue( dataElementX, altCombo, sourceB, makeMonth( 2004, 7 ) ) );
     }
 
     @Test
@@ -682,14 +686,30 @@ public class PredictorServiceTest
 
         assertEquals( 6, predictorService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 9 ) ) );
 
-        assertEquals( new Double( 1234.0 ), getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
-        assertEquals( new Double( 1234.0 ), getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) );
+        assertEquals( "135.8", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
+        assertEquals( "135.8", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) );
 
-        assertEquals( new Double( 1234.0 ), getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 7 ) ) );
-        assertEquals( new Double( 1234.0 ), getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 8 ) ) );
+        assertEquals( "135.8", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 7 ) ) );
+        assertEquals( "135.8", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 8 ) ) );
 
-        assertEquals( new Double( 1234.0 ), getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 7 ) ) );
-        assertEquals( new Double( 1234.0 ), getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 8 ) ) );
+        assertEquals( "135.8", getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 7 ) ) );
+        assertEquals( "135.8", getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 8 ) ) );
+    }
+
+    @Test
+    @Category( IntegrationTest.class )
+    public void testPredictInteger()
+    {
+        setupTestData();
+
+        Predictor p = createPredictor( dataElementY, defaultCombo, "PredictInteger",
+            expressionC, null, periodTypeMonthly, orgUnitLevel1, 0, 0, 0 );
+
+        assertEquals( 3, predictorService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 8 ) ) );
+
+        assertEquals( "136", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
+        assertEquals( "136", getDataValue( dataElementY, defaultCombo, sourceB, makeMonth( 2001, 7 ) ) );
+        assertEquals( "136", getDataValue( dataElementY, defaultCombo, sourceG, makeMonth( 2001, 7 ) ) );
     }
 
     @Test
@@ -703,14 +723,14 @@ public class PredictorServiceTest
 
         assertEquals( 6, predictorService.predict( p, monthStart( 2001, 8 ), monthStart( 2001, 10 ) ) );
 
-        assertEquals( new Double( 31.0 ), getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 8 ) ) );
-        assertEquals( new Double( 30.0 ), getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 9 ) ) );
+        assertEquals( "31.0", getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 8 ) ) );
+        assertEquals( "30.0", getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 9 ) ) );
 
-        assertEquals( new Double( 31.0 ), getDataValue( dataElementX, altCombo, sourceB, makeMonth( 2001, 8 ) ) );
-        assertEquals( new Double( 30.0 ), getDataValue( dataElementX, altCombo, sourceB, makeMonth( 2001, 9 ) ) );
+        assertEquals( "31.0", getDataValue( dataElementX, altCombo, sourceB, makeMonth( 2001, 8 ) ) );
+        assertEquals( "30.0", getDataValue( dataElementX, altCombo, sourceB, makeMonth( 2001, 9 ) ) );
 
-        assertEquals( new Double( 31.0 ), getDataValue( dataElementX, altCombo, sourceG, makeMonth( 2001, 8 ) ) );
-        assertEquals( new Double( 30.0 ), getDataValue( dataElementX, altCombo, sourceG, makeMonth( 2001, 9 ) ) );
+        assertEquals( "31.0", getDataValue( dataElementX, altCombo, sourceG, makeMonth( 2001, 8 ) ) );
+        assertEquals( "30.0", getDataValue( dataElementX, altCombo, sourceG, makeMonth( 2001, 9 ) ) );
     }
 
     @Test
