@@ -5,14 +5,14 @@ import org.hisp.dhis.notification.NotificationRecipient;
 /**
  * Created by zubair on 26.06.17.
  */
-public enum DataSetNotificationRecipients implements NotificationRecipient
+public enum DataSetNotificationRecipient implements NotificationRecipient
 {
     ORGANISATION_UNIT_CONTACT( true ),
     USER_GROUP( false );
 
     private boolean external;
 
-    DataSetNotificationRecipients( boolean external )
+    DataSetNotificationRecipient(boolean external )
     {
         this.external = external;
     }

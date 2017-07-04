@@ -58,7 +58,7 @@ public class DataSetNotificationTemplate
 
     private NotificationTrigger notificationTrigger;
 
-    private NotificationRecipient notificationRecipient;
+    private DataSetNotificationRecipient notificationRecipient;
 
     private Set<DeliveryChannel> deliveryChannels;
 
@@ -71,7 +71,7 @@ public class DataSetNotificationTemplate
     }
 
     public DataSetNotificationTemplate( Set<DataSet> dataSets, Set<DeliveryChannel> deliveryChannels, String messageTemplate,
-        NotificationRecipient notificationRecipient, NotificationTrigger notificationTrigger, String subjectTemplate, UserGroup userGroup )
+        DataSetNotificationRecipient notificationRecipient, NotificationTrigger notificationTrigger, String subjectTemplate, UserGroup userGroup )
     {
         this.dataSets = dataSets;
         this.deliveryChannels = deliveryChannels;
@@ -144,7 +144,7 @@ public class DataSetNotificationTemplate
         return notificationRecipient;
     }
 
-    public void setNotificationRecipient( NotificationRecipient notificationRecipient )
+    public void setNotificationRecipient( DataSetNotificationRecipient notificationRecipient )
     {
         this.notificationRecipient = notificationRecipient;
     }
