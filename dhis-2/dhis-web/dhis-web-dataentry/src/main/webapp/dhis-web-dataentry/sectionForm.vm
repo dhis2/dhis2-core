@@ -34,7 +34,7 @@
 #macro( renderSection $section $indicators $title $description )
     
     <div class="formSection sectionContainer">
-        <div class="cent"><h3>$!encoder.htmlEncode( $title ) </h3></div>
+        <div class="cent"><h3>$!encoder.htmlEncode( $title )sdfsd </h3></div>
         #if ( $description )
             <div class="cent sectionDescription">$!encoder.htmlEncode( $description )</div>
         #end
@@ -163,7 +163,7 @@
                                 #elseif( $dataElement.valueType == "DATETIME" )
                                     <td>
                                         <input name="entryfield" class="entryfield" id="$dataEntryId" type="text" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end>
-                                        <input type="time" class="entrytime" name="entrytime" id="${dataEntryId}-time" tabindex="$tabIndex" #if( $greyedField || !$hasAccess ) disabled="disabled"#end/>
+                                        <input type="time" class="entrytime" name="entrytime" id="${dataElement.uid}-${optionCombo.uid}-time" tabindex="$tabIndex" #if( $greyedField || !$hasAccess ) disabled="disabled"#end/>
                                     </td>
                                 #else
                                     #if( $dataElement.optionSet )

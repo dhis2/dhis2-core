@@ -9,7 +9,7 @@ var organisationUnitList = JSON.parse( '$organisationUnits' );
 #foreach( $section in $sections )
     
     <div class="formSection sectionContainer">
-        <div class="cent"><h3>$encoder.htmlEncode( $section.displayName ) </h3></div>
+        <div class="cent"><h3>$encoder.htmlEncode( $section.displayName ) asdas </h3></div>
         #set( $categoryComboIds = "null" )
     #set( $categoryComboIds = $sectionCombos.get( $section.id ) )
 
@@ -103,7 +103,7 @@ var organisationUnitList = JSON.parse( '$organisationUnits' );
                                                 #elseif( $dataElement.valueType == "DATETIME" )
                                                     <td>
                                                         <input name="entryfield" class="entryfield" id="$dataEntryId" type="text" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end>
-                                                        <input type="time" class="entrytime" name="entrytime" id="${dataEntryId}-time" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end/>
+                                                        <input type="time" class="entrytime" name="entrytime" id="${dataElement.uid}-${optionCombo.uid}-time" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end/>
                                                     </td>
                                                 #else
                                                     #if( $dataElement.optionSet )
