@@ -31,16 +31,21 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class PeriodTypeObjectBundleHook extends AbstractObjectBundleHook
 {
+    @Autowired
+    private PeriodService periodService;
+
     @Override
     public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
     {
@@ -55,6 +60,7 @@ public class PeriodTypeObjectBundleHook extends AbstractObjectBundleHook
                 if ( periodType != null )
                 {
                     periodType = bundle.getPreheat().getPeriodTypeMap().get( periodType.getName() );
+                    periodType = periodService.reloadPeriodType( periodType );
                     ReflectionUtils.invokeMethod( object, property.getSetterMethod(), periodType );
                 }
             }
