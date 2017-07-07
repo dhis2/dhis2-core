@@ -56,7 +56,10 @@
 			trackedEntityAttributeCodes += '{"trackedEntityAttributeId" :"'+document.getElementById("attId"+i).value+'",';
 			trackedEntityAttributeCodes += '"code" :"'+document.getElementById("attCode"+i).value+'"},';	
 		}
-		trackedEntityAttributeCodes += ']}';
+
+        trackedEntityAttributeCodes = trackedEntityAttributeCodes.slice(0, -1);
+
+        trackedEntityAttributeCodes += ']}';
 		$("#trackedEntityAttributeCodes").val(trackedEntityAttributeCodes);
 		
 		
