@@ -561,23 +561,9 @@ public class DefaultProgramIndicatorService
     {
         final String dbl = statementBuilder.getDoubleColumnType();
 
-        if ( ProgramIndicator.VAR_EXECUTION_DATE.equals( var ) )
-        {
-            return "executiondate";
-        }
-        else if ( ProgramIndicator.VAR_DUE_DATE.equals( var ) )
-        {
-            return "duedate";
-        }
-        else if ( ProgramIndicator.VAR_ENROLLMENT_DATE.equals( var ) )
-        {
-            return "enrollmentdate";
-        }
-        else if ( ProgramIndicator.VAR_INCIDENT_DATE.equals( var ) )
-        {
-            return "incidentdate";
-        }
-        else if ( ProgramIndicator.VAR_CURRENT_DATE.equals( var ) )
+        String variableColumnName = ProgramIndicator.getVariableColumnName( var );
+        
+        if ( ProgramIndicator.VAR_CURRENT_DATE.equals( var ) )
         {
             return "'" + DateUtils.getLongDateString() + "'";
         }
@@ -603,21 +589,17 @@ public class DefaultProgramIndicatorService
 
             return TextUtils.removeLast( sql, "+" ).trim() + ") as " + dbl + "),0)";
         }
-        else if ( ProgramIndicator.VAR_EVENT_COUNT.equals( var ) )
+        else if ( ProgramIndicator.VAR_EVENT_COUNT.equals( var ) 
+            || ProgramIndicator.VAR_ENROLLMENT_COUNT.equals( var )
+            || ProgramIndicator.VAR_TEI_COUNT.equals( var ) )
         {
-            return "distinct psi";
-        }
-        else if ( ProgramIndicator.VAR_ENROLLMENT_COUNT.equals( var ) )
-        {
-            return "distinct pi";
-        }
-        else if ( ProgramIndicator.VAR_TEI_COUNT.equals( var ) )
-        {
-            return "distinct tei";
+            return "distinct " + variableColumnName;
         }
 
-        return null;
+        return variableColumnName;
     }
+    
+   
 
     private String getNumericIgnoreNullSql( String column )
     {
