@@ -33,7 +33,9 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -43,6 +45,7 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.RegexUtils;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -109,7 +112,20 @@ public class ProgramIndicator
     public static final String INVALID_IDENTIFIERS_IN_EXPRESSION = "invalid_identifiers_in_expression";
     public static final String FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE = "filter_not_evaluating_to_true_or_false";
     public static final String UNKNOWN_VARIABLE = "unknown_variable";
-
+    
+    private static final Map<String, String> VARIABLE_COLUMNNAME_MAP = ImmutableMap.<String, String>builder().
+        put( ProgramIndicator.VAR_EVENT_DATE, "executiondate" ).
+        put( ProgramIndicator.VAR_EXECUTION_DATE, "executiondate" ).
+        put( ProgramIndicator.VAR_DUE_DATE, "duedate" ).
+        put( ProgramIndicator.VAR_ENROLLMENT_DATE, "enrollmentdate" ).
+        put( ProgramIndicator.VAR_INCIDENT_DATE, "incidentdate" ).
+        put( ProgramIndicator.VAR_ENROLLMENT_STATUS, "enrollmentstatus" ).
+        put( ProgramIndicator.VAR_EVENT_COUNT, "psi" ).
+        put( ProgramIndicator.VAR_ENROLLMENT_COUNT, "pi" ).
+        put( ProgramIndicator.VAR_TEI_COUNT, "tei" ).
+        put( ProgramIndicator.VAR_COMPLETED_DATE, "completeddate" ).
+        put( ProgramIndicator.VAR_PROGRAM_STAGE_ID, "ps" ).
+        put( ProgramIndicator.VAR_PROGRAM_STAGE_NAME, "ps" ).build();
 
     private Program program;
 
@@ -186,6 +202,42 @@ public class ProgramIndicator
                 RegexUtils.getMatches( DATAELEMENT_PATTERN, input, 2 ),
                 RegexUtils.getMatches( ATTRIBUTE_PATTERN, input, 1 ) );
         }
+    }
+    
+    /**
+     * Returns a set of all analytics columns required for the variables used in the given expression
+     *
+     * @param expression the program indicator expression.
+     * @return a set of column names
+     */
+    public static Set<String> getVariableColumnNames( String expression, AnalyticsType analyticsType )
+    {
+        Set<String> requiredColumns = new HashSet<String>();
+        
+        Set<String> variables =
+            RegexUtils.getMatches( VARIABLE_PATTERN, expression, 1 );
+        
+        for ( String variable : variables )
+        {
+            String columnName = getVariableColumnName( variable );
+            if ( null != columnName )
+            {
+                requiredColumns.add( columnName );
+            }
+        }
+       
+        return requiredColumns;
+    }
+    
+    /**
+     * Returns the analytics column name associated with the program indicator variable.
+     * 
+     * @param var the program indicator variable name
+     * @return the analytics column name, or null if there is no specific column used for the variable
+     */
+    public static String getVariableColumnName( String var ) 
+    {
+        return VARIABLE_COLUMNNAME_MAP.containsKey( var ) ? VARIABLE_COLUMNNAME_MAP.get( var ) : null;
     }
 
     public void addProgramIndicatorGroup( ProgramIndicatorGroup group )
