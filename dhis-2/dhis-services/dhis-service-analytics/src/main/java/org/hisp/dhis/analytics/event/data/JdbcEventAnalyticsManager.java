@@ -77,6 +77,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * TODO could use row_number() and filtering for paging, but not supported on MySQL.
@@ -468,7 +469,9 @@ public class JdbcEventAnalyticsManager
         {
             Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( params.getProgramIndicator().getExpression() );
             
-            return uids.stream().map( uid -> statementBuilder.columnQuote( uid ) ).collect( Collectors.toList() );
+            Set<String> variableColumnNames = ProgramIndicator.getVariableColumnNames( params.getProgramIndicator().getExpression() );
+            
+            return Sets.union( uids, variableColumnNames ).stream().map( uid -> statementBuilder.columnQuote( uid ) ).collect( Collectors.toList() );
         }
         else
         {
@@ -580,7 +583,8 @@ public class JdbcEventAnalyticsManager
      */
     private String getFromWhereMultiplePartitionsClause( EventQueryParams params, List<String> fixedColumns )
     {
-        List<String> cols = ListUtils.distinctUnion( fixedColumns, getAggregateColumns( params ), getPartitionSelectColumns( params ) );
+        List<String> cols = ListUtils.distinctUnion( fixedColumns.stream().map( uid -> statementBuilder.columnQuote( uid ) ).collect( Collectors.toList() ), 
+            getAggregateColumns( params ), getPartitionSelectColumns( params ) );
         
         String selectCols = StringUtils.join( cols, "," );
         
