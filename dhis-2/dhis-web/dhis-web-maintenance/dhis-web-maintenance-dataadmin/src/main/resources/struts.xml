@@ -284,6 +284,7 @@
       <param name="requiredAuthorities">F_DATASET_DELETE</param>
     </action>
 
+
     <action name="removeLockException" class="org.hisp.dhis.dataadmin.action.lockexception.RemoveLockExceptionAction">
       <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
       <result name="error" type="velocity-json">/dhis-web-commons/ajax/jsonResponseError.vm</result>
@@ -298,7 +299,7 @@
       <param name="requiredAuthorities">F_DATASET_DELETE</param>
     </action>
 
-    <action name="dataSetNotifications" class="org.hisp.dhis.dataadmin.action.scheduling.ScheduleTasksAction">
+    <action name="dataSetNotifications" class="org.hisp.dhis.dataadmin.action.notifications.AddDataSetNotificationAction">
       <result name="success" type="velocity">/main.vm</result>
       <param name="page">/dhis-web-maintenance-dataadmin/dataSetNotifications.vm</param>
       <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>

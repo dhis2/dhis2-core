@@ -33,7 +33,7 @@ import com.opensymphony.xwork2.Action;
 /**
  * Created by zubair@dhis2.org on 06.07.17.
  */
-public class DataSetNotificationAction implements Action
+public class AddDataSetNotificationAction implements Action
 {
     @Override
     public String execute() throws Exception
