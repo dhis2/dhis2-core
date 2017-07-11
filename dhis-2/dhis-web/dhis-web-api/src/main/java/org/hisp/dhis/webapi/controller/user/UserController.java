@@ -51,6 +51,7 @@ import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RestoreOptions;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroupService;
@@ -109,6 +110,9 @@ public class UserController
 
     @Autowired
     private UserSettingService userSettingService;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     // -------------------------------------------------------------------------
     // GET
@@ -411,7 +415,10 @@ public class UserController
         User parsed = renderService.fromXml( request.getInputStream(), getEntityClass() );
         parsed.setUid( pvUid );
 
-        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( parsed.getGroups() ) ) )
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( parsed.getGroups() ) )
+            || !currentUser.getUserCredentials().canModifyUser( users.get( 0 ).getUserCredentials() ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
@@ -448,7 +455,10 @@ public class UserController
         User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
         parsed.setUid( pvUid );
 
-        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( parsed.getGroups() ) ) )
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( parsed.getGroups() ) )
+            || !currentUser.getUserCredentials().canModifyUser( users.get( 0 ).getUserCredentials() ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
@@ -464,6 +474,44 @@ public class UserController
         }
 
         renderService.toJson( response.getOutputStream(), importTypeSummary );
+    }
+
+    // -------------------------------------------------------------------------
+    // PATCH
+    // -------------------------------------------------------------------------
+
+    @Override
+    protected void prePatchEntity( User entity, User newEntity ) throws Exception
+    {
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( entity.getGroups() ) )
+            || !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( newEntity.getGroups() ) )
+            || !currentUser.getUserCredentials().canModifyUser( entity.getUserCredentials() ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // DELETE
+    // -------------------------------------------------------------------------
+
+    @Override
+    protected void preDeleteEntity( User entity ) throws Exception
+    {
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( entity.getGroups() ) )
+            || !currentUser.getUserCredentials().canModifyUser( entity.getUserCredentials() ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
+        }
+
+        if ( userService.isLastSuperUser( entity.getUserCredentials() ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Can not remove the last super user." ) );
+        }
     }
 
     // -------------------------------------------------------------------------
