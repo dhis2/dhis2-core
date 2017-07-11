@@ -42,12 +42,14 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.comparator.AttributeSortOrderComparator;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.i18n.I18nService;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
 import org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.AttributeUtils;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
@@ -57,6 +59,7 @@ import org.hisp.dhis.user.UserSettingService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.opensymphony.xwork2.Action;
+import org.springframework.security.access.AccessDeniedException;
 
 /**
  * @author Nguyen Hong Duc
@@ -116,6 +119,9 @@ public class SetupTreeAction
     
     @Autowired
     private SystemSettingManager systemSettingManager;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     // -------------------------------------------------------------------------
     // Input & Output
@@ -222,7 +228,15 @@ public class SetupTreeAction
     {
         if ( id != null )
         {
+            User currentUser = currentUserService.getCurrentUser();
+
             user = userService.getUser( id );
+
+            if ( user == null || !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( user.getGroups() ) )
+                || !currentUser.getUserCredentials().canModifyUser( user.getUserCredentials() ) )
+            {
+                throw new AccessDeniedException( "You cannot edit this user" );
+            }
 
             if ( user.hasOrganisationUnit() )
             {

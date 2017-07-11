@@ -28,6 +28,7 @@ package org.hisp.dhis.user.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -103,16 +104,17 @@ public class RemoveUserAction
         {
             return ERROR;
         }
-        
-        if ( !currentUser.getUserCredentials().canModifyUser( user.getUserCredentials() ) )
+
+        UserCredentials userCredentials = user.getUserCredentials();
+
+        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( user.getGroups() ) )
+            || !currentUser.getUserCredentials().canModifyUser( userCredentials ) )
         {
             return ERROR;
         }
         
         boolean isCurrentUser = currentUser.equals( user );
 
-        UserCredentials userCredentials = user.getUserCredentials();
-        
         if ( userService.isLastSuperUser( userCredentials ) )
         {
             message = i18n.getString( "can_not_remove_last_super_user" );

@@ -56,6 +56,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 import com.opensymphony.xwork2.Action;
+import org.springframework.security.access.AccessDeniedException;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -235,11 +236,18 @@ public class UpdateUserAction
 
         User currentUser = currentUserService.getCurrentUser();
 
+        User user = userService.getUser( id );
+
+        if ( user == null || !userService.canAddOrUpdateUser( ugSelected )
+            || !currentUser.getUserCredentials().canModifyUser( user.getUserCredentials() ) )
+        {
+            throw new AccessDeniedException( "You cannot edit this user" );
+        }
+
         // ---------------------------------------------------------------------
         // User credentials and user
         // ---------------------------------------------------------------------
 
-        User user = userService.getUser( id );
         user.setSurname( StringUtils.trimToNull( surname ) );
         user.setFirstName( StringUtils.trimToNull( firstName ) );
         user.setEmail( StringUtils.trimToNull( email ) );
