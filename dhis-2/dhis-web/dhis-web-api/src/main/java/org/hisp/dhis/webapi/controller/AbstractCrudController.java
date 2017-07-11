@@ -293,6 +293,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             object = renderService.fromXml( payload, getEntityClass() );
         }
 
+        prePatchEntity( persistedObject, object );
+
         properties = getPersistedProperties( properties );
 
         if ( properties.isEmpty() || object == null )
@@ -316,6 +318,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         importOptions.setMergeStrategy( MergeStrategy.MERGE );
 
         ImportTypeSummary importTypeSummary = importService.importObject( currentUserService.getCurrentUser().getUid(), persistedObject, importOptions );
+
+        postPatchEntity( persistedObject );
 
         webMessageService.send( WebMessageUtils.importTypeSummary( importTypeSummary ), response, request );
     }
@@ -382,6 +386,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new WebMessageException( WebMessageUtils.badRequest( "Unknown payload format." ) );
         }
 
+        prePatchEntity( persistedObject, object );
+
         Object value = property.getGetterMethod().invoke( object );
 
         property.getSetterMethod().invoke( persistedObject, value );
@@ -390,6 +396,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         importOptions.setStrategy( ImportStrategy.UPDATE );
         importOptions.setMergeStrategy( MergeStrategy.MERGE );
         ImportTypeSummary importTypeSummary = importService.importObject( currentUserService.getCurrentUser().getUid(), persistedObject, importOptions );
+
+        postPatchEntity( persistedObject );
 
         webMessageService.send( WebMessageUtils.importTypeSummary( importTypeSummary ), response, request );
     }
@@ -854,11 +862,19 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     {
     }
 
-    protected void preDeleteEntity( T entity )
+    protected void preDeleteEntity( T entity ) throws Exception
     {
     }
 
     protected void postDeleteEntity()
+    {
+    }
+
+    protected void prePatchEntity( T entity, T newEntity ) throws Exception
+    {
+    }
+
+    protected void postPatchEntity( T entity )
     {
     }
 
