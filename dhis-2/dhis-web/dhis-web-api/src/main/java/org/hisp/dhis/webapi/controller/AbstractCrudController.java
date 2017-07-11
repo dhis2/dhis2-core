@@ -369,6 +369,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             object = renderService.fromXml( payload, getEntityClass() );
         }
 
+        prePatchEntity( persistedObject, object );
+
         properties = getPersistedProperties( properties );
 
         if ( properties.isEmpty() || object == null )
@@ -388,6 +390,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         manager.update( persistedObject );
+        postPatchEntity( persistedObject );
     }
 
     private List<String> getJsonProperties( String payload ) throws IOException
@@ -452,11 +455,14 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new WebMessageException( WebMessageUtils.badRequest( "Unknown payload format." ) );
         }
 
+        prePatchEntity( persistedObject, object );
+
         Object value = property.getGetterMethod().invoke( object );
 
         property.getSetterMethod().invoke( persistedObject, value );
 
         manager.update( persistedObject );
+        postPatchEntity( persistedObject );
     }
 
     @SuppressWarnings( "unchecked" )
@@ -1056,11 +1062,19 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     {
     }
 
-    protected void preDeleteEntity( T entity )
+    protected void preDeleteEntity( T entity ) throws Exception
     {
     }
 
     protected void postDeleteEntity()
+    {
+    }
+
+    protected void prePatchEntity( T entity, T newEntity ) throws Exception
+    {
+    }
+
+    protected void postPatchEntity( T entity )
     {
     }
 
