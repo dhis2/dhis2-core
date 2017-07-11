@@ -399,6 +399,7 @@
         <value>F_PROGRAM_UNENROLLMENT</value>
         <value>F_ORGANISATIONUNIT_MOVE</value>
         <value>F_PREDICTOR_RUN</value>
+        <value>F_SEND_EMAIL</value>
       </set>
     </property>
   </bean>
