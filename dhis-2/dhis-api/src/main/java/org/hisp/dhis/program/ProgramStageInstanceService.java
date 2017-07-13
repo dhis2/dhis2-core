@@ -141,7 +141,7 @@ public interface ProgramStageInstanceService
      *
      * @param programStageInstance the ProgramStageInstance.
      * @param skipNotifications whether to send prgram stage notifications or not.
-     * @param format the I18nFormat for the notification messages.
+     * @param format the I18nFormat for the notifications messages.
      */
     void completeProgramStageInstance( ProgramStageInstance programStageInstance, boolean skipNotifications, I18nFormat format );
 

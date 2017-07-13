@@ -235,6 +235,12 @@
     <property name="cacheable" value="true" />
   </bean>
 
+  <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateStore" class="org.hisp.dhis.dataset.notifications.HibernateDataSetNotificationTemplateStore">
+    <property name="clazz" value="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
   <bean id="org.hisp.dhis.dataset.LockExceptionStore" class="org.hisp.dhis.dataset.hibernate.HibernateLockExceptionStore">
     <property name="clazz" value="org.hisp.dhis.dataset.LockException" />
     <property name="sessionFactory" ref="sessionFactory" />

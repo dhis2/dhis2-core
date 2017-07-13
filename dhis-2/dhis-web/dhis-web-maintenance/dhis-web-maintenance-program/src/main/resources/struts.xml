@@ -507,7 +507,7 @@
       <param name="onExceptionReturn">plainTextError</param>
     </action>
 
-    <!-- Program notification for Program -->
+    <!-- Program notifications for Program -->
 
     <action name="programNotification"
       class="org.hisp.dhis.trackedentity.action.program.GetProgramAction">
@@ -533,7 +533,7 @@
       <param name="anyAuthorities">F_PROGRAM_PUBLIC_ADD,F_PROGRAM_PRIVATE_ADD</param>
     </action>
 
-    <!-- Program notification for ProgramStage -->
+    <!-- Program notifications for ProgramStage -->
 
     <action name="programStageNotification"
       class="org.hisp.dhis.trackedentity.action.programstage.GetProgramStageAction">

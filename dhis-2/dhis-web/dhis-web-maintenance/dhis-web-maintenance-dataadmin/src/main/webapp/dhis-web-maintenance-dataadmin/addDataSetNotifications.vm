@@ -1,0 +1,145 @@
+
+<h3>$i18n.getString( "create_new_dataset_notification" )</h3>
+
+<div class="inputForm">
+    <input type="hidden" id="isUpdate" value="false">
+
+    <table>
+        <thead>
+        <tr>
+            <th colspan="2" style="width: 590px;">$i18n.getString( "ds_notifications" )</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>
+                <label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( "required" )" class="required">*</em></label>
+            </td>
+            <td>
+                <input type="text" id="name" name="name" />
+            </td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>
+                <label for="notificationTrigger">$i18n.getString( "trigger_by" )</label>
+            </td>
+            <td>
+                <select type="text" id="notificationTrigger" name="notificationTrigger">
+                    <option value="COMPLETION">$i18n.getString( "dataset_completion" )</option>
+                    <option value="SCHEDULED">$i18n.getString( "dataset_scheduled" )</option>
+                </select>
+            </td>
+        </tr>
+        <tr id="daysContainer" style="display: none;">
+            <td>
+                <label for="relativeScheduledDays">$i18n.getString( "send_notification" )</label>
+            </td>
+            <td>
+                <input type="number" min="0" max="300" id="days" name="days" style="width:60px;">
+                $i18n.getString( "days" )
+                <select id="daysModifier" name="daysModifier" style="width:100px;">
+                    <option value="-1">$i18n.getString( "before") </option>
+                    <option value="1">$i18n.getString( "after" )</option>
+                </select>
+                $i18n.getString( "scheduled_date" )
+                <input type="hidden" id="relativeScheduledDays" name="relativeScheduledDays" />
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+                <label for="dataSets">$i18n.getString( "dataset_list" )</label>
+            </td>
+            <td>
+                <select type="text" id="dataSets" name="dataSets">
+                    #foreach( $ds in $!dataSetList )
+                        <option value="$ds.uid">$ds.displayName</option>
+                    #end
+                </select>
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+                <label for="notificationRecipient">$i18n.getString( "recipients" )</label>
+            </td>
+            <td>
+                <select type="text" id="notificationRecipient" name="notificationRecipient">
+                    <option value="ORGANISATION_UNIT_CONTACT">$i18n.getString( "orgunit_contact" )</option>
+                    <option value="USER_GROUP">$i18n.getString( "user_group" )</option>
+                </select>
+            </td>
+        </tr>
+
+
+        <tr id="userGroupContainer" style="display: none;">
+            <td>
+                <label for="userGroup">$i18n.getString( "user_group" )</label>
+            </td>
+            <td>
+                <select type="text" id="userGroup" name="userGroup" class="userGroup">
+                    <option value="">[$i18n.getString("please_select_ds")]</option>
+                    #foreach( $group in $!userGroupList )
+                        <option value="$group.uid">$i18n.getString( $group.displayName )</option>
+                    #end
+                </select>
+            </td>
+        </tr>
+
+        <tr id="deliveryChannelsContainer">
+            <td><label for="deliveryChannelsForm">$i18n.getString( "message_type" )</label></td>
+            <td>
+                <form id="deliveryChannelsForm">
+                    <label for="sms_cb">$i18n.getString( "sms" )</label>
+                    <input type="checkbox" id="sms_cb" name="deliveryChannels[]" value="SMS">
+                    <label for="email_cb">$i18n.getString( "email" )</label>
+                    <input type="checkbox" id="email_cb" name="deliveryChannels[]" value="EMAIL">
+                </form>
+            </td>
+        </tr>
+        <tr>
+            <td>$i18n.getString( "params" )</td>
+            <td>
+                <select multiple size="4" id="params">
+                    <option value="V{data_name}">$i18n.getString( "data_name" )</option>
+                    <option value="V{data_description}">$i18n.getString( "data_description" )</option>
+                    <option value="V{complete_registration_ou}">$i18n.getString( "complete_registration_ou" )</option>
+                    <option value="V{complete_registration_period}">$i18n.getString( "complete_registration_period" )</option>
+                    <option value="V{complete_registration_user}">$i18n.getString( "complete_registration_user" )</option>
+                    <option value="V{complete_registration_time}">$i18n.getString( "complete_registration_time" )</option>
+                    <option value="V{complete_registration_att_opt_combo}">$i18n.getString( "complete_registration_att_opt_combo" )</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="subjectTemplate">$i18n.getString( "subject_template" )</label>
+            </td>
+            <td>
+                <textarea id="subjectTemplate" style="height:2em;"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="messageTemplate">$i18n.getString( "message_template" )</label>
+            </td>
+            <td>
+                <textarea id="messageTemplate" maxlength=""></textarea>
+            </td>
+        </tr>
+        </tbody>
+        <tbody>
+        <tr>
+            <td></td>
+            <td>
+                <button type="button" id="save" style="width: 10em;">$i18n.getString( 'save' )</button>
+                <button type="button" id="cancel" style="width: 10em;">$i18n.getString( 'cancel' )</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+</script>

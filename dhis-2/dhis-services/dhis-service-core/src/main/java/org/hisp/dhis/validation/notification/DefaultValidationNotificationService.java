@@ -129,7 +129,7 @@ public class DefaultValidationNotificationService
 
         for (Map.Entry<SendStrategy, Map<Set<User>, NotificationMessage>> entry : notficationCollections.entrySet() )
         {
-            clock.logTime( String.format( "Sending %d %s notification(s)", entry.getValue().size(), entry.getKey().getDescription() ) );
+            clock.logTime( String.format( "Sending %d %s notifications(s)", entry.getValue().size(), entry.getKey().getDescription() ) );
 
             entry.getValue().forEach( this::sendNotification );
         }

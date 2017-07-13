@@ -54,7 +54,7 @@ public interface CompleteDataSetRegistrationService
      * Saves a CompleteDataSetRegistration.
      *
      * @param registration the CompleteDataSetRegistration to save.
-     * @param notify       indicates whether a notification should be sent.
+     * @param notify       indicates whether a notifications should be sent.
      */
     void saveCompleteDataSetRegistration( CompleteDataSetRegistration registration, boolean notify );
 
@@ -62,7 +62,7 @@ public interface CompleteDataSetRegistrationService
      * Saves multiple CompleteDataSetRegistration.
      *
      * @param registrations List of CompleteDataSetRegistrations to save.
-     * @param notify        indicates whether a notification should be sent.
+     * @param notify        indicates whether a notifications should be sent.
      */
     void saveCompleteDataSetRegistrations( List<CompleteDataSetRegistration> registrations, boolean notify );
 

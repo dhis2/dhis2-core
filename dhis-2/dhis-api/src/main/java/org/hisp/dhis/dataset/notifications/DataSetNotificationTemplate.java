@@ -1,4 +1,4 @@
-package org.hisp.dhis.dataset.notification;
+package org.hisp.dhis.dataset.notifications;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo

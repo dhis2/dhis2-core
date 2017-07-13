@@ -83,7 +83,7 @@ public class ValidationResult implements Comparable<ValidationResult>
     private int dayInPeriod;
 
     /**
-     * Indicated whether this ValidationResult has generated a notification for users or not.
+     * Indicated whether this ValidationResult has generated a notifications for users or not.
      */
     private Boolean notificationSent = false;
 

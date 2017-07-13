@@ -101,7 +101,7 @@ public interface ProgramInstanceStore
      * Get all ProgramInstances which have notifications with the given ProgramNotificationTemplate scheduled on the given date.
      *
      * @param template the template.
-     * @param notificationDate the Date for which the notification is scheduled.
+     * @param notificationDate the Date for which the notifications is scheduled.
      * @return a list of ProgramInstance.
      */
     List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate );

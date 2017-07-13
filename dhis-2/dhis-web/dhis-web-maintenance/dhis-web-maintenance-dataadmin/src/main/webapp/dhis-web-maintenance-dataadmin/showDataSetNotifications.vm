@@ -1,0 +1,74 @@
+<h3>$i18n.getString( "ds_notifications" )</h3>
+
+<div id="contextMenu" class="contextMenu" style="width: 250px;">
+    <ul id="contextMenuItems" class="contextMenuItems">
+        <li><a data-target-fn="showUpdateDataSetNotification"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "edit" )</a></li>
+        <li><a data-target-fn="removeDataSetNotification"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
+    </ul>
+</div>
+
+<table class="mainPageTable">
+    <tr>
+        <td style="vertical-align:top;">
+            <table width="100%">
+                <tr valign="bottom">
+                    <td align="right">
+                        <input type="button" value="$i18n.getString( "add_new" )"
+                               onclick="window.location.href='showAddDataSetNotifications.action'" style="width: 70px;">
+                    </td>
+                </tr>
+            </table>
+
+            <table class="listTable" id="listTable">
+                <col>
+                <thead>
+                <tr>
+                    <th>$i18n.getString( "name" )</th>
+                </tr>
+                </thead>
+                <tbody id="list">
+                    #foreach( $template in $notificationTemplateList )
+                    <tr id="tr${template.id}"
+                        data-id="$!template.id"
+                        data-uid="$!template.uid" data-type="DataSetNotificationTemplate"
+                        data-name="$encoder.htmlEncode( $!template.displayName )"
+                        data-can-manage="$security.canManage( $template )"
+                        data-can-update="$security.canUpdate( $template )">
+                        <td>$encoder.htmlEncode( $!template.displayName )</td>
+                    </tr>
+                    #end
+                </tbody>
+            </table>
+            <p></p>
+            #parse( "/dhis-web-commons/paging/paging.vm" )
+        </td>
+    </tr>
+</table>
+
+<script type="text/javascript">
+    // TODO Intialize i18n strings
+    $( function() {
+        dhis2.contextmenu.makeContextMenu( {
+            menuId: 'contextMenu',
+            menuItemActiveClass: 'contextMenuItemActive'
+        } );
+    } );
+
+    function removeDataSetNotification( template ) {
+
+        jQuery.ajax( {
+            url : '../api/dataSetNotificationTemplates/' + template.uid,
+            type : 'DELETE',
+            dataType : 'json'
+        } ).success( function ( result ) {
+            window.location.href = 'dataSetNotifications.action';
+        } ).fail( function ( result ) {
+            setHeaderDelayMessage( "Error: " + result.response );
+            throw "Deletion failed";
+        } );
+    };
+
+    function showUpdateDataSetNotification( template ) {
+        window.location.href = 'showUpdateDataSetNotifications.action?uid=' + template.uid;
+    };
+</script>

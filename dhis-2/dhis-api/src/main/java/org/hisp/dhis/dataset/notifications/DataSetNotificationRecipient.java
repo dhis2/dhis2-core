@@ -1,4 +1,4 @@
-package org.hisp.dhis.dataset.notification;
+package org.hisp.dhis.dataset.notifications;
 
 import org.hisp.dhis.notification.NotificationRecipient;
 

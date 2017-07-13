@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dataset.notification.DataSetNotificationTemplate;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 
 /**

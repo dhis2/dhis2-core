@@ -29,7 +29,6 @@ package org.hisp.dhis.dataset.notifications;
  */
 
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
-import org.hisp.dhis.dataset.notification.DataSetNotificationService;
 
 import java.util.Date;
 

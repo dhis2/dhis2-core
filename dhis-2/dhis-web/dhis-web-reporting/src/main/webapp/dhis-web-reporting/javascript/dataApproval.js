@@ -416,7 +416,7 @@ dhis2.appr.hideCriteria = function()
 //------------------------------------------------------------------------------
 
 /**
- * Sets the state of the approval buttons and notification.
+ * Sets the state of the approval buttons and notifications.
  */
 dhis2.appr.setApprovalState = function()
 {
@@ -432,7 +432,7 @@ dhis2.appr.setApprovalState = function()
 };
 
 /**
- * Sets the state of the approval buttons and notification for data sets
+ * Sets the state of the approval buttons and notifications for data sets
  * with category combinations.
  */
 dhis2.appr.setAttributeOptionComboApprovalState = function() 
@@ -502,7 +502,7 @@ dhis2.appr.resetApprovalOptions = function()
 }
 
 /**
- * Sets the state of the approval buttons and notification for regular
+ * Sets the state of the approval buttons and notifications for regular
  * data sets.
  */
 dhis2.appr.setRegularApprovalState = function( ui ) 

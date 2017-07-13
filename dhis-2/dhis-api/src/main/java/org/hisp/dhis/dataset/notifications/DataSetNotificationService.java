@@ -1,4 +1,4 @@
-package org.hisp.dhis.email;
+package org.hisp.dhis.dataset.notifications;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,45 +28,30 @@ package org.hisp.dhis.email;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+
+import java.util.Date;
 
 /**
- * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
+ * Created by zubair on 04.07.17.
  */
-public interface EmailService
+public interface DataSetNotificationService
 {
     /**
-     * Checks whether email is configured for the system or not.
-     * @return true if all necessary email configurations are set.
+     * Send all scheduled dataset notifications for the given day.
+     * These notifications could be reminders for upcoming datasets submissions
+     * or it could be reminders for datasets where submissions are overdue.
+     * @param day the Date representing the day relative to the
+     *             scheduled notifications for which to send messages.
      */
-    boolean emailEnabled();
-
-    boolean emailConfigured();
+    void sendScheduledDataSetNotificationsForDay( Date day );
 
     /**
-     * Sends an email to the recipient user from the sender.
+     * Send completion notifications when a DataSet is completed.
+     * If the DataSet is not configured with suitable
+     * {@link DataSetNotificationTemplate templates}, nothing will happen.
      *
-     * @param email the email to send.
+     * @param completeDataSetRegistration the CompleteDataSetRegistration.
      */
-    void sendEmail( Email email );
-
-
-    void sendEmail( String subject, String message, Set<String> recipients );
-
-    /**
-     * Sends an automatically generated email message to the current user.
-     * Useful for testing the SMTP configuration of the system.
-     */
-    void sendTestEmail();
-    
-    /**
-     * Sends an email using the system notifications email as recipient. Requires
-     * that a valid system notifications email address has been specified. Only
-     * the subject and text properties of the given email are read.
-     * 
-     * @param subject the subject text of the email.
-     * @param text the text (body) of the email.
-     * @return true if an email was sent, false if not.
-     */
-    boolean sendSystemEmail( Email email );
+    void sendCompleteDataSetNotifications( CompleteDataSetRegistration completeDataSetRegistration );
 }

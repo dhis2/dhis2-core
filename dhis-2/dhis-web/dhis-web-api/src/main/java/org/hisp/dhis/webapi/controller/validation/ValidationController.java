@@ -139,6 +139,6 @@ public class ValidationController
         validationResultNotificationTask.setTaskId( new TaskId( TaskCategory.SENDING_VALIDATION_RESULT, currentUserService.getCurrentUser() ) );
         scheduler.executeTask( validationResultNotificationTask );
 
-        webMessageService.send( WebMessageUtils.ok( "Initiated validation result notification" ), response, request );
+        webMessageService.send( WebMessageUtils.ok( "Initiated validation result notifications" ), response, request );
     }
 }

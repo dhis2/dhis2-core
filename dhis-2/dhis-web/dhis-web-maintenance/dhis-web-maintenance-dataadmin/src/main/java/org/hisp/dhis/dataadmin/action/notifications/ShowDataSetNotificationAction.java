@@ -1,4 +1,4 @@
-package org.hisp.dhis.dataset.notification;
+package org.hisp.dhis.dataadmin.action.notifications;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,30 +28,37 @@ package org.hisp.dhis.dataset.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import com.opensymphony.xwork2.Action;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
+import java.util.List;
 
 /**
- * Created by zubair on 04.07.17.
+ * Created by zubair@dhis2.org on 13.07.17.
  */
-public interface DataSetNotificationService
+public class ShowDataSetNotificationAction implements Action
 {
-    /**
-     * Send all scheduled dataset notifications for the given day.
-     * These notifications could be reminders for upcoming datasets submissions
-     * or it could be reminders for datasets where submissions are overdue.
-     * @param day the Date representing the day relative to the
-     *             scheduled notifications for which to send messages.
-     */
-    void sendScheduledDataSetNotificationsForDay( Date day );
+    @Autowired
+    protected IdentifiableObjectManager manager;
 
-    /**
-     * Send completion notifications when a DataSet is completed.
-     * If the DataSet is not configured with suitable
-     * {@link DataSetNotificationTemplate templates}, nothing will happen.
-     *
-     * @param completeDataSetRegistration the CompleteDataSetRegistration.
-     */
-    void sendCompleteDataSetNotifications( CompleteDataSetRegistration completeDataSetRegistration );
+    // -------------------------------------------------------------------------
+    // Input/Output
+    // -------------------------------------------------------------------------
+
+    private List<DataSetNotificationTemplate> notificationTemplateList;
+
+    public List<DataSetNotificationTemplate> getNotificationTemplateList()
+    {
+        return notificationTemplateList;
+    }
+
+    @Override
+    public String execute() throws Exception
+    {
+        notificationTemplateList = manager.getAll( DataSetNotificationTemplate.class );
+
+        return SUCCESS;
+    }
 }

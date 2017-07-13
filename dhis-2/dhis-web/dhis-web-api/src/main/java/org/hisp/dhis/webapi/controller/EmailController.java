@@ -106,12 +106,12 @@ public class EmailController
 
         if ( !systemNotificationEmailValid )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Could not send email, system notification email address not set or not valid" ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Could not send email, system notifications email address not set or not valid" ) );
         }
 
         emailService.sendSystemEmail( email );
 
-        webMessageService.send( WebMessageUtils.ok( "System notification email sent" ), response, request );
+        webMessageService.send( WebMessageUtils.ok( "System notifications email sent" ), response, request );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SEND_EMAIL')" )

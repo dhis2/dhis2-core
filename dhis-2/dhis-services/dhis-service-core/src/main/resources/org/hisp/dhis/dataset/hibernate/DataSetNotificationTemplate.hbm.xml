@@ -6,7 +6,7 @@
         >
 
 <hibernate-mapping>
-    <class name="org.hisp.dhis.dataset.notification.DataSetNotificationTemplate" table="datasetnotificationtemplate">
+    <class name="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate" table="datasetnotificationtemplate">
 
         <id name="id" column="datasetnotificationtemplateid">
             <generator class="native" />
@@ -32,7 +32,7 @@
 
         <property name="notificationRecipient" column="notificationrecipienttype">
             <type name="org.hibernate.type.EnumType">
-                <param name="enumClass">org.hisp.dhis.dataset.notification.DataSetNotificationRecipient</param>
+                <param name="enumClass">org.hisp.dhis.dataset.notifications.DataSetNotificationRecipient</param>
                 <param name="useNamed">true</param>
                 <param name="type">12</param>
             </type>

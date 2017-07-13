@@ -144,10 +144,10 @@ public class ImportOptions
     }
     
     /**
-     * Returns the notification level, or if not specified, returns the given
-     * default notification level.
+     * Returns the notifications level, or if not specified, returns the given
+     * default notifications level.
      * 
-     * @param defaultLevel the default notification level.
+     * @param defaultLevel the default notifications level.
      * @return the nofication level.
      */
     public NotificationLevel getNotificationLevel( NotificationLevel defaultLevel )
