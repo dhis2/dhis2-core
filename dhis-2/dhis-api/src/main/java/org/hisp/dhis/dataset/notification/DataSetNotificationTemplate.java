@@ -66,12 +66,14 @@ public class DataSetNotificationTemplate
 
     private UserGroup recipientUserGroup;
 
+    private Integer relativeScheduledDays = null;
+
     public DataSetNotificationTemplate()
     {
     }
 
     public DataSetNotificationTemplate( Set<DataSet> dataSets, Set<DeliveryChannel> deliveryChannels, String messageTemplate,
-        DataSetNotificationRecipient notificationRecipient, NotificationTrigger notificationTrigger, String subjectTemplate, UserGroup userGroup )
+        DataSetNotificationRecipient notificationRecipient, NotificationTrigger notificationTrigger, String subjectTemplate, UserGroup userGroup, Integer relativeScheduledDays )
     {
         this.dataSets = dataSets;
         this.deliveryChannels = deliveryChannels;
@@ -80,6 +82,7 @@ public class DataSetNotificationTemplate
         this.notificationTrigger = notificationTrigger;
         this.subjectTemplate = subjectTemplate;
         this.recipientUserGroup = userGroup;
+        this.relativeScheduledDays = relativeScheduledDays;
     }
 
     // -------------------------------------------------------------------------
@@ -171,5 +174,17 @@ public class DataSetNotificationTemplate
     public void setRecipientUserGroup( UserGroup userGroup )
     {
         this.recipientUserGroup = userGroup;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getRelativeScheduledDays()
+    {
+        return relativeScheduledDays;
+    }
+
+    public void setRelativeScheduledDays( Integer relativeScheduledDays )
+    {
+        this.relativeScheduledDays = relativeScheduledDays;
     }
 }

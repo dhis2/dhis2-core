@@ -29,18 +29,42 @@ package org.hisp.dhis.dataadmin.action.notifications;
  */
 
 import com.opensymphony.xwork2.Action;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupService;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
 
 /**
  * Created by zubair@dhis2.org on 06.07.17.
  */
 public class AddDataSetNotificationAction implements Action
 {
+    @Autowired
+    private DataSetService dataSetService;
+
+    @Autowired
+    private UserGroupService userGroupService;
+
     // -------------------------------------------------------------------------
     // Input/Output
     // -------------------------------------------------------------------------
 
+    private List<DataSet> dataSetList;
 
+    public List<DataSet> getDataSetList()
+    {
+        return dataSetList;
+    }
 
+    private List<UserGroup> userGroupList;
+
+    public List<UserGroup> getUserGroupList()
+    {
+        return userGroupList;
+    }
 
     // -------------------------------------------------------------------------
     // Action implementation
@@ -49,6 +73,10 @@ public class AddDataSetNotificationAction implements Action
     @Override
     public String execute() throws Exception
     {
-        return null;
+        dataSetList = dataSetService.getAllDataSets();
+
+        userGroupList = userGroupService.getAllUserGroups();
+
+        return SUCCESS;
     }
 }
