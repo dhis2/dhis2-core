@@ -69,9 +69,6 @@ public class DataSetNotificationTemplateController extends
     private DataSetService dataSetService;
 
     @Autowired
-    private DataSetCompletenessService dataSetCompletenessService;
-
-    @Autowired
     private DataValueSetService dataValueSetService;
 
     @Autowired

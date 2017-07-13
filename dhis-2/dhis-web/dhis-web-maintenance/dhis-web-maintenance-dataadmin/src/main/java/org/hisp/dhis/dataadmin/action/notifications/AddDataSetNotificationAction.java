@@ -35,6 +35,17 @@ import com.opensymphony.xwork2.Action;
  */
 public class AddDataSetNotificationAction implements Action
 {
+    // -------------------------------------------------------------------------
+    // Input/Output
+    // -------------------------------------------------------------------------
+
+
+
+
+    // -------------------------------------------------------------------------
+    // Action implementation
+    // -------------------------------------------------------------------------
+
     @Override
     public String execute() throws Exception
     {
