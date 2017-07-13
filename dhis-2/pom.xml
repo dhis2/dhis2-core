@@ -75,7 +75,7 @@
     <repository>
       <id>smslib</id>
       <name>SMSLib</name>
-      <url>http://smslib.org/maven2/v3</url>
+      <url>http://www.graces.com/</url>
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
