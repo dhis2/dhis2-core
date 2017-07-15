@@ -19,6 +19,8 @@
 
         <property name="messageTemplate" column="messagetemplate" not-null="true" type="text" />
 
+        <property name="relativeScheduledDays" column="relativeScheduledDays" not-null="false" />
+
         <many-to-one name="recipientUserGroup" class="org.hisp.dhis.user.UserGroup"
                      column="usergroupid" foreign-key="fk_datasetnotification_usergroup" not-null="false" />
 

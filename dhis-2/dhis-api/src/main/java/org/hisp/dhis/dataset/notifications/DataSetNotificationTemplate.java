@@ -56,6 +56,8 @@ public class DataSetNotificationTemplate
 
     private String subjectTemplate;
 
+    private Integer relativeScheduledDays = null;
+
     private NotificationTrigger notificationTrigger;
 
     private DataSetNotificationRecipient notificationRecipient;
@@ -65,8 +67,6 @@ public class DataSetNotificationTemplate
     private Set<DataSet> dataSets = new HashSet<>();
 
     private UserGroup recipientUserGroup;
-
-    private Integer relativeScheduledDays = null;
 
     public DataSetNotificationTemplate()
     {

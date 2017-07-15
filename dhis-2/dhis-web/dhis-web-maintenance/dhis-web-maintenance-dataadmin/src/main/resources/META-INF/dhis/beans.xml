@@ -176,6 +176,11 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
   </bean>
 
+  <bean id="org.hisp.dhis.dataadmin.action.notifications.ShowDataSetNotificationAction"
+        class="org.hisp.dhis.dataadmin.action.notifications.ShowDataSetNotificationAction"
+        scope="prototype">
+  </bean>
+
   <bean id="org.hisp.dhis.dataadmin.action.notifications.AddDataSetNotificationAction"
         class="org.hisp.dhis.dataadmin.action.notifications.AddDataSetNotificationAction"
         scope="prototype">

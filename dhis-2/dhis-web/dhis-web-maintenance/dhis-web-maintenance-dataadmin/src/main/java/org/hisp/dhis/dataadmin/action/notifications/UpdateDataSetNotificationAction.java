@@ -29,15 +29,65 @@ package org.hisp.dhis.dataadmin.action.notifications;
  */
 
 import com.opensymphony.xwork2.Action;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupService;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
 
 /**
  * Created by zubair@dhis2.org on 10.07.17.
  */
 public class UpdateDataSetNotificationAction implements Action
 {
+    @Autowired
+    private IdentifiableObjectManager manager;
+
+    // -------------------------------------------------------------------------
+    // Input/Output
+    // -------------------------------------------------------------------------
+
+    private String templateUid;
+
+    public void setUid( String templateUid )
+    {
+        this.templateUid = templateUid;
+    }
+
+    private DataSetNotificationTemplate template;
+
+    public DataSetNotificationTemplate getTemplate()
+    {
+        return template;
+    }
+
+    private List<UserGroup> userGroupList;
+
+    public List<UserGroup> getUserGroupList()
+    {
+        return userGroupList;
+    }
+
+    private List<DataSet> dataSetList;
+
+    public List<DataSet> getDataSetList()
+    {
+        return dataSetList;
+    }
+
     @Override
     public String execute() throws Exception
     {
-        return null;
+        template = manager.get( DataSetNotificationTemplate.class, templateUid );
+
+        userGroupList = manager.getAll( UserGroup.class );
+
+        dataSetList = manager.getAll( DataSet.class );
+
+        return SUCCESS;
     }
 }
