@@ -140,7 +140,7 @@ public interface ProgramStageInstanceService
      * defined for sending upon completion.
      *
      * @param programStageInstance the ProgramStageInstance.
-     * @param skipNotifications whether to send prgram stage notification or not.
+     * @param skipNotifications whether to send prgram stage notifications or not.
      * @param format the I18nFormat for the notification messages.
      */
     void completeProgramStageInstance( ProgramStageInstance programStageInstance, boolean skipNotifications, I18nFormat format );
