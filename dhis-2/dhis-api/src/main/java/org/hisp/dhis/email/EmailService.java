@@ -28,6 +28,8 @@ package org.hisp.dhis.email;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+
 import java.util.Set;
 
 /**
@@ -48,16 +50,16 @@ public interface EmailService
      *
      * @param email the email to send.
      */
-    void sendEmail( Email email );
+    OutboundMessageResponse sendEmail( Email email );
 
 
-    void sendEmail( String subject, String message, Set<String> recipients );
+    OutboundMessageResponse sendEmail(String subject, String message, Set<String> recipients );
 
     /**
      * Sends an automatically generated email message to the current user.
      * Useful for testing the SMTP configuration of the system.
      */
-    void sendTestEmail();
+    OutboundMessageResponse sendTestEmail();
     
     /**
      * Sends an email using the system notification email as recipient. Requires
@@ -68,5 +70,5 @@ public interface EmailService
      * @param text the text (body) of the email.
      * @return true if an email was sent, false if not.
      */
-    boolean sendSystemEmail( Email email );
+    OutboundMessageResponse sendSystemEmail( Email email );
 }
