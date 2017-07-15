@@ -52,7 +52,7 @@
                 <label for="dataSets">$i18n.getString( "dataset_list" )</label>
             </td>
             <td>
-                <select type="text" id="dataSets" name="dataSets">
+                <select type="text" id="dataSets" name="dataSets" multiple="">
                     #foreach( $ds in $!dataSetList )
                         <option value="$ds.uid">$ds.displayName</option>
                     #end

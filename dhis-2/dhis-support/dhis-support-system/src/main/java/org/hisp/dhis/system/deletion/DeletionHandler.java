@@ -52,6 +52,7 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.LockException;
 import org.hisp.dhis.dataset.Section;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
@@ -945,6 +946,16 @@ public abstract class DeletionHandler
     }
     
     public String allowDeletePushAnalysis( PushAnalysis pushAnalysis )
+    {
+        return null;
+    }
+
+    public void deleteDataSetNotificationTemplate( DataSetNotificationTemplate dataSetNotificationTemplate )
+    {
+
+    }
+
+    private String allowDeleteDataSetNotificationTemplate( DataSetNotificationTemplate dataSetNotificationTemplate )
     {
         return null;
     }

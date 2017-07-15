@@ -59,10 +59,9 @@
 
             <td>
                 #set( $dsts = $template.dataSets )
-                <select type="text" id="dataSets" class="dataSets">
-                    <option value="">[$i18n.getString("please_select")]</option>
+                <select type="text" id="dataSets" class="dataSets" multiple="">
                     #foreach( $ds in $!dataSetList )
-                        <option value="$ds.uid" #if ( $dsts && $dsts.uid.equals( $ds.uid ) ) selected #end>$i18n.getString( $ds.displayName )</option>
+                        <option value="$ds.uid" #if ( $dsts && $dsts.contains( $ds ) ) selected #end>$i18n.getString( $ds.displayName )</option>
                     #end
                 </select>
             </td>

@@ -40,7 +40,7 @@
             </type>
         </property>
 
-        <set name="dataSets" table="datasetnotification_datasets" cascade="all,delete-orphan">
+        <set name="dataSets" table="datasetnotification_datasets">
             <key column="datasetnotificationtemplateid"
                  foreign-key="fk_datasetnotificationtemplate_datasets_datasetnotificationtemplateid" />
             <many-to-many class="org.hisp.dhis.dataset.DataSet" column="datasetid"
@@ -48,8 +48,8 @@
             </many-to-many>
         </set>
 
-        <set name="deliveryChannels" table="programnotificationtemplate_deliverychannel" fetch="select">
-            <key column="programnotificationtemplatedeliverychannelid" />
+        <set name="deliveryChannels" table="datasetnotificationtemplate_deliverychannel" fetch="select">
+            <key column="datasetnotificationtemplatedeliverychannelid" />
             <element column="deliverychannel">
                 <type name="org.hibernate.type.EnumType">
                     <param name="enumClass">org.hisp.dhis.common.DeliveryChannel</param>

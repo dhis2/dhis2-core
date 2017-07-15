@@ -12,6 +12,8 @@
         var programAttributeContainer=qs('#programAttributeContainer');
         var programAttribute = qs('#programAttribute');
 
+        var dataSetList = qs('#dataSets');
+
         var notificationTrigger = qs( '#notificationTrigger' );
         var daysContainer = qs( '#daysContainer' );
         var days = qs( '#days' );
@@ -102,6 +104,20 @@
                 } );
         }
 
+        function getDataSets()
+        {
+            var fld = dataSetList;
+            var values = [];
+            for (var i = 0; i < fld.options.length; i++) {
+                if (fld.options[i].selected) {
+
+                    values.push( { 'id' : fld.options[i].value } );
+                }
+            }
+
+            return values;
+        }
+
         function getUserGroup() {
             var uid = qs( '#userGroup' ).value || undefined;
             return ( uid === undefined ) ? undefined : { 'id' : uid };
@@ -112,6 +128,7 @@
             return ( days.value || 0 ) * ( qs( '#daysModifier' ).value );
         }
 
+
         function formAsJson() {
             return {
                 name : qs( '#name' ).value || '',
@@ -119,6 +136,7 @@
                 relativeScheduledDays : getScheduledDays(),
                 notificationRecipient : qs( '#notificationRecipient' ).value,
                 recipientUserGroup : getUserGroup(),
+                dataSets: getDataSets(),
                 deliveryChannels : getSelectedDeliveryChannels(),
                 subjectTemplate : qs( '#subjectTemplate' ).value,
                 messageTemplate : qs( '#messageTemplate' ).value

@@ -40,6 +40,9 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.notification.NotificationRecipient;
 import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.UserGroup;
 
 import java.util.HashSet;
@@ -178,6 +181,8 @@ public class DataSetNotificationTemplate
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( value = PropertyType.INTEGER )
+    @PropertyRange( min = Integer.MIN_VALUE, max = Integer.MAX_VALUE )
     public Integer getRelativeScheduledDays()
     {
         return relativeScheduledDays;
