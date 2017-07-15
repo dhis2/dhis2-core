@@ -30,6 +30,7 @@ package org.hisp.dhis.email;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -94,36 +95,41 @@ public class DefaultEmailService
     }
 
     @Override
-    public void sendEmail( Email email )
+    public OutboundMessageResponse sendEmail( Email email )
     {
-        emailMessageSender.sendMessage( email.getSubject(), email.getText(), null, email.getSender(), email.getRecipients(), true );
+        return emailMessageSender.sendMessage( email.getSubject(), email.getText(), null, email.getSender(), email.getRecipients(), true );
     }
 
     @Override
-    public void sendEmail( String subject, String message, Set<String> recipients )
+    public OutboundMessageResponse sendEmail( String subject, String message, Set<String> recipients )
     {
-        emailMessageSender.sendMessage( subject, message, recipients );
+        return emailMessageSender.sendMessage( subject, message, recipients );
     }
 
     @Override
-    public void sendTestEmail()
+    public OutboundMessageResponse sendTestEmail()
     {
         String instanceName = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
         
         Email email = new Email( TEST_EMAIL_SUBJECT, TEST_EMAIL_TEXT + instanceName, null, Sets.newHashSet( currentUserService.getCurrentUser() ) );
         
-        sendEmail( email );
+        return sendEmail( email );
     }
 
     @Override
-    public boolean sendSystemEmail( Email email )
+    public OutboundMessageResponse sendSystemEmail(Email email )
     {
+        OutboundMessageResponse response = new OutboundMessageResponse();
+
         String recipient = (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_NOTIFICATIONS_EMAIL );
         String appTitle = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
 
         if ( recipient == null || !ValidationUtils.emailIsValid( recipient ) )
         {
-            return false;
+            response.setOk( false );
+            response.setDescription( "No recipient found" );
+
+            return response;
         }        
         
         User user = new User();
@@ -135,8 +141,6 @@ public class DefaultEmailService
         sender.setFirstName( StringUtils.trimToEmpty( appTitle ) );
         sender.setSurname( recipient );
         
-        emailMessageSender.sendMessage( email.getSubject(), email.getText(), null, sender, Sets.newHashSet( user ), true );
-        
-        return true;
+        return emailMessageSender.sendMessage( email.getSubject(), email.getText(), null, sender, Sets.newHashSet( user ), true );
     }
 }
