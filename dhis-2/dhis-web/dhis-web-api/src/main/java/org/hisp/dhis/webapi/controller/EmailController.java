@@ -32,6 +32,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.email.Email;
 import org.hisp.dhis.email.EmailService;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -92,9 +93,9 @@ public class EmailController
             throw new WebMessageException( WebMessageUtils.conflict( "Could not send test email, no email configured for current user" ) );
         }
 
-        emailService.sendTestEmail();
+        OutboundMessageResponse emailResponse = emailService.sendTestEmail();
 
-        webMessageService.send( WebMessageUtils.ok( "Test email was sent to " + userEmail ), response, request );
+        emailResponseHandler( emailResponse, request, response );
     }
 
     @RequestMapping( value = "/notification", method = RequestMethod.POST )
@@ -109,9 +110,9 @@ public class EmailController
             throw new WebMessageException( WebMessageUtils.conflict( "Could not send email, system notifications email address not set or not valid" ) );
         }
 
-        emailService.sendSystemEmail( email );
+        OutboundMessageResponse emailResponse = emailService.sendSystemEmail( email );
 
-        webMessageService.send( WebMessageUtils.ok( "System notifications email sent" ), response, request );
+        emailResponseHandler( emailResponse, request, response );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SEND_EMAIL')" )
@@ -122,14 +123,27 @@ public class EmailController
     {
         checkEmailSettings();
 
-        emailService.sendEmail( subject, message, recipients );
+        OutboundMessageResponse emailResponse = emailService.sendEmail( subject, message, recipients );
 
-        webMessageService.send( WebMessageUtils.ok( "Email sent" ), response, request );
+        emailResponseHandler( emailResponse, request, response );
     }
 
     // ---------------------------------------------------------------------
     // Supportive methods
     // ---------------------------------------------------------------------
+
+    private void emailResponseHandler( OutboundMessageResponse emailResponse, HttpServletRequest request,
+       HttpServletResponse response )
+    {
+        if ( emailResponse.isOk() )
+        {
+            webMessageService.send( WebMessageUtils.ok( "Email sent" ), response, request );
+        }
+        else
+        {
+            webMessageService.send( WebMessageUtils.error( "Email sending failed" ), response, request );
+        }
+    }
     
     private void checkEmailSettings() throws WebMessageException
     {

@@ -358,7 +358,7 @@ public abstract class AbstractEventService
             }
             else
             {
-                if ( event.getEvent() != null )
+                if ( StringUtils.isNotEmpty( event.getEvent() ) )
                 {
                     programStageInstance = manager.getObject( ProgramStageInstance.class, importOptions.getIdSchemes().getProgramStageInstanceIdScheme(), event.getEvent() );
                     
@@ -399,7 +399,7 @@ public abstract class AbstractEventService
 
             programInstance = programInstances.get( 0 );
 
-            if ( event.getEvent() != null )
+            if ( StringUtils.isNotEmpty( event.getEvent() ) )
             {
                 programStageInstance = manager.getObject( ProgramStageInstance.class, importOptions.getIdSchemes().getProgramStageInstanceIdScheme(), event.getEvent() );
 
