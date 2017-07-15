@@ -161,7 +161,7 @@ public class DataSet
 
     /**
      * Indicating whether the user completing this data set should be sent a
-     * notifications.
+     * notification.
      */
     private boolean notifyCompletingUser;
 

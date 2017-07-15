@@ -41,7 +41,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "notifications", namespace = DxfNamespaces.DXF_2_0 )
+@JacksonXmlRootElement( localName = "notification", namespace = DxfNamespaces.DXF_2_0 )
 public class Notification
 {
     private String uid;

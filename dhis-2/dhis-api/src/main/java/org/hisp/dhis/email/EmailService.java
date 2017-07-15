@@ -62,8 +62,8 @@ public interface EmailService
     OutboundMessageResponse sendTestEmail();
     
     /**
-     * Sends an email using the system notifications email as recipient. Requires
-     * that a valid system notifications email address has been specified. Only
+     * Sends an email using the system notification email as recipient. Requires
+     * that a valid system notification email address has been specified. Only
      * the subject and text properties of the given email are read.
      * 
      * @param subject the subject text of the email.

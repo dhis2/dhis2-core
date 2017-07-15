@@ -107,7 +107,7 @@ public class EmailController
 
         if ( !systemNotificationEmailValid )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Could not send email, system notifications email address not set or not valid" ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Could not send email, system notification email address not set or not valid" ) );
         }
 
         OutboundMessageResponse emailResponse = emailService.sendSystemEmail( email );

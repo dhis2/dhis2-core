@@ -955,7 +955,7 @@ public abstract class DeletionHandler
 
     }
 
-    private String allowDeleteDataSetNotificationTemplate( DataSetNotificationTemplate dataSetNotificationTemplate )
+    public String allowDeleteDataSetNotificationTemplate( DataSetNotificationTemplate dataSetNotificationTemplate )
     {
         return null;
     }
