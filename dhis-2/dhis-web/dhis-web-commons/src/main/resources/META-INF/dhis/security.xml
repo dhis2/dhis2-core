@@ -95,8 +95,13 @@
   </sec:http>
   -->
 
+  <bean id="http401LoginUrlAuthenticationEntryPoint" class="org.hisp.dhis.security.Http401LoginUrlAuthenticationEntryPoint">
+    <constructor-arg name="loginFormUrl" value="/dhis-web-commons/security/login.action" />
+  </bean>
+
   <sec:http access-decision-manager-ref="accessDecisionManager" realm="DHIS2" disable-url-rewriting="true" use-expressions="true"
-    authentication-manager-ref="authenticationManager">
+    authentication-manager-ref="authenticationManager" entry-point-ref="http401LoginUrlAuthenticationEntryPoint">
+
     <sec:openid-login user-service-ref="userDetailsService" default-target-url="/" always-use-default-target="false"
       authentication-failure-handler-ref="securityExceptionTranslationHandler"
       login-processing-url="/dhis-web-commons-security/openid.action"
@@ -118,7 +123,7 @@
 
     <sec:csrf disabled="true" />
 
-    <sec:http-basic />
+    <sec:http-basic entry-point-ref="http401LoginUrlAuthenticationEntryPoint" />
     <sec:logout logout-url="/dhis-web-commons-security/logout.action" logout-success-url="/" />
     <sec:intercept-url pattern="/dhis-web-commons/i18nJavaScript.action" access="permitAll()" />
     <sec:intercept-url pattern="/dhis-web-commons/security/**" access="permitAll()" />

@@ -459,6 +459,11 @@ public class ValidationUtils
             return "value_not_coordinate";
         }
 
+        if ( ValueType.URL == valueType && !urlIsValid( value ) )
+        {
+            return "value_not_url";
+        }
+
         return null;
     }
 

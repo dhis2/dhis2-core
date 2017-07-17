@@ -33,7 +33,5 @@ package org.hisp.dhis.color;
  */
 public interface ColorService
 {
-    Color getColor( String uid );
-    
     ColorSet getColorSet( String uid );
 }

@@ -49,7 +49,7 @@ import org.junit.Test;
  */
 public class MathUtilsTest
 {
-    private static final double DELTA = 0.01;
+    private static final double DELTA = 0.0001;
     
     @Test
     public void testExpressionIsTrueLeftRight()
@@ -334,7 +334,51 @@ public class MathUtilsTest
         assertEquals( -0.43, MathUtils.getRounded( -0.43123 ), DELTA );
         assertEquals( -10, MathUtils.getRounded( -10.00 ), DELTA );        
     }
-    
+
+    @Test
+    public void testRoundToSignificantDigits()
+    {
+        assertEquals( 0.1, MathUtils.roundToSignificantDigits( .1357, 1 ), DELTA );
+        assertEquals( 0.14, MathUtils.roundToSignificantDigits( .1357, 2 ), DELTA );
+        assertEquals( 0.136, MathUtils.roundToSignificantDigits( .1357, 3 ), DELTA );
+        assertEquals( 0.1357, MathUtils.roundToSignificantDigits( .1357, 4 ), DELTA );
+
+        assertEquals( -0.1, MathUtils.roundToSignificantDigits( -.1357, 1 ), DELTA );
+        assertEquals( -0.14, MathUtils.roundToSignificantDigits( -.1357, 2 ), DELTA );
+        assertEquals( -0.136, MathUtils.roundToSignificantDigits( -.1357, 3 ), DELTA );
+        assertEquals( -0.1357, MathUtils.roundToSignificantDigits( -.1357, 4 ), DELTA );
+
+        assertEquals( 0.14, MathUtils.roundToSignificantDigits( .1357, 2 ), DELTA );
+        assertEquals( 1.4, MathUtils.roundToSignificantDigits( 1.357, 2 ), DELTA );
+        assertEquals( 14.0, MathUtils.roundToSignificantDigits( 13.57, 2 ), DELTA );
+        assertEquals( 140.0, MathUtils.roundToSignificantDigits( 135.7, 2 ), DELTA );
+
+        assertEquals( -0.14, MathUtils.roundToSignificantDigits( -.1357, 2 ), DELTA );
+        assertEquals( -1.4, MathUtils.roundToSignificantDigits( -1.357, 2 ), DELTA );
+        assertEquals( -14.0, MathUtils.roundToSignificantDigits( -13.57, 2 ), DELTA );
+        assertEquals( -140.0, MathUtils.roundToSignificantDigits( -135.7, 2 ), DELTA );
+    }
+
+    @Test
+    public void testRoundFraction()
+    {
+        assertEquals( 1.0, MathUtils.roundFraction( 1.357, 1 ), DELTA );
+        assertEquals( 1.4, MathUtils.roundFraction( 1.357, 2 ), DELTA );
+        assertEquals( 1.36, MathUtils.roundFraction( 1.357, 3 ), DELTA );
+
+        assertEquals( -1.0, MathUtils.roundFraction( -1.357, 1 ), DELTA );
+        assertEquals( -1.4, MathUtils.roundFraction( -1.357, 2 ), DELTA );
+        assertEquals( -1.36, MathUtils.roundFraction( -1.357, 3 ), DELTA );
+
+        assertEquals( 1.4, MathUtils.roundFraction( 1.357, 2 ), DELTA );
+        assertEquals( 14.0, MathUtils.roundFraction( 13.57, 2 ), DELTA );
+        assertEquals( 136.0, MathUtils.roundFraction( 135.7, 2 ), DELTA );
+
+        assertEquals( -1.4, MathUtils.roundFraction( -1.357, 2 ), DELTA );
+        assertEquals( -14.0, MathUtils.roundFraction( -13.57, 2 ), DELTA );
+        assertEquals( -136.0, MathUtils.roundFraction( -135.7, 2 ), DELTA );
+    }
+
     @Test
     public void testFunctionExpression()
     {
