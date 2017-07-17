@@ -476,7 +476,9 @@ public class JdbcEventAnalyticsManager
         {
             Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( params.getProgramIndicator().getExpression(),  params.getProgramIndicator().getAnalyticsType() );
             
-            return Lists.newArrayList( uids );
+            Set<String> variableColumnNames = ProgramIndicator.getVariableColumnNames( params.getProgramIndicator().getExpression(),  params.getProgramIndicator().getAnalyticsType() );
+            
+            return Lists.newArrayList( Sets.union( uids, variableColumnNames ) );
         }
         else
         {
@@ -613,8 +615,8 @@ public class JdbcEventAnalyticsManager
      */
     private String getFromWhereMultiplePartitionsClause( EventQueryParams params, List<String> fixedColumns )
     {
-        List<String> cols = ListUtils.distinctUnion( fixedColumns, getAggregateColumns( params ), getPartitionSelectColumns( params ), getSortColumns( params ));
-        cols = cols.stream().map( s -> statementBuilder.columnQuote( s ) ).collect( Collectors.toList());
+        List<String> cols = ListUtils.distinctUnion( fixedColumns, getAggregateColumns( params ), getPartitionSelectColumns( params ), getSortColumns( params ) );
+        cols = cols.stream().map( s -> statementBuilder.columnQuote( s ) ).collect( Collectors.toList() );
 
         String selectCols = StringUtils.join( cols, "," );
 

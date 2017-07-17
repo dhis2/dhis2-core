@@ -447,7 +447,7 @@ public class ExpressionServiceTest
     public void testCalculateExpressionWithCustomFunctions()
     {
         assertEquals( 5.0, calculateExpression( "COUNT([1,2,3,4,5])" ) );
-        assertEquals( 15.0, calculateExpression( "VSUM([1,2,3,4,5])" ) );
+        assertEquals( 15.0, calculateExpression( "SUM([1,2,3,4,5])" ) );
         assertEquals( 1.0, calculateExpression( "MIN([1,2,3,4,5])" ) );
         assertEquals( 5.0, calculateExpression( "MAX([1,2,3,4,5])" ) );
         assertEquals( 3.0, calculateExpression( "AVG([1,2,3,4,5])" ) );
