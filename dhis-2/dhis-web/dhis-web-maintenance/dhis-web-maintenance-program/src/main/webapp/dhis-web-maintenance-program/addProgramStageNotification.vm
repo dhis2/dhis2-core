@@ -152,7 +152,7 @@
                         <option value="A{$attr.uid}">$attr.displayName</option>
                     #end
                     #foreach( $de in $dataElements )
-                        <option value="E{$de.uid}">$de.displayName</option>
+                        <option value="#{$de.uid}">$de.displayName</option>
                     #end
                 </select>
             </td>

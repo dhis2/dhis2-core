@@ -81,7 +81,7 @@ public abstract class BaseNotificationMessageRenderer<T>
 
     private static final Pattern VARIABLE_PATTERN  = Pattern.compile( "V\\{([a-z_]*)}" ); // Matches the variable in group 1
     private static final Pattern ATTRIBUTE_PATTERN = Pattern.compile( "A\\{([A-Za-z][A-Za-z0-9]{10})}" ); // Matches the uid in group 1
-    private static final Pattern ELEMENT_PATTERN = Pattern.compile( "E\\{([A-Za-z][A-Za-z0-9]{10})}" ); // Matches the uid in group 1
+    private static final Pattern DATA_ELEMENT_PATTERN = Pattern.compile( "#\\{([A-Za-z][A-Za-z0-9]{10})}" ); // Matches the uid in group 1 for DataElement
 
     private ImmutableMap<ExpressionType, BiFunction<T, Set<String>, Map<String, String>>> EXPRESSION_TO_VALUE_RESOLVERS =
         new ImmutableMap.Builder<ExpressionType, BiFunction<T, Set<String>, Map<String, String>>>()
@@ -94,7 +94,7 @@ public abstract class BaseNotificationMessageRenderer<T>
     {
         VARIABLE ( VARIABLE_PATTERN, VAR_CONTENT_PATTERN ),
         ATTRIBUTE ( ATTRIBUTE_PATTERN, ATTR_CONTENT_PATTERN ),
-        ELEMENT ( ELEMENT_PATTERN, ATTR_CONTENT_PATTERN );
+        ELEMENT ( DATA_ELEMENT_PATTERN, ATTR_CONTENT_PATTERN );
 
         private final Pattern expressionPattern;
         private final Pattern contentPattern;
