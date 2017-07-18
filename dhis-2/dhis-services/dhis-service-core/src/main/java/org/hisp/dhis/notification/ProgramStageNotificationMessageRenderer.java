@@ -60,7 +60,7 @@ public class ProgramStageNotificationMessageRenderer
             .build();
 
     private static final Set<ExpressionType> SUPPORTED_EXPRESSION_TYPES =
-        ImmutableSet.of( ExpressionType.ATTRIBUTE, ExpressionType.VARIABLE, ExpressionType.ELEMENT );
+        ImmutableSet.of( ExpressionType.TRACKED_ENTITY_ATTRIBUTE, ExpressionType.VARIABLE, ExpressionType.DATA_ELEMENT );
 
     // -------------------------------------------------------------------------
     // Singleton instance
@@ -87,7 +87,7 @@ public class ProgramStageNotificationMessageRenderer
     }
 
     @Override
-    protected Map<String, String> resolveAttributeValues( Set<String> attributeKeys, ProgramStageInstance entity )
+    protected Map<String, String> resolveTrackedEntityAttributeValues( Set<String> attributeKeys, ProgramStageInstance entity )
     {
         if ( attributeKeys.isEmpty() )
         {
@@ -100,7 +100,7 @@ public class ProgramStageNotificationMessageRenderer
     }
 
     @Override
-    protected Map<String, String> resolveElementValues( Set<String> elementKeys, ProgramStageInstance entity )
+    protected Map<String, String> resolveDataElementValues( Set<String> elementKeys, ProgramStageInstance entity )
     {
         if ( elementKeys.isEmpty() )
         {

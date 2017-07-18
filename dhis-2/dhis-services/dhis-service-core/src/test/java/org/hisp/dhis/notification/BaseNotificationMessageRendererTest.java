@@ -273,7 +273,7 @@ public class BaseNotificationMessageRendererTest
         }
 
         @Override
-        protected Map<String, String> resolveAttributeValues( Set<String> attributeKeys, Entity entity )
+        protected Map<String, String> resolveTrackedEntityAttributeValues( Set<String> attributeKeys, Entity entity )
         {
             return ATTRIBUTE_VALUES;
         }
@@ -294,7 +294,7 @@ public class BaseNotificationMessageRendererTest
         }
 
         @Override
-        protected Map<String, String> resolveElementValues( Set<String> elementKeys, Entity entity )
+        protected Map<String, String> resolveDataElementValues( Set<String> elementKeys, Entity entity )
         {
             return Collections.emptyMap();
         }

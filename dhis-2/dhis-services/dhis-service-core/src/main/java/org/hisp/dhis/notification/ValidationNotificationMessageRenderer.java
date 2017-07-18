@@ -93,7 +93,7 @@ public class ValidationNotificationMessageRenderer
     }
 
     @Override
-    protected Map<String, String> resolveAttributeValues( Set<String> attributeKeys, ValidationResult result )
+    protected Map<String, String> resolveTrackedEntityAttributeValues( Set<String> attributeKeys, ValidationResult result )
     {
         // Attributes are not supported for validation notifications
         return Collections.emptyMap();
@@ -112,7 +112,7 @@ public class ValidationNotificationMessageRenderer
     }
 
     @Override
-    protected Map<String, String> resolveElementValues( Set<String> elementKeys, ValidationResult entity )
+    protected Map<String, String> resolveDataElementValues( Set<String> elementKeys, ValidationResult entity )
     {
         // DataElements are not supported for validation notifications
         return Collections.emptyMap();
