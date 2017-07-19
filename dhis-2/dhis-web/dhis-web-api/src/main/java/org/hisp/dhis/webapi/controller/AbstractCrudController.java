@@ -1013,7 +1013,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     {
     }
 
-    protected void preDeleteEntity( T entity )
+    protected void preDeleteEntity( T entity ) throws Exception
     {
     }
 
@@ -1021,7 +1021,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     {
     }
 
-    protected void prePatchEntity( T entity, T newEntity )
+    protected void prePatchEntity( T entity, T newEntity ) throws Exception
     {
     }
 
