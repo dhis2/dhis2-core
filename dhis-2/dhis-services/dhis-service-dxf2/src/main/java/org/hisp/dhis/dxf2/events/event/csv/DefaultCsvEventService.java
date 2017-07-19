@@ -130,6 +130,8 @@ public class DefaultCsvEventService implements CsvEventService
                 event.setOrgUnit( dataValue.getOrgUnit() );
                 event.setEventDate( dataValue.getEventDate() );
                 event.setDueDate( dataValue.getDueDate() );
+                event.setCompletedDate( dataValue.getCompletedDate() );
+                event.setCompletedBy( dataValue.getCompletedBy() );
 
                 if ( dataValue.getLongitude() != null && dataValue.getLatitude() != null )
                 {
