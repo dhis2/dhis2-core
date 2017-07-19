@@ -32,6 +32,7 @@ import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.UserGroup;
@@ -138,7 +139,7 @@ public class ShowAddProgramStageNotificationAction
         userGroups = userGroupService.getAllUserGroups();
         attributes = programStage.getProgram().getTrackedEntityAttributes();
         dataElements = programStage.getProgramStageDataElements().stream()
-            .map( psde -> psde.getDataElement() )
+            .map( ProgramStageDataElement::getDataElement )
             .collect( Collectors.toList() );
 
         phoneNumberAttributes = getAttributeBasedOnValueType( attributes, ValueType.PHONE_NUMBER );

@@ -596,6 +596,7 @@ public abstract class AbstractEventService
         EventSearchParams params = new EventSearchParams();
         params.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         params.setLastUpdatedStartDate( lastSuccessTime );
+        params.setIncludeDeleted( true );
         return params;
     }
 
