@@ -151,6 +151,9 @@
                     #foreach( $attr in $attributes )
                         <option value="A{$attr.uid}">$attr.displayName</option>
                     #end
+                    #foreach( $de in $dataElements )
+                        <option value="#{$de.uid}">$de.displayName</option>
+                    #end
                 </select>
             </td>
         </tr>
