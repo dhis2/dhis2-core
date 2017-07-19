@@ -319,7 +319,8 @@ public class CsvEventDataValue
             other.eventDate ) && Objects.equals( this.dueDate, other.dueDate ) && Objects.equals( this.latitude,
             other.latitude ) && Objects.equals( this.longitude, other.longitude ) && Objects.equals( this.dataElement,
             other.dataElement ) && Objects.equals( this.value, other.value ) && Objects.equals( this.storedBy,
-            other.storedBy ) && Objects.equals( this.providedElsewhere, other.providedElsewhere );
+            other.storedBy ) && Objects.equals( this.providedElsewhere, other.providedElsewhere )
+            && Objects.equals( this.completedDate, other.completedDate ) && Objects.equals( this.completedBy, other.completedBy );
     }
 
     @Override
