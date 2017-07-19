@@ -576,7 +576,6 @@ public abstract class AbstractEventService
     public int getAnonymousEventValuesCountLastUpdatedAfter( Date lastSuccessTime )
     {
         EventSearchParams params = buildAnonymousEventsSearchParams( lastSuccessTime );
-        params.setIncludeDeleted( true );
         return eventStore.getEventCount( params, null );
     }
 
@@ -584,7 +583,6 @@ public abstract class AbstractEventService
     public Events getAnonymousEventValuesLastUpdatedAfter( Date lastSuccessTime )
     {
         EventSearchParams params = buildAnonymousEventsSearchParams( lastSuccessTime );
-        params.setIncludeDeleted( true );
         Events anonymousEvents = new Events();
         List<Event> events = eventStore.getEvents( params, null );
         anonymousEvents.setEvents( events );
@@ -596,6 +594,7 @@ public abstract class AbstractEventService
         EventSearchParams params = new EventSearchParams();
         params.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         params.setLastUpdatedStartDate( lastSuccessTime );
+        params.setIncludeDeleted( true );
         return params;
     }
 
