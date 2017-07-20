@@ -681,7 +681,7 @@ public class User
             "\"userCredentials\":\"" + userCredentials + "\", " +
             "\"groups\":\"" + groups + "\", " +
             "\"organisationUnits\":\"" + organisationUnits + "\", " +
-            "\"dataViewOrganisationUnits\":\"" + dataViewOrganisationUnits + "\" " +
+            "\"dataViewOrganisationUnits\":\"" + dataViewOrganisationUnits + "\", " +
             "\"teiSearchOrganisationUnits\":\"" + teiSearchOrganisationUnits + "\" " +
             "}";
     }
