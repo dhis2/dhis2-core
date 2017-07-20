@@ -188,6 +188,8 @@ public class DefaultDataSetNotificationService
             else
             {
                 log.error( String.format( "Invalid %s recipient", channel ) );
+
+                throw new IllegalArgumentException( String.format( "Invalid %s recipient", channel ) );
             }
         }
 
@@ -202,8 +204,8 @@ public class DefaultDataSetNotificationService
     private void sendInternalDhisMessages( Set<DhisMessage> messages )
     {
         messages.forEach( m ->
-                internalMessageService.sendMessage( m.message.getSubject(), m.message.getMessage(), null, m.recipients, null,
-                        MessageType.SYSTEM, true )
+            internalMessageService.sendMessage( m.message.getSubject(), m.message.getMessage(), null, m.recipients, null,
+                MessageType.SYSTEM, true )
         );
     }
 
