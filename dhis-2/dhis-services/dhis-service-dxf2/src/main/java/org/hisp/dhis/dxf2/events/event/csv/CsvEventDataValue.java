@@ -296,7 +296,7 @@ public class CsvEventDataValue
     public int hashCode()
     {
         return Objects.hash( event, status, program, programStage, orgUnit, enrollment, eventDate, dueDate, latitude, longitude,
-            dataElement, value, storedBy, providedElsewhere );
+            dataElement, value, storedBy, providedElsewhere, completedDate, completedBy );
     }
 
     @Override
