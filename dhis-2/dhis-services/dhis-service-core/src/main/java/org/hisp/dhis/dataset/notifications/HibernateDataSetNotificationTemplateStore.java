@@ -28,7 +28,13 @@ package org.hisp.dhis.dataset.notifications;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.Criteria;
+import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+
+import java.util.List;
 
 /**
  * Created by zubair@dhis2.org on 13.07.17.
@@ -37,4 +43,15 @@ public class HibernateDataSetNotificationTemplateStore
     extends HibernateIdentifiableObjectStore<DataSetNotificationTemplate>
         implements DataSetNotificationTemplateStore
 {
+
+    @Override
+    public List<DataSetNotificationTemplate> getNotificationsByTriggerType( DataSet dataSet, NotificationTrigger trigger )
+    {
+        Criteria criteria = getCriteria();
+        criteria.createAlias( "dataSets", "dataset" );
+        criteria.add( Restrictions.eq( "notificationTrigger", trigger ) );
+        criteria.add( Restrictions.eq( "dataset.id", dataSet.getId() ) );
+
+        return criteria.list();
+    }
 }

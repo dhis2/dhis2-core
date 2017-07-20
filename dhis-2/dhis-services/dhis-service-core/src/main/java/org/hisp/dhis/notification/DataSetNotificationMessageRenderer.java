@@ -69,9 +69,9 @@ public class DataSetNotificationMessageRenderer
     }
 
     @Override
-    protected Map<String, String> resolveAttributeValues( Set<String> attributeKeys, CompleteDataSetRegistration entity )
+    protected Map<String, String> resolveTrackedEntityAttributeValues( Set<String> attributeKeys, CompleteDataSetRegistration entity )
     {
-        // Attributes are not supported for validation notifications
+        // Attributes are not supported for dataset notifications
         return Collections.emptyMap();
     }
 
@@ -79,6 +79,13 @@ public class DataSetNotificationMessageRenderer
     protected TemplateVariable fromVariableName( String name )
     {
         return DataSetNotificationTemplateVariables.fromVariableName( name );
+    }
+
+    @Override
+    protected Map<String, String> resolveDataElementValues( Set<String> elementKeys, CompleteDataSetRegistration entity )
+    {
+        // DataElement is not supported for dataset notifications
+        return Collections.emptyMap();
     }
 
     @Override

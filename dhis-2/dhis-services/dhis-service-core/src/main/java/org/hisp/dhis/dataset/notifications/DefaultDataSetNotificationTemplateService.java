@@ -28,17 +28,48 @@ package org.hisp.dhis.dataset.notifications;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
 /**
- * Created by zubair@dhis2.org on 13.07.17.
+ * Created by zubair@dhis2.org on 20.07.17.
  */
-public interface DataSetNotificationTemplateStore
-    extends GenericIdentifiableObjectStore<DataSetNotificationTemplate>
+public class DefaultDataSetNotificationTemplateService
+    implements DataSetNotificationTemplateService
 {
-    List<DataSetNotificationTemplate> getNotificationsByTriggerType( DataSet dataSet, NotificationTrigger trigger );
+    @Autowired
+    private HibernateDataSetNotificationTemplateStore store;
+
+    @Override
+    public DataSetNotificationTemplate get( int id )
+    {
+        return store.get( id );
+    }
+
+    @Override
+    public DataSetNotificationTemplate get( String uid )
+    {
+        return store.getByUid( uid );
+    }
+
+    @Override
+    public List<DataSetNotificationTemplate> getCompleteNotifications( DataSet dataSet )
+    {
+       return store.getNotificationsByTriggerType( dataSet, NotificationTrigger.COMPLETION );
+    }
+
+    @Override
+    public List<DataSetNotificationTemplate> getScheduledNotifications( DataSet dataSet )
+    {
+        return store.getNotificationsByTriggerType( dataSet, NotificationTrigger.SCHEDULED_DAYS_DUE_DATE );
+    }
+
+    @Override
+    public List<DataSetNotificationTemplate> getAll()
+    {
+        return store.getAll();
+    }
 }

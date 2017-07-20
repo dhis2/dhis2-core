@@ -30,7 +30,7 @@
                 #set( $trigger = $template.notificationTrigger.name() )
                 <select type="text" id="notificationTrigger" name="notificationTrigger">
                     <option value="COMPLETION" #if ( $trigger == "COMPLETION" ) selected #end>$i18n.getString( "dataset_completion" )</option>
-                    <option value="SCHEDULED_DAYS_INCIDENT_DATE" #if ( $trigger == "SCHEDULED_DAYS_INCIDENT_DATE" ) selected #end>$i18n.getString( "dataset_scheduled" )</option>
+                    <option value="SCHEDULED_DAYS_DUE_DATE" #if ( $trigger == "SCHEDULED_DAYS_DUE_DATE" ) selected #end>$i18n.getString( "dataset_scheduled" )</option>
                 </select>
             </td>
         </tr>
