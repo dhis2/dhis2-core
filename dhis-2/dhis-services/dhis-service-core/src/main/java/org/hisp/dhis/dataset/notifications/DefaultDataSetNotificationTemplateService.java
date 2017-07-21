@@ -41,7 +41,7 @@ public class DefaultDataSetNotificationTemplateService
     implements DataSetNotificationTemplateService
 {
     @Autowired
-    private HibernateDataSetNotificationTemplateStore store;
+    private DataSetNotificationTemplateStore store;
 
     @Override
     public DataSetNotificationTemplate get( int id )
@@ -62,9 +62,9 @@ public class DefaultDataSetNotificationTemplateService
     }
 
     @Override
-    public List<DataSetNotificationTemplate> getScheduledNotifications( DataSet dataSet )
+    public List<DataSetNotificationTemplate> getScheduledNotifications( NotificationTrigger trigger )
     {
-        return store.getNotificationsByTriggerType( dataSet, NotificationTrigger.SCHEDULED_DAYS_DUE_DATE );
+        return store.getScheduledNotifications( trigger );
     }
 
     @Override

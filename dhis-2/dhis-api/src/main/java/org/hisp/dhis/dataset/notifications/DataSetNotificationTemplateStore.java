@@ -41,4 +41,6 @@ public interface DataSetNotificationTemplateStore
     extends GenericIdentifiableObjectStore<DataSetNotificationTemplate>
 {
     List<DataSetNotificationTemplate> getNotificationsByTriggerType( DataSet dataSet, NotificationTrigger trigger );
+
+    List<DataSetNotificationTemplate> getScheduledNotifications( NotificationTrigger trigger );
 }

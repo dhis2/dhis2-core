@@ -54,4 +54,13 @@ public class HibernateDataSetNotificationTemplateStore
 
         return criteria.list();
     }
+
+    @Override
+    public List<DataSetNotificationTemplate> getScheduledNotifications( NotificationTrigger trigger )
+    {
+        Criteria criteria = getCriteria();
+        criteria.add( Restrictions.eq( "notificationTrigger", trigger ) );
+
+        return criteria.list();
+    }
 }

@@ -29,6 +29,7 @@ package org.hisp.dhis.dataset.notifications;
  */
 
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.program.notification.NotificationTrigger;
 
 import java.util.List;
 
@@ -43,7 +44,7 @@ public interface DataSetNotificationTemplateService
 
     List<DataSetNotificationTemplate> getCompleteNotifications( DataSet dataSet );
 
-    List<DataSetNotificationTemplate> getScheduledNotifications( DataSet dataSet );
+    List<DataSetNotificationTemplate> getScheduledNotifications( NotificationTrigger trigger );
 
     List<DataSetNotificationTemplate> getAll();
 }

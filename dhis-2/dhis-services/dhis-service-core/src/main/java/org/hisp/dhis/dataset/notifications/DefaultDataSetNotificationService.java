@@ -38,6 +38,7 @@ import org.apache.tools.ant.taskdefs.condition.Or;
 import org.hibernate.cfg.DefaultNamingStrategy;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.message.Message;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
@@ -50,6 +51,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
+import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -104,7 +106,8 @@ public class DefaultDataSetNotificationService
     @Override
     public void sendScheduledDataSetNotificationsForDay( Date day )
     {
-
+        List<DataSetNotificationTemplate> scheduledTemplates =
+            dsntService.getScheduledNotifications( NotificationTrigger.SCHEDULED_DAYS_DUE_DATE );
     }
 
     @Override
