@@ -1517,6 +1517,9 @@
 
   <bean id="programStageNotificationMessageRenderer" class="org.hisp.dhis.notification.ProgramStageNotificationMessageRenderer" />
 
+  <bean id="dataSetNotificationMessageRenderer" class="org.hisp.dhis.notification.DataSetNotificationMessageRenderer" />
+
+
   <!-- I18n UI -->
 
   <bean id="org.hisp.dhis.i18n.locale.LocaleManager" class="org.hisp.dhis.i18n.ui.locale.UserSettingLocaleManager">

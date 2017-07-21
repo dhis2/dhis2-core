@@ -52,12 +52,10 @@ import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -160,7 +158,11 @@ public class DefaultDataSetNotificationService
     {
         NotificationMessage message = renderer.render( registration, template );
 
-        return new ProgramMessage( message.getSubject(), message.getMessage(), resolveExternalRecipients( template, registration ) );
+        ProgramMessage programMessage = new ProgramMessage( message.getSubject(), message.getMessage(), resolveExternalRecipients( template, registration ) );
+
+        programMessage.setDeliveryChannels( template.getDeliveryChannels() );
+
+        return programMessage;
     }
 
     private DhisMessage createDhisMessage( DataSetNotificationTemplate template, CompleteDataSetRegistration registration )
@@ -198,10 +200,12 @@ public class DefaultDataSetNotificationService
 
     private Set<User> resolveInternalRecipients( DataSetNotificationTemplate template, CompleteDataSetRegistration registration )
     {
-        return null;
+        UserGroup userGroup = template.getRecipientUserGroup();
+
+        return userGroup.getMembers();
     }
 
-    private void sendInternalDhisMessages( Set<DhisMessage> messages )
+    private void sendInternalDhisMessages( List<DhisMessage> messages )
     {
         messages.forEach( m ->
             internalMessageService.sendMessage( m.message.getSubject(), m.message.getMessage(), null, m.recipients, null,
@@ -209,14 +213,14 @@ public class DefaultDataSetNotificationService
         );
     }
 
-    private void sendProgramMessages( Set<ProgramMessage> messages )
+    private void sendProgramMessages( List<ProgramMessage> messages )
     {
         if ( messages.isEmpty() )
         {
             return;
         }
 
-        log.debug( String.format( "Dispatching %d ProgramMessages", messages.size() ) );
+        log.info( String.format( "Dispatching %d ProgramMessages", messages.size() ) );
 
         BatchResponseStatus status = externalMessageService.sendMessages( Lists.newArrayList( messages ) );
 
@@ -241,8 +245,8 @@ public class DefaultDataSetNotificationService
 
     private static class MessageBatch
     {
-        Set<DhisMessage> dhisMessages = Sets.newHashSet();
-        Set<ProgramMessage> programMessages = Sets.newHashSet();
+        List<DhisMessage> dhisMessages = new ArrayList<>();
+        List<ProgramMessage> programMessages = new ArrayList<>();
 
         MessageBatch( MessageBatch ...batches )
         {
