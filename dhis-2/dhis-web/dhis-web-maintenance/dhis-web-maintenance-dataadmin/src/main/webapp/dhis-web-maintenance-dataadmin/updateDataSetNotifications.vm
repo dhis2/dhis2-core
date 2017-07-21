@@ -108,10 +108,11 @@
                 </form>
             </td>
         </tr>
-        <tr>
+
+        <tr id="paramsContainerForCompletion"  #if ( $trigger != "COMPLETION" ) style="display: none;" #end>
             <td>$i18n.getString( "params" )</td>
             <td>
-                <select multiple size="4" id="params">
+                <select multiple size="4" id="paramsForCompletion">
                     <option value="V{data_name}">$i18n.getString( "data_name" )</option>
                     <option value="V{data_description}">$i18n.getString( "data_description" )</option>
                     <option value="V{complete_registration_ou}">$i18n.getString( "complete_registration_ou" )</option>
@@ -122,6 +123,19 @@
                 </select>
             </td>
         </tr>
+
+        <tr id="paramsContainerForSchedule" #if ( $trigger != "SCHEDULED_DAYS_DUE_DATE" ) style="display: none;" #end>
+            <td>$i18n.getString( "params" )</td>
+            <td>
+                <select multiple size="4" id="paramsForSchedule">
+                    <option value="V{data_name}">$i18n.getString( "data_name" )</option>
+                    <option value="V{data_description}">$i18n.getString( "data_description" )</option>
+                    <option value="V{complete_registration_ou}">$i18n.getString( "complete_registration_ou" )</option>
+                    <option value="V{complete_registration_period}">$i18n.getString( "complete_registration_period" )</option>
+                </select>
+            </td>
+        </tr>
+
         <tr>
             <td>
                 <label for="subjectTemplate">$i18n.getString( "subject_template" )</label>

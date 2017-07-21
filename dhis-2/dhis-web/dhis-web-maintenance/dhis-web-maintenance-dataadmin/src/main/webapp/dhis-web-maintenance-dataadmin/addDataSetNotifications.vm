@@ -87,7 +87,7 @@
             </td>
         </tr>
 
-        <tr id="deliveryChannelsContainer">
+        <tr id="deliveryChannelsContainer" style="display: none;">
             <td><label for="deliveryChannelsForm">$i18n.getString( "message_type" )</label></td>
             <td>
                 <form id="deliveryChannelsForm">
@@ -98,10 +98,11 @@
                 </form>
             </td>
         </tr>
-        <tr>
+
+        <tr id="paramsContainerForCompletion" style="display: none;">
             <td>$i18n.getString( "params" )</td>
             <td>
-                <select multiple size="4" id="params">
+                <select multiple size="4" id="paramsForCompletion">
                     <option value="V{data_name}">$i18n.getString( "data_name" )</option>
                     <option value="V{data_description}">$i18n.getString( "data_description" )</option>
                     <option value="V{complete_registration_ou}">$i18n.getString( "complete_registration_ou" )</option>
@@ -112,6 +113,19 @@
                 </select>
             </td>
         </tr>
+
+        <tr id="paramsContainerForSchedule" style="display: none;">
+            <td>$i18n.getString( "params" )</td>
+            <td>
+                <select multiple size="4" id="paramsForSchedule">
+                    <option value="V{data_name}">$i18n.getString( "data_name" )</option>
+                    <option value="V{data_description}">$i18n.getString( "data_description" )</option>
+                    <option value="V{complete_registration_ou}">$i18n.getString( "complete_registration_ou" )</option>
+                    <option value="V{complete_registration_period}">$i18n.getString( "complete_registration_period" )</option>
+                </select>
+            </td>
+        </tr>
+
         <tr>
             <td>
                 <label for="subjectTemplate">$i18n.getString( "subject_template" )</label>

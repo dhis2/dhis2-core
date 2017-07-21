@@ -3,11 +3,18 @@
  */
 ( function( qs ) {
     jQuery( document ).ready( function() {
-        var params = qs( '#params' );
+
         var focusedTextArea = qs( '#subjectTemplate' );
         var recipientSelector = qs( '#notificationRecipient' );
         var userGroup = qs( '#userGroup' );
         var userGroupContainer = qs( '#userGroupContainer' );
+
+        var paramsContainerForCompletion = qs( '#paramsContainerForCompletion' );
+        var paramsContainerForSchedule = qs( '#paramsContainerForSchedule' );
+
+        var paramsForCompletion = qs( '#paramsForCompletion' );
+        var paramsForSchedule = qs( '#paramsForSchedule' );
+
 
         var programAttributeContainer=qs('#programAttributeContainer');
         var programAttribute = qs('#programAttribute');
@@ -26,6 +33,11 @@
         var isUpdate = JSON.parse( qs( '#isUpdate' ).value );
 
         var templateUid = isUpdate ? qs( '#templateUid' ).value : undefined;
+
+        if ( !isUpdate )
+        {
+            paramsContainerForCompletion.style.display = 'table-row';
+        }
 
         // Event handlers
 
@@ -62,15 +74,27 @@
         notificationTrigger.addEventListener( "change", function( e ) {
             if ( notificationTrigger.value == 'COMPLETION' ) {
                 daysContainer.style.display = 'none';
+
+                paramsContainerForCompletion.style.display = 'table-row';
+                paramsContainerForSchedule.style.display = 'none';
+
             } else {
                 daysContainer.style.display = 'table-row';
                 days.value = undefined;
+                
+                paramsContainerForSchedule.style.display = 'table-row';
+                paramsContainerForCompletion.style.display = 'none';
             }
         } );
 
-        params.addEventListener( "dblclick", function() {
-            insertTextCommon( focusedTextArea.id, params.value );
+        paramsContainerForCompletion.addEventListener( "dblclick", function() {
+            insertTextCommon( focusedTextArea.id, paramsForCompletion.value );
         } );
+
+        paramsContainerForSchedule.addEventListener( "dblclick", function() {
+            insertTextCommon( focusedTextArea.id, paramsForSchedule.value );
+        } );
+
 
         cancelButton.addEventListener( "click", returnToListing );
 
