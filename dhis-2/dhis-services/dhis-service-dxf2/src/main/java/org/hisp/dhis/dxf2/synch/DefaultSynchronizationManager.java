@@ -49,6 +49,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
@@ -297,6 +298,7 @@ public class DefaultSynchronizationManager
     public ImportSummaries executeAnonymousEventPush() throws WebMessageParseException
     {
         AvailabilityStatus availability = isRemoteServerAvailable();
+        ImportStrategy syncStrategy = ImportStrategy.NEW_AND_UPDATES;
 
         if ( !availability.isAvailable() )
         {
@@ -323,7 +325,7 @@ public class DefaultSynchronizationManager
         }
 
         String url = systemSettingManager.getSystemSetting(
-            SettingKey.REMOTE_INSTANCE_URL ) + "/api/events";
+            SettingKey.REMOTE_INSTANCE_URL ) + "/api/events?strategy=" + syncStrategy;
 
         log.info( "Remote server events POST URL: " + url );
 
