@@ -48,6 +48,8 @@ import java.util.Date;
 public class DataSetNotificationTask
     extends NoSecurityContextRunnable
 {
+    public static final String KEY_TASK = "scheduledDataSetNotificationTask";
+
     @Autowired
     private DataSetNotificationService dataSetNotificationService;
 

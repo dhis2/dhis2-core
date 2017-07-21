@@ -30,6 +30,7 @@ package org.hisp.dhis.scheduling;
 
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.credentials.CredentialsExpiryAlertTask;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationTask;
 import org.hisp.dhis.datastatistics.DataStatisticsTask;
 import org.hisp.dhis.fileresource.FileResourceCleanUpTask;
 import org.hisp.dhis.setting.SettingKey;
@@ -92,6 +93,9 @@ public class DefaultSchedulingManager
     @Autowired
     private CredentialsExpiryAlertTask credentialsExpiryAlertTask;
 
+    @Autowired
+    private DataSetNotificationTask dataSetNotificationTask;
+
     // TODO Avoid map, use bean identifier directly and get bean from context
 
     // -------------------------------------------------------------------------
@@ -131,6 +135,7 @@ public class DefaultSchedulingManager
         scheduler.scheduleTask( DataStatisticsTask.KEY_TASK, dataStatisticsTask, Scheduler.CRON_DAILY_2AM );
         scheduler.scheduleTask( ValidationResultNotificationTask.KEY_TASK, validationResultNotificationTask, Scheduler.CRON_DAILY_7AM );
         scheduler.scheduleTask( CredentialsExpiryAlertTask.KEY_TASK, credentialsExpiryAlertTask, Scheduler.CRON_DAILY_2AM );
+        scheduler.scheduleTask( DataSetNotificationTask.KEY_TASK, dataSetNotificationTask, Scheduler.CRON_DAILY_2AM );
     }
     
     @Override
