@@ -115,6 +115,11 @@ public class DefaultDataSetNotificationService
     {
         List<DataSetNotificationTemplate> templates = dsntService.getCompleteNotifications( registration.getDataSet() );
 
+        if ( registration == null || templates == null || templates.isEmpty() )
+        {
+            return;
+        }
+
         MessageBatch batch = createMessageBatch( templates, registration );
 
         sendAll( batch );
