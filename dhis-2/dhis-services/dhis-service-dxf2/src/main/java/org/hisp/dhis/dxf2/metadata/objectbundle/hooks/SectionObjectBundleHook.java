@@ -45,9 +45,6 @@ import java.util.Set;
  */
 public class SectionObjectBundleHook extends AbstractObjectBundleHook
 {
-
-
-
     @Override
     public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle  )
     {
