@@ -976,6 +976,34 @@ public class ObjectBundleServiceTest
     }
 
     @Test
+    public void testCreateDataSetNoDSEDefaults() throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_compulsory.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+        assertTrue( validate.getErrorReports().isEmpty() );
+
+        objectBundleService.commit( bundle );
+
+        List<DataSet> dataSets = manager.getAll( DataSet.class );
+        assertEquals( 1, dataSets.size() );
+
+        DataSet dataSet = dataSets.get( 0 );
+        assertEquals( dataSet.getDataSetElements().size(), 1 );
+        DataSetElement dataSetElement = dataSet.getDataSetElements().iterator().next();
+
+        assertNull( dataSetElement.getCategoryCombo() );
+    }
+
+    @Test
     public void testCreateMetadataWithIndicator() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
