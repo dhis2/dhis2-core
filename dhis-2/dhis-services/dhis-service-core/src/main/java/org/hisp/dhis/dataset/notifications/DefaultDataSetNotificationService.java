@@ -71,10 +71,10 @@ public class DefaultDataSetNotificationService
 {
     private static final Log log = LogFactory.getLog( DefaultDataSetNotificationService.class );
 
-    private ImmutableMap<DeliveryChannel, BiFunction<OrganisationUnit,ProgramMessageRecipients, ProgramMessageRecipients>> RECIPIENT_MAPPER =
-        new ImmutableMap.Builder<DeliveryChannel, BiFunction<OrganisationUnit,ProgramMessageRecipients,ProgramMessageRecipients>>()
-            .put( DeliveryChannel.SMS, ( ou, pmr ) -> resolvePhoneNumber( ou, pmr ) )
-            .put( DeliveryChannel.EMAIL, ( ou, pmr ) -> resolveEmail( ou, pmr ) )
+    private ImmutableMap<DeliveryChannel, BiFunction<Set<OrganisationUnit>,ProgramMessageRecipients, ProgramMessageRecipients>> RECIPIENT_MAPPER =
+        new ImmutableMap.Builder<DeliveryChannel, BiFunction<Set<OrganisationUnit>,ProgramMessageRecipients,ProgramMessageRecipients>>()
+            .put( DeliveryChannel.SMS, this::resolvePhoneNumbers )
+            .put( DeliveryChannel.EMAIL, this::resolveEmails )
             .build();
 
     private ImmutableMap<DeliveryChannel, Predicate<OrganisationUnit>> VALIDATOR =
@@ -108,6 +108,19 @@ public class DefaultDataSetNotificationService
     {
         List<DataSetNotificationTemplate> scheduledTemplates =
             dsntService.getScheduledNotifications( NotificationTrigger.SCHEDULED_DAYS_DUE_DATE );
+
+        // check isScheduledNow
+
+        MessageBatch batch;
+
+        Map<DataSet,Set<DataSetNotificationTemplate>> groupedByMapper = createGroupedByMapper( scheduledTemplates );
+
+        for ( Map.Entry<DataSet,Set<DataSetNotificationTemplate>> entry : groupedByMapper.entrySet() )
+        {
+            batch = createMessageBatch( Lists.newArrayList( entry.getValue() ), createRespectiveRegistrationObject( entry.getKey() ) );
+
+            sendAll( batch );
+        }
     }
 
     @Override
@@ -129,16 +142,45 @@ public class DefaultDataSetNotificationService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private ProgramMessageRecipients resolvePhoneNumber( OrganisationUnit ou, ProgramMessageRecipients pmr )
+    private CompleteDataSetRegistration createRespectiveRegistrationObject( DataSet dataSet )
     {
-        pmr.setPhoneNumbers( Sets.newHashSet( ou.getPhoneNumber() ) );
+        CompleteDataSetRegistration registration = new CompleteDataSetRegistration();
+        registration.setDataSet( dataSet );
+        registration.setPeriodName( dataSet.getPeriodType().getName() );
+
+        return registration;
+    }
+
+    private Map<DataSet,Set<DataSetNotificationTemplate>> createGroupedByMapper( List<DataSetNotificationTemplate> scheduledTemplates )
+    {
+        Map<DataSet,Set<DataSetNotificationTemplate>> mapper = new HashMap<>();
+
+        for ( DataSetNotificationTemplate template : scheduledTemplates )
+        {
+            Set<DataSet> dataSets = template.getDataSets();
+
+            dataSets.stream()
+                .forEach( ds -> mapper.computeIfAbsent( ds, d -> new HashSet<>() ).add( template ) );
+        }
+
+        return mapper;
+    }
+
+    private boolean isScheduledNow( DataSetNotificationTemplate template )
+    {
+        return true;
+    }
+
+    private ProgramMessageRecipients resolvePhoneNumbers( Set<OrganisationUnit> ous, ProgramMessageRecipients pmr )
+    {
+        pmr.setPhoneNumbers( ous.stream().map( OrganisationUnit::getPhoneNumber ).collect( Collectors.toSet() ) );
 
         return pmr;
     }
 
-    private ProgramMessageRecipients resolveEmail( OrganisationUnit ou, ProgramMessageRecipients pmr )
+    private ProgramMessageRecipients resolveEmails( Set<OrganisationUnit> ous, ProgramMessageRecipients pmr )
     {
-        pmr.setEmailAddresses( Sets.newHashSet( ou.getEmail() ) );
+        pmr.setEmailAddresses( ous.stream().map( OrganisationUnit::getEmail ).collect( Collectors.toSet() ));
 
         return pmr;
     }
@@ -166,7 +208,18 @@ public class DefaultDataSetNotificationService
     {
         NotificationMessage message = renderer.render( registration, template );
 
-        ProgramMessage programMessage = new ProgramMessage( message.getSubject(), message.getMessage(), resolveExternalRecipients( template, registration ) );
+        ProgramMessageRecipients recipients;
+
+        if ( template.getNotificationTrigger().isScheduled() )
+        {
+            recipients = resolveExternalRecipientsForSchedule( template, registration );
+        }
+        else
+        {
+            recipients = resolveExternalRecipients( template, registration );
+        }
+
+        ProgramMessage programMessage = new ProgramMessage( message.getSubject(), message.getMessage(), recipients );
 
         programMessage.setDeliveryChannels( template.getDeliveryChannels() );
 
@@ -183,6 +236,20 @@ public class DefaultDataSetNotificationService
         return dhisMessage;
     }
 
+    private ProgramMessageRecipients resolveExternalRecipientsForSchedule( DataSetNotificationTemplate template, CompleteDataSetRegistration registration )
+    {
+        ProgramMessageRecipients recipients = new ProgramMessageRecipients();
+
+        for ( DeliveryChannel channel: template.getDeliveryChannels() )
+        {
+            Set<OrganisationUnit> ous = registration.getDataSet().getSources().stream().filter( ou -> VALIDATOR.get( channel ).test( ou ) ).collect( Collectors.toSet() );
+
+            recipients = RECIPIENT_MAPPER.get( channel ).apply( ous, recipients );
+        }
+
+        return recipients;
+    }
+
     private ProgramMessageRecipients resolveExternalRecipients( DataSetNotificationTemplate template, CompleteDataSetRegistration registration )
     {
         ProgramMessageRecipients recipients = new ProgramMessageRecipients();
@@ -193,7 +260,7 @@ public class DefaultDataSetNotificationService
         {
             if ( VALIDATOR.get( channel ).test( ou ) )
             {
-                recipients = RECIPIENT_MAPPER.get( channel ).apply( ou, recipients );
+                recipients = RECIPIENT_MAPPER.get( channel ).apply( Sets.newHashSet( ou ), recipients );
             }
             else
             {
