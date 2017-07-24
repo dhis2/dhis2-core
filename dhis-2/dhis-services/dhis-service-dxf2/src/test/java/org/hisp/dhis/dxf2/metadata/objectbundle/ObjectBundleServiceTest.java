@@ -43,6 +43,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
@@ -972,6 +973,34 @@ public class ObjectBundleServiceTest
         assertNotNull( dataSet.getUser() );
         assertEquals( 1, dataSet.getCompulsoryDataElementOperands().size() );
         */
+    }
+
+    @Test
+    public void testCreateDataSetNoDSEDefaults() throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_compulsory.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+        assertTrue( validate.getErrorReports().isEmpty() );
+
+        objectBundleService.commit( bundle );
+
+        List<DataSet> dataSets = manager.getAll( DataSet.class );
+        assertEquals( 1, dataSets.size() );
+
+        DataSet dataSet = dataSets.get( 0 );
+        assertEquals( dataSet.getDataSetElements().size(), 1 );
+        DataSetElement dataSetElement = dataSet.getDataSetElements().iterator().next();
+
+        assertNull( dataSetElement.getCategoryCombo() );
     }
 
     @Test
