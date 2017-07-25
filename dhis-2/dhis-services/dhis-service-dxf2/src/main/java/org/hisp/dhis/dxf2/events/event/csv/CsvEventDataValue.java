@@ -28,13 +28,12 @@ package org.hisp.dhis.dxf2.events.event.csv;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Objects;
-
-import org.springframework.util.Assert;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.google.common.base.MoreObjects;
+import org.springframework.util.Assert;
+
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -53,7 +52,9 @@ import com.google.common.base.MoreObjects;
     "dataElement",
     "value",
     "storedBy",
-    "providedElsewhere"
+    "providedElsewhere",
+    "completedDate",
+    "completedBy"
 } )
 public class CsvEventDataValue
 {
@@ -85,6 +86,10 @@ public class CsvEventDataValue
 
     private Boolean providedElsewhere;
 
+    private String completedDate;
+
+    private String completedBy;
+
     public CsvEventDataValue()
     {
     }
@@ -93,20 +98,22 @@ public class CsvEventDataValue
     {
         Assert.notNull( dataValue, "A non-null CsvOutputEventDataValue must be given as a parameter." );
 
-        this.event = dataValue.getEvent();
-        this.status = dataValue.getStatus();
-        this.program = dataValue.getProgram();
-        this.programStage = dataValue.getProgramStage();
-        this.enrollment = dataValue.getEnrollment();
-        this.orgUnit = dataValue.getOrgUnit();
-        this.eventDate = dataValue.getEventDate();
-        this.dueDate = dataValue.getDueDate();
-        this.latitude = dataValue.getLatitude();
-        this.longitude = dataValue.getLongitude();
-        this.dataElement = dataValue.getDataElement();
-        this.value = dataValue.getValue();
-        this.storedBy = dataValue.getStoredBy();
-        this.providedElsewhere = dataValue.getProvidedElsewhere();
+        event = dataValue.getEvent();
+        status = dataValue.getStatus();
+        program = dataValue.getProgram();
+        programStage = dataValue.getProgramStage();
+        enrollment = dataValue.getEnrollment();
+        orgUnit = dataValue.getOrgUnit();
+        eventDate = dataValue.getEventDate();
+        dueDate = dataValue.getDueDate();
+        latitude = dataValue.getLatitude();
+        longitude = dataValue.getLongitude();
+        dataElement = dataValue.getDataElement();
+        value = dataValue.getValue();
+        storedBy = dataValue.getStoredBy();
+        providedElsewhere = dataValue.getProvidedElsewhere();
+        completedDate = dataValue.getCompletedDate();
+        completedBy = dataValue.getCompletedBy();
     }
 
     @JsonProperty
@@ -263,11 +270,33 @@ public class CsvEventDataValue
         this.storedBy = storedBy;
     }
 
+    @JsonProperty
+    public String getCompletedDate()
+    {
+        return this.completedDate;
+    }
+
+    public void setCompletedDate( String completedDate )
+    {
+        this.completedDate = completedDate;
+    }
+
+    @JsonProperty
+    public String getCompletedBy()
+    {
+        return this.completedBy;
+    }
+
+    public void setCompletedBy( String completedBy )
+    {
+        this.completedBy = completedBy;
+    }
+
     @Override
     public int hashCode()
     {
         return Objects.hash( event, status, program, programStage, orgUnit, enrollment, eventDate, dueDate, latitude, longitude,
-            dataElement, value, storedBy, providedElsewhere );
+            dataElement, value, storedBy, providedElsewhere, completedDate, completedBy );
     }
 
     @Override
@@ -290,7 +319,8 @@ public class CsvEventDataValue
             other.eventDate ) && Objects.equals( this.dueDate, other.dueDate ) && Objects.equals( this.latitude,
             other.latitude ) && Objects.equals( this.longitude, other.longitude ) && Objects.equals( this.dataElement,
             other.dataElement ) && Objects.equals( this.value, other.value ) && Objects.equals( this.storedBy,
-            other.storedBy ) && Objects.equals( this.providedElsewhere, other.providedElsewhere );
+            other.storedBy ) && Objects.equals( this.providedElsewhere, other.providedElsewhere )
+            && Objects.equals( this.completedDate, other.completedDate ) && Objects.equals( this.completedBy, other.completedBy );
     }
 
     @Override
@@ -311,6 +341,8 @@ public class CsvEventDataValue
             .add( "value", value )
             .add( "storedBy", storedBy )
             .add( "providedElsewhere", providedElsewhere )
+            .add( "completedDate", completedDate )
+            .add( "completedBy", completedBy )
             .toString();
     }
 }
