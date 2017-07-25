@@ -54,7 +54,7 @@ public interface CompleteDataSetRegistrationService
      * Saves a CompleteDataSetRegistration.
      *
      * @param registration the CompleteDataSetRegistration to save.
-     * @param ignoreDataSetSettings       indicates whether a notification should be sent.
+     * @param ignoreDataSetSettings for overriding DataSet settings for notification.
      */
     void saveCompleteDataSetRegistration( CompleteDataSetRegistration registration, boolean ignoreDataSetSettings );
 
@@ -62,7 +62,7 @@ public interface CompleteDataSetRegistrationService
      * Saves multiple CompleteDataSetRegistration.
      *
      * @param registrations List of CompleteDataSetRegistrations to save.
-     * @param ignoreDataSetSettings        indicates whether a notification should be sent.
+     * @param ignoreDataSetSettings for overriding DataSet settings for notification.
      */
     void saveCompleteDataSetRegistrations( List<CompleteDataSetRegistration> registrations, boolean ignoreDataSetSettings );
 
