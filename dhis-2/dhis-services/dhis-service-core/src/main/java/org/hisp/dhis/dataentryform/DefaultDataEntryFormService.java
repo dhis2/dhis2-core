@@ -369,6 +369,9 @@ public class DefaultDataEntryFormService
                 else if ( dataElement.hasOptionSet() )
                 {
                     appendCode += " name=\"entryoptionset\" class=\"entryoptionset\" tabindex=\"" + i++ + "\"" + TAG_CLOSE;
+                    appendCode += "<img class=\"commentlink\" id=\"" + dataElementId + "-" + optionComboId +"-comment\" " +
+                        "src=\"../images/comment.png\" title=\"View " +
+                        "comment\" style=\"cursor: pointer;\"" + TAG_CLOSE;
                 }
                 else if ( ValueType.LONG_TEXT == valueType )
                 {
