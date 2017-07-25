@@ -371,7 +371,7 @@ public class CompleteDataSetRegistrationController
                 attributeOptionCombo, storedBy, completionDate );
         }
 
-        registrationService.saveCompleteDataSetRegistrations( registrations, true );
+        registrationService.saveCompleteDataSetRegistrations( registrations, false );
     }
 
     @ApiVersion( { DhisApiVersion.V23, DhisApiVersion.V24, DhisApiVersion.V25, } )
@@ -453,7 +453,7 @@ public class CompleteDataSetRegistrationController
             addRegistrationsForOrgUnits( registrations, orgUnits, dataSet, period, attributeOptionCombo, storedBy, completionDate );
         }
 
-        registrationService.saveCompleteDataSetRegistrations( registrations, true );
+        registrationService.saveCompleteDataSetRegistrations( registrations, false );
     }
 
     // -------------------------------------------------------------------------
