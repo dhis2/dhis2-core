@@ -203,6 +203,14 @@
 
   <bean id="authenticatedVoter" class="org.springframework.security.access.vote.AuthenticatedVoter" />
 
+  <bean id="authenticatedVoting" class="org.springframework.security.access.vote.UnanimousBased">
+    <constructor-arg name="decisionVoters">
+      <list>
+        <ref bean="authenticatedVoter" />
+      </list>
+    </constructor-arg>
+  </bean>
+
   <bean id="methodSecurityExpressionHandler" class="org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler">
     <property name="defaultRolePrefix" value="" />
   </bean>
@@ -220,10 +228,12 @@
   <bean id="accessDecisionManager" class="org.hisp.dhis.security.vote.LogicalOrAccessDecisionManager">
     <property name="accessDecisionManagers">
       <list>
+        <ref bean="authenticatedVoting" />
         <ref bean="adminAccessDecisionVoting" />
-        <ref bean="regularAccessDecisionVoting" />
         <ref bean="webAccessDecisionVoting" />
         <ref bean="externalAccessDecisionVoting" />
+        <ref bean="actionAccessVoting" />
+        <ref bean="moduleAccessVoting" />
       </list>
     </property>
   </bean>
@@ -256,12 +266,19 @@
     </constructor-arg>
   </bean>
 
-  <bean id="regularAccessDecisionVoting" class="org.springframework.security.access.vote.UnanimousBased">
+
+  <bean id="actionAccessVoting" class="org.springframework.security.access.vote.UnanimousBased">
     <constructor-arg name="decisionVoters">
       <list>
         <ref bean="actionAccessVoter" />
+      </list>
+    </constructor-arg>
+  </bean>
+
+  <bean id="moduleAccessVoting" class="org.springframework.security.access.vote.UnanimousBased">
+    <constructor-arg name="decisionVoters">
+      <list>
         <ref bean="moduleAccessVoter" />
-        <ref bean="authenticatedVoter" />
       </list>
     </constructor-arg>
   </bean>
