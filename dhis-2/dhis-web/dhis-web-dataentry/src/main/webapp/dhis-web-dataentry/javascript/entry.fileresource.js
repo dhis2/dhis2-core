@@ -48,7 +48,6 @@
             $.ajax( {
                 url: '../api/dataValues',
                 type: 'POST',
-                dataType: 'json',
                 data: postData,
                 success: function() {
                     $fileinfoName.text( '' );
