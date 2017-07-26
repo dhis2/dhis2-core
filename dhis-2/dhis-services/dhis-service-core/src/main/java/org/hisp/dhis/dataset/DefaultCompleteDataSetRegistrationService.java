@@ -87,29 +87,25 @@ public class DefaultCompleteDataSetRegistrationService
     }
 
     @Override
-    public void saveCompleteDataSetRegistration( CompleteDataSetRegistration registration, boolean ignoreDataSetSettings )
+    public void saveCompleteDataSetRegistration( CompleteDataSetRegistration registration, boolean skipNotification )
     {
         saveCompleteDataSetRegistration( registration );
 
-        if ( !ignoreDataSetSettings )
+        if ( !skipNotification )
         {
             if ( registration.getDataSet() != null  && registration.getDataSet().isNotifyCompletingUser() )
             {
                 messageService.sendCompletenessMessage( registration );
             }
         }
-        else
-        {
-            messageService.sendCompletenessMessage( registration );
-        }
     }
 
     @Override
-    public void saveCompleteDataSetRegistrations( List<CompleteDataSetRegistration> registrations, boolean ignoreDataSetSettings )
+    public void saveCompleteDataSetRegistrations( List<CompleteDataSetRegistration> registrations, boolean skipNotification )
     {
         for ( CompleteDataSetRegistration registration : registrations )
         {
-            saveCompleteDataSetRegistration( registration, ignoreDataSetSettings );
+            saveCompleteDataSetRegistration( registration, skipNotification );
         }
     }
 
