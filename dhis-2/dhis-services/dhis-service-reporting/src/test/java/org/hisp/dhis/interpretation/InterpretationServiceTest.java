@@ -29,7 +29,6 @@ package org.hisp.dhis.interpretation;
  */
 
 import com.google.common.collect.Sets;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartService;
@@ -69,9 +68,6 @@ public class InterpretationServiceTest
 
     @Autowired
     private InterpretationService interpretationService;
-
-    @Autowired
-    private SessionFactory sessionFactory;
 
     @Autowired
     private IdentifiableObjectManager manager;
