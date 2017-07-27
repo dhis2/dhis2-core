@@ -34,6 +34,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.message.MessageService;
@@ -143,7 +144,8 @@ public class MeController
             fields.addAll( Preset.ALL.getFields() );
         }
 
-        CollectionNode collectionNode = fieldFilterService.filter( User.class, Collections.singletonList( currentUser ), fields );
+        CollectionNode collectionNode = fieldFilterService.toCollectionNode( User.class,
+            new FieldFilterParams( Collections.singletonList( currentUser ), fields ) );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
 
@@ -204,7 +206,8 @@ public class MeController
             fields.addAll( Preset.ALL.getFields() );
         }
 
-        CollectionNode collectionNode = fieldFilterService.filter( User.class, Collections.singletonList( currentUser ), fields );
+        CollectionNode collectionNode = fieldFilterService.toCollectionNode( User.class,
+            new FieldFilterParams( Collections.singletonList( currentUser ), fields ) );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         nodeService.serialize( NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) ), "application/json", response.getOutputStream() );

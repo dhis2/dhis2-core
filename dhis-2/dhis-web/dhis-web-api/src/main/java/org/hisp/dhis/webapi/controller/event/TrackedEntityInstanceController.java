@@ -50,6 +50,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.node.NodeUtils;
@@ -93,7 +94,7 @@ import java.util.stream.Collectors;
  * <p>
  * programEnrollmentStartDate= ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
  * programEnrollmentEndDate= ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
- *         
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
@@ -195,7 +196,8 @@ public class TrackedEntityInstanceController
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
 
-        rootNode.addChild( fieldFilterService.filter( TrackedEntityInstance.class, trackedEntityInstances, fields ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( TrackedEntityInstance.class,
+            new FieldFilterParams( trackedEntityInstances, fields ) ) );
 
         return rootNode;
     }
@@ -413,8 +415,8 @@ public class TrackedEntityInstanceController
             fields.add( ":all" );
         }
 
-        CollectionNode collectionNode = fieldFilterService.filter( TrackedEntityInstance.class,
-            Lists.newArrayList( getTrackedEntityInstance( pvId, fields ) ), fields );
+        CollectionNode collectionNode = fieldFilterService.toCollectionNode( TrackedEntityInstance.class,
+            new FieldFilterParams( Lists.newArrayList( getTrackedEntityInstance( pvId, fields ) ), fields ) );
 
         RootNode rootNode = new RootNode( collectionNode.getChildren().get( 0 ) );
         rootNode.setDefaultNamespace( DxfNamespaces.DXF_2_0 );

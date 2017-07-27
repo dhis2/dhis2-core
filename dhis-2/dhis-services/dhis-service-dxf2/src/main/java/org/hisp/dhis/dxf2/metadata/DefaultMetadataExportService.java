@@ -56,6 +56,7 @@ import org.hisp.dhis.document.Document;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
@@ -199,7 +200,8 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
         {
-            rootNode.addChild( fieldFilterService.filter( klass, metadata.get( klass ), params.getFields( klass ) ) );
+            rootNode.addChild( fieldFilterService.toCollectionNode( klass, new FieldFilterParams( metadata.get( klass ),
+                params.getFields( klass ) ) ) );
         }
 
         return rootNode;
@@ -340,7 +342,8 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
         {
-            rootNode.addChild( fieldFilterService.filter( klass, Lists.newArrayList( metadata.get( klass ) ), Lists.newArrayList( ":owner" ) ) );
+            rootNode.addChild( fieldFilterService.toCollectionNode( klass, new FieldFilterParams( Lists.newArrayList( metadata.get( klass ) ),
+                Lists.newArrayList( ":owner" ) ) ) );
         }
 
         return rootNode;
