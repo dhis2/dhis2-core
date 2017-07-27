@@ -48,6 +48,8 @@ public final class FieldFilterParams
      */
     private List<String> fields;
 
+    private Defaults defaults = Defaults.EXCLUDE;
+
     public FieldFilterParams( List<?> objects, List<String> fields )
     {
         this.objects = objects;
@@ -73,6 +75,17 @@ public final class FieldFilterParams
     public FieldFilterParams setFields( List<String> fields )
     {
         this.fields = fields;
+        return this;
+    }
+
+    public Defaults getDefaults()
+    {
+        return defaults;
+    }
+
+    public FieldFilterParams setDefaults( Defaults defaults )
+    {
+        this.defaults = defaults;
         return this;
     }
 }

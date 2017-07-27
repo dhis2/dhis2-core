@@ -35,6 +35,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeTransformer;
@@ -43,6 +44,7 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -158,18 +160,26 @@ public class DefaultFieldFilterService implements FieldFilterService
         }
 
         final FieldMap finalFieldMap = fieldMap;
-        objects.forEach( object -> collectionNode.addChild( buildNode( finalFieldMap, wrapper, object ) ) );
+
+        objects.forEach( object -> {
+            AbstractNode node = buildNode( finalFieldMap, wrapper, object, params.getDefaults() );
+
+            if ( node != null )
+            {
+                collectionNode.addChild( node );
+            }
+        } );
 
         return collectionNode;
     }
 
-    private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object )
+    private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object, Defaults defaults )
     {
         Schema schema = schemaService.getDynamicSchema( klass );
-        return buildNode( fieldMap, klass, object, schema.getName() );
+        return buildNode( fieldMap, klass, object, schema.getName(), defaults );
     }
 
-    private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object, String nodeName )
+    private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object, String nodeName, Defaults defaults )
     {
         Schema schema = schemaService.getDynamicSchema( klass );
 
@@ -179,6 +189,12 @@ public class DefaultFieldFilterService implements FieldFilterService
         if ( object == null )
         {
             return new SimpleNode( schema.getName(), null );
+        }
+
+        if ( Defaults.EXCLUDE == defaults && IdentifiableObject.class.isInstance( object )
+            && Preheat.isDefault( (IdentifiableObject) object ) )
+        {
+            return null;
         }
 
         updateFields( fieldMap, schema.getKlass() );
@@ -238,7 +254,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
                         for ( Object collectionObject : collection )
                         {
-                            Node node = buildNode( map, property.getItemKlass(), collectionObject );
+                            Node node = buildNode( map, property.getItemKlass(), collectionObject, defaults );
 
                             if ( !node.getChildren().isEmpty() )
                             {
@@ -274,7 +290,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                     }
                     else
                     {
-                        child = buildNode( getFullFieldMap( propertySchema ), property.getKlass(), returnValue );
+                        child = buildNode( getFullFieldMap( propertySchema ), property.getKlass(), returnValue, defaults );
                     }
                 }
             }
@@ -287,7 +303,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
                     for ( Object collectionObject : (Collection<?>) returnValue )
                     {
-                        Node node = buildNode( fieldValue, property.getItemKlass(), collectionObject, property.getName() );
+                        Node node = buildNode( fieldValue, property.getItemKlass(), collectionObject, property.getName(), defaults );
 
                         if ( !node.getChildren().isEmpty() )
                         {
@@ -297,7 +313,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                 }
                 else
                 {
-                    child = buildNode( fieldValue, property.getKlass(), returnValue );
+                    child = buildNode( fieldValue, property.getKlass(), returnValue, defaults );
                 }
             }
 
