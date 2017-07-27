@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataapproval.DataApprovalAudit;
@@ -44,6 +45,7 @@ import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
@@ -61,7 +63,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudi
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -164,8 +165,8 @@ public class AuditController
         }
 
         CollectionNode trackedEntityAttributeValueAudits = rootNode.addChild( new CollectionNode( "dataValueAudits", true ) );
-        trackedEntityAttributeValueAudits.addChildren( fieldFilterService.filter( DataValueAudit.class,
-            dataValueAudits, fields ).getChildren() );
+        trackedEntityAttributeValueAudits.addChildren( fieldFilterService.toCollectionNode( DataValueAudit.class,
+            new FieldFilterParams( dataValueAudits, fields ) ).getChildren() );
 
         return rootNode;
     }
@@ -216,8 +217,8 @@ public class AuditController
         }
 
         CollectionNode trackedEntityAttributeValueAudits = rootNode.addChild( new CollectionNode( "trackedEntityDataValueAudits", true ) );
-        trackedEntityAttributeValueAudits.addChildren( fieldFilterService.filter( TrackedEntityDataValueAudit.class,
-            dataValueAudits, fields ).getChildren() );
+        trackedEntityAttributeValueAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityDataValueAudit.class,
+            new FieldFilterParams( dataValueAudits, fields ) ).getChildren() );
 
         return rootNode;
     }
@@ -264,8 +265,8 @@ public class AuditController
         }
 
         CollectionNode trackedEntityAttributeValueAudits = rootNode.addChild( new CollectionNode( "trackedEntityAttributeValueAudits", true ) );
-        trackedEntityAttributeValueAudits.addChildren( fieldFilterService.filter( TrackedEntityAttributeValueAudit.class,
-            attributeValueAudits, fields ).getChildren() );
+        trackedEntityAttributeValueAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityAttributeValueAudit.class,
+            new FieldFilterParams( attributeValueAudits, fields ) ).getChildren() );
 
         return rootNode;
     }
@@ -315,8 +316,8 @@ public class AuditController
         }
 
         CollectionNode dataApprovalAudits = rootNode.addChild( new CollectionNode( "dataApprovalAudits", true ) );
-        dataApprovalAudits.addChildren( fieldFilterService.filter( DataApprovalAudit.class,
-            audits, fields ).getChildren() );
+        dataApprovalAudits.addChildren( fieldFilterService.toCollectionNode( DataApprovalAudit.class,
+            new FieldFilterParams( audits, fields ) ).getChildren() );
 
         return rootNode;
     }

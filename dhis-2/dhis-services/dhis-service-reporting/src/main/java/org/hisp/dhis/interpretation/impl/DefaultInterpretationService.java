@@ -129,6 +129,7 @@ public class DefaultInterpretationService
     @Override
     public void updateInterpretation( Interpretation interpretation )
     {
+        interpretation.updateSharing();
         interpretationStore.update( interpretation );
     }
 
