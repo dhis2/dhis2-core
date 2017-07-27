@@ -33,6 +33,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.dxf2.common.OrderParams;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
@@ -130,7 +131,8 @@ public class ProgramDataElementController
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
 
-        rootNode.addChild( fieldFilterService.filter( ProgramDataElementDimensionItem.class, programDataElements, fields ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( ProgramDataElementDimensionItem.class,
+            new FieldFilterParams( programDataElements, fields ) ) );
 
         return rootNode;
     }

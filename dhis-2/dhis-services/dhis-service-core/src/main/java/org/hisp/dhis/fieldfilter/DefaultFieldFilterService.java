@@ -49,7 +49,6 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
@@ -108,13 +107,17 @@ public class DefaultFieldFilterService implements FieldFilterService
     }
 
     @Override
-    public ComplexNode filter( Object object, List<String> fieldList )
+    public ComplexNode toComplexNode( FieldFilterParams params )
     {
-        Assert.notNull( object, "Object cannot be null" );
+        if ( params.getObjects().isEmpty() )
+        {
+            return null;
+        }
 
-        CollectionNode collectionNode = filter( object.getClass(), Lists.newArrayList( object ), fieldList );
+        Object object = params.getObjects().get( 0 );
+        CollectionNode collectionNode = toCollectionNode( object.getClass(), params );
 
-        if ( collectionNode.getChildren().size() > 0 )
+        if ( !collectionNode.getChildren().isEmpty() )
         {
             return (ComplexNode) collectionNode.getChildren().get( 0 );
         }
@@ -123,16 +126,18 @@ public class DefaultFieldFilterService implements FieldFilterService
     }
 
     @Override
-    public CollectionNode filter( Class<?> klass, List<?> objects, List<String> fieldList )
+    public CollectionNode toCollectionNode( Class<?> wrapper, FieldFilterParams params )
     {
-        String fields = fieldList == null ? "" : Joiner.on( "," ).join( fieldList );
+        String fields = params.getFields() == null ? "" : Joiner.on( "," ).join( params.getFields() );
 
-        Schema rootSchema = schemaService.getDynamicSchema( klass );
+        Schema rootSchema = schemaService.getDynamicSchema( wrapper );
 
         CollectionNode collectionNode = new CollectionNode( rootSchema.getCollectionName() );
         collectionNode.setNamespace( rootSchema.getNamespace() );
 
-        if ( objects == null || objects.isEmpty() )
+        List<?> objects = params.getObjects();
+
+        if ( params.getObjects().isEmpty() )
         {
             return collectionNode;
         }
@@ -153,7 +158,7 @@ public class DefaultFieldFilterService implements FieldFilterService
         }
 
         final FieldMap finalFieldMap = fieldMap;
-        objects.forEach( object -> collectionNode.addChild( buildNode( finalFieldMap, klass, object ) ) );
+        objects.forEach( object -> collectionNode.addChild( buildNode( finalFieldMap, wrapper, object ) ) );
 
         return collectionNode;
     }

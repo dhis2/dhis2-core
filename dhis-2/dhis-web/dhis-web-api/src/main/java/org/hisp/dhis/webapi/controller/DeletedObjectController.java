@@ -33,6 +33,7 @@ import com.google.common.collect.Lists;
 import org.hisp.dhis.deletedobject.DeletedObject;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
@@ -83,7 +84,7 @@ public class DeletedObjectController
             rootNode.addChild( NodeUtils.createPager( query.getPager() ) );
         }
 
-        rootNode.addChild( fieldFilterService.filter( DeletedObject.class, deletedObjects, fields ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( DeletedObject.class, new FieldFilterParams( deletedObjects, fields ) ) );
 
         return rootNode;
     }
