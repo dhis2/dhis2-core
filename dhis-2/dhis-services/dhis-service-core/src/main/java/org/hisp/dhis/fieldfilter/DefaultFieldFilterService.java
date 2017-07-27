@@ -201,7 +201,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
         for ( String fieldKey : fieldMap.keySet() )
         {
-            AbstractNode child;
+            AbstractNode child = null;
             Property property = schema.getProperty( fieldKey );
 
             if ( property == null || !property.isReadable() )
@@ -245,7 +245,11 @@ public class DefaultFieldFilterService implements FieldFilterService
                     {
                         for ( Object collectionObject : collection )
                         {
-                            child.addChild( getProperties( property, collectionObject, fields ) );
+                            if ( !(Defaults.EXCLUDE == defaults && IdentifiableObject.class.isInstance( collectionObject )
+                                && Preheat.isDefault( (IdentifiableObject) collectionObject )) )
+                            {
+                                child.addChild( getProperties( property, collectionObject, fields ) );
+                            }
                         }
                     }
                     else if ( !property.isSimple() )
@@ -276,7 +280,11 @@ public class DefaultFieldFilterService implements FieldFilterService
                 }
                 else if ( property.isIdentifiableObject() && isProperIdObject( property.getKlass() ) )
                 {
-                    child = getProperties( property, returnValue, fields );
+                    if ( !(Defaults.EXCLUDE == defaults && IdentifiableObject.class.isInstance( returnValue )
+                        && Preheat.isDefault( (IdentifiableObject) returnValue )) )
+                    {
+                        child = getProperties( property, returnValue, fields );
+                    }
                 }
                 else
                 {

@@ -48,12 +48,19 @@ public final class FieldFilterParams
      */
     private List<String> fields;
 
-    private Defaults defaults = Defaults.EXCLUDE;
+    private Defaults defaults = Defaults.INCLUDE;
 
     public FieldFilterParams( List<?> objects, List<String> fields )
     {
         this.objects = objects;
         this.fields = fields;
+    }
+
+    public FieldFilterParams( List<?> objects, List<String> fields, Defaults defaults )
+    {
+        this.objects = objects;
+        this.fields = fields;
+        this.defaults = defaults;
     }
 
     public List<?> getObjects()
