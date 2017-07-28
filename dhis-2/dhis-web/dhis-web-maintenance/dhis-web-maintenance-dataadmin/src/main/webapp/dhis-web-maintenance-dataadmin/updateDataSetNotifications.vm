@@ -47,7 +47,7 @@
                     <option value="-1" #if ( $days <= 0 ) selected #end>$i18n.getString( "before") </option>
                     <option value="1" #if ( $days > 0 ) selected #end>$i18n.getString( "after" )</option>
                 </select>
-                $i18n.getString( "completion_date" )
+                $i18n.getString( "period_ends" )
                 <input type="hidden" id="relativeScheduledDays" />
             </td>
         </tr>

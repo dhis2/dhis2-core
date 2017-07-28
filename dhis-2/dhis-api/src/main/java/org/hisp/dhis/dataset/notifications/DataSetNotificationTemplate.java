@@ -61,7 +61,7 @@ public class DataSetNotificationTemplate
 
     private String subjectTemplate;
 
-    private Integer relativeScheduledDays = null;
+    private Integer relativeScheduledDays = 0;
 
     private NotificationTrigger notificationTrigger;
 

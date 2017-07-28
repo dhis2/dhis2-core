@@ -28,13 +28,30 @@ package org.hisp.dhis.webapi.controller.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang.time.DateUtils;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationService;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.schema.descriptors.DataSetNotificationTemplateSchemaDescriptor;
+import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Date;
+
 
 /**
  * Created by zubair on 02.07.17.
@@ -45,4 +62,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class DataSetNotificationTemplateController extends
     AbstractCrudController<DataSetNotificationTemplate>
 {
+    @Autowired
+    private DataSetNotificationService dataSetNotificationService;
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
+    @RequestMapping( value = "/go", method = RequestMethod.POST, consumes = "application/json" )
+    public void sendSMSMessage(HttpServletResponse response, HttpServletRequest request )
+            throws WebMessageException, IOException
+    {
+        dataSetNotificationService.sendScheduledDataSetNotificationsForDay( new Date() );
+    }
 }

@@ -37,8 +37,15 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.tools.ant.taskdefs.condition.Or;
 import org.hibernate.cfg.DefaultNamingStrategy;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.completeness.DataSetCompletenessResult;
+import org.hisp.dhis.completeness.DataSetCompletenessService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datasetreport.DataSetReportService;
+import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.message.Message;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
@@ -53,9 +60,11 @@ import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.function.BiFunction;
@@ -66,18 +75,26 @@ import java.util.stream.Stream;
 /**
  * Created by zubair on 04.07.17.
  */
+
+@Transactional
 public class DefaultDataSetNotificationService
     implements DataSetNotificationService
 {
     private static final Log log = LogFactory.getLog( DefaultDataSetNotificationService.class );
 
-    private ImmutableMap<DeliveryChannel, BiFunction<Set<OrganisationUnit>,ProgramMessageRecipients, ProgramMessageRecipients>> RECIPIENT_MAPPER =
+    private final ImmutableMap<DeliveryChannel, BiFunction<Set<OrganisationUnit>,ProgramMessageRecipients, ProgramMessageRecipients>> RECIPIENT_MAPPER =
         new ImmutableMap.Builder<DeliveryChannel, BiFunction<Set<OrganisationUnit>,ProgramMessageRecipients,ProgramMessageRecipients>>()
             .put( DeliveryChannel.SMS, this::resolvePhoneNumbers )
             .put( DeliveryChannel.EMAIL, this::resolveEmails )
             .build();
 
-    private ImmutableMap<DeliveryChannel, Predicate<OrganisationUnit>> VALIDATOR =
+    private final ImmutableMap<Boolean, Function<DataSetNotificationTemplate, Integer>> DAYS_RESOLVER =
+        new ImmutableMap.Builder<Boolean, Function<DataSetNotificationTemplate, Integer>>()
+            .put( false, DataSetNotificationTemplate::getRelativeScheduledDays )  // Overdue reminder
+            .put( true, template -> template.getRelativeScheduledDays() * -1 )  // Future reminder
+            .build();
+
+    private final ImmutableMap<DeliveryChannel, Predicate<OrganisationUnit>> VALIDATOR =
         new ImmutableMap.Builder<DeliveryChannel, Predicate<OrganisationUnit>>()
             .put( DeliveryChannel.SMS, ou ->  ou.getPhoneNumber() != null && !ou.getPhoneNumber().isEmpty() )
             .put( DeliveryChannel.EMAIL, ou ->  ou.getEmail() != null && !ou.getEmail().isEmpty() )
@@ -99,6 +116,12 @@ public class DefaultDataSetNotificationService
     @Autowired
     private NotificationMessageRenderer<CompleteDataSetRegistration> renderer;
 
+    @Autowired
+    private CompleteDataSetRegistrationService completeDataSetRegistrationService;
+
+    @Autowired
+    private I18nManager i18nManager;
+
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
@@ -109,31 +132,22 @@ public class DefaultDataSetNotificationService
         List<DataSetNotificationTemplate> scheduledTemplates =
             dsntService.getScheduledNotifications( NotificationTrigger.SCHEDULED_DAYS_DUE_DATE );
 
-        // check isScheduledNow
+        Map<CompleteDataSetRegistration, DataSetNotificationTemplate> registrationToTemplateMapper = createGroupedByMapper( scheduledTemplates );
 
-        MessageBatch batch;
-
-        Map<DataSet,Set<DataSetNotificationTemplate>> groupedByMapper = createGroupedByMapper( scheduledTemplates );
-
-        for ( Map.Entry<DataSet,Set<DataSetNotificationTemplate>> entry : groupedByMapper.entrySet() )
-        {
-            batch = createMessageBatch( Lists.newArrayList( entry.getValue() ), createRespectiveRegistrationObject( entry.getKey() ) );
-
-            sendAll( batch );
-        }
+        sendAll( createMessageBatch( registrationToTemplateMapper ) );
     }
 
     @Override
     public void sendCompleteDataSetNotifications( CompleteDataSetRegistration registration )
     {
-        List<DataSetNotificationTemplate> templates = dsntService.getCompleteNotifications( registration.getDataSet() );
-
-        if ( registration == null || templates == null || templates.isEmpty() )
+        if ( registration == null )
         {
             return;
         }
 
-        MessageBatch batch = createMessageBatch( templates, registration );
+        List<DataSetNotificationTemplate> templates = dsntService.getCompleteNotifications( registration.getDataSet() );
+
+        MessageBatch batch = createMessageBatch( templates.stream().collect( Collectors.toMap( r -> registration, t -> t ) ) );
 
         sendAll( batch );
     }
@@ -142,33 +156,61 @@ public class DefaultDataSetNotificationService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private CompleteDataSetRegistration createRespectiveRegistrationObject( DataSet dataSet )
+    private CompleteDataSetRegistration createRespectiveRegistrationObject( DataSet dataSet, OrganisationUnit ou )
     {
+        I18nFormat format = i18nManager.getI18nFormat();
+
         CompleteDataSetRegistration registration = new CompleteDataSetRegistration();
         registration.setDataSet( dataSet );
-        registration.setPeriodName( dataSet.getPeriodType().getName() );
+        registration.setPeriod( dataSet.getPeriodType().createPeriod() );
+        registration.setPeriodName( format.formatPeriod( registration.getPeriod() ) );
+        registration.setSource( ou );
 
         return registration;
     }
 
-    private Map<DataSet,Set<DataSetNotificationTemplate>> createGroupedByMapper( List<DataSetNotificationTemplate> scheduledTemplates )
+    private Map<CompleteDataSetRegistration, DataSetNotificationTemplate> createGroupedByMapper( List<DataSetNotificationTemplate> scheduledTemplates )
     {
-        Map<DataSet,Set<DataSetNotificationTemplate>> mapper = new HashMap<>();
+        Map<CompleteDataSetRegistration, DataSetNotificationTemplate> mapper = new HashMap<>();
 
         for ( DataSetNotificationTemplate template : scheduledTemplates )
         {
             Set<DataSet> dataSets = template.getDataSets();
 
-            dataSets.stream()
-                .forEach( ds -> mapper.computeIfAbsent( ds, d -> new HashSet<>() ).add( template ) );
+            for ( DataSet dataSet : dataSets )
+            {
+                mapper = dataSet.getSources().stream()
+                    .map( ou -> createRespectiveRegistrationObject( dataSet, ou ) )
+                    .filter( r -> isScheduledNow( r, template ) )
+                    .collect( Collectors.toMap( r -> r, t -> template ) );
+            }
         }
 
         return mapper;
     }
 
-    private boolean isScheduledNow( DataSetNotificationTemplate template )
+    private boolean isScheduledNow( CompleteDataSetRegistration registration, DataSetNotificationTemplate template )
     {
-        return true;
+        return !isCompleted(registration) && isValidForSending(registration, template);
+    }
+
+    private boolean isCompleted( CompleteDataSetRegistration registration )
+    {
+       CompleteDataSetRegistration completed = completeDataSetRegistrationService.getCompleteDataSetRegistration(
+           registration.getDataSet(), registration.getPeriod(), registration.getSource(), registration.getAttributeOptionCombo() );
+
+        return completed != null;
+    }
+
+    private boolean isValidForSending( CompleteDataSetRegistration registration, DataSetNotificationTemplate template )
+    {
+        int daysToCompare;
+
+        Date dueDate = registration.getDataSet().getPeriodType().createPeriod().getEndDate();
+
+        daysToCompare = DAYS_RESOLVER.get( template.getRelativeScheduledDays() < 0).apply( template );
+
+        return DateUtils.daysBetween( new Date(), dueDate ) <= daysToCompare;
     }
 
     private ProgramMessageRecipients resolvePhoneNumbers( Set<OrganisationUnit> ous, ProgramMessageRecipients pmr )
@@ -185,19 +227,19 @@ public class DefaultDataSetNotificationService
         return pmr;
     }
 
-    private MessageBatch createMessageBatch( List<DataSetNotificationTemplate> templates, CompleteDataSetRegistration registration )
+    private MessageBatch createMessageBatch( Map<CompleteDataSetRegistration,DataSetNotificationTemplate> pair )
     {
         MessageBatch batch = new MessageBatch();
 
-        for ( DataSetNotificationTemplate template : templates )
+        for ( Map.Entry<CompleteDataSetRegistration,DataSetNotificationTemplate> entry : pair.entrySet() )
         {
-            if ( template.getNotificationRecipient().isExternalRecipient() )
+            if( entry.getValue().getNotificationRecipient().isExternalRecipient() )
             {
-                batch.programMessages.add( createProgramMessage( template, registration ) );
+                batch.programMessages.add( createProgramMessage( entry.getValue(), entry.getKey() ) );
             }
             else
             {
-                batch.dhisMessages.add( createDhisMessage( template, registration ) );
+                batch.dhisMessages.add( createDhisMessage( entry.getValue(), entry.getKey() ) );
             }
         }
 
@@ -297,9 +339,11 @@ public class DefaultDataSetNotificationService
 
         log.info( String.format( "Dispatching %d ProgramMessages", messages.size() ) );
 
-        BatchResponseStatus status = externalMessageService.sendMessages( Lists.newArrayList( messages ) );
+        log.info( "message text of fisrt programmessage " + messages.get( 0 ).getText() );
 
-        log.debug( String.format( "Resulting status from ProgramMessageService:\n %s", status.toString() ) );
+/*        BatchResponseStatus status = externalMessageService.sendMessages( messages );
+
+        log.debug( String.format( "Resulting status from ProgramMessageService:\n %s", status.toString() ) );*/
     }
 
     private void sendAll( MessageBatch messageBatch )

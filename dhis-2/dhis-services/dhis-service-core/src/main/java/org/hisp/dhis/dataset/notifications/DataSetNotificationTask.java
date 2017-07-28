@@ -97,9 +97,6 @@ public class DataSetNotificationTask
 
     private void send()
     {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set( Calendar.HOUR, 0 );
-
-        dataSetNotificationService.sendScheduledDataSetNotificationsForDay( calendar.getTime() );
+        dataSetNotificationService.sendScheduledDataSetNotificationsForDay( new Date() );
     }
 }
