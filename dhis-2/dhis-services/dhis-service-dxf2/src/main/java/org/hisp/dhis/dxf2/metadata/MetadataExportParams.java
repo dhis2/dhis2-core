@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.metadata;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.user.User;
 
@@ -79,6 +80,11 @@ public class MetadataExportParams
      * Default order to apply to all exports.
      */
     private List<String> defaultOrder = new ArrayList<>();
+
+    /**
+     * Should exported payload include defaults (coc, co etc) objects/references.
+     */
+    private Defaults defaults = Defaults.INCLUDE;
 
     public MetadataExportParams()
     {
@@ -174,5 +180,15 @@ public class MetadataExportParams
     public void setDefaultOrder( List<String> defaultOrder )
     {
         this.defaultOrder = defaultOrder;
+    }
+
+    public Defaults getDefaults()
+    {
+        return defaults;
+    }
+
+    public void setDefaults( Defaults defaults )
+    {
+        this.defaults = defaults;
     }
 }
