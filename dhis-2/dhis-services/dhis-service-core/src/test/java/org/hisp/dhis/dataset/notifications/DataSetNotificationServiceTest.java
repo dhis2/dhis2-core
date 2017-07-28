@@ -28,60 +28,13 @@ package org.hisp.dhis.dataset.notifications;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.program.notification.NotificationTrigger;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
+import org.hisp.dhis.DhisSpringTest;
 
 /**
- * Created by zubair@dhis2.org on 20.07.17.
+ * Created by zubair@dhis2.org on 28.07.17.
  */
-public class DefaultDataSetNotificationTemplateService
-    implements DataSetNotificationTemplateService
+public class DataSetNotificationServiceTest
+    extends DhisSpringTest
 {
-    @Autowired
-    private DataSetNotificationTemplateStore store;
-
-    @Override
-    public DataSetNotificationTemplate get( int id )
-    {
-        return store.get( id );
-    }
-
-    @Override
-    public DataSetNotificationTemplate get( String uid )
-    {
-        return store.getByUid( uid );
-    }
-
-    @Override
-    public List<DataSetNotificationTemplate> getCompleteNotifications( DataSet dataSet )
-    {
-       return store.getNotificationsByTriggerType( dataSet, NotificationTrigger.COMPLETION );
-    }
-
-    @Override
-    public List<DataSetNotificationTemplate> getScheduledNotifications( NotificationTrigger trigger )
-    {
-        return store.getScheduledNotifications( trigger );
-    }
-
-    @Override
-    public List<DataSetNotificationTemplate> getAll()
-    {
-        return store.getAll();
-    }
-
-    @Override
-    public void delete( DataSetNotificationTemplate template )
-    {
-        store.delete( template );
-    }
-
-    @Override
-    public void save( DataSetNotificationTemplate template )
-    {
-        store.save( template );
-    }
 }

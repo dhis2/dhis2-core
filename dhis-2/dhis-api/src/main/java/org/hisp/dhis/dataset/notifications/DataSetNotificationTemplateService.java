@@ -47,4 +47,8 @@ public interface DataSetNotificationTemplateService
     List<DataSetNotificationTemplate> getScheduledNotifications( NotificationTrigger trigger );
 
     List<DataSetNotificationTemplate> getAll();
+
+    void save( DataSetNotificationTemplate template );
+
+    void delete( DataSetNotificationTemplate template );
 }
