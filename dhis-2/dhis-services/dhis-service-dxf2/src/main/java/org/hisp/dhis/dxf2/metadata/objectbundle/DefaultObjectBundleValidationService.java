@@ -121,9 +121,6 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
             List<IdentifiableObject> persistedObjects = bundle.getObjects( klass, true );
             List<IdentifiableObject> allObjects = bundle.getObjectMap().get( klass );
 
-            handleDefaults( nonPersistedObjects );
-            handleDefaults( persistedObjects );
-
             typeReport.merge( checkDuplicateIds( klass, persistedObjects, nonPersistedObjects, bundle.getPreheat(), bundle.getPreheatIdentifier() ) );
 
             if ( bundle.getImportMode().isCreateAndUpdate() )
@@ -217,11 +214,6 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
     //----------------------------------------------------------------------------------------------------
     // Helpers
     //----------------------------------------------------------------------------------------------------
-
-    private void handleDefaults( List<IdentifiableObject> objects )
-    {
-        objects.removeIf( Preheat::isDefault );
-    }
 
     private TypeReport runValidationHooks( Class<? extends IdentifiableObject> klass, List<IdentifiableObject> objects, ObjectBundle bundle )
     {
@@ -446,8 +438,6 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
             if ( object == null || object.getId() == 0 )
             {
-                if ( Preheat.isDefaultClass( identifiableObject.getClass() ) ) continue;
-
                 ObjectReport objectReport = new ObjectReport( klass, idx, object != null ? object.getUid() : null );
                 objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
                 objectReport.addErrorReport( new ErrorReport( klass, ErrorCode.E5001, bundle.getPreheatIdentifier(),

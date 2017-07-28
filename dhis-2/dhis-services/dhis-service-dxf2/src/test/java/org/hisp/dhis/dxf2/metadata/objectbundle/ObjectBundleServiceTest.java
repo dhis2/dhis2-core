@@ -1549,6 +1549,22 @@ public class ObjectBundleServiceTest
         assertEquals( 1, categoryOptionCombos.size() );
     }
 
+    @Test
+    public void testMetadataWithoutDefaults() throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/metadata_no_defaults.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        objectBundleService.commit( bundle );
+    }
+
     private void defaultSetup()
     {
         DataElement de1 = createDataElement( 'A' );

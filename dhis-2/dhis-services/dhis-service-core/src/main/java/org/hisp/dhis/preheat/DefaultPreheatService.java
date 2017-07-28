@@ -811,8 +811,6 @@ public class DefaultPreheatService implements PreheatService
             return;
         }
 
-        Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = preheat.getDefaults();
-
         Schema schema = schemaService.getDynamicSchema( object.getClass() );
 
         List<Property> properties = schema.getProperties().stream()
@@ -831,11 +829,7 @@ public class DefaultPreheatService implements PreheatService
                 IdentifiableObject refObject = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
                 IdentifiableObject ref = getPersistedObject( preheat, identifier, refObject );
 
-                if ( !DataSetElement.class.isInstance( object )
-                    && (Preheat.isDefaultClass( property.getKlass() ) && (ref == null || refObject == null || "default".equals( refObject.getName() ))) )
-                {
-                    ref = defaults.get( property.getKlass() );
-                }
+                ref = connectDefaults( preheat, property, object, refObject, ref );
 
                 if ( ref != null && ref.getId() == 0 )
                 {
@@ -876,6 +870,27 @@ public class DefaultPreheatService implements PreheatService
     //-----------------------------------------------------------------------------------
     // Utility Methods
     //-----------------------------------------------------------------------------------
+
+    private IdentifiableObject connectDefaults( Preheat preheat, Property property, Object object,
+        IdentifiableObject refObject, IdentifiableObject ref )
+    {
+        Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = preheat.getDefaults();
+
+        if ( DataSetElement.class.isInstance( object ) )
+        {
+            return ref;
+        }
+
+        if ( Preheat.isDefaultClass( property.getKlass() ) )
+        {
+            if ( refObject == null )
+            {
+                ref = defaults.get( property.getKlass() );
+            }
+        }
+
+        return ref;
+    }
 
     private void cleanEmptyEntries( Map<Class<? extends IdentifiableObject>, Set<String>> map )
     {
