@@ -66,6 +66,7 @@ import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.node.NodeUtils;
+import org.hisp.dhis.node.config.InclusionStrategy;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
@@ -190,6 +191,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     public RootNode getMetadataAsNode( MetadataExportParams params )
     {
         RootNode rootNode = NodeUtils.createMetadata();
+        rootNode.getConfig().setInclusionStrategy( params.getInclusionStrategy() );
 
         SystemInfo systemInfo = systemService.getSystemInfo();
 
@@ -229,6 +231,8 @@ public class DefaultMetadataExportService implements MetadataExportService
         Map<Class<? extends IdentifiableObject>, Map<String, List<String>>> map = new HashMap<>();
 
         params.setDefaults( getEnumWithDefault( Defaults.class, parameters, "defaults", Defaults.INCLUDE ) );
+        params.setInclusionStrategy( getEnumWithDefault( InclusionStrategy.Include.class, parameters, "inclusionStrategy",
+            InclusionStrategy.Include.NON_NULL ) );
 
         if ( parameters.containsKey( "fields" ) )
         {

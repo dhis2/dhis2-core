@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.metadata;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfilter.Defaults;
+import org.hisp.dhis.node.config.InclusionStrategy;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.user.User;
 
@@ -85,6 +86,11 @@ public class MetadataExportParams
      * Should exported payload include defaults (coc, co etc) objects/references.
      */
     private Defaults defaults = Defaults.INCLUDE;
+
+    /**
+     * Inclusion strategy to use. There are a few already defined inclusions in the Inclusions enum.
+     */
+    private InclusionStrategy inclusionStrategy = InclusionStrategy.Include.NON_NULL;
 
     public MetadataExportParams()
     {
@@ -190,5 +196,15 @@ public class MetadataExportParams
     public void setDefaults( Defaults defaults )
     {
         this.defaults = defaults;
+    }
+
+    public InclusionStrategy getInclusionStrategy()
+    {
+        return inclusionStrategy;
+    }
+
+    public void setInclusionStrategy( InclusionStrategy inclusionStrategy )
+    {
+        this.inclusionStrategy = inclusionStrategy;
     }
 }
