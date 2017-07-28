@@ -31,7 +31,6 @@ package org.hisp.dhis.dataadmin.action.notifications;
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.springframework.beans.factory.annotation.Autowired;

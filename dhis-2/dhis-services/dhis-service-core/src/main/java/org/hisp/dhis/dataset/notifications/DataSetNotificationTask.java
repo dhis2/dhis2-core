@@ -29,7 +29,6 @@ package org.hisp.dhis.dataset.notifications;
  */
 
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.security.NoSecurityContextRunnable;
 import org.hisp.dhis.setting.SettingKey;
@@ -39,7 +38,6 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Calendar;
 import java.util.Date;
 
 /**

@@ -30,36 +30,24 @@ package org.hisp.dhis.dataset.notifications;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.tools.ant.taskdefs.condition.Or;
-import org.hibernate.cfg.DefaultNamingStrategy;
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.completeness.DataSetCompletenessResult;
-import org.hisp.dhis.completeness.DataSetCompletenessService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.datasetreport.DataSetReportService;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.message.Message;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.outboundmessage.BatchResponseStatus;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.notification.NotificationTrigger;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -70,7 +58,6 @@ import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Created by zubair on 04.07.17.
