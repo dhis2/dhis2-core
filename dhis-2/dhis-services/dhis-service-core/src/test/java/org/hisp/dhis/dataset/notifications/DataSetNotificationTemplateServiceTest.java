@@ -66,9 +66,6 @@ public class DataSetNotificationTemplateServiceTest
     private DataSetService dataSetService;
 
     @Autowired
-    private PeriodService periodService;
-
-    @Autowired
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
@@ -165,7 +162,7 @@ public class DataSetNotificationTemplateServiceTest
     @Test
     public void testSaveGet()
     {
-        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupA, new Integer( 0 ) );
+        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupA, 0 );
         templateA.setAutoFields();
         templateA.setName( templateNameA );
 
@@ -180,11 +177,11 @@ public class DataSetNotificationTemplateServiceTest
     @Test
     public void testDelete()
     {
-        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupA, new Integer( 0 ) );
+        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupA, 0 );
         templateA.setAutoFields();
         templateA.setName( templateNameA );
 
-        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupB, new Integer( 0 ) );
+        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupB, 0 );
         templateB.setAutoFields();
         templateB.setName( templateNameB );
 
@@ -209,11 +206,11 @@ public class DataSetNotificationTemplateServiceTest
     @Test
     public void testGetAll()
     {
-        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupA, new Integer( 0 ) );
+        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupA, 0 );
         templateA.setAutoFields();
         templateA.setName( templateNameA );
 
-        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupB, new Integer( 0 ) );
+        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupB, 0 );
         templateB.setAutoFields();
         templateB.setName( templateNameB );
 

@@ -49,9 +49,9 @@ public class DataSetNotificationMessageRenderer
         new ImmutableMap.Builder<TemplateVariable, Function<CompleteDataSetRegistration, String>>()
             .put( DataSetNotificationTemplateVariables.DATASET_NAME, cdsr -> cdsr.getDataSet().getName() )
             .put( DataSetNotificationTemplateVariables.DATASET_DESCRIPTION, cdsr -> cdsr.getDataSet().getDescription() )
-            .put( DataSetNotificationTemplateVariables.COMPLETE_REG_OU, cdsr -> cdsr.getSource().getName())
-            .put( DataSetNotificationTemplateVariables.COMPLETE_REG_PERIOD, cdsr -> cdsr.getPeriodName() )
-            .put( DataSetNotificationTemplateVariables.COMPLETE_REG_USER, cdsr -> cdsr.getStoredBy() )
+            .put( DataSetNotificationTemplateVariables.COMPLETE_REG_OU, cdsr -> cdsr.getSource().getName() )
+            .put( DataSetNotificationTemplateVariables.COMPLETE_REG_PERIOD, CompleteDataSetRegistration::getPeriodName )
+            .put( DataSetNotificationTemplateVariables.COMPLETE_REG_USER, CompleteDataSetRegistration::getStoredBy )
             .put( DataSetNotificationTemplateVariables.COMPLETE_REG_TIME, cdsr -> DateUtils.getMediumDateString() )
             .put( DataSetNotificationTemplateVariables.COMPLETE_REG_ATT_OPT_COMBO, cdsr -> cdsr.getAttributeOptionCombo().getName() )
             .build();

@@ -208,7 +208,7 @@ public class DefaultDataSetNotificationService
 
         Date dueDate = registration.getDataSet().getPeriodType().createPeriod().getEndDate();
 
-        daysToCompare = DAYS_RESOLVER.get( template.getRelativeScheduledDays() < 0).apply( template );
+        daysToCompare = DAYS_RESOLVER.get( template.getRelativeScheduledDays() < 0 ).apply( template );
 
         return DateUtils.daysBetween( new Date(), dueDate ) <= daysToCompare;
     }

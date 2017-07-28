@@ -40,7 +40,7 @@ public enum DataSetNotificationRecipient implements NotificationRecipient
 
     private boolean external;
 
-    DataSetNotificationRecipient(boolean external )
+    DataSetNotificationRecipient( boolean external )
     {
         this.external = external;
     }

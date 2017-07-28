@@ -25,7 +25,7 @@ public enum DataSetNotificationTemplateVariables
         EnumSet.allOf( DataSetNotificationTemplateVariables.class ).stream()
             .collect( Collectors.toMap( DataSetNotificationTemplateVariables::getVariableName, e -> e ) );
 
-    private String variableName;
+    private final String variableName;
 
     DataSetNotificationTemplateVariables( String variableName )
     {
