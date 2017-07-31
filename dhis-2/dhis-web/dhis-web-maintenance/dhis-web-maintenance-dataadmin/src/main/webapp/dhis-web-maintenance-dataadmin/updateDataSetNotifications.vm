@@ -52,6 +52,19 @@
             </td>
         </tr>
 
+        <tr id="sendStrategyContainer" #if ( $template.notificationTrigger.isImmediate() ) style="display: none;" #end>
+            <td>
+                <label for="sendStrategy">$i18n.getString( "send_strategy" )</label>
+            </td>
+            <td>
+            #set( $strategy = $template.sendStrategy.name() )
+            <select id="sendStrategy" name="sendStrategyHolder" style="width:100px;">
+                <option value="COLLECTIVE_SUMMARY" #if ( $strategy == "COLLECTIVE_SUMMARY" ) selected #end>$i18n.getString( "send_summary") </option>
+                <option value="SINGLE_NOTIFICATION" #if ( $strategy == "SINGLE_NOTIFICATION" ) selected #end>$i18n.getString( "send_single" )</option>
+            </select>
+            </td>
+        </tr>
+
         <tr>
             <td>
                 <label for="dataSets">$i18n.getString( "dataset_list" )</label>

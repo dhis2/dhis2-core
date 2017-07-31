@@ -24,6 +24,9 @@
         var notificationTrigger = qs( '#notificationTrigger' );
         var daysContainer = qs( '#daysContainer' );
         var days = qs( '#days' );
+
+        var sendStrategyContainer = qs('#sendStrategyContainer');
+
         var deliveryChannelsContainer = qs( '#deliveryChannelsContainer' );
         var subjectTemplateTextArea = qs( '#subjectTemplate' );
         var messageTemplateTextArea = qs( '#messageTemplate' );
@@ -74,6 +77,7 @@
         notificationTrigger.addEventListener( "change", function( e ) {
             if ( notificationTrigger.value == 'COMPLETION' ) {
                 daysContainer.style.display = 'none';
+                sendStrategyContainer.style.display = 'none';
 
                 paramsContainerForCompletion.style.display = 'table-row';
                 paramsContainerForSchedule.style.display = 'none';
@@ -81,6 +85,7 @@
             } else {
                 daysContainer.style.display = 'table-row';
                 days.value = undefined;
+                sendStrategyContainer.style.display = 'table-row';
                 
                 paramsContainerForSchedule.style.display = 'table-row';
                 paramsContainerForCompletion.style.display = 'none';
@@ -163,7 +168,8 @@
                 dataSets: getDataSets(),
                 deliveryChannels : getSelectedDeliveryChannels(),
                 subjectTemplate : qs( '#subjectTemplate' ).value,
-                messageTemplate : qs( '#messageTemplate' ).value
+                messageTemplate : qs( '#messageTemplate' ).value,
+                sendStrategy : qs('#sendStrategy').value
             };
         }
 

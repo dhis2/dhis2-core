@@ -21,6 +21,14 @@
 
         <property name="relativeScheduledDays" column="relativeScheduledDays" not-null="false" />
 
+        <property name="sendStrategy" length="50" column="sendstrategy">
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">org.hisp.dhis.notification.SendStrategy</param>
+                <param name="useNamed">true</param>
+                <param name="type">12</param>
+            </type>
+        </property>
+
         <many-to-one name="recipientUserGroup" class="org.hisp.dhis.user.UserGroup"
                      column="usergroupid" foreign-key="fk_datasetnotification_usergroup" not-null="false" />
 

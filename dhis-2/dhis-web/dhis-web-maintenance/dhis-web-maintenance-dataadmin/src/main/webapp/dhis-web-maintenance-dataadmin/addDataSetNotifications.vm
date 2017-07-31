@@ -47,6 +47,18 @@
             </td>
         </tr>
 
+        <tr id="sendStrategyContainer" style="display: none;">
+            <td>
+                <label for="sendStrategy">$i18n.getString( "send_strategy" )</label>
+            </td>
+            <td>
+                <select id="sendStrategy" name="sendStrategyHolder" style="width:100px;">
+                    <option value="COLLECTIVE_SUMMARY">$i18n.getString( "send_summary") </option>
+                    <option value="SINGLE_NOTIFICATION">$i18n.getString( "send_single" )</option>
+                </select>
+            </td>
+        </tr>a
+
         <tr>
             <td>
                 <label for="dataSets">$i18n.getString( "dataset_list" )</label>

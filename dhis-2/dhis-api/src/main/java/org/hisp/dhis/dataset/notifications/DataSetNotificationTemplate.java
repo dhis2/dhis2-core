@@ -40,6 +40,7 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.notification.NotificationRecipient;
 import org.hisp.dhis.notification.NotificationTemplate;
+import org.hisp.dhis.notification.SendStrategy;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
@@ -72,12 +73,15 @@ public class DataSetNotificationTemplate
 
     private UserGroup recipientUserGroup;
 
+    private SendStrategy sendStrategy = SendStrategy.SINGLE_NOTIFICATION;
+
     public DataSetNotificationTemplate()
     {
     }
 
     public DataSetNotificationTemplate( Set<DataSet> dataSets, Set<DeliveryChannel> deliveryChannels, String messageTemplate,
-        DataSetNotificationRecipient notificationRecipient, NotificationTrigger notificationTrigger, String subjectTemplate, UserGroup userGroup, Integer relativeScheduledDays )
+        DataSetNotificationRecipient notificationRecipient, NotificationTrigger notificationTrigger, String subjectTemplate,
+            UserGroup userGroup, Integer relativeScheduledDays, SendStrategy sendStrategy )
     {
         this.dataSets = dataSets;
         this.deliveryChannels = deliveryChannels;
@@ -87,6 +91,7 @@ public class DataSetNotificationTemplate
         this.subjectTemplate = subjectTemplate;
         this.recipientUserGroup = userGroup;
         this.relativeScheduledDays = relativeScheduledDays;
+        this.sendStrategy = sendStrategy;
     }
 
     // -------------------------------------------------------------------------
@@ -193,5 +198,17 @@ public class DataSetNotificationTemplate
     public void setRelativeScheduledDays( Integer relativeScheduledDays )
     {
         this.relativeScheduledDays = relativeScheduledDays;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public SendStrategy getSendStrategy()
+    {
+        return sendStrategy;
+    }
+
+    public void setSendStrategy( SendStrategy sendStrategy )
+    {
+        this.sendStrategy = sendStrategy;
     }
 }
