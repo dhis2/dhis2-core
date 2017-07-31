@@ -35,6 +35,7 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.notification.NotificationRecipient;
+import org.hisp.dhis.notification.SendStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -162,7 +163,7 @@ public class DataSetNotificationTemplateServiceTest
     @Test
     public void testSaveGet()
     {
-        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupA, 0 );
+        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateA.setAutoFields();
         templateA.setName( templateNameA );
 
@@ -177,11 +178,11 @@ public class DataSetNotificationTemplateServiceTest
     @Test
     public void testDelete()
     {
-        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupA, 0 );
+        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateA.setAutoFields();
         templateA.setName( templateNameA );
 
-        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupB, 0 );
+        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupB, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateB.setAutoFields();
         templateB.setName( templateNameB );
 
@@ -206,11 +207,11 @@ public class DataSetNotificationTemplateServiceTest
     @Test
     public void testGetAll()
     {
-        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupA, 0 );
+        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateA.setAutoFields();
         templateA.setName( templateNameA );
 
-        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupB, 0 );
+        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupB, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateB.setAutoFields();
         templateB.setName( templateNameB );
 

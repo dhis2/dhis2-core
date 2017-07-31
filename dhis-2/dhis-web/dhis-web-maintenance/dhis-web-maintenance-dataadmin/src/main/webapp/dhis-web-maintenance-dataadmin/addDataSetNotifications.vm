@@ -3,7 +3,6 @@
 
 <div class="inputForm">
     <input type="hidden" id="isUpdate" value="false">
-
     <table>
         <thead>
         <tr>
@@ -53,6 +52,7 @@
             </td>
             <td>
                 <select id="sendStrategy" name="sendStrategyHolder" style="width:100px;">
+                    <option value="">[$i18n.getString("please_select_strategy")]</option>
                     <option value="COLLECTIVE_SUMMARY">$i18n.getString( "send_summary") </option>
                     <option value="SINGLE_NOTIFICATION">$i18n.getString( "send_single" )</option>
                 </select>
