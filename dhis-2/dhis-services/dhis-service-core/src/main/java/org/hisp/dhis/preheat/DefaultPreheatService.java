@@ -881,11 +881,17 @@ public class DefaultPreheatService implements PreheatService
             return ref;
         }
 
+        IdentifiableObject defaultObject = defaults.get( property.getKlass() );
+
         if ( Preheat.isDefaultClass( property.getKlass() ) )
         {
             if ( refObject == null )
             {
-                ref = defaults.get( property.getKlass() );
+                ref = defaultObject;
+            }
+            else if ( refObject.getUid() != null && refObject.getUid().equals( defaultObject.getUid() ) )
+            {
+                ref = defaultObject;
             }
         }
 
