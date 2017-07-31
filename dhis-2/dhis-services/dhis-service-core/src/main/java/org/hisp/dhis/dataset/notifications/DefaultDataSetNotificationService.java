@@ -44,6 +44,7 @@ import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
@@ -326,11 +327,9 @@ public class DefaultDataSetNotificationService
 
         log.info( String.format( "Dispatching %d ProgramMessages", messages.size() ) );
 
-        log.info( "message text of fisrt programmessage " + messages.get( 0 ).getText() );
+        BatchResponseStatus status = externalMessageService.sendMessages( messages );
 
-/*        BatchResponseStatus status = externalMessageService.sendMessages( messages );
-
-        log.debug( String.format( "Resulting status from ProgramMessageService:\n %s", status.toString() ) );*/
+        log.debug( String.format( "Resulting status from ProgramMessageService:\n %s", status.toString() ) );
     }
 
     private void sendAll( MessageBatch messageBatch )
