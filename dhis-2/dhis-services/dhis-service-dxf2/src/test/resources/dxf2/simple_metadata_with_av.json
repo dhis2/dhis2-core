@@ -16,9 +16,6 @@
       "shortName": "DataElementShortA",
       "name": "DataElementA",
       "id": "SG4HuKlNEFH",
-      "categoryCombo": {
-        "id": "zU1OZFVxnw7"
-      },
       "lastUpdated": "2016-02-17T06:15:59.378+0000",
       "valueType": "TEXT"
     },
@@ -28,9 +25,6 @@
       "shortName": "DataElementShortB",
       "name": "DataElementB",
       "id": "CCwk5Yx440o",
-      "categoryCombo": {
-        "id": "zU1OZFVxnw7"
-      },
       "userGroupAccesses": [ ],
       "domainType": "AGGREGATE",
       "aggregationType": "SUM",
@@ -50,9 +44,6 @@
       "shortName": "DataElementShortC",
       "name": "DataElementC",
       "id": "j5PneRdU7WT",
-      "categoryCombo": {
-        "id": "zU1OZFVxnw7"
-      },
       "domainType": "AGGREGATE",
       "userGroupAccesses": [ ],
       "lastUpdated": "2016-02-27T03:17:13.827+0000",
@@ -89,9 +80,6 @@
       "userGroupAccesses": [ ],
       "domainType": "AGGREGATE",
       "id": "k90AVpBahO4",
-      "categoryCombo": {
-        "id": "zU1OZFVxnw7"
-      },
       "name": "DataElementD",
       "shortName": "DataElementShortD",
       "valueType": "TEXT",
@@ -217,23 +205,6 @@
       "name": "OrgUnitA"
     }
   ],
-  "categories": [
-    {
-      "created": "2016-02-17T06:13:29.131+0000",
-      "userGroupAccesses": [ ],
-      "name": "default",
-      "id": "XSypGD15atv",
-      "lastUpdated": "2016-02-27T03:27:08.138+0000",
-      "dataDimensionType": "DISAGGREGATION",
-      "dataDimension": true,
-      "publicAccess": "--------",
-      "categoryOptions": [
-        {
-          "id": "SMHi6P8WZ1H"
-        }
-      ]
-    }
-  ],
   "trackedEntities": [
     {
       "lastUpdated": "2016-02-17T06:25:08.000+0000",
@@ -242,23 +213,6 @@
       "created": "2016-02-17T06:25:08.000+0000",
       "name": "Person",
       "id": "NdUUIOhQPcu"
-    }
-  ],
-  "categoryOptionCombos": [
-    {
-      "ignoreApproval": false,
-      "lastUpdated": "2016-02-17T06:13:29.134+0000",
-      "categoryOptions": [
-        {
-          "id": "SMHi6P8WZ1H"
-        }
-      ],
-      "created": "2016-02-17T06:13:29.133+0000",
-      "id": "gOeVvNgprQ8",
-      "categoryCombo": {
-        "id": "zU1OZFVxnw7"
-      },
-      "name": "default"
     }
   ],
   "attributes": [
@@ -322,23 +276,6 @@
       "programAttribute": false
     }
   ],
-  "categoryCombos": [
-    {
-      "publicAccess": "--------",
-      "created": "2016-02-17T06:13:29.133+0000",
-      "userGroupAccesses": [ ],
-      "name": "default",
-      "skipTotal": false,
-      "id": "zU1OZFVxnw7",
-      "lastUpdated": "2016-02-17T06:13:29.135+0000",
-      "dataDimensionType": "DISAGGREGATION",
-      "categories": [
-        {
-          "id": "XSypGD15atv"
-        }
-      ]
-    }
-  ],
   "dataSets": [
     {
       "dataSetElements": [
@@ -383,9 +320,6 @@
       "indicators": [ ],
       "renderHorizontally": false,
       "compulsoryDataElementOperands": [ ],
-      "categoryCombo": {
-        "id": "zU1OZFVxnw7"
-      },
       "id": "DSaKQTwN4qg",
       "lastUpdated": "2016-02-17T06:19:18.986+0000",
       "expiryDays": 0,
@@ -459,19 +393,6 @@
       ],
       "userGroupAccesses": [ ],
       "created": "2016-02-27T03:08:49.239+0000"
-    }
-  ],
-  "categoryOptions": [
-    {
-      "id": "SMHi6P8WZ1H",
-      "shortName": "default",
-      "name": "default",
-      "created": "2016-02-17T06:13:29.120+0000",
-      "userGroupAccesses": [ ],
-      "attributeValues": [ ],
-      "lastUpdated": "2016-02-17T06:13:29.137+0000",
-      "organisationUnits": [ ],
-      "publicAccess": "--------"
     }
   ]
 }
