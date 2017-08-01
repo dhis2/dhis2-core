@@ -482,20 +482,6 @@
       "orgunitScope": false
     }
   ],
-  "categoryOptionCombos": [
-    {
-      "name": "default",
-      "ignoreApproval": false,
-      "categoryOptions": [
-        {
-          "id": "SCLqnaPwVHY"
-        }
-      ],
-      "created": "2016-03-10T04:59:27.884+0000",
-      "id": "NQigT2ThzgD",
-      "lastUpdated": "2016-03-10T04:59:27.884+0000"
-    }
-  ],
   "programs": [
     {
       "ignoreOverdueEvents": false,

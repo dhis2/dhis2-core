@@ -121,6 +121,9 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
             List<IdentifiableObject> persistedObjects = bundle.getObjects( klass, true );
             List<IdentifiableObject> allObjects = bundle.getObjectMap().get( klass );
 
+            cleanDefaults( bundle.getPreheat(), nonPersistedObjects );
+            cleanDefaults( bundle.getPreheat(), persistedObjects );
+
             typeReport.merge( checkDuplicateIds( klass, persistedObjects, nonPersistedObjects, bundle.getPreheat(), bundle.getPreheatIdentifier() ) );
 
             if ( bundle.getImportMode().isCreateAndUpdate() )
@@ -209,6 +212,11 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
         log.info( "(" + bundle.getUsername() + ") Import:Validation took " + timer.toString() );
 
         return validation;
+    }
+
+    private void cleanDefaults( Preheat preheat, List<IdentifiableObject> objects )
+    {
+        objects.removeIf( preheat::isDefault );
     }
 
     //----------------------------------------------------------------------------------------------------
@@ -476,8 +484,6 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
             if ( object == null || object.getId() == 0 )
             {
-                if ( Preheat.isDefaultClass( identifiableObject.getClass() ) ) continue;
-
                 ObjectReport objectReport = new ObjectReport( klass, idx, object != null ? object.getUid() : null );
                 objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
                 objectReport.addErrorReport( new ErrorReport( klass, ErrorCode.E5001, bundle.getPreheatIdentifier(),
@@ -596,7 +602,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                     IdentifiableObject refObject = ReflectionUtils.invokeMethod( object, p.getGetterMethod() );
                     IdentifiableObject ref = preheat.get( identifier, refObject );
 
-                    if ( ref == null && refObject != null && !Preheat.isDefaultClass( refObject.getClass() ) )
+                    if ( ref == null && refObject != null && !preheat.isDefault( refObject ) )
                     {
                         if ( !("user".equals( p.getName() ) && User.class.isAssignableFrom( p.getKlass() ) && skipSharing) )
                         {
@@ -612,11 +618,11 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
                     for ( IdentifiableObject refObject : refObjects )
                     {
-                        if ( Preheat.isDefault( refObject ) ) continue;
+                        if ( preheat.isDefault( refObject ) ) continue;
 
                         IdentifiableObject ref = preheat.get( identifier, refObject );
 
-                        if ( ref == null && refObject != null && !Preheat.isDefaultClass( refObject.getClass() ) )
+                        if ( ref == null && refObject != null )
                         {
                             preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(), ErrorCode.E5002,
                                 identifier.getIdentifiersWithName( refObject ), identifier.getIdentifiersWithName( object ), p.getCollectionName() ) );
@@ -779,7 +785,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
     {
         List<ErrorReport> errorReports = new ArrayList<>();
 
-        if ( object == null || Preheat.isDefault( object ) ) return errorReports;
+        if ( object == null || preheat.isDefault( object ) ) return errorReports;
 
         if ( !preheat.getUniquenessMap().containsKey( object.getClass() ) )
         {
@@ -863,7 +869,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
     {
         List<ErrorReport> errorReports = new ArrayList<>();
 
-        if ( object == null || Preheat.isDefault( object ) || !preheat.getMandatoryAttributes().containsKey( klass ) )
+        if ( object == null || preheat.isDefault( object ) || !preheat.getMandatoryAttributes().containsKey( klass ) )
         {
             return errorReports;
         }
@@ -922,7 +928,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
     {
         List<ErrorReport> errorReports = new ArrayList<>();
 
-        if ( object == null || Preheat.isDefault( object ) || !preheat.getUniqueAttributes().containsKey( klass ) )
+        if ( object == null || preheat.isDefault( object ) || !preheat.getUniqueAttributes().containsKey( klass ) )
         {
             return errorReports;
         }

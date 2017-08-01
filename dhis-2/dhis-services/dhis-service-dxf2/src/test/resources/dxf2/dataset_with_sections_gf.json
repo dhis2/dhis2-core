@@ -270,16 +270,6 @@
   ],
   "categories": [
     {
-      "lastUpdated": "2016-03-08T07:26:31.729+0000",
-      "userGroupAccesses": [ ],
-      "id": "k3ASmFuqr11",
-      "publicAccess": "--------",
-      "created": "2016-03-08T07:26:31.543+0000",
-      "dataDimensionType": "DISAGGREGATION",
-      "dataDimension": true,
-      "name": "default"
-    },
-    {
       "id": "XJGLlMAMCcn",
       "publicAccess": "rw------",
       "created": "2016-03-08T07:28:58.738+0000",

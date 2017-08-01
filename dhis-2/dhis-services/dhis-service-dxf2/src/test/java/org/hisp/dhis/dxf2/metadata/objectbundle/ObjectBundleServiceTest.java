@@ -796,6 +796,7 @@ public class ObjectBundleServiceTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+
         assertTrue( validate.getErrorReports().isEmpty() );
 
         objectBundleService.commit( bundle );
@@ -1539,7 +1540,6 @@ public class ObjectBundleServiceTest
     }
 
     @Test
-    @Ignore
     public void testInvalidDefaults() throws IOException
     {
         defaultSetup();
@@ -1553,14 +1553,8 @@ public class ObjectBundleServiceTest
         params.setImportStrategy( ImportStrategy.UPDATE );
         params.setObjects( metadata );
 
-        Map<String, DataElement> dataElementMap = manager.getIdMap( DataElement.class, IdScheme.UID );
-        UserGroup userGroup = manager.get( UserGroup.class, "ugabcdefghA" );
-        assertEquals( 4, dataElementMap.size() );
-        assertNotNull( userGroup );
-
         ObjectBundle bundle = objectBundleService.create( params );
-        objectBundleValidationService.validate( bundle );
-        objectBundleService.commit( bundle );
+        assertEquals( 4, objectBundleValidationService.validate( bundle ).getErrorReports().size() );
     }
 
     private void defaultSetup()
