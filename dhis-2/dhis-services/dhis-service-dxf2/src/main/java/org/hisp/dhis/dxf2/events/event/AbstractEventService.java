@@ -289,14 +289,14 @@ public abstract class AbstractEventService
         if ( program == null )
         {
             return new ImportSummary( ImportStatus.ERROR,
-                "Event.program does not point to a valid program: " + event.getProgram() ).incrementIgnored();
+                "Event.program does not point to a valid program: " + event.getProgram() ).setReference( event.getEvent() ).incrementIgnored();
         }
 
         if ( programStage == null && program.isRegistration() )
         {
             return new ImportSummary( ImportStatus.ERROR,
                 "Event.programStage does not point to a valid programStage, and program is multi stage: "
-                    + event.getProgramStage() ).incrementIgnored();
+                    + event.getProgramStage() ).setReference( event.getEvent() ).incrementIgnored();
         }
         else if ( programStage == null )
         {
@@ -308,7 +308,7 @@ public abstract class AbstractEventService
         if ( !canAccess( program, user ) )
         {
             return new ImportSummary( ImportStatus.ERROR,
-                "Current user does not have permission to access this program" ).incrementIgnored();
+                "Current user does not have permission to access this program" ).setReference( event.getEvent() ).incrementIgnored();
         }
 
         if ( program.isRegistration() )
@@ -316,7 +316,7 @@ public abstract class AbstractEventService
             if ( event.getTrackedEntityInstance() == null )
             {
                 return new ImportSummary( ImportStatus.ERROR,
-                    "No Event.trackedEntityInstance was provided for registration based program" ).incrementIgnored();
+                    "No Event.trackedEntityInstance was provided for registration based program" ).setReference( event.getEvent() ).incrementIgnored();
             }
 
             org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance = entityInstanceService
@@ -326,7 +326,7 @@ public abstract class AbstractEventService
             {
                 return new ImportSummary( ImportStatus.ERROR,
                     "Event.trackedEntityInstance does not point to a valid tracked entity instance: "
-                        + event.getTrackedEntityInstance() ).incrementIgnored();
+                        + event.getTrackedEntityInstance() ).setReference( event.getEvent() ).incrementIgnored();
             }
 
             List<ProgramInstance> programInstances = new ArrayList<>(
@@ -335,12 +335,12 @@ public abstract class AbstractEventService
             if ( programInstances.isEmpty() )
             {
                 return new ImportSummary( ImportStatus.ERROR, "Tracked entity instance: " + entityInstance.getUid()
-                    + " is not enrolled in program: " + program.getUid() ).incrementIgnored();
+                    + " is not enrolled in program: " + program.getUid() ).setReference( event.getEvent() ).incrementIgnored();
             }
             else if ( programInstances.size() > 1 )
             {
                 return new ImportSummary( ImportStatus.ERROR, "Tracked entity instance: " + entityInstance.getUid()
-                    + " have multiple active enrollments in program: " + program.getUid() ).incrementIgnored();
+                    + " have multiple active enrollments in program: " + program.getUid() ).setReference( event.getEvent() ).incrementIgnored();
             }
 
             programInstance = programInstances.get( 0 );
@@ -353,7 +353,7 @@ public abstract class AbstractEventService
                 if ( programStageInstance != null && !programStageInstance.getUid().equals( event.getEvent() ) )
                 {
                     return new ImportSummary( ImportStatus.ERROR,
-                        "Program stage is not repeatable and an event already exists" ).incrementIgnored();
+                        "Program stage is not repeatable and an event already exists" ).setReference( event.getEvent() ).incrementIgnored();
                 }
             }
             else
@@ -367,7 +367,7 @@ public abstract class AbstractEventService
                         if ( !CodeGenerator.isValidUid( event.getEvent() ) )
                         {
                             return new ImportSummary( ImportStatus.ERROR,
-                                "Event.event did not point to a valid event: " + event.getEvent() ).incrementIgnored();
+                                "Event.event did not point to a valid event: " + event.getEvent() ).setReference( event.getEvent() ).incrementIgnored();
                         }
                     }
                 }
@@ -394,7 +394,7 @@ public abstract class AbstractEventService
             else if ( programInstances.size() > 1 )
             {
                 return new ImportSummary( ImportStatus.ERROR,
-                    "Multiple active program instances exists for program: " + program.getUid() ).incrementIgnored();
+                    "Multiple active program instances exists for program: " + program.getUid() ).setReference( event.getEvent() ).incrementIgnored();
             }
 
             programInstance = programInstances.get( 0 );
@@ -408,7 +408,7 @@ public abstract class AbstractEventService
                     if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.UID ) && !CodeGenerator.isValidUid( event.getEvent() ) )
                     {
                         return new ImportSummary( ImportStatus.ERROR,
-                            "Event.event did not point to a valid event: " + event.getEvent() ).incrementIgnored();
+                            "Event.event did not point to a valid event: " + event.getEvent() ).setReference( event.getEvent() ).incrementIgnored();
                     }
                 }
             }
@@ -426,13 +426,13 @@ public abstract class AbstractEventService
         if ( organisationUnit == null )
         {
             return new ImportSummary( ImportStatus.ERROR,
-                "Event.orgUnit does not point to a valid organisation unit: " + event.getOrgUnit() ).incrementIgnored();
+                "Event.orgUnit does not point to a valid organisation unit: " + event.getOrgUnit() ).setReference( event.getEvent() ).incrementIgnored();
         }
 
         if ( !programInstance.getProgram().hasOrganisationUnit( organisationUnit ) )
         {
             return new ImportSummary( ImportStatus.ERROR,
-                "Program is not assigned to this organisation unit: " + event.getOrgUnit() ).incrementIgnored();
+                "Program is not assigned to this organisation unit: " + event.getOrgUnit() ).setReference( event.getEvent() ).incrementIgnored();
         }
 
         validateExpiryDays( event, program, null );
@@ -594,6 +594,7 @@ public abstract class AbstractEventService
         EventSearchParams params = new EventSearchParams();
         params.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         params.setLastUpdatedStartDate( lastSuccessTime );
+        params.setIncludeDeleted( true );
         return params;
     }
 

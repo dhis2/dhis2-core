@@ -28,18 +28,25 @@ package org.hisp.dhis.interpretation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.mock.MockCurrentUserService;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupAccess;
+import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.IOException;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -54,10 +61,16 @@ public class InterpretationServiceTest
     private UserService userService;
 
     @Autowired
+    private UserGroupService userGroupService;
+
+    @Autowired
     private ChartService chartService;
 
     @Autowired
     private InterpretationService interpretationService;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
 
     private User userA;
     private User userB;
@@ -91,13 +104,13 @@ public class InterpretationServiceTest
     {
         Interpretation interprA = new Interpretation( chartA, null, "Interpretation" );
         Interpretation interprB = new Interpretation( chartA, null, "Interpretation" );
-        
+
         assertEquals( chartA, interprA.getChart() );
         assertEquals( chartA, interprB.getChart() );
         assertTrue( chartA.getInterpretations().contains( interprA ) );
         assertTrue( chartA.getInterpretations().contains( interprB ) );
     }
-    
+
     @Test
     public void testSaveGet()
     {
@@ -217,16 +230,16 @@ public class InterpretationServiceTest
 
         assertEquals( 3, count );
     }
-    
+
     @Test
     public void testLikeInterpretation()
     {
         int idA = interpretationService.saveInterpretation( interpretationA );
         interpretationService.saveInterpretation( interpretationB );
-        
+
         assertEquals( 0, interpretationA.getLikes() );
         assertEquals( 0, interpretationA.getLikedBy().size() );
-        
+
         interpretationService.likeInterpretation( idA );
 
         assertEquals( 1, interpretationA.getLikes() );
@@ -236,5 +249,30 @@ public class InterpretationServiceTest
 
         assertEquals( 0, interpretationA.getLikes() );
         assertEquals( 0, interpretationA.getLikedBy().size() );
+    }
+
+    @Test
+    public void testCreateChartAndInterpretationSyncSharing() throws IOException
+    {
+        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( userA, userB ) );
+        userGroupService.addUserGroup( userGroup );
+
+        Chart chart = createChart( 'A' );
+        manager.save( chart );
+
+        chart.setPublicAccess( AccessStringHelper.READ_WRITE );
+        chart.getUserGroupAccesses().add( new UserGroupAccess( userGroup, AccessStringHelper.READ ) );
+        assertEquals( 1, chart.getUserGroupAccesses().size() );
+        manager.update( chart );
+
+        assertEquals( AccessStringHelper.READ_WRITE, chart.getPublicAccess() );
+        assertEquals( 1, chart.getUserGroupAccesses().size() );
+
+        Interpretation interpretation = new Interpretation( chart, null, "test" );
+        interpretationService.saveInterpretation( interpretation );
+        interpretationService.updateInterpretation( interpretation );
+
+        assertEquals( AccessStringHelper.READ_WRITE, interpretation.getPublicAccess() );
+        assertEquals( interpretation.getUserGroupAccesses().size(), chart.getUserGroupAccesses().size() );
     }
 }

@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.google.common.collect.Lists;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.dataapproval.DataApproval;
@@ -49,6 +50,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
@@ -64,7 +66,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.approval.Approval;
@@ -240,7 +241,8 @@ public class DataApprovalController
 
         RootNode rootNode = NodeUtils.createMetadata();
 
-        rootNode.addChild( fieldFilterService.filter( DataApprovalStateResponse.class, dataApprovalStateResponses.getDataApprovalStateResponses(), fields ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( DataApprovalStateResponse.class,
+            new FieldFilterParams( dataApprovalStateResponses.getDataApprovalStateResponses(), fields ) ) );
 
         return rootNode;
     }

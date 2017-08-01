@@ -35,6 +35,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.notification.ProgramTemplateVariable;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
@@ -58,7 +59,7 @@ public class ProgramNotificationMessageRenderer
             .build();
 
     private static final Set<ExpressionType> SUPPORTED_EXPRESSION_TYPES =
-        ImmutableSet.of( ExpressionType.ATTRIBUTE, ExpressionType.VARIABLE );
+        ImmutableSet.of( ExpressionType.TRACKED_ENTITY_ATTRIBUTE, ExpressionType.VARIABLE );
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -79,7 +80,7 @@ public class ProgramNotificationMessageRenderer
     }
 
     @Override
-    protected Map<String, String> resolveAttributeValues( Set<String> attributeKeys, ProgramInstance entity )
+    protected Map<String, String> resolveTrackedEntityAttributeValues( Set<String> attributeKeys, ProgramInstance entity )
     {
         if ( attributeKeys.isEmpty() )
         {
@@ -101,6 +102,13 @@ public class ProgramNotificationMessageRenderer
     protected Set<ExpressionType> getSupportedExpressionTypes()
     {
         return SUPPORTED_EXPRESSION_TYPES;
+    }
+
+    @Override
+    protected Map<String, String> resolveDataElementValues( Set<String> elementKeys, ProgramInstance entity )
+    {
+        // DataElements are not supported for program notifications
+        return Collections.emptyMap();
     }
 
     // -------------------------------------------------------------------------
