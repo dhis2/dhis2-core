@@ -93,7 +93,7 @@ public class ValidationNotificationMessageRenderer
     }
 
     @Override
-    protected Map<String, String> resolveAttributeValues( Set<String> attributeKeys, ValidationResult result )
+    protected Map<String, String> resolveTrackedEntityAttributeValues( Set<String> attributeKeys, ValidationResult result )
     {
         // Attributes are not supported for validation notifications
         return Collections.emptyMap();
@@ -109,5 +109,12 @@ public class ValidationNotificationMessageRenderer
     protected Set<ExpressionType> getSupportedExpressionTypes()
     {
         return SUPPORTED_EXPRESSION_TYPES;
+    }
+
+    @Override
+    protected Map<String, String> resolveDataElementValues( Set<String> elementKeys, ValidationResult entity )
+    {
+        // DataElements are not supported for validation notifications
+        return Collections.emptyMap();
     }
 }

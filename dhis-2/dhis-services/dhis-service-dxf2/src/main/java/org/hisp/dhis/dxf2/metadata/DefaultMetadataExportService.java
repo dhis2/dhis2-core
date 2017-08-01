@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.base.Enums;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
@@ -56,6 +57,8 @@ import org.hisp.dhis.document.Document;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.fieldfilter.Defaults;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
@@ -63,6 +66,8 @@ import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.node.NodeUtils;
+import org.hisp.dhis.node.config.InclusionStrategy;
+import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
@@ -186,6 +191,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     public RootNode getMetadataAsNode( MetadataExportParams params )
     {
         RootNode rootNode = NodeUtils.createMetadata();
+        rootNode.getConfig().setInclusionStrategy( params.getInclusionStrategy() );
 
         SystemInfo systemInfo = systemService.getSystemInfo();
 
@@ -199,7 +205,13 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
         {
-            rootNode.addChild( fieldFilterService.filter( klass, metadata.get( klass ), params.getFields( klass ) ) );
+            CollectionNode collectionNode = fieldFilterService.toCollectionNode( klass,
+                new FieldFilterParams( metadata.get( klass ), params.getFields( klass ), params.getDefaults() ) );
+
+            if ( !collectionNode.getChildren().isEmpty() )
+            {
+                rootNode.addChild( collectionNode );
+            }
         }
 
         return rootNode;
@@ -217,6 +229,10 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         MetadataExportParams params = new MetadataExportParams();
         Map<Class<? extends IdentifiableObject>, Map<String, List<String>>> map = new HashMap<>();
+
+        params.setDefaults( getEnumWithDefault( Defaults.class, parameters, "defaults", Defaults.INCLUDE ) );
+        params.setInclusionStrategy( getEnumWithDefault( InclusionStrategy.Include.class, parameters, "inclusionStrategy",
+            InclusionStrategy.Include.NON_NULL ) );
 
         if ( parameters.containsKey( "fields" ) )
         {
@@ -340,7 +356,8 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
         {
-            rootNode.addChild( fieldFilterService.filter( klass, Lists.newArrayList( metadata.get( klass ) ), Lists.newArrayList( ":owner" ) ) );
+            rootNode.addChild( fieldFilterService.toCollectionNode( klass, new FieldFilterParams( Lists.newArrayList( metadata.get( klass ) ),
+                Lists.newArrayList( ":owner" ) ) ) );
         }
 
         return rootNode;
@@ -800,5 +817,17 @@ public class DefaultMetadataExportService implements MetadataExportService
         identifiableObject.getAttributeValues().forEach( av -> metadata.putValue( Attribute.class, av.getAttribute() ) );
 
         return metadata;
+    }
+
+    private <T extends Enum<T>> T getEnumWithDefault( Class<T> enumKlass, Map<String, List<String>> parameters, String key, T defaultValue )
+    {
+        if ( parameters == null || parameters.get( key ) == null || parameters.get( key ).isEmpty() )
+        {
+            return defaultValue;
+        }
+
+        String value = String.valueOf( parameters.get( key ).get( 0 ) );
+
+        return Enums.getIfPresent( enumKlass, value ).or( defaultValue );
     }
 }

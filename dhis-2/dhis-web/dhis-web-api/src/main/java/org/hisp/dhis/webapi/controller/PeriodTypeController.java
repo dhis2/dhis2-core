@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
@@ -69,8 +70,8 @@ public class PeriodTypeController
     public RootNode getPeriodTypes()
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-        List<PeriodTypeDTO> periodTypes = periodService.getAllPeriodTypes().stream().map( PeriodTypeDTO::new )
-            .collect( Collectors.toList() );
+        List<PeriodTypeDTO> periodTypes = periodService.getAllPeriodTypes().stream()
+            .map( PeriodTypeDTO::new ).collect( Collectors.toList() );
 
         if ( fields.isEmpty() )
         {
@@ -78,7 +79,7 @@ public class PeriodTypeController
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.filter( PeriodTypeDTO.class, periodTypes, fields ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( PeriodTypeDTO.class, new FieldFilterParams( periodTypes, fields ) ) );
 
         return rootNode;
     }
