@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -52,6 +53,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.utils.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -62,7 +64,6 @@ import org.hisp.dhis.query.Query;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.schema.descriptors.DataSetSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.utils.FormUtils;
 import org.hisp.dhis.webapi.view.ClassPathUriResolver;
 import org.hisp.dhis.webapi.webdomain.form.Form;
@@ -212,7 +213,8 @@ public class DataSetController
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.filter( DataElementCategoryCombo.class, categoryCombos, fields ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( DataElementCategoryCombo.class,
+            new FieldFilterParams( categoryCombos, fields ) ) );
 
         return rootNode;
     }

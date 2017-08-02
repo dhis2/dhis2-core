@@ -338,7 +338,7 @@ jQuery.each(attributes, function(i, item) {
 
 	jQuery("<option />")
 		.attr("value", json)
-		.attr("selected", "selected")
+		.prop("selected", true)
 		.text(json)
 	.appendTo(jqJsonAttributeValues);
 });

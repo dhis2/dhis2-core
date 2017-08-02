@@ -39,7 +39,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
@@ -797,6 +796,7 @@ public class ObjectBundleServiceTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+
         assertTrue( validate.getErrorReports().isEmpty() );
 
         objectBundleService.commit( bundle );
@@ -1524,29 +1524,37 @@ public class ObjectBundleServiceTest
     }
 
     @Test
-    public void testCreateDuplicateDefault() throws IOException
+    public void testMetadataWithoutDefaults() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/metadata_duplicate_default.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/metadata_no_defaults.json" ).getInputStream(), RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
-        objectBundleValidationService.validate( bundle );
+        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
         objectBundleService.commit( bundle );
+    }
 
-        List<DataElementCategory> categories = manager.getAllByName( DataElementCategory.class, "default" );
-        List<DataElementCategoryOption> categoryOptions = manager.getAllByName( DataElementCategoryOption.class, "default" );
-        List<DataElementCategoryCombo> categoryCombos = manager.getAllByName( DataElementCategoryCombo.class, "default" );
-        List<DataElementCategoryOptionCombo> categoryOptionCombos = manager.getAllByName( DataElementCategoryOptionCombo.class, "default" );
+    @Test
+    public void testInvalidDefaults() throws IOException
+    {
+        defaultSetup();
 
-        assertEquals( 1, categories.size() );
-        assertEquals( 1, categoryOptions.size() );
-        assertEquals( 1, categoryCombos.size() );
-        assertEquals( 1, categoryOptionCombos.size() );
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/defaults_invalid.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setPreheatMode( PreheatMode.REFERENCE );
+        params.setImportStrategy( ImportStrategy.UPDATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        assertEquals( 3, objectBundleValidationService.validate( bundle ).getErrorReports().size() );
     }
 
     private void defaultSetup()

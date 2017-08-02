@@ -46,7 +46,6 @@ import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
-import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
@@ -61,6 +60,7 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
@@ -81,6 +81,7 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -232,7 +233,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
 
-        rootNode.addChild( fieldFilterService.filter( getEntityClass(), entities, fields ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( entities, fields ) ) );
 
         return rootNode;
     }
@@ -522,7 +523,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             postProcessEntity( entity, options, parameters );
         }
 
-        CollectionNode collectionNode = fieldFilterService.filter( getEntityClass(), entities, fields );
+        CollectionNode collectionNode = fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( entities, fields ) );
 
         if ( options.isTrue( "useWrapper" ) || entities.size() > 1 )
         {
@@ -840,11 +841,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         collectionService.addCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getAdditions() ) );
     }
 
-        @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE )
-        public void addCollectionItemsXml(
-            @PathVariable( "uid" ) String pvUid,
-            @PathVariable( "property" ) String pvProperty,
-            HttpServletRequest request, HttpServletResponse response ) throws Exception
+    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE )
+    public void addCollectionItemsXml(
+        @PathVariable( "uid" ) String pvUid,
+        @PathVariable( "property" ) String pvProperty,
+        HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         List<T> objects = getEntity( pvUid );
         IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(), IdentifiableObjects.class );
@@ -853,11 +854,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         collectionService.addCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getAdditions() ) );
     }
 
-        @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
-        public void replaceCollectionItemsJson(
-            @PathVariable( "uid" ) String pvUid,
-            @PathVariable( "property" ) String pvProperty,
-            HttpServletRequest request, HttpServletResponse response ) throws Exception
+    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
+    public void replaceCollectionItemsJson(
+        @PathVariable( "uid" ) String pvUid,
+        @PathVariable( "property" ) String pvProperty,
+        HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         List<T> objects = getEntity( pvUid );
         IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(), IdentifiableObjects.class );
@@ -921,12 +922,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         collectionService.delCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
     }
 
-        @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.DELETE )
-        public void deleteCollectionItem(
-            @PathVariable( "uid" ) String pvUid,
-            @PathVariable( "property" ) String pvProperty,
-            @PathVariable( "itemId" ) String pvItemId,
-            HttpServletRequest request, HttpServletResponse response ) throws Exception
+    @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.DELETE )
+    public void deleteCollectionItem(
+        @PathVariable( "uid" ) String pvUid,
+        @PathVariable( "property" ) String pvProperty,
+        @PathVariable( "itemId" ) String pvItemId,
+        HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         List<T> objects = getEntity( pvUid );
         response.setStatus( HttpServletResponse.SC_NO_CONTENT );

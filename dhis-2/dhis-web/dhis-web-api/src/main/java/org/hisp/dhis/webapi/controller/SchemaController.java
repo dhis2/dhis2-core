@@ -29,9 +29,11 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.google.common.collect.Lists;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.CollectionNode;
@@ -43,7 +45,6 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.Schemas;
 import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.service.WebMessageService;
@@ -106,7 +107,7 @@ public class SchemaController
         linkService.generateSchemaLinks( schemas.getSchemas() );
 
         RootNode rootNode = NodeUtils.createRootNode( "schemas" );
-        CollectionNode collectionNode = fieldFilterService.filter( Schema.class, schemas.getSchemas(), fields );
+        CollectionNode collectionNode = fieldFilterService.toCollectionNode( Schema.class, new FieldFilterParams( schemas.getSchemas(), fields ) );
         collectionNode.setWrapping( false );
         rootNode.addChild( collectionNode );
 
@@ -129,7 +130,8 @@ public class SchemaController
         {
             linkService.generateSchemaLinks( schema );
 
-            CollectionNode collectionNode = fieldFilterService.filter( Schema.class, Collections.singletonList( schema ), fields );
+            CollectionNode collectionNode = fieldFilterService.toCollectionNode( Schema.class,
+                new FieldFilterParams( Collections.singletonList( schema ), fields ) );
             return NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) );
         }
 

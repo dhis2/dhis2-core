@@ -1,4 +1,4 @@
-package org.hisp.dhis.fieldfilter;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,23 +26,34 @@ package org.hisp.dhis.fieldfilter;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import org.hisp.dhis.node.types.CollectionNode;
-import org.hisp.dhis.node.types.ComplexNode;
+import org.hibernate.Session;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.InterpretableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface FieldFilterService
+public class InterpretableObjectObjectBundleHook
+    extends AbstractObjectBundleHook
 {
-    /**
-     * Perform inclusion/exclusion on a list of objects.
-     */
-    ComplexNode toComplexNode( FieldFilterParams params );
+    @Override
+    public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
+    {
+        if ( !InterpretableObject.class.isInstance( persistedObject ) )
+        {
+            return;
+        }
 
-    /**
-     * Perform inclusion/exclusion on a list of objects.
-     */
-    CollectionNode toCollectionNode( Class<?> wrapper, FieldFilterParams params );
+        InterpretableObject interpretableObject = (InterpretableObject) persistedObject;
+        Session session = sessionFactory.getCurrentSession();
+
+        interpretableObject.getInterpretations().forEach( interpretation -> {
+            interpretation.updateSharing();
+            session.update( interpretation );
+        } );
+    }
 }
