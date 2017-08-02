@@ -1554,7 +1554,7 @@ public class ObjectBundleServiceTest
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
-        assertEquals( 4, objectBundleValidationService.validate( bundle ).getErrorReports().size() );
+        assertEquals( 3, objectBundleValidationService.validate( bundle ).getErrorReports().size() );
     }
 
     private void defaultSetup()
