@@ -5,7 +5,7 @@ jQuery(document).ready(function() {
         form.submit();
     }, {
         'beforeValidateHandler': function() {
-            $("#teaSelected").find("option").attr("selected", "selected");
+            $("#teaSelected").find("option").prop("selected", true)
             if( jQuery("#teaSelected option").length > 0 ) {
                 setFieldValue('attributeList', 'true');
             }

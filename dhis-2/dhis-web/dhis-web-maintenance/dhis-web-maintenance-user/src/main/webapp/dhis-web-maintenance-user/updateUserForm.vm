@@ -8,9 +8,9 @@
     rules["inviteEmail"].required = false;
 
     validation2('updateUserForm', function(form) {
-      jQuery("#urSelected").children().attr("selected", "selected");
-      jQuery("#ugSelected").children().attr("selected", "selected");
-      jQuery("#dcSelected").children().attr("selected", "selected");
+      jQuery("#urSelected").children().prop("selected", true)
+      jQuery("#ugSelected").children().prop("selected", true)
+      jQuery("#dcSelected").children().prop("selected", true)
 
       if( $('#orgUnitTree').find('.selected').size() == 0 ) {
         setHeaderDelayMessage('$encoder.jsEncode( $i18n.getString( "data_capture_organisation_unit_required_for_user" ) )');
