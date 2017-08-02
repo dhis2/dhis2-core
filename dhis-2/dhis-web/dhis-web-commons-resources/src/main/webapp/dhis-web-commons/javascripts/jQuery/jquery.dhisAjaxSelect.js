@@ -44,7 +44,7 @@ function dhisAjaxSelect_moveAllSelected(sourceId)
 function dhisAjaxSelect_moveAll(sourceId)
 {
     var jqSource = $("#" + sourceId);
-    jqSource.find("option").attr("selected", "selected");
+    jqSource.find("option").prop("selected", true);
     jqSource.dblclick();
 }
 
