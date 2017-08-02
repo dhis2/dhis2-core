@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.text.SimpleDateFormat;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -206,18 +207,10 @@ public class SmsUtils
 
     public static Set<String> getRecipientsPhoneNumber( Collection<User> users )
     {
-        Set<String> recipients = new HashSet<>();
-
-        for ( User user : users )
-        {
-            String phoneNumber = user.getPhoneNumber();
-
-            if ( phoneNumber != null && !phoneNumber.isEmpty() )
-            {
-                recipients.add( phoneNumber );
-            }
-        }
-        return recipients;
+        return users.parallelStream()
+            .filter( u -> u.getPhoneNumber() != null && !u.getPhoneNumber().isEmpty() )
+            .map( u -> u.getPhoneNumber() )
+            .collect( Collectors.toSet() );
     }
 
     public static Set<String> getRecipientsEmail( Collection<User> users )

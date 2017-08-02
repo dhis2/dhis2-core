@@ -52,9 +52,8 @@
             </td>
             <td>
                 <select id="sendStrategy" name="sendStrategyHolder" style="width:100px;">
-                    <option value="">[$i18n.getString("please_select_strategy")]</option>
                     <option value="COLLECTIVE_SUMMARY">$i18n.getString( "send_summary") </option>
-                    <option value="SINGLE_NOTIFICATION">$i18n.getString( "send_single" )</option>
+                    <option value="SINGLE_NOTIFICATION" selected>$i18n.getString( "send_single" )</option>
                 </select>
             </td>
         </tr>a
@@ -138,7 +137,7 @@
             </td>
         </tr>
 
-        <tr>
+        <tr id="subjectTemplateContainer" style="display: none">
             <td>
                 <label for="subjectTemplate">$i18n.getString( "subject_template" )</label>
             </td>
@@ -146,7 +145,7 @@
                 <textarea id="subjectTemplate" style="height:2em;"></textarea>
             </td>
         </tr>
-        <tr>
+        <tr id="messageTemplateContainer" style="display: none">
             <td>
                 <label for="messageTemplate">$i18n.getString( "message_template" )</label>
             </td>

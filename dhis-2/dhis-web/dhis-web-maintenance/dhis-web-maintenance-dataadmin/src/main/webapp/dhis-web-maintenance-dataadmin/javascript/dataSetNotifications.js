@@ -9,6 +9,15 @@
         var userGroup = qs( '#userGroup' );
         var userGroupContainer = qs( '#userGroupContainer' );
 
+        var notificationRecipient = qs('#notificationRecipient');
+        var subjectTemplateContainer = qs( '#subjectTemplateContainer' );
+        var messageTemplateContainer = qs( '#messageTemplateContainer' );
+        var sc = qs ('#subjectTemplate');
+        var mc = qs ('#messageTemplate');
+
+        var sendStrategy = qs('#sendStrategy');
+
+
         var paramsContainerForCompletion = qs( '#paramsContainerForCompletion' );
         var paramsContainerForSchedule = qs( '#paramsContainerForSchedule' );
 
@@ -40,6 +49,9 @@
         if ( !isUpdate )
         {
             paramsContainerForCompletion.style.display = 'table-row';
+            subjectTemplateContainer.style.display = 'table-row';
+            messageTemplateContainer.style.display = 'table-row';
+            deliveryChannelsContainer.style.display = 'table-row';
         }
 
         // Event handlers
@@ -53,6 +65,36 @@
         } );
 
         // Click handlers
+
+
+        qs('#sendStrategy').addEventListener( "change", function( e ) {
+            var strategy = qs('#sendStrategy').value;
+
+            if ( strategy === 'COLLECTIVE_SUMMARY' ) {
+
+                clearDeliveryChannels();
+
+                userGroupContainer.style.display = 'table-row';
+                userGroup.disabled = false;
+
+                notificationRecipient.value = 'USER_GROUP';
+                notificationRecipient.disabled = true;
+
+                sc.value= " ";
+                mc.value= " ";
+                subjectTemplateContainer.style.display = 'none';
+                messageTemplateContainer.style.display = 'none';
+                paramsContainerForSchedule.style.display = 'none';
+                deliveryChannelsContainer.style.display = 'none';
+
+
+
+
+            } else {
+
+                changesForSingleStrategy();
+            }
+        });
 
         recipientSelector.addEventListener( "change", function( e ) {
             var recipient = recipientSelector.value;
@@ -81,12 +123,17 @@
 
                 paramsContainerForCompletion.style.display = 'table-row';
                 paramsContainerForSchedule.style.display = 'none';
+                notificationRecipient.disabled = false;
+                subjectTemplateContainer.style.display = 'table-row';
+                messageTemplateContainer.style.display = 'table-row';
 
             } else {
                 daysContainer.style.display = 'table-row';
                 days.value = undefined;
                 sendStrategyContainer.style.display = 'table-row';
-                
+                sendStrategy.value = 'SINGLE_NOTIFICATION';
+
+
                 paramsContainerForSchedule.style.display = 'table-row';
                 paramsContainerForCompletion.style.display = 'none';
             }
@@ -110,6 +157,14 @@
 
         // Internal
 
+        function changesForSingleStrategy() {
+
+            notificationRecipient.disabled = false;
+            subjectTemplateContainer.style.display = 'table-row';
+            messageTemplateContainer.style.display = 'table-row';
+            paramsContainerForSchedule.style.display = 'table-row';
+
+        }
         function isExternalRecipient( recipient ) {
             return recipient === 'ORGANISATION_UNIT_CONTACT';
         }

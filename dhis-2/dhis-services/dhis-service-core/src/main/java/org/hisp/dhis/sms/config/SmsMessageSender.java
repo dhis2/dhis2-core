@@ -119,7 +119,7 @@ public class SmsMessageSender
         // Extract summary from text in case of COLLECTIVE_SUMMARY
         text = SUMMARY_PATTERN.matcher( text ).find() ? StringUtils.substringBefore( text, LN ) : text;
 
-        return sendMessage( subject, text, phoneNumbers );
+        return sendMessage( subject, subject + LN + text, phoneNumbers );
     }
 
     @Override
@@ -138,6 +138,8 @@ public class SmsMessageSender
 
         if ( defaultGateway == null )
         {
+            log.info( "Gateway configuration does not exist" );
+
             return new OutboundMessageResponse( NO_CONFIG, GatewayResponse.NO_GATEWAY_CONFIGURATION, false );
         }
 

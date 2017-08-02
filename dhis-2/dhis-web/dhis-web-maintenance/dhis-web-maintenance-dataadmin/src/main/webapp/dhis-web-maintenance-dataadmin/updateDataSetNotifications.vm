@@ -137,7 +137,7 @@
             </td>
         </tr>
 
-        <tr id="paramsContainerForSchedule" #if ( $trigger != "SCHEDULED_DAYS_DUE_DATE" ) style="display: none;" #end>
+        <tr id="paramsContainerForSchedule" #if ( $trigger != "SCHEDULED_DAYS_DUE_DATE" || $strategy != "SINGLE_NOTIFICATION" ) style="display: none;" #end>
             <td>$i18n.getString( "params" )</td>
             <td>
                 <select multiple size="4" id="paramsForSchedule">
@@ -149,7 +149,7 @@
             </td>
         </tr>
 
-        <tr>
+        <tr id="subjectTemplateContainer" #if ( $trigger != "COMPLETION" && $strategy != "SINGLE_NOTIFICATION" ) style="display: none;" #end>
             <td>
                 <label for="subjectTemplate">$i18n.getString( "subject_template" )</label>
             </td>
@@ -157,7 +157,7 @@
                 <textarea id="subjectTemplate" name="subjectTemplate" style="height:2em;">$!template.subjectTemplate</textarea>
             </td>
         </tr>
-        <tr>
+        <tr id="messageTemplateContainer" #if ( $trigger != "COMPLETION" && $strategy != "SINGLE_NOTIFICATION" ) style="display: none;" #end>
             <td>
                 <label for="messageTemplate">$i18n.getString( "message_template" )</label>
             </td>
