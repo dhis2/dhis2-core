@@ -31,10 +31,12 @@ package org.hisp.dhis.dataset.notifications;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -48,6 +50,7 @@ import org.hisp.dhis.notification.SendStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
@@ -122,6 +125,12 @@ public class DefaultDataSetNotificationService
     private CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
     @Autowired
+    private PeriodService periodService;
+
+    @Autowired
+    private DataElementCategoryService categoryService;
+
+    @Autowired
     private I18nManager i18nManager;
 
     // -------------------------------------------------------------------------
@@ -180,6 +189,8 @@ public class DefaultDataSetNotificationService
 
         String messageText = "";
 
+        boolean summaryCreated = false;
+
         Long pendingOus;
 
         for ( DataSetNotificationTemplate template : templates )
@@ -188,16 +199,24 @@ public class DefaultDataSetNotificationService
 
             for ( DataSet dataSet : template.getDataSets() )
             {
-                pendingOus = dataSet.getSources().parallelStream().filter( ou -> isScheduledNow( createRespectiveRegistrationObject( dataSet, ou ), template ) ).count();
+                if ( isValidForSending( createRespectiveRegistrationObject( dataSet, new OrganisationUnit() ), template ) )
+                {
+                    summaryCreated = true;
 
-                messageText += String.format( SUMMARY_TEXT, pendingOus, getPeriodString( dataSet.getPeriodType().createPeriod() ), dataSet.getName() ) + TEXT_SEPARATOR;
+                    pendingOus = dataSet.getSources().parallelStream().filter( ou -> !isCompleted( createRespectiveRegistrationObject( dataSet, ou ) ) ).count();
+
+                    messageText += String.format( SUMMARY_TEXT, pendingOus, getPeriodString( dataSet.getPeriodType().createPeriod() ), dataSet.getName() ) + TEXT_SEPARATOR;
+                }
             }
 
-            dhisMessage.message = new NotificationMessage( createSubjectString( template ), messageText );
+            if ( summaryCreated )
+            {
+                dhisMessage.message = new NotificationMessage( createSubjectString( template ), messageText );
 
-            dhisMessage.recipients = resolveInternalRecipients( template, null );
+                dhisMessage.recipients = resolveInternalRecipients( template, null );
 
-            batch.dhisMessages.add( dhisMessage );
+                batch.dhisMessages.add( dhisMessage );
+            }
         }
 
         log.info( String.format( "%d Summary notifications created.", batch.dhisMessages.size() ) );
@@ -212,10 +231,13 @@ public class DefaultDataSetNotificationService
 
     private CompleteDataSetRegistration createRespectiveRegistrationObject( DataSet dataSet, OrganisationUnit ou )
     {
+        Period period = dataSet.getPeriodType().createPeriod();
+
         CompleteDataSetRegistration registration = new CompleteDataSetRegistration();
         registration.setDataSet( dataSet );
-        registration.setPeriod( dataSet.getPeriodType().createPeriod() );
+        registration.setPeriod( periodService.getPeriod( period.getStartDate(), period.getEndDate(), period.getPeriodType() ) );
         registration.setPeriodName( getPeriodString( registration.getPeriod() ) );
+        registration.setAttributeOptionCombo( categoryService.getDefaultDataElementCategoryOptionCombo() );
         registration.setSource( ou );
 
         return registration;
@@ -265,7 +287,7 @@ public class DefaultDataSetNotificationService
     {
         int daysToCompare;
 
-        Date dueDate = registration.getDataSet().getPeriodType().createPeriod().getEndDate();
+        Date dueDate = registration.getPeriod().getEndDate();
 
         daysToCompare = DAYS_RESOLVER.get( template.getRelativeScheduledDays().intValue() < 0 ).apply( template );
 
@@ -302,7 +324,7 @@ public class DefaultDataSetNotificationService
             }
         }
 
-        log.info( String.format( "%d Single notifications created.", batch.dhisMessages.size() + batch.programMessages.size() ) );
+        log.info( String.format( "%d Single notifications created.", batch.totalMessageCount() ) );
 
         return batch;
     }
@@ -435,7 +457,7 @@ public class DefaultDataSetNotificationService
             }
         }
 
-        int messageCount()
+        int totalMessageCount()
         {
             return dhisMessages.size() + programMessages.size();
         }
