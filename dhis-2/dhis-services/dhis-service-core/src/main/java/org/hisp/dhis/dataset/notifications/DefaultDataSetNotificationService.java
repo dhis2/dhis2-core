@@ -77,7 +77,7 @@ public class DefaultDataSetNotificationService
     private static final String SUMMARY_TEXT = "Organisation units : %d" + TextUtils.LN + "Period : %s" + TextUtils.LN + "DataSet : %s";
     private static final String SUMMARY_SUBJECT = " DataSet Summary";
     private static final String PENDING = "Pending";
-    private static final String OVERUDE = "Overdue";
+    private static final String OVERDUE = "Overdue";
     private static final String TEXT_SEPARATOR =  TextUtils.LN + TextUtils.LN;
 
     private final ImmutableMap<DeliveryChannel, BiFunction<Set<OrganisationUnit>,ProgramMessageRecipients, ProgramMessageRecipients>> RECIPIENT_MAPPER =
@@ -131,6 +131,8 @@ public class DefaultDataSetNotificationService
     @Override
     public void sendScheduledDataSetNotificationsForDay( Date day )
     {
+        List<MessageBatch> batches = new ArrayList<>();
+
         List<DataSetNotificationTemplate> scheduledTemplates =
             dsntService.getScheduledNotifications( NotificationTrigger.SCHEDULED_DAYS_DUE_DATE );
 
@@ -138,9 +140,10 @@ public class DefaultDataSetNotificationService
 
         Map<CompleteDataSetRegistration, DataSetNotificationTemplate> singleNotificationCollection = createGroupedByMapper( sendStrategySetMap.get( SendStrategy.SINGLE_NOTIFICATION ) );
 
-        sendAll( createBatchForSingleNotifications( singleNotificationCollection ) );
+        batches.add( createBatchForSingleNotifications( singleNotificationCollection ) );
+        batches.add( createBatchForSummaryNotifications( sendStrategySetMap.get( SendStrategy.COLLECTIVE_SUMMARY ) ) );
 
-        sendAll( createBatchForSummaryNotifications( sendStrategySetMap.get( SendStrategy.COLLECTIVE_SUMMARY ) ) );
+        batches.parallelStream().forEach( this::sendAll );
     }
 
     @Override
@@ -197,12 +200,14 @@ public class DefaultDataSetNotificationService
             batch.dhisMessages.add( dhisMessage );
         }
 
+        log.info( String.format( "%d Summary notifications created.", batch.dhisMessages.size() ) );
+
         return batch;
     }
 
     private String createSubjectString( DataSetNotificationTemplate template )
     {
-        return template.getRelativeScheduledDays() < 0 ? PENDING + SUMMARY_SUBJECT : OVERUDE + SUMMARY_SUBJECT;
+        return template.getRelativeScheduledDays() < 0 ? PENDING + SUMMARY_SUBJECT : OVERDUE + SUMMARY_SUBJECT;
     }
 
     private CompleteDataSetRegistration createRespectiveRegistrationObject( DataSet dataSet, OrganisationUnit ou )
@@ -262,9 +267,9 @@ public class DefaultDataSetNotificationService
 
         Date dueDate = registration.getDataSet().getPeriodType().createPeriod().getEndDate();
 
-        daysToCompare = DAYS_RESOLVER.get( template.getRelativeScheduledDays() < 0 ).apply( template );
+        daysToCompare = DAYS_RESOLVER.get( template.getRelativeScheduledDays().intValue() < 0 ).apply( template );
 
-        return DateUtils.daysBetween( new Date(), dueDate ) <= daysToCompare;
+        return DateUtils.daysBetween( new Date(), dueDate ) == daysToCompare;
     }
 
     private ProgramMessageRecipients resolvePhoneNumbers( Set<OrganisationUnit> ous, ProgramMessageRecipients pmr )
@@ -296,6 +301,8 @@ public class DefaultDataSetNotificationService
                 batch.dhisMessages.add( createDhisMessage( entry.getValue(), entry.getKey() ) );
             }
         }
+
+        log.info( String.format( "%d Single notifications created.", batch.dhisMessages.size() + batch.programMessages.size() ) );
 
         return batch;
     }

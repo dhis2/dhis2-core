@@ -80,7 +80,7 @@ public class SimplisticHttpGetGateWay
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
         return batch.getMessages()
-          .stream()
+          .parallelStream()
           .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), gatewayConfig ) )
           .collect( Collectors.toList() );
      }
