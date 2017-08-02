@@ -188,7 +188,7 @@ public class DefaultDataSetNotificationService
 
             for ( DataSet dataSet : template.getDataSets() )
             {
-                pendingOus = dataSet.getSources().parallelStream().filter( ou -> !isCompleted( createRespectiveRegistrationObject( dataSet, ou ) ) ).count();
+                pendingOus = dataSet.getSources().parallelStream().filter( ou -> isScheduledNow( createRespectiveRegistrationObject( dataSet, ou ), template ) ).count();
 
                 messageText += String.format( SUMMARY_TEXT, pendingOus, getPeriodString( dataSet.getPeriodType().createPeriod() ), dataSet.getName() ) + TEXT_SEPARATOR;
             }
