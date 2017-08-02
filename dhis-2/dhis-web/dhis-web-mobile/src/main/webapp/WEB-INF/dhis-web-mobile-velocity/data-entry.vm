@@ -265,7 +265,7 @@ function saveValues( completed ) {
     var val = '';
 
     if( field.attr('type') == 'checkbox' ) {
-      val = field.attr('checked') == 'checked' ? 'true' : 'false';
+      val = field.prop('checked') == 'checked' ? 'true' : 'false';
     } else {
       val = field.val();
     }
