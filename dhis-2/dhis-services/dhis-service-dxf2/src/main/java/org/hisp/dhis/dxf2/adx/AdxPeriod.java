@@ -55,15 +55,13 @@ import org.hisp.dhis.system.util.DateUtils;
  */
 public class AdxPeriod
 {
-    public static enum Duration
+    public enum Duration
     {
         P1D, // daily
         P1W, // weekly
-        P7D, // weekly
         P1M, // monthly
         P2M, // bi-monthly
         P3M, // quarterly
-        P1Q, // quaterterly
         P6M, // 6monthly (including 6monthlyApril)
         P1Y  // yearly, financialApril, financialJuly, financialOctober
     }
@@ -92,9 +90,6 @@ public class AdxPeriod
                 case P1D:
                     periodType = new DailyPeriodType();
                     break;
-                case P7D:
-                    periodType = new WeeklyPeriodType();
-                    break;
                 case P1W:
                     periodType = new WeeklyPeriodType();
                     break;
@@ -105,9 +100,6 @@ public class AdxPeriod
                     periodType = new BiMonthlyPeriodType();
                     break;
                 case P3M:
-                    periodType = new QuarterlyPeriodType();
-                    break;
-                case P1Q:
                     periodType = new QuarterlyPeriodType();
                     break;
                 case P6M:

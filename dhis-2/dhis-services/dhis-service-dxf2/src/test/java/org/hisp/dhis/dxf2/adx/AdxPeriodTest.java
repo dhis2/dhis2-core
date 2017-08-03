@@ -58,11 +58,11 @@ public class AdxPeriodTest
             assertEquals( "20150101", period.getIsoDate() );
             period = AdxPeriod.parse( "2015-01-01/P3M" );
             assertEquals( "2015Q1", period.getIsoDate() );
-            period = AdxPeriod.parse( "2015-04-01/P1Q" );
+            period = AdxPeriod.parse( "2015-04-01/P3M" );
             assertEquals( "2015Q2", period.getIsoDate() );
             period = AdxPeriod.parse( "2015-01-01/P1W" );
             assertEquals( "2015W1", period.getIsoDate() );
-            period = AdxPeriod.parse( "2015-01-05/P7D" );
+            period = AdxPeriod.parse( "2015-01-05/P1W" );
             assertEquals( "2015W2", period.getIsoDate() );
         }
         catch ( AdxException ex)
