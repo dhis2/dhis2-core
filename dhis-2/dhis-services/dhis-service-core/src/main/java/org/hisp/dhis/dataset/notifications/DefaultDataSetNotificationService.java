@@ -31,6 +31,7 @@ package org.hisp.dhis.dataset.notifications;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -42,6 +43,7 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.message.Message;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.notification.NotificationMessage;
@@ -147,10 +149,8 @@ public class DefaultDataSetNotificationService
 
         Map<SendStrategy, Set<DataSetNotificationTemplate>> sendStrategySetMap = createMapBasedOnStrategy( scheduledTemplates );
 
-        Map<CompleteDataSetRegistration, DataSetNotificationTemplate> singleNotificationCollection = createGroupedByMapper( sendStrategySetMap.get( SendStrategy.SINGLE_NOTIFICATION ) );
-
-        batches.add( createBatchForSingleNotifications( singleNotificationCollection ) );
-        batches.add( createBatchForSummaryNotifications( sendStrategySetMap.get( SendStrategy.COLLECTIVE_SUMMARY ) ) );
+        batches.add( createBatchForSingleNotifications( sendStrategySetMap.getOrDefault( SendStrategy.SINGLE_NOTIFICATION, Sets.newHashSet() ) ) );
+        batches.add( createBatchForSummaryNotifications( sendStrategySetMap.getOrDefault( SendStrategy.COLLECTIVE_SUMMARY, Sets.newHashSet() ) ) );
 
         batches.parallelStream().forEach( this::sendAll );
     }
@@ -165,7 +165,7 @@ public class DefaultDataSetNotificationService
 
         List<DataSetNotificationTemplate> templates = dsntService.getCompleteNotifications( registration.getDataSet() );
 
-        MessageBatch batch = createBatchForSingleNotifications( templates.parallelStream().collect( Collectors.toMap( r -> registration, t -> t ) ) );
+        MessageBatch batch = createBatchForSingleNotifications( Sets.newHashSet( templates ) );
 
         sendAll( batch );
     }
@@ -250,24 +250,28 @@ public class DefaultDataSetNotificationService
         return format.formatPeriod( period );
     }
 
-    private Map<CompleteDataSetRegistration, DataSetNotificationTemplate> createGroupedByMapper( Set<DataSetNotificationTemplate> scheduledTemplates )
+    private List<Map<CompleteDataSetRegistration, DataSetNotificationTemplate>> createGroupedByMapper( Set<DataSetNotificationTemplate> scheduledTemplates )
     {
-        Map<CompleteDataSetRegistration, DataSetNotificationTemplate> mapper = new HashMap<>();
+        List<Map<CompleteDataSetRegistration, DataSetNotificationTemplate>> dataSetMapList = new ArrayList<>();
 
         for ( DataSetNotificationTemplate template : scheduledTemplates )
         {
+            Map<CompleteDataSetRegistration, DataSetNotificationTemplate> mapper = new HashMap<>();
+
             Set<DataSet> dataSets = template.getDataSets();
 
             for ( DataSet dataSet : dataSets )
             {
-                mapper = dataSet.getSources().parallelStream()
+                mapper.putAll( dataSet.getSources().parallelStream()
                     .map( ou -> createRespectiveRegistrationObject( dataSet, ou ) )
                     .filter( r -> isScheduledNow( r, template ) )
-                    .collect( Collectors.toMap( r -> r, t -> template ) );
+                    .collect( Collectors.toMap( r -> r, t -> template ) ) );
             }
+
+            dataSetMapList.add( mapper );
         }
 
-        return mapper;
+        return dataSetMapList;
     }
 
     private boolean isScheduledNow( CompleteDataSetRegistration registration, DataSetNotificationTemplate template )
@@ -308,19 +312,24 @@ public class DefaultDataSetNotificationService
         return pmr;
     }
 
-    private MessageBatch createBatchForSingleNotifications( Map<CompleteDataSetRegistration,DataSetNotificationTemplate> pair )
+    private MessageBatch createBatchForSingleNotifications( Set<DataSetNotificationTemplate> templates )
     {
         MessageBatch batch = new MessageBatch();
 
-        for ( Map.Entry<CompleteDataSetRegistration,DataSetNotificationTemplate> entry : pair.entrySet() )
+        List<Map<CompleteDataSetRegistration, DataSetNotificationTemplate>> dataSetMapList = createGroupedByMapper( templates );
+
+        for( Map<CompleteDataSetRegistration, DataSetNotificationTemplate> pair : dataSetMapList )
         {
-            if( entry.getValue().getNotificationRecipient().isExternalRecipient() )
+            for ( Map.Entry<CompleteDataSetRegistration,DataSetNotificationTemplate> entry : pair.entrySet() )
             {
-                batch.programMessages.add( createProgramMessage( entry.getValue(), entry.getKey() ) );
-            }
-            else
-            {
-                batch.dhisMessages.add( createDhisMessage( entry.getValue(), entry.getKey() ) );
+                if( entry.getValue().getNotificationRecipient().isExternalRecipient() )
+                {
+                    batch.programMessages.add( createProgramMessage( entry.getValue(), entry.getKey() ) );
+                }
+                else
+                {
+                    batch.dhisMessages.add( createDhisMessage( entry.getValue(), entry.getKey() ) );
+                }
             }
         }
 
