@@ -299,29 +299,6 @@
       <param name="requiredAuthorities">F_DATASET_DELETE</param>
     </action>
 
-    <action name="dataSetNotifications" class="org.hisp.dhis.dataadmin.action.notifications.ShowDataSetNotificationAction">
-      <result name="success" type="velocity">/main.vm</result>
-      <param name="page">/dhis-web-maintenance-dataadmin/showDataSetNotifications.vm</param>
-      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
-      <param name="requiredAuthorities">F_DATASET_PUBLIC_ADD, F_DATASET_PRIVATE_ADD</param>
-    </action>
-
-    <action name="showAddDataSetNotifications" class="org.hisp.dhis.dataadmin.action.notifications.AddDataSetNotificationAction">
-      <result name="success" type="velocity">/main.vm</result>
-      <param name="page">/dhis-web-maintenance-dataadmin/addDataSetNotifications.vm</param>
-      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
-      <param name="javascripts">javascript/dataSetNotifications.js</param>
-      <param name="requiredAuthorities">F_DATASET_PUBLIC_ADD, F_DATASET_PRIVATE_ADD</param>
-    </action>
-
-    <action name="showUpdateDataSetNotifications" class="org.hisp.dhis.dataadmin.action.notifications.UpdateDataSetNotificationAction">
-      <result name="success" type="velocity">/main.vm</result>
-      <param name="page">/dhis-web-maintenance-dataadmin/updateDataSetNotifications.vm</param>
-      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
-      <param name="javascripts">javascript/dataSetNotifications.js</param>
-      <param name="requiredAuthorities">F_DATASET_PUBLIC_ADD, F_DATASET_PRIVATE_ADD</param>
-    </action>
-
     <!-- Scheduling -->
 
     <action name="viewScheduledTasks" class="org.hisp.dhis.dataadmin.action.scheduling.ScheduleTasksAction">

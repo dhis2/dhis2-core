@@ -96,8 +96,8 @@ public class DefaultDataSetNotificationService
 
     private final ImmutableMap<DeliveryChannel, Predicate<OrganisationUnit>> VALIDATOR =
         new ImmutableMap.Builder<DeliveryChannel, Predicate<OrganisationUnit>>()
-            .put( DeliveryChannel.SMS, ou ->  ou.getPhoneNumber() != null && !ou.getPhoneNumber().isEmpty() )
-            .put( DeliveryChannel.EMAIL, ou ->  ou.getEmail() != null && !ou.getEmail().isEmpty() )
+            .put( DeliveryChannel.SMS, ou ->  ou.getPhoneNumber() != null && !ou.getPhoneNumber().isEmpty() ) // Valid Ou phoneNumber
+            .put( DeliveryChannel.EMAIL, ou ->  ou.getEmail() != null && !ou.getEmail().isEmpty() ) // Valid Ou Email
             .build();
 
     private final BiFunction<SendStrategy, Set<DataSetNotificationTemplate>, Set<DataSetNotificationTemplate>> segregator = ( s, t )  -> t.parallelStream()
@@ -144,6 +144,11 @@ public class DefaultDataSetNotificationService
         List<DataSetNotificationTemplate> scheduledTemplates =
             dsntService.getScheduledNotifications( NotificationTrigger.SCHEDULED_DAYS_DUE_DATE );
 
+        if ( scheduledTemplates == null || scheduledTemplates.isEmpty() )
+        {
+            return;
+        }
+
         Map<SendStrategy, Set<DataSetNotificationTemplate>> sendStrategySetMap = createMapBasedOnStrategy( scheduledTemplates );
 
         batches.add( createBatchForSingleNotifications( sendStrategySetMap.getOrDefault( SendStrategy.SINGLE_NOTIFICATION, Sets.newHashSet() ) ) );
@@ -162,7 +167,12 @@ public class DefaultDataSetNotificationService
 
         List<DataSetNotificationTemplate> templates = dsntService.getCompleteNotifications( registration.getDataSet() );
 
-        MessageBatch batch = createBatchForSingleNotifications( Sets.newHashSet( templates ) );
+        if ( templates == null || templates.isEmpty() )
+        {
+            return;
+        }
+
+        MessageBatch batch = createMessageBatch( createBatchForCompletionNotifications( registration, Sets.newHashSet( templates ) ) );
 
         sendAll( batch );
     }
@@ -213,12 +223,31 @@ public class DefaultDataSetNotificationService
                 dhisMessage.recipients = resolveInternalRecipients( template, null );
 
                 batch.dhisMessages.add( dhisMessage );
+
+                messageText = "";
             }
         }
 
-        log.info( String.format( "%d Summary notifications created.", batch.dhisMessages.size() ) );
+        log.info( String.format( "%d summary dataset notifications created.", batch.dhisMessages.size() ) );
 
         return batch;
+    }
+
+    private List<Map<CompleteDataSetRegistration, DataSetNotificationTemplate>> createBatchForCompletionNotifications( CompleteDataSetRegistration registration,
+       Set<DataSetNotificationTemplate> templates )
+    {
+        List<Map<CompleteDataSetRegistration, DataSetNotificationTemplate>> dataSetMapList = new ArrayList<>();
+
+        for ( DataSetNotificationTemplate template : templates )
+        {
+            Map<CompleteDataSetRegistration, DataSetNotificationTemplate> mapper = new HashMap<>();
+
+            mapper.put( registration, template );
+
+            dataSetMapList.add( mapper );
+        }
+
+        return dataSetMapList;
     }
 
     private String createSubjectString( DataSetNotificationTemplate template )
@@ -247,11 +276,11 @@ public class DefaultDataSetNotificationService
         return format.formatPeriod( period );
     }
 
-    private List<Map<CompleteDataSetRegistration, DataSetNotificationTemplate>> createGroupedByMapper( Set<DataSetNotificationTemplate> scheduledTemplates )
+    private List<Map<CompleteDataSetRegistration, DataSetNotificationTemplate>> createGroupedByMapper( Set<DataSetNotificationTemplate> templates )
     {
         List<Map<CompleteDataSetRegistration, DataSetNotificationTemplate>> dataSetMapList = new ArrayList<>();
 
-        for ( DataSetNotificationTemplate template : scheduledTemplates )
+        for ( DataSetNotificationTemplate template : templates )
         {
             Map<CompleteDataSetRegistration, DataSetNotificationTemplate> mapper = new HashMap<>();
 
@@ -290,7 +319,7 @@ public class DefaultDataSetNotificationService
 
         Date dueDate = registration.getPeriod().getEndDate();
 
-        daysToCompare = DAYS_RESOLVER.get( template.getRelativeScheduledDays().intValue() < 0 ).apply( template );
+        daysToCompare = DAYS_RESOLVER.get( template.getRelativeScheduledDays() < 0 ).apply( template );
 
         return DateUtils.daysBetween( new Date(), dueDate ) == daysToCompare;
     }
@@ -311,11 +340,16 @@ public class DefaultDataSetNotificationService
 
     private MessageBatch createBatchForSingleNotifications( Set<DataSetNotificationTemplate> templates )
     {
-        MessageBatch batch = new MessageBatch();
-
         List<Map<CompleteDataSetRegistration, DataSetNotificationTemplate>> dataSetMapList = createGroupedByMapper( templates );
 
-        for( Map<CompleteDataSetRegistration, DataSetNotificationTemplate> pair : dataSetMapList )
+        return createMessageBatch( dataSetMapList );
+    }
+
+    private MessageBatch createMessageBatch( List<Map<CompleteDataSetRegistration, DataSetNotificationTemplate>> pairs )
+    {
+        MessageBatch batch = new MessageBatch();
+
+        for( Map<CompleteDataSetRegistration, DataSetNotificationTemplate> pair : pairs )
         {
             for ( Map.Entry<CompleteDataSetRegistration,DataSetNotificationTemplate> entry : pair.entrySet() )
             {
@@ -330,7 +364,7 @@ public class DefaultDataSetNotificationService
             }
         }
 
-        log.info( String.format( "%d Single notifications created.", batch.totalMessageCount() ) );
+        log.info( String.format( "%d single dataset notifications created.", batch.totalMessageCount() ) );
 
         return batch;
     }
@@ -395,7 +429,7 @@ public class DefaultDataSetNotificationService
             }
             else
             {
-                log.error( String.format( "Invalid %s recipient", channel ) );
+                log.error( String.format( "DataSet notification not sent due to invalid %s recipient", channel ) );
 
                 throw new IllegalArgumentException( String.format( "Invalid %s recipient", channel ) );
             }

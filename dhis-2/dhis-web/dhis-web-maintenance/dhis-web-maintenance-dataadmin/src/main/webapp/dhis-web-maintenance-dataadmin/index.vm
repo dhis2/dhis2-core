@@ -10,5 +10,4 @@
     #introListImgItem( "lockException.action" "lock_exception" "datalocking" )
     #introListImgItem( "getMinMaxValidationParams.action" "min_max_value_generation" "minmaxvaluegeneration" )
     #introListImgItem( "viewScheduledTasks.action" "scheduling" "scheduling" )
-    #introListImgItem( "dataSetNotifications.action" "ds_notifications" "mobile" )
 </ul>
