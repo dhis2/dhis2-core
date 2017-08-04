@@ -47,6 +47,7 @@ import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.notification.SendStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -131,6 +132,9 @@ public class DefaultDataSetNotificationService
 
     @Autowired
     private I18nManager i18nManager;
+
+    @Autowired
+    private OrganisationUnitService organisationUnitService;
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -220,7 +224,7 @@ public class DefaultDataSetNotificationService
             {
                 dhisMessage.message = new NotificationMessage( createSubjectString( template ), messageText );
 
-                dhisMessage.recipients = resolveInternalRecipients( template, null );
+                dhisMessage.recipients = resolveInternalRecipients( template );
 
                 batch.dhisMessages.add( dhisMessage );
 
@@ -438,11 +442,34 @@ public class DefaultDataSetNotificationService
         return recipients;
     }
 
+    private Set<User> resolveInternalRecipients( DataSetNotificationTemplate template  )
+    {
+        UserGroup userGroup = template.getRecipientUserGroup();
+
+        if ( userGroup == null )
+        {
+            return Sets.newHashSet();
+        }
+
+        return userGroup.getMembers();
+    }
+
     private Set<User> resolveInternalRecipients( DataSetNotificationTemplate template, CompleteDataSetRegistration registration )
     {
         UserGroup userGroup = template.getRecipientUserGroup();
 
-        return userGroup.getMembers();
+        Set<User> users = Sets.newHashSet();
+
+        if ( userGroup == null || registration == null )
+        {
+            return users;
+        }
+
+        users = userGroup.getMembers().stream()
+            .filter( user -> organisationUnitService.isInUserHierarchy( registration.getSource().getUid(), user.getOrganisationUnits() ) )
+            .collect( Collectors.toSet() );
+
+        return users;
     }
 
     private void sendInternalDhisMessages( List<DhisMessage> messages )
