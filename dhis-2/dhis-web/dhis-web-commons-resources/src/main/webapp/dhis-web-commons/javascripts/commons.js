@@ -331,7 +331,7 @@ function disable( elementId )
 	var hasDatePicker = jQuery("#" + elementId ).data("datepicker");
 	if( hasDatePicker == undefined)
 	{
-		jQuery( "#" + elementId ).attr("disabled", true );
+		jQuery( "#" + elementId ).prop("disabled", true );
 	}
 	else
 	{
