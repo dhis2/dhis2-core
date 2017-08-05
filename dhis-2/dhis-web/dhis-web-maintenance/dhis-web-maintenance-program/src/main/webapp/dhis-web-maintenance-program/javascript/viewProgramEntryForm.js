@@ -368,7 +368,7 @@ function insertElement( type )
 			htmlCode += " suggested='" + suggestedValue + "' ";
 		}
 		
-		var isHidden = jQuery('#hiddenField').attr('checked');
+		var isHidden = jQuery('#hiddenField').prop('checked');
 		if(isHidden)
 		{
 			htmlCode += " class='hidden' ";
