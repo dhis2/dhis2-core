@@ -192,7 +192,7 @@ public class DefaultFieldFilterService implements FieldFilterService
         }
 
         if ( Defaults.EXCLUDE == defaults && IdentifiableObject.class.isInstance( object )
-            && Preheat.isDefault( (IdentifiableObject) object ) )
+            && Preheat.isDefaultClass( (IdentifiableObject) object ) )
         {
             return null;
         }
@@ -246,7 +246,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                         for ( Object collectionObject : collection )
                         {
                             if ( !(Defaults.EXCLUDE == defaults && IdentifiableObject.class.isInstance( collectionObject )
-                                && Preheat.isDefault( (IdentifiableObject) collectionObject )) )
+                                && Preheat.isDefaultClass( (IdentifiableObject) collectionObject )) )
                             {
                                 child.addChild( getProperties( property, collectionObject, fields ) );
                             }
@@ -281,7 +281,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                 else if ( property.isIdentifiableObject() && isProperIdObject( property.getKlass() ) )
                 {
                     if ( !(Defaults.EXCLUDE == defaults && IdentifiableObject.class.isInstance( returnValue )
-                        && Preheat.isDefault( (IdentifiableObject) returnValue )) )
+                        && Preheat.isDefaultClass( (IdentifiableObject) returnValue )) )
                     {
                         child = getProperties( property, returnValue, fields );
                     }
