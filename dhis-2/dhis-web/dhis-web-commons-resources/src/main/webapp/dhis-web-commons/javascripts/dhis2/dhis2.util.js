@@ -198,7 +198,7 @@ dhis2.util.nameSort = function( a, b ) {
  * adds ':containsNC' to filtering.
  * $(sel).find(':containsNC(key)').doSomething();
  */
-$.expr[":"].containsNC = function( a, i, m, r ) {
+$.expr.pseudos.containsNC = function( a, i, m, r ) {
   var search = dhis2.util.escape(m[3]);
   return jQuery(a).text().toUpperCase().indexOf(m[search].toUpperCase()) >= 0;
 };
@@ -206,7 +206,7 @@ $.expr[":"].containsNC = function( a, i, m, r ) {
 /**
  * adds ':regex' to filtering, use to filter by regular expression
  */
-$.expr[":"].regex = function( a, i, m, r ) {
+$.expr.pseudos.regex = function( a, i, m, r ) {
   var re = new RegExp(m[3], 'i');
   return re.test(jQuery(a).text());
 };
@@ -215,7 +215,7 @@ $.expr[":"].regex = function( a, i, m, r ) {
  * adds ':regex' to filtering, use to filter by regular expression
  * (this is the case sensitive version)
  */
-$.expr[":"].regexCS = function( a, i, m, r ) {
+$.expr.pseudos.regexCS = function( a, i, m, r ) {
   var re = new RegExp(m[3]);
   return re.test(jQuery(a).text());
 };
