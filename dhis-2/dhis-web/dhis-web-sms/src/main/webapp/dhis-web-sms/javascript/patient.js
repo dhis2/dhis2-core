@@ -304,7 +304,7 @@ function getParamsForDiv( patientDiv)
 			
 			if( $(this).attr('type') == 'checkbox' )
 			{
-				var checked = jQuery(this).attr('checked') ? true : false;
+				var checked = jQuery(this).prop('checked') ? true : false;
 				params += elementId + "=" + checked + "&";
 			}
 			else if( elementId =='dateOperator' )

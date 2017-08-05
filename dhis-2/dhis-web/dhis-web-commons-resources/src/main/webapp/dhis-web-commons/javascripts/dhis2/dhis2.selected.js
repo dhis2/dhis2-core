@@ -66,13 +66,13 @@
 
       context.source.on('move-all', function() {
         context.defaultLoader(context).then(function() {
-          context.source.find('option').attr('selected', 'selected').trigger('dblclick');
+          context.source.find('option').prop("selected", true).trigger('dblclick');
           context.page = undefined;
         });
       });
 
       context.target.on('move-all', function() {
-        context.target.find('option').attr('selected', 'selected').trigger('dblclick');
+        context.target.find('option').prop("selected", true).trigger('dblclick');
       });
 
       if( context.search instanceof $ ) {

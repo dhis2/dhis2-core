@@ -5,7 +5,7 @@ jQuery(document).ready(function() {
         form.submit();
     }, {
         'beforeValidateHandler': function() {
-            $("#piSelected").find("option").attr("selected", "selected");
+            $("#piSelected").find("option").prop("selected", true)
             if( jQuery("#piSelected option").length > 0 ) {
                 setFieldValue('programIndicatorList', 'true');
             }

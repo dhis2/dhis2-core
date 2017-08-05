@@ -51,7 +51,7 @@ function dhisPaging_moveAllSelected(sourceId)
 function dhisPaging_moveAll(sourceId)
 {
     var jqSource = jQuery("#" + sourceId);
-    jqSource.find("option").attr("selected", "selected");
+    jqSource.find("option").prop("selected", true)
     jqSource.dblclick();
 }
 
