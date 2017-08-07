@@ -836,6 +836,10 @@ public class DefaultPreheatService implements PreheatService
                 {
                     ref = defaults.get( property.getKlass() );
                 }
+                else if ( Preheat.isDefaultClass( property.getKlass() ) && refObject != null && DataSetElement.class.isInstance( object ) )
+                {
+                    ref = defaults.get( property.getKlass() );
+                }
 
                 if ( ref != null && ref.getId() == 0 )
                 {
