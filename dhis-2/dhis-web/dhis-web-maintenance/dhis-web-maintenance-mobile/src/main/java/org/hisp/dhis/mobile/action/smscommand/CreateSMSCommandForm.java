@@ -202,13 +202,9 @@ public class CreateSMSCommandForm
         {
             Program program = programService.getProgram( selectedParentProgramId );
 
-            System.out.println( "Program is " + program.getName() );
-
             command.setProgram( program );
 
             command.setProgramStage( programStageService.getProgramStage( selectedProgramStageId ) );
-
-            System.out.println( "ProgramStage is " + programStageService.getProgramStage( selectedProgramStageId ).getName() );
         }
 
         smsCommandService.save( command );

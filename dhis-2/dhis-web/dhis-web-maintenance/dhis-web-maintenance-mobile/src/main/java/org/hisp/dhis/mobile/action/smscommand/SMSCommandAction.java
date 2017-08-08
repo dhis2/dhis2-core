@@ -206,7 +206,7 @@ public class SMSCommandAction
                     formulas.put( "" + smsCode.getDataElement().getId() + smsCode.getOptionId(), smsCode.getFormula() );
                 }
 
-                if ( smsCommand.getParserType().equals( ParserType.EVENT_REGISTRATION_PARSER ) || smsCommand.getParserType().equals(ParserType.PROGRAM_STAGE_DATAENTRY_PARSER ) )
+                if ( smsCommand.getParserType().equals( ParserType.EVENT_REGISTRATION_PARSER ) || smsCommand.getParserType().equals( ParserType.PROGRAM_STAGE_DATAENTRY_PARSER ) )
                 {
                     codes.put( "" + smsCode.getDataElement().getId(), smsCode.getCode() );
                 }
