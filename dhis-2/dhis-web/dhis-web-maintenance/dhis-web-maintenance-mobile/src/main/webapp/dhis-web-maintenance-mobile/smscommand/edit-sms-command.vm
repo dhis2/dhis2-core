@@ -185,26 +185,30 @@
 			<td>#if($smsCommand.parserType) $i18n.getString( "$smsCommand.parserType" ) #end</td>
 		</tr>
 		
-		#if( $smsCommand.parserType == 'KEY_VALUE_PARSER' || $smsCommand.parserType == 'J2ME_PARSER' || $smsCommand.parserType == 'TRACKED_ENTITY_REGISTRATION_PARSER' || $smsCommand.parserType == 'EVENT_REGISTRATION_PARSER')
+		#if( $smsCommand.parserType == 'KEY_VALUE_PARSER' || $smsCommand.parserType == 'J2ME_PARSER' || $smsCommand.parserType == 'TRACKED_ENTITY_REGISTRATION_PARSER' || $smsCommand.parserType == 'EVENT_REGISTRATION_PARSER' || $smsCommand.parserType == 'PROGRAM_STAGE_DATAENTRY_PARSER')
 		<tbody id="codes">
-		<tr>
-			<td><label for="dataset">$i18n.getString( "dataset" )</label></td>
-			<td>#if($smsCommand.dataset.name) $smsCommand.dataset.name #end</td>
-		</tr>
-		<tr>
-			<td><label for="completenessMethod">$i18n.getString( "completeness_method" )</label></td>
-			<td>
-				<select id="completenessMethod" name="completenessMethod">
-					<option value="1" #if($smsCommand.completenessMethod == 1) selected #end>$i18n.getString( "receive_all_datavalue" )</option>
-					<option value="2" #if($smsCommand.completenessMethod == 2) selected #end>$i18n.getString( "receive_at_least_one_datavalue" )</option>
-					<option value="3" #if($smsCommand.completenessMethod == 3) selected #end>$i18n.getString( "do_not_mark_complete" )</option>
-				</select>
-			</td>
-		</tr>
-		<tr>
-	       <td><label for="currentPeriodUsedForReporting">Use current period for reporting</label></td>
-		   <td><input type="checkbox" id='currentPeriodUsedForReporting' name="currentPeriodUsedForReporting" #if($smsCommand.currentPeriodUsedForReporting) checked #end /></td>
-		</tr>   
+
+		#if( $smsCommand.parserType == 'KEY_VALUE_PARSER')
+					<tr>
+						<td><label for="dataset">$i18n.getString( "dataset" )</label></td>
+						<td>#if($smsCommand.dataset.name) $smsCommand.dataset.name #end</td>
+					</tr>
+					<tr>
+						<td><label for="completenessMethod">$i18n.getString( "completeness_method" )</label></td>
+						<td>
+							<select id="completenessMethod" name="completenessMethod">
+								<option value="1" #if($smsCommand.completenessMethod == 1) selected #end>$i18n.getString( "receive_all_datavalue" )</option>
+								<option value="2" #if($smsCommand.completenessMethod == 2) selected #end>$i18n.getString( "receive_at_least_one_datavalue" )</option>
+								<option value="3" #if($smsCommand.completenessMethod == 3) selected #end>$i18n.getString( "do_not_mark_complete" )</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+					   <td><label for="currentPeriodUsedForReporting">Use current period for reporting</label></td>
+					   <td><input type="checkbox" id='currentPeriodUsedForReporting' name="currentPeriodUsedForReporting" #if($smsCommand.currentPeriodUsedForReporting) checked #end /></td>
+					</tr>
+
+			#end
 
         <tr>
 			<td><label for="separator">$i18n.getString( "code_value_separator" )</label></td>
@@ -330,10 +334,39 @@
             </tr>      
 	    #end
     #end
+
+
+
+
+		#if( $smsCommand.parserType == 'PROGRAM_STAGE_DATAENTRY_PARSER' )
+            <tbody id="codes">
+            <tr>
+                <th colspan='2'>$i18n.getString( "program_stage_data_elements")</th>
+            </tr>
+            </thead>
+			#set($index = 0)
+			#foreach($attribute in $programStageDataElementList)
+
+				#set ($index = $index + 1)
+
+                <tr class="programStageDataElement">
+                    <td>
+                        <label for="attCode$index">$attribute.dataElement.name</label>
+                        <input type="hidden" id="attId$index" name="attId$index" value="$attribute.dataElement.id"/>
+
+                        <input type="hidden" id="attreq$index" name="attreq$index" value="$attribute.compulsory"/>
+
+                    </td>
+                    <td><input type="text" name="attCode$index" id="attCode$index" class="{validate:{required:true}}" value='$!codes["$attribute.dataElement.id"]'></td>
+                </tr>
+			#end
+		#end
     
-    
-    
-    
+
+
+
+
+
      #if( $smsCommand.parserType == 'EVENT_REGISTRATION_PARSER' )
     	<tbody id="codes">
 	      <tr>

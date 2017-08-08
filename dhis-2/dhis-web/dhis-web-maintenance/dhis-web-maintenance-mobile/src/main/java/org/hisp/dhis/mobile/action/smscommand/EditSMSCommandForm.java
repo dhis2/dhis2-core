@@ -218,7 +218,7 @@ public class EditSMSCommandForm
                 }
             }
 
-            if ( command.getParserType() == ParserType.EVENT_REGISTRATION_PARSER )
+            if ( command.getParserType() == ParserType.EVENT_REGISTRATION_PARSER || command.getParserType() == ParserType.PROGRAM_STAGE_DATAENTRY_PARSER )
             {
                 root = mapper.readValue( programStageDataElementCodes, JsonNode.class );
                 JsonNode regCodes = root.get( "programStageDataElementCodes" );
