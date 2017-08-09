@@ -198,7 +198,7 @@ public class EditSMSCommandForm
 
         if ( selectedDataSetID > -1 && command != null )
         {
-            if ( command.getParserType() == ParserType.TRACKED_ENTITY_REGISTRATION_PARSER )
+            if ( command.getParserType() == ParserType.TRACKED_ENTITY_REGISTRATION_PARSER || command.getParserType() == ParserType.PROGRAM_STAGE_DATAENTRY_PARSER  )
             {
                 root = mapper.readValue( trackedEntityAttributeCodes, JsonNode.class );
                 JsonNode regCodes = root.get( "trackedEntityAttributeCodes" );
@@ -221,11 +221,11 @@ public class EditSMSCommandForm
             if ( command.getParserType() == ParserType.EVENT_REGISTRATION_PARSER || command.getParserType() == ParserType.PROGRAM_STAGE_DATAENTRY_PARSER )
             {
                 root = mapper.readValue( programStageDataElementCodes, JsonNode.class );
-                JsonNode regCodes = root.get( "programStageDataElementCodes" );
+                JsonNode regPsCodes = root.get( "programStageDataElementCodes" );
                                 
-                if ( regCodes != null && regCodes.size() > 0 )
+                if ( regPsCodes != null && regPsCodes.size() > 0 )
                 {
-                    regCodes.iterator().forEachRemaining( regCode -> {
+                    regPsCodes.iterator().forEachRemaining( regCode -> {
                         if ( regCode.get( "code" ) != null && regCode.get( "programStageDataElementId" ) != null )
                         {
                             SMSCode c = new SMSCode();

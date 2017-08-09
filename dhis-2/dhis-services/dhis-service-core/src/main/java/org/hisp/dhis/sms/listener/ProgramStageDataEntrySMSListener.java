@@ -82,7 +82,7 @@ public class ProgramStageDataEntrySMSListener
         SMSCommand smsCommand = smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
             ParserType.PROGRAM_STAGE_DATAENTRY_PARSER );
 
-        this.parse( message, smsCommand );
+        Map<String, String> parsedValues = this.parseMessageInput( sms, smsCommand );
 
         SmsUtils.lookForDate( message );
 
@@ -92,40 +92,27 @@ public class ProgramStageDataEntrySMSListener
 
         if ( orgUnits == null || orgUnits.size() == 0 )
         {
-            if ( StringUtils.isEmpty( smsCommand.getNoUserMessage() ) )
-            {
-                throw new SMSParserException( SMSCommand.NO_USER_MESSAGE );
-            }
-            else
-            {
-                throw new SMSParserException( smsCommand.getNoUserMessage() );
-            }
+            throw new SMSParserException( StringUtils.defaultIfEmpty( smsCommand.getNoUserMessage(), SMSCommand.NO_USER_MESSAGE ) );
         }
     }
 
-    private Map<String, String> parse( String message, SMSCommand smsCommand )
+    private Map<String, String> parseMessageInput( IncomingSms sms, SMSCommand smsCommand )
     {
         HashMap<String, String> output = new HashMap<>();
-        Pattern pattern = Pattern.compile( defaultPattern );
-        
-        if ( !StringUtils.isBlank( smsCommand.getSeparator() ) )
-        {
-            String x = "(\\w+)\\s*\\" + smsCommand.getSeparator().trim() + "\\s*([\\w ]+)\\s*(\\"
-                + smsCommand.getSeparator().trim() + "|$)*\\s*";
-            pattern = Pattern.compile( x );
-        }
-        
-        Matcher matcher = pattern.matcher( message );
-        
-        while ( matcher.find() )
-        {
-            String key = matcher.group( 1 );
-            String value = matcher.group( 2 );
 
-            if ( !StringUtils.isEmpty( key ) && !StringUtils.isEmpty( value ) )
-            {
-                output.put( key.toUpperCase(), value );
-            }
+        String message = sms.getText().substring( SmsUtils.getCommandString( sms ).length() ).trim();
+
+        String[] messageParts = org.apache.commons.lang.StringUtils.split( message, "," );
+
+        for ( String string : messageParts )
+        {
+            String key = org.apache.commons.lang.StringUtils.split( string,
+                    smsCommand.getCodeSeparator() != null ? smsCommand.getCodeSeparator() : "=" )[0].trim();
+
+            String value = org.apache.commons.lang.StringUtils.split( string,
+                    smsCommand.getCodeSeparator() != null ? smsCommand.getCodeSeparator() : "=" )[1].trim();
+
+            output.put( key, value );
         }
 
         return output;
