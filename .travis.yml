@@ -13,7 +13,7 @@ cache:
   directories:
   - "$HOME/.m2"
 script:
--  mvn clean test
+-  mvn clean test -f ./dhis-2/pom-full.xml
 branches:
   only:
   - master
