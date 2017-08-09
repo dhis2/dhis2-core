@@ -233,12 +233,13 @@ public class AppController
     public void deleteApp( @PathVariable( "app" ) String app, @RequestParam( required = false ) boolean deleteAppData )
         throws WebMessageException
     {
-        if ( !appManager.exists( app ) )
+        App appToDelete = appManager.getApp( app );
+        if ( appToDelete == null )
         {
             throw new WebMessageException( WebMessageUtils.notFound( "App does not exist: " + app ) );
         }
 
-        if ( !appManager.deleteApp( app, deleteAppData ) )
+        if ( !appManager.deleteApp( appToDelete, deleteAppData ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "There was an error deleting app: " + app ) );
         }

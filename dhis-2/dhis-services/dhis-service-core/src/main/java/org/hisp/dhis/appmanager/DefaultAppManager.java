@@ -28,7 +28,7 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.util.Lists;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -47,8 +47,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.appmanager.AppStorageSource.LOCAL;
-
 /**
  * @author Saptarshi Purkayastha
  */
@@ -64,7 +62,10 @@ public class DefaultAppManager
     private CurrentUserService currentUserService;
 
     @Autowired
-    private LocalAppStorageService localAppStorageService;
+    private LocalAppStorageService LocalAppStorageService;
+
+    @Autowired
+    private org.hisp.dhis.appmanager.JCloudsAppStorageService JCloudsAppStorageService;
 
     @Autowired
     private KeyJsonValueService keyJsonValueService;
@@ -76,24 +77,26 @@ public class DefaultAppManager
     @Override
     public List<App> getApps( String contextPath )
     {
-        List<App> apps = Lists.newArrayList( localAppStorageService.getApps().values() );
+        Collection<App> apps = this.getAppMap().values();
 
         apps.forEach( a -> a.init( contextPath ) );
 
-        return apps;
+        return Lists.newArrayList( apps );
     }
 
     @Override
     public App getApp( String appName )
     {
+        // Checks for app.getUrlFriendlyName which is the key of AppMap
         if ( getAppMap().containsKey( appName ) )
         {
             return getAppMap().get( appName );
         }
 
+        // If no apps are found, check for original name
         for ( App app : getAppMap().values() )
         {
-            if ( app.getFolderName().equals( appName ) )
+            if ( app.getName().equals( appName ) )
             {
                 return app;
             }
@@ -176,27 +179,23 @@ public class DefaultAppManager
     @Override
     public AppStatus installApp( File file, String fileName )
     {
-        return localAppStorageService.installApp( file, fileName );
+        return getAppStorageServiceByApp( null ).installApp( file, fileName );
     }
 
     @Override
     public boolean exists( String appName )
     {
-        return getAppMap().containsKey( appName );
+        return getApp( appName ) != null;
     }
 
     @Override
-    public boolean deleteApp( String name, boolean deleteAppData )
+    public boolean deleteApp( App app, boolean deleteAppData )
     {
-        App app = getAppMap().get( name );
         boolean deleted = false;
 
         if ( app != null )
         {
-            if ( app.getAppStorageSource().equals( LOCAL ) )
-            {
-                deleted = localAppStorageService.deleteApp( app );
-            }
+            deleted = getAppStorageServiceByApp( app ).deleteApp( app );
         }
 
         if ( deleted && deleteAppData )
@@ -226,7 +225,8 @@ public class DefaultAppManager
     @Override
     public void reloadApps()
     {
-        localAppStorageService.discoverInstalledApps();
+        LocalAppStorageService.discoverInstalledApps();
+        JCloudsAppStorageService.discoverInstalledApps();
     }
 
     @Override
@@ -260,13 +260,7 @@ public class DefaultAppManager
     public Resource getAppResource( App app, String pageName )
         throws IOException
     {
-        AppStorageService storageService = getAppStorageServiceByApp( app );
-        if ( storageService != null )
-        {
-            return storageService.getAppResource( app, pageName );
-        }
-
-        return null;
+        return getAppStorageServiceByApp( app ).getAppResource( app, pageName );
     }
 
     // -------------------------------------------------------------------------
@@ -275,22 +269,33 @@ public class DefaultAppManager
 
     private AppStorageService getAppStorageServiceByApp( App app )
     {
-        switch ( app.getAppStorageSource() )
+        if ( app != null && app.getAppStorageSource().equals( AppStorageSource.LOCAL ) )
         {
-        case LOCAL:
-            return localAppStorageService;
-        default:
-            return null;
+            return LocalAppStorageService;
+        }
+        else
+        {
+            return JCloudsAppStorageService;
         }
     }
 
     private Map<String, App> getAppMap()
     {
-        return localAppStorageService.getApps();
+        Map<String, App> apps = new HashMap<>();
+
+        apps.putAll( JCloudsAppStorageService.getApps() );
+        apps.putAll( LocalAppStorageService.getApps() );
+
+        return apps;
     }
 
     private Map<String, App> getNamespaceMap()
     {
-        return localAppStorageService.getReservedNamespaces();
+        Map<String, App> apps = new HashMap<>();
+
+        apps.putAll( JCloudsAppStorageService.getReservedNamespaces() );
+        apps.putAll( LocalAppStorageService.getReservedNamespaces() );
+
+        return apps;
     }
 }

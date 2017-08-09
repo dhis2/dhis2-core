@@ -58,6 +58,9 @@ import java.util.zip.ZipFile;
 
 /**
  * @author Stian Sandvold
+ *
+ * NB! This class is mostly code from pre 2.28's DefaultAppManager. This is to support apps
+ * installed before 2.28. post 2.28, all installations using DHIS2 will use JCloudsAppStorageService.
  */
 public class LocalAppStorageService
     implements AppStorageService
@@ -71,7 +74,7 @@ public class LocalAppStorageService
     private Map<String, App> reservedNamespaces = new HashMap<>();
 
     @Autowired
-    LocationManager locationManager;
+    private LocationManager locationManager;
 
     @PostConstruct
     public void init()
@@ -160,11 +163,16 @@ public class LocalAppStorageService
                     reservedNamespaces.put( namespace, app );
                 }
 
-                apps.put( app.getName(), app );
+                apps.put( app.getUrlFriendlyName(), app );
 
                 log.info( "Discovered app '" + app.getName() + "' from local storage " );
             }
         );
+
+        if ( appList.isEmpty() )
+        {
+            log.info(" No apps found during local discovery.");
+        }
     }
 
     @Override
@@ -224,7 +232,7 @@ public class LocalAppStorageService
             // data is deleted
             // -----------------------------------------------------------------
 
-            if ( apps.containsKey( app.getName() ) )
+            if ( apps.containsKey( app.getUrlFriendlyName() ) )
             {
                 deleteApp( app );
             }
@@ -280,7 +288,7 @@ public class LocalAppStorageService
     {
         boolean deleted = false;
 
-        if ( !apps.containsKey( app.getName() ) )
+        if ( !apps.containsKey( app.getUrlFriendlyName() ) )
         {
             log.warn( String.format( "Failed to delete app '%s': App not found", app.getName() ) );
         }
@@ -312,7 +320,7 @@ public class LocalAppStorageService
     {
         try
         {
-            return locationManager.getExternalDirectoryPath() + APPS_DIR;
+            return locationManager.getExternalDirectoryPath() + "/" + APPS_DIR;
         }
         catch ( LocationManagerException ex )
         {

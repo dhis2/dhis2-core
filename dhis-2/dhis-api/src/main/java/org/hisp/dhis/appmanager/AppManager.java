@@ -112,15 +112,15 @@ public interface AppManager
     boolean exists( String appName );
 
     /**
-     * Deletes the app with the given name.
+     * Deletes the given app.
      *
-     * @param name          the app name.
+     * @param app           the app to delete.
      * @param deleteAppData decide if associated data in dataStore should be deleted or not.
      * @return true if the delete was successful, false if there is no app with
      * the given name or if the app could not be removed from the file
      * system.
      */
-    boolean deleteApp( String name, boolean deleteAppData );
+    boolean deleteApp( App app, boolean deleteAppData );
 
     /**
      * Reload list of apps.

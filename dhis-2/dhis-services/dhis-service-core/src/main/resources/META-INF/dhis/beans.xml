@@ -1257,6 +1257,11 @@
 
   <bean id="org.hisp.dhis.appmanager.LocalAppStorageService" class="org.hisp.dhis.appmanager.LocalAppStorageService" />
 
+  <bean id="org.hisp.dhis.appmanager.CloudAppStorageService" class="org.hisp.dhis.appmanager.JCloudsAppStorageService">
+    <property name="configurationProvider" ref="dhisConfigurationProvider" />
+    <property name="locationManager" ref="locationManager" />
+  </bean>
+
   <bean id="org.hisp.dhis.system.SystemService" class="org.hisp.dhis.system.DefaultSystemService" />
 
   <bean id="org.hisp.dhis.color.ColorService" class="org.hisp.dhis.color.DefaultColorService">

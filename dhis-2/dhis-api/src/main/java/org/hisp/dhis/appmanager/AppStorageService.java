@@ -40,7 +40,7 @@ public interface AppStorageService
 {
 
     String MANIFEST_FILENAME = "manifest.webapp";
-    String APPS_DIR = "/apps";
+    String APPS_DIR = "apps";
 
     /**
      * Looks trough the appropriate directory of apps to find all installed apps
