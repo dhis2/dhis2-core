@@ -77,7 +77,7 @@ public class PeriodTypeTest
     {
         assertEquals( PeriodType.getPeriodTypeFromIsoString( "2011" ).getIso8601Duration(), "P1Y" );
         assertEquals( PeriodType.getPeriodTypeFromIsoString( "201101" ).getIso8601Duration(), "P1M" );
-        assertEquals( PeriodType.getPeriodTypeFromIsoString( "2011W1" ).getIso8601Duration(), "P1W" );
+        assertEquals( PeriodType.getPeriodTypeFromIsoString( "2011W1" ).getIso8601Duration(), "P7D" );
         assertEquals( PeriodType.getPeriodTypeFromIsoString( "20110101" ).getIso8601Duration(), "P1D" );
         assertEquals( PeriodType.getPeriodTypeFromIsoString( "2011Q3" ).getIso8601Duration(), "P3M" );
         assertEquals( PeriodType.getPeriodTypeFromIsoString( "201101B" ).getIso8601Duration(), "P2M" );

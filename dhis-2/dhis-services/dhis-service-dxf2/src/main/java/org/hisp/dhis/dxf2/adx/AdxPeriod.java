@@ -58,7 +58,7 @@ public class AdxPeriod
     public enum Duration
     {
         P1D, // daily
-        P1W, // weekly
+        P7D,// weekly
         P1M, // monthly
         P2M, // bi-monthly
         P3M, // quarterly
@@ -78,7 +78,7 @@ public class AdxPeriod
 
         try
         {
-            Period period ;
+            Period period;
             PeriodType periodType = null;
             Date startDate = DateUtils.getMediumDate( tokens[0] );
             Calendar cal = Calendar.getInstance();
@@ -90,7 +90,7 @@ public class AdxPeriod
                 case P1D:
                     periodType = new DailyPeriodType();
                     break;
-                case P1W:
+                case P7D:
                     periodType = new WeeklyPeriodType();
                     break;
                 case P1M:
