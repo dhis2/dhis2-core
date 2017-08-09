@@ -1,4 +1,6 @@
 language: java
+sudo : false
+dist : precise
 jdk:
 - oraclejdk8
 addons:
@@ -11,7 +13,7 @@ cache:
   directories:
   - "$HOME/.m2"
 script:
--  mvn clean  install -DskipTests=false -f ./dhis-2/pom-full.xml
+-  mvn clean test
 branches:
   only:
   - master
