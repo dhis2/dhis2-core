@@ -337,11 +337,6 @@ public class DefaultDataQueryService
             {
                 String name = format != null ? format.formatPeriod( period ) : null;
 
-                if ( PeriodType.getCalendar().name().equals( "persian" ) )
-                {
-                    name = period.getIsoDate();
-                }
-                
                 period.setName( name );
                 period.setShortName( name );
 

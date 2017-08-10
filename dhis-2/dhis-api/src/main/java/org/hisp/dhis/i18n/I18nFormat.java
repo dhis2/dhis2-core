@@ -40,6 +40,7 @@ import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
+import org.hisp.dhis.period.MonthlyPeriodType;
 
 /**
  * @author Pham Thi Thuy
@@ -220,12 +221,18 @@ public class I18nFormat
             return null;
         }
 
+        String typeName = period.getPeriodType().getName();        
+
         if ( PeriodType.getCalendar().name().equals( "persian" ) )
         {
+            if ( typeName.equals( MonthlyPeriodType.NAME ) )
+            {
+                DateTimeUnit periodStart = PeriodType.getCalendar().fromIso( period.getStartDate() );
+                String months[] = dateFormatSymbols.getMonths();
+                return months[periodStart.getMonth() - 1] + " " + periodStart.getYear();
+            }
             return period.getIsoDate();
         }
-
-        String typeName = period.getPeriodType().getName();
 
         if ( typeName.equals( WeeklyPeriodType.NAME ) ) // Use ISO dates due to potential week confusion
         {
