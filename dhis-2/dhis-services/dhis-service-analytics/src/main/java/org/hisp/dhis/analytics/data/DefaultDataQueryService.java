@@ -97,11 +97,11 @@ public class DefaultDataQueryService
         boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit, boolean allowAllPeriods, DhisApiVersion apiVersion )
     {
         I18nFormat format = i18nManager.getI18nFormat();
-        
+
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
 
         inputIdScheme = ObjectUtils.firstNonNull( inputIdScheme, IdScheme.UID );
-        
+
         if ( dimensionParams != null && !dimensionParams.isEmpty() )
         {
             params.addDimensions( getDimensionalObjects( dimensionParams, relativePeriodDate, userOrgUnit, format, allowAllPeriods, inputIdScheme ) );
@@ -151,8 +151,8 @@ public class DefaultDataQueryService
         Assert.notNull( object, "Analytical object cannot be null" );
 
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
-        
-        I18nFormat format = i18nManager.getI18nFormat();        
+
+        I18nFormat format = i18nManager.getI18nFormat();
         IdScheme idScheme = IdScheme.UID;
         Date date = object.getRelativePeriodDate();
 
@@ -177,12 +177,12 @@ public class DefaultDataQueryService
         {
             params.addFilter( getDimension( filter.getDimension(), getDimensionalItemIds( filter.getItems() ), date, userOrgUnits, format, false, false, idScheme ) );
         }
-        
+
         return params.build();
     }
 
     @Override
-    public List<DimensionalObject> getDimensionalObjects( Set<String> dimensionParams, Date relativePeriodDate, String userOrgUnit, 
+    public List<DimensionalObject> getDimensionalObjects( Set<String> dimensionParams, Date relativePeriodDate, String userOrgUnit,
         I18nFormat format, boolean allowAllPeriods, IdScheme inputIdScheme )
     {
         List<DimensionalObject> list = new ArrayList<>();
@@ -336,6 +336,12 @@ public class DefaultDataQueryService
             for ( Period period : periods )
             {
                 String name = format != null ? format.formatPeriod( period ) : null;
+
+                if ( PeriodType.getCalendar().name().equals( "persian" ) )
+                {
+                    name = period.getIsoDate();
+                }
+                
                 period.setName( name );
                 period.setShortName( name );
 

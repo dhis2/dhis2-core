@@ -51,7 +51,7 @@ public class I18nFormat
     private static final DecimalFormat FORMAT_VALUE = new DecimalFormat( "#.#" ); // Fixed for now
     private static final String EMPTY = "";
     private static final String NAN = "NaN";
-    
+
     private static final String INVALID_DATE = "Invalid date format";
 
     public static final String FORMAT_DATE = "yyyy-MM-dd";
@@ -220,6 +220,11 @@ public class I18nFormat
             return null;
         }
 
+        if ( PeriodType.getCalendar().name().equals( "persian" ) )
+        {
+            return period.getIsoDate();
+        }
+
         String typeName = period.getPeriodType().getName();
 
         if ( typeName.equals( WeeklyPeriodType.NAME ) ) // Use ISO dates due to potential week confusion
@@ -281,7 +286,7 @@ public class I18nFormat
         {
             return EMPTY;
         }
-        
+
         if ( value instanceof Number )
         {
             try

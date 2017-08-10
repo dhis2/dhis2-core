@@ -662,7 +662,7 @@ public class PersianCalendar extends AbstractCalendar
         int month = dateTimeUnit.getMonth() - 1;
         int day = dateTimeUnit.getDay();
 
-        while ( month != 0 ) {
+        while ( month > 0 ) {
             day = day + getDaysFromMap(year, month);
             month--;
         }
