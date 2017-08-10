@@ -46,9 +46,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -79,8 +77,6 @@ public class AppController
     public static final String RESOURCE_PATH = "/apps";
 
     public final Pattern REGEX_REMOVE_PROTOCOL = Pattern.compile( ".+:/+" );
-
-    private final ResourceLoader resourceLoader = new DefaultResourceLoader();
 
     @Autowired
     private AppManager appManager;

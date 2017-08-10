@@ -65,7 +65,7 @@ public class DefaultAppManager
     private LocalAppStorageService LocalAppStorageService;
 
     @Autowired
-    private org.hisp.dhis.appmanager.JCloudsAppStorageService JCloudsAppStorageService;
+    private org.hisp.dhis.appmanager.JCloudsAppStorageService jCloudsAppStorageService;
 
     @Autowired
     private KeyJsonValueService keyJsonValueService;
@@ -179,7 +179,7 @@ public class DefaultAppManager
     @Override
     public AppStatus installApp( File file, String fileName )
     {
-        return getAppStorageServiceByApp( null ).installApp( file, fileName );
+        return jCloudsAppStorageService.installApp( file, fileName );
     }
 
     @Override
@@ -226,7 +226,7 @@ public class DefaultAppManager
     public void reloadApps()
     {
         LocalAppStorageService.discoverInstalledApps();
-        JCloudsAppStorageService.discoverInstalledApps();
+        jCloudsAppStorageService.discoverInstalledApps();
     }
 
     @Override
@@ -275,7 +275,7 @@ public class DefaultAppManager
         }
         else
         {
-            return JCloudsAppStorageService;
+            return jCloudsAppStorageService;
         }
     }
 
@@ -283,7 +283,7 @@ public class DefaultAppManager
     {
         Map<String, App> apps = new HashMap<>();
 
-        apps.putAll( JCloudsAppStorageService.getApps() );
+        apps.putAll( jCloudsAppStorageService.getApps() );
         apps.putAll( LocalAppStorageService.getApps() );
 
         return apps;
@@ -293,7 +293,7 @@ public class DefaultAppManager
     {
         Map<String, App> apps = new HashMap<>();
 
-        apps.putAll( JCloudsAppStorageService.getReservedNamespaces() );
+        apps.putAll( jCloudsAppStorageService.getReservedNamespaces() );
         apps.putAll( LocalAppStorageService.getReservedNamespaces() );
 
         return apps;

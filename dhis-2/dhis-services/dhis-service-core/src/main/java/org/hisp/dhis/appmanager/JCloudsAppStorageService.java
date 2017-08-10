@@ -37,7 +37,6 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
-import org.hisp.dhis.fileresource.FileResourceService;
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobRequestSigner;
 import org.jclouds.blobstore.BlobStore;
@@ -55,7 +54,6 @@ import org.jclouds.http.HttpRequest;
 import org.jclouds.http.HttpResponseException;
 import org.jclouds.rest.AuthorizationException;
 import org.joda.time.Minutes;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -128,9 +126,6 @@ public class JCloudsAppStorageService
     {
         this.configurationProvider = configurationProvider;
     }
-
-    @Autowired
-    private FileResourceService fileResourceService;
 
     @PostConstruct
     public void init()

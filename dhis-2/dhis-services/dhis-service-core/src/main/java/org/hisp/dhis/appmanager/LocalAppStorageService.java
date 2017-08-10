@@ -27,12 +27,9 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import org.apache.ant.compress.taskdefs.Unzip;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -47,14 +44,10 @@ import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
-import java.util.zip.ZipFile;
 
 /**
  * @author Stian Sandvold
@@ -79,7 +72,6 @@ public class LocalAppStorageService
     @PostConstruct
     public void init()
     {
-        setUpAppsFolder();
         discoverInstalledApps();
     }
 
@@ -101,6 +93,13 @@ public class LocalAppStorageService
         }
 
         File appFolderPath = new File( path );
+
+        // If no apps folder exists, there is nothing to discover
+        if ( !appFolderPath.exists() )
+        {
+            log.info( "Old apps folder does not exist, stopping discovery" );
+            return;
+        }
 
         if ( !appFolderPath.isDirectory() )
         {
@@ -190,97 +189,7 @@ public class LocalAppStorageService
     @Override
     public AppStatus installApp( File file, String fileName )
     {
-        try
-        {
-            // -----------------------------------------------------------------
-            // Parse ZIP file and it's manifest.webapp file.
-            // -----------------------------------------------------------------
-
-            ZipFile zip = new ZipFile( file );
-
-            ZipEntry entry = zip.getEntry( MANIFEST_FILENAME );
-
-            if ( entry == null )
-            {
-                log.error( "Failed to install app: Missing manifest.webapp in zip" );
-                return AppStatus.MISSING_MANIFEST;
-            }
-
-            InputStream inputStream = zip.getInputStream( entry );
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-
-            App app = mapper.readValue( inputStream, App.class );
-
-            // -----------------------------------------------------------------
-            // Check for namespace and if it's already taken by another app
-            // -----------------------------------------------------------------
-
-            String namespace = app.getActivities().getDhis().getNamespace();
-
-            if ( namespace != null && !namespace.isEmpty() && !app.equals( reservedNamespaces.get( namespace ) ) )
-            {
-                log.error( String.format( "Failed to install app '%s': Namespace '%s' already taken.",
-                    app.getName(), namespace ) );
-
-                zip.close();
-                return AppStatus.NAMESPACE_TAKEN;
-            }
-
-            // -----------------------------------------------------------------
-            // Delete if app is already installed, assuming app update so no
-            // data is deleted
-            // -----------------------------------------------------------------
-
-            if ( apps.containsKey( app.getUrlFriendlyName() ) )
-            {
-                deleteApp( app );
-            }
-
-            // -----------------------------------------------------------------
-            // Unzip the app
-            // -----------------------------------------------------------------
-
-            String dest = getAppFolderPath() + File.separator + fileName.substring( 0, fileName.lastIndexOf( '.' ) );
-            Unzip unzip = new Unzip();
-            unzip.setSrc( file );
-            unzip.setDest( new File( dest ) );
-            unzip.execute();
-
-            log.info( String.format( ""
-                    + "New app '%s' installed"
-                    + "\n\tInstall path: %s"
-                    + (namespace != null && !namespace.isEmpty() ? "\n\tNamespace reserved: %s" : ""),
-                app.getName(), dest, namespace ) );
-
-            // -----------------------------------------------------------------
-            // Installation complete.
-            // -----------------------------------------------------------------
-
-            zip.close();
-
-            return AppStatus.OK;
-        }
-        catch ( ZipException e )
-        {
-            log.error( "Failed to install app: Invalid ZIP format", e );
-            return AppStatus.INVALID_ZIP_FORMAT;
-        }
-        catch ( JsonParseException e )
-        {
-            log.error( "Failed to install app: Invalid manifest.webapp", e );
-            return AppStatus.INVALID_MANIFEST_JSON;
-        }
-        catch ( JsonMappingException e )
-        {
-            log.error( "Failed to install app: Invalid manifest.webapp", e );
-            return AppStatus.INVALID_MANIFEST_JSON;
-        }
-        catch ( IOException e )
-        {
-            log.error( "Failed to install app: Could not save app to filesystem", e );
-            return AppStatus.INSTALLATION_FAILED;
-        }
+        throw new UnsupportedOperationException( "LocalAppStorageService.installApp is deprecated and should no longer be used." );
     }
 
     @Override
@@ -325,28 +234,6 @@ public class LocalAppStorageService
         catch ( LocationManagerException ex )
         {
             return null;
-        }
-    }
-
-    private void setUpAppsFolder()
-    {
-        String appFolderPath = getAppFolderPath();
-
-        if ( appFolderPath != null && !appFolderPath.isEmpty() )
-        {
-            try
-            {
-                File folder = new File( appFolderPath );
-
-                if ( !folder.exists() )
-                {
-                    FileUtils.forceMkdir( folder );
-                }
-            }
-            catch ( IOException ex )
-            {
-                log.error( "Failed to set up apps folder on local filesystem", ex );
-            }
         }
     }
 
