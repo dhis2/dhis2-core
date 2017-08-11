@@ -33,8 +33,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.google.api.client.util.Lists;
-import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -51,11 +49,8 @@ import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.ParserType;
-import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentity.*;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService;
 import org.hisp.dhis.user.UserService;
@@ -182,8 +177,6 @@ public class ProgramStageDataEntrySMSListener
 
     private void registerProgramStage( TrackedEntityInstance tei, IncomingSms sms, SMSCommand smsCommand, Map<String, String> keyValue, Set<OrganisationUnit> ous )
     {
-        OrganisationUnit orgUnit = ous.iterator().next();
-
         List<ProgramInstance> programInstances = new ArrayList<>(
                 programInstanceService.getProgramInstances( tei, smsCommand.getProgram(), ProgramStatus.ACTIVE ) );
 
@@ -209,12 +202,10 @@ public class ProgramStageDataEntrySMSListener
             return;
         }
 
-        ProgramInstance programInstance = null;
-
-        programInstance = programInstances.get( 0 );
+        ProgramInstance programInstance = programInstances.get( 0 );
 
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setOrganisationUnit( getOrganisationUnits( sms ).iterator().next() );
+        programStageInstance.setOrganisationUnit( ous.iterator().next() );
         programStageInstance.setProgramStage( smsCommand.getProgramStage() );
         programStageInstance.setProgramInstance( programInstance );
         programStageInstance.setExecutionDate( sms.getSentDate() );
