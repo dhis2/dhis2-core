@@ -208,11 +208,6 @@ public class SMSCommandAction
 
                 if ( smsCommand.getParserType().equals( ParserType.EVENT_REGISTRATION_PARSER ) || smsCommand.getParserType().equals( ParserType.PROGRAM_STAGE_DATAENTRY_PARSER ) )
                 {
-                    if ( smsCode.getTrackedEntityAttribute() != null )
-                    {
-                        codes.put( "" + smsCode.getTrackedEntityAttribute().getId(), smsCode.getCode() );
-                    }
-
                     if ( smsCode.getDataElement() != null )
                     {
                         codes.put( "" + smsCode.getDataElement().getId(), smsCode.getCode() );

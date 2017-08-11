@@ -198,7 +198,7 @@ public class EditSMSCommandForm
 
         if ( selectedDataSetID > -1 && command != null )
         {
-            if ( command.getParserType() == ParserType.TRACKED_ENTITY_REGISTRATION_PARSER || command.getParserType() == ParserType.PROGRAM_STAGE_DATAENTRY_PARSER  )
+            if ( command.getParserType() == ParserType.TRACKED_ENTITY_REGISTRATION_PARSER )
             {
                 root = mapper.readValue( trackedEntityAttributeCodes, JsonNode.class );
                 JsonNode regCodes = root.get( "trackedEntityAttributeCodes" );

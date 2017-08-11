@@ -329,7 +329,7 @@
 		<td col="2"><input type="button" value="$i18n.getString('add_more')" onclick="generateSpecialCharactersForm()"/><td>
 	</tr>    #end
     
-    #if( $smsCommand.parserType == 'TRACKED_ENTITY_REGISTRATION_PARSER' || $smsCommand.parserType == 'PROGRAM_STAGE_DATAENTRY_PARSER')
+    #if( $smsCommand.parserType == 'TRACKED_ENTITY_REGISTRATION_PARSER' )
     	<tbody id="codes">
 	      <tr>
 	        <th colspan='2'>$i18n.getString( "tracked_entity_attribute")</th>

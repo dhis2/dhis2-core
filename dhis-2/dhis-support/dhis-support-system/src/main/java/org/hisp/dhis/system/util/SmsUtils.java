@@ -75,10 +75,11 @@ public class SmsUtils
         return commandString.trim();
     }
 
-    public static Collection<OrganisationUnit> getOrganisationUnitsByPhoneNumber( String sender,
+    public static Set<OrganisationUnit> getOrganisationUnitsByPhoneNumber( String sender,
         Collection<User> users )
     {
-        Collection<OrganisationUnit> orgUnits = new ArrayList<>();
+        Set<OrganisationUnit> orgUnits = new HashSet<>();
+
         for ( User u : users )
         {
             if ( u.getOrganisationUnits() != null )
