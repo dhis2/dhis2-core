@@ -3,7 +3,6 @@
   xmlns="http://www.springframework.org/schema/beans"
   xmlns:context="http://www.springframework.org/schema/context"
   xmlns:sec="http://www.springframework.org/schema/security"
-  xmlns:mvc="http://www.springframework.org/schema/mvc"
   xsi:schemaLocation="
     http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
     http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
@@ -14,9 +13,11 @@
 
   <context:component-scan base-package="org.hisp.dhis.web.ohie.csd" />
   <context:component-scan base-package="org.hisp.dhis.web.ohie.adx"  />
+  <context:component-scan base-package="org.hisp.dhis.web.ohie.fhir" />
 
   <context:annotation-config />
 
   <bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean" />
+
   
 </beans>

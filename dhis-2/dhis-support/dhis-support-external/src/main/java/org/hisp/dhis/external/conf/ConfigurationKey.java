@@ -60,6 +60,7 @@ public enum ConfigurationKey
     META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC( "metadata.sync.retry.time.frequency.millisec", "30000" ),
     CLUSTER_INSTANCE_HOSTNAME( "cluster.instance0.hostname" ),
     CLUSTER_INSTANCE_CACHE_PORT( "cluster.instance0.cache.port", "4001" ),
+    SERVER_SIDE_APPS( "server_side_apps.enabled" , "off");
     CACHE_PROVIDER( "cache.provider", "ehcache" ),
     CACHE_SERVERS( "cache.servers", "localhost:11211" ),
     CACHE_TIME( "cache.time", "600" );

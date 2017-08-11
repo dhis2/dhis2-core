@@ -28,10 +28,12 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import org.apache.ant.compress.taskdefs.Unzip;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -42,23 +44,25 @@ import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.scriptlibrary.AppScriptLibrary;
+import org.hisp.dhis.scriptlibrary.ScriptLibrary;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 
 import javax.annotation.PostConstruct;
+import javax.json.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.io.InputStreamReader;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
@@ -84,6 +88,10 @@ public class DefaultAppManager
      */
     private HashMap<String, App> appNamespaces = new HashMap<>();
 
+    private HashMap<String, JsonNode> manifests = new HashMap<>();
+
+    private Map<String, ScriptLibrary> scriptLibraries = new HashMap<String, ScriptLibrary>();
+
     @PostConstruct
     private void init()
     {
@@ -104,6 +112,7 @@ public class DefaultAppManager
     @Autowired
     private KeyJsonValueService keyJsonValueService;
 
+    private JsonFactory jsonFactory = new JsonFactory();
     // -------------------------------------------------------------------------
     // AppManagerService implementation
     // -------------------------------------------------------------------------
@@ -127,9 +136,9 @@ public class DefaultAppManager
     @Override
     public List<App> getAppsByName( final String name, Collection<App> apps, final String operator )
     {
-        return apps.stream().filter( app -> ( 
-            ( "ilike".equalsIgnoreCase( operator ) && app.getName().toLowerCase().contains( name.toLowerCase() ) ) ||
-            ( "eq".equalsIgnoreCase( operator ) && app.getName().equals( name ) ) ) ).
+        return apps.stream().filter( app -> (
+            ("ilike".equalsIgnoreCase( operator ) && app.getName().toLowerCase().contains( name.toLowerCase() )) ||
+                ("eq".equalsIgnoreCase( operator ) && app.getName().equals( name ))) ).
             collect( Collectors.toList() );
     }
 
@@ -153,6 +162,7 @@ public class DefaultAppManager
                 String appType = split[2] != null ? split[2].toUpperCase() : null;
                 returnList.retainAll( getAppsByType( AppType.valueOf( appType ), returnList ) );
             }
+
             else if ( "name".equalsIgnoreCase( split[0] ) )
             {
                 returnList.retainAll( getAppsByName( split[2], returnList, split[1] ) );
@@ -177,6 +187,142 @@ public class DefaultAppManager
 
         return null;
     }
+
+
+    public ScriptLibrary getScriptLibrary( App app )
+    {
+        String key = app.getKey();
+        log.info( "Retreiving script libary for " + app );
+        if ( scriptLibraries.containsKey( key ) )
+        {
+            return scriptLibraries.get( key );
+        }
+
+        else
+        {
+            ScriptLibrary sl = new AppScriptLibrary( app, this );
+            log.info( "Creating script library for " + app.getKey() );
+            scriptLibraries.put( key, sl );
+            return sl;
+        }
+    }
+
+    public long getLastModified( String appKey )
+    {
+        try
+        {
+            Resource resource = findResource( appKey, MANIFEST_FILENAME );
+            return resource.lastModified();
+        }
+        catch ( Exception e )
+        {
+            return -1;
+        }
+    }
+
+
+    public JsonNode retrieveManifestInfo( String appKey, String[] path )
+    {
+        log.info( "Retrieve manifest info for " + appKey + "\nPath=" + String.join( "/", path ) );
+        try
+        {
+            JsonNode node;
+            if ( manifests.containsKey( appKey ) )
+            {
+                log.info( "Using exist manifest" );
+                node = manifests.get( appKey );
+            }
+            else
+            {
+                log.info( "Loading " + MANIFEST_FILENAME + " for " + appKey );
+                Resource manifest = findResource( appKey, MANIFEST_FILENAME );
+                log.info( "Found manifest: " + manifest.getURI() );
+                JsonParser jParser = jsonFactory.createParser( manifest.getInputStream() );
+                log.info( "Parsed manifest" );
+                ObjectMapper mapper = new ObjectMapper();
+                log.info( "Created object mapper" );
+                node = mapper.readTree( jParser );
+                log.info( "Reading tree" );
+                manifests.put( appKey, node );
+                log.info( "Adding to manifests cache" );
+            }
+
+            for ( int i = 0; i < path.length; i++ ) //walk the binding path
+            {
+                log.info( "Processing path component (" + path[i] + ")" );
+                if ( node.isArray() )
+                {
+                    int num = Integer.parseInt( path[i] );
+                    if ( !node.has( num ) )
+                    {
+                        throw new Exception( "path component " + path[i] + " not found" );
+                    }
+                    node = node.get( num );
+                }
+                else if ( node.isObject() )
+                {
+                    if ( !node.has( path[i] ) )
+                    {
+                        throw new Exception( "path component " + path[i] + " not found" );
+                    }
+                    node = node.get( path[i] );
+                }
+                else if ( i != path.length - 1 )
+                {
+                    log.info( "Path component not found (" + path[i] + ")" );
+                    return null; //we are not in the correct path
+                }
+
+
+            }
+            log.info( "walked full path" );
+            return node;
+        }
+
+        catch ( Exception e )
+        {
+            log.info( "Could not access manifest for " + appKey + ":" + e.toString() );
+            return null; //return empty object
+        }
+    }
+
+
+    public Resource findResource( String appKey, String resourceName )
+        throws IOException
+    {
+        ResourceLoader resourceLoader = new DefaultResourceLoader();
+        Iterable<Resource> locations = Lists.newArrayList();
+        try
+        {
+            locations = Lists.newArrayList(
+                resourceLoader.getResource( "file:" + getAppFolderPath() + "/" + appKey + "/" ),
+                resourceLoader.getResource( "classpath*:/apps/" + appKey + "/" )
+            );
+
+        }
+        catch ( Exception e )
+        {
+            log.info( "Could not init App resource locations" + e.toString() );
+
+        }
+
+        log.info( "Looking for resource [" + resourceName + "] in " + appKey );
+
+        for ( Resource location : locations )
+        {
+            Resource resource = location.createRelative( resourceName );
+            log.info( "Checking " + resource.toString() + " under " + location.toString() );
+
+            if ( resource.exists() && resource.isReadable() )
+            {
+                log.info( "Found " + resource.toString() );
+                return resource;
+            }
+        }
+
+        return null;
+    }
+
 
     @Override
     public List<App> getAccessibleApps( String contextPath )
@@ -218,7 +364,7 @@ public class DefaultAppManager
             }
 
             // -----------------------------------------------------------------
-            // Delete if app is already installed, assuming app update so no 
+            // Delete if app is already installed, assuming app update so no
             // data is deleted
             // -----------------------------------------------------------------
 
@@ -249,18 +395,22 @@ public class DefaultAppManager
             return AppStatus.OK;
 
         }
+
         catch ( ZipException e )
         {
             return AppStatus.INVALID_ZIP_FORMAT;
         }
+
         catch ( JsonParseException e )
         {
             return AppStatus.INVALID_MANIFEST_JSON;
         }
+
         catch ( JsonMappingException e )
         {
             return AppStatus.INVALID_MANIFEST_JSON;
         }
+
         catch ( IOException e )
         {
             return AppStatus.INSTALLATION_FAILED;
@@ -268,11 +418,11 @@ public class DefaultAppManager
     }
 
     @Override
-    public boolean exists( String appName )
+    public boolean exists( String appKey )
     {
         for ( App app : getApps( null ) )
         {
-            if ( app.getName().equals( appName ) || app.getFolderName().equals( appName ) )
+            if ( app.getName().equals( appKey ) || app.getFolderName().equals( appKey ) )
             {
                 return true;
             }
@@ -284,12 +434,22 @@ public class DefaultAppManager
     @Override
     public boolean deleteApp( String name, boolean deleteAppData )
     {
+
         for ( App app : getApps( null ) )
         {
             if ( app.getName().equals( name ) || app.getFolderName().equals( name ) )
             {
                 try
                 {
+                    String key = app.getKey();
+                    if ( manifests.containsKey( key ) )
+                    {
+                        manifests.remove( key );
+                    }
+                    if ( scriptLibraries.containsKey( key ) )
+                    {
+                        scriptLibraries.remove( key );
+                    }
                     String folderPath = getAppFolderPath() + File.separator + app.getFolderName();
                     FileUtils.forceDelete( new File( folderPath ) );
 
@@ -297,7 +457,8 @@ public class DefaultAppManager
 
                     if ( deleteAppData && appNamespaces.containsValue( app ) )
                     {
-                        appNamespaces.forEach( ( namespace, app1 ) -> {
+                        appNamespaces.forEach( ( namespace, app1 ) ->
+                        {
                             if ( app1 == app )
                             {
                                 keyJsonValueService.deleteNamespace( namespace );
@@ -307,11 +468,13 @@ public class DefaultAppManager
 
                     return true;
                 }
+
                 catch ( IOException ex )
                 {
                     log.error( "Could not delete app: " + name, ex );
                     return false;
                 }
+
                 finally
                 {
                     reloadApps(); // Reload app state
@@ -322,6 +485,7 @@ public class DefaultAppManager
         return false;
     }
 
+
     @Override
     public String getAppFolderPath()
     {
@@ -329,6 +493,7 @@ public class DefaultAppManager
         {
             return locationManager.getExternalDirectoryPath() + APPS_DIR;
         }
+
         catch ( LocationManagerException ex )
         {
             log.info( "Could not get app folder path, external directory not set" );
@@ -374,7 +539,7 @@ public class DefaultAppManager
                         if ( folder.isDirectory() )
                         {
                             File appManifest = new File( folder, "manifest.webapp" );
-    
+
                             if ( appManifest.exists() )
                             {
                                 try
@@ -382,14 +547,15 @@ public class DefaultAppManager
                                     App app = mapper.readValue( appManifest, App.class );
                                     app.setFolderName( folder.getName() );
                                     appList.add( app );
-    
+
                                     String appNamespace = app.getActivities().getDhis().getNamespace();
-    
+
                                     if ( appNamespace != null )
                                     {
                                         appNamespaces.put( appNamespace, app );
                                     }
                                 }
+
                                 catch ( IOException ex )
                                 {
                                     log.error( ex.getLocalizedMessage(), ex );
@@ -403,7 +569,8 @@ public class DefaultAppManager
 
         this.apps = appList;
         this.appNamespaces = appNamespaces;
-
+        manifests = new HashMap<String, JsonNode>(); //clear out any manifests that were already parsed
+        scriptLibraries = new HashMap<String, ScriptLibrary>();
         log.info( "Detected apps: " + apps );
     }
 
@@ -456,10 +623,12 @@ public class DefaultAppManager
                     FileUtils.forceMkdir( folder );
                 }
             }
+
             catch ( IOException ex )
             {
                 log.error( ex.getMessage(), ex );
             }
         }
     }
+
 }

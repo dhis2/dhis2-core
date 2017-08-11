@@ -30,6 +30,10 @@ package org.hisp.dhis.appmanager;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Lists;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 
 import java.io.Serializable;
 
@@ -78,6 +82,9 @@ public class App
 
     private String baseUrl;
 
+    private String contextPath;
+
+
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
@@ -89,6 +96,7 @@ public class App
      */
     public void init( String contextPath )
     {
+	this.contextPath = contextPath;
         this.baseUrl = contextPath + "/api/apps";
 
         if ( contextPath != null && folderName != null && launchPath != null )
@@ -105,6 +113,8 @@ public class App
     {
         return folderName;
     }
+
+
 
     // -------------------------------------------------------------------------
     // Get and set methods
@@ -261,6 +271,10 @@ public class App
     public void setBaseUrl( String baseUrl )
     {
         this.baseUrl = baseUrl;
+    }
+
+    public String getContextPath() {
+	return this.contextPath;
     }
 
     // -------------------------------------------------------------------------
