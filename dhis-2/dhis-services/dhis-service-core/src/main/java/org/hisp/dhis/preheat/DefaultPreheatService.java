@@ -876,9 +876,9 @@ public class DefaultPreheatService implements PreheatService
     {
         Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = preheat.getDefaults();
 
-        if ( DataSetElement.class.isInstance( object ) )
+        if ( refObject == null && DataSetElement.class.isInstance( object ) )
         {
-            return ref;
+            return null;
         }
 
         IdentifiableObject defaultObject = defaults.get( property.getKlass() );
