@@ -33,7 +33,7 @@ dhis2.de.updateDataElementTotals = function( dataElementId )
 		{		
 			var total = dhis2.de.getDataElementTotalValue( de );
 			
-			$( this ).attr( 'value', total );
+			$( this ).val( total );
 		}
 	} );
 }
@@ -49,18 +49,18 @@ dhis2.de.updateIndicators = function()
         var indicatorId = $( this ).attr( 'indicatorid' );
 
         var formula = dhis2.de.indicatorFormulas[indicatorId];
-        
+
         if ( isDefined( formula ) )
         {        
 	        var expression = dhis2.de.generateExpression( formula );
-	
+
 	        if ( expression )
 	        {
 		        var value = eval( expression );
-		        
+
 		        value = isNaN( value ) ? '-' : roundTo( value, 1 );
 		
-		        $( this ).attr( 'value', value );
+		        $( this ).val( value );
 	        }
         }
         else
@@ -76,15 +76,15 @@ dhis2.de.updateIndicators = function()
  */
 dhis2.de.getDataElementTotalValue = function( de )
 {
-	var sum = new Number();
+    var sum = new Number();
 		
 	$( '[id^="' + de + '"]' ).each( function( index )
 	{
-		var val = $( this ).attr( 'value' );
+	    var val = $( this ).val();
 		
 		if ( val && dhis2.validation.isNumber( val ) )
 		{
-			sum += new Number( $( this ).attr( 'value' ) );
+			sum += new Number( $( this ).val() );
 		}
 	} );
 	
@@ -98,12 +98,13 @@ dhis2.de.getDataElementTotalValue = function( de )
 dhis2.de.getFieldValue = function( de, coc )
 {
     var fieldId = '#' + de + '-' + coc + '-val';
-	
+
     var value = '0';
     
     if ( $( fieldId ).length )
     {
         value = $( fieldId ).val() ? $( fieldId ).val() : '0';
+
     }
     
     return value;
