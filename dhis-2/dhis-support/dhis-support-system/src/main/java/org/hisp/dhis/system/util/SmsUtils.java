@@ -58,7 +58,7 @@ public class SmsUtils
     public static String getCommandString( IncomingSms sms )
     {
         String message = sms.getText();
-        String commandString = null;
+        String commandString = StringUtils.EMPTY;
 
         for ( int i = 0; i < message.length(); i++ )
         {
