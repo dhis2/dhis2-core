@@ -70,7 +70,7 @@ import java.util.regex.Pattern;
 import javax.annotation.Resource;
 
 public class J2MEDataValueSMSListener
-    implements IncomingSmsListener
+    extends BaseSMSListener
 {
 
     // -------------------------------------------------------------------------
@@ -164,6 +164,20 @@ public class J2MEDataValueSMSListener
         this.registerCompleteDataSet( smsCommand.getDataset(), period, orgUnit, "mobile" );
 
         this.sendSuccessFeedback( senderPhoneNumber, smsCommand, parsedMessage, period, orgUnit );
+    }
+
+    @Override
+    protected String getDefaultPattern()
+    {
+        // Not supported for J2MEListener
+        return StringUtils.EMPTY;
+    }
+
+    @Override
+    protected String getSuccessMessage()
+    {
+        // Not supported for J2MEListener
+        return StringUtils.EMPTY;
     }
 
     private Map<String, String> parse( String sms, SMSCommand smsCommand )
