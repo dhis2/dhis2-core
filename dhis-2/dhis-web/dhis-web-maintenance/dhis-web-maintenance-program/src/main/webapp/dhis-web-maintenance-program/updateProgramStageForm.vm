@@ -4,6 +4,8 @@
 
 <script>
   jQuery(document).ready(function() {
+      hideDueDateOnChange();
+      
     validation2( 'updateProgramStageForm', function( form )
    	{
    		form.submit();
