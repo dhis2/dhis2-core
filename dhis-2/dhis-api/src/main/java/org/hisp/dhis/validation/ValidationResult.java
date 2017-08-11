@@ -48,7 +48,8 @@ import java.util.Date;
  * @author Margrethe Store
  */
 @JacksonXmlRootElement( localName = "validationResult", namespace = DxfNamespaces.DXF_2_0 )
-public class ValidationResult implements Comparable<ValidationResult>
+public class ValidationResult
+    implements Comparable<ValidationResult>
 {
 
     private int id;
@@ -352,6 +353,8 @@ public class ValidationResult implements Comparable<ValidationResult>
         this.rightsideValue = rightsideValue;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getDayInPeriod()
     {
         return dayInPeriod;
