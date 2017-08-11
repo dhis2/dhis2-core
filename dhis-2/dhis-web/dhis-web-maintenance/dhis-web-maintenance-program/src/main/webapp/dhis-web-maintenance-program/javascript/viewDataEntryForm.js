@@ -167,7 +167,7 @@ function filterDataElements( filter, container, list )
 		item = jQuery( item );		
 		var toMatch = item.text().toString().toLowerCase();		
         if( toMatch.indexOf(filterLower) != -1 ){
-			dataElementList.append( "<option value='" + item.attr('value') + "' dename='"+item.attr('dename')+"' decode='"+item.attr('decode')+"'>" + item.text() + "</option>" );
+			dataElementList.append( "<option value='" + item.val() + "' dename='"+item.attr('dename')+"' decode='"+item.attr('decode')+"'>" + item.text() + "</option>" );
 		};
 	});	
 }
