@@ -496,7 +496,7 @@ public abstract class AbstractEnrollmentService
         
         if ( enrollment.getOrgUnit() != null ) 
         {
-            OrganisationUnit organisationUnit = manager.get( OrganisationUnit.class, enrollment.getOrgUnit() );
+            OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), enrollment.getOrgUnit() );
             programInstance.setOrganisationUnit( organisationUnit );
         }
 
