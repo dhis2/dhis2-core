@@ -493,6 +493,12 @@ public abstract class AbstractEnrollmentService
         {
             programInstance.setEnrollmentDate( enrollment.getEnrollmentDate() );
         }
+        
+        if ( enrollment.getOrgUnit() != null ) 
+        {
+            OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), enrollment.getOrgUnit() );
+            programInstance.setOrganisationUnit( organisationUnit );
+        }
 
         programInstance.setFollowup( enrollment.getFollowup() );
 
