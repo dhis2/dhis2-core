@@ -26,23 +26,73 @@ package org.hisp.dhis.fieldfilter;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import org.hisp.dhis.node.types.CollectionNode;
-import org.hisp.dhis.node.types.ComplexNode;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface FieldFilterService
+public final class FieldFilterParams
 {
     /**
-     * Perform inclusion/exclusion on a list of objects.
+     * List of object(s) to filter through. If more than one, a wrapper
+     * is required.
      */
-    ComplexNode toComplexNode( FieldFilterParams params );
+    private List<?> objects = new ArrayList<>();
 
     /**
-     * Perform inclusion/exclusion on a list of objects.
+     * Fields to filter by.
      */
-    CollectionNode toCollectionNode( Class<?> wrapper, FieldFilterParams params );
+    private List<String> fields;
+
+    private Defaults defaults = Defaults.INCLUDE;
+
+    public FieldFilterParams( List<?> objects, List<String> fields )
+    {
+        this.objects = objects;
+        this.fields = fields;
+    }
+
+    public FieldFilterParams( List<?> objects, List<String> fields, Defaults defaults )
+    {
+        this.objects = objects;
+        this.fields = fields;
+        this.defaults = defaults;
+    }
+
+    public List<?> getObjects()
+    {
+        return objects;
+    }
+
+    public FieldFilterParams setObjects( List<?> objects )
+    {
+        this.objects = objects;
+        return this;
+    }
+
+    public List<String> getFields()
+    {
+        return fields;
+    }
+
+    public FieldFilterParams setFields( List<String> fields )
+    {
+        this.fields = fields;
+        return this;
+    }
+
+    public Defaults getDefaults()
+    {
+        return defaults;
+    }
+
+    public FieldFilterParams setDefaults( Defaults defaults )
+    {
+        this.defaults = defaults;
+        return this;
+    }
 }

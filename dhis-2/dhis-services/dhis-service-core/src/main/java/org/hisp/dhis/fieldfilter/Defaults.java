@@ -26,23 +26,23 @@ package org.hisp.dhis.fieldfilter;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
-
-import org.hisp.dhis.node.types.CollectionNode;
-import org.hisp.dhis.node.types.ComplexNode;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface FieldFilterService
+public enum Defaults
 {
     /**
-     * Perform inclusion/exclusion on a list of objects.
+     * Include all defaults, both for roots and for references.
      */
-    ComplexNode toComplexNode( FieldFilterParams params );
+    INCLUDE,
 
     /**
-     * Perform inclusion/exclusion on a list of objects.
+     * Remove defaults from nodes. Roots will not be included, collections
+     * which contains default will have them removed, 1-to-1 mappings will have
+     * them set to null.
      */
-    CollectionNode toCollectionNode( Class<?> wrapper, FieldFilterParams params );
+    EXCLUDE
 }

@@ -80,7 +80,7 @@ public class DisableUserAction
             return ERROR;
         }
 
-        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( credentials.getUser().getGroups() ) )
+        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( credentials.getUserInfo().getGroups() ) )
             || !currentUser.getUserCredentials().canModifyUser( credentials ) )
         {
             return ERROR;

@@ -57,6 +57,12 @@ public class UserAccess
     {
     }
 
+    public UserAccess( User user, String access )
+    {
+        this.user = user;
+        this.access = access;
+    }
+
     public int getId()
     {
         return id;
