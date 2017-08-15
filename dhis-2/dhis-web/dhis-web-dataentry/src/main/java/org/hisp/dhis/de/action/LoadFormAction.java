@@ -338,6 +338,7 @@ public class LoadFormAction
         {
             DataSet dataSetCopy = new DataSet();
             dataSetCopy.setUid( dataSet.getUid() );
+            dataSetCopy.setCode( dataSet.getCode() );
             dataSetCopy.setName( dataSet.getName() );
             dataSetCopy.setShortName( dataSet.getShortName() );
             dataSetCopy.setRenderAsTabs( dataSet.isRenderAsTabs() );
