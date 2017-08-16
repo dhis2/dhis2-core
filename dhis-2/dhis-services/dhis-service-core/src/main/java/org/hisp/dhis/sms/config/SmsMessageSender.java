@@ -114,12 +114,15 @@ public class SmsMessageSender
             toSendList.addAll( users );
         }
 
-        Set<String> phoneNumbers = SmsUtils.getRecipientsPhoneNumber( toSendList );
+        if ( toSendList.isEmpty() )
+        {
+            return new OutboundMessageResponse( "No recipient found", GatewayResponse.NO_RECIPIENT, false );
+        }
 
         // Extract summary from text in case of COLLECTIVE_SUMMARY
         text = SUMMARY_PATTERN.matcher( text ).find() ? StringUtils.substringBefore( text, LN ) : text;
 
-        return sendMessage( subject, text, phoneNumbers );
+        return sendMessage( subject, text, SmsUtils.getRecipientsPhoneNumber( toSendList ) );
     }
 
     @Override
