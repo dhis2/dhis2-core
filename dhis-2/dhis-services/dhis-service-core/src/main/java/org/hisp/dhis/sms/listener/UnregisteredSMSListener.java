@@ -55,7 +55,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class UnregisteredSMSListener
-    implements IncomingSmsListener
+    extends BaseSMSListener
 {
 
     public static final String USER_NAME = "anonymous";
@@ -163,5 +163,19 @@ public class UnregisteredSMSListener
                 incomingSmsService.update( sms );
             }
         }
+    }
+
+    @Override
+    protected String getDefaultPattern()
+    {
+        // Not supported for UnregisteredSMSListener
+        return StringUtils.EMPTY;
+    }
+
+    @Override
+    protected String getSuccessMessage()
+    {
+        // Not supported for UnregisteredSMSListener
+        return StringUtils.EMPTY;
     }
 }
