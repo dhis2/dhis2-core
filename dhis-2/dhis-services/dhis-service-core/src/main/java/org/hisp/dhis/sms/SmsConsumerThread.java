@@ -89,7 +89,7 @@ public class SmsConsumerThread
             }
             catch ( Exception e )
             {
-                log.error( "Parse Error " + e.getMessage() );
+                e.printStackTrace();
 
                 message.setStatus( SmsMessageStatus.FAILED );
                 message.setParsed( false );

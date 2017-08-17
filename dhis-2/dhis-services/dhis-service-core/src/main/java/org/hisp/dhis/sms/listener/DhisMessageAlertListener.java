@@ -55,7 +55,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class DhisMessageAlertListener
-    implements IncomingSmsListener
+    extends BaseSMSListener
 {
 
     // -------------------------------------------------------------------------
@@ -154,5 +154,19 @@ public class DhisMessageAlertListener
                     "No user associated with this phone number. Please contact your supervisor." );
             }
         }
+    }
+
+    @Override
+    protected String getDefaultPattern()
+    {
+        // Not supported for AlertSMSListener
+        return StringUtils.EMPTY;
+    }
+
+    @Override
+    protected String getSuccessMessage()
+    {
+        // Not supported for AlertSMSListener
+        return StringUtils.EMPTY;
     }
 }
