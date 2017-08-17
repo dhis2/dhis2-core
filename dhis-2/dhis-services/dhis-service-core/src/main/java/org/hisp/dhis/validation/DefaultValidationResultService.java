@@ -27,6 +27,8 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,5 +92,12 @@ public class DefaultValidationResultService
     public int countValidationResults( ValidationResultQuery query )
     {
         return validationResultStore.count( query );
+    }
+
+    @Override
+    public List<ValidationResult> getValidationResults( List<OrganisationUnit> orgUnits,
+        Collection<ValidationRule> validationRules, Collection<Period> periods )
+    {
+        return validationResultStore.getValidationResults( orgUnits, validationRules, periods);
     }
 }

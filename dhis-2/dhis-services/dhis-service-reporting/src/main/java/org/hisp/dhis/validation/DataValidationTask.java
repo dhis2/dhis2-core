@@ -126,7 +126,7 @@ public class DataValidationTask
         {
             for ( PeriodTypeExtended periodTypeX : context.getPeriodTypeExtendedMap().values() )
             {
-                log.trace("Validation PeriodType " + periodTypeX.getPeriodType().getName() );
+                log.trace( "Validation PeriodType " + periodTypeX.getPeriodType().getName() );
 
                 Set<ValidationRuleExtended> ruleXs = getRulesBySourceAndPeriodType( orgUnit, periodTypeX );
 
@@ -159,7 +159,7 @@ public class DataValidationTask
                         {
                             ValidationRule rule = ruleX.getRule();
 
-                            log.trace("Validation rule " + rule.getUid() + " " + rule.getName() );
+                            log.trace( "Validation rule " + rule.getUid() + " " + rule.getName() );
 
                             Map<String, Double> leftSideValues;
 
@@ -190,7 +190,14 @@ public class DataValidationTask
 
                             for ( String optionCombo : attributeOptionCombos )
                             {
-                                log.trace("Validation attributeOptionCombo " + optionCombo );
+                                // Skipping any results we already know
+                                if ( context.skipValidationOfTuple( orgUnit, rule, period, optionCombo,
+                                    periodService.getDayInPeriod( period, new Date() ) ) )
+                                {
+                                    continue;
+                                }
+
+                                log.trace( "Validation attributeOptionCombo " + optionCombo );
 
                                 Double leftSide = leftSideValues.get( optionCombo );
                                 Double rightSide = rightSideValues.get( optionCombo );
