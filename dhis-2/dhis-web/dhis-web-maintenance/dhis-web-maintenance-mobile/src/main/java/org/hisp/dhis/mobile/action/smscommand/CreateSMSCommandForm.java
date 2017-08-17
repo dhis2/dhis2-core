@@ -32,6 +32,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
@@ -73,6 +74,13 @@ public class CreateSMSCommandForm
     public void setProgramService( ProgramService programService )
     {
         this.programService = programService;
+    }
+
+    private ProgramStageService programStageService;
+
+    public void setProgramStageService( ProgramStageService programStageService )
+    {
+        this.programStageService = programStageService;
     }
 
     // -------------------------------------------------------------------------
@@ -117,6 +125,30 @@ public class CreateSMSCommandForm
     public void setSelectedProgramId( Integer selectedProgramId )
     {
         this.selectedProgramId = selectedProgramId;
+    }
+
+    private String selectedProgramStageId;
+
+    public String getSelectedProgramStageId()
+    {
+        return selectedProgramStageId;
+    }
+
+    public void setSelectedProgramStageId( String selectedProgramStageId )
+    {
+        this.selectedProgramStageId = selectedProgramStageId;
+    }
+
+    private String selectedParentProgramId;
+
+    public String getSelectedParentProgramId()
+    {
+        return selectedParentProgramId;
+    }
+
+    public void setSelectedParentProgramId( String selectedParentProgramId )
+    {
+        this.selectedParentProgramId = selectedParentProgramId;
     }
 
     private Integer selectedProgramIdWithoutRegistration;
@@ -165,6 +197,14 @@ public class CreateSMSCommandForm
             command.setProgram( program );
 
             command.setProgramStage( program.getProgramStages().iterator().next() );
+        }
+        else if ( parserType.equals( ParserType.PROGRAM_STAGE_DATAENTRY_PARSER ) )
+        {
+            Program program = programService.getProgram( selectedParentProgramId );
+
+            command.setProgram( program );
+
+            command.setProgramStage( programStageService.getProgramStage( selectedProgramStageId ) );
         }
 
         smsCommandService.save( command );

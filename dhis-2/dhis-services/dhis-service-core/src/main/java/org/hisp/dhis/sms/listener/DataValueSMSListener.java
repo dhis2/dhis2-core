@@ -75,9 +75,9 @@ import java.util.regex.Pattern;
 import javax.annotation.Resource;
 
 public class DataValueSMSListener
-    implements IncomingSmsListener
+    extends BaseSMSListener
 {
-    private static final String defaultPattern = "([a-zA-Z]+)\\s*(\\d+)";
+    private static final String DEFAULTPATTERN = "([a-zA-Z]+)\\s*(\\d+)";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -199,10 +199,24 @@ public class DataValueSMSListener
         incomingSmsService.update( sms );
     }
 
+    @Override
+    protected String getDefaultPattern()
+    {
+        // Not supported for DataValueListener
+        return StringUtils.EMPTY;
+    }
+
+    @Override
+    protected String getSuccessMessage()
+    {
+        // Not supported for DataValueListener
+        return StringUtils.EMPTY;
+    }
+
     private Map<String, String> parse( String sms, SMSCommand smsCommand )
     {
         HashMap<String, String> output = new HashMap<>();
-        Pattern pattern = Pattern.compile( defaultPattern );
+        Pattern pattern = Pattern.compile( DEFAULTPATTERN );
 
         if ( !StringUtils.isBlank( smsCommand.getSeparator() ) )
         {
