@@ -12,9 +12,8 @@
 		<id name="id" column="smscommandid">
 			<generator class="increment" />
 		</id>
-		<property name="name" type="text" />
 
-		<property name="parser" type="text" />
+		<property name="name" type="text" />
 
 		<property name="parserType">
 			<type name="org.hibernate.type.EnumType">
@@ -23,7 +22,7 @@
 		</property>
 
 		<property name="separator" type="text" column="separatorkey" />
-		<property name="codeSeparator" type="text" />
+		<property name="codeValueSeparator" type="text" />
 		<property name="defaultMessage" type="text" />
 		<property name="receivedMessage" type="text" />
 		<property name="wrongFormatMessage" type="text" />

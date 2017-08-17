@@ -41,10 +41,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @JacksonXmlRootElement( localName = "smscode", namespace = DxfNamespaces.DXF_2_0 )
 public class SMSCode
+    extends BaseIdentifiableObject
 {
-    private int id;
-
-    private String code;
+    private String smsCode;
 
     private DataElement dataElement;
 
@@ -74,29 +73,19 @@ public class SMSCode
         
     }
 
-    public int getId()
+    @JsonProperty
+    @JacksonXmlProperty
+    public String getSmsCode()
     {
-        return id;
-    }
-
-    public void setId( int id )
-    {
-        this.id = id;
-    }
-
-    @JsonProperty( value = "smsCode" )
-    @JacksonXmlProperty( localName = "smsCode" )
-    public String getCode()
-    {
-        return code;
+        return smsCode;
     }
     
-    public void setCode( String code )
+    public void setSmsCode( String code )
     {
-        this.code = code;
+        this.smsCode = smsCode;
     }
 
-    @JsonProperty( value = "dataElement" )
+    @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( localName = "dataElement" )
     public DataElement getDataElement()
@@ -109,6 +98,8 @@ public class SMSCode
         this.dataElement = dataElement;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty
     public int getOptionId()
     {
         return optionId;
@@ -119,6 +110,9 @@ public class SMSCode
         this.optionId = optionId;
     }
 
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public TrackedEntityAttribute getTrackedEntityAttribute()
     {
         return trackedEntityAttribute;
@@ -129,6 +123,8 @@ public class SMSCode
         this.trackedEntityAttribute = trackedEntityAttribute;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty
     public String getFormula()
     {
         return formula;
@@ -139,8 +135,8 @@ public class SMSCode
         this.formula = formula;
     }
     
-    @JsonProperty( value = "compulsory" )
-    @JacksonXmlProperty( localName = "compulsory" )
+    @JsonProperty
+    @JacksonXmlProperty
     public boolean isCompulsory()
     {
         return compulsory;
