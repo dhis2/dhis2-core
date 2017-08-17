@@ -30,11 +30,11 @@
       <many-to-many class="org.hisp.dhis.program.ProgramIndicatorGroup" column="programindicatorgroupid" />
     </set>
 
-    <property name="expression" type="text" not-null="true" />
+    <property name="expression" type="text" />
 
     <property name="filter" type="text" />
 
-    <property name="aggregationType" length="40" not-null="true">
+    <property name="aggregationType" length="40">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.analytics.AggregationType</param>
         <param name="useNamed">true</param>
