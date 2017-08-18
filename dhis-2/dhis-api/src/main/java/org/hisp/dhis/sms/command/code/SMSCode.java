@@ -41,9 +41,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @JacksonXmlRootElement( localName = "smscode", namespace = DxfNamespaces.DXF_2_0 )
 public class SMSCode
-    extends BaseIdentifiableObject
 {
-    private String smsCode;
+    private int id;
+
+    private String code;
 
     private DataElement dataElement;
 
@@ -53,7 +54,7 @@ public class SMSCode
 
     private String formula;
     
-    private boolean compulsory;
+    private boolean compulsory = false;
 
     public SMSCode( String code, DataElement dataElement, int optionId )
     {
@@ -73,16 +74,26 @@ public class SMSCode
         
     }
 
+    public int getId()
+    {
+        return id;
+    }
+
+    public void setId( int id )
+    {
+        this.id = id;
+    }
+
     @JsonProperty
     @JacksonXmlProperty
-    public String getSmsCode()
+    public String getCode()
     {
-        return smsCode;
+        return code;
     }
     
-    public void setSmsCode( String code )
+    public void setCode( String code )
     {
-        this.smsCode = smsCode;
+        this.code = code;
     }
 
     @JsonProperty

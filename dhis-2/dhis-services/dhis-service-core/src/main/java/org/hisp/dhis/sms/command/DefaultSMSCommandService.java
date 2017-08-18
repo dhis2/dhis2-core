@@ -30,13 +30,16 @@ package org.hisp.dhis.sms.command;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 public class DefaultSMSCommandService
     implements SMSCommandService
 {
@@ -77,9 +80,14 @@ public class DefaultSMSCommandService
     {
         SMSCommand command = smsCommandStore.get( commandId );
 
-        command.getCodes().addAll( codes );
+        if ( command != null )
+        {
+            command.getCodes().clear();
 
-        smsCommandStore.update( command );
+            command.getCodes().addAll( codes);
+
+            smsCommandStore.update( command );
+        }
     }
 
     @Override
@@ -105,9 +113,14 @@ public class DefaultSMSCommandService
     {
         SMSCommand command = smsCommandStore.get( commandId );
 
-        command.getSpecialCharacters().addAll( specialCharacters );
+        if ( command != null )
+        {
+            command.getSpecialCharacters().clear();
 
-        smsCommandStore.update( command );
+            command.getSpecialCharacters().addAll( specialCharacters );
+
+            smsCommandStore.update( command );
+        }
     }
 
     @Override

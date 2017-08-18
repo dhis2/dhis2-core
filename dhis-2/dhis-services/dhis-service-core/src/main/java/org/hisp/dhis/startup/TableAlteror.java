@@ -190,6 +190,7 @@ public class TableAlteror
         executeSql( "ALTER TABLE mapview DROP COLUMN valuetype" );
         executeSql( "ALTER TABLE mapview DROP COLUMN legendtype" );
         executeSql( "ALTER TABLE mapview ALTER COLUMN opacity TYPE double precision" );
+        executeSql( "ALTER TABLE smscommands ALTER COLUMN completenessmethod TYPE text" );
 
         executeSql( "ALTER TABLE maplegend DROP CONSTRAINT maplegend_name_key" );
 

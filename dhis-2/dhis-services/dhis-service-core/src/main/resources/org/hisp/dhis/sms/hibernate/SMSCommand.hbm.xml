@@ -7,7 +7,7 @@
 
 <hibernate-mapping package="org.hisp.dhis.sms.command">
 
-	<class name="SMSCommand" table="smscommands">
+	<class name="org.hisp.dhis.sms.command.SMSCommand" table="smscommands">
 
 		<id name="id" column="smscommandid">
 			<generator class="increment" />
@@ -32,7 +32,7 @@
 		<property name="successMessage" type="text" />
 		<property name="currentPeriodUsedForReporting" type="boolean" />
 
-		<property name="completenessMethod">
+		<property name="completenessMethod" column="completenessmethod">
 			<type name="org.hibernate.type.EnumType">
 				<param name="enumClass">org.hisp.dhis.sms.command.CompletenessMethod</param>
 				<param name="useNamed">true</param>
@@ -43,13 +43,13 @@
 		<many-to-one name="dataset" class="org.hisp.dhis.dataset.DataSet"
 			column="datasetid" foreign-key="fk_dataset_datasetid" />
 
-		<set name="codes" table="smscommandcodes">
+		<set name="codes" table="smscommandcodes" cascade="all">
 			<key column="id" />
 			<many-to-many class="org.hisp.dhis.sms.command.code.SMSCode"
 				column="codeid" unique="true" />
 		</set>
 
-		<set name="specialCharacters" table="smscommandspecialcharacters">
+		<set name="specialCharacters" table="smscommandspecialcharacters" cascade="all">
 			<key column="smscommandid" />
 			<many-to-many class="org.hisp.dhis.sms.command.SMSSpecialCharacter"
 				column="specialcharacterid" unique="true" />

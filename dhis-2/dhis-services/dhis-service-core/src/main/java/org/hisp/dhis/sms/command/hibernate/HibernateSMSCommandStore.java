@@ -46,8 +46,8 @@ import org.hisp.dhis.sms.parse.ParserType;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
 
-public class HibernateSMSCommandStore extends HibernateIdentifiableObjectStore<SMSCommand>
-    implements SMSCommandStore
+public class HibernateSMSCommandStore
+    extends HibernateIdentifiableObjectStore<SMSCommand> implements SMSCommandStore
 {
     @SuppressWarnings( "unchecked" )
     @Override
