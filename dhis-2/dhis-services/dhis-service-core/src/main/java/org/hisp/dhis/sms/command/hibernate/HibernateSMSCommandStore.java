@@ -37,6 +37,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSSpecialCharacter;
@@ -45,7 +46,7 @@ import org.hisp.dhis.sms.parse.ParserType;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
 
-public class HibernateSMSCommandStore
+public class HibernateSMSCommandStore extends HibernateIdentifiableObjectStore<SMSCommand>
     implements SMSCommandStore
 {
     private SessionFactory sessionFactory;
@@ -54,83 +55,6 @@ public class HibernateSMSCommandStore
     public void setSessionFactory( SessionFactory sessionFactory )
     {
         this.sessionFactory = sessionFactory;
-    }
-
-    @SuppressWarnings( "unchecked" )
-    @Override
-    public List<SMSCommand> getSMSCommands()
-    {
-        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( SMSCommand.class );
-        criteria.addOrder( Order.asc( "name" ) );
-        return criteria.list();
-    }
-
-    @Override
-    @Transactional
-    public int save( SMSCommand cmd )
-    {
-        Session session = sessionFactory.getCurrentSession();
-        session.saveOrUpdate( cmd );
-        return 0;
-    }
-
-    @Override
-    @Transactional
-    public void save( Set<SMSCode> codes )
-    {
-        Session session = sessionFactory.getCurrentSession();
-
-        for ( SMSCode x : codes )
-        {
-            session.saveOrUpdate( x );
-        }
-    }
-
-    @Override
-    public SMSCommand getSMSCommand( int id )
-    {
-        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( SMSCommand.class );
-        criteria.add( Restrictions.eq( "id", id ) );
-
-        if ( criteria.list() != null && criteria.list().size() > 0 )
-        {
-            return (SMSCommand) criteria.list().get( 0 );
-        }
-
-        return null;
-    }
-
-    @Override
-    public SMSCommand getSMSCommand( String name )
-    {
-        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( SMSCommand.class );
-        criteria.add( Restrictions.eq( "name", name ) );
-
-        if ( criteria.list() != null && criteria.list().size() > 0 )
-        {
-            return (SMSCommand) criteria.list().get( 0 );
-        }
-
-        return null;
-    }
-
-    @Override
-    @Transactional
-    public void delete( SMSCommand cmd )
-    {
-        Session session = sessionFactory.getCurrentSession();
-
-        for ( SMSCode x : cmd.getCodes() )
-        {
-            session.delete( x );
-        }
-
-        for ( SMSSpecialCharacter x : cmd.getSpecialCharacters() )
-        {
-            session.delete( x );
-        }
-
-        session.delete( cmd );
     }
 
     @SuppressWarnings( "unchecked" )
@@ -158,28 +82,6 @@ public class HibernateSMSCommandStore
     }
 
     @Override
-    public void saveSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters )
-    {
-        Session session = sessionFactory.getCurrentSession();
-
-        for ( SMSSpecialCharacter x : specialCharacters )
-        {
-            session.saveOrUpdate( x );
-        }
-    }
-
-    @Override
-    public void deleteCodeSet( Set<SMSCode> codes )
-    {
-        Session session = sessionFactory.getCurrentSession();
-
-        for ( SMSCode x : codes )
-        {
-            session.delete( x );
-        }
-    }
-
-    @Override
     public int countDataSetSmsCommands( DataSet dataSet )
     {
         Query query = getQuery( "select count(distinct c) from SMSCommand c where c.dataset=:dataSet", true );
@@ -187,17 +89,6 @@ public class HibernateSMSCommandStore
         // TODO rename dataset prop
 
         return ((Long) query.uniqueResult()).intValue();
-    }
-
-    @Override
-    public void deleteSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters )
-    {
-        Session session = sessionFactory.getCurrentSession();
-
-        for ( SMSSpecialCharacter x : specialCharacters )
-        {
-            session.delete( x );
-        }
     }
 
     public Query getQuery( String hql, boolean cacheable )

@@ -35,22 +35,18 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
 import org.hisp.dhis.sms.parse.ParserType;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class DefaultSMSCommandService
     implements SMSCommandService
 {
+    @Autowired
     private SMSCommandStore smsCommandStore;
-
-    @Override
-    public void updateSMSCommand( SMSCommand cmd )
-    {
-        // TODO
-    }
 
     @Override
     public List<SMSCommand> getSMSCommands()
     {
-        return smsCommandStore.getSMSCommands();
+        return smsCommandStore.getAll();
     }
 
     public void setSmsCommandStore( SMSCommandStore smsCommandStore )
@@ -67,19 +63,23 @@ public class DefaultSMSCommandService
     @Override
     public SMSCommand getSMSCommand( int id )
     {
-        return smsCommandStore.getSMSCommand( id );
+        return smsCommandStore.get( id );
     }
 
     @Override
     public SMSCommand getSMSCommand( String name )
     {
-        return smsCommandStore.getSMSCommand( name );
+        return smsCommandStore.getByName( name );
     }
 
     @Override
-    public void save( Set<SMSCode> codes )
+    public void save( Set<SMSCode> codes, int commandId )
     {
-        smsCommandStore.save( codes );
+        SMSCommand command = smsCommandStore.get( commandId );
+
+        command.getCodes().addAll( codes );
+
+        smsCommandStore.update( command );
     }
 
     @Override
@@ -101,15 +101,23 @@ public class DefaultSMSCommandService
     }
 
     @Override
-    public void saveSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters )
+    public void saveSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, int commandId )
     {
-        smsCommandStore.saveSpecialCharacterSet( specialCharacters );
+        SMSCommand command = smsCommandStore.get( commandId );
+
+        command.getSpecialCharacters().addAll( specialCharacters );
+
+        smsCommandStore.update( command );
     }
 
     @Override
-    public void deleteCodeSet( Set<SMSCode> codes )
+    public void deleteCodeSet( Set<SMSCode> codes, int commandId )
     {
-        smsCommandStore.deleteCodeSet( codes );
+        SMSCommand command = smsCommandStore.get( commandId );
+
+        command.getCodes().removeAll( codes );
+
+        smsCommandStore.update( command );
     }
 
     @Override
@@ -119,8 +127,12 @@ public class DefaultSMSCommandService
     }
 
     @Override
-    public void deleteSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters )
+    public void deleteSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, int commandId )
     {
-        smsCommandStore.deleteSpecialCharacterSet( specialCharacters );
+        SMSCommand command = smsCommandStore.get( commandId );
+
+        command.getSpecialCharacters().retainAll( specialCharacters );
+
+        smsCommandStore.update( command );
     }
 }
