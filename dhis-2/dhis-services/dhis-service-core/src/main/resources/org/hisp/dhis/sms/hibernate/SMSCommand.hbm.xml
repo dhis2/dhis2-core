@@ -30,7 +30,14 @@
 		<property name="moreThanOneOrgUnitMessage" type="text" />
 		<property name="successMessage" type="text" />
 		<property name="currentPeriodUsedForReporting" type="boolean" />
-		<property name="completenessMethod" />
+
+		<property name="completenessMethod">
+			<type name="org.hibernate.type.EnumType">
+				<param name="enumClass">org.hisp.dhis.sms.command.CompletenessMethod</param>
+				<param name="useNamed">true</param>
+				<param name="type">12</param>
+			</type>
+		</property>
 
 		<many-to-one name="dataset" class="org.hisp.dhis.dataset.DataSet"
 			column="datasetid" foreign-key="fk_dataset_datasetid" />
