@@ -49,14 +49,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class HibernateSMSCommandStore extends HibernateIdentifiableObjectStore<SMSCommand>
     implements SMSCommandStore
 {
-    private SessionFactory sessionFactory;
-
-    @Required
-    public void setSessionFactory( SessionFactory sessionFactory )
-    {
-        this.sessionFactory = sessionFactory;
-    }
-
     @SuppressWarnings( "unchecked" )
     @Override
     public List<SMSCommand> getJ2MESMSCommands()

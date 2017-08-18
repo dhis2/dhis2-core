@@ -12,6 +12,7 @@
 		<id name="id" column="smscommandid">
 			<generator class="increment" />
 		</id>
+		&identifiableProperties;
 
 		<property name="name" type="text" />
 
