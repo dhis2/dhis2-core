@@ -43,15 +43,15 @@ public interface SMSCommandService
 
     void save( SMSCommand cmd );
 
-    void save( Set<SMSCode> codes, int commandId );
-
     void delete( SMSCommand cmd );
 
     List<SMSCommand> getJ2MESMSCommands();
 
     SMSCommand getSMSCommand( String commandName, ParserType parserType );
 
-    void saveSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, int commandId );
+    void addSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, int commandId );
+
+    void addSmsCodes( Set<SMSCode> codes, int commandId );
 
     void deleteSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, int commandId );
 

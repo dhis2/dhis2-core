@@ -73,7 +73,7 @@ public class DefaultSMSCommandService
     }
 
     @Override
-    public void save( Set<SMSCode> codes, int commandId )
+    public void addSmsCodes( Set<SMSCode> codes, int commandId )
     {
         SMSCommand command = smsCommandStore.get( commandId );
 
@@ -101,7 +101,7 @@ public class DefaultSMSCommandService
     }
 
     @Override
-    public void saveSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, int commandId )
+    public void addSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, int commandId )
     {
         SMSCommand command = smsCommandStore.get( commandId );
 
