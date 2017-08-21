@@ -327,9 +327,10 @@ public class JdbcEventAnalyticsManager
     public Grid getEventClusters( EventQueryParams params, Grid grid, int maxLimit )
     {
         String clusterField = params.getCoordinateField();
+        String quotedClusterField = statementBuilder.columnQuote( clusterField );
         
         List<String> columns = Lists.newArrayList( "count(psi) as count", 
-            "ST_AsText(ST_Centroid(ST_Collect(" + clusterField + "))) as center", "ST_Extent(" + clusterField + ") as extent" );
+            "ST_AsText(ST_Centroid(ST_Collect(" + quotedClusterField + "))) as center", "ST_Extent(" + quotedClusterField + ") as extent" );
 
         columns.add( params.isIncludeClusterPoints() ?
             "array_to_string(array_agg(psi), ',') as points" :
@@ -339,7 +340,7 @@ public class JdbcEventAnalyticsManager
         
         sql += getFromWhereClause( params, Lists.newArrayList( "psi", clusterField ) );
         
-        sql += "group by ST_SnapToGrid(ST_Transform(" + clusterField + ", 3785), " + params.getClusterSize() + ") ";
+        sql += "group by ST_SnapToGrid(ST_Transform(" + quotedClusterField + ", 3785), " + params.getClusterSize() + ") ";
 
         log.debug( String.format( "Analytics event cluster SQL: %s", sql ) );
         
@@ -384,8 +385,9 @@ public class JdbcEventAnalyticsManager
     public Rectangle getRectangle( EventQueryParams params )
     {
         String clusterField = params.getCoordinateField();
+        String quotedClusterField = statementBuilder.columnQuote( clusterField );
                 
-        String sql = "select count(psi) as " + COL_COUNT + ", ST_Extent(" + clusterField + ") as " + COL_EXTENT + " ";
+        String sql = "select count(psi) as " + COL_COUNT + ", ST_Extent(" + quotedClusterField + ") as " + COL_EXTENT + " ";
         
         sql += getFromWhereClause( params, Lists.newArrayList( "psi", clusterField ) );
 
