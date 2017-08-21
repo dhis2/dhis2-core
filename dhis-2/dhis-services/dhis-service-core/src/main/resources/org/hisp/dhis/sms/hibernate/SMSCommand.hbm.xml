@@ -23,7 +23,7 @@
 		</property>
 
 		<property name="separator" type="text" column="separatorkey" />
-		<property name="codeValueSeparator" type="text" />
+		<property name="codeValueSeparator" type="text" column="codeseparator"/>
 		<property name="defaultMessage" type="text" />
 		<property name="receivedMessage" type="text" />
 		<property name="wrongFormatMessage" type="text" />

@@ -1624,6 +1624,7 @@
         <value>relationshiptype</value>
         <value>sqlview</value>
         <value>dataentryform</value>
+        <value>smscommands</value>
       </list>
     </property>
   </bean>
