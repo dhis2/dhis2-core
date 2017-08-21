@@ -28,16 +28,17 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.datavalue.DeflatedDataValue;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.datavalue.DeflatedDataValue;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 
 /**
  * @author Lars Helge Overland
@@ -105,5 +106,5 @@ public interface DataAnalysisStore
      * @param limit the maximum number of DeflatedDataValues to return.
      * @return a list of DeflatedDataValues.
      */
-    List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, int limit );
+    List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, DataSet dataSet, int limit );
 }
