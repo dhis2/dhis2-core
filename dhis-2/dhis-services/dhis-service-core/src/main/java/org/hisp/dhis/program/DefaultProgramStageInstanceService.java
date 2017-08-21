@@ -39,6 +39,7 @@ import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.Calendar;
 import java.util.Collection;
@@ -185,7 +186,11 @@ public class DefaultProgramStageInstanceService
 
         programStageInstance.setStatus( EventStatus.COMPLETED );
         programStageInstance.setCompletedDate( date );
-        programStageInstance.setCompletedBy( currentUserService.getCurrentUsername() );
+
+        if ( StringUtils.isEmpty( programStageInstance.getCompletedBy() ) )
+        {
+            programStageInstance.setCompletedBy( currentUserService.getCurrentUsername() );
+        }
 
         if ( !skipNotifications )
         {
