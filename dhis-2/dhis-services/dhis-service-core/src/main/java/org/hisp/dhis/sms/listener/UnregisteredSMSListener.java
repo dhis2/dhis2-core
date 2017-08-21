@@ -107,62 +107,41 @@ public class UnregisteredSMSListener
 
         if ( userGroup != null )
         {
-            Collection<User> users = userService.getUsersByPhoneNumber( senderPhoneNumber );
+            Set<User> receivers = new HashSet<>( userGroup.getMembers() );
 
-            if ( users != null && users.size() >= 1 )
+            UserCredentials anonymousUser = userService.getUserCredentialsByUsername( "anonymous" );
+
+            if ( anonymousUser == null )
             {
-                String messageError = "This number is already registered for user: ";
-                for ( Iterator<User> iterator = users.iterator(); iterator.hasNext(); )
-                {
-                    User user = iterator.next();
-                    messageError += user.getName();
+                User user = new User();
+                UserCredentials usercredential = new UserCredentials();
+                usercredential.setUsername( USER_NAME );
+                usercredential.setPassword( USER_NAME );
+                usercredential.setUserInfo( user );
+                user.setSurname( USER_NAME );
+                user.setFirstName( USER_NAME );
+                user.setUserCredentials( usercredential );
 
-                    if ( iterator.hasNext() )
-                    {
-                        messageError += ", ";
-                    }
-                }
-
-                throw new SMSParserException( messageError );
+                userService.addUserCredentials( usercredential );
+                userService.addUser( user );
+                anonymousUser = userService.getUserCredentialsByUsername( "anonymous" );
             }
-            else
-            {
-                Set<User> receivers = new HashSet<>( userGroup.getMembers() );
 
-                UserCredentials anonymousUser = userService.getUserCredentialsByUsername( "anonymous" );
+            // forward to user group by SMS, E-mail, DHIS conversation
+            messageService.sendMessage( smsCommand.getName(), message, null, receivers, anonymousUser.getUserInfo(),
+                false, false );
 
-                if ( anonymousUser == null )
-                {
-                    User user = new User();
-                    UserCredentials usercredential = new UserCredentials();
-                    usercredential.setUsername( USER_NAME );
-                    usercredential.setPassword( USER_NAME );
-                    usercredential.setUserInfo( user );
-                    user.setSurname( USER_NAME );
-                    user.setFirstName( USER_NAME );
-                    user.setUserCredentials( usercredential );
+            // confirm SMS was received and forwarded completely
+            Set<User> feedbackList = new HashSet<>();
+            User sender = new User();
+            sender.setPhoneNumber( senderPhoneNumber );
+            feedbackList.add( sender );
 
-                    userService.addUserCredentials( usercredential );
-                    userService.addUser( user );
-                    anonymousUser = userService.getUserCredentialsByUsername( "anonymous" );
-                }
+            smsSender.sendMessage( smsCommand.getName(), smsCommand.getReceivedMessage(), null, null, feedbackList, true );
 
-                // forward to user group by SMS, E-mail, DHIS conversation
-                messageService.sendMessage( smsCommand.getName(), message, null, receivers, anonymousUser.getUserInfo(),
-                    false, false );
-
-                // confirm SMS was received and forwarded completely
-                Set<User> feedbackList = new HashSet<>();
-                User sender = new User();
-                sender.setPhoneNumber( senderPhoneNumber );
-                feedbackList.add( sender );
-                
-                smsSender.sendMessage( smsCommand.getName(), smsCommand.getReceivedMessage(), null, null, feedbackList, true );
-                
-                sms.setStatus( SmsMessageStatus.PROCESSED );
-                sms.setParsed( true );
-                incomingSmsService.update( sms );
-            }
+            sms.setStatus( SmsMessageStatus.PROCESSED );
+            sms.setParsed( true );
+            incomingSmsService.update( sms );
         }
     }
 }
