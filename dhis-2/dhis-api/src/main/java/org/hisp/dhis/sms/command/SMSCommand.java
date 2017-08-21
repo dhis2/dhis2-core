@@ -37,7 +37,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.sms.command.code.SMSCode;

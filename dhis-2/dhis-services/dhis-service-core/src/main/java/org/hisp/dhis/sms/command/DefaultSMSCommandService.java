@@ -30,7 +30,6 @@ package org.hisp.dhis.sms.command;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.sms.command.code.SMSCode;

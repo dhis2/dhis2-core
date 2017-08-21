@@ -29,13 +29,10 @@ package org.hisp.dhis.sms.command.hibernate;
  */
 
 import java.util.List;
-import java.util.Set;
 
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.sms.command.SMSCommand;
-import org.hisp.dhis.sms.command.SMSSpecialCharacter;
-import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.parse.ParserType;
 
 public interface SMSCommandStore
