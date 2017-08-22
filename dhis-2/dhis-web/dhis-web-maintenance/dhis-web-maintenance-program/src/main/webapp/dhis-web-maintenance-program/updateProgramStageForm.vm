@@ -4,6 +4,8 @@
 
 <script>
   jQuery(document).ready(function() {
+      hideDueDateOnChange();
+      
     validation2( 'updateProgramStageForm', function( form )
    	{
    		form.submit();
@@ -43,23 +45,23 @@
    				selectedDataElementsValidator.append( "<option value='" + item.id + "' selected='true'>" + item.id + "</option>" );
 
    				var compulsory = jQuery( item ).find( "input[name='compulsory']:first");
-   				var checked = compulsory.attr('checked') ? true : false;
+   				var checked = compulsory.prop('checked') ? true : false;
    				compulsories.append( "<option value='" + checked + "' selected='true'>" + checked + "</option>" );
 
    				var allowProvided = jQuery( item ).find( "input[name='allowProvided']:first");
-   				checked = allowProvided.attr('checked') ? true : false;
+   				checked = allowProvided.prop('checked') ? true : false;
    				allowProvidedElsewhere.append( "<option value='" + checked + "' selected='true'>" + checked + "</option>" );
 
    				var displayInReport = jQuery( item ).find( "input[name='displayInReport']:first");
-   				checked = displayInReport.attr('checked') ? true : false;
+   				checked = displayInReport.prop('checked') ? true : false;
    				displayInReports.append( "<option value='" + checked + "' selected='true'><" + checked + "/option>" );
 
    				var allowFutureDate = jQuery( item ).find( "input[name='allowFutureDate']:first");
-   				checked = allowFutureDate.attr('checked') ? true : false;
+   				checked = allowFutureDate.prop('checked') ? true : false;
    				allowFutureDates.append( "<option value='" + checked + "' selected='true'>" + checked + "</option>" );
 
                 var renderOptionsAsRadio = jQuery( item ).find( "input[name='renderOptionsAsRadio']:first");
-   				var checked = renderOptionsAsRadio.attr('checked') ? true : false;
+   				var checked = renderOptionsAsRadio.prop('checked') ? true : false;
    				renderOptionsAsRadios.append( "<option value='" + checked + "' selected='true'>" + checked + "</option>" );
    			});
    		},

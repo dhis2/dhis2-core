@@ -7,9 +7,6 @@
       },
       "aggregationLevels": [ ],
       "publicAccess": "rw------",
-      "categoryCombo": {
-        "id": "VfQ8S1gSE9T"
-      },
       "aggregationType": "SUM",
       "lastUpdated": "2016-03-08T07:30:07.699+0000",
       "created": "2016-03-08T07:30:07.698+0000",
@@ -44,21 +41,6 @@
     }
   ],
   "categoryCombos": [
-    {
-      "publicAccess": "--------",
-      "name": "default",
-      "categories": [
-        {
-          "id": "k3ASmFuqr11"
-        }
-      ],
-      "created": "2016-03-08T07:26:31.545+0000",
-      "lastUpdated": "2016-03-08T07:26:31.548+0000",
-      "skipTotal": false,
-      "id": "VfQ8S1gSE9T",
-      "dataDimensionType": "DISAGGREGATION",
-      "userGroupAccesses": [ ]
-    },
     {
       "user": {
         "id": "T12jeH7KPzk"
@@ -97,17 +79,6 @@
     }
   ],
   "categoryOptions": [
-    {
-      "organisationUnits": [ ],
-      "publicAccess": "--------",
-      "shortName": "default",
-      "attributeValues": [ ],
-      "userGroupAccesses": [ ],
-      "id": "NS6DGfTR650",
-      "lastUpdated": "2016-03-08T07:26:31.551+0000",
-      "created": "2016-03-08T07:26:31.533+0000",
-      "name": "default"
-    },
     {
       "id": "JYiFOMKa25J",
       "userGroupAccesses": [ ],
@@ -186,21 +157,6 @@
   ],
   "categories": [
     {
-      "dataDimension": true,
-      "id": "k3ASmFuqr11",
-      "userGroupAccesses": [ ],
-      "lastUpdated": "2016-03-08T07:26:31.729+0000",
-      "created": "2016-03-08T07:26:31.543+0000",
-      "name": "default",
-      "categoryOptions": [
-        {
-          "id": "NS6DGfTR650"
-        }
-      ],
-      "dataDimensionType": "DISAGGREGATION",
-      "publicAccess": "--------"
-    },
-    {
       "user": {
         "id": "T12jeH7KPzk"
       },
@@ -270,21 +226,6 @@
   ],
   "categoryOptionCombos": [
     {
-      "name": "default",
-      "created": "2016-03-08T07:26:31.546+0000",
-      "lastUpdated": "2016-03-08T07:26:31.546+0000",
-      "id": "Z3oAZ1xdHIg",
-      "ignoreApproval": false,
-      "categoryCombo": {
-        "id": "VfQ8S1gSE9T"
-      },
-      "categoryOptions": [
-        {
-          "id": "NS6DGfTR650"
-        }
-      ]
-    },
-    {
       "categoryOptions": [
         {
           "id": "JYiFOMKa25J"
@@ -352,9 +293,6 @@
       "version": 4,
       "renderAsTabs": false,
       "name": "Data Set",
-      "categoryCombo": {
-        "id": "VfQ8S1gSE9T"
-      },
       "expiryDays": 0,
       "skipOffline": false,
       "dataElementDecoration": false,

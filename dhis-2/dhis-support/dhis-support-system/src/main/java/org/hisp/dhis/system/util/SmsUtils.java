@@ -58,7 +58,7 @@ public class SmsUtils
     public static String getCommandString( IncomingSms sms )
     {
         String message = sms.getText();
-        String commandString = null;
+        String commandString = StringUtils.EMPTY;
 
         for ( int i = 0; i < message.length(); i++ )
         {
@@ -75,10 +75,11 @@ public class SmsUtils
         return commandString.trim();
     }
 
-    public static Collection<OrganisationUnit> getOrganisationUnitsByPhoneNumber( String sender,
+    public static Set<OrganisationUnit> getOrganisationUnitsByPhoneNumber( String sender,
         Collection<User> users )
     {
-        Collection<OrganisationUnit> orgUnits = new ArrayList<>();
+        Set<OrganisationUnit> orgUnits = new HashSet<>();
+
         for ( User u : users )
         {
             if ( u.getOrganisationUnits() != null )

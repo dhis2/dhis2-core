@@ -63,7 +63,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 public class TrackedEntityRegistrationSMSListener
-    implements IncomingSmsListener
+    extends BaseSMSListener
 {
     private static final String defaultPattern = "([a-zA-Z]+)\\s*(\\d+)";
 
@@ -165,6 +165,20 @@ public class TrackedEntityRegistrationSMSListener
         sms.setStatus( SmsMessageStatus.PROCESSED );
         sms.setParsed( true );
         incomingSmsService.update( sms );
+    }
+
+    @Override
+    protected String getDefaultPattern()
+    {
+        // Not supported for TeiListener
+        return StringUtils.EMPTY;
+    }
+
+    @Override
+    protected String getSuccessMessage()
+    {
+        // Not supported for TeiListener
+        return StringUtils.EMPTY;
     }
 
     private TrackedEntityAttributeValue createTrackedEntityAttributeValue( Map<String, String> parsedMessage,
