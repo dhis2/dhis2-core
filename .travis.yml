@@ -13,8 +13,8 @@ cache:
   directories:
   - "$HOME/.m2"
 script:
-  -  mvn clean install --skip-tests=true -DargLine="-Xmx512m -Xms256m" -f ./dhis-2/pom.xml
-  -  mvn clean install --skip-tests=true -DargLine="-Xmx512m -Xms256m" -f dhis-web/pom.xml -U
+  -  mvn clean install -DskipTests=true -DargLine="-Xmx512m -Xms256m" -f ./dhis-2/pom.xml
+  -  mvn clean install -DskipTests=true -DargLine="-Xmx512m -Xms256m" -f dhis-web/pom.xml -U
 branches:
   only:
   - master
