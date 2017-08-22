@@ -28,9 +28,41 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.sms.command.SMSCommand;
+import org.hisp.dhis.sms.parse.ParserType;
+
+import java.util.function.Consumer;
+
 /**
  * Created by zubair@dhis2.org on 18.08.17.
  */
 public class SmsCommandObjectBundleHook extends AbstractObjectBundleHook
 {
+    private ImmutableMap<ParserType, Consumer<SMSCommand>> VALUE_POPULATOR = new ImmutableMap.Builder<ParserType, Consumer<SMSCommand>>()
+        .put( ParserType.TRACKED_ENTITY_REGISTRATION_PARSER, sc -> { sc.setProgramStage( null ); sc.setUserGroup( null ); sc.setDataset( null ); } )
+        .put( ParserType.PROGRAM_STAGE_DATAENTRY_PARSER, sc -> { sc.setDataset( null ); sc.setUserGroup( null ); } )
+        .put( ParserType.KEY_VALUE_PARSER, sc -> { sc.setProgram( null ); sc.setProgramStage( null ); } )
+        .put( ParserType.ALERT_PARSER, sc -> { sc.setProgram( null ); sc.setProgramStage( null ); } )
+        .build();
+
+    @Override
+    public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
+    {
+        if ( !SMSCommand.class.isInstance( object ) )
+        {
+            return;
+        }
+
+        SMSCommand command = (SMSCommand) object;
+
+        process( command );
+    }
+
+    private void process( SMSCommand command )
+    {
+        VALUE_POPULATOR.getOrDefault( command.getParserType(), sc -> {} ).accept( command );
+    }
 }
