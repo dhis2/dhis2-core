@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,19 +26,27 @@ package org.hisp.dhis.common;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import java.util.List;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface DimensionalEmbeddedObject
-    extends EmbeddedObject
+public class OrganisationUnitGroupSetDimensionSchemaDescriptor implements SchemaDescriptor
 {
-    int getId();
+    public static final String SINGULAR = "organisationUnitGroupSetDimension";
 
-    DimensionalObject getDimension();
+    public static final String PLURAL = "organisationUnitGroupSetDimensions";
 
-    List<? extends DimensionalItemObject> getItems();
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
+    {
+        return new Schema( OrganisationUnitGroupSetDimension.class, SINGULAR, PLURAL );
+    }
 }
