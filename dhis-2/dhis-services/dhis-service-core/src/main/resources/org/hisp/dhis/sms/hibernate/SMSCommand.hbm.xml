@@ -12,7 +12,12 @@
 		<id name="id" column="smscommandid">
 			<generator class="increment" />
 		</id>
-		&identifiableProperties;
+
+		<property name="uid" column="uid" length="11" />
+
+		<property name="created" type="timestamp" />
+
+		<property name="lastUpdated" type="timestamp" />
 
 		<property name="name" type="text" />
 
