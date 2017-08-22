@@ -1,4 +1,6 @@
 language: java
+sudo : false
+dist : trusty
 jdk:
 - oraclejdk8
 addons:
@@ -10,8 +12,11 @@ before_install:
 cache:
   directories:
   - "$HOME/.m2"
+env: 
+  - MAVEN_SKIP_RC=true MAVEN_OPTS="-Xss4M"
 script:
--  mvn clean  install -DskipTests=false -f ./dhis-2/pom-full.xml
+   - mvn clean install -DskipTests=true ./dhis-2/pom.xml
+   - mvn clean install -DskipTests=true -f ./dhis-2/dhis-web/pom.xml -U
 branches:
   only:
   - master
