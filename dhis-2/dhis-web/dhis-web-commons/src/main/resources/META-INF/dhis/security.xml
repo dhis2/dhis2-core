@@ -234,11 +234,11 @@
     <property name="accessDecisionManagers">
       <list>
         <ref bean="authenticatedVoting" />
-        <ref bean="adminAccessDecisionVoting" />
-        <ref bean="webAccessDecisionVoting" />
         <ref bean="externalAccessDecisionVoting" />
+        <ref bean="webAccessDecisionVoting" />
         <ref bean="actionAccessVoting" />
         <ref bean="moduleAccessVoting" />
+        <ref bean="adminAccessDecisionVoting" />
       </list>
     </property>
   </bean>
@@ -443,5 +443,7 @@
   </bean>
 
   <bean id="appsSystemAuthoritiesProvider" class="org.hisp.dhis.security.authority.AppsSystemAuthoritiesProvider" />
+
+  <bean id="authenticationListener" class="org.hisp.dhis.security.AuthenticationListener"/>
 
 </beans>
