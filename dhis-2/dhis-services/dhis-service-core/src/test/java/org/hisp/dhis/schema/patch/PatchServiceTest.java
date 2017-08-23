@@ -33,6 +33,8 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.validation.Importance;
+import org.hisp.dhis.validation.ValidationRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -149,5 +151,21 @@ public class PatchServiceTest
 
         patchService.apply( patch, dataElement );
         assertTrue( dataElement.getAggregationLevels().isEmpty() );
+    }
+
+    @Test
+    public void testSetImportanceOnValidationRule()
+    {
+        ValidationRule validationRule = new ValidationRule();
+        validationRule.setAutoFields();
+
+        assertEquals( Importance.MEDIUM, validationRule.getImportance() );
+
+        Patch patch = new Patch()
+            .addChange( new Change( "importance", ChangeOperation.ADDITION, Importance.HIGH ) );
+
+        patchService.apply( patch, validationRule );
+
+        assertEquals( Importance.HIGH, validationRule.getImportance() );
     }
 }
