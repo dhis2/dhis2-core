@@ -143,6 +143,7 @@ public class PatchServiceTest
 
         Patch patch = new Patch()
             .addChange( new Change( "name", ChangeOperation.ADDITION, "Updated Name" ) )
+            .addChange( new Change( "aggregationLevels", ChangeOperation.ADDITION, "1" ) )
             .addChange( new Change( "aggregationLevels", ChangeOperation.ADDITION, "abc" ) )
             .addChange( new Change( "aggregationLevels", ChangeOperation.ADDITION, "def" ) );
 
