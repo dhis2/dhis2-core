@@ -159,6 +159,12 @@ public class DataValidationTask
                         {
                             ValidationRule rule = ruleX.getRule();
 
+                            // Skip validation if org unit level does not match
+                            if ( !rule.getOrganisationUnitLevels().isEmpty() &&
+                                !rule.getOrganisationUnitLevels().contains( orgUnit.getLevel() ) )
+                            {
+                                continue;
+                            }
                             log.trace( "Validation rule " + rule.getUid() + " " + rule.getName() );
 
                             Map<String, Double> leftSideValues;
