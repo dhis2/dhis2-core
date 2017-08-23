@@ -128,6 +128,12 @@ public class DefaultPatchService implements PatchService
                     object = objects.get( 0 );
                 }
 
+                // validate type
+                if ( !property.getItemKlass().isInstance( object ) )
+                {
+                    continue;
+                }
+
                 Collection collection = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
 
                 if ( collection == null )
@@ -144,6 +150,12 @@ public class DefaultPatchService implements PatchService
             }
             else
             {
+                // validate type
+                if ( !property.getKlass().isInstance( value ) )
+                {
+                    continue;
+                }
+
                 ReflectionUtils.invokeMethod( target, property.getSetterMethod(), value );
             }
         }
@@ -177,6 +189,12 @@ public class DefaultPatchService implements PatchService
                     }
 
                     object = objects.get( 0 );
+                }
+
+                // validate type
+                if ( !property.getItemKlass().isInstance( object ) )
+                {
+                    continue;
                 }
 
                 Collection collection = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );

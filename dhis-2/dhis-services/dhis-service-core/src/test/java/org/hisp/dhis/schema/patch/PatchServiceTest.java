@@ -118,4 +118,35 @@ public class PatchServiceTest
 
         assertTrue( dataElementGroup.getMembers().isEmpty() );
     }
+
+    @Test
+    public void testAddAggLevelsToDataElement()
+    {
+        DataElement dataElement = createDataElement( 'A' );
+        assertTrue( dataElement.getAggregationLevels().isEmpty() );
+
+        Patch patch = new Patch()
+            .addChange( new Change( "name", ChangeOperation.ADDITION, "Updated Name" ) )
+            .addChange( new Change( "aggregationLevels", ChangeOperation.ADDITION, 1 ) )
+            .addChange( new Change( "aggregationLevels", ChangeOperation.ADDITION, 2 ) );
+
+        patchService.apply( patch, dataElement );
+
+        assertEquals( 2, dataElement.getAggregationLevels().size() );
+    }
+
+    @Test
+    public void testAddStringAggLevelsToDataElement()
+    {
+        DataElement dataElement = createDataElement( 'A' );
+        assertTrue( dataElement.getAggregationLevels().isEmpty() );
+
+        Patch patch = new Patch()
+            .addChange( new Change( "name", ChangeOperation.ADDITION, "Updated Name" ) )
+            .addChange( new Change( "aggregationLevels", ChangeOperation.ADDITION, "abc" ) )
+            .addChange( new Change( "aggregationLevels", ChangeOperation.ADDITION, "def" ) );
+
+        patchService.apply( patch, dataElement );
+        assertTrue( dataElement.getAggregationLevels().isEmpty() );
+    }
 }
