@@ -37,15 +37,11 @@ import org.hisp.dhis.sms.parse.ParserType;
 
 public interface SMSCommandService
 {
-    void updateSMSCommand( SMSCommand cmd );
-
     List<SMSCommand> getSMSCommands();
 
     SMSCommand getSMSCommand( int id );
 
     void save( SMSCommand cmd );
-
-    void save( Set<SMSCode> codes );
 
     void delete( SMSCommand cmd );
 
@@ -53,11 +49,13 @@ public interface SMSCommandService
 
     SMSCommand getSMSCommand( String commandName, ParserType parserType );
 
-    void saveSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters );
+    void addSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, int commandId );
 
-    void deleteSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters );
+    void addSmsCodes( Set<SMSCode> codes, int commandId );
 
-    void deleteCodeSet( Set<SMSCode> codes );
+    void deleteSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, int commandId );
+
+    void deleteCodeSet( Set<SMSCode> codes, int commandId );
 
     int countDataSetSmsCommands( DataSet dataSet );
 

@@ -41,6 +41,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.sms.command.CompletenessMethod;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -132,7 +133,7 @@ public class EditSMSCommandForm
 
     private String successMessage;
 
-    private Integer completenessMethod;
+    private CompletenessMethod completenessMethod;
 
     private int selectedCommandID = -1;
 
@@ -191,7 +192,7 @@ public class EditSMSCommandForm
                 {
                 } );
 
-            smsCommandService.saveSpecialCharacterSet( specialCharacterSet );
+            smsCommandService.addSpecialCharacterSet( specialCharacterSet, selectedCommandID );
         }
 
         SMSCommand command = getSMSCommand();
@@ -241,7 +242,7 @@ public class EditSMSCommandForm
 
         if ( codeSet.size() > 0 )
         {
-            smsCommandService.save( codeSet );
+            smsCommandService.addSmsCodes( codeSet, selectedCommandID );
         }
 
         if ( selectedDataSetID > -1 && command != null )
@@ -257,11 +258,11 @@ public class EditSMSCommandForm
 
             // remove codes
             Set<SMSCode> toRemoveCodes = command.getCodes();
-            smsCommandService.deleteCodeSet( toRemoveCodes );
+            smsCommandService.deleteCodeSet( toRemoveCodes, selectedCommandID );
 
             // remove special characters
             Set<SMSSpecialCharacter> toRemoveCharacters = command.getSpecialCharacters();
-            smsCommandService.deleteSpecialCharacterSet( toRemoveCharacters );
+            smsCommandService.deleteSpecialCharacterSet( toRemoveCharacters, selectedCommandID );
 
             command.setCodes( codeSet );
 
@@ -437,12 +438,12 @@ public class EditSMSCommandForm
         this.moreThanOneOrgUnitMessage = moreThanOneOrgUnitMessage;
     }
 
-    public int getCompletenessMethod()
+    public CompletenessMethod getCompletenessMethod()
     {
         return completenessMethod;
     }
 
-    public void setCompletenessMethod( int completenessMethod )
+    public void setCompletenessMethod( CompletenessMethod completenessMethod )
     {
         this.completenessMethod = completenessMethod;
     }

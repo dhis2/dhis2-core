@@ -54,7 +54,7 @@ public class SMSCode
 
     private String formula;
     
-    private boolean compulsory;
+    private boolean compulsory = false;
 
     public SMSCode( String code, DataElement dataElement, int optionId )
     {
@@ -84,8 +84,8 @@ public class SMSCode
         this.id = id;
     }
 
-    @JsonProperty( value = "smsCode" )
-    @JacksonXmlProperty( localName = "smsCode" )
+    @JsonProperty
+    @JacksonXmlProperty
     public String getCode()
     {
         return code;
@@ -96,7 +96,7 @@ public class SMSCode
         this.code = code;
     }
 
-    @JsonProperty( value = "dataElement" )
+    @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( localName = "dataElement" )
     public DataElement getDataElement()
@@ -109,6 +109,8 @@ public class SMSCode
         this.dataElement = dataElement;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty
     public int getOptionId()
     {
         return optionId;
@@ -119,6 +121,9 @@ public class SMSCode
         this.optionId = optionId;
     }
 
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public TrackedEntityAttribute getTrackedEntityAttribute()
     {
         return trackedEntityAttribute;
@@ -129,6 +134,8 @@ public class SMSCode
         this.trackedEntityAttribute = trackedEntityAttribute;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty
     public String getFormula()
     {
         return formula;
@@ -139,8 +146,8 @@ public class SMSCode
         this.formula = formula;
     }
     
-    @JsonProperty( value = "compulsory" )
-    @JacksonXmlProperty( localName = "compulsory" )
+    @JsonProperty
+    @JacksonXmlProperty
     public boolean isCompulsory()
     {
         return compulsory;
