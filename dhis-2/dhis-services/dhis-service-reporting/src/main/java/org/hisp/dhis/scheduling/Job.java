@@ -1,5 +1,7 @@
 package org.hisp.dhis.scheduling;
 
+import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
+
 import java.util.Date;
 
 /**
@@ -14,6 +16,7 @@ public class Job
     private Date startTime;
     private Date endTime;
     private JobStatus status;
+    private JobConfiguration jobConfiguration;
 
     public Job(String name, JobType jobType, String cronExpression) {
         this.name = name;
@@ -66,6 +69,11 @@ public class Job
         return status;
     }
 
+    public JobConfiguration getJobConfiguration()
+    {
+        return jobConfiguration;
+    }
+
     public void setName( String name )
     {
         this.name = name;
@@ -99,6 +107,11 @@ public class Job
     public void setStatus( JobStatus status )
     {
         this.status = status;
+    }
+
+    public void setJobConfiguration( JobConfiguration jobConfiguration )
+    {
+        this.jobConfiguration = jobConfiguration;
     }
 }
 
