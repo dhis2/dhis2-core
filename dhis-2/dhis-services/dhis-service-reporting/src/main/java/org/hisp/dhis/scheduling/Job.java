@@ -1,42 +1,58 @@
 package org.hisp.dhis.scheduling;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
-
-import java.util.Date;
+import org.joda.time.DateTime;
 
 /**
  * @author Henning Håkonsen
  */
-public class Job
+public class Job implements Runnable
 {
     private String name;
+    private String key;
     private JobType jobType;
     private String cronExpression;
-    private boolean activate;
-    private Date startTime;
-    private Date endTime;
+    private boolean activated;
+    private DateTime startTime;
+    private DateTime endTime;
     private JobStatus status;
     private JobConfiguration jobConfiguration;
 
-    public Job(String name, JobType jobType, String cronExpression) {
+    private static final Log log = LogFactory.getLog( Job.class );
+
+    public Job(String name, JobType jobType, String cronExpression, JobConfiguration jobConfiguration) {
         this.name = name;
         this.jobType = jobType;
         this.cronExpression = cronExpression;
+        this.jobConfiguration = jobConfiguration;
 
-        this.activate = true;
+        this.activated = true;
         this.startTime = null;
         this.endTime = null;
         this.status = JobStatus.SCHEDULED;
+        this.key = "TODOKEY";
+    }
+
+    public void setJobConfiguration( JobType jobType, JobConfiguration jobConfiguration )
+    {
+        this.jobType = jobType;
+        this.jobConfiguration = jobConfiguration;
     }
 
     public String toString()
     {
-        return "Name: " + name + ", job type: " + jobType.name() + ", cronExpression: " + cronExpression + ", status: " + status;
+        return "Name: " + name + ", job type: " + jobType.name() + ", cronExpression: " + cronExpression +
+            ", status: " + status;
     }
 
-    public String getName()
+
+    // Getters and setters
+
+    public String getKey()
     {
-        return name;
+        return key;
     }
 
     public JobType getJobType()
@@ -49,69 +65,46 @@ public class Job
         return cronExpression;
     }
 
-    public boolean isActivate()
-    {
-        return activate;
-    }
-
-    public Date getStartTime()
-    {
-        return startTime;
-    }
-
-    public Date getEndTime()
-    {
-        return endTime;
-    }
-
     public JobStatus getStatus()
     {
         return status;
     }
 
-    public JobConfiguration getJobConfiguration()
+    public DateTime getStartTime()
     {
-        return jobConfiguration;
+        return startTime;
     }
 
-    public void setName( String name )
+    public DateTime getEndTime()
     {
-        this.name = name;
+        return endTime;
     }
 
-    public void setJobType( JobType jobType )
+    @Override
+    public void run()
     {
-        this.jobType = jobType;
-    }
+        if( activated && jobConfiguration != null ) {
+            // Verify how we want to store start/endTime
 
-    public void setCronExpression( String cronExpression )
-    {
-        this.cronExpression = cronExpression;
-    }
+            startTime = DateTime.now();
 
-    public void setActivate( boolean activate )
-    {
-        this.activate = activate;
-    }
+            try {
+                this.status = JobStatus.RUNNING;
+                jobConfiguration.run();
+            } catch (Exception e)
+            {
+                this.status = JobStatus.FAILED;
+                log.error( new Exception(e) );
+            } finally
+            {
+                this.status = JobStatus.COMPLETED;
+            }
 
-    public void setStartTime( Date startTime )
-    {
-        this.startTime = startTime;
-    }
+            endTime = DateTime.now();
 
-    public void setEndTime( Date endTime )
-    {
-        this.endTime = endTime;
-    }
-
-    public void setStatus( JobStatus status )
-    {
-        this.status = status;
-    }
-
-    public void setJobConfiguration( JobConfiguration jobConfiguration )
-    {
-        this.jobConfiguration = jobConfiguration;
+        } else {
+            log.debug( "Job '" + name + "' not activated" );
+        }
     }
 }
 

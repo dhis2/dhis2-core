@@ -6,6 +6,10 @@ package org.hisp.dhis.scheduling.Configuration;
  */
 public class JobConfiguration implements Runnable
 {
+    public void JobConfiguration () {
+
+    }
+
     @Override
     public void run()
     {

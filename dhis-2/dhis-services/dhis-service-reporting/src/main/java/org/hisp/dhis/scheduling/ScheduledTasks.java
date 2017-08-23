@@ -37,27 +37,32 @@ import java.util.List;
 public class ScheduledTasks
     implements Runnable
 {
-    private List<Runnable> tasks = new ArrayList<>();
+    private List<Runnable> jobs = new ArrayList<>();
     
-    public void addTask( Runnable task )
+    public void addJob( Runnable job )
     {
-        if ( task != null )
+        if ( job != null )
         {
-            this.tasks.add( task );
+            this.jobs.add( job );
         }
+    }
+
+    public void addJobs( List<Runnable> jobs)
+    {
+        this.jobs.addAll( jobs );
     }
     
     public boolean isEmpty()
     {
-        return tasks == null || tasks.size() == 0;
+        return jobs == null || jobs.size() == 0;
     }
     
     @Override
     public void run()
     {
-        for ( Runnable task : tasks )
+        for ( Runnable job : jobs )
         {
-            task.run();
+            job.run();
         }
     }    
 }

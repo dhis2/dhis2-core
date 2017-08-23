@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 
 /**
@@ -58,18 +59,18 @@ public class SpringScheduler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private TaskScheduler taskScheduler;
+    private TaskScheduler JobScheduler;
 
-    public void setTaskScheduler( TaskScheduler taskScheduler )
+    public void setTaskScheduler( TaskScheduler JobScheduler )
     {
-        this.taskScheduler = taskScheduler;
+        this.JobScheduler = JobScheduler;
     }
 
-    private AsyncListenableTaskExecutor taskExecutor;
+    private AsyncListenableTaskExecutor jobExecutor;
 
-    public void setTaskExecutor( AsyncListenableTaskExecutor taskExecutor )
+    public void setTaskExecutor( AsyncListenableTaskExecutor jobExecutor )
     {
-        this.taskExecutor = taskExecutor;
+        this.jobExecutor = jobExecutor;
     }
 
     // -------------------------------------------------------------------------
@@ -77,34 +78,34 @@ public class SpringScheduler
     // -------------------------------------------------------------------------
 
     @Override
-    public void executeTask( Runnable task )
+    public void executeJob( Runnable job )
     {
-        taskExecutor.execute( task );
+        jobExecutor.execute( job );
     }
 
     @Override
-    public void executeTask( String taskKey, Runnable task )
+    public void executeJob( String JobKey, Runnable Job )
     {
-        ListenableFuture<?> future = taskExecutor.submitListenable( task );
-        currentTasks.put( taskKey, future );
+        ListenableFuture<?> future = jobExecutor.submitListenable( Job );
+        currentTasks.put( JobKey, future );
     }
 
     @Override
-    public <T> ListenableFuture<T> executeTask( Callable<T> callable )
+    public <T> ListenableFuture<T> executeJob( Callable<T> callable )
     {
-        return taskExecutor.submitListenable( callable );
+        return jobExecutor.submitListenable( callable );
     }
 
     @Override
-    public boolean scheduleTask( String key, Runnable task, String cronExpr )
+    public boolean scheduleJob( String key, Runnable Job, String cronExpr )
     {
         if ( key != null && !futures.containsKey( key ) )
         {
-            ScheduledFuture<?> future = taskScheduler.schedule( task, new CronTrigger( cronExpr ) );
+            ScheduledFuture<?> future = JobScheduler.schedule( Job, new CronTrigger( cronExpr ) );
 
             futures.put( key, future );
 
-            log.info( "Scheduled task with key: " + key + " and cron: " + cronExpr );
+            log.info( "Scheduled Job with key: " + key + " and cron: " + cronExpr );
 
             return true;
         }
@@ -113,7 +114,7 @@ public class SpringScheduler
     }
 
     @Override
-    public boolean stopTask( String key )
+    public boolean stopJob( String key )
     {
         if ( key != null )
         {
@@ -123,7 +124,7 @@ public class SpringScheduler
 
             futures.remove( key );
 
-            log.info( "Stopped task with key: " + key + " successfully: " + result );
+            log.info( "Stopped Job with key: " + key + " successfully: " + result );
 
             return result;
         }
@@ -132,18 +133,18 @@ public class SpringScheduler
     }
 
     @Override
-    public boolean refreshTask( String key, Runnable task, String cronExpr )
+    public boolean refreshJob( String key, Runnable Job, String cronExpr )
     {
-        if( getTaskStatus( key ) != ScheduledTaskStatus.NOT_STARTED )
+        if( getJobStatus( key ) != ScheduledTaskStatus.NOT_STARTED )
         {
-            stopTask( key );
+            stopJob( key );
         }
 
-        return scheduleTask( key, task, cronExpr );
+        return scheduleJob( key, Job, cronExpr );
     }
 
     @Override
-    public void stopAllTasks()
+    public void stopAllJobs()
     {
         Iterator<String> keys = futures.keySet().iterator();
 
@@ -157,54 +158,44 @@ public class SpringScheduler
 
             keys.remove();
 
-            log.info( "Stopped task with key: " + key + " successfully: " + result );
+            log.info( "Stopped Job with key: " + key + " successfully: " + result );
+        }
+    }
+
+    private ScheduledTaskStatus getStatus( Future<?> future )
+    {
+        if ( future == null )
+        {
+            return ScheduledTaskStatus.NOT_STARTED;
+        }
+        else if ( future.isCancelled() )
+        {
+            return ScheduledTaskStatus.STOPPED;
+        }
+        else if ( future.isDone() )
+        {
+            return ScheduledTaskStatus.DONE;
+        }
+        else
+        {
+            return ScheduledTaskStatus.RUNNING;
         }
     }
 
     @Override
-    public ScheduledTaskStatus getTaskStatus( String key )
+    public ScheduledTaskStatus getJobStatus( String key )
     {
         ScheduledFuture<?> future = futures.get( key );
 
-        if ( future == null )
-        {
-            return ScheduledTaskStatus.NOT_STARTED;
-        }
-        else if ( future.isCancelled() )
-        {
-            return ScheduledTaskStatus.STOPPED;
-        }
-        else if ( future.isDone() )
-        {
-            return ScheduledTaskStatus.DONE;
-        }
-        else
-        {
-            return ScheduledTaskStatus.RUNNING;
-        }
+        return getStatus( future );
     }
 
     @Override
-    public ScheduledTaskStatus getCurrentTaskStatus( String key )
+    public ScheduledTaskStatus getCurrentJobStatus( String key )
     {
         ListenableFuture<?> future = currentTasks.get( key );
 
-        if ( future == null )
-        {
-            return ScheduledTaskStatus.NOT_STARTED;
-        }
-        else if ( future.isCancelled() )
-        {
-            return ScheduledTaskStatus.STOPPED;
-        }
-        else if ( future.isDone() )
-        {
-            return ScheduledTaskStatus.DONE;
-        }
-        else
-        {
-            return ScheduledTaskStatus.RUNNING;
-        }
+        return getStatus( future );
     }
 
 }

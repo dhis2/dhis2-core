@@ -6,14 +6,14 @@ package org.hisp.dhis.scheduling;
  */
 public enum JobType
 {
-    TASK_RESOURCE_TABLE( "resourceTableTask" ),
-    TASK_DATAMART_LAST_YEAR( "dataMartLastYearTask" ),
-    TASK_ANALYTICS( "analyticsTask" ),
-    TASK_MONITORING( "monitoringTask" ),
-    TASK_DATA_SYNC( "dataSyncTask" ),
-    TASK_META_DATA_SYNC( "metadataSyncTask" ),
-    TASK_SEND_SCHEDULED_SMS_NOW( "sendScheduledMessageTaskNow" ),
-    TASK_SCHEDULED_PROGRAM_NOTIFICATIONS( "scheduledProgramNotificationsTask" );
+    RESOURCE_TABLE( "resourceTableJob" ),
+    ANALYTICS( "analyticsJob" ),
+    MONITORING( "monitoringJob" ),
+    DATA_SYNC( "dataSyncJob" ),
+    META_DATA_SYNC( "metadataSyncJob" ),
+    MESSAGE_SEND( "messageSendJob" ),
+    PROGRAM_NOTIFICATIONS( "programNotificationsJob" ),
+    PUSH_ANALYSIS( "pushAnalysis" );
 
     private final String key;
 

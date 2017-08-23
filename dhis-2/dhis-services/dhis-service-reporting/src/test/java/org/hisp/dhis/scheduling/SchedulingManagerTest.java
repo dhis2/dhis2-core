@@ -28,19 +28,7 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.scheduling.SchedulingManager.TASK_ANALYTICS_ALL;
-import static org.hisp.dhis.scheduling.SchedulingManager.TASK_RESOURCE_TABLE;
-import static org.hisp.dhis.scheduling.SchedulingManager.TASK_DATAMART_LAST_YEAR;
-import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_0AM;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Set;
-
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.system.scheduling.ScheduledTaskStatus;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -52,7 +40,7 @@ public class SchedulingManagerTest
     @Autowired
     private SchedulingManager schedulingManager;
 
-    @Test
+    /*@Test
     public void testScheduleTasks()
     {
         ListMap<String, String> cronKeyMap = new ListMap<>();
@@ -60,7 +48,7 @@ public class SchedulingManagerTest
         cronKeyMap.putValue( CRON_DAILY_0AM, TASK_ANALYTICS_ALL );
         cronKeyMap.putValue( CRON_DAILY_0AM, TASK_DATAMART_LAST_YEAR );
                 
-        schedulingManager.scheduleTasks( cronKeyMap );
+        schedulingManager.scheduleJobs( cronKeyMap );
         
         cronKeyMap = schedulingManager.getCronKeyMap();
         
@@ -105,5 +93,5 @@ public class SchedulingManagerTest
         assertTrue( keys.contains( TASK_RESOURCE_TABLE ) );
         assertTrue( keys.contains( TASK_ANALYTICS_ALL ) );
         assertTrue( keys.contains( TASK_DATAMART_LAST_YEAR ) );        
-    }
+    }*/
 }

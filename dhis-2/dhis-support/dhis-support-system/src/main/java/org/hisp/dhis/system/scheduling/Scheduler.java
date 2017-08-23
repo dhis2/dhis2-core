@@ -53,82 +53,82 @@ public interface Scheduler
     String CRON_TEST = "0 * * * * ?";
 
     /**
-     * Execute the given task immediately.
+     * Execute the given job immediately.
      *
-     * @task the task to execute.
+     * @job the job to execute.
      */
-    void executeTask( Runnable task );
+    void executeJob( Runnable job );
 
     /**
-     * Execute the given task immediately. The task can be referenced
-     * again through the given task key if the current task is not completed. A task cannot be scheduled if another
-     * task with the same key is already scheduled.
+     * Execute the given job immediately. The job can be referenced
+     * again through the given job key if the current job is not completed. A job cannot be scheduled if another
+     * job with the same key is already scheduled.
      *
-     * @task the task to execute.
+     * @job the job to execute.
      */
-    void executeTask( String taskKey, Runnable task );
+    void executeJob( String jobKey, Runnable job );
 
     /**
-     * Execute the given task immediately and return a ListenableFuture.
+     * Execute the given job immediately and return a ListenableFuture.
      *
-     * @param callable the task to execute.
+     * @param callable the job to execute.
      * @param <T> return type of the supplied callable.
-     * @return a ListenableFuture representing the result of the task.
+     * @return a ListenableFuture representing the result of the job.
      */
-    <T> ListenableFuture<T> executeTask( Callable<T> callable );
+    <T> ListenableFuture<T> executeJob( Callable<T> callable );
 
     /**
-     * Schedule the given task for future execution. The task can be referenced
-     * later through the given task key. A task cannot be scheduled if another
-     * task with the same key is already scheduled. The task must be unique for
-     * the task but can have an arbitrary value.
+     * Schedule the given job for future execution. The job can be referenced
+     * later through the given job key. A job cannot be scheduled if another
+     * job with the same key is already scheduled. The job must be unique for
+     * the job but can have an arbitrary value.
      *
-     * @param key the task key, cannot be null.
-     * @param task the task to schedule.
-     * @param cronExpr the cron expression to use for the task scheduling.
-     * @return true if the task was scheduled for execution as a result of this
+     * @param key the job key, cannot be null.
+     * @param job the job to schedule.
+     * @param cronExpr the cron expression to use for the job scheduling.
+     * @return true if the job was scheduled for execution as a result of this
      *         operation, false if not.
      */
-    boolean scheduleTask( String key, Runnable task, String cronExpr );
+    boolean scheduleJob( String key, Runnable job, String cronExpr );
 
     /**
-     * Deactivates scheduling of the task with the given key.
+     * Deactivates scheduling of the job with the given key.
      *
-     * @param key the task key.
-     * @return true if the task was deactivated as a result of this operation,
+     * @param key the job key.
+     * @return true if the job was deactivated as a result of this operation,
      *         false if not.
      */
-    boolean stopTask( String key );
+    boolean stopJob( String key );
 
     /**
-     * Stops and starts a task with the given key. If no key exists, still start a new task
-     * @param key the task key, cannot be null.
-     * @param task the task to schedule
-     * @param cronExpr the cronExpression to use for the task scheduling.
-     * @return true if the task was scheduled for execution as a result of this
+     * Stops and starts a job with the given key. If no key exists, still start a new job
+     * @param key the job key, cannot be null.
+     * @param job the job to schedule
+     * @param cronExpr the cronExpression to use for the job scheduling.
+     * @return true if the job was scheduled for execution as a result of this
      *         operation, false if not.
      */
-    boolean refreshTask( String key, Runnable task, String cronExpr );
+    boolean refreshJob( String key, Runnable job, String cronExpr );
 
     /**
-     * Deactivates scheduling for all tasks.
+     * Deactivates scheduling for all jobs.
      */
-    void stopAllTasks();
+    void stopAllJobs();
 
     /**
-     * Gets the status for the task with the given key.
+     * Gets the status for the job with the given key.
      *
-     * @param key the task key.
-     * @return the task status.
+     * @param key the job key.
+     * @return the job status.
      */
-    ScheduledTaskStatus getTaskStatus( String key );
+    ScheduledTaskStatus getJobStatus( String key );
 
     /**
-     * Gets the status for the current task with the given key.
+     * Gets the status for the current job with the given key.
      *
-     * @param key the task key.
-     * @return the task status.
+     * @param key the job key.
+     * @return the job status.
      */
-    ScheduledTaskStatus getCurrentTaskStatus( String key );
+    ScheduledTaskStatus getCurrentJobStatus( String key );
 
 }

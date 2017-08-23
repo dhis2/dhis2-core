@@ -28,10 +28,7 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.system.scheduling.ScheduledTaskStatus;
-
-import java.util.Set;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -50,57 +47,58 @@ public interface SchedulingManager
     String TASK_SCHEDULED_PROGRAM_NOTIFICATIONS = "scheduledProgramNotificationsTask";
     
     /**
-     * Schedules all tasks.
+     * Schedules all jobs.
      */
-    void scheduleTasks();
+    void scheduleJobs();
     
     /**
-     * Execute the Task.
+     * Execute the job.
+     *
+     * @param jobKey The key of the job to be executed
      */
-    void executeTask(String taskKey);
+    void executeJob( String jobKey );
 
     /**
-     * Schedules the given tasks. The task map will replace the currently scheduled
-     * tasks.
+     * Schedules the given jobs. The job map will replace the currently scheduled
+     * jobs.
      * 
-     * @param cronKeyMap a mapping of cron expressions and list of task keys. A
+     * @param jobs a mapping of cron expressions and list of job keys. A
      * task key refers to a bean identifier in the application context. The bean
      * must implement Runnable in order to be scheduled for execution.
      */
-    void scheduleTasks( ListMap<String, String> cronKeyMap );
+    void scheduleJobs( List<Job> jobs );
     
     /**
-     * Stops all tasks.
+     * Stops one job.
      */
-    void stopTasks();
+    void stopJob( String jobKey );
+
+    /**
+     * Stops all jobs.
+     */
+    void stopAllJobs( );
 
     /**
      * Resolve the cron expression mapped for the given task key, or null if none.
      *
-     * @param taskKey the key of the task, not null.
-     * @return the cron for the task or null.
+     * @param jobKey the key of the job, not null.
+     * @return the cron for the job or null.
      */
-    String getCronForTask( final String taskKey );
+    String getCronForJob( final String jobKey );
 
     /**
-     * Gets a mapping of cron expressions and list of task keys for all scheduled
-     * tasks.
+     * Gets a list of all scheduled jobs.
      */
-    ListMap<String, String> getCronKeyMap();
-
-    /**
-     * Gets all keys currently scheduled for any task.
-     */
-    Set<String> getScheduledKeys();
+    List<Job> getScheduledJobs();
     
     /**
-     * Gets the task status.
+     * Gets the job status.
      */
-    ScheduledTaskStatus getTaskStatus();
+    JobStatus getJobStatus( String jobKey );
 
     /**
      *
-     * Returns the status of the currently executing task.
+     * Returns the status of the currently executing job.
      */
-    boolean isTaskInProgress(String taskKey);
+    boolean isJobInProgress(String jobKey);
 }

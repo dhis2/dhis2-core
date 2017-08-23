@@ -29,22 +29,15 @@ package org.hisp.dhis.scheduling;
  */
 
 import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.credentials.CredentialsExpiryAlertTask;
-import org.hisp.dhis.datastatistics.DataStatisticsTask;
-import org.hisp.dhis.fileresource.FileResourceCleanUpTask;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.scheduling.ScheduledTaskStatus;
 import org.hisp.dhis.system.scheduling.Scheduler;
-import org.hisp.dhis.validation.notification.ValidationResultNotificationTask;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Cron refers to the cron expression used for scheduling. Key refers to the key
@@ -59,13 +52,6 @@ public class DefaultSchedulingManager
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private SystemSettingManager systemSettingManager;
-    
-    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
-    {
-        this.systemSettingManager = systemSettingManager;
-    }
-
     private Scheduler scheduler;
 
     public void setScheduler( Scheduler scheduler )
@@ -73,26 +59,12 @@ public class DefaultSchedulingManager
         this.scheduler = scheduler;
     }
 
-    private Map<String, Runnable> tasks = new HashMap<>();
+    private List<Job> jobs = new ArrayList<Job>();
 
-    public void setTasks( Map<String, Runnable> tasks )
+    public void setJobs( List<Job> jobs )
     {
-        this.tasks = tasks;
+        this.jobs = jobs;
     }
-    
-    @Autowired
-    private FileResourceCleanUpTask fileResourceCleanUpTask;
-    
-    @Autowired
-    private DataStatisticsTask dataStatisticsTask;
-
-    @Autowired
-    private ValidationResultNotificationTask validationResultNotificationTask;
-
-    @Autowired
-    private CredentialsExpiryAlertTask credentialsExpiryAlertTask;
-
-    // TODO Avoid map, use bean identifier directly and get bean from context
 
     // -------------------------------------------------------------------------
     // SchedulingManager implementation
@@ -101,101 +73,60 @@ public class DefaultSchedulingManager
     @EventListener
     public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )
     {
-        scheduleTasks();
-        scheduleFixedTasks();
+        scheduleJobs();
     }
     
     @Override
-    public void scheduleTasks()
-    {        
-        ListMap<String, String> cronKeyMap = getCronKeyMap();
-        
-        for ( String cron : cronKeyMap.keySet() )
-        {
-            ScheduledTasks scheduledTasks = getScheduledTasksForCron( cron, cronKeyMap );
-            
-            if ( !scheduledTasks.isEmpty() )
-            {
-                scheduler.scheduleTask( cron, scheduledTasks, cron );
-            }
+    public void scheduleJobs()
+    {
+        for( Job job : jobs ) {
+            scheduler.scheduleJob( job.getKey(), job, job.getCronExpression() );
         }
     }
     
-    /**
-     * Schedules fixed tasks, i.e. tasks which are required for various system
-     * functions to work.
-     */
-    private void scheduleFixedTasks()
-    {
-        scheduler.scheduleTask( FileResourceCleanUpTask.KEY_TASK, fileResourceCleanUpTask, Scheduler.CRON_DAILY_2AM );
-        scheduler.scheduleTask( DataStatisticsTask.KEY_TASK, dataStatisticsTask, Scheduler.CRON_DAILY_2AM );
-        scheduler.scheduleTask( ValidationResultNotificationTask.KEY_TASK, validationResultNotificationTask, Scheduler.CRON_DAILY_7AM );
-        scheduler.scheduleTask( CredentialsExpiryAlertTask.KEY_TASK, credentialsExpiryAlertTask, Scheduler.CRON_DAILY_2AM );
-    }
-    
     @Override
-    public void scheduleTasks( ListMap<String, String> cronKeyMap )
+    public void scheduleJobs( List<Job> jobs )
     {
-        systemSettingManager.saveSystemSetting( SettingKey.SCHEDULED_TASKS, new ListMap<>( cronKeyMap ) );
-        
-        scheduleTasks();
+        setJobs(jobs);
+
+        scheduleJobs();
     }
-    
+
     @Override
-    public void stopTasks()
+    public void stopJob( String jobKey )
     {
-        systemSettingManager.deleteSystemSetting( SettingKey.METADATA_SYNC_CRON);
-        systemSettingManager.deleteSystemSetting( SettingKey.DATA_SYNC_CRON);
-        systemSettingManager.saveSystemSetting( SettingKey.SCHEDULED_TASKS, null );
-        
-        scheduler.stopAllTasks();
+        scheduler.stopJob( jobKey );
     }
-    
+
+    @Override
+    public void stopAllJobs()
+    {
+        scheduler.stopAllJobs();
+    }
+
     @Override
     @SuppressWarnings("unchecked")
-    public ListMap<String, String> getCronKeyMap()
+    public List<Job> getScheduledJobs()
     {
-        return (ListMap<String, String>) systemSettingManager.getSystemSetting( SettingKey.SCHEDULED_TASKS, new ListMap<String, String>() );
+        // May want to call scheduler to get a list of jobs put in the que which are not running. The JobStatus may not be updated at this point.
+        return jobs.stream().filter( job -> job.getStatus() == JobStatus.SCHEDULED).collect( Collectors.toList() ); //(ListMap<String, String>) systemSettingManager.getSystemSetting( SettingKey.SCHEDULED_TASKS, new ListMap<String, String>() );
+    }
+
+    public Job getJob( String taskKey )
+    {
+        return jobs.stream().filter( job -> Objects.equals( job.getJobType().toString(), taskKey ) ).findAny().get();
     }
 
     @Override
-    public String getCronForTask( final String taskKey )
+    public String getCronForJob( final String taskKey )
     {
-        return getCronKeyMap().entrySet().stream()
-            .filter( entry -> entry.getValue().contains( taskKey ) )
-            .findAny()
-            .map( Map.Entry::getKey )
-            .orElse( null );
-    }
-
-    @Override
-    public Set<String> getScheduledKeys()
-    {
-        ListMap<String, String> cronKeyMap = getCronKeyMap();
-        
-        Set<String> keys = new HashSet<>();
-        
-        for ( String cron : cronKeyMap.keySet() )
-        {
-            keys.addAll( cronKeyMap.get( cron ) );
-        }
-        
-        return keys;
+        return getJob(taskKey).getCronExpression();
     }
     
     @Override
-    public ScheduledTaskStatus getTaskStatus()
+    public JobStatus getJobStatus( String taskKey )
     {
-        ListMap<String, String> cronKeyMap = getCronKeyMap();
-
-        if ( cronKeyMap.size() == 0 )
-        {
-            return ScheduledTaskStatus.NOT_STARTED;
-        }
-        
-        String firstTask = cronKeyMap.keySet().iterator().next();
-
-        return scheduler.getTaskStatus( firstTask );
+        return getJob( taskKey ).getStatus();
     }
 
     // -------------------------------------------------------------------------
@@ -209,30 +140,27 @@ public class DefaultSchedulingManager
     private ScheduledTasks getScheduledTasksForCron( String cron, ListMap<String, String> cronKeyMap )
     {
         ScheduledTasks scheduledTasks = new ScheduledTasks();
-        
-        for ( String key : cronKeyMap.get( cron ) )
-        {
-            scheduledTasks.addTask( tasks.get( key ) );
-        }
+
+        scheduledTasks.addJobs( jobs.stream().filter( job -> Objects.equals( job.getCronExpression(), cron ) ).collect( Collectors.toList() ) );
         
         return scheduledTasks;
     }
 
     @Override
-    public void executeTask( String taskKey )
+    public void executeJob( String jobKey )
     {
-        Runnable task = tasks.get( taskKey );
+        Runnable job = getJob( jobKey );
 
-        if ( task != null && !isTaskInProgress( taskKey ) )
+        if ( job != null && !isJobInProgress( jobKey ) )
         {
-            scheduler.executeTask( taskKey, task );
+            scheduler.executeJob( jobKey, job );
         }
     }
 
     @Override
-    public boolean isTaskInProgress(String taskKey)
+    public boolean isJobInProgress(String jobKey)
     {
-        return ScheduledTaskStatus.RUNNING == scheduler.getCurrentTaskStatus( taskKey );
+        return ScheduledTaskStatus.RUNNING == scheduler.getCurrentJobStatus( jobKey );
     }
 
 }

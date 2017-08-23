@@ -167,7 +167,7 @@ public class DefaultPushAnalysisService
             return false;
         }
 
-        return scheduler.refreshTask(
+        return scheduler.refreshJob(
             pushAnalysis.getSchedulingKey(),
             new PushAnalysisTask(
                 pushAnalysis.getId(),
