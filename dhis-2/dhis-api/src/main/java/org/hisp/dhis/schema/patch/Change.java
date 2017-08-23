@@ -34,5 +34,52 @@ package org.hisp.dhis.schema.patch;
  */
 public class Change
 {
+    private String path;
 
+    private ChangeOperation operation;
+
+    private Object value;
+
+    public Change( String path, ChangeOperation operation )
+    {
+        this.path = path;
+        this.operation = operation;
+    }
+
+    public Change( String path, ChangeOperation operation, Object value )
+    {
+        this.path = path;
+        this.operation = operation;
+        this.value = value;
+    }
+
+    public String getPath()
+    {
+        return path;
+    }
+
+    public void setPath( String path )
+    {
+        this.path = path;
+    }
+
+    public ChangeOperation getOperation()
+    {
+        return operation;
+    }
+
+    public void setOperation( ChangeOperation operation )
+    {
+        this.operation = operation;
+    }
+
+    public Object getValue()
+    {
+        return value;
+    }
+
+    public void setValue( Object value )
+    {
+        this.value = value;
+    }
 }

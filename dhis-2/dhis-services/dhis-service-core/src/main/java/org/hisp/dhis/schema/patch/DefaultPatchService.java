@@ -29,20 +29,215 @@ package org.hisp.dhis.schema.patch;
  *
  */
 
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.query.Query;
+import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.query.Restrictions;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.system.util.ReflectionUtils;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class DefaultPatchService implements PatchService
 {
+    private final SchemaService schemaService;
+    private final QueryService queryService;
+
+    public DefaultPatchService( SchemaService schemaService, QueryService queryService )
+    {
+        this.schemaService = schemaService;
+        this.queryService = queryService;
+    }
+
     @Override
-    public Patch diff( Object src, Object dst )
+    public Patch diff( Object src, Object target )
     {
         return null;
     }
 
     @Override
-    public void apply( Patch patch, Object dst )
+    public void apply( Patch patch, Object target )
     {
+        if ( target == null )
+        {
+            return;
+        }
 
+        Schema schema = schemaService.getDynamicSchema( target.getClass() );
+
+        if ( schema == null )
+        {
+            return;
+        }
+
+        patch.getChanges().forEach( change -> {
+            List<Property> properties = getProperties( schema, change.getPath() );
+
+            if ( properties == null )
+            {
+                return; // for now, silently ignore invalid path expressions
+            }
+
+            switch ( change.getOperation() )
+            {
+                case ADDITION:
+                    setValue( properties, target, change.getValue() );
+                    break;
+                case DELETION:
+                    deleteValue( properties, target, change.getValue() );
+                    break;
+            }
+        } );
+    }
+
+    private void setValue( List<Property> properties, Object target, Object value )
+    {
+        for ( Property property : properties )
+        {
+            if ( property.isCollection() )
+            {
+                Object object = value;
+
+                if ( property.isIdentifiableObject() )
+                {
+                    if ( !String.class.isInstance( value ) )
+                    {
+                        continue;
+                    }
+
+                    Schema schema = schemaService.getDynamicSchema( property.getItemKlass() );
+
+                    Query query = Query.from( schema );
+                    query.add( Restrictions.eq( "id", value ) );
+
+                    List<? extends IdentifiableObject> objects = queryService.query( query );
+
+                    if ( objects.size() != 1 )
+                    {
+                        continue;
+                    }
+
+                    object = objects.get( 0 );
+                }
+
+                Collection collection = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
+
+                if ( collection == null )
+                {
+                    collection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+                }
+
+                if ( !collection.contains( object ) )
+                {
+                    collection.add( object );
+                }
+
+                ReflectionUtils.invokeMethod( target, property.getSetterMethod(), collection );
+            }
+            else
+            {
+                ReflectionUtils.invokeMethod( target, property.getSetterMethod(), value );
+            }
+        }
+    }
+
+    private void deleteValue( List<Property> properties, Object target, Object value )
+    {
+        for ( Property property : properties )
+        {
+            if ( property.isCollection() )
+            {
+                Object object = value;
+
+                if ( property.isIdentifiableObject() )
+                {
+                    if ( !String.class.isInstance( value ) )
+                    {
+                        continue;
+                    }
+
+                    Schema schema = schemaService.getDynamicSchema( property.getItemKlass() );
+
+                    Query query = Query.from( schema );
+                    query.add( Restrictions.eq( "id", value ) );
+
+                    List<? extends IdentifiableObject> objects = queryService.query( query );
+
+                    if ( objects.size() != 1 )
+                    {
+                        continue;
+                    }
+
+                    object = objects.get( 0 );
+                }
+
+                Collection collection = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
+
+                if ( collection == null )
+                {
+                    collection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+                }
+
+                if ( collection.contains( object ) )
+                {
+                    collection.remove( object );
+                }
+
+                ReflectionUtils.invokeMethod( target, property.getSetterMethod(), collection );
+            }
+            else
+            {
+                ReflectionUtils.invokeMethod( target, property.getSetterMethod(), (Object) null );
+            }
+        }
+    }
+
+    private List<Property> getProperties( Schema schema, String path ) throws QueryParserException
+    {
+        String[] paths = path.split( "\\." );
+        List<Property> properties = new ArrayList<>();
+        Schema currentSchema = schema;
+        Property currentProperty = null;
+
+        for ( int i = 0; i < paths.length; i++ )
+        {
+            if ( !currentSchema.haveProperty( paths[i] ) )
+            {
+                return null;
+            }
+
+            currentProperty = currentSchema.getProperty( paths[i] );
+
+            if ( currentProperty == null )
+            {
+                return null;
+            }
+
+            if ( (currentProperty.isSimple() && !currentProperty.isCollection()) && i != (paths.length - 1) )
+            {
+                return null;
+            }
+
+            if ( currentProperty.isCollection() )
+            {
+                currentSchema = schemaService.getDynamicSchema( currentProperty.getItemKlass() );
+            }
+            else
+            {
+                currentSchema = schemaService.getDynamicSchema( currentProperty.getKlass() );
+            }
+
+            properties.add( currentProperty );
+        }
+
+        return properties;
     }
 }

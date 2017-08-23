@@ -29,42 +29,11 @@ package org.hisp.dhis.schema.patch;
  *
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class Patch
+public enum ChangeOperation
 {
-    private List<Change> changes = new ArrayList<>();
-
-    public Patch()
-    {
-    }
-
-    public Patch( List<Change> changes )
-    {
-        this.changes = changes;
-    }
-
-    public List<Change> getChanges()
-    {
-        return changes;
-    }
-
-    public void setChanges( List<Change> changes )
-    {
-        this.changes = changes;
-    }
-
-    public Patch addChange( Change change )
-    {
-        if ( change != null )
-        {
-            changes.add( change );
-        }
-
-        return this;
-    }
+    ADDITION,
+    DELETION
 }
