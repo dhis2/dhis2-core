@@ -165,7 +165,6 @@ public class DataValidationTask
                             {
                                 continue;
                             }
-
                             log.trace( "Validation rule " + rule.getUid() + " " + rule.getName() );
 
                             Map<String, Double> leftSideValues;
@@ -197,6 +196,13 @@ public class DataValidationTask
 
                             for ( String optionCombo : attributeOptionCombos )
                             {
+                                // Skipping any results we already know
+                                if ( context.skipValidationOfTuple( orgUnit, rule, period, optionCombo,
+                                    periodService.getDayInPeriod( period, new Date() ) ) )
+                                {
+                                    continue;
+                                }
+
                                 log.trace( "Validation attributeOptionCombo " + optionCombo );
 
                                 Double leftSide = leftSideValues.get( optionCombo );

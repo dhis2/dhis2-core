@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms.command.hibernate;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,19 +28,35 @@ package org.hisp.dhis.sms.command.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.hisp.dhis.dataset.DataSet;
+import com.google.common.collect.Lists;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
 import org.hisp.dhis.sms.command.SMSCommand;
-import org.hisp.dhis.sms.parse.ParserType;
 
-public interface SMSCommandStore
-    extends GenericIdentifiableObjectStore<SMSCommand>
+/**
+ * Created by zubair@dhis2.org on 18.08.17.
+ */
+public class SmsCommandSchemaDescriptor implements SchemaDescriptor
 {
-    List<SMSCommand> getJ2MESMSCommands();
+    public static final String SINGULAR = "smsCommand";
 
-    SMSCommand getSMSCommand( String commandName, ParserType parserType );
+    public static final String PLURAL = "smsCommands";
 
-    int countDataSetSmsCommands( DataSet dataSet );
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
+    {
+        Schema schema = new Schema( SMSCommand.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 1509 );
+
+        schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_MOBILE_SENDSMS" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_MOBILE_SENDSMS" ) ) );
+
+        return schema;
+    }
 }

@@ -123,6 +123,9 @@ public class DefaultValidationService
     @Autowired
     private ApplicationContext applicationContext;
 
+    @Autowired
+    private ValidationResultService validationResultService;
+
     private CurrentUserService currentUserService;
 
     public void setCurrentUserService( CurrentUserService currentUserService )
@@ -327,7 +330,8 @@ public class DefaultValidationService
             .withPeriodTypeExtendedMap( periodTypeExtendedMap )
             .withOrgUnits( orgUnits )
             .withEventItems( getEventItems( dimensionItemMap ) )
-            .withConstantMap( constantService.getConstantMap() );
+            .withConstantMap( constantService.getConstantMap() )
+            .withInitialResults( validationResultService.getValidationResults(orgUnits, validationRules, periods) );
 
         if ( currentUser != null )
         {
