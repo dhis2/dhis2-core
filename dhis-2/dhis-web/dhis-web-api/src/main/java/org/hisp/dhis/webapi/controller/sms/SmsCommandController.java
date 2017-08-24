@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms.command.hibernate;
+package org.hisp.dhis.webapi.controller.sms;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,19 +28,22 @@ package org.hisp.dhis.sms.command.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.schema.descriptors.SmsCommandSchemaDescriptor;
 import org.hisp.dhis.sms.command.SMSCommand;
-import org.hisp.dhis.sms.parse.ParserType;
+import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-public interface SMSCommandStore
-    extends GenericIdentifiableObjectStore<SMSCommand>
+/**
+ * Created by zubair@dhis2.org on 18.08.17.
+ */
+
+@Controller
+@RequestMapping( value = SmsCommandSchemaDescriptor.API_ENDPOINT )
+@ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+public class SmsCommandController
+    extends AbstractCrudController<SMSCommand>
 {
-    List<SMSCommand> getJ2MESMSCommands();
-
-    SMSCommand getSMSCommand( String commandName, ParserType parserType );
-
-    int countDataSetSmsCommands( DataSet dataSet );
 }

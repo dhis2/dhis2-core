@@ -138,10 +138,10 @@ public class ProgramStageDataEntrySMSListener
         for ( String string : messageParts )
         {
             String key = org.apache.commons.lang.StringUtils.split( string,
-                    smsCommand.getCodeSeparator() != null ? smsCommand.getCodeSeparator() : "=" )[0].trim();
+                    smsCommand.getCodeValueSeparator() != null ? smsCommand.getCodeValueSeparator() : "=" )[0].trim();
 
             String value = org.apache.commons.lang.StringUtils.split( string,
-                    smsCommand.getCodeSeparator() != null ? smsCommand.getCodeSeparator() : "=" )[1].trim();
+                    smsCommand.getCodeValueSeparator() != null ? smsCommand.getCodeValueSeparator() : "=" )[1].trim();
 
             output.put( key, value );
         }

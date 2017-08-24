@@ -52,6 +52,12 @@
     <many-to-one name="periodType" class="org.hisp.dhis.period.PeriodType" column="periodtypeid"
       foreign-key="fk_validationrule_periodtypeid" not-null="true" />
 
+    <set name="organisationUnitLevels" table="validationruleorganisationunitlevels">
+      <cache usage="read-write" />
+      <key column="validationruleid" foreign-key="fk_organisationunitlevel_validationtuleid" />
+      <element column="organisationunitlevel" type="int" />
+    </set>
+
     <!-- Object Translation -->
     <set name="translations" table="validationruletranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />

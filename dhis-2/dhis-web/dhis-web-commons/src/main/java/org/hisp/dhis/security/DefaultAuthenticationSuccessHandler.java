@@ -28,20 +28,11 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-
-import javax.annotation.PostConstruct;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.intercept.LoginInterceptor;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTimeConstants;
@@ -49,6 +40,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.util.Assert;
+
+import javax.annotation.PostConstruct;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
 
 /**
  * Since ActionContext is not available at this point, we set a mark in the
@@ -109,21 +107,6 @@ public class DefaultAuthenticationSuccessHandler
         session.setAttribute( "userIs", username );
         session.setAttribute( LoginInterceptor.JLI_SESSION_VARIABLE, Boolean.TRUE );
         session.setMaxInactiveInterval( systemSessionTimeout );
-
-        UserCredentials credentials = userService.getUserCredentialsByUsername( username );
-
-        boolean readOnly = config.isReadOnlyMode();
-        
-        if ( credentials != null && !readOnly )
-        {
-            credentials.updateLastLogin();
-            userService.updateUserCredentials( credentials );            
-        }
-        
-        if ( credentials != null )
-        {
-            securityService.registerSuccessfulLogin( username );
-        }
         
         super.onAuthenticationSuccess( request, response, authentication );
     }
