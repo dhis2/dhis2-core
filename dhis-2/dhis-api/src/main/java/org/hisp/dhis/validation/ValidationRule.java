@@ -95,6 +95,11 @@ public class ValidationRule
     private Expression rightSide;
 
     /**
+     * Skip this rule when validating forms.
+     */
+    private boolean skipFormValidation;
+
+    /**
      * Validation Rule will only be run for organisation units at these levels (or all levels if set is empty)
      */
     private Set<Integer> organisationUnitLevels = new HashSet<>(  );
@@ -119,23 +124,14 @@ public class ValidationRule
     }
 
     public ValidationRule( String name, String description, Operator operator, Expression leftSide,
-        Expression rightSide )
+        Expression rightSide, boolean skipFormValidation )
     {
         this.name = name;
         this.description = description;
         this.operator = operator;
         this.leftSide = leftSide;
         this.rightSide = rightSide;
-    }
-
-    public ValidationRule( String name, String description, Operator operator, Expression leftSide,
-        Expression rightSide, Expression skipTest )
-    {
-        this.name = name;
-        this.description = description;
-        this.operator = operator;
-        this.leftSide = leftSide;
-        this.rightSide = rightSide;
+        this.skipFormValidation = skipFormValidation;
     }
 
     // -------------------------------------------------------------------------
@@ -298,6 +294,18 @@ public class ValidationRule
     public void setRightSide( Expression rightSide )
     {
         this.rightSide = rightSide;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSkipFormValidation()
+    {
+        return skipFormValidation;
+    }
+
+    public void setSkipFormValidation( boolean skipFormValidation )
+    {
+        this.skipFormValidation = skipFormValidation;
     }
 
     @JsonProperty( "validationRuleGroups" )
