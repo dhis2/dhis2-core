@@ -153,6 +153,7 @@ public class DefaultSchemaService
         add( new UserGroupAccessSchemaDescriptor() ).
         add( new MinMaxDataElementSchemaDescriptor() ).
         add( new ValidationResultSchemaDescriptor() ).
+        add( new SmsCommandSchemaDescriptor() ).
         add( new CategoryDimensionSchemaDescriptor() ).
         add( new CategoryOptionGroupSetDimensionSchemaDescriptor() ).
         add( new DataElementGroupSetDimensionSchemaDescriptor() ).

@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms.command.hibernate;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,19 +28,41 @@ package org.hisp.dhis.sms.command.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.hisp.dhis.dataset.DataSet;
+import com.google.common.collect.ImmutableMap;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.parse.ParserType;
 
-public interface SMSCommandStore
-    extends GenericIdentifiableObjectStore<SMSCommand>
+import java.util.function.Consumer;
+
+/**
+ * Created by zubair@dhis2.org on 18.08.17.
+ */
+public class SmsCommandObjectBundleHook extends AbstractObjectBundleHook
 {
-    List<SMSCommand> getJ2MESMSCommands();
+    private ImmutableMap<ParserType, Consumer<SMSCommand>> VALUE_POPULATOR = new ImmutableMap.Builder<ParserType, Consumer<SMSCommand>>()
+        .put( ParserType.TRACKED_ENTITY_REGISTRATION_PARSER, sc -> { sc.setProgramStage( null ); sc.setUserGroup( null ); sc.setDataset( null ); } )
+        .put( ParserType.PROGRAM_STAGE_DATAENTRY_PARSER, sc -> { sc.setDataset( null ); sc.setUserGroup( null ); } )
+        .put( ParserType.KEY_VALUE_PARSER, sc -> { sc.setProgram( null ); sc.setProgramStage( null ); } )
+        .put( ParserType.ALERT_PARSER, sc -> { sc.setProgram( null ); sc.setProgramStage( null ); } )
+        .build();
 
-    SMSCommand getSMSCommand( String commandName, ParserType parserType );
+    @Override
+    public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
+    {
+        if ( !SMSCommand.class.isInstance( object ) )
+        {
+            return;
+        }
 
-    int countDataSetSmsCommands( DataSet dataSet );
+        SMSCommand command = (SMSCommand) object;
+
+        process( command );
+    }
+
+    private void process( SMSCommand command )
+    {
+        VALUE_POPULATOR.getOrDefault( command.getParserType(), sc -> {} ).accept( command );
+    }
 }

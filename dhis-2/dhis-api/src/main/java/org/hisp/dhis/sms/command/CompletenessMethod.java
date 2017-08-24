@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms.command.hibernate;
+package org.hisp.dhis.sms.command;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,19 +28,24 @@ package org.hisp.dhis.sms.command.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.sms.command.SMSCommand;
-import org.hisp.dhis.sms.parse.ParserType;
-
-public interface SMSCommandStore
-    extends GenericIdentifiableObjectStore<SMSCommand>
+/**
+ * Created by zubair@dhis2.org on 17.08.17.
+ */
+public enum  CompletenessMethod
 {
-    List<SMSCommand> getJ2MESMSCommands();
+    ALL_DATAVALUE( "Receive all data values" ),
+    AT_LEAST_ONE_DATAVALUE( "Receive at least one data value" ),
+    DO_NOT_MARK_COMPLETE( "Do not mark the form as complete" );
 
-    SMSCommand getSMSCommand( String commandName, ParserType parserType );
+    private String method;
 
-    int countDataSetSmsCommands( DataSet dataSet );
+    CompletenessMethod( String method )
+    {
+        this.method = method;
+    }
+
+    public String getMethod()
+    {
+        return method;
+    }
 }

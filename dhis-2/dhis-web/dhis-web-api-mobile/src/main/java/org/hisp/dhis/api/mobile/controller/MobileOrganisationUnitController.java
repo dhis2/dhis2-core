@@ -464,7 +464,7 @@ public class MobileOrganisationUnitController
             List<SMSCode> smsCodes = new ArrayList<>();
 
             mobileSMSCommand.setName( normalSMSCommand.getName() );
-            mobileSMSCommand.setCodeSeparator( normalSMSCommand.getCodeSeparator() );
+            mobileSMSCommand.setCodeSeparator( normalSMSCommand.getCodeValueSeparator() );
             mobileSMSCommand.setDataSetId( normalSMSCommand.getDataset().getId() );
             mobileSMSCommand.setSeparator( normalSMSCommand.getSeparator() );
 

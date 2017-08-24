@@ -44,6 +44,7 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.sms.command.CompletenessMethod;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.SMSSpecialCharacter;
@@ -440,21 +441,21 @@ public class DataValueSMSListener
         }
 
         // Check completeness method
-        if ( command.getCompletenessMethod() == SMSCommand.RECEIVE_ALL_DATAVALUE )
+        if ( command.getCompletenessMethod() == CompletenessMethod.ALL_DATAVALUE )
         {
             if ( numberOfEmptyValue > 0 )
             {
                 return;
             }
         }
-        else if ( command.getCompletenessMethod() == SMSCommand.RECEIVE_AT_LEAST_ONE_DATAVALUE )
+        else if ( command.getCompletenessMethod() == CompletenessMethod.AT_LEAST_ONE_DATAVALUE )
         {
             if ( numberOfEmptyValue == command.getCodes().size() )
             {
                 return;
             }
         }
-        else if ( command.getCompletenessMethod() == SMSCommand.DO_NOT_MARK_COMPLETE )
+        else if ( command.getCompletenessMethod() == CompletenessMethod.DO_NOT_MARK_COMPLETE )
         {
             return;
         }

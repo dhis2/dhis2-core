@@ -137,10 +137,10 @@ public class SingleEventListener
         for ( String string : messageParts )
         {
             String key = StringUtils.split( string,
-                smsCommand.getCodeSeparator() != null ? smsCommand.getCodeSeparator() : "=" )[0].trim();
+                smsCommand.getCodeValueSeparator() != null ? smsCommand.getCodeValueSeparator() : "=" )[0].trim();
             
             String value = StringUtils.split( string,
-                smsCommand.getCodeSeparator() != null ? smsCommand.getCodeSeparator() : "=" )[1].trim();
+                smsCommand.getCodeValueSeparator() != null ? smsCommand.getCodeValueSeparator() : "=" )[1].trim();
             
             output.put( key, value );
         }

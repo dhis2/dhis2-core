@@ -36,6 +36,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
@@ -97,6 +98,11 @@ public class ValidationRule
      * Skip this rule when validating forms.
      */
     private boolean skipFormValidation;
+
+    /**
+     * Validation Rule will only be run for organisation units at these levels (or all levels if set is empty)
+     */
+    private Set<Integer> organisationUnitLevels = new HashSet<>(  );
 
     /**
      * The set of ValidationRuleGroups to which this ValidationRule belongs.
@@ -327,5 +333,20 @@ public class ValidationRule
     public void setNotificationTemplates( Set<ValidationNotificationTemplate> notificationTemplates )
     {
         this.notificationTemplates = notificationTemplates;
+    }
+
+    @JsonProperty
+    @JsonSerialize( contentAs = IdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "organisationUnitLevels", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<Integer> getOrganisationUnitLevels()
+    {
+        return organisationUnitLevels;
+    }
+
+    public void setOrganisationUnitLevels(
+        Set<Integer> organisationUnitLevels )
+    {
+        this.organisationUnitLevels = organisationUnitLevels;
     }
 }
