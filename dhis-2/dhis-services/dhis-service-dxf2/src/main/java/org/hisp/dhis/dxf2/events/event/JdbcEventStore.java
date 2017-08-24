@@ -435,10 +435,23 @@ public class JdbcEventStore
     @Override
     public int getEventCount( EventSearchParams params, List<OrganisationUnit> organisationUnits )
     {
-        String sql = getEventSelectQuery( params, organisationUnits );
+        String sql = new String();
+        
+        if( params.hasFilters() )
+        {
+        	sql = buildGridSql( params, organisationUnits );
+        }
+        else
+        {
+        	sql = getEventSelectQuery( params, organisationUnits );
+        }    	
 
         sql = sql.replaceFirst( "select .*? from", "select count(*) from" );
 
+        sql = sql.replaceFirst( "order .*? desc", "" );
+        
+        sql = sql.replaceFirst( "limit \\d+ offset \\d+", "" );
+        
         log.debug( "Event query count SQL: " + sql );
 
         return jdbcTemplate.queryForObject( sql, Integer.class );
@@ -456,6 +469,55 @@ public class JdbcEventStore
             }
         }
         return true;
+    }
+    
+    private String buildGridSql( EventSearchParams params, List<OrganisationUnit> organisationUnits )
+    {
+    	SqlHelper hlp = new SqlHelper();
+
+        // ---------------------------------------------------------------------
+        // Select clause
+        // ---------------------------------------------------------------------
+
+        String sql = "select psi.uid as " + EVENT_ID + ", " + "psi.created as " + EVENT_CREATED_ID + ", "
+            + "psi.lastupdated as " + EVENT_LAST_UPDATED_ID + ", " + "psi.storedby as " + EVENT_STORED_BY_ID + ", "
+            + "psi.completedby as " + EVENT_COMPLETED_BY_ID + ", " + "psi.completeddate as " + EVENT_COMPLETED_DATE_ID
+            + ", " + "psi.duedate as " + EVENT_DUE_DATE_ID + ", " + "psi.executiondate as " + EVENT_EXECUTION_DATE_ID
+            + ", " + "ou.uid as " + EVENT_ORG_UNIT_ID + ", " + "ou.name as " + EVENT_ORG_UNIT_NAME + ", "
+            + "psi.status as " + EVENT_STATUS_ID + ", " + "psi.longitude as " + EVENT_LONGITUDE_ID + ", "
+            + "psi.latitude as " + EVENT_LATITUDE_ID + ", " + "ps.uid as " + EVENT_PROGRAM_STAGE_ID + ", " + "p.uid as "
+            + EVENT_PROGRAM_ID + ", " + "coc.uid as " + EVENT_ATTRIBUTE_OPTION_COMBO_ID + ", " + "psi.deleted as " + EVENT_DELETED + ", ";
+
+        for ( QueryItem item : params.getDataElementsAndFilters() )
+        {
+            String col = statementBuilder.columnQuote( item.getItemId() );
+
+            sql += item.isNumeric() ? "CAST( " + col + ".value AS NUMERIC ) as " : col + ".value as ";
+
+            sql += col + ", ";
+        }
+
+        sql = removeLastComma( sql ) + " ";
+
+        // ---------------------------------------------------------------------
+        // From and where clause
+        // ---------------------------------------------------------------------
+
+        sql += getFromWhereClause( params, hlp, organisationUnits );
+
+        // ---------------------------------------------------------------------
+        // Order clause
+        // ---------------------------------------------------------------------
+
+        sql += getGridOrderQuery( params );
+
+        // ---------------------------------------------------------------------
+        // Paging clause
+        // ---------------------------------------------------------------------
+
+        sql += getEventPagingQuery( params );
+
+        return sql;
     }
 
     /**
