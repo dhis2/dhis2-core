@@ -224,6 +224,21 @@ public class ValidationRuleStoreTest
     }
 
     @Test
+    public void testGetAllFormValidationRules()
+    {
+        ValidationRule validationRuleA = createValidationRule( "A", equal_to, expressionA, expressionB, periodType, true );
+        ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionA, expressionB, periodType );
+
+        validationRuleStore.save( validationRuleA );
+        validationRuleStore.save( validationRuleB );
+
+        List<ValidationRule> rules = validationRuleStore.getAllFormValidationRules();
+
+        assertTrue( rules.size() == 1 );
+        assertTrue( rules.contains( validationRuleB ) );
+    }
+
+    @Test
     public void testGetValidationRuleByName()
     {
         ValidationRule validationRuleA = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );

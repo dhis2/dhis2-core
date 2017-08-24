@@ -233,7 +233,7 @@ public class ValidationRuleServiceTest
         dataElementService.updateDataElement( dataElementD );
         dataElementService.updateDataElement( dataElementE );
 
-        validationRuleA = createValidationRule( "A", equal_to, expressionA, expressionB, periodTypeMonthly ); // deA + deB = deC - deD
+        validationRuleA = createValidationRule( "A", equal_to, expressionA, expressionB, periodTypeMonthly, true ); // deA + deB = deC - deD
         validationRuleB = createValidationRule( "B", greater_than, expressionB, expressionC, periodTypeMonthly ); // deC - deD > deB * 2
     }
 
@@ -313,6 +313,20 @@ public class ValidationRuleServiceTest
 
         assertTrue( rules.size() == 2 );
         assertTrue( rules.contains( validationRuleA ) );
+        assertTrue( rules.contains( validationRuleB ) );
+    }
+
+    @Test
+    public void testGetAllFormValidationRules()
+    {
+        validationRuleA.setSkipFormValidation( true );
+
+        validationRuleService.saveValidationRule( validationRuleA );
+        validationRuleService.saveValidationRule( validationRuleB );
+
+        Collection<ValidationRule> rules = validationRuleService.getAllFormValidationRules();
+
+        assertTrue( rules.size() == 1 );
         assertTrue( rules.contains( validationRuleB ) );
     }
 

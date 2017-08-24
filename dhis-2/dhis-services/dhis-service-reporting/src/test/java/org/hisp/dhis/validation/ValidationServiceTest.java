@@ -599,6 +599,28 @@ public class ValidationServiceTest
     }
 
     @Test
+    public void testValidateForm()
+    {
+        validationRuleA.setSkipFormValidation( true );
+
+        useDataValue( dataElementA, periodA, sourceA, "1" );
+        useDataValue( dataElementB, periodA, sourceA, "2" );
+        useDataValue( dataElementC, periodA, sourceA, "3" );
+        useDataValue( dataElementD, periodA, sourceA, "4" );
+
+        validationRuleService.saveValidationRule( validationRuleA );
+        validationRuleService.saveValidationRule( validationRuleB );
+
+        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
+
+        Collection<ValidationResult> reference = new HashSet<>();
+
+        reference.add( new ValidationResult( validationRuleB, periodA, sourceA, defaultCombo, -1.0, 4.0, dayInPeriodA ) );
+
+        assertResultsEquals( reference, results );
+    }
+
+    @Test
     public void testValidateDays()
     {
         useDataValue( dataElementA, periodA, sourceA, "1111" );

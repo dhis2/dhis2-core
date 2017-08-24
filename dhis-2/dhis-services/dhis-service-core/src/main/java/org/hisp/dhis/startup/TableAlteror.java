@@ -462,6 +462,7 @@ public class TableAlteror
         executeSql( "update reporttable set showdimensionlabels = false where showdimensionlabels is null" );
         executeSql( "update eventreport set showdimensionlabels = false where showdimensionlabels is null" );
         executeSql( "update reporttable set skiprounding = false where skiprounding is null" );
+        executeSql( "update validationrule set skipformvalidation = false where skipformvalidation is null" );
         executeSql( "update validationnotificationtemplate set sendstrategy = 'COLLECTIVE_SUMMARY' where sendstrategy is null" );
 
         // move timelydays from system setting => dataset property

@@ -148,7 +148,7 @@ public class DefaultValidationService
         Collection<Period> periods = periodService.getPeriodsBetweenDates( startDate, endDate );
 
         Collection<ValidationRule> rules =
-            group != null ? group.getMembers() : validationRuleService.getAllValidationRules();
+            group != null ? group.getMembers() : validationRuleService.getAllFormValidationRules();
 
         ValidationRunContext context = getValidationContext( orgUnits, periods, rules )
             .withAttributeCombo( attributeOptionCombo )

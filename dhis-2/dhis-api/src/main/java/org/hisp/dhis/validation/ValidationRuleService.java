@@ -86,9 +86,17 @@ public interface ValidationRuleService
     /**
      * Get all validation rules.
      *
-     * @return a List of ValidationRule or null if it there are no validation rules.
+     * @return a List of ValidationRule or null if there are no validation rules.
      */
     List<ValidationRule> getAllValidationRules();
+
+    /**
+     * Get all validation rules for form validation.
+     *
+     * @return a List of ValidationRule or null if there are none for form
+     * validation.
+     */
+    List<ValidationRule> getAllFormValidationRules();
 
     /**
      * Get a validation rule with the given name.
@@ -115,7 +123,7 @@ public interface ValidationRuleService
     Set<DataElement> getDataElements( ValidationRule validationRule );
 
     /**
-     * Returns all validation-type rules which have specified data elements
+     * Returns all form validation rules which have specified data elements
      * assigned to them.
      *
      * @param dataElements the data elements to look for.
