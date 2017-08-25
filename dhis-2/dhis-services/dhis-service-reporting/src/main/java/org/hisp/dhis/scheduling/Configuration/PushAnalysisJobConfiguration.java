@@ -1,6 +1,6 @@
 package org.hisp.dhis.scheduling.Configuration;
 
-import org.hisp.dhis.pushanalysis.PushAnalysisService;
+import org.hisp.dhis.pushanalysis.scheduling.PushAnalysisJob;
 import org.hisp.dhis.scheduling.TaskId;
 
 /**
@@ -11,20 +11,15 @@ public class PushAnalysisJobConfiguration extends JobConfiguration
 {
     private int pushAnalysisId;
 
-    private TaskId taskId;
-
-    private PushAnalysisService pushAnalysisService;
-
-    public PushAnalysisJobConfiguration( int pushAnalysisId, TaskId taskId, PushAnalysisService pushAnalysisService )
+    public PushAnalysisJobConfiguration( TaskId taskId, int pushAnalysisId )
     {
-        this.pushAnalysisId = pushAnalysisId;
         this.taskId = taskId;
-        this.pushAnalysisService = pushAnalysisService;
+        this.pushAnalysisId = pushAnalysisId;
     }
 
     @Override
-    public void run()
+    public Runnable getRunnable()
     {
-        pushAnalysisService.runPushAnalysis( pushAnalysisId, taskId );
+        return new PushAnalysisJob( taskId, pushAnalysisId );
     }
 }

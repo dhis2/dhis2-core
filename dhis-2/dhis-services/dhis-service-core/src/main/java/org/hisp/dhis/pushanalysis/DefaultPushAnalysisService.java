@@ -49,7 +49,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.mapgeneration.MapGenerationService;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.pushanalysis.scheduling.PushAnalysisTask;
+import org.hisp.dhis.pushanalysis.scheduling.PushAnalysisJob;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
 import org.hisp.dhis.scheduling.TaskCategory;
@@ -169,13 +169,11 @@ public class DefaultPushAnalysisService
 
         return scheduler.refreshJob(
             pushAnalysis.getSchedulingKey(),
-            new PushAnalysisTask(
-                pushAnalysis.getId(),
+            new PushAnalysisJob(
                 new TaskId(
                     TaskCategory.PUSH_ANALYSIS,
                     currentUserService.getCurrentUser()
-                ),
-                this
+                ),  pushAnalysis.getId()
             ),
             getPushAnalysisCronExpression( pushAnalysis )
         );

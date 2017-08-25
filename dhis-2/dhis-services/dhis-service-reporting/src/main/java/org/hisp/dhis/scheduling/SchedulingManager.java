@@ -62,8 +62,7 @@ public interface SchedulingManager
      * Schedules the given jobs. The job map will replace the currently scheduled
      * jobs.
      * 
-     * @param jobs a mapping of cron expressions and list of job keys. A
-     * task key refers to a bean identifier in the application context. The bean
+     * @param jobs a list of jobs. TODO -> verify: A task key refers to a bean identifier in the application context. The bean
      * must implement Runnable in order to be scheduled for execution.
      */
     void scheduleJobs( List<Job> jobs );

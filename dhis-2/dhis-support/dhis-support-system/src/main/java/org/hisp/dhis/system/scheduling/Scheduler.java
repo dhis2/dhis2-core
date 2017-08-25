@@ -98,7 +98,7 @@ public interface Scheduler
      * @return true if the job was deactivated as a result of this operation,
      *         false if not.
      */
-    boolean stopJob( String key );
+    boolean stopJob ( String key );
 
     /**
      * Stops and starts a job with the given key. If no key exists, still start a new job

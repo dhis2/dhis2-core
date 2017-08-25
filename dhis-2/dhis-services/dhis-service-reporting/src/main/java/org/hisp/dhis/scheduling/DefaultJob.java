@@ -2,13 +2,17 @@ package org.hisp.dhis.scheduling;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
 import org.joda.time.DateTime;
 
 /**
  * @author Henning Håkonsen
  */
-public class Job implements Runnable
+public class DefaultJob
+    extends BaseIdentifiableObject
+    implements IdentifiableObject, Job
 {
     private String name;
     private String key;
@@ -20,9 +24,9 @@ public class Job implements Runnable
     private JobStatus status;
     private JobConfiguration jobConfiguration;
 
-    private static final Log log = LogFactory.getLog( Job.class );
+    private static final Log log = LogFactory.getLog( DefaultJob.class );
 
-    public Job(String name, JobType jobType, String cronExpression, JobConfiguration jobConfiguration) {
+    public DefaultJob(String name, JobType jobType, String cronExpression, JobConfiguration jobConfiguration) {
         this.name = name;
         this.jobType = jobType;
         this.cronExpression = cronExpression;
@@ -35,12 +39,6 @@ public class Job implements Runnable
         this.key = "TODOKEY";
     }
 
-    public void setJobConfiguration( JobType jobType, JobConfiguration jobConfiguration )
-    {
-        this.jobType = jobType;
-        this.jobConfiguration = jobConfiguration;
-    }
-
     public String toString()
     {
         return "Name: " + name + ", job type: " + jobType.name() + ", cronExpression: " + cronExpression +
@@ -49,7 +47,6 @@ public class Job implements Runnable
 
 
     // Getters and setters
-
     public String getKey()
     {
         return key;
@@ -81,30 +78,9 @@ public class Job implements Runnable
     }
 
     @Override
-    public void run()
+    public Runnable getRunnable()
     {
-        if( activated && jobConfiguration != null ) {
-            // Verify how we want to store start/endTime
-
-            startTime = DateTime.now();
-
-            try {
-                this.status = JobStatus.RUNNING;
-                jobConfiguration.run();
-            } catch (Exception e)
-            {
-                this.status = JobStatus.FAILED;
-                log.error( new Exception(e) );
-            } finally
-            {
-                this.status = JobStatus.COMPLETED;
-            }
-
-            endTime = DateTime.now();
-
-        } else {
-            log.debug( "Job '" + name + "' not activated" );
-        }
+        return jobConfiguration.getRunnable();
     }
 }
 

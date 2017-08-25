@@ -1,18 +1,16 @@
 package org.hisp.dhis.scheduling.Configuration;
 
+import org.hisp.dhis.scheduling.TaskId;
+
 /**
  * Created by henninghakonsen on 23/08/2017.
  * Project: dhis-2.
  */
-public class JobConfiguration implements Runnable
+public class JobConfiguration
 {
-    public void JobConfiguration () {
+    public TaskId taskId = null;
 
-    }
-
-    @Override
-    public void run()
-    {
-
+    public Runnable getRunnable() {
+        return null;
     }
 }

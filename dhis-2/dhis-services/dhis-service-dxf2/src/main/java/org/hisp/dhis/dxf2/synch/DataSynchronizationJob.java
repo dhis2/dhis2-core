@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.dxf2.synch;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,31 +28,24 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.message.MessageService;
+
 import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.security.NoSecurityContextRunnable;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.util.Clock;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Calendar;
-import java.util.Date;
-
 /**
- * @author Halvdan Hoem Grelland
+ * @author Lars Helge Overland
  */
-public class ProgramNotificationTask
-    extends NoSecurityContextRunnable
+public class DataSynchronizationJob
+    implements Runnable
 {
     @Autowired
-    private ProgramNotificationService programNotificationService;
-
-    @Autowired
-    private SystemSettingManager systemSettingManager;
-
+    private SynchronizationManager synchronizationManager;
+    
     @Autowired
     private MessageService messageService;
 
@@ -60,6 +53,13 @@ public class ProgramNotificationTask
     private Notifier notifier;
 
     private TaskId taskId;
+
+    private static final Log log = LogFactory.getLog( DataSynchronizationJob.class );
+
+    public DataSynchronizationJob( TaskId taskId )
+    {
+        this.taskId = taskId;
+    }
 
     public void setTaskId( TaskId taskId )
     {
@@ -71,36 +71,36 @@ public class ProgramNotificationTask
     // -------------------------------------------------------------------------
 
     @Override
-    public void call()
+    public void run()
     {
-        final Clock clock = new Clock().startClock();
-
-        notifier.notify( taskId, "Generating and sending scheduled program notifications" );
-
         try
         {
-            runInternal();
-
-            notifier.notify( taskId, NotificationLevel.INFO, "Generated and sent scheduled program notifications: " + clock.time(), true );
+            synchronizationManager.executeDataPush();
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( taskId, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
-
-            messageService.sendSystemErrorNotification( "Generating and sending scheduled program notifications failed", ex );
-
-            throw ex;
+            notifier.notify( taskId, "Data synch failed: " + ex.getMessage() );
+        }
+        catch ( WebMessageParseException e )
+        {
+            log.error("Error while executing data sync task. "+ e.getMessage(), e );
         }
 
-        systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS, new Date( clock.getStartTime() ) );
-    }
+        try
+        {
+            synchronizationManager.executeEventPush();
+        }
+        catch ( RuntimeException ex )
+        {
+            notifier.notify( taskId, "Event synch failed: " + ex.getMessage() );
+            
+            messageService.sendSystemErrorNotification( "Event synch failed", ex );
+        }
+        catch ( WebMessageParseException e )
+        {
+            log.error("Error while executing event sync task. "+ e.getMessage(), e );
+        }
 
-    private void runInternal()
-    {
-        // Today at 00:00:00
-        Calendar calendar = Calendar.getInstance();
-        calendar.set( Calendar.HOUR, 0 );
-
-        programNotificationService.sendScheduledNotificationsForDay( calendar.getTime() );
+        notifier.notify( taskId, "Data/Event synch successful" );
     }
 }

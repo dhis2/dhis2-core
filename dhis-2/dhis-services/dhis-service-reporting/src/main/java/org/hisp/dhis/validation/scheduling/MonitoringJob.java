@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics.table.scheduling;
+package org.hisp.dhis.validation.scheduling;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,18 +28,37 @@ package org.hisp.dhis.analytics.table.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.validation.ValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Date;
+
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 
 /**
  * @author Lars Helge Overland
+ * @author Jim Grace
  */
-public class ResourceTableTask
+public class MonitoringJob
     implements Runnable
 {
     @Autowired
-    private AnalyticsTableGenerator analyticsTableGenerator;
+    private ValidationService validationService;
+
+    @Autowired
+    private Notifier notifier;
+
+    @Autowired
+    private MessageService messageService;
+    
+    @Autowired
+    private SystemSettingManager systemSettingManager;
 
     private TaskId taskId;
 
@@ -47,10 +66,38 @@ public class ResourceTableTask
     {
         this.taskId = taskId;
     }
-    
+
+    public MonitoringJob( TaskId taskId )
+    {
+        this.taskId = taskId;
+    }
+
+    // -------------------------------------------------------------------------
+    // Runnable implementation
+    // -------------------------------------------------------------------------
+
     @Override
     public void run()
     {
-        analyticsTableGenerator.generateResourceTables( taskId );        
+        final Date startTime = new Date();
+        
+        notifier.clear( taskId ).notify( taskId, "Monitoring data" );
+        
+        try
+        {
+            validationService.startScheduledValidationAnalysis();
+            
+            notifier.notify( taskId, INFO, "Monitoring process done", true );
+        }
+        catch ( RuntimeException ex )
+        {
+            notifier.notify( taskId, ERROR, "Process failed: " + ex.getMessage(), true );
+            
+            messageService.sendSystemErrorNotification( "Monitoring process failed", ex );
+            
+            throw ex;
+        }
+        
+        systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_MONITORING, startTime );
     }
 }

@@ -1539,7 +1539,7 @@
   <!-- Scheduled task for scheduled program notifications -->
 
   <bean id="scheduledProgramNotificationsTask"
-    class="org.hisp.dhis.program.notification.ProgramNotificationTask" scope="prototype" />
+        class="org.hisp.dhis.program.notification.ProgramNotificationJob" scope="prototype" />
 
   <!-- Scheduled task for validation result notifications -->
 

@@ -69,7 +69,7 @@ public class MetadataRetryContext
 
         if ( version != null )
         {
-            retryContext.setAttribute( MetadataSyncTask.VERSION_KEY, version );
+            retryContext.setAttribute( MetadataSyncJob.VERSION_KEY, version );
         }
     }
 
@@ -106,7 +106,7 @@ public class MetadataRetryContext
 
             }
 
-            retryContext.setAttribute( MetadataSyncTask.METADATA_SYNC_REPORT, report.toString() );
+            retryContext.setAttribute( MetadataSyncJob.METADATA_SYNC_REPORT, report.toString() );
         }
     }
 }

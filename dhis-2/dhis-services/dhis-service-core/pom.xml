@@ -114,7 +114,7 @@
       <groupId>com.googlecode.jsmpp</groupId>
       <artifactId>jsmpp</artifactId>
     </dependency>
-      
+
   </dependencies>
   <properties>
     <rootDir>../../</rootDir>

@@ -54,10 +54,10 @@ import java.util.List;
  *
  * @author anilkumk
  */
-public class MetadataSyncTask
+public class MetadataSyncJob
     implements Runnable
 {
-    private static final Log log = LogFactory.getLog( MetadataSyncTask.class );
+    private static final Log log = LogFactory.getLog( MetadataSyncJob.class );
 
     public static String VERSION_KEY = "version";
     public static String DATA_PUSH_SUMMARY = "dataPushSummary";

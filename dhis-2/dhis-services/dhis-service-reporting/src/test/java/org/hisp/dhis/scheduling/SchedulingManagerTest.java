@@ -28,7 +28,12 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.scheduling.Configuration.AnalyticsJobConfiguration;
+import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
+import org.hisp.dhis.scheduling.Configuration.MessageSendJobConfiguration;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -37,29 +42,36 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class SchedulingManagerTest
     extends DhisSpringTest
 {
+    String CRON_DAILY_11PM = "0 0 23 * * ?";
+    String CRON_DAILY_0AM = "0 0 0 * * ?";
+    String CRON_DAILY_2AM = "0 0 2 * * ?";
+    String CRON_DAILY_5AM = "0 0 5 * * ?";
+    String CRON_DAILY_6AM = "0 0 6 * * ?";
+    String CRON_DAILY_7AM = "0 0 7 * * ?";
+    String CRON_DAILY_8AM = "0 0 8 * * ?";
+
+    String CRON_EVERY_MIN = "0 0/1 * * * ?";
+    String CRON_EVERY_15MIN = "0 0/15 * * * ?";
+
+    String CRON_TEST = "0 * * * * ?";
+
     @Autowired
     private SchedulingManager schedulingManager;
 
-    /*@Test
+    @Test
     public void testScheduleTasks()
     {
-        ListMap<String, String> cronKeyMap = new ListMap<>();
-        cronKeyMap.putValue( CRON_DAILY_0AM, TASK_RESOURCE_TABLE );
-        cronKeyMap.putValue( CRON_DAILY_0AM, TASK_ANALYTICS_ALL );
-        cronKeyMap.putValue( CRON_DAILY_0AM, TASK_DATAMART_LAST_YEAR );
-                
-        schedulingManager.scheduleJobs( cronKeyMap );
-        
-        cronKeyMap = schedulingManager.getCronKeyMap();
-        
-        assertEquals( 1, cronKeyMap.size() );
-        assertTrue( cronKeyMap.containsKey( CRON_DAILY_0AM ) );
-        assertEquals( 3, cronKeyMap.get( CRON_DAILY_0AM ).size() );
-        
-        assertEquals( ScheduledTaskStatus.RUNNING, schedulingManager.getTaskStatus() );
+        JobConfiguration jobConfigurationA = new AnalyticsJobConfiguration( 1, null );
+        Job jobA = new DefaultJob( "jobA", JobType.ANALYTICS, CRON_TEST,  jobConfigurationA );
+
+        JobConfiguration jobConfigurationB = new MessageSendJobConfiguration( null );
+        Job jobB = new DefaultJob( "jobB", JobType.MESSAGE_SEND, CRON_EVERY_15MIN,  jobConfigurationB);
+
+        schedulingManager.scheduleJobs( Lists.newArrayList( jobA, jobB ) );
+
     }
 
-    @Test
+    /*@Test
     public void testStopTasks()
     {
         ListMap<String, String> cronKeyMap = new ListMap<>();

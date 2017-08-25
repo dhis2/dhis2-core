@@ -35,7 +35,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.tasks.MetadataRetryContext;
-import org.hisp.dhis.dxf2.metadata.tasks.MetadataSyncTask;
+import org.hisp.dhis.dxf2.metadata.tasks.MetadataSyncJob;
 import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
@@ -94,7 +94,7 @@ public class MetadataSyncPreProcessor
         {
             String message = remoteServerAvailable.getMessage();
             log.error( message );
-            context.updateRetryContext( MetadataSyncTask.DATA_PUSH_SUMMARY, remoteServerAvailable.getMessage(), null, null );
+            context.updateRetryContext( MetadataSyncJob.DATA_PUSH_SUMMARY, remoteServerAvailable.getMessage(), null, null );
             throw new MetadataSyncServiceException( message );
         }
 
@@ -110,7 +110,7 @@ public class MetadataSyncPreProcessor
             {
                 throw (MetadataSyncServiceException)ex;
             }
-            context.updateRetryContext( MetadataSyncTask.DATA_PUSH_SUMMARY, ex.getMessage(), null, null );
+            context.updateRetryContext( MetadataSyncJob.DATA_PUSH_SUMMARY, ex.getMessage(), null, null );
             throw new MetadataSyncServiceException( ex.getMessage(), ex );
         }
 
@@ -129,7 +129,7 @@ public class MetadataSyncPreProcessor
         {
             String message = remoteServerAvailable.getMessage();
             log.error( message );
-            context.updateRetryContext( MetadataSyncTask.EVENT_PUSH_SUMMARY, remoteServerAvailable.getMessage(), null, null );
+            context.updateRetryContext( MetadataSyncJob.EVENT_PUSH_SUMMARY, remoteServerAvailable.getMessage(), null, null );
             throw new MetadataSyncServiceException( message );
         }
 
@@ -147,7 +147,7 @@ public class MetadataSyncPreProcessor
                 throw (MetadataSyncServiceException)ex;
             }
 
-            context.updateRetryContext( MetadataSyncTask.EVENT_PUSH_SUMMARY, ex.getMessage(), null, null );
+            context.updateRetryContext( MetadataSyncJob.EVENT_PUSH_SUMMARY, ex.getMessage(), null, null );
             throw new MetadataSyncServiceException( ex.getMessage(), ex );
         }
 
@@ -213,7 +213,7 @@ public class MetadataSyncPreProcessor
     private String setVersionListErrorInfoInContext( MetadataRetryContext context, MetadataVersion metadataVersion, Exception e )
     {
         String message = "Exception happened while trying to get remote metadata versions difference " + e.getMessage();
-        context.updateRetryContext( MetadataSyncTask.GET_METADATAVERSIONSLIST, e.getMessage(), metadataVersion, null );
+        context.updateRetryContext( MetadataSyncJob.GET_METADATAVERSIONSLIST, e.getMessage(), metadataVersion, null );
         return message;
     }
 
@@ -239,7 +239,7 @@ public class MetadataSyncPreProcessor
         }
         catch ( MetadataVersionServiceException ex )
         {
-            context.updateRetryContext( MetadataSyncTask.GET_METADATAVERSION, ex.getMessage(), null, null );
+            context.updateRetryContext( MetadataSyncJob.GET_METADATAVERSION, ex.getMessage(), null, null );
             throw new MetadataSyncServiceException( ex.getMessage(), ex );
         }
 
@@ -260,7 +260,7 @@ public class MetadataSyncPreProcessor
             if ( ImportStatus.ERROR.equals( status ) || ImportStatus.WARNING.equals( status ) )
             {
                 log.error( "Import Summary description: " + importSummary.getDescription() );
-                context.updateRetryContext( MetadataSyncTask.DATA_PUSH_SUMMARY, importSummary.getDescription(), null, null );
+                context.updateRetryContext( MetadataSyncJob.DATA_PUSH_SUMMARY, importSummary.getDescription(), null, null );
                 throw new MetadataSyncServiceException( "The Data Push was not successful. " );
             }
         }
@@ -289,7 +289,7 @@ public class MetadataSyncPreProcessor
             if ( isImportError )
             {
                 log.error( "Import Summary description: " + summaryDescription.toString() );
-                context.updateRetryContext( MetadataSyncTask.EVENT_PUSH_SUMMARY, summaryDescription.toString(), null, null );
+                context.updateRetryContext( MetadataSyncJob.EVENT_PUSH_SUMMARY, summaryDescription.toString(), null, null );
                 throw new MetadataSyncServiceException( "The Event Data Push was not successful. " );
             }
         }

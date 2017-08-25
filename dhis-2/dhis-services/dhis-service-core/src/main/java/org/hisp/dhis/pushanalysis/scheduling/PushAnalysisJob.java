@@ -1,5 +1,4 @@
-package org.hisp.dhis.analytics.table.scheduling;
-
+package org.hisp.dhis.pushanalysis.scheduling;
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -28,43 +27,33 @@ package org.hisp.dhis.analytics.table.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashSet;
-
-import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+import org.hisp.dhis.pushanalysis.PushAnalysisService;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.security.NoSecurityContextRunnable;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author Lars Helge Overland
+ * @author Stian Sandvold
  */
-public class AnalyticsTableTask
+public class PushAnalysisJob
     extends NoSecurityContextRunnable
 {
-    @Autowired
-    private AnalyticsTableGenerator analyticsTableGenerator;
-    
-    private Integer lastYears;
-
-    public void setLastYears( Integer lastYears )
-    {
-        this.lastYears = lastYears;
-    }
+    private int pushAnalysisId;
 
     private TaskId taskId;
 
-    public void setTaskId( TaskId taskId )
+    @Autowired
+    private PushAnalysisService pushAnalysisService;
+
+    public PushAnalysisJob( TaskId taskId, int pushAnalysisId )
     {
         this.taskId = taskId;
+        this.pushAnalysisId = pushAnalysisId;
     }
-    
-    // -------------------------------------------------------------------------
-    // Runnable implementation
-    // -------------------------------------------------------------------------
 
     @Override
     public void call()
     {
-        analyticsTableGenerator.generateTables( lastYears, taskId, new HashSet<>(), false );
+        pushAnalysisService.runPushAnalysis( pushAnalysisId, taskId );
     }
 }

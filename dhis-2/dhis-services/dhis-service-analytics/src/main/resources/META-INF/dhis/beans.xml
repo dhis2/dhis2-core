@@ -78,18 +78,18 @@
 
   <!-- Scheduled tasks -->
   
-  <bean id="analyticsAllTask" class="org.hisp.dhis.analytics.table.scheduling.AnalyticsTableTask" scope="prototype" />
+  <bean id="analyticsAllTask" class="org.hisp.dhis.analytics.table.scheduling.AnalyticsTableJob" scope="prototype" />
   
-  <bean id="analyticsLast2YearsTask" class="org.hisp.dhis.analytics.table.scheduling.AnalyticsTableTask" scope="prototype">
+  <bean id="analyticsLast2YearsTask" class="org.hisp.dhis.analytics.table.scheduling.AnalyticsTableJob" scope="prototype">
     <property name="lastYears" value="2" />
   </bean>
 
-  <bean id="analyticsLast3YearsTask" class="org.hisp.dhis.analytics.table.scheduling.AnalyticsTableTask" scope="prototype">
+  <bean id="analyticsLast3YearsTask" class="org.hisp.dhis.analytics.table.scheduling.AnalyticsTableJob" scope="prototype">
     <property name="lastYears" value="3" />
   </bean>
 
-  <bean id="resourceTableTask" class="org.hisp.dhis.analytics.table.scheduling.ResourceTableTask" scope="prototype" />
+  <bean id="resourceTableTask" class="org.hisp.dhis.analytics.table.scheduling.ResourceTableJob" scope="prototype" />
 
-  <bean id="resourceTable15MinTask" class="org.hisp.dhis.analytics.table.scheduling.ResourceTableTask" scope="prototype" />
+  <bean id="resourceTable15MinTask" class="org.hisp.dhis.analytics.table.scheduling.ResourceTableJob" scope="prototype" />
 
 </beans>

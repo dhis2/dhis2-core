@@ -89,7 +89,7 @@ public class MetadataRetryContextTest
         metadataRetryContext.updateRetryContext( testKey, testMessage, null );
 
         verify( retryContext ).setAttribute( testKey, testMessage );
-        verify( retryContext, never() ).setAttribute( MetadataSyncTask.VERSION_KEY, null );
+        verify( retryContext, never() ).setAttribute( MetadataSyncJob.VERSION_KEY, null );
     }
 
     @Test
@@ -98,7 +98,7 @@ public class MetadataRetryContextTest
         metadataRetryContext.updateRetryContext( testKey, testMessage, mockVersion );
 
         verify( retryContext ).setAttribute( testKey, testMessage );
-        verify( retryContext ).setAttribute( MetadataSyncTask.VERSION_KEY, mockVersion );
+        verify( retryContext ).setAttribute( MetadataSyncJob.VERSION_KEY, mockVersion );
     }
 
     @Test

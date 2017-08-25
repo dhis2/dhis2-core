@@ -1,4 +1,5 @@
-package org.hisp.dhis.pushanalysis.scheduling;
+package org.hisp.dhis.analytics.table.scheduling;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -27,32 +28,34 @@ package org.hisp.dhis.pushanalysis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.pushanalysis.PushAnalysisService;
+import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.security.NoSecurityContextRunnable;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author Stian Sandvold
+ * @author Lars Helge Overland
  */
-public class PushAnalysisTask
-    extends NoSecurityContextRunnable
+public class ResourceTableJob
+    implements Runnable
 {
-    private int pushAnalysisId;
+    @Autowired
+    private AnalyticsTableGenerator analyticsTableGenerator;
 
     private TaskId taskId;
 
-    private PushAnalysisService pushAnalysisService;
-
-    public PushAnalysisTask( int pushAnalysisId, TaskId taskId, PushAnalysisService pushAnalysisService )
+    public void setTaskId( TaskId taskId )
     {
-        this.pushAnalysisId = pushAnalysisId;
         this.taskId = taskId;
-        this.pushAnalysisService = pushAnalysisService;
     }
 
-    @Override
-    public void call()
+    public ResourceTableJob( TaskId taskId )
     {
-        pushAnalysisService.runPushAnalysis( pushAnalysisId, taskId );
+        this.taskId = taskId;
+    }
+    
+    @Override
+    public void run()
+    {
+        analyticsTableGenerator.generateResourceTables( taskId );        
     }
 }

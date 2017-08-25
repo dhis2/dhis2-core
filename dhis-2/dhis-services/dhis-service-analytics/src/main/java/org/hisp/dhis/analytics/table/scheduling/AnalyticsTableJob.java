@@ -1,4 +1,4 @@
-package org.hisp.dhis.validation.scheduling;
+package org.hisp.dhis.analytics.table.scheduling;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,37 +28,28 @@ package org.hisp.dhis.validation.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.validation.ValidationService;
+import org.hisp.dhis.security.NoSecurityContextRunnable;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
+import java.util.HashSet;
 
 /**
  * @author Lars Helge Overland
- * @author Jim Grace
  */
-public class MonitoringTask
-    implements Runnable
+public class AnalyticsTableJob
+    extends NoSecurityContextRunnable
 {
     @Autowired
-    private ValidationService validationService;
+    private AnalyticsTableGenerator analyticsTableGenerator;
 
-    @Autowired
-    private Notifier notifier;
+    private Integer lastYears;
 
-    @Autowired
-    private MessageService messageService;
-    
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    public void setLastYears( Integer lastYears )
+    {
+        this.lastYears = lastYears;
+    }
 
     private TaskId taskId;
 
@@ -67,32 +58,19 @@ public class MonitoringTask
         this.taskId = taskId;
     }
 
+    public AnalyticsTableJob ( Integer lastYears, TaskId taskId )
+    {
+        this.lastYears = lastYears;
+        this.taskId = taskId;
+    }
+
     // -------------------------------------------------------------------------
     // Runnable implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public void run()
+    public void call()
     {
-        final Date startTime = new Date();
-        
-        notifier.clear( taskId ).notify( taskId, "Monitoring data" );
-        
-        try
-        {
-            validationService.startScheduledValidationAnalysis();
-            
-            notifier.notify( taskId, INFO, "Monitoring process done", true );
-        }
-        catch ( RuntimeException ex )
-        {
-            notifier.notify( taskId, ERROR, "Process failed: " + ex.getMessage(), true );
-            
-            messageService.sendSystemErrorNotification( "Monitoring process failed", ex );
-            
-            throw ex;
-        }
-        
-        systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_MONITORING, startTime );
+        analyticsTableGenerator.generateTables( lastYears, taskId, new HashSet<>(), false );
     }
 }

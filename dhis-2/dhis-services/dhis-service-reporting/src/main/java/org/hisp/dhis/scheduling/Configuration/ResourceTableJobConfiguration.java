@@ -1,8 +1,7 @@
 package org.hisp.dhis.scheduling.Configuration;
 
-import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+import org.hisp.dhis.analytics.table.scheduling.ResourceTableJob;
 import org.hisp.dhis.scheduling.TaskId;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by henninghakonsen on 23/08/2017.
@@ -10,19 +9,15 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class ResourceTableJobConfiguration extends JobConfiguration
 {
-    @Autowired
-    private AnalyticsTableGenerator analyticsTableGenerator;
-
-    private TaskId taskId;
-
-    public void setTaskId( TaskId taskId )
+    public ResourceTableJobConfiguration( TaskId taskId )
     {
         this.taskId = taskId;
     }
 
     @Override
-    public void run()
+    public Runnable getRunnable()
     {
-        analyticsTableGenerator.generateResourceTables( taskId );
+        return new ResourceTableJob( taskId );
     }
 }
+

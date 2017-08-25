@@ -59,7 +59,7 @@ import static org.mockito.Mockito.*;
  * @author aamerm
  */
 @Category( IntegrationTest.class )
-public class MetadataSyncTaskTest
+public class MetadataSyncJobTest
     extends DhisSpringTest
 {
     @Rule
@@ -91,7 +91,7 @@ public class MetadataSyncTaskTest
 
     @InjectMocks
     @Autowired
-    private MetadataSyncTask metadataSyncTask;
+    private MetadataSyncJob metadataSyncJob;
 
     private MetadataSyncSummary metadataSyncSummary;
     private MetadataVersion metadataVersion;
@@ -117,7 +117,7 @@ public class MetadataSyncTaskTest
         when( metadataSyncPreProcessor.handleCurrentMetadataVersion( metadataRetryContext ) ).thenReturn( metadataVersion );
         when( metadataSyncPreProcessor.handleMetadataVersionsList( metadataRetryContext, metadataVersion ) ).thenReturn( metadataVersions );
         when( metadataSyncService.isSyncRequired( any( MetadataSyncParams.class ) ) ).thenReturn( true );
-        metadataSyncTask.runSyncTask( metadataRetryContext );
+        metadataSyncJob.runSyncTask( metadataRetryContext );
 
         verify( metadataSyncPreProcessor ).setUp( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleAggregateDataPush( metadataRetryContext );
@@ -136,7 +136,7 @@ public class MetadataSyncTaskTest
         when( metadataSyncPreProcessor.handleMetadataVersionsList( metadataRetryContext, metadataVersion ) ).thenReturn( metadataVersions );
         doNothing().when( metadataRetryContext ).updateRetryContext( any( String.class ), any( String.class ), eq( metadataVersion ) );
         when( metadataSyncService.isSyncRequired( any( MetadataSyncParams.class ) ) ).thenReturn( true );
-        metadataSyncTask.runSyncTask( metadataRetryContext );
+        metadataSyncJob.runSyncTask( metadataRetryContext );
 
         verify( metadataSyncPreProcessor ).setUp( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleAggregateDataPush( metadataRetryContext );
@@ -156,7 +156,7 @@ public class MetadataSyncTaskTest
         when( metadataSyncPreProcessor.handleMetadataVersionsList( metadataRetryContext, metadataVersion ) ).thenReturn( metadataVersions );
         when( metadataSyncService.doMetadataSync( any( MetadataSyncParams.class ) ) ).thenThrow( new DhisVersionMismatchException( "" ) );
         when( metadataSyncService.isSyncRequired( any( MetadataSyncParams.class ) ) ).thenReturn( true );
-        metadataSyncTask.runSyncTask( metadataRetryContext );
+        metadataSyncJob.runSyncTask( metadataRetryContext );
 
         verify( metadataSyncPreProcessor, times( 1 ) ).setUp( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleAggregateDataPush( metadataRetryContext );
@@ -176,7 +176,7 @@ public class MetadataSyncTaskTest
         when( metadataSyncService.doMetadataSync( any( MetadataSyncParams.class ) ) ).thenReturn( metadataSyncSummary );
         when( metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus( metadataSyncSummary, metadataRetryContext, metadataVersion ) ).thenReturn( true );
         when( metadataSyncService.isSyncRequired( any( MetadataSyncParams.class ) ) ).thenReturn( true );
-        metadataSyncTask.runSyncTask( metadataRetryContext );
+        metadataSyncJob.runSyncTask( metadataRetryContext );
 
         verify( metadataSyncPreProcessor, times( 1 ) ).setUp( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleAggregateDataPush( metadataRetryContext );

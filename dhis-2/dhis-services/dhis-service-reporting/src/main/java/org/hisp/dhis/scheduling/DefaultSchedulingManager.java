@@ -59,9 +59,9 @@ public class DefaultSchedulingManager
         this.scheduler = scheduler;
     }
 
-    private List<Job> jobs = new ArrayList<Job>();
+    private List<Job> jobs = new ArrayList<Job>( );
 
-    public void setJobs( List<Job> jobs )
+    private void setJobs( List<Job> jobs )
     {
         this.jobs = jobs;
     }
@@ -80,7 +80,7 @@ public class DefaultSchedulingManager
     public void scheduleJobs()
     {
         for( Job job : jobs ) {
-            scheduler.scheduleJob( job.getKey(), job, job.getCronExpression() );
+            scheduler.scheduleJob( job.getKey(), job.getRunnable(), job.getCronExpression() );
         }
     }
     
@@ -112,9 +112,9 @@ public class DefaultSchedulingManager
         return jobs.stream().filter( job -> job.getStatus() == JobStatus.SCHEDULED).collect( Collectors.toList() ); //(ListMap<String, String>) systemSettingManager.getSystemSetting( SettingKey.SCHEDULED_TASKS, new ListMap<String, String>() );
     }
 
-    public Job getJob( String taskKey )
+    private Job getJob( String taskKey )
     {
-        return jobs.stream().filter( job -> Objects.equals( job.getJobType().toString(), taskKey ) ).findAny().get();
+        return jobs.stream().filter( job -> Objects.equals( job.getJobType().toString(), taskKey ) ).findFirst().orElse( null );
     }
 
     @Override
@@ -141,7 +141,8 @@ public class DefaultSchedulingManager
     {
         ScheduledTasks scheduledTasks = new ScheduledTasks();
 
-        scheduledTasks.addJobs( jobs.stream().filter( job -> Objects.equals( job.getCronExpression(), cron ) ).collect( Collectors.toList() ) );
+        scheduledTasks.addJobs( jobs.stream().filter( job -> Objects.equals( job.getCronExpression(), cron ) ).map(
+            Job::getRunnable ).collect( Collectors.toList()) );
         
         return scheduledTasks;
     }
@@ -149,7 +150,7 @@ public class DefaultSchedulingManager
     @Override
     public void executeJob( String jobKey )
     {
-        Runnable job = getJob( jobKey );
+        Runnable job = getJob( jobKey ).getRunnable();
 
         if ( job != null && !isJobInProgress( jobKey ) )
         {
