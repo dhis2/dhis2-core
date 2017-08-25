@@ -30,13 +30,14 @@ package org.hisp.dhis.document.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
+import org.hisp.dhis.document.DocumentStore;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,12 +62,8 @@ public class DefaultDocumentService
     @Autowired
     private LocationManager locationManager;
 
-    private GenericIdentifiableObjectStore<Document> documentStore;
-
-    public void setDocumentStore( GenericIdentifiableObjectStore<Document> documentStore )
-    {
-        this.documentStore = documentStore;
-    }
+    @Autowired
+    private DocumentStore documentStore;
 
     private static final Log log = LogFactory.getLog( DefaultDocumentService.class );
 
@@ -184,5 +181,11 @@ public class DefaultDocumentService
     public List<Document> getDocumentsByUid( List<String> uids )
     {
         return documentStore.getByUid( uids );
+    }
+
+    @Override
+    public int getCountDocumentByUser( User user )
+    {
+        return documentStore.getCountByUser( user ) ;
     }
 }

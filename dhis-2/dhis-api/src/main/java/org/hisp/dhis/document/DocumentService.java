@@ -28,6 +28,8 @@ package org.hisp.dhis.document;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.user.User;
+
 import java.util.List;
 
 /**
@@ -100,4 +102,6 @@ public interface DocumentService
     int getDocumentCountByName( String name );
     
     List<Document> getDocumentsByUid( List<String> uids );
+
+    int getCountDocumentByUser( User user );
 }
