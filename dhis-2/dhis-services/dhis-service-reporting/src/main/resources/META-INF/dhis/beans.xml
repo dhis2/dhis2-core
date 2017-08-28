@@ -67,8 +67,12 @@
 
   <!-- Document -->
 
-  <bean id="org.hisp.dhis.document.DocumentService" class="org.hisp.dhis.document.impl.DefaultDocumentService">
-    <property name="documentStore" ref="org.hisp.dhis.document.DocumentStore" />
+  <bean id="org.hisp.dhis.document.DocumentService" class="org.hisp.dhis.document.impl.DefaultDocumentService"/>
+
+  <bean id="org.hisp.dhis.document.DocumentStore" class="org.hisp.dhis.document.impl.HibernateDocumentStore">
+    <property name="clazz" value="org.hisp.dhis.document.Document" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
   </bean>
 
   <!-- DataSetCompleteness -->
@@ -230,6 +234,8 @@
 
   <bean id="org.hisp.dhis.interpretation.InterpretationDeletionHandler"
     class="org.hisp.dhis.interpretation.InterpretationDeletionHandler" />
+
+  <bean id="org.hisp.dhis.document.DocumentDeletionHandler" class="org.hisp.dhis.document.DocumentDeletionHandler"/>
 
   <!-- AOP definitions -->
 
