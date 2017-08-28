@@ -101,14 +101,6 @@ public interface ValidationRuleService
     ValidationRule getValidationRuleByName( String name );
 
     /**
-     * Get the validation rules which are associated with the given data elements.
-     *
-     * @param dataElements the collection of data elements.
-     * @return a List of validation rules.
-     */
-    List<ValidationRule> getValidationRulesByDataElements( Collection<DataElement> dataElements );
-
-    /**
      * Get data elements part of the left side and right side expressions of the
      * given validation rule.
      * 

@@ -86,25 +86,6 @@ public class HibernateValidationRuleStore
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public List<ValidationRule> getValidationRulesByDataElements( Collection<DataElement> dataElements )
-    {
-        List<ValidationRule> validationRules = new ArrayList<>();
-
-        Collection<Integer> ids = IdentifiableObjectUtils.getIdentifiers( dataElements );
-
-        String hql = "select distinct v from ValidationRule v join v.leftSide ls join ls.dataElementsInExpression lsd where lsd.id in (:ids)";
-
-        validationRules.addAll( getSession().createQuery( hql ).setParameterList( "ids", ids ).list() );
-
-        hql = "select distinct v from ValidationRule v join v.rightSide rs join rs.dataElementsInExpression rsd where rsd.id in (:ids)";
-
-        validationRules.addAll( getQuery( hql ).setParameterList( "ids", ids ).list() );
-
-        return validationRules;
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
     public List<ValidationRule> getValidationRulesWithNotificationTemplates()
     {
         String hql = "select distinct v from ValidationRule v where v.notificationTemplates is not empty";

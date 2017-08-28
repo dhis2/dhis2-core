@@ -121,12 +121,6 @@ public class DefaultValidationRuleService
     }
 
     @Override
-    public List<ValidationRule> getValidationRulesByDataElements( Collection<DataElement> dataElements )
-    {
-        return validationRuleStore.getValidationRulesByDataElements( dataElements );
-    }
-
-    @Override
     public int getValidationRuleCount()
     {
         return validationRuleStore.getCount();
