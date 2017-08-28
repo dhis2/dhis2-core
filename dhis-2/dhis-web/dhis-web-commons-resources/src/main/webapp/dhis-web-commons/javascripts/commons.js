@@ -936,7 +936,9 @@ function removeItem( itemId, itemName, confirmation, action, success )
 					setHeaderMessage( json.message );
     	    	}
     	    }
-    	);
+    	).fail( function(response){
+          setHeaderMessage( response.responseText );
+      });
     }
 }
 
