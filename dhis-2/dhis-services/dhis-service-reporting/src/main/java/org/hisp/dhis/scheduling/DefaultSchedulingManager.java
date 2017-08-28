@@ -74,13 +74,17 @@ public class DefaultSchedulingManager
     {
         scheduleJobs();
     }
-    
+
+    @Override
+    public void scheduleJob( Job job)
+    {
+        scheduler.scheduleJob( job );
+    }
+
     @Override
     public void scheduleJobs()
     {
-        for( Job job : jobs ) {
-            scheduler.scheduleJob( job.getKey(), job.getRunnable(), job.getCronExpression() );
-        }
+        jobs.forEach( scheduler::scheduleJob );
     }
     
     @Override
@@ -116,7 +120,9 @@ public class DefaultSchedulingManager
         Map<String, ScheduledFuture<?>> futureMap = scheduler.getAllFutureJobs();
 
         List<Job> futureJobs = new ArrayList<>();
-        futureMap.forEach( (k, v) -> futureJobs.add( getJob(k) ) );
+        futureMap.forEach( (k, v) -> futureJobs.add( getJob( k ) ) );
+
+        Collections.sort( futureJobs );
 
         return futureJobs;
     }

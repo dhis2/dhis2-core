@@ -59,11 +59,17 @@ public interface SchedulingManager
     void executeJob( String jobKey );
 
     /**
+     * Schedules the given job.
+     *
+     * @param job the job to schedule.
+     */
+    void scheduleJob( Job job );
+
+    /**
      * Schedules the given jobs. The job map will replace the currently scheduled
      * jobs.
      * 
-     * @param jobs a list of jobs. TODO -> verify: A task key refers to a bean identifier in the application context. The bean
-     * must implement Runnable in order to be scheduled for execution.
+     * @param jobs a list of jobs.
      */
     void scheduleJobs( List<Job> jobs );
     

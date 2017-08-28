@@ -40,23 +40,18 @@ import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.CronUtils;
 import org.hisp.dhis.commons.util.Encoder;
 import org.hisp.dhis.dashboard.DashboardItem;
-import org.hisp.dhis.fileresource.ExternalFileResource;
-import org.hisp.dhis.fileresource.ExternalFileResourceService;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceDomain;
-import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.*;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.mapgeneration.MapGenerationService;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.pushanalysis.scheduling.PushAnalysisJob;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
 import org.hisp.dhis.scheduling.TaskCategory;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
@@ -81,12 +76,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Stian Sandvold
@@ -167,7 +157,7 @@ public class DefaultPushAnalysisService
             return false;
         }
 
-        return scheduler.refreshJob(
+        /*HH verify with stian return scheduler.refreshJob(
             pushAnalysis.getSchedulingKey(),
             new PushAnalysisJob(
                 new TaskId(
@@ -176,7 +166,9 @@ public class DefaultPushAnalysisService
                 ),  pushAnalysis.getId()
             ),
             getPushAnalysisCronExpression( pushAnalysis )
-        );
+        );*/
+
+        return true;
     }
 
     //----------------------------------------------------------------------

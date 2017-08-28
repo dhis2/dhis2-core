@@ -30,16 +30,14 @@ package org.hisp.dhis.scheduling;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.scheduling.Configuration.AnalyticsJobConfiguration;
-import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
-import org.hisp.dhis.scheduling.Configuration.MessageSendJobConfiguration;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.scheduling.Configuration.*;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Lars Helge Overland
@@ -63,25 +61,37 @@ public class SchedulingManagerTest
     @Autowired
     private SchedulingManager schedulingManager;
 
+    private boolean verifySortedJobs( List<Job> jobs )
+    {
+        for ( int i=0; i<jobs.size() - 1; i++ )
+        {
+            if ( jobs.get( i ).getNextExecutionTime().compareTo( jobs.get( i + 1 ).getNextExecutionTime() ) > 0 ) return false;
+        }
+
+        return true;
+    }
+
     @Test
     public void testScheduleTasks()
     {
-        User testUser = createUser( 'A' );
-
-        TaskId taskIdA = new TaskId( TaskCategory.ANALYTICSTABLE_UPDATE,  testUser );
-        JobConfiguration jobConfigurationA = new AnalyticsJobConfiguration( 1, taskIdA );
+        JobConfiguration jobConfigurationA = new AnalyticsJobConfiguration( 1, null );
         Job jobA = new DefaultJob( "jobA", JobType.ANALYTICS, CRON_DAILY_6AM,  jobConfigurationA );
 
-        TaskId taskIdB = new TaskId( TaskCategory.SENDING_SMS,  testUser );
-        JobConfiguration jobConfigurationB = new MessageSendJobConfiguration( taskIdB );
+        JobConfiguration jobConfigurationB = new MessageSendJobConfiguration( null );
         Job jobB = new DefaultJob( "jobB", JobType.MESSAGE_SEND, CRON_DAILY_5AM,  jobConfigurationB);
 
-        schedulingManager.scheduleJobs( Lists.newArrayList( jobA, jobB ) );
+        JobConfiguration jobConfigurationC = new PushAnalysisJobConfiguration( null, 1 );
+        Job jobC = new DefaultJob( "jobC", JobType.PUSH_ANALYSIS, CRON_DAILY_2AM,  jobConfigurationC);
+
+        JobConfiguration jobConfigurationD = new DataSyncJobConfiguration( null );
+        Job jobD = new DefaultJob( "jobD", JobType.DATA_SYNC, CRON_DAILY_11PM,  jobConfigurationD);
+
+        schedulingManager.scheduleJobs( Lists.newArrayList( jobA, jobB, jobC, jobD ) );
 
         List<Job> futureJobs = schedulingManager.getAllFutureJobs();
-        assertEquals(2, futureJobs.size());
 
-        assertEquals( JobType.MESSAGE_SEND, futureJobs.get( 0 ).getJobType() );
+        assertEquals(4, futureJobs.size());
+        assertTrue( verifySortedJobs( futureJobs ) );
     }
 
     /*@Test

@@ -3,23 +3,33 @@ package org.hisp.dhis.scheduling;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
 import org.joda.time.DateTime;
+import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.scheduling.support.SimpleTriggerContext;
 
-import java.util.Random;
+import java.util.Date;
 
 /**
  * @author Henning Håkonsen
  */
 public class DefaultJob
     extends BaseIdentifiableObject
-    implements IdentifiableObject, Job
+    implements Job
 {
+    private static int codeSize = 10;
+
     private String name;
     private String key;
     private JobType jobType;
+
     private String cronExpression;
+    private CronTrigger cronTrigger;
+    private long delay;
+    private Date nextExecutionTime;
+
     private boolean activated;
     private DateTime startTime;
     private DateTime endTime;
@@ -37,12 +47,9 @@ public class DefaultJob
         this.activated = true;
         this.startTime = null;
         this.endTime = null;
+        this.delay = -1;
         this.status = JobStatus.SCHEDULED;
-        Random rand = new Random();
-
-        // HH verify how keys should be initiated
-        int  n = rand.nextInt(1000) + 1;
-        this.key = "KEY_" + n;
+        this.key = CodeGenerator.generateCode( codeSize );
     }
 
     public String toString()
@@ -53,6 +60,35 @@ public class DefaultJob
 
 
     // Getters and setters
+    public void setDelay( long delay )
+    {
+        this.delay = delay;
+    }
+
+    public void setStatus( JobStatus status )
+    {
+        if( status == null) this.status = JobStatus.SCHEDULED;
+        else this.status = status;
+    }
+
+    public void setKey( String key )
+    {
+        if( key.length() == 0) this.key = CodeGenerator.generateCode( codeSize );
+        else if( key.length() == codeSize ) this.key = key;
+        else {
+            log.error( "Given key has incorrect length, " + codeSize + " characters is the expected key length. A key is auto-generated for the job" );
+            this.key = CodeGenerator.generateCode( codeSize );
+        }
+    }
+
+    public void setNextExecutionTime()
+    {
+        this.cronTrigger = new CronTrigger( cronExpression );
+
+        SimpleTriggerContext triggerContext = new SimpleTriggerContext( null, null, new Date() );
+        this.nextExecutionTime = this.cronTrigger.nextExecutionTime(triggerContext);
+    }
+
     public String getKey()
     {
         return key;
@@ -84,9 +120,27 @@ public class DefaultJob
     }
 
     @Override
+    public Date getNextExecutionTime()
+    {
+        return nextExecutionTime;
+    }
+
+    public long getDelay()
+    {
+        return delay;
+    }
+
+    @Override
     public Runnable getRunnable()
     {
         return jobConfiguration.getRunnable();
+    }
+
+    // Compare
+    @Override
+    public int compareTo( IdentifiableObject object )
+    {
+        return nextExecutionTime.compareTo( ((DefaultJob) object).nextExecutionTime );
     }
 }
 

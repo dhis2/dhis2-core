@@ -30,6 +30,7 @@ package org.hisp.dhis.system.scheduling;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.scheduling.Job;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
@@ -97,15 +98,17 @@ public class SpringScheduler
     }
 
     @Override
-    public boolean scheduleJob( String key, Runnable Job, String cronExpr )
+    public boolean scheduleJob( Job job )
     {
-        if ( key != null && !futures.containsKey( key ) )
+        if ( job.getKey() != null && !futures.containsKey( job.getKey() ) )
         {
-            ScheduledFuture<?> future = JobScheduler.schedule( Job, new CronTrigger( cronExpr ) );
+            ScheduledFuture<?> future = JobScheduler.schedule( job.getRunnable(), new CronTrigger( job.getCronExpression() ) );
 
-            futures.put( key, future );
+            futures.put( job.getKey(), future );
 
-            log.info( "Scheduled Job with key: " + key + " and cron: " + cronExpr );
+            //HH verify that we need this -> job.setDelay( future.getDelay( TimeUnit.MINUTES ) );
+
+            log.info( "Scheduled job with key: " + job.getKey() + " and cron: " + job.getCronExpression() );
 
             return true;
         }
@@ -124,7 +127,7 @@ public class SpringScheduler
 
             futures.remove( key );
 
-            log.info( "Stopped Job with key: " + key + " successfully: " + result );
+            log.info( "Stopped job with key: " + key + " successfully: " + result );
 
             return result;
         }
@@ -133,14 +136,14 @@ public class SpringScheduler
     }
 
     @Override
-    public boolean refreshJob( String key, Runnable Job, String cronExpr )
+    public boolean refreshJob( Job job )
     {
-        if( getJobStatus( key ) != ScheduledTaskStatus.NOT_STARTED )
+        if( getJobStatus( job.getKey() ) != ScheduledTaskStatus.NOT_STARTED )
         {
-            stopJob( key );
+            stopJob( job.getKey() );
         }
 
-        return scheduleJob( key, Job, cronExpr );
+        return scheduleJob( job );
     }
 
     @Override
@@ -158,7 +161,7 @@ public class SpringScheduler
 
             keys.remove();
 
-            log.info( "Stopped Job with key: " + key + " successfully: " + result );
+            log.info( "Stopped job with key: " + key + " successfully: " + result );
         }
     }
 
