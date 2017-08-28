@@ -28,6 +28,8 @@ package org.hisp.dhis.validation.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.Criteria;
+import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
@@ -82,6 +84,16 @@ public class HibernateValidationRuleStore
         validationRule.setPeriodType( periodType );
 
         super.save( validationRule );
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public List<ValidationRule> getAllFormValidationRules()
+    {
+        Criteria criteria = getSharingCriteria();
+        criteria.add( Restrictions.eq( "skipFormValidation", false ) );
+
+        return criteria.list();
     }
 
     @Override

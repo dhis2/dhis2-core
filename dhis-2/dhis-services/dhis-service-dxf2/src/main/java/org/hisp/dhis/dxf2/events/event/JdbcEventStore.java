@@ -405,6 +405,8 @@ public class JdbcEventStore
         
         sql = sql.replaceFirst( "order .*? desc", "" );
         
+        sql = sql.replaceFirst( "limit \\d+ offset \\d+", "" );
+        
         log.debug( "Event query count SQL: " + sql );
 
         return jdbcTemplate.queryForObject( sql, Integer.class );
