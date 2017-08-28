@@ -162,6 +162,11 @@ public class SpringScheduler
         }
     }
 
+    public Map<String, ScheduledFuture<?>> getAllFutureJobs( )
+    {
+        return futures;
+    }
+
     private ScheduledTaskStatus getStatus( Future<?> future )
     {
         if ( future == null )

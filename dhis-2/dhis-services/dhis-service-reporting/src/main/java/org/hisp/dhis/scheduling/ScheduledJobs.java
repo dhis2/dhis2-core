@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * @author Lars Helge Overland
  */
-public class ScheduledTasks
+public class ScheduledJobs
     implements Runnable
 {
     private List<Runnable> jobs = new ArrayList<>();

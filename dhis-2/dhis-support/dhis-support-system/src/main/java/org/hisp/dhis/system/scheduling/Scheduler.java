@@ -30,7 +30,9 @@ package org.hisp.dhis.system.scheduling;
 
 import org.springframework.util.concurrent.ListenableFuture;
 
+import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ScheduledFuture;
 
 /**
  * Scheduler for managing the scheduling and execution of tasks.
@@ -114,6 +116,11 @@ public interface Scheduler
      * Deactivates scheduling for all jobs.
      */
     void stopAllJobs();
+
+    /**
+     * Gets all future jobs
+     */
+    Map<String, ScheduledFuture<?>> getAllFutureJobs();
 
     /**
      * Gets the status for the job with the given key.

@@ -89,6 +89,8 @@ public interface SchedulingManager
      * Gets a list of all scheduled jobs.
      */
     List<Job> getScheduledJobs();
+
+    List<Job> getAllFutureJobs();
     
     /**
      * Gets the job status.

@@ -34,9 +34,8 @@ import org.hisp.dhis.system.scheduling.Scheduler;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -112,9 +111,19 @@ public class DefaultSchedulingManager
         return jobs.stream().filter( job -> job.getStatus() == JobStatus.SCHEDULED).collect( Collectors.toList() ); //(ListMap<String, String>) systemSettingManager.getSystemSetting( SettingKey.SCHEDULED_TASKS, new ListMap<String, String>() );
     }
 
+    public List<Job> getAllFutureJobs()
+    {
+        Map<String, ScheduledFuture<?>> futureMap = scheduler.getAllFutureJobs();
+
+        List<Job> futureJobs = new ArrayList<>();
+        futureMap.forEach( (k, v) -> futureJobs.add( getJob(k) ) );
+
+        return futureJobs;
+    }
+
     private Job getJob( String taskKey )
     {
-        return jobs.stream().filter( job -> Objects.equals( job.getJobType().toString(), taskKey ) ).findFirst().orElse( null );
+        return jobs.stream().filter( job -> Objects.equals( job.getKey(), taskKey ) ).findFirst().orElse( null );
     }
 
     @Override
@@ -137,14 +146,14 @@ public class DefaultSchedulingManager
      * Returns a ScheduledTasks object for the given cron expression. The
      * ScheduledTasks object contains a list of tasks.
      */
-    private ScheduledTasks getScheduledTasksForCron( String cron, ListMap<String, String> cronKeyMap )
+    private ScheduledJobs getScheduledTasksForCron( String cron, ListMap<String, String> cronKeyMap )
     {
-        ScheduledTasks scheduledTasks = new ScheduledTasks();
+        ScheduledJobs scheduledJobs = new ScheduledJobs();
 
-        scheduledTasks.addJobs( jobs.stream().filter( job -> Objects.equals( job.getCronExpression(), cron ) ).map(
+        scheduledJobs.addJobs( jobs.stream().filter( job -> Objects.equals( job.getCronExpression(), cron ) ).map(
             Job::getRunnable ).collect( Collectors.toList()) );
         
-        return scheduledTasks;
+        return scheduledJobs;
     }
 
     @Override

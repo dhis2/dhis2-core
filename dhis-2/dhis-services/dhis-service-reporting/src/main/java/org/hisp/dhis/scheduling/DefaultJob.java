@@ -7,6 +7,8 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
 import org.joda.time.DateTime;
 
+import java.util.Random;
+
 /**
  * @author Henning Håkonsen
  */
@@ -36,7 +38,11 @@ public class DefaultJob
         this.startTime = null;
         this.endTime = null;
         this.status = JobStatus.SCHEDULED;
-        this.key = "TODOKEY";
+        Random rand = new Random();
+
+        // HH verify how keys should be initiated
+        int  n = rand.nextInt(1000) + 1;
+        this.key = "KEY_" + n;
     }
 
     public String toString()

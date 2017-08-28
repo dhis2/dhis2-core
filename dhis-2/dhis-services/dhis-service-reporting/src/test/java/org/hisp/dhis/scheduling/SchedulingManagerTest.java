@@ -33,8 +33,13 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.scheduling.Configuration.AnalyticsJobConfiguration;
 import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
 import org.hisp.dhis.scheduling.Configuration.MessageSendJobConfiguration;
+import org.hisp.dhis.user.User;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Lars Helge Overland
@@ -61,14 +66,22 @@ public class SchedulingManagerTest
     @Test
     public void testScheduleTasks()
     {
-        JobConfiguration jobConfigurationA = new AnalyticsJobConfiguration( 1, null );
-        Job jobA = new DefaultJob( "jobA", JobType.ANALYTICS, CRON_TEST,  jobConfigurationA );
+        User testUser = createUser( 'A' );
 
-        JobConfiguration jobConfigurationB = new MessageSendJobConfiguration( null );
-        Job jobB = new DefaultJob( "jobB", JobType.MESSAGE_SEND, CRON_EVERY_15MIN,  jobConfigurationB);
+        TaskId taskIdA = new TaskId( TaskCategory.ANALYTICSTABLE_UPDATE,  testUser );
+        JobConfiguration jobConfigurationA = new AnalyticsJobConfiguration( 1, taskIdA );
+        Job jobA = new DefaultJob( "jobA", JobType.ANALYTICS, CRON_DAILY_6AM,  jobConfigurationA );
+
+        TaskId taskIdB = new TaskId( TaskCategory.SENDING_SMS,  testUser );
+        JobConfiguration jobConfigurationB = new MessageSendJobConfiguration( taskIdB );
+        Job jobB = new DefaultJob( "jobB", JobType.MESSAGE_SEND, CRON_DAILY_5AM,  jobConfigurationB);
 
         schedulingManager.scheduleJobs( Lists.newArrayList( jobA, jobB ) );
 
+        List<Job> futureJobs = schedulingManager.getAllFutureJobs();
+        assertEquals(2, futureJobs.size());
+
+        assertEquals( JobType.MESSAGE_SEND, futureJobs.get( 0 ).getJobType() );
     }
 
     /*@Test
