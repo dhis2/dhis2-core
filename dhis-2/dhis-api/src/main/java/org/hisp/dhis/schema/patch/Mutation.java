@@ -29,28 +29,39 @@ package org.hisp.dhis.schema.patch;
  *
  */
 
+import com.google.common.base.MoreObjects;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class Change
+public class Mutation
 {
-    private String path;
+    private final String path;
+    private final Object value;
+    private Operation operation = Operation.ADDITION;
 
-    private ChangeOperation operation;
-
-    private Object value;
-
-    public Change( String path, ChangeOperation operation )
+    enum Operation
     {
-        this.path = path;
-        this.operation = operation;
+        ADDITION, DELETION
     }
 
-    public Change( String path, ChangeOperation operation, Object value )
+    public Mutation( String path )
     {
         this.path = path;
-        this.operation = operation;
+        this.value = null;
+    }
+
+    public Mutation( String path, Object value )
+    {
+        this.path = path;
         this.value = value;
+    }
+
+    public Mutation( String path, Object value, Operation operation )
+    {
+        this.path = path;
+        this.value = value;
+        this.operation = operation;
     }
 
     public String getPath()
@@ -58,28 +69,24 @@ public class Change
         return path;
     }
 
-    public void setPath( String path )
-    {
-        this.path = path;
-    }
-
-    public ChangeOperation getOperation()
-    {
-        return operation;
-    }
-
-    public void setOperation( ChangeOperation operation )
-    {
-        this.operation = operation;
-    }
-
     public Object getValue()
     {
         return value;
     }
 
-    public void setValue( Object value )
+    public Operation getOperation()
     {
-        this.value = value;
+        return operation;
+    }
+
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "path", path )
+            .add( "operation", operation )
+            .add( "value", value )
+            .toString();
     }
 }

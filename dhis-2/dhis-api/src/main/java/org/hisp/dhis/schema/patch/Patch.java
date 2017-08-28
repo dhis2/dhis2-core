@@ -37,32 +37,32 @@ import java.util.List;
  */
 public class Patch
 {
-    private List<Change> changes = new ArrayList<>();
+    private List<Mutation> mutations = new ArrayList<>();
 
     public Patch()
     {
     }
 
-    public Patch( List<Change> changes )
+    public Patch( List<Mutation> mutations )
     {
-        this.changes = changes;
+        this.mutations = mutations;
     }
 
-    public List<Change> getChanges()
+    public List<Mutation> getMutations()
     {
-        return changes;
+        return mutations;
     }
 
-    public void setChanges( List<Change> changes )
+    public void setMutations( List<Mutation> mutations )
     {
-        this.changes = changes;
+        this.mutations = mutations;
     }
 
-    public Patch addChange( Change change )
+    public Patch addMutation( Mutation mutation )
     {
-        if ( change != null )
+        if ( mutation != null )
         {
-            changes.add( change );
+            mutations.add( mutation );
         }
 
         return this;

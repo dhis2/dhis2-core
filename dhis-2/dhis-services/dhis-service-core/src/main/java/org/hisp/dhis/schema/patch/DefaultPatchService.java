@@ -38,6 +38,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -58,7 +59,23 @@ public class DefaultPatchService implements PatchService
     @Override
     public Patch diff( Object source, Object target )
     {
-        return null;
+        Patch patch = new Patch();
+
+        if ( source == null || target == null || !source.getClass().isInstance( target ) )
+        {
+            return patch;
+        }
+
+        Schema schema = schemaService.getDynamicSchema( target.getClass() );
+
+        if ( schema == null )
+        {
+            return patch;
+        }
+
+        patch.setMutations( calculateMutations( schema, source, target ) );
+
+        return patch;
     }
 
     @Override
@@ -76,12 +93,50 @@ public class DefaultPatchService implements PatchService
             return;
         }
 
-        patch.getChanges().forEach( change -> executePath( change, schema, target ) );
+        patch.getMutations().forEach( mutation -> applyMutation( mutation, schema, target ) );
     }
 
-    private void executePath( Change change, Schema schema, Object target )
+    private List<Mutation> calculateMutations( Schema schema, Object source, Object target )
     {
-        String path = change.getPath();
+        List<Mutation> mutations = new ArrayList<>();
+
+        for ( Property property : schema.getProperties() )
+        {
+            Mutation mutation = calculateMutation( property.getName(), property, source, target );
+
+            if ( mutation != null )
+            {
+                mutations.add( mutation );
+            }
+        }
+
+        return mutations;
+    }
+
+    private Mutation calculateMutation( String path, Property property, Object source, Object target )
+    {
+        if ( property.isSimple() )
+        {
+            Object sourceValue = ReflectionUtils.invokeMethod( source, property.getGetterMethod() );
+            Object targetValue = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
+
+            if ( sourceValue == null && targetValue == null )
+            {
+                return null;
+            }
+
+            if ( targetValue == null || !targetValue.equals( sourceValue ) )
+            {
+                return new Mutation( path, targetValue );
+            }
+        }
+
+        return null;
+    }
+
+    private void applyMutation( Mutation mutation, Schema schema, Object target )
+    {
+        String path = mutation.getPath();
         String[] paths = path.split( "\\." );
 
         Schema currentSchema = schema;
@@ -124,14 +179,14 @@ public class DefaultPatchService implements PatchService
 
         if ( currentSchema != null && currentProperty != null )
         {
-            updateValue( change, currentProperty, currentTarget );
+            applyMutation( mutation, currentProperty, currentTarget );
         }
     }
 
     @SuppressWarnings( "unchecked" )
-    private void updateValue( Change change, Property property, Object target )
+    private void applyMutation( Mutation mutation, Property property, Object target )
     {
-        Object value = change.getValue();
+        Object value = mutation.getValue();
 
         if ( property.isCollection() )
         {
@@ -172,14 +227,14 @@ public class DefaultPatchService implements PatchService
                 collection = ReflectionUtils.newCollectionInstance( property.getKlass() );
             }
 
-            if ( ChangeOperation.ADDITION == change.getOperation() )
+            if ( Mutation.Operation.ADDITION == mutation.getOperation() )
             {
                 if ( !collection.contains( object ) )
                 {
                     collection.add( object );
                 }
             }
-            else if ( ChangeOperation.DELETION == change.getOperation() )
+            else if ( Mutation.Operation.DELETION == mutation.getOperation() )
             {
                 if ( collection.contains( object ) )
                 {
@@ -197,14 +252,7 @@ public class DefaultPatchService implements PatchService
                 return;
             }
 
-            if ( ChangeOperation.ADDITION == change.getOperation() )
-            {
-                ReflectionUtils.invokeMethod( target, property.getSetterMethod(), value );
-            }
-            else if ( ChangeOperation.DELETION == change.getOperation() )
-            {
-                ReflectionUtils.invokeMethod( target, property.getSetterMethod(), (Object) null );
-            }
+            ReflectionUtils.invokeMethod( target, property.getSetterMethod(), value );
         }
     }
 }

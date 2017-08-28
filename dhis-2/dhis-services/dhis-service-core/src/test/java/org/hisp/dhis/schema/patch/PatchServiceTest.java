@@ -70,7 +70,7 @@ public class PatchServiceTest
         DataElement dataElement = createDataElement( 'A' );
 
         Patch patch = new Patch()
-            .addChange( new Change( "name", ChangeOperation.ADDITION, "Updated Name" ) );
+            .addMutation( new Mutation( "name", "Updated Name" ) );
 
         patchService.apply( patch, dataElement );
 
@@ -90,9 +90,9 @@ public class PatchServiceTest
         assertTrue( dataElementGroup.getMembers().isEmpty() );
 
         Patch patch = new Patch()
-            .addChange( new Change( "name", ChangeOperation.ADDITION, "Updated Name" ) )
-            .addChange( new Change( "dataElements", ChangeOperation.ADDITION, deA.getUid() ) )
-            .addChange( new Change( "dataElements", ChangeOperation.ADDITION, deB.getUid() ) );
+            .addMutation( new Mutation( "name", "Updated Name" ) )
+            .addMutation( new Mutation( "dataElements", deA.getUid() ) )
+            .addMutation( new Mutation( "dataElements", deB.getUid() ) );
 
         patchService.apply( patch, dataElementGroup );
 
@@ -116,8 +116,8 @@ public class PatchServiceTest
         assertEquals( 2, dataElementGroup.getMembers().size() );
 
         Patch patch = new Patch()
-            .addChange( new Change( "name", ChangeOperation.ADDITION, "Updated Name" ) )
-            .addChange( new Change( "dataElements", ChangeOperation.DELETION, deA.getUid() ) );
+            .addMutation( new Mutation( "name", "Updated Name" ) )
+            .addMutation( new Mutation( "dataElements", deA.getUid(), Mutation.Operation.DELETION ) );
 
         patchService.apply( patch, dataElementGroup );
 
@@ -125,7 +125,7 @@ public class PatchServiceTest
         assertEquals( 1, dataElementGroup.getMembers().size() );
 
         patch = new Patch()
-            .addChange( new Change( "dataElements", ChangeOperation.DELETION, deB.getUid() ) );
+            .addMutation( new Mutation( "dataElements", deB.getUid(), Mutation.Operation.DELETION ) );
 
         patchService.apply( patch, dataElementGroup );
 
@@ -139,9 +139,9 @@ public class PatchServiceTest
         assertTrue( dataElement.getAggregationLevels().isEmpty() );
 
         Patch patch = new Patch()
-            .addChange( new Change( "name", ChangeOperation.ADDITION, "Updated Name" ) )
-            .addChange( new Change( "aggregationLevels", ChangeOperation.ADDITION, 1 ) )
-            .addChange( new Change( "aggregationLevels", ChangeOperation.ADDITION, 2 ) );
+            .addMutation( new Mutation( "name", "Updated Name" ) )
+            .addMutation( new Mutation( "aggregationLevels", 1 ) )
+            .addMutation( new Mutation( "aggregationLevels", 2 ) );
 
         patchService.apply( patch, dataElement );
 
@@ -155,10 +155,10 @@ public class PatchServiceTest
         assertTrue( dataElement.getAggregationLevels().isEmpty() );
 
         Patch patch = new Patch()
-            .addChange( new Change( "name", ChangeOperation.ADDITION, "Updated Name" ) )
-            .addChange( new Change( "aggregationLevels", ChangeOperation.ADDITION, "1" ) )
-            .addChange( new Change( "aggregationLevels", ChangeOperation.ADDITION, "abc" ) )
-            .addChange( new Change( "aggregationLevels", ChangeOperation.ADDITION, "def" ) );
+            .addMutation( new Mutation( "name", "Updated Name" ) )
+            .addMutation( new Mutation( "aggregationLevels", "1" ) )
+            .addMutation( new Mutation( "aggregationLevels", "abc" ) )
+            .addMutation( new Mutation( "aggregationLevels", "def" ) );
 
         patchService.apply( patch, dataElement );
         assertTrue( dataElement.getAggregationLevels().isEmpty() );
@@ -173,7 +173,7 @@ public class PatchServiceTest
         assertEquals( Importance.MEDIUM, validationRule.getImportance() );
 
         Patch patch = new Patch()
-            .addChange( new Change( "importance", ChangeOperation.ADDITION, Importance.HIGH ) );
+            .addMutation( new Mutation( "importance", Importance.HIGH ) );
 
         patchService.apply( patch, validationRule );
 
@@ -187,10 +187,19 @@ public class PatchServiceTest
         assertEquals( "admin", user.getUserCredentials().getUsername() );
 
         Patch patch = new Patch()
-            .addChange( new Change( "userCredentials.username", ChangeOperation.ADDITION, "dhis" ) );
+            .addMutation( new Mutation( "userCredentials.username", "dhis" ) );
 
         patchService.apply( patch, user );
 
         assertEquals( "dhis", user.getUserCredentials().getUsername() );
+    }
+
+    @Test
+    public void testSimpleDiff()
+    {
+        DataElement deA = createDataElement( 'A' );
+        DataElement deB = createDataElement( 'B' );
+
+        Patch patch = patchService.diff( deA, deB );
     }
 }
