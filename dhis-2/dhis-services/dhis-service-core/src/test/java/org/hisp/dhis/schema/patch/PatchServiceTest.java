@@ -33,6 +33,8 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.validation.Importance;
 import org.hisp.dhis.validation.ValidationRule;
 import org.junit.Test;
@@ -52,6 +54,15 @@ public class PatchServiceTest
 
     @Autowired
     private IdentifiableObjectManager manager;
+
+    @Autowired
+    private UserService _userService;
+
+    @Override
+    protected void setUpTest() throws Exception
+    {
+        userService = _userService;
+    }
 
     @Test
     public void testUpdateName()
@@ -167,5 +178,19 @@ public class PatchServiceTest
         patchService.apply( patch, validationRule );
 
         assertEquals( Importance.HIGH, validationRule.getImportance() );
+    }
+
+    @Test
+    public void testUpdateUserCredentialsOnUser()
+    {
+        User user = createAndInjectAdminUser();
+        assertEquals( "admin", user.getUserCredentials().getUsername() );
+
+        Patch patch = new Patch()
+            .addChange( new Change( "userCredentials.username", ChangeOperation.ADDITION, "dhis" ) );
+
+        patchService.apply( patch, user );
+
+        assertEquals( "dhis", user.getUserCredentials().getUsername() );
     }
 }

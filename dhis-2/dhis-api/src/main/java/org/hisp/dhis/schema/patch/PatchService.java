@@ -34,7 +34,7 @@ package org.hisp.dhis.schema.patch;
  */
 public interface PatchService
 {
-    Patch diff( Object src, Object target );
+    Patch diff( Object source, Object target );
 
     void apply( Patch patch, Object target );
 }
