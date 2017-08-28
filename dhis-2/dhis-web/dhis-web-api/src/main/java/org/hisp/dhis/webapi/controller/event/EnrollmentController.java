@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.event;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -123,7 +124,9 @@ public class EnrollmentController
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
-        @RequestParam( required = false ) boolean skipPaging )
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging
+        )
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -135,6 +138,8 @@ public class EnrollmentController
         Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
 
         List<Enrollment> enrollments;
+
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
 
         if ( enrollment == null )
         {

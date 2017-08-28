@@ -28,6 +28,8 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang.BooleanUtils;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -62,6 +64,20 @@ public final class PagerUtils
         }
 
         return objects.subList( offset, offset + limit );
+    }
+
+    public static boolean isSkipPaging( Boolean skipPaging, Boolean paging )
+    {
+        if ( skipPaging != null )
+        {
+            return BooleanUtils.toBoolean( skipPaging );
+        }
+        else if ( paging != null )
+        {
+            return !BooleanUtils.toBoolean( paging );
+        }
+     
+        return false;
     }
 
     private PagerUtils()

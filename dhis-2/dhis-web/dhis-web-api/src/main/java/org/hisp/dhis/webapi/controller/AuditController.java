@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.dataapproval.DataApprovalAudit;
 import org.hisp.dhis.dataapproval.DataApprovalAuditQueryParams;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
@@ -116,7 +117,8 @@ public class AuditController
         @RequestParam( required = false ) String co,
         @RequestParam( required = false ) String cc,
         @RequestParam( required = false ) AuditType auditType,
-        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false, defaultValue = "50" ) int pageSize,
         @RequestParam( required = false, defaultValue = "1" ) int page
     ) throws WebMessageException
@@ -140,7 +142,7 @@ public class AuditController
         List<DataValueAudit> dataValueAudits;
         Pager pager = null;
 
-        if ( skipPaging )
+        if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
             dataValueAudits = dataValueAuditService.getDataValueAudits( dataElements, periods,
                 organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType );
@@ -175,7 +177,8 @@ public class AuditController
         @RequestParam( required = false, defaultValue = "" ) List<String> de,
         @RequestParam( required = false, defaultValue = "" ) List<String> psi,
         @RequestParam( required = false ) AuditType auditType,
-        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false, defaultValue = "50" ) int pageSize,
         @RequestParam( required = false, defaultValue = "1" ) int page
     ) throws WebMessageException
@@ -193,7 +196,7 @@ public class AuditController
         List<TrackedEntityDataValueAudit> dataValueAudits;
         Pager pager = null;
 
-        if ( skipPaging )
+        if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
             dataValueAudits = trackedEntityDataValueAuditService.getTrackedEntityDataValueAudits(
                 dataElements, programStageInstances, auditType );
@@ -227,7 +230,8 @@ public class AuditController
         @RequestParam( required = false, defaultValue = "" ) List<String> tea,
         @RequestParam( required = false, defaultValue = "" ) List<String> tei,
         @RequestParam( required = false ) AuditType auditType,
-        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false, defaultValue = "50" ) int pageSize,
         @RequestParam( required = false, defaultValue = "1" ) int page
     ) throws WebMessageException
@@ -240,7 +244,7 @@ public class AuditController
         List<TrackedEntityAttributeValueAudit> attributeValueAudits;
         Pager pager = null;
 
-        if ( skipPaging )
+        if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
             attributeValueAudits = trackedEntityAttributeValueAuditService.getTrackedEntityAttributeValueAudits(
                 trackedEntityAttributes, trackedEntityInstances, auditType );
@@ -278,7 +282,8 @@ public class AuditController
         @RequestParam( required = false, defaultValue = "" ) List<String> aoc,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
-        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false, defaultValue = "50" ) int pageSize,
         @RequestParam( required = false, defaultValue = "1" ) int page
     ) throws WebMessageException
@@ -304,7 +309,7 @@ public class AuditController
         Pager pager = null;
         RootNode rootNode = NodeUtils.createMetadata();
 
-        if ( !skipPaging )
+        if ( !PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
             pager = new Pager( page, audits.size(), pageSize );
 
