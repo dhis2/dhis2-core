@@ -40,7 +40,6 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -77,18 +76,17 @@ public class DefaultPatchService implements PatchService
             return;
         }
 
-        patch.getChanges().forEach( change -> {
-            PathMutator mutator = new PathMutator( change );
-            executePath( change.getPath(), schema, target, mutator );
-        } );
+        patch.getChanges().forEach( change -> executePath( change, schema, target ) );
     }
 
-    private void executePath( String path, Schema schema, Object target, PathMutator mutator )
+    private void executePath( Change change, Schema schema, Object target )
     {
+        String path = change.getPath();
         String[] paths = path.split( "\\." );
+
         Schema currentSchema = schema;
         Property currentProperty = null;
-        Object object = target;
+        Object currentTarget = target;
 
         for ( int i = 0; i < paths.length; i++ )
         {
@@ -120,135 +118,93 @@ public class DefaultPatchService implements PatchService
 
             if ( i < (paths.length - 1) )
             {
-                object = ReflectionUtils.invokeMethod( object, currentProperty.getGetterMethod() );
+                currentTarget = ReflectionUtils.invokeMethod( currentTarget, currentProperty.getGetterMethod() );
             }
         }
 
         if ( currentSchema != null && currentProperty != null )
         {
-            mutator.accept( new PathContext( currentSchema, currentProperty, object ) );
+            updateValue( change, currentProperty, currentTarget );
         }
     }
 
-    class PathMutator implements Consumer<PathContext>
+    @SuppressWarnings( "unchecked" )
+    private void updateValue( Change change, Property property, Object target )
     {
-        private final Change change;
+        Object value = change.getValue();
 
-        PathMutator( Change change )
+        if ( property.isCollection() )
         {
-            this.change = change;
-        }
+            Object object = value;
 
-        @Override
-        @SuppressWarnings( "unchecked" )
-        public void accept( PathContext pathContext )
-        {
-            Property property = pathContext.getProperty();
-            Object target = pathContext.getTarget();
-            Object value = change.getValue();
-
-            if ( property.isCollection() )
+            if ( property.isIdentifiableObject() )
             {
-                Object object = value;
-
-                if ( property.isIdentifiableObject() )
-                {
-                    if ( !String.class.isInstance( value ) )
-                    {
-                        return;
-                    }
-
-                    Schema schema = schemaService.getDynamicSchema( property.getItemKlass() );
-
-                    Query query = Query.from( schema );
-                    query.add( Restrictions.eq( "id", value ) );
-
-                    List<? extends IdentifiableObject> objects = queryService.query( query );
-
-                    if ( objects.size() != 1 )
-                    {
-                        return;
-                    }
-
-                    object = objects.get( 0 );
-                }
-
-                // validate type
-                if ( !property.getItemKlass().isInstance( object ) )
+                if ( !String.class.isInstance( value ) )
                 {
                     return;
                 }
 
-                Collection collection = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
+                Schema schema = schemaService.getDynamicSchema( property.getItemKlass() );
 
-                if ( collection == null )
-                {
-                    collection = ReflectionUtils.newCollectionInstance( property.getKlass() );
-                }
+                Query query = Query.from( schema );
+                query.add( Restrictions.eq( "id", value ) );
 
-                if ( ChangeOperation.ADDITION == change.getOperation() )
-                {
-                    if ( !collection.contains( object ) )
-                    {
-                        collection.add( object );
-                    }
-                }
-                else if ( ChangeOperation.DELETION == change.getOperation() )
-                {
-                    if ( collection.contains( object ) )
-                    {
-                        collection.remove( object );
-                    }
-                }
+                List<? extends IdentifiableObject> objects = queryService.query( query );
 
-                ReflectionUtils.invokeMethod( target, property.getSetterMethod(), collection );
-            }
-            else
-            {
-                // validate type
-                if ( !property.getKlass().isInstance( value ) )
+                if ( objects.size() != 1 )
                 {
                     return;
                 }
 
-                if ( ChangeOperation.ADDITION == change.getOperation() )
+                object = objects.get( 0 );
+            }
+
+            // validate type
+            if ( !property.getItemKlass().isInstance( object ) )
+            {
+                return;
+            }
+
+            Collection collection = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
+
+            if ( collection == null )
+            {
+                collection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+            }
+
+            if ( ChangeOperation.ADDITION == change.getOperation() )
+            {
+                if ( !collection.contains( object ) )
                 {
-                    ReflectionUtils.invokeMethod( target, property.getSetterMethod(), value );
-                }
-                else if ( ChangeOperation.DELETION == change.getOperation() )
-                {
-                    ReflectionUtils.invokeMethod( target, property.getSetterMethod(), (Object) null );
+                    collection.add( object );
                 }
             }
+            else if ( ChangeOperation.DELETION == change.getOperation() )
+            {
+                if ( collection.contains( object ) )
+                {
+                    collection.remove( object );
+                }
+            }
+
+            ReflectionUtils.invokeMethod( target, property.getSetterMethod(), collection );
         }
-    }
-
-    class PathContext
-    {
-        private final Schema schema;
-        private final Property property;
-        private final Object target;
-
-        PathContext( Schema schema, Property property, Object target )
+        else
         {
-            this.schema = schema;
-            this.property = property;
-            this.target = target;
-        }
+            // validate type
+            if ( !property.getKlass().isInstance( value ) )
+            {
+                return;
+            }
 
-        public Schema getSchema()
-        {
-            return schema;
-        }
-
-        public Property getProperty()
-        {
-            return property;
-        }
-
-        public Object getTarget()
-        {
-            return target;
+            if ( ChangeOperation.ADDITION == change.getOperation() )
+            {
+                ReflectionUtils.invokeMethod( target, property.getSetterMethod(), value );
+            }
+            else if ( ChangeOperation.DELETION == change.getOperation() )
+            {
+                ReflectionUtils.invokeMethod( target, property.getSetterMethod(), (Object) null );
+            }
         }
     }
 }
