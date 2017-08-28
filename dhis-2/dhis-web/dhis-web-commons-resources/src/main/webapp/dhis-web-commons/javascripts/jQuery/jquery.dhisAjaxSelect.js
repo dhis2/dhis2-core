@@ -197,7 +197,7 @@ function dhisAjaxSelect_selectedList_dblclick(sourceId, targetId)
                     if ($connectedTo) {
                         $connectedTo.children().each(function()
                         {
-                            var value = $(this).attr("value");
+                            var value = $(this).val();
                             $select.find("option[value='" + value + "']").remove();
                         });
                     }
