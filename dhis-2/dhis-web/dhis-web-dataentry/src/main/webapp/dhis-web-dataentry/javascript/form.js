@@ -2887,9 +2887,7 @@ function StorageManager()
     this.clearDataValue = function( de, co, pe, ou )
     {
         var id = this.getDataValueIdentifier( de, co, pe, ou );
-        console.log(" clear id :"+id);
         var dataValues = this.getAllDataValues();
-        console.log("dataValues : "+ JSON.stringify( dataValues ));
 
         if ( dataValues != null && dataValues[id] != null )
         {
