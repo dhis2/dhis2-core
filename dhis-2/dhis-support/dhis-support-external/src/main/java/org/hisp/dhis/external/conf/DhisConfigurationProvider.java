@@ -32,6 +32,8 @@ import org.hisp.dhis.encryption.EncryptionStatus;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 
+import java.io.Serializable;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -136,4 +138,10 @@ public interface DhisConfigurationProvider
      * @return the EncryptionStatus.
      */
     EncryptionStatus getEncryptionStatus();
+
+    /**
+     * Gets map of all properties except those which are confidential
+     * @return map containing name of property and its value.
+     */
+    Map<String, Serializable> getConfigurationsAsMap();
 }

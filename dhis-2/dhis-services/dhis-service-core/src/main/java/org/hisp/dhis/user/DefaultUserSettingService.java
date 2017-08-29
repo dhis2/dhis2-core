@@ -49,6 +49,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Declare transactions on individual methods. The get-methods do not have
@@ -272,6 +273,14 @@ public class DefaultUserSettingService
     public void invalidateCache()
     {
         SETTING_CACHE.invalidateAll();
+    }
+
+    @Override
+    public Map<String, Serializable> getUserSettingsAsMap()
+    {
+        Set<String> names = Stream.of( UserSettingKey.values() ).map(key -> key.getName() ).collect( Collectors.toSet() );
+
+        return getUserSettingsWithFallbackByUserAsMap( currentUserService.getCurrentUser(), names, false );
     }
 
     // -------------------------------------------------------------------------

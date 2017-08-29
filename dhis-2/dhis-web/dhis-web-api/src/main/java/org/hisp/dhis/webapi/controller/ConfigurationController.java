@@ -44,6 +44,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -89,6 +90,9 @@ public class ConfigurationController
 
     @Autowired
     private SystemSettingManager systemSettingManager;
+
+    @Autowired
+    private UserSettingService userSettingService;
 
     // -------------------------------------------------------------------------
     // Resources
