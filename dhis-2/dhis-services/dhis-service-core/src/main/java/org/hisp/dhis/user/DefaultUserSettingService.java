@@ -278,7 +278,7 @@ public class DefaultUserSettingService
     @Override
     public Map<String, Serializable> getUserSettingsAsMap()
     {
-        Set<String> names = Stream.of( UserSettingKey.values() ).map(key -> key.getName() ).collect( Collectors.toSet() );
+        Set<String> names = Stream.of( UserSettingKey.values() ).map( key -> key.getName() ).collect( Collectors.toSet() );
 
         return getUserSettingsWithFallbackByUserAsMap( currentUserService.getCurrentUser(), names, false );
     }
