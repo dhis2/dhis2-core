@@ -28,10 +28,13 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.configuration.SettingType;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -54,16 +57,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Lars Helge Overland
@@ -94,9 +100,33 @@ public class ConfigurationController
     @Autowired
     private UserSettingService userSettingService;
 
+    private final ImmutableMap<SettingType, Supplier<Map<String, Serializable>>>
+        TYPE_RESOLVER = new ImmutableMap.Builder<SettingType, Supplier<Map<String,Serializable>>>()
+        .put( SettingType.DHIS_SERVER_SETTINGS, () -> config.getConfigurationsAsMap() )
+        .put( SettingType.USER_SETTINGS, () -> userSettingService.getUserSettingsAsMap() )
+        .put( SettingType.SYSTEM_SETTINGS, () -> systemSettingManager.getSystemSettingsAsMap() )
+        .put( SettingType.CONFIGURATION_SETTINGS, () -> null )
+        .build();
+
     // -------------------------------------------------------------------------
     // Resources
     // -------------------------------------------------------------------------
+
+    @RequestMapping( value = "/all", method = RequestMethod.GET )
+    public @ResponseBody Map<String, Serializable> getAllConfigurations( HttpServletRequest request, HttpServletResponse response )
+    {
+        response.setContentType( request.getContentType() );
+
+        return readConfigurationsBasedOnType( Stream.of( SettingType.values() ).collect( Collectors.toSet() ) );
+    }
+
+    @RequestMapping( value = "/all/{type}", method = RequestMethod.GET )
+    public @ResponseBody Map<String, Serializable> getConfigurationBasedOnType( @PathVariable( name = "type" ) String type, HttpServletRequest request, HttpServletResponse response )
+    {
+        response.setContentType( request.getContentType() );
+
+        return readConfigurationsBasedOnType( Sets.newHashSet( SettingType.valueOf( type ) ) );
+    }
 
     @RequestMapping( method = RequestMethod.GET )
     public @ResponseBody Configuration getConfiguration( Model model, HttpServletRequest request )
@@ -394,5 +424,20 @@ public class ConfigurationController
     public @ResponseBody boolean getSystemReadOnlyMode( Model model, HttpServletRequest request )
     {
         return config.isReadOnlyMode();
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private Map<String, Serializable> readConfigurationsBasedOnType( Set<SettingType> types )
+    {
+        Map<String, Serializable> configurations = new HashMap<>();
+
+        types.parallelStream()
+            .filter( t -> TYPE_RESOLVER.containsKey( t ) )
+            .forEach( type -> configurations.putAll( TYPE_RESOLVER.get( type ).get() ) );
+
+        return configurations;
     }
 }
