@@ -300,8 +300,7 @@ public class DefaultDhisConfigurationProvider
     {
         return Stream.of( ConfigurationKey.values() )
             .parallel()
-            .filter( key -> !key.isConfidential() )
-            .collect( Collectors.toMap( ConfigurationKey::getKey, v -> getPropertyOrDefault( v, v.getDefaultValue() ) ) );
+            .collect( Collectors.toMap( ConfigurationKey::getKey, v -> v.isConfidential() ? "" : getPropertyOrDefault( v, v.getDefaultValue() ) ) );
     }
 
     // -------------------------------------------------------------------------

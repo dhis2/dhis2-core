@@ -119,11 +119,11 @@ public class ConfigurationController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_SETTINGS')" )
-    @RequestMapping( value = "/settings", method = RequestMethod.GET )
+    @RequestMapping( value = "/settings/filter", method = RequestMethod.GET )
     public @ResponseBody Map<String, Serializable> getAllSettingsBasedOnType( @RequestParam Set<SettingType> types, HttpServletRequest request, HttpServletResponse response )
     {
         response.setContentType( request.getContentType() );
-        System.out.println( " individual ");
+
         return readConfigurationsBasedOnType( types );
     }
 
