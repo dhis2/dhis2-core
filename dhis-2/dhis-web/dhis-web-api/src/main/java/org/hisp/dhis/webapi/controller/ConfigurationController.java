@@ -68,8 +68,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author Lars Helge Overland
@@ -105,27 +103,28 @@ public class ConfigurationController
         .put( SettingType.DHIS_SERVER_SETTINGS, () -> config.getConfigurationsAsMap() )
         .put( SettingType.USER_SETTINGS, () -> userSettingService.getUserSettingsAsMap() )
         .put( SettingType.SYSTEM_SETTINGS, () -> systemSettingManager.getSystemSettingsAsMap() )
-        .put( SettingType.CONFIGURATION_SETTINGS, () -> null )
         .build();
 
     // -------------------------------------------------------------------------
     // Resources
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/all", method = RequestMethod.GET )
-    public @ResponseBody Map<String, Serializable> getAllConfigurations( HttpServletRequest request, HttpServletResponse response )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_SETTINGS')" )
+    @RequestMapping( value = "/settings", method = RequestMethod.GET, produces = { "application/json", "application/xml" } )
+    public @ResponseBody Map<String, Serializable> getAllSettings( HttpServletRequest request, HttpServletResponse response )
     {
         response.setContentType( request.getContentType() );
 
-        return readConfigurationsBasedOnType( Stream.of( SettingType.values() ).collect( Collectors.toSet() ) );
+        return readConfigurationsBasedOnType( Sets.newHashSet( SettingType.values() ) );
     }
 
-    @RequestMapping( value = "/all/{type}", method = RequestMethod.GET )
-    public @ResponseBody Map<String, Serializable> getConfigurationBasedOnType( @PathVariable( name = "type" ) String type, HttpServletRequest request, HttpServletResponse response )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_SETTINGS')" )
+    @RequestMapping( value = "/settings", method = RequestMethod.GET )
+    public @ResponseBody Map<String, Serializable> getAllSettingsBasedOnType( @RequestParam Set<SettingType> types, HttpServletRequest request, HttpServletResponse response )
     {
         response.setContentType( request.getContentType() );
-
-        return readConfigurationsBasedOnType( Sets.newHashSet( SettingType.valueOf( type ) ) );
+        System.out.println( " individual ");
+        return readConfigurationsBasedOnType( types );
     }
 
     @RequestMapping( method = RequestMethod.GET )
@@ -432,12 +431,12 @@ public class ConfigurationController
 
     private Map<String, Serializable> readConfigurationsBasedOnType( Set<SettingType> types )
     {
-        Map<String, Serializable> configurations = new HashMap<>();
+        Map<String, Serializable> configurationMap = new HashMap<>();
 
         types.parallelStream()
             .filter( t -> TYPE_RESOLVER.containsKey( t ) )
-            .forEach( type -> configurations.putAll( TYPE_RESOLVER.get( type ).get() ) );
+            .forEach( t -> configurationMap.putAll( TYPE_RESOLVER.get( t ).get() ) );
 
-        return configurations;
+        return configurationMap;
     }
 }

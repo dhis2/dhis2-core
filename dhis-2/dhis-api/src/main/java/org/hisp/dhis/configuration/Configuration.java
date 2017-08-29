@@ -29,7 +29,9 @@ package org.hisp.dhis.configuration;
  */
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
