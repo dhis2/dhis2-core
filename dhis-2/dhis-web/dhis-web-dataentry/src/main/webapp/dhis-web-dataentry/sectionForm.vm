@@ -117,10 +117,6 @@
                                 #if( $dataElement.valueType == "BOOLEAN" )
                                     <td>
                                         <label>
-                                            <input #if( $compulsory ) required="required" #end  type="radio" name="${dataEntryId}" class="entryselect" id="${dataEntryId}" value="" tabindex="${tabIndex}"#if( $greyedField || !$hasAccess ) disabled="disabled"#end>
-                                            $i18n.getString( "no_value" )		
-                                        </label>
-                                        <label>
                                             <input #if( $compulsory ) required="required" #end  type="radio" name="${dataEntryId}" class="entryselect" id="${dataEntryId}" value="true" tabindex="${tabIndex}"#if( $greyedField || !$hasAccess ) disabled="disabled"#end>
                                             $i18n.getString( "yes" )
                                         </label>
