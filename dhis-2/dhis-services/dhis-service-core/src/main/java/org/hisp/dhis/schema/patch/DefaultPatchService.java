@@ -29,6 +29,7 @@ package org.hisp.dhis.schema.patch;
  *
  */
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.Query;
@@ -78,6 +79,44 @@ public class DefaultPatchService implements PatchService
         patch.setMutations( calculateMutations( schema, source, target ) );
 
         return patch;
+    }
+
+    @Override
+    public Patch diff( JsonNode jsonNode )
+    {
+        Patch patch = new Patch();
+        patch.setMutations( calculateMutations( jsonNode ) );
+
+        return patch;
+    }
+
+    private List<Mutation> calculateMutations( JsonNode jsonNode )
+    {
+        List<Mutation> mutations = new ArrayList<>();
+        List<String> fieldNames = Lists.newArrayList( jsonNode.fieldNames() );
+
+        for ( String fieldName : fieldNames )
+        {
+            JsonNode node = jsonNode.get( fieldName );
+
+            switch ( node.getNodeType() )
+            {
+                case BOOLEAN:
+                    mutations.add( new Mutation( fieldName, node.booleanValue() ) );
+                    break;
+                case NUMBER:
+                    mutations.add( new Mutation( fieldName, node.numberValue() ) );
+                    break;
+                case STRING:
+                    mutations.add( new Mutation( fieldName, node.textValue() ) );
+                    break;
+                case NULL:
+                    mutations.add( new Mutation( fieldName, null ) );
+                    break;
+            }
+        }
+
+        return mutations;
     }
 
     @Override

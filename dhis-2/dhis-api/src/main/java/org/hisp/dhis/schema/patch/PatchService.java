@@ -29,12 +29,16 @@ package org.hisp.dhis.schema.patch;
  *
  */
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface PatchService
 {
     Patch diff( Object source, Object target );
+
+    Patch diff( JsonNode node );
 
     void apply( Patch patch, Object target );
 }
