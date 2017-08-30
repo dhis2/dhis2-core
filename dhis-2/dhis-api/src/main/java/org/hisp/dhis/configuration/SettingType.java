@@ -33,5 +33,24 @@ package org.hisp.dhis.configuration;
  */
 public enum SettingType
 {
-    USER_SETTINGS, SYSTEM_SETTINGS, DHIS_SERVER_SETTINGS
+    USER_SETTING( "user settings" ),
+    SYSTEM_SETTING( "system settings" ),
+    CONFIGURATION( "DHIS configurations" );
+
+    private String key;
+
+    SettingType( String key )
+    {
+        this.key = key;
+    }
+
+    public String getKey()
+    {
+        return key;
+    }
+
+    public void setKey( String key )
+    {
+        this.key = key;
+    }
 }

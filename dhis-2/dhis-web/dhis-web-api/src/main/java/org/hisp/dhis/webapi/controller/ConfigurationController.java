@@ -63,10 +63,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Supplier;
 
 /**
@@ -100,9 +97,9 @@ public class ConfigurationController
 
     private final ImmutableMap<SettingType, Supplier<Map<String, Serializable>>>
         TYPE_RESOLVER = new ImmutableMap.Builder<SettingType, Supplier<Map<String,Serializable>>>()
-        .put( SettingType.DHIS_SERVER_SETTINGS, () -> config.getConfigurationsAsMap() )
-        .put( SettingType.USER_SETTINGS, () -> userSettingService.getUserSettingsAsMap() )
-        .put( SettingType.SYSTEM_SETTINGS, () -> systemSettingManager.getSystemSettingsAsMap() )
+        .put( SettingType.CONFIGURATION, () -> config.getConfigurationsAsMap() )
+        .put( SettingType.USER_SETTING, () -> userSettingService.getUserSettingsAsMap() )
+        .put( SettingType.SYSTEM_SETTING, () -> systemSettingManager.getSystemSettingsAsMap() )
         .build();
 
     // -------------------------------------------------------------------------
@@ -111,7 +108,7 @@ public class ConfigurationController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_SETTINGS')" )
     @RequestMapping( value = "/settings", method = RequestMethod.GET, produces = { "application/json", "application/xml" } )
-    public @ResponseBody Map<String, Serializable> getAllSettings( HttpServletRequest request, HttpServletResponse response )
+    public @ResponseBody Map<String, Map<String, Serializable>> getAllSettings( HttpServletRequest request, HttpServletResponse response )
     {
         response.setContentType( request.getContentType() );
 
@@ -120,7 +117,7 @@ public class ConfigurationController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_SETTINGS')" )
     @RequestMapping( value = "/settings/filter", method = RequestMethod.GET )
-    public @ResponseBody Map<String, Serializable> getAllSettingsBasedOnType( @RequestParam Set<SettingType> types, HttpServletRequest request, HttpServletResponse response )
+    public @ResponseBody Map<String, Map<String, Serializable>> getAllSettingsBasedOnType( @RequestParam Set<SettingType> types, HttpServletRequest request, HttpServletResponse response )
     {
         response.setContentType( request.getContentType() );
 
@@ -429,14 +426,14 @@ public class ConfigurationController
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private Map<String, Serializable> readConfigurationsBasedOnType( Set<SettingType> types )
+    private Map<String, Map<String, Serializable>> readConfigurationsBasedOnType( Set<SettingType> types )
     {
-        Map<String, Serializable> configurationMap = new HashMap<>();
+        Map<String, Map<String, Serializable>> configurations = new HashMap<>();
 
-        types.parallelStream()
+        types.stream()
             .filter( t -> TYPE_RESOLVER.containsKey( t ) )
-            .forEach( t -> configurationMap.putAll( TYPE_RESOLVER.get( t ).get() ) );
+            .forEach( t -> configurations.put( t.getKey() , TYPE_RESOLVER.get( t ).get() ) );
 
-        return configurationMap;
+        return configurations;
     }
 }
