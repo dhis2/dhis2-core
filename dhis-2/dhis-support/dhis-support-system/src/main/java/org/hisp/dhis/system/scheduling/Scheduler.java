@@ -28,7 +28,9 @@ package org.hisp.dhis.system.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
 import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobStatus;
 import org.springframework.util.concurrent.ListenableFuture;
 
 import java.util.Map;
@@ -86,11 +88,11 @@ public interface Scheduler
      * job with the same key is already scheduled. The job must be unique for
      * the job but can have an arbitrary value.
      *
-     * @param job the job to schedule
+     * @param jobConfiguration the job to schedule
      * @return true if the job was scheduled for execution as a result of this
      *         operation, false if not.
      */
-    boolean scheduleJob( Job job );
+    boolean scheduleJob( JobConfiguration jobConfiguration, Job job );
 
     /**
      * Deactivates scheduling of the job with the given key.
@@ -103,11 +105,12 @@ public interface Scheduler
 
     /**
      * Stops and starts a job with the given key. If no key exists, still start a new job
-     * @param job the job to schedule
+     * @param jobConfiguration the job to schedule
      * @return true if the job was scheduled for execution as a result of this
      *         operation, false if not.
      */
-    boolean refreshJob( Job job );
+    boolean refreshJob( JobConfiguration jobConfiguration );
+
 
     /**
      * Deactivates scheduling for all jobs.
@@ -125,7 +128,7 @@ public interface Scheduler
      * @param key the job key.
      * @return the job status.
      */
-    ScheduledTaskStatus getJobStatus( String key );
+    JobStatus getJobStatus( String key );
 
     /**
      * Gets the status for the current job with the given key.
@@ -133,6 +136,6 @@ public interface Scheduler
      * @param key the job key.
      * @return the job status.
      */
-    ScheduledTaskStatus getCurrentJobStatus( String key );
+    JobStatus getCurrentJobStatus( String key );
 
 }

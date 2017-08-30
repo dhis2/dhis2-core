@@ -39,6 +39,8 @@ import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.metadata.version.MetadataVersion;
+import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,10 +57,8 @@ import java.util.List;
  * @author anilkumk
  */
 public class MetadataSyncJob
-    implements Runnable
+    implements Job
 {
-    private static final Log log = LogFactory.getLog( MetadataSyncJob.class );
-
     public static String VERSION_KEY = "version";
     public static String DATA_PUSH_SUMMARY = "dataPushSummary";
     public static String EVENT_PUSH_SUMMARY = "eventPushSummary";
@@ -67,6 +67,8 @@ public class MetadataSyncJob
     public static String METADATA_SYNC = "metadataSync";
     public static String METADATA_SYNC_REPORT = "metadataSyncReport";
     public static String[] keys = { DATA_PUSH_SUMMARY, EVENT_PUSH_SUMMARY, GET_METADATAVERSION, GET_METADATAVERSIONSLIST, METADATA_SYNC, VERSION_KEY };
+
+    private static final Log log = LogFactory.getLog( MetadataSyncJob.class );
 
     @Autowired
     private SystemSettingManager systemSettingManager;
@@ -86,8 +88,12 @@ public class MetadataSyncJob
     @Autowired
     private MetadataRetryContext metadataRetryContext;
 
+    // -------------------------------------------------------------------------
+    // Implementation
+    // -------------------------------------------------------------------------
+
     @Override
-    public void run()
+    public void execute( JobConfiguration jobConfiguration )
     {
         log.info( "Metadata Sync cron Job started" );
 

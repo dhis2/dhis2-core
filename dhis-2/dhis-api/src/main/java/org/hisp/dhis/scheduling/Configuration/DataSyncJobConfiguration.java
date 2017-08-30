@@ -1,6 +1,6 @@
 package org.hisp.dhis.scheduling.Configuration;
 
-import org.hisp.dhis.dxf2.synch.DataSynchronizationJob;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.TaskId;
 
 /**
@@ -9,13 +9,16 @@ import org.hisp.dhis.scheduling.TaskId;
  */
 public class DataSyncJobConfiguration extends JobConfiguration
 {
-    public DataSyncJobConfiguration( TaskId taskId )
+    private TaskId taskId;
+
+    public DataSyncJobConfiguration( String name, JobType jobType, String cronExpression, TaskId taskId )
     {
+        super( name, jobType, cronExpression );
         this.taskId = taskId;
     }
 
-    public Runnable getRunnable( )
+    public TaskId getTaskId()
     {
-        return new DataSynchronizationJob( taskId );
+        return taskId;
     }
 }

@@ -29,8 +29,9 @@ package org.hisp.dhis.validation.notification;
  */
 
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.security.NoSecurityContextRunnable;
+import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
+import org.hisp.dhis.scheduling.Configuration.ValidationResultNotificationJobConfiguration;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
@@ -40,10 +41,9 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Stian Sandvold
  */
-public class ValidationResultNotificationTask
-    extends NoSecurityContextRunnable
+public class ValidationResultNotificationJob
+    implements Job
 {
-
     @Autowired
     private ValidationNotificationService notificationService;
 
@@ -53,36 +53,29 @@ public class ValidationResultNotificationTask
     @Autowired
     private Notifier notifier;
 
-    public static final String KEY_TASK = "validationResultNotificationTask";
-
-    private TaskId taskId;
-
-    public void setTaskId( TaskId taskId )
-    {
-        this.taskId = taskId;
-    }
-
     // -------------------------------------------------------------------------
-    // Runnable implementation
+    // Implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public void call()
+    public void execute( JobConfiguration jobConfiguration )
     {
+        ValidationResultNotificationJobConfiguration jobConfig = (ValidationResultNotificationJobConfiguration) jobConfiguration;
+
         final Clock clock = new Clock().startClock();
 
-        notifier.notify( taskId, "Sending new validation result notifications" );
+        notifier.notify( jobConfig.getTaskId(), "Sending new validation result notifications" );
 
         try
         {
             runInternal();
 
-            notifier.notify( taskId, NotificationLevel.INFO,
+            notifier.notify( jobConfig.getTaskId(), NotificationLevel.INFO,
                 "Sent validation result notifications: " + clock.time(), true );
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( taskId, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
+            notifier.notify( jobConfig.getTaskId(), NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
 
             messageService
                 .sendSystemErrorNotification( "Sending validation result notifications failed", ex );
@@ -92,10 +85,8 @@ public class ValidationResultNotificationTask
     }
 
     @Transactional
-    private void runInternal()
+    void runInternal()
     {
-
         notificationService.sendUnsentNotifications();
-
     }
 }

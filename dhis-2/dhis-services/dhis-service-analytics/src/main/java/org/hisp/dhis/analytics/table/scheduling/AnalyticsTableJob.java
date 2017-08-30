@@ -29,48 +29,36 @@ package org.hisp.dhis.analytics.table.scheduling;
  */
 
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
-import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.security.NoSecurityContextRunnable;
+import org.hisp.dhis.analytics.table.AnalyticsTableType;
+import org.hisp.dhis.scheduling.Configuration.AnalyticsJobConfiguration;
+import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
+import org.hisp.dhis.scheduling.Job;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
  */
 public class AnalyticsTableJob
-    extends NoSecurityContextRunnable
+    implements Job
 {
     @Autowired
     private AnalyticsTableGenerator analyticsTableGenerator;
 
-    private Integer lastYears;
-
-    public void setLastYears( Integer lastYears )
-    {
-        this.lastYears = lastYears;
-    }
-
-    private TaskId taskId;
-
-    public void setTaskId( TaskId taskId )
-    {
-        this.taskId = taskId;
-    }
-
-    public AnalyticsTableJob ( Integer lastYears, TaskId taskId )
-    {
-        this.lastYears = lastYears;
-        this.taskId = taskId;
-    }
-
     // -------------------------------------------------------------------------
-    // Runnable implementation
+    // Implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public void call()
+    public void execute( JobConfiguration jobConfiguration)
     {
-        analyticsTableGenerator.generateTables( lastYears, taskId, new HashSet<>(), false );
+        AnalyticsJobConfiguration jobConfig = (AnalyticsJobConfiguration) jobConfiguration;
+        Set<AnalyticsTableType> skipTableTypes = new HashSet<AnalyticsTableType>();
+
+        jobConfig.getSkipTableTypes().forEach( (s) -> skipTableTypes.add( AnalyticsTableType.valueOf( s ) ) );
+
+        analyticsTableGenerator.generateTables( jobConfig.getLastYears(), jobConfig.getTaskId(), skipTableTypes, jobConfig.isSkipResourceTables() );
     }
 }

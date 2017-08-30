@@ -1544,7 +1544,7 @@
   <!-- Scheduled task for validation result notifications -->
 
   <bean id="validationResultNotificationTask"
-    class="org.hisp.dhis.validation.notification.ValidationResultNotificationTask" scope="prototype" />
+        class="org.hisp.dhis.validation.notification.ValidationResultNotificationJob" scope="prototype" />
 
   <!-- Startup routine definitions -->
 

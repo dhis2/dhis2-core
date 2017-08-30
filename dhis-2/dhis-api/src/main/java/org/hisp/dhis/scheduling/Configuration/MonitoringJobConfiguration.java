@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling.Configuration;
 
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.validation.scheduling.MonitoringJob;
 
 /**
  * Created by henninghakonsen on 23/08/2017.
@@ -9,14 +9,16 @@ import org.hisp.dhis.validation.scheduling.MonitoringJob;
  */
 public class MonitoringJobConfiguration extends JobConfiguration
 {
-    public MonitoringJobConfiguration( TaskId taskId )
+    private TaskId taskId;
+
+    public MonitoringJobConfiguration( String name, JobType jobType, String cronExpression, TaskId taskId )
     {
+        super( name, jobType, cronExpression );
         this.taskId = taskId;
     }
 
-    @Override
-    public Runnable getRunnable()
+    public TaskId getTaskId()
     {
-        return new MonitoringJob( taskId );
+        return taskId;
     }
 }

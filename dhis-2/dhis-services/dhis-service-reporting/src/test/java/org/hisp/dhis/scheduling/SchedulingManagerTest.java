@@ -28,16 +28,9 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.scheduling.Configuration.*;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Lars Helge Overland
@@ -61,20 +54,20 @@ public class SchedulingManagerTest
     @Autowired
     private SchedulingManager schedulingManager;
 
-    private boolean verifySortedJobs( List<Job> jobs )
+    /*private boolean verifySortedJobs( List<JobConfiguration> jobConfigurations )
     {
-        for ( int i=0; i<jobs.size() - 1; i++ )
+        for ( int i = 0; i< jobConfigurations.size() - 1; i++ )
         {
-            if ( jobs.get( i ).getNextExecutionTime().compareTo( jobs.get( i + 1 ).getNextExecutionTime() ) > 0 ) return false;
+            if ( jobConfigurations.get( i ).getNextExecutionTime().compareTo( jobConfigurations.get( i + 1 ).getNextExecutionTime() ) > 0 ) return false;
         }
 
         return true;
-    }
+    }*/
 
     @Test
     public void testScheduleTasks()
     {
-        JobConfiguration jobConfigurationA = new AnalyticsJobConfiguration( 1, null );
+        /*JobConfiguration jobConfigurationA = new AnalyticsJobConfiguration( 1, null );
         Job jobA = new DefaultJob( "jobA", JobType.ANALYTICS, CRON_DAILY_6AM,  jobConfigurationA );
 
         JobConfiguration jobConfigurationB = new MessageSendJobConfiguration( null );
@@ -91,7 +84,7 @@ public class SchedulingManagerTest
         List<Job> futureJobs = schedulingManager.getAllFutureJobs();
 
         assertEquals(4, futureJobs.size());
-        assertTrue( verifySortedJobs( futureJobs ) );
+        assertTrue( verifySortedJobs( futureJobs ) );*/
     }
 
     /*@Test

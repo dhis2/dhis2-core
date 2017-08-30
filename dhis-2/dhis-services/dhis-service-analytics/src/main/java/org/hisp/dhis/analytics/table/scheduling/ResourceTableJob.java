@@ -29,33 +29,28 @@ package org.hisp.dhis.analytics.table.scheduling;
  */
 
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
+import org.hisp.dhis.scheduling.Configuration.ResourceTableJobConfiguration;
+import org.hisp.dhis.scheduling.Job;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
 public class ResourceTableJob
-    implements Runnable
+    implements Job
 {
     @Autowired
     private AnalyticsTableGenerator analyticsTableGenerator;
 
-    private TaskId taskId;
+    // -------------------------------------------------------------------------
+    // Implementation
+    // -------------------------------------------------------------------------
 
-    public void setTaskId( TaskId taskId )
-    {
-        this.taskId = taskId;
-    }
-
-    public ResourceTableJob( TaskId taskId )
-    {
-        this.taskId = taskId;
-    }
-    
     @Override
-    public void run()
+    public void execute( JobConfiguration jobConfiguration )
     {
-        analyticsTableGenerator.generateResourceTables( taskId );        
+        ResourceTableJobConfiguration jobConfig = (ResourceTableJobConfiguration) jobConfiguration;
+        analyticsTableGenerator.generateResourceTables( jobConfig.getTaskId() );
     }
 }

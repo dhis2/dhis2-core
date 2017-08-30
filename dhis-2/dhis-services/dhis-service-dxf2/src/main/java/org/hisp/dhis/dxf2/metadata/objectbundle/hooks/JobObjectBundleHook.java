@@ -1,12 +1,5 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dataset.DataInputPeriod;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.SchedulingManager;
-import org.springframework.beans.factory.annotation.Autowired;
-
 /**
  * Created by henninghakonsen on 28/08/2017.
  * Project: dhis-2.
@@ -14,38 +7,59 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class JobObjectBundleHook
     extends AbstractObjectBundleHook
 {
-    @Autowired
-    private SchedulingManager schedulingManager;
+    /*private SchedulingManager schedulingManager;
+
+    public void setSchedulingManager( SchedulingManager schedulingManager )
+    {
+        this.schedulingManager = schedulingManager;
+    }
 
     @Override
     public void preCreate( IdentifiableObject object, ObjectBundle bundle )
     {
-        if ( !DataInputPeriod.class.isInstance( object ) )
+        if ( !Job.class.isInstance( object ) )
         {
             return;
         }
 
-
+        Job job = handleJob( object );
+        sessionFactory.getCurrentSession().save( job );
     }
 
     @Override
     public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
     {
-        if ( !DataInputPeriod.class.isInstance( object ) )
+        if ( !Job.class.isInstance( object ) )
         {
             return;
         }
 
-
+        Job job = handleJob( object );
+        sessionFactory.getCurrentSession().saveOrUpdate( job );
     }
 
-    private void setJob( IdentifiableObject object )
+    @Override
+    public <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle )
+    {
+        schedulingManager.scheduleJob( (Job) persistedObject );
+    }
+
+    @Override
+    public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
+    {
+        Job job = (Job) persistedObject;
+
+        schedulingManager.stopJob( job.getKey() );
+        schedulingManager.scheduleJob( job );
+    }
+
+    private Job handleJob( IdentifiableObject object )
     {
         Job job = (Job) object;
         job.setStatus( null );
         job.setKey( "" );
         job.setNextExecutionTime();
 
-        schedulingManager.scheduleJob( job );
-    }
+        return job;
+    }*/
 }

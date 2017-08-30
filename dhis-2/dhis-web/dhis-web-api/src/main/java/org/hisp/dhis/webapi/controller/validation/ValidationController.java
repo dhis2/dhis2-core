@@ -45,7 +45,7 @@ import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.ValidationSummary;
-import org.hisp.dhis.validation.notification.ValidationResultNotificationTask;
+import org.hisp.dhis.validation.notification.ValidationResultNotificationJob;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,7 +79,7 @@ public class ValidationController
     private DataElementCategoryService categoryService;
 
     @Autowired
-    private ValidationResultNotificationTask validationResultNotificationTask;
+    private ValidationResultNotificationJob validationResultNotificationJob;
 
     @Autowired
     private Scheduler scheduler;
@@ -136,8 +136,9 @@ public class ValidationController
     @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     public void runValidationNotificationsTask( HttpServletResponse response, HttpServletRequest request )
     {
-        validationResultNotificationTask.setTaskId( new TaskId( TaskCategory.SENDING_VALIDATION_RESULT, currentUserService.getCurrentUser() ) );
-        scheduler.executeTask( validationResultNotificationTask );
+        /* HH validationResultNotificationJob
+            .setTaskId( new TaskId( TaskCategory.SENDING_VALIDATION_RESULT, currentUserService.getCurrentUser() ) );
+        scheduler.executeTask( validationResultNotificationJob );*/
 
         webMessageService.send( WebMessageUtils.ok( "Initiated validation result notification" ), response, request );
     }

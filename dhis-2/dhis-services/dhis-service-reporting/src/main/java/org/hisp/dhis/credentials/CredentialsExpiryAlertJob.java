@@ -31,6 +31,8 @@ package org.hisp.dhis.credentials;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.DateUtils;
@@ -45,15 +47,16 @@ import java.util.*;
 /**
  * Created by zubair on 29.03.17.
  */
-public class CredentialsExpiryAlertTask implements Runnable
+public class CredentialsExpiryAlertJob
+    implements Job
 {
-    private static final Log log = LogFactory.getLog( CredentialsExpiryAlertTask.class );
+    private static final Log log = LogFactory.getLog( CredentialsExpiryAlertJob.class );
 
     private static final String SUBJECT = "Password Expiry Alert";
 
     private static final String TEXT = "Dear %s, Please change your password. It will expire in %d days.";
 
-    public static final String KEY_TASK = "credentialsExpiryAlertTask";
+    private static final String KEY_TASK = "credentialsExpiryAlertTask";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -74,7 +77,7 @@ public class CredentialsExpiryAlertTask implements Runnable
     // -------------------------------------------------------------------------
 
     @Override
-    public void run()
+    public void execute( JobConfiguration jobConfiguration )
     {
         boolean isExpiryAlertEnabled = (Boolean) systemSettingManager.getSystemSetting( SettingKey.CREDENTIALS_EXPIRY_ALERT );
 

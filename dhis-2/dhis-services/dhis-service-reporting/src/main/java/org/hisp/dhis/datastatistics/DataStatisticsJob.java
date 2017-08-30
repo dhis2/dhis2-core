@@ -30,7 +30,8 @@ package org.hisp.dhis.datastatistics;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
+import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,12 +42,12 @@ import java.util.Date;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-public class DataStatisticsTask
-    implements Runnable
+public class DataStatisticsJob
+    implements Job
 {
-    private static final Log log = LogFactory.getLog( DataStatisticsTask.class );
+    private static final Log log = LogFactory.getLog( DataStatisticsJob.class );
     
-    public static final String KEY_TASK = "dataStatisticsTask";
+    //HH public static final String KEY_TASK = "dataStatisticsTask";
     
     @Autowired
     private DataStatisticsService dataStatisticsService;
@@ -54,8 +55,12 @@ public class DataStatisticsTask
     @Autowired
     private SystemSettingManager systemSettingManager;
 
+    // -------------------------------------------------------------------------
+    // Implementation
+    // -------------------------------------------------------------------------
+
     @Override
-    public void run()
+    public void execute( JobConfiguration jobConfiguration )
     {
         int id = dataStatisticsService.saveDataStatisticsSnapshot();
 

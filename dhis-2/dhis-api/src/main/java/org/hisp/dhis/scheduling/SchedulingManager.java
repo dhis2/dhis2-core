@@ -28,51 +28,23 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
+import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
+
+import java.util.Map;
+import java.util.concurrent.ScheduledFuture;
 
 /**
  * @author Lars Helge Overland
  */
 public interface SchedulingManager
 {
-    String TASK_RESOURCE_TABLE = "resourceTableTask";
-    String TASK_RESOURCE_TABLE_15_MINS = "resourceTable15MinTask";
-    String TASK_DATAMART_LAST_YEAR = "dataMartLastYearTask";
-    String TASK_ANALYTICS_ALL = "analyticsAllTask";
-    String TASK_ANALYTICS_LAST_3_YEARS = "analyticsLast3YearsTask";
-    String TASK_MONITORING_LAST_DAY = "monitoringLastDayTask";
-    String TASK_DATA_SYNCH = "dataSynchTask";
-    String TASK_META_DATA_SYNC = "metadataSyncTask";
-    String TASK_SEND_SCHEDULED_SMS_NOW = "sendScheduledMessageTaskNow";
-    String TASK_SCHEDULED_PROGRAM_NOTIFICATIONS = "scheduledProgramNotificationsTask";
-    
     /**
-     * Schedules all jobs.
-     */
-    void scheduleJobs();
-    
-    /**
-     * Execute the job.
+     * Schedules a job with the given job configuration.
      *
-     * @param jobKey The key of the job to be executed
+     * @param jobConfiguration the job to schedule.
      */
-    void executeJob( String jobKey );
+    void scheduleJob( JobConfiguration jobConfiguration );
 
-    /**
-     * Schedules the given job.
-     *
-     * @param job the job to schedule.
-     */
-    void scheduleJob( Job job );
-
-    /**
-     * Schedules the given jobs. The job map will replace the currently scheduled
-     * jobs.
-     * 
-     * @param jobs a list of jobs.
-     */
-    void scheduleJobs( List<Job> jobs );
-    
     /**
      * Stops one job.
      */
@@ -84,6 +56,18 @@ public interface SchedulingManager
     void stopAllJobs( );
 
     /**
+     * Refreshes the given job
+     */
+    void refreshJob( JobConfiguration jobConfiguration );
+
+    /**
+     * Execute the job.
+     *
+     * @param jobConfiguration The configuration of the job to be executed
+     */
+    void executeJob( JobConfiguration jobConfiguration );
+
+    /**
      * Resolve the cron expression mapped for the given task key, or null if none.
      *
      * @param jobKey the key of the job, not null.
@@ -92,11 +76,10 @@ public interface SchedulingManager
     String getCronForJob( final String jobKey );
 
     /**
-     * Gets a list of all scheduled jobs.
+     * Returns a list of all scheduled jobs sorted based on cron expression and the current time.
+     * @return list of jobs
      */
-    List<Job> getScheduledJobs();
-
-    List<Job> getAllFutureJobs();
+    Map<String, ScheduledFuture<?>> getAllFutureJobs();
     
     /**
      * Gets the job status.
@@ -108,4 +91,6 @@ public interface SchedulingManager
      * Returns the status of the currently executing job.
      */
     boolean isJobInProgress(String jobKey);
+
+
 }

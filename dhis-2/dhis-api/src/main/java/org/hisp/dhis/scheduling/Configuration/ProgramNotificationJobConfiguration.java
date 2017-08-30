@@ -1,6 +1,6 @@
 package org.hisp.dhis.scheduling.Configuration;
 
-import org.hisp.dhis.program.notification.ProgramNotificationJob;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.TaskId;
 
 /**
@@ -9,14 +9,17 @@ import org.hisp.dhis.scheduling.TaskId;
  */
 public class ProgramNotificationJobConfiguration extends JobConfiguration
 {
-    public ProgramNotificationJobConfiguration( TaskId taskId )
+    private TaskId taskId;
+
+    public ProgramNotificationJobConfiguration( String name, JobType jobType,
+        String cronExpression, TaskId taskId)
     {
+        super( name, jobType, cronExpression );
         this.taskId = taskId;
     }
 
-    @Override
-    public Runnable getRunnable()
+    public TaskId getTaskId()
     {
-        return new ProgramNotificationJob( taskId );
+        return taskId;
     }
 }

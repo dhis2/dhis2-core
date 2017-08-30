@@ -29,8 +29,9 @@ package org.hisp.dhis.program.notification;
  */
 
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.security.NoSecurityContextRunnable;
+import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
+import org.hisp.dhis.scheduling.Configuration.ProgramNotificationJobConfiguration;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -45,7 +46,7 @@ import java.util.Date;
  * @author Halvdan Hoem Grelland
  */
 public class ProgramNotificationJob
-    extends NoSecurityContextRunnable
+    implements Job
 {
     @Autowired
     private ProgramNotificationService programNotificationService;
@@ -59,38 +60,28 @@ public class ProgramNotificationJob
     @Autowired
     private Notifier notifier;
 
-    private TaskId taskId;
-
-    public void setTaskId( TaskId taskId )
-    {
-        this.taskId = taskId;
-    }
-
-    public ProgramNotificationJob(  TaskId taskId )
-    {
-        this.taskId = taskId;
-    }
-
     // -------------------------------------------------------------------------
-    // Runnable implementation
+    // Implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public void call()
+    public void execute( JobConfiguration jobConfiguration )
     {
+        ProgramNotificationJobConfiguration jobConfig = (ProgramNotificationJobConfiguration) jobConfiguration;
+
         final Clock clock = new Clock().startClock();
 
-        notifier.notify( taskId, "Generating and sending scheduled program notifications" );
+        notifier.notify( jobConfig.getTaskId(), "Generating and sending scheduled program notifications" );
 
         try
         {
             runInternal();
 
-            notifier.notify( taskId, NotificationLevel.INFO, "Generated and sent scheduled program notifications: " + clock.time(), true );
+            notifier.notify( jobConfig.getTaskId(), NotificationLevel.INFO, "Generated and sent scheduled program notifications: " + clock.time(), true );
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( taskId, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
+            notifier.notify( jobConfig.getTaskId(), NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
 
             messageService.sendSystemErrorNotification( "Generating and sending scheduled program notifications failed", ex );
 

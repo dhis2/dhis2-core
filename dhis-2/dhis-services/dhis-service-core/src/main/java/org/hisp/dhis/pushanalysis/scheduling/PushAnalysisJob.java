@@ -28,32 +28,25 @@ package org.hisp.dhis.pushanalysis.scheduling;
  */
 
 import org.hisp.dhis.pushanalysis.PushAnalysisService;
-import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.security.NoSecurityContextRunnable;
+import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
+import org.hisp.dhis.scheduling.Configuration.PushAnalysisJobConfiguration;
+import org.hisp.dhis.scheduling.Job;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Stian Sandvold
  */
 public class PushAnalysisJob
-    extends NoSecurityContextRunnable
+    implements Job
 {
-    private int pushAnalysisId;
-
-    private TaskId taskId;
-
     @Autowired
     private PushAnalysisService pushAnalysisService;
 
-    public PushAnalysisJob( TaskId taskId, int pushAnalysisId )
-    {
-        this.taskId = taskId;
-        this.pushAnalysisId = pushAnalysisId;
-    }
-
     @Override
-    public void call()
+    public void execute( JobConfiguration jobConfiguration )
     {
-        pushAnalysisService.runPushAnalysis( pushAnalysisId, taskId );
+        PushAnalysisJobConfiguration jobConfig = (PushAnalysisJobConfiguration) jobConfiguration;
+
+        pushAnalysisService.runPushAnalysis( jobConfig.getPushAnalysisId(), jobConfig.getTaskId() );
     }
 }

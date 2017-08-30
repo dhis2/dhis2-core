@@ -29,7 +29,9 @@ package org.hisp.dhis.validation.scheduling;
  */
 
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
+import org.hisp.dhis.scheduling.Configuration.MonitoringJobConfiguration;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
@@ -46,7 +48,7 @@ import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
  * @author Jim Grace
  */
 public class MonitoringJob
-    implements Runnable
+    implements Job
 {
     @Autowired
     private ValidationService validationService;
@@ -60,38 +62,28 @@ public class MonitoringJob
     @Autowired
     private SystemSettingManager systemSettingManager;
 
-    private TaskId taskId;
-
-    public void setTaskId( TaskId taskId )
-    {
-        this.taskId = taskId;
-    }
-
-    public MonitoringJob( TaskId taskId )
-    {
-        this.taskId = taskId;
-    }
-
     // -------------------------------------------------------------------------
     // Runnable implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public void run()
+    public void execute( JobConfiguration jobConfiguration )
     {
+        MonitoringJobConfiguration jobConfig = (MonitoringJobConfiguration) jobConfiguration;
+
         final Date startTime = new Date();
         
-        notifier.clear( taskId ).notify( taskId, "Monitoring data" );
+        notifier.clear( jobConfig.getTaskId() ).notify( jobConfig.getTaskId(), "Monitoring data" );
         
         try
         {
             validationService.startScheduledValidationAnalysis();
             
-            notifier.notify( taskId, INFO, "Monitoring process done", true );
+            notifier.notify( jobConfig.getTaskId(), INFO, "Monitoring process done", true );
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( taskId, ERROR, "Process failed: " + ex.getMessage(), true );
+            notifier.notify( jobConfig.getTaskId(), ERROR, "Process failed: " + ex.getMessage(), true );
             
             messageService.sendSystemErrorNotification( "Monitoring process failed", ex );
             

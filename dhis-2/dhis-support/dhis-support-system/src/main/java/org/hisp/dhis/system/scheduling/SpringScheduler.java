@@ -30,7 +30,9 @@ package org.hisp.dhis.system.scheduling;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
 import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobStatus;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
@@ -98,17 +100,16 @@ public class SpringScheduler
     }
 
     @Override
-    public boolean scheduleJob( Job job )
+    public boolean scheduleJob( JobConfiguration jobConfiguration, Job job )
     {
-        if ( job.getKey() != null && !futures.containsKey( job.getKey() ) )
+        if ( jobConfiguration.getKey() != null && !futures.containsKey( jobConfiguration.getKey() ) )
         {
-            ScheduledFuture<?> future = JobScheduler.schedule( job.getRunnable(), new CronTrigger( job.getCronExpression() ) );
+            ScheduledFuture<?> future = JobScheduler.schedule( () -> job.execute( jobConfiguration ) , new CronTrigger( jobConfiguration
+                .getCronExpression() ) );
 
-            futures.put( job.getKey(), future );
+            futures.put( jobConfiguration.getKey(), future );
 
-            //HH verify that we need this -> job.setDelay( future.getDelay( TimeUnit.MINUTES ) );
-
-            log.info( "Scheduled job with key: " + job.getKey() + " and cron: " + job.getCronExpression() );
+            log.info( "Scheduled job with key: " + jobConfiguration.getKey() + " and cron: " + jobConfiguration.getCronExpression() );
 
             return true;
         }
@@ -136,14 +137,15 @@ public class SpringScheduler
     }
 
     @Override
-    public boolean refreshJob( Job job )
+    public boolean refreshJob( JobConfiguration jobConfiguration )
     {
-        if( getJobStatus( job.getKey() ) != ScheduledTaskStatus.NOT_STARTED )
+        /*if( getJobStatus( jobConfiguration.getKey() ) != ScheduledTaskStatus.NOT_STARTED )
         {
-            stopJob( job.getKey() );
+            stopJob( jobConfiguration.getKey() );
         }
 
-        return scheduleJob( job );
+        return scheduleJob( jobConfiguration );*/
+        return false;
     }
 
     @Override
@@ -170,28 +172,28 @@ public class SpringScheduler
         return futures;
     }
 
-    private ScheduledTaskStatus getStatus( Future<?> future )
+    private JobStatus getStatus( Future<?> future )
     {
         if ( future == null )
         {
-            return ScheduledTaskStatus.NOT_STARTED;
+            return JobStatus.SCHEDULED;
         }
         else if ( future.isCancelled() )
         {
-            return ScheduledTaskStatus.STOPPED;
+            return JobStatus.STOPPED;
         }
         else if ( future.isDone() )
         {
-            return ScheduledTaskStatus.DONE;
+            return JobStatus.COMPLETED;
         }
         else
         {
-            return ScheduledTaskStatus.RUNNING;
+            return JobStatus.RUNNING;
         }
     }
 
     @Override
-    public ScheduledTaskStatus getJobStatus( String key )
+    public JobStatus getJobStatus( String key )
     {
         ScheduledFuture<?> future = futures.get( key );
 
@@ -199,7 +201,7 @@ public class SpringScheduler
     }
 
     @Override
-    public ScheduledTaskStatus getCurrentJobStatus( String key )
+    public JobStatus getCurrentJobStatus( String key )
     {
         ListenableFuture<?> future = currentTasks.get( key );
 

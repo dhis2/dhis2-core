@@ -32,8 +32,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.message.MessageService;
-
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.Configuration.DataSyncJobConfiguration;
+import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -41,7 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Lars Helge Overland
  */
 public class DataSynchronizationJob
-    implements Runnable
+    implements Job
 {
     @Autowired
     private SynchronizationManager synchronizationManager;
@@ -52,34 +53,23 @@ public class DataSynchronizationJob
     @Autowired
     private Notifier notifier;
 
-    private TaskId taskId;
-
     private static final Log log = LogFactory.getLog( DataSynchronizationJob.class );
 
-    public DataSynchronizationJob( TaskId taskId )
-    {
-        this.taskId = taskId;
-    }
-
-    public void setTaskId( TaskId taskId )
-    {
-        this.taskId = taskId;
-    }
-
     // -------------------------------------------------------------------------
-    // Runnable implementation
+    // Implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public void run()
+    public void execute( JobConfiguration jobConfiguration )
     {
+        DataSyncJobConfiguration jobConfig = (DataSyncJobConfiguration) jobConfiguration;
         try
         {
             synchronizationManager.executeDataPush();
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( taskId, "Data synch failed: " + ex.getMessage() );
+            notifier.notify( jobConfig.getTaskId(), "Data synch failed: " + ex.getMessage() );
         }
         catch ( WebMessageParseException e )
         {
@@ -92,7 +82,7 @@ public class DataSynchronizationJob
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( taskId, "Event synch failed: " + ex.getMessage() );
+            notifier.notify( jobConfig.getTaskId(), "Event synch failed: " + ex.getMessage() );
             
             messageService.sendSystemErrorNotification( "Event synch failed", ex );
         }
@@ -101,6 +91,6 @@ public class DataSynchronizationJob
             log.error("Error while executing event sync task. "+ e.getMessage(), e );
         }
 
-        notifier.notify( taskId, "Data/Event synch successful" );
+        notifier.notify( jobConfig.getTaskId(), "Data/Event synch successful" );
     }
 }

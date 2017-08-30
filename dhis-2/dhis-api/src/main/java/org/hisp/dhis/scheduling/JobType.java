@@ -6,13 +6,16 @@ package org.hisp.dhis.scheduling;
  */
 public enum JobType
 {
+    DATA_STATISTICS( "dataStatisticsJob" ),
     RESOURCE_TABLE( "resourceTableJob" ),
     ANALYTICS( "analyticsJob" ),
-    MONITORING( "monitoringJob" ),
     DATA_SYNC( "dataSyncJob" ),
-    META_DATA_SYNC( "metadataSyncJob" ),
+    META_DATA_SYNC( "metaDataSyncJob" ),
     MESSAGE_SEND( "messageSendJob" ),
     PROGRAM_NOTIFICATIONS( "programNotificationsJob" ),
+    VALIDATION_RESULTS_NOTIFICATION( "validationResultNotificationJob" ),
+    CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob" ),
+    MONITORING( "monitoringJob" ),
     PUSH_ANALYSIS( "pushAnalysis" );
 
     private final String key;

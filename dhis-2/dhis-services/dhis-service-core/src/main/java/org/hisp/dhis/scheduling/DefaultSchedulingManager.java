@@ -28,19 +28,16 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.system.scheduling.ScheduledTaskStatus;
+import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
 import org.hisp.dhis.system.scheduling.Scheduler;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
+import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
-import java.util.stream.Collectors;
 
 /**
  * Cron refers to the cron expression used for scheduling. Key refers to the key
- * identifying the scheduled tasks.
+ * identifying the scheduled jobs.
  * 
  * @author Lars Helge Overland
  */
@@ -53,46 +50,32 @@ public class DefaultSchedulingManager
 
     private Scheduler scheduler;
 
+    @Autowired
     public void setScheduler( Scheduler scheduler )
     {
         this.scheduler = scheduler;
     }
 
-    private List<Job> jobs = new ArrayList<Job>( );
+    private Map<JobType, Job> jobs;
 
-    private void setJobs( List<Job> jobs )
-    {
+    @Autowired
+    public void setValueMap( Map<JobType, Job> jobs) {
         this.jobs = jobs;
     }
 
     // -------------------------------------------------------------------------
     // SchedulingManager implementation
     // -------------------------------------------------------------------------
-
-    @EventListener
+    /*@EventListener
     public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )
     {
         scheduleJobs();
-    }
+    }*/
 
     @Override
-    public void scheduleJob( Job job)
+    public void scheduleJob( JobConfiguration jobConfiguration )
     {
-        scheduler.scheduleJob( job );
-    }
-
-    @Override
-    public void scheduleJobs()
-    {
-        jobs.forEach( scheduler::scheduleJob );
-    }
-    
-    @Override
-    public void scheduleJobs( List<Job> jobs )
-    {
-        setJobs(jobs);
-
-        scheduleJobs();
+        scheduler.scheduleJob( jobConfiguration, jobs.get( jobConfiguration.getJobType() ) );
     }
 
     @Override
@@ -108,28 +91,54 @@ public class DefaultSchedulingManager
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public List<Job> getScheduledJobs()
+    public void refreshJob( JobConfiguration jobConfiguration )
     {
-        // May want to call scheduler to get a list of jobs put in the que which are not running. The JobStatus may not be updated at this point.
-        return jobs.stream().filter( job -> job.getStatus() == JobStatus.SCHEDULED).collect( Collectors.toList() ); //(ListMap<String, String>) systemSettingManager.getSystemSetting( SettingKey.SCHEDULED_TASKS, new ListMap<String, String>() );
+        scheduler.stopJob( jobConfiguration.getKey() );
+        scheduleJob( jobConfiguration );
     }
 
-    public List<Job> getAllFutureJobs()
+    @Override
+    public void executeJob( JobConfiguration jobConfiguration )
     {
-        Map<String, ScheduledFuture<?>> futureMap = scheduler.getAllFutureJobs();
-
-        List<Job> futureJobs = new ArrayList<>();
-        futureMap.forEach( (k, v) -> futureJobs.add( getJob( k ) ) );
-
-        Collections.sort( futureJobs );
-
-        return futureJobs;
+        if ( jobConfiguration != null && !isJobInProgress( jobConfiguration.getKey() ) )
+        {
+            scheduler.executeJob( jobConfiguration.getKey(), () -> jobs.get( jobConfiguration.getJobType() ).execute( jobConfiguration ) );
+        }
     }
 
-    private Job getJob( String taskKey )
+    @Override
+    public String getCronForJob( String jobKey )
     {
-        return jobs.stream().filter( job -> Objects.equals( job.getKey(), taskKey ) ).findFirst().orElse( null );
+        return null;
+    }
+
+    public Map<String, ScheduledFuture<?>> getAllFutureJobs()
+    {
+        //Map<String, ScheduledFuture<?>> futureMap = scheduler.getAllFutureJobs();
+
+        //List<JobConfiguration> futureJobConfigurations = new ArrayList<>();
+        //futureMap.forEach( (k, v) -> futureJobConfigurations.add( getJob( k ) ) );
+
+        //Collections.sort( futureJobConfigurations );
+
+        return scheduler.getAllFutureJobs();
+    }
+
+    @Override
+    public JobStatus getJobStatus( String jobKey )
+    {
+        return scheduler.getJobStatus( jobKey );
+    }
+
+    /*private JobConfiguration getJob( String jobKey )
+    {
+        return jobConfigs.stream().filter( job -> Objects.equals( job.getKey(), jobKey ) ).findFirst().orElse( null );
+    }*
+
+    private int getJobPos( String jobKey )
+    {
+        return IntStream.range( 0, jobConfigs.size() ).filter( i -> jobKey.equals( jobConfigs.get( i ).getKey() ) ).findFirst()
+            .orElse( -1 );
     }
 
     @Override
@@ -142,7 +151,7 @@ public class DefaultSchedulingManager
     public JobStatus getJobStatus( String taskKey )
     {
         return getJob( taskKey ).getStatus();
-    }
+    }*/
 
     // -------------------------------------------------------------------------
     // Supportive methods
@@ -152,31 +161,21 @@ public class DefaultSchedulingManager
      * Returns a ScheduledTasks object for the given cron expression. The
      * ScheduledTasks object contains a list of tasks.
      */
-    private ScheduledJobs getScheduledTasksForCron( String cron, ListMap<String, String> cronKeyMap )
+    /*private ScheduledJobs getScheduledTasksForCron( String cron, ListMap<String, String> cronKeyMap )
     {
         ScheduledJobs scheduledJobs = new ScheduledJobs();
 
-        scheduledJobs.addJobs( jobs.stream().filter( job -> Objects.equals( job.getCronExpression(), cron ) ).map(
-            Job::getRunnable ).collect( Collectors.toList()) );
+        scheduledJobs.addJobs( jobConfigs.stream().filter( job -> Objects.equals( job.getCronExpression(), cron ) ).map(
+            JobConfiguration::getRunnable ).collect( Collectors.toList()) );
         
         return scheduledJobs;
-    }
+    }*/
 
-    @Override
-    public void executeJob( String jobKey )
-    {
-        Runnable job = getJob( jobKey ).getRunnable();
 
-        if ( job != null && !isJobInProgress( jobKey ) )
-        {
-            scheduler.executeJob( jobKey, job );
-        }
-    }
 
     @Override
     public boolean isJobInProgress(String jobKey)
     {
-        return ScheduledTaskStatus.RUNNING == scheduler.getCurrentJobStatus( jobKey );
+        return JobStatus.RUNNING == scheduler.getCurrentJobStatus( jobKey );
     }
-
 }

@@ -28,14 +28,16 @@ package org.hisp.dhis.sms.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
+import org.hisp.dhis.scheduling.Configuration.MessageSendJobConfiguration;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
-import org.hisp.dhis.commons.util.SystemUtils;
 
 import java.util.Date;
 import java.util.List;
@@ -49,7 +51,7 @@ import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
  */
 
 public class SendScheduledMessageJob
-    implements Runnable
+    implements Job
 {
     private OutboundSmsService outboundSmsService;
 
@@ -73,39 +75,26 @@ public class SendScheduledMessageJob
     }
 
     // -------------------------------------------------------------------------
-    // Params
-    // -------------------------------------------------------------------------
-
-    private TaskId taskId;
-
-    public void setTaskId( TaskId taskId )
-    {
-        this.taskId = taskId;
-    }
-
-    public SendScheduledMessageJob( TaskId taskId ) {
-        this.taskId = taskId;
-    }
-
-    // -------------------------------------------------------------------------
-    // Runnable implementation
+    // Implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public void run()
+    public void execute( JobConfiguration jobConfiguration )
     {
+        MessageSendJobConfiguration jobConfig = (MessageSendJobConfiguration) jobConfiguration;
+
         final int cpuCores = SystemUtils.getCpuCores();
 
         Clock clock = new Clock().startClock().logTime(
             "Aggregate process started, number of CPU cores: " + cpuCores + ", " + SystemUtils.getMemoryString() );
 
         clock.logTime( "Starting to send messages in outbound" );
-        notifier.notify( taskId, INFO, "Start to send messages in outbound", true );
+        notifier.notify( jobConfig.getTaskId(), INFO, "Start to send messages in outbound", true );
 
         sendMessages();
 
         clock.logTime( "Sending messages in outbound completed" );
-        notifier.notify( taskId, INFO, "Sending messages in outbound completed", true );
+        notifier.notify( jobConfig.getTaskId(), INFO, "Sending messages in outbound completed", true );
     }
 
     // -------------------------------------------------------------------------
