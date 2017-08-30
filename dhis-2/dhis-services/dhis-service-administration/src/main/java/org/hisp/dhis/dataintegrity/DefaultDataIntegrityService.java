@@ -162,9 +162,12 @@ public class DefaultDataIntegrityService
         this.periodService = periodService;
     }
 
-    @Autowired
     private ProgramIndicatorService programIndicatorService;
 
+    public void setProgramIndicatorService( ProgramIndicatorService programIndicatorService )
+    {
+        this.programIndicatorService = programIndicatorService;
+    }
     // -------------------------------------------------------------------------
     // DataIntegrityService implementation
     // -------------------------------------------------------------------------
@@ -614,6 +617,11 @@ public class DefaultDataIntegrityService
 
         log.info( "Checked validation rules" );
 
+        report.setInvalidProgramIndicatorExpressions( getInvalidProgramIndicatorExpressions() );
+        report.setInvalidProgramIndicatorFilters( getInvalidProgramIndicatorFilters() );
+
+        log.info( "Checked ProgramIndicators" );
+
         Collections.sort( report.getDataElementsWithoutDataSet() );
         Collections.sort( report.getDataElementsWithoutGroups() );
         Collections.sort( report.getDataSetsNotAssignedToOrganisationUnits() );
@@ -636,10 +644,10 @@ public class DefaultDataIntegrityService
     @Override
     public Map<ProgramIndicator, String> getInvalidProgramIndicatorExpressions()
     {
-        Map<ProgramIndicator, String> invalidExpressions = new TreeMap<>();
+        Map<ProgramIndicator, String> invalidExpressions = new HashMap<>();
 
         invalidExpressions = programIndicatorService.getAllProgramIndicators().stream()
-            .filter( pi -> !programIndicatorService.expressionIsValid( pi.getExpression() ).equals( ProgramIndicator.VALID ) )
+            .filter( pi -> ! ProgramIndicator.VALID.equals( programIndicatorService.expressionIsValid( pi.getExpression() ) ) )
             .collect( Collectors.toMap( pi -> pi, pi -> pi.getExpression() ) );
 
         return invalidExpressions;
@@ -648,10 +656,10 @@ public class DefaultDataIntegrityService
     @Override
     public Map<ProgramIndicator, String> getInvalidProgramIndicatorFilters()
     {
-        Map<ProgramIndicator, String> invalidFilters = new TreeMap<>();
+        Map<ProgramIndicator, String> invalidFilters = new HashMap<>();
 
         invalidFilters = programIndicatorService.getAllProgramIndicators().stream()
-            .filter( pi -> !programIndicatorService.filterIsValid( pi.getFilter() ).equals( ProgramIndicator.VALID ) )
+            .filter( pi -> ( ! ( pi.hasFilter() ? ProgramIndicator.VALID.equals( programIndicatorService.filterIsValid( pi.getFilter() ) ) : true ) ) )
             .collect( Collectors.toMap( pi -> pi, pi -> pi.getFilter() ) );
 
         return invalidFilters;

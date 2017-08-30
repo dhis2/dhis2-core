@@ -38,6 +38,7 @@
 	<property name="dataEntryFormService" ref="org.hisp.dhis.dataentryform.DataEntryFormService" />
 	<property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
 	<property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="programIndicatorService" ref="org.hisp.dhis.program.ProgramIndicatorService" />
   </bean>
   
   <!-- Maintenance -->
