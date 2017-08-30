@@ -136,7 +136,7 @@ public class DefaultValidationService
 
     @Override
     public Collection<ValidationResult> startInteractiveValidationAnalysis( Date startDate, Date endDate,
-        List<OrganisationUnit> orgUnits,
+        List<OrganisationUnit> orgUnits, boolean persistResults,
         DataElementCategoryOptionCombo attributeOptionCombo, ValidationRuleGroup group, boolean sendNotifications,
         I18nFormat format )
     {
@@ -150,6 +150,7 @@ public class DefaultValidationService
         ValidationRunContext context = getValidationContext( orgUnits, periods, rules )
             .withAttributeCombo( attributeOptionCombo )
             .withMaxResults( MAX_INTERACTIVE_ALERTS )
+            .withPersistResults( persistResults )
             .withSendNotifications( sendNotifications )
             .build();
 
