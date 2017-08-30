@@ -29,6 +29,8 @@ package org.hisp.dhis.schema.patch;
  *
  */
 
+import com.google.common.base.MoreObjects;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,5 +68,14 @@ public class Patch
         }
 
         return this;
+    }
+
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "mutations", mutations )
+            .toString();
     }
 }

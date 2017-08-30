@@ -29,6 +29,7 @@ package org.hisp.dhis.schema.patch;
  *
  */
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
@@ -113,6 +114,7 @@ public class DefaultPatchService implements PatchService
         return mutations;
     }
 
+    @SuppressWarnings( "unchecked" )
     private Mutation calculateMutation( String path, Property property, Object source, Object target )
     {
         if ( property.isSimple() )
@@ -125,9 +127,34 @@ public class DefaultPatchService implements PatchService
                 return null;
             }
 
-            if ( targetValue == null || !targetValue.equals( sourceValue ) )
+            if ( targetValue == null || sourceValue == null )
             {
                 return new Mutation( path, targetValue );
+            }
+
+            if ( property.isCollection() )
+            {
+
+                Collection collection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+
+                Collection sourceCollection = (Collection) sourceValue;
+                Collection targetCollection = (Collection) targetValue;
+
+                targetCollection.forEach( o -> {
+                    if ( !sourceCollection.contains( o ) )
+                    {
+                        collection.add( o );
+                    }
+                } );
+
+                return new Mutation( path, collection );
+            }
+            else
+            {
+                if ( !targetValue.equals( sourceValue ) )
+                {
+                    return new Mutation( path, targetValue );
+                }
             }
         }
 
@@ -190,55 +217,59 @@ public class DefaultPatchService implements PatchService
 
         if ( property.isCollection() )
         {
-            Object object = value;
-
-            if ( property.isIdentifiableObject() )
-            {
-                if ( !String.class.isInstance( value ) )
-                {
-                    return;
-                }
-
-                Schema schema = schemaService.getDynamicSchema( property.getItemKlass() );
-
-                Query query = Query.from( schema );
-                query.add( Restrictions.eq( "id", value ) );
-
-                List<? extends IdentifiableObject> objects = queryService.query( query );
-
-                if ( objects.size() != 1 )
-                {
-                    return;
-                }
-
-                object = objects.get( 0 );
-            }
-
-            // validate type
-            if ( !property.getItemKlass().isInstance( object ) )
-            {
-                return;
-            }
-
             Collection collection = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
+            Collection sourceCollection = Collection.class.isInstance( value ) ? (Collection) value : Lists.newArrayList( value );
 
             if ( collection == null )
             {
                 collection = ReflectionUtils.newCollectionInstance( property.getKlass() );
             }
 
-            if ( Mutation.Operation.ADDITION == mutation.getOperation() )
+            for ( Object o : sourceCollection )
             {
-                if ( !collection.contains( object ) )
+                Object object = o;
+
+                if ( property.isIdentifiableObject() && !property.isEmbeddedObject() )
                 {
-                    collection.add( object );
+                    if ( !String.class.isInstance( object ) )
+                    {
+                        return;
+                    }
+
+                    Schema schema = schemaService.getDynamicSchema( property.getItemKlass() );
+
+                    Query query = Query.from( schema );
+                    query.add( Restrictions.eq( "id", object ) ); // optimize by using .in(..) query
+
+                    List<? extends IdentifiableObject> objects = queryService.query( query );
+
+                    if ( objects.size() != 1 )
+                    {
+                        return;
+                    }
+
+                    object = objects.get( 0 );
                 }
-            }
-            else if ( Mutation.Operation.DELETION == mutation.getOperation() )
-            {
-                if ( collection.contains( object ) )
+
+                // validate type
+                if ( !property.getItemKlass().isInstance( object ) )
                 {
-                    collection.remove( object );
+                    return;
+                }
+
+                if ( Mutation.Operation.ADDITION == mutation.getOperation() )
+                {
+                    if ( !collection.contains( object ) )
+                    {
+                        collection.add( object );
+                    }
+                }
+                else if ( Mutation.Operation.DELETION == mutation.getOperation() )
+                {
+                    if ( collection.contains( object ) )
+                    {
+                        collection.remove( object );
+                    }
                 }
             }
 

@@ -29,6 +29,7 @@ package org.hisp.dhis.schema.patch;
  *
  */
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -91,8 +92,7 @@ public class PatchServiceTest
 
         Patch patch = new Patch()
             .addMutation( new Mutation( "name", "Updated Name" ) )
-            .addMutation( new Mutation( "dataElements", deA.getUid() ) )
-            .addMutation( new Mutation( "dataElements", deB.getUid() ) );
+            .addMutation( new Mutation( "dataElements", Lists.newArrayList( deA.getUid(), deB.getUid() ) ) );
 
         patchService.apply( patch, dataElementGroup );
 
@@ -117,7 +117,7 @@ public class PatchServiceTest
 
         Patch patch = new Patch()
             .addMutation( new Mutation( "name", "Updated Name" ) )
-            .addMutation( new Mutation( "dataElements", deA.getUid(), Mutation.Operation.DELETION ) );
+            .addMutation( new Mutation( "dataElements", Lists.newArrayList( deA.getUid() ), Mutation.Operation.DELETION ) );
 
         patchService.apply( patch, dataElementGroup );
 
@@ -125,7 +125,7 @@ public class PatchServiceTest
         assertEquals( 1, dataElementGroup.getMembers().size() );
 
         patch = new Patch()
-            .addMutation( new Mutation( "dataElements", deB.getUid(), Mutation.Operation.DELETION ) );
+            .addMutation( new Mutation( "dataElements", Lists.newArrayList( deB.getUid() ), Mutation.Operation.DELETION ) );
 
         patchService.apply( patch, dataElementGroup );
 
@@ -201,5 +201,30 @@ public class PatchServiceTest
         DataElement deB = createDataElement( 'B' );
 
         Patch patch = patchService.diff( deA, deB );
+        patchService.apply( patch, deA );
+
+        assertEquals( deA.getName(), deB.getName() );
+        assertEquals( deA.getShortName(), deB.getShortName() );
+        assertEquals( deA.getDescription(), deB.getDescription() );
+    }
+
+    @Test
+    public void testSimpleCollectionDiff()
+    {
+        DataElement deA = createDataElement( 'A' );
+        DataElement deB = createDataElement( 'B' );
+
+        deA.getAggregationLevels().add( 1 );
+        deB.getAggregationLevels().add( 1 );
+        deB.getAggregationLevels().add( 2 );
+        deB.getAggregationLevels().add( 3 );
+
+        Patch patch = patchService.diff( deA, deB );
+        patchService.apply( patch, deA );
+
+        assertEquals( deA.getName(), deB.getName() );
+        assertEquals( deA.getShortName(), deB.getShortName() );
+        assertEquals( deA.getDescription(), deB.getDescription() );
+        assertEquals( deA.getAggregationLevels(), deB.getAggregationLevels() );
     }
 }
