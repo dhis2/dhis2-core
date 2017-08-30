@@ -170,18 +170,12 @@ public class DefaultPatchService implements PatchService
 
             return Lists.newArrayList( new Mutation( path, collection ) );
         }
-        else if ( property.isSimple() )
+        else if ( property.isSimple() || property.isEmbeddedObject() )
         {
             if ( !targetValue.equals( sourceValue ) )
             {
                 return Lists.newArrayList( new Mutation( path, targetValue ) );
             }
-        }
-        else if ( property.isCollection() && property.isEmbeddedObject() )
-        {
-        }
-        else if ( property.isEmbeddedObject() )
-        {
         }
 
         return mutations;

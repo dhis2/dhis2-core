@@ -30,11 +30,15 @@ package org.hisp.dhis.schema.patch;
  */
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.validation.Importance;
 import org.hisp.dhis.validation.ValidationRule;
@@ -256,5 +260,34 @@ public class PatchServiceTest
         assertEquals( deA.getDescription(), deB.getDescription() );
         assertEquals( deA.getAggregationLevels(), deB.getAggregationLevels() );
         assertEquals( deA.getGroups(), deB.getGroups() );
+    }
+
+    @Test
+    public void testEmbeddedObjectCollectionDiff()
+    {
+        User adminUser = createAndInjectAdminUser();
+        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( adminUser ) );
+        manager.save( userGroup );
+
+        DataElement deA = createDataElement( 'A' );
+        DataElement deB = createDataElement( 'B' );
+
+        deA.getAggregationLevels().add( 1 );
+        deB.getAggregationLevels().add( 1 );
+        deB.getAggregationLevels().add( 2 );
+        deB.getAggregationLevels().add( 3 );
+
+        deB.getUserGroupAccesses().add( new UserGroupAccess( userGroup, "rw------" ) );
+        deB.getUserAccesses().add( new UserAccess( adminUser, "rw------" ) );
+
+        Patch patch = patchService.diff( deA, deB );
+        patchService.apply( patch, deA );
+
+        assertEquals( deA.getName(), deB.getName() );
+        assertEquals( deA.getShortName(), deB.getShortName() );
+        assertEquals( deA.getDescription(), deB.getDescription() );
+        assertEquals( deA.getAggregationLevels(), deB.getAggregationLevels() );
+        assertEquals( deA.getUserGroupAccesses(), deB.getUserGroupAccesses() );
+        assertEquals( deA.getUserAccesses(), deB.getUserAccesses() );
     }
 }
