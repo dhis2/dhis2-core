@@ -373,9 +373,9 @@ public interface UserService
     List<ErrorReport> validateUser( User user, User currentUser );
 
     /**
-     * Returns list of users whose credentials are expiring with in few days.
-     *
-     * @return list of users whose credentials are expiring with in few days.
+     * Returns list of active users whose credentials are expiring with in few days.
+     * 
+     * @return list of active users whose credentials are expiring with in few days.
      */
     List<User> getExpiringUsers();
 }
