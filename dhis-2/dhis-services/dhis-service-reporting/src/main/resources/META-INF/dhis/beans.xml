@@ -201,6 +201,8 @@
   <bean id="monitoringJobBean" class="org.hisp.dhis.validation.scheduling.MonitoringJob" />
   <bean id="pushAnalysisBean" class="org.hisp.dhis.pushanalysis.scheduling.PushAnalysisJob" />
 
+
+
   <!-- Startup routine definitions -->
 
   <bean id="org.hisp.dhis.common.ReportingIdentityPopulator" class="org.hisp.dhis.common.IdentityPopulator">

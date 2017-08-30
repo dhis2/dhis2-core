@@ -1,8 +1,9 @@
 package org.hisp.dhis.webapi.controller;
 
+import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
+
 /**
- * Created by henninghakonsen on 25/08/2017.
- * Project: dhis-2.
+ * @author Henning Håkonsen
  */
 public class JobController
     extends AbstractCrudController<JobConfiguration>

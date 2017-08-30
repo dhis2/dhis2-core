@@ -1,13 +1,21 @@
 package org.hisp.dhis.scheduling.Configuration;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.scheduling.JobType;
+import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.scheduling.support.SimpleTriggerContext;
+
+import javax.validation.constraints.NotNull;
+import java.util.Date;
 
 /**
- * Created by henninghakonsen on 23/08/2017.
- * Project: dhis-2.
+ * @author Henning Håkonsen
  */
 public class JobConfiguration
+    extends BaseIdentifiableObject
+    implements IdentifiableObject
 {
     private int codeSize = 10;
 
@@ -15,6 +23,9 @@ public class JobConfiguration
     private String key;
     private String cronExpression;
     private JobType jobType;
+
+    // Used in JobService for sorting jobConfigurations based on cron expression
+    private Date nextExecutionTime;
 
     public JobConfiguration( String name, JobType jobType, String cronExpression )
     {
@@ -42,5 +53,21 @@ public class JobConfiguration
     public JobType getJobType()
     {
         return jobType;
+    }
+
+    public Date getNextExecutionTime()
+    {
+        return nextExecutionTime;
+    }
+
+    public void setNextExecutionTime()
+    {
+        this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext(  ) );
+    }
+
+    @Override
+    public int compareTo( IdentifiableObject jobConfiguration )
+    {
+        return nextExecutionTime.compareTo( ((JobConfiguration) jobConfiguration).getNextExecutionTime() );
     }
 }

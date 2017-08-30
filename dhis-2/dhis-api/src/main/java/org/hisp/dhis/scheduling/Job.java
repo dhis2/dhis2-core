@@ -3,8 +3,7 @@ package org.hisp.dhis.scheduling;
 import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
 
 /**
- * Created by henninghakonsen on 30/08/2017.
- * Project: dhis-2.
+ * @author Henning Håkonsen
  */
 public interface Job
 {

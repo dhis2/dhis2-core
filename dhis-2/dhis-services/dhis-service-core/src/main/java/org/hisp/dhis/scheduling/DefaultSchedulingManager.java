@@ -39,7 +39,7 @@ import java.util.concurrent.ScheduledFuture;
  * Cron refers to the cron expression used for scheduling. Key refers to the key
  * identifying the scheduled jobs.
  * 
- * @author Lars Helge Overland
+ * @author Henning Håkonsen
  */
 public class DefaultSchedulingManager
     implements SchedulingManager
@@ -66,11 +66,6 @@ public class DefaultSchedulingManager
     // -------------------------------------------------------------------------
     // SchedulingManager implementation
     // -------------------------------------------------------------------------
-    /*@EventListener
-    public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )
-    {
-        scheduleJobs();
-    }*/
 
     @Override
     public void scheduleJob( JobConfiguration jobConfiguration )
@@ -170,8 +165,6 @@ public class DefaultSchedulingManager
         
         return scheduledJobs;
     }*/
-
-
 
     @Override
     public boolean isJobInProgress(String jobKey)

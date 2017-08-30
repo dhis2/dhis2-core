@@ -1,8 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /**
- * Created by henninghakonsen on 23/08/2017.
- * Project: dhis-2.
+ * @author Henning Håkonsen
  */
 public enum JobType
 {

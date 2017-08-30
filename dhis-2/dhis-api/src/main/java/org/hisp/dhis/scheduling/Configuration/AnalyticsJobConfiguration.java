@@ -6,8 +6,7 @@ import org.hisp.dhis.scheduling.TaskId;
 import java.util.Set;
 
 /**
- * Created by henninghakonsen on 25/08/2017.
- * Project: dhis-2.
+ * @author Henning Håkonsen
  */
 public class AnalyticsJobConfiguration
     extends JobConfiguration

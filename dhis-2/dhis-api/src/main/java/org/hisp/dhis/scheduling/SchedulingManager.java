@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 
 /**
- * @author Lars Helge Overland
+ * @author Henning Håkonsen
  */
 public interface SchedulingManager
 {

@@ -938,14 +938,6 @@
     <property name="deletionManager" ref="deletionManager" />
   </bean>
 
-  <bean id="org.hisp.dhis.organisationunit.OrganisationUnitService" class="org.hisp.dhis.organisationunit.DefaultOrganisationUnitService">
-    <property name="organisationUnitStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitStore" />
-    <property name="organisationUnitLevelStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitLevelStore" />
-    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
-    <property name="versionService" ref="org.hisp.dhis.version.VersionService" />
-    <property name="configurationService" ref="org.hisp.dhis.configuration.ConfigurationService" />
-  </bean>
-
   <bean id="org.hisp.dhis.organisationunit.OrganisationUnitGroupService"
     class="org.hisp.dhis.organisationunit.DefaultOrganisationUnitGroupService">
     <property name="organisationUnitGroupStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupStore" />

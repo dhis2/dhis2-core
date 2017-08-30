@@ -4,8 +4,7 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.TaskId;
 
 /**
- * Created by henninghakonsen on 23/08/2017.
- * Project: dhis-2.
+ * @author Henning Håkonsen
  */
 public class PushAnalysisJobConfiguration extends JobConfiguration
 {
