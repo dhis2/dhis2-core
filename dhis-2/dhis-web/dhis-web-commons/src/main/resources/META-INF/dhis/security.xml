@@ -438,6 +438,7 @@
         <value>F_ORGANISATIONUNIT_MOVE</value>
         <value>F_PREDICTOR_RUN</value>
         <value>F_SEND_EMAIL</value>
+        <value>F_VIEW_SETTINGS</value>
       </set>
     </property>
   </bean>
