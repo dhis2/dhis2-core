@@ -42,6 +42,7 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -103,11 +104,13 @@ public class DefaultPatchService implements PatchService
 
         for ( Property property : schema.getProperties() )
         {
-            Mutation mutation = calculateMutation( property.getName(), property, source, target );
-
-            if ( mutation != null )
+            if ( property.isCollection() )
             {
-                mutations.add( mutation );
+                mutations.addAll( calculateMutation( property.getCollectionName(), property, source, target ) );
+            }
+            else
+            {
+                mutations.addAll( calculateMutation( property.getName(), property, source, target ) );
             }
         }
 
@@ -115,50 +118,73 @@ public class DefaultPatchService implements PatchService
     }
 
     @SuppressWarnings( "unchecked" )
-    private Mutation calculateMutation( String path, Property property, Object source, Object target )
+    private List<Mutation> calculateMutation( String path, Property property, Object source, Object target )
     {
-        if ( property.isSimple() )
+        Object sourceValue = ReflectionUtils.invokeMethod( source, property.getGetterMethod() );
+        Object targetValue = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
+        List<Mutation> mutations = new ArrayList<>();
+
+        if ( sourceValue == null && targetValue == null )
         {
-            Object sourceValue = ReflectionUtils.invokeMethod( source, property.getGetterMethod() );
-            Object targetValue = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
-
-            if ( sourceValue == null && targetValue == null )
-            {
-                return null;
-            }
-
-            if ( targetValue == null || sourceValue == null )
-            {
-                return new Mutation( path, targetValue );
-            }
-
-            if ( property.isCollection() )
-            {
-
-                Collection collection = ReflectionUtils.newCollectionInstance( property.getKlass() );
-
-                Collection sourceCollection = (Collection) sourceValue;
-                Collection targetCollection = (Collection) targetValue;
-
-                targetCollection.forEach( o -> {
-                    if ( !sourceCollection.contains( o ) )
-                    {
-                        collection.add( o );
-                    }
-                } );
-
-                return new Mutation( path, collection );
-            }
-            else
-            {
-                if ( !targetValue.equals( sourceValue ) )
-                {
-                    return new Mutation( path, targetValue );
-                }
-            }
+            return mutations;
         }
 
-        return null;
+        if ( targetValue == null || sourceValue == null )
+        {
+            return Lists.newArrayList( new Mutation( path, targetValue ) );
+        }
+
+        if ( property.isCollection() && property.isIdentifiableObject() && !property.isEmbeddedObject() )
+        {
+            Collection collection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+
+            Collection sourceCollection = (Collection) ((Collection) sourceValue).stream()
+                .map( o -> ((IdentifiableObject) o).getUid() ).collect( Collectors.toList() );
+
+            Collection targetCollection = (Collection) ((Collection) targetValue).stream()
+                .map( o -> ((IdentifiableObject) o).getUid() ).collect( Collectors.toList() );
+
+            for ( Object o : targetCollection )
+            {
+                if ( !sourceCollection.contains( o ) )
+                {
+                    collection.add( o );
+                }
+            }
+
+            return Lists.newArrayList( new Mutation( path, collection ) );
+        }
+        else if ( property.isCollection() && !property.isEmbeddedObject() && !property.isIdentifiableObject() )
+        {
+            Collection collection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+            Collection sourceCollection = (Collection) sourceValue;
+            Collection targetCollection = (Collection) targetValue;
+
+            for ( Object o : targetCollection )
+            {
+                if ( !sourceCollection.contains( o ) )
+                {
+                    collection.add( o );
+                }
+            }
+
+            return Lists.newArrayList( new Mutation( path, collection ) );
+        }
+        else if ( property.isSimple() )
+        {
+            if ( !targetValue.equals( sourceValue ) )
+            {
+                return Lists.newArrayList( new Mutation( path, targetValue ) );
+            }
+        }
+        else if ( property.isCollection() && property.isEmbeddedObject() )
+        {
+        }
+        else if ( property.isEmbeddedObject() )
+        {
+        }
+
+        return mutations;
     }
 
     private void applyMutation( Mutation mutation, Schema schema, Object target )

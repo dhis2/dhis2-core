@@ -227,4 +227,34 @@ public class PatchServiceTest
         assertEquals( deA.getDescription(), deB.getDescription() );
         assertEquals( deA.getAggregationLevels(), deB.getAggregationLevels() );
     }
+
+    @Test
+    public void testSimpleIdObjectCollectionDiff()
+    {
+        DataElement deA = createDataElement( 'A' );
+        DataElement deB = createDataElement( 'B' );
+
+        DataElementGroup degA = createDataElementGroup( 'C' );
+        DataElementGroup degB = createDataElementGroup( 'D' );
+
+        manager.save( degA );
+        manager.save( degB );
+
+        deB.getGroups().add( degA );
+        deB.getGroups().add( degB );
+
+        deA.getAggregationLevels().add( 1 );
+        deB.getAggregationLevels().add( 1 );
+        deB.getAggregationLevels().add( 2 );
+        deB.getAggregationLevels().add( 3 );
+
+        Patch patch = patchService.diff( deA, deB );
+        patchService.apply( patch, deA );
+
+        assertEquals( deA.getName(), deB.getName() );
+        assertEquals( deA.getShortName(), deB.getShortName() );
+        assertEquals( deA.getDescription(), deB.getDescription() );
+        assertEquals( deA.getAggregationLevels(), deB.getAggregationLevels() );
+        assertEquals( deA.getGroups(), deB.getGroups() );
+    }
 }
