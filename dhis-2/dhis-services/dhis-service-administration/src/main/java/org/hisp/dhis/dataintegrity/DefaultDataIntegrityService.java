@@ -54,8 +54,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
@@ -158,6 +161,9 @@ public class DefaultDataIntegrityService
     {
         this.periodService = periodService;
     }
+
+    @Autowired
+    private ProgramIndicatorService programIndicatorService;
 
     // -------------------------------------------------------------------------
     // DataIntegrityService implementation
@@ -625,5 +631,29 @@ public class DefaultDataIntegrityService
     public FlattenedDataIntegrityReport getFlattenedDataIntegrityReport()
     {
         return new FlattenedDataIntegrityReport( getDataIntegrityReport() );
+    }
+
+    @Override
+    public Map<ProgramIndicator, String> getInvalidProgramIndicatorExpressions()
+    {
+        Map<ProgramIndicator, String> invalidExpressions = new TreeMap<>();
+
+        invalidExpressions = programIndicatorService.getAllProgramIndicators().stream()
+            .filter( pi -> !programIndicatorService.expressionIsValid( pi.getExpression() ).equals( ProgramIndicator.VALID ) )
+            .collect( Collectors.toMap( pi -> pi, pi -> pi.getExpression() ) );
+
+        return invalidExpressions;
+    }
+
+    @Override
+    public Map<ProgramIndicator, String> getInvalidProgramIndicatorFilters()
+    {
+        Map<ProgramIndicator, String> invalidFilters = new TreeMap<>();
+
+        invalidFilters = programIndicatorService.getAllProgramIndicators().stream()
+            .filter( pi -> !programIndicatorService.filterIsValid( pi.getFilter() ).equals( ProgramIndicator.VALID ) )
+            .collect( Collectors.toMap( pi -> pi, pi -> pi.getFilter() ) );
+
+        return invalidFilters;
     }
 }
