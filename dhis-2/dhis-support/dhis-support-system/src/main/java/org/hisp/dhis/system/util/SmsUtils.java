@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.text.SimpleDateFormat;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -53,26 +55,25 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
  */
 public class SmsUtils
 {
-    private static int MAX_CHAR = 160;
+    private static final int MAX_CHAR = 160;
+
+    private static final String COMMAND_PATTERN = "([A-Za-z])\\w+";
 
     public static String getCommandString( IncomingSms sms )
     {
-        String message = sms.getText();
         String commandString = null;
 
-        for ( int i = 0; i < message.length(); i++ )
-        {
-            String c = String.valueOf( message.charAt( i ) );
+        Pattern pattern = Pattern.compile( COMMAND_PATTERN );
 
-            if ( c.matches( "\\W" ) )
-            {
-                commandString = message.substring( 0, i );
-                message = message.substring( commandString.length() + 1 );
-                break;
-            }
+        Matcher matcher = pattern.matcher( sms.getText() );
+
+        if ( matcher.find() )
+        {
+            commandString = matcher.group();
+            commandString.trim();
         }
 
-        return commandString.trim();
+        return commandString;
     }
 
     public static Collection<OrganisationUnit> getOrganisationUnitsByPhoneNumber( String sender,
