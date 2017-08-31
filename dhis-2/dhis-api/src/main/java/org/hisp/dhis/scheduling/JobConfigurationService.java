@@ -33,11 +33,25 @@ public interface JobConfigurationService
     void deleteJobConfiguration( int jobId );
 
     /**
-     * Get job configuration for given key
+     * Get job configuration for given id
      * @param jobId id for job configuration
      * @return Job configuration
      */
     JobConfiguration getJobConfiguration( int jobId );
+
+    /**
+     * Get a job configuration for given key
+     * @param jobKey key to search for
+     * @return job configuration
+     */
+    JobConfiguration getJobConfigurationWithKey( String jobKey );
+
+    /**
+     * Get a list of job configurations with specific cron expression
+     * @param cron cron expression to search for
+     * @return list of job configuration
+     */
+    List<JobConfiguration> getJobConfigurationsForCron( String cron );
 
     /**
      * Get all job configurations

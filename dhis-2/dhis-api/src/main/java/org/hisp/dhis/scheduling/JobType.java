@@ -7,7 +7,7 @@ public enum JobType
 {
     DATA_STATISTICS( "dataStatisticsJob" ),
     RESOURCE_TABLE( "resourceTableJob" ),
-    ANALYTICS( "analyticsJob" ),
+    ANALYTICS_TABLE( "analyticsTableJob" ),
     DATA_SYNC( "dataSyncJob" ),
     META_DATA_SYNC( "metaDataSyncJob" ),
     MESSAGE_SEND( "messageSendJob" ),

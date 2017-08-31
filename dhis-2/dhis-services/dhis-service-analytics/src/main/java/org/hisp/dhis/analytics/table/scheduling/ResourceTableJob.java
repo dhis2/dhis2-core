@@ -32,6 +32,7 @@ import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
 import org.hisp.dhis.scheduling.Configuration.ResourceTableJobConfiguration;
 import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -46,6 +47,12 @@ public class ResourceTableJob
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
+
+    @Override
+    public JobType getJobType()
+    {
+        return JobType.RESOURCE_TABLE;
+    }
 
     @Override
     public void execute( JobConfiguration jobConfiguration )

@@ -31,6 +31,7 @@ import org.hisp.dhis.pushanalysis.PushAnalysisService;
 import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
 import org.hisp.dhis.scheduling.Configuration.PushAnalysisJobConfiguration;
 import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -41,6 +42,16 @@ public class PushAnalysisJob
 {
     @Autowired
     private PushAnalysisService pushAnalysisService;
+
+    // -------------------------------------------------------------------------
+    // Implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public JobType getJobType()
+    {
+        return JobType.PUSH_ANALYSIS;
+    }
 
     @Override
     public void execute( JobConfiguration jobConfiguration )

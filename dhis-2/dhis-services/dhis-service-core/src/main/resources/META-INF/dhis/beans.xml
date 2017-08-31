@@ -809,6 +809,8 @@
     <property name="uploadCallback" ref="org.hisp.dhis.fileresource.FileResourceUploadCallback" />
   </bean>
 
+  <bean id="org.hisp.dhis."
+
   <bean id="org.hisp.dhis.fileresource.ExternalFileResourceService" class="org.hisp.dhis.fileresource.DefaultExternalFileResourceService">
     <property name="externalFileResourceStore" ref="org.hisp.dhis.fileresource.ExternalFileResourceStore" />
   </bean>
@@ -1528,14 +1530,12 @@
     <property name="specificResourceBundleName" value="i18n_module" />
   </bean>
 
-  <!-- Scheduled task for scheduled program notifications -->
+  <!-- Scheduled jobs -->
 
-  <bean id="scheduledProgramNotificationsTask"
-        class="org.hisp.dhis.program.notification.ProgramNotificationJob" scope="prototype" />
+  <bean id="scheduledProgramNotificationsJob"
+        class="org.hisp.dhis.program.notification.ProgramNotificationJob" />
 
-  <!-- Scheduled task for validation result notifications -->
-
-  <bean id="validationResultNotificationTask"
+  <bean id="validationResultNotificationJob"
         class="org.hisp.dhis.validation.notification.ValidationResultNotificationJob" scope="prototype" />
 
   <!-- Startup routine definitions -->

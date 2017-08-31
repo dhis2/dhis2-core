@@ -25,10 +25,6 @@
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
-  <bean id="dataStatisticsTask" class="org.hisp.dhis.datastatistics.DataStatisticsJob" scope="prototype" />
-
-  <bean id="credentialsExpiryAlertTask" class="org.hisp.dhis.credentials.CredentialsExpiryAlertJob" scope="prototype"/>
-
   <!-- ReportTable -->
 
   <bean id="org.hisp.dhis.reporttable.ReportTableService" class="org.hisp.dhis.reporttable.impl.DefaultReportTableService">
@@ -170,38 +166,10 @@
     <property name="scheduler" ref="scheduler" />
   </bean>
 
-  <bean id="valueMap" class="org.springframework.beans.factory.config.MapFactoryBean">
-    <property name="org.hisp.dhis.scheduling.SchedulingManager" value="java.util.HashMap"/>
-    <property name="sourceMap">
-      <map key-type="org.hisp.dhis.scheduling.JobType">
-        <entry key="DATA_STATISTICS" value-ref="dataStatisticsJobBean" />
-        <entry key="RESOURCE_TABLE" value-ref="resourceTableJobBean" />
-        <entry key="ANALYTICS" value-ref="analyticsJobBean" />
-        <entry key="DATA_SYNC" value-ref="dataSynchJobBean" />
-        <entry key="META_DATA_SYNC" value-ref="metadataSyncJobBean" />
-        <entry key="MESSAGE_SEND" value-ref="sendScheduledMessageJobBean" />
-        <entry key="PROGRAM_NOTIFICATIONS" value-ref="programNotificationsJobBean" />
-        <entry key="VALIDATION_RESULTS_NOTIFICATION" value-ref="validationResultNotificationJobBean" />
-        <entry key="CREDENTIALS_EXPIRY_ALERT" value-ref="credentialsExpiryAlertJobBean" />
-        <entry key="MONITORING" value-ref="monitoringJobBean" />
-        <entry key="PUSH_ANALYSIS" value-ref="pushAnalysisBean" />
-      </map>
-    </property>
-  </bean>
-
-  <bean id="dataStatisticsJobBean" class="org.hisp.dhis.datastatistics.DataStatisticsJob" />
-  <bean id="resourceTableJobBean" class="org.hisp.dhis.analytics.table.scheduling.ResourceTableJob" />
-  <bean id="analyticsJobBean" class="org.hisp.dhis.analytics.table.scheduling.AnalyticsTableJob" />
-  <bean id="dataSynchJobBean" class="org.hisp.dhis.dxf2.synch.DataSynchronizationJob" />
-  <bean id="metadataSyncJobBean" class="org.hisp.dhis.dxf2.metadata.tasks.MetadataSyncJob" />
-  <bean id="sendScheduledMessageJobBean" class="org.hisp.dhis.sms.scheduling.SendScheduledMessageJob" />
-  <bean id="programNotificationsJobBean" class="org.hisp.dhis.program.notification.ProgramNotificationJob" />
-  <bean id="validationResultNotificationJobBean" class="org.hisp.dhis.validation.notification.ValidationResultNotificationJob" />
-  <bean id="credentialsExpiryAlertJobBean" class="org.hisp.dhis.credentials.CredentialsExpiryAlertJob" />
-  <bean id="monitoringJobBean" class="org.hisp.dhis.validation.scheduling.MonitoringJob" />
-  <bean id="pushAnalysisBean" class="org.hisp.dhis.pushanalysis.scheduling.PushAnalysisJob" />
-
-
+  <bean id="dataStatisticsJob" class="org.hisp.dhis.datastatistics.DataStatisticsJob" />
+  <bean id="credentialsExpiryAlertJob" class="org.hisp.dhis.credentials.CredentialsExpiryAlertJob" />
+  <bean id="monitoringJob" class="org.hisp.dhis.validation.scheduling.MonitoringJob" />
+  <bean id="pushAnalysis" class="org.hisp.dhis.pushanalysis.scheduling.PushAnalysisJob" />
 
   <!-- Startup routine definitions -->
 

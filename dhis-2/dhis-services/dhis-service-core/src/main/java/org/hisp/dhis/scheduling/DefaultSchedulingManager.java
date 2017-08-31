@@ -32,6 +32,9 @@ import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.PostConstruct;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 
@@ -56,11 +59,15 @@ public class DefaultSchedulingManager
         this.scheduler = scheduler;
     }
 
-    private Map<JobType, Job> jobs;
+    private Map<JobType, Job> jobMap = new HashMap<JobType, Job>();
 
     @Autowired
-    public void setValueMap( Map<JobType, Job> jobs) {
-        this.jobs = jobs;
+    private List<Job> jobs;
+
+    @PostConstruct
+    public void init( )
+    {
+        jobs.forEach( job -> jobMap.put( job.getJobType(), job ) );
     }
 
     // -------------------------------------------------------------------------
@@ -70,7 +77,7 @@ public class DefaultSchedulingManager
     @Override
     public void scheduleJob( JobConfiguration jobConfiguration )
     {
-        scheduler.scheduleJob( jobConfiguration, jobs.get( jobConfiguration.getJobType() ) );
+        scheduler.scheduleJob( jobConfiguration, jobMap.get( jobConfiguration.getJobType() ) );
     }
 
     @Override
@@ -97,7 +104,7 @@ public class DefaultSchedulingManager
     {
         if ( jobConfiguration != null && !isJobInProgress( jobConfiguration.getKey() ) )
         {
-            scheduler.executeJob( jobConfiguration.getKey(), () -> jobs.get( jobConfiguration.getJobType() ).execute( jobConfiguration ) );
+            scheduler.executeJob( jobConfiguration.getKey(), () -> jobMap.get( jobConfiguration.getJobType() ).execute( jobConfiguration ) );
         }
     }
 
@@ -109,13 +116,6 @@ public class DefaultSchedulingManager
 
     public Map<String, ScheduledFuture<?>> getAllFutureJobs()
     {
-        //Map<String, ScheduledFuture<?>> futureMap = scheduler.getAllFutureJobs();
-
-        //List<JobConfiguration> futureJobConfigurations = new ArrayList<>();
-        //futureMap.forEach( (k, v) -> futureJobConfigurations.add( getJob( k ) ) );
-
-        //Collections.sort( futureJobConfigurations );
-
         return scheduler.getAllFutureJobs();
     }
 
@@ -125,28 +125,7 @@ public class DefaultSchedulingManager
         return scheduler.getJobStatus( jobKey );
     }
 
-    /*private JobConfiguration getJob( String jobKey )
-    {
-        return jobConfigs.stream().filter( job -> Objects.equals( job.getKey(), jobKey ) ).findFirst().orElse( null );
-    }*
 
-    private int getJobPos( String jobKey )
-    {
-        return IntStream.range( 0, jobConfigs.size() ).filter( i -> jobKey.equals( jobConfigs.get( i ).getKey() ) ).findFirst()
-            .orElse( -1 );
-    }
-
-    @Override
-    public String getCronForJob( final String taskKey )
-    {
-        return getJob(taskKey).getCronExpression();
-    }
-    
-    @Override
-    public JobStatus getJobStatus( String taskKey )
-    {
-        return getJob( taskKey ).getStatus();
-    }*/
 
     // -------------------------------------------------------------------------
     // Supportive methods

@@ -7,5 +7,7 @@ import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
  */
 public interface Job
 {
+    JobType getJobType();
+
     void execute( JobConfiguration jobConfiguration );
 }

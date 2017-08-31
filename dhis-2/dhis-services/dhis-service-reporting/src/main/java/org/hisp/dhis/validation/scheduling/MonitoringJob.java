@@ -32,6 +32,7 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
 import org.hisp.dhis.scheduling.Configuration.MonitoringJobConfiguration;
 import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
@@ -63,8 +64,14 @@ public class MonitoringJob
     private SystemSettingManager systemSettingManager;
 
     // -------------------------------------------------------------------------
-    // Runnable implementation
+    // Implementation
     // -------------------------------------------------------------------------
+
+    @Override
+    public JobType getJobType()
+    {
+        return JobType.MONITORING;
+    }
 
     @Override
     public void execute( JobConfiguration jobConfiguration )

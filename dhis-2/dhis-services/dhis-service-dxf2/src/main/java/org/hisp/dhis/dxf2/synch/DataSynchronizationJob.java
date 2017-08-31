@@ -35,6 +35,7 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.Configuration.DataSyncJobConfiguration;
 import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
 import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -58,6 +59,12 @@ public class DataSynchronizationJob
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
+
+    @Override
+    public JobType getJobType()
+    {
+        return JobType.DATA_SYNC;
+    }
 
     @Override
     public void execute( JobConfiguration jobConfiguration )

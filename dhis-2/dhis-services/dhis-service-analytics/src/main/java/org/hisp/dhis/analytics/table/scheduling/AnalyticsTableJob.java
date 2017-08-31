@@ -33,6 +33,7 @@ import org.hisp.dhis.analytics.table.AnalyticsTableType;
 import org.hisp.dhis.scheduling.Configuration.AnalyticsJobConfiguration;
 import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
 import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;
@@ -50,6 +51,12 @@ public class AnalyticsTableJob
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
+
+    @Override
+    public JobType getJobType()
+    {
+        return JobType.ANALYTICS_TABLE;
+    }
 
     @Override
     public void execute( JobConfiguration jobConfiguration)

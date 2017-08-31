@@ -32,6 +32,7 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
 import org.hisp.dhis.scheduling.Configuration.ValidationResultNotificationJobConfiguration;
 import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
@@ -56,6 +57,12 @@ public class ValidationResultNotificationJob
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
+
+    @Override
+    public JobType getJobType()
+    {
+        return JobType.VALIDATION_RESULTS_NOTIFICATION;
+    }
 
     @Override
     public void execute( JobConfiguration jobConfiguration )

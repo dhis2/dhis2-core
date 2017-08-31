@@ -33,6 +33,7 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
 import org.hisp.dhis.scheduling.Configuration.MessageSendJobConfiguration;
 import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
@@ -77,6 +78,12 @@ public class SendScheduledMessageJob
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
+
+    @Override
+    public JobType getJobType()
+    {
+        return JobType.MESSAGE_SEND;
+    }
 
     @Override
     public void execute( JobConfiguration jobConfiguration )

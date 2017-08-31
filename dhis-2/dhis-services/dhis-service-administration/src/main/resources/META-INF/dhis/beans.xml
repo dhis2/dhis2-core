@@ -65,7 +65,7 @@
   
   <!-- Scheduled tasks -->
   
-  <bean id="sendScheduledMessageTaskNow" class="org.hisp.dhis.sms.scheduling.SendScheduledMessageJob" scope="prototype">
+  <bean id="sendScheduledMessageJob" class="org.hisp.dhis.sms.scheduling.SendScheduledMessageJob" >
 		<property name="outboundSmsService" ref="org.hisp.dhis.sms.outbound.OutboundSmsService" />
 		<property name="smsSender" ref="smsMessageSender" />
 		<property name="notifier" ref="notifier" />

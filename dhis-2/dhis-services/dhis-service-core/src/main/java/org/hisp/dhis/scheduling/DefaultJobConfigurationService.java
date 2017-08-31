@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author Henning Håkonsen
@@ -50,7 +52,19 @@ public class DefaultJobConfigurationService
     public void deleteJobConfiguration( int jobId )
     {
         jobConfigurationStore.delete( jobConfigurationStore.get( jobId ));
+    }
 
+    @Override
+    public JobConfiguration getJobConfigurationWithKey( String jobKey )
+    {
+        return getAllJobConfigurations().stream().filter( job -> Objects.equals( job.getKey(), jobKey ) ).findFirst().orElse( null );
+    }
+
+    @Override
+    public List<JobConfiguration> getJobConfigurationsForCron( String cron )
+    {
+        return getAllJobConfigurations().stream().filter( jobConfiguration -> jobConfiguration.getCronExpression().equals( cron ) ).collect( Collectors
+            .toList());
     }
 
     @Override
