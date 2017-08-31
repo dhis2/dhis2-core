@@ -46,6 +46,8 @@
 
   <bean id="org.hisp.dhis.node.NodeService" class="org.hisp.dhis.node.DefaultNodeService" />
 
+  <bean class="org.hisp.dhis.schema.patch.DefaultPatchService" />
+
   <bean class="org.hisp.dhis.node.transformers.PagingNodeTransformer" />
 
   <bean class="org.hisp.dhis.node.transformers.RenameNodeTransformer" />
@@ -1502,7 +1504,7 @@
 
 
   <bean id="org.hisp.dhis.sms.listener.ProgramStageDataEntrySMSListener"
-        class="org.hisp.dhis.sms.listener.ProgramStageDataEntrySMSListener" />
+    class="org.hisp.dhis.sms.listener.ProgramStageDataEntrySMSListener" />
 
   <bean id="org.hisp.dhis.sms.listener.SingleEventListener" class="org.hisp.dhis.sms.listener.SingleEventListener" />
 
