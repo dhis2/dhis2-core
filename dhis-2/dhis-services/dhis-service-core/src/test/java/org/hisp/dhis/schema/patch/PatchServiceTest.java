@@ -218,6 +218,30 @@ public class PatchServiceTest
     }
 
     @Test
+    public void testUpdateUserOnDataElement()
+    {
+        User user = createUser( 'A' );
+        manager.save( user );
+
+        createAndInjectAdminUser();
+
+        DataElement dataElement = createDataElement( 'A' );
+        manager.save( dataElement );
+
+        Patch patch = new Patch()
+            .addMutation( new Mutation( "name", "Updated Name" ) )
+            .addMutation( new Mutation( "user", user.getUid() ) )
+            .addMutation( new Mutation( "domainType", "TRACKER" ) )
+            .addMutation( new Mutation( "valueType", "BOOLEAN" ) );
+
+        patchService.apply( patch, dataElement );
+
+        assertEquals( DataElementDomain.TRACKER, dataElement.getDomainType() );
+        assertEquals( ValueType.BOOLEAN, dataElement.getValueType() );
+        assertEquals( user.getUid(), dataElement.getUser().getUid() );
+    }
+
+    @Test
     public void testAddStringAggLevelsToDataElement()
     {
         DataElement dataElement = createDataElement( 'A' );
@@ -384,7 +408,6 @@ public class PatchServiceTest
         manager.save( degB );
 
         Patch patch = patchService.diff( jsonNode );
-        System.err.println( "Patch: " + patch );
         patchService.apply( patch, dataElement );
 
         assertEquals( dataElement.getName(), "Updated Name" );

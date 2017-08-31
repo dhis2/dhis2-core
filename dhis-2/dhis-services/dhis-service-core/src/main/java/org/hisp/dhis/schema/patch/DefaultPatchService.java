@@ -374,6 +374,35 @@ public class DefaultPatchService implements PatchService
 
             ReflectionUtils.invokeMethod( target, property.getSetterMethod(), collection );
         }
+        else if ( property.isIdentifiableObject() && !property.isEmbeddedObject() )
+        {
+            if ( !String.class.isInstance( value ) )
+            {
+                return;
+            }
+
+            Schema schema = schemaService.getDynamicSchema( property.getKlass() );
+
+            Query query = Query.from( schema );
+            query.add( Restrictions.eq( "id", value ) );
+
+            List<? extends IdentifiableObject> objects = queryService.query( query );
+
+            if ( objects.size() != 1 )
+            {
+                return;
+            }
+
+            value = objects.get( 0 );
+
+            // validate type
+            if ( !property.getKlass().isInstance( value ) )
+            {
+                return;
+            }
+
+            ReflectionUtils.invokeMethod( target, property.getSetterMethod(), value );
+        }
         else
         {
             value = parseValue( value, property.getKlass() );
