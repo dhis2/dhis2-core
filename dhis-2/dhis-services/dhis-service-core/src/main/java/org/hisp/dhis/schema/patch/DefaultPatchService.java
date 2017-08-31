@@ -30,6 +30,8 @@ package org.hisp.dhis.schema.patch;
  */
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Enums;
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.Query;
@@ -38,10 +40,12 @@ import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -372,6 +376,8 @@ public class DefaultPatchService implements PatchService
         }
         else
         {
+            value = parseValue( value, property.getKlass() );
+
             // validate type
             if ( !property.getKlass().isInstance( value ) )
             {
@@ -380,5 +386,78 @@ public class DefaultPatchService implements PatchService
 
             ReflectionUtils.invokeMethod( target, property.getSetterMethod(), value );
         }
+    }
+
+    @SuppressWarnings( { "unchecked", "rawtypes" } )
+    private Object parseValue( Object value, Class<?> klass )
+    {
+        if ( klass.isInstance( value ) || !String.class.isInstance( value ) )
+        {
+            return value;
+        }
+
+        String stringValue = (String) value;
+
+        if ( Integer.class.isAssignableFrom( klass ) )
+        {
+            try
+            {
+                return Integer.valueOf( stringValue );
+            }
+            catch ( Exception ex )
+            {
+            }
+        }
+        else if ( Boolean.class.isAssignableFrom( klass ) )
+        {
+            try
+            {
+                return Boolean.valueOf( stringValue );
+            }
+            catch ( Exception ex )
+            {
+            }
+        }
+        else if ( Float.class.isAssignableFrom( klass ) )
+        {
+            try
+            {
+                return Float.valueOf( stringValue );
+            }
+            catch ( Exception ex )
+            {
+            }
+        }
+        else if ( Double.class.isAssignableFrom( klass ) )
+        {
+            try
+            {
+                return Double.valueOf( stringValue );
+            }
+            catch ( Exception ex )
+            {
+            }
+        }
+        else if ( Date.class.isAssignableFrom( klass ) )
+        {
+            try
+            {
+                return DateUtils.parseDate( stringValue );
+            }
+            catch ( Exception ex )
+            {
+            }
+        }
+        if ( Enum.class.isAssignableFrom( klass ) )
+        {
+            Optional<? extends Enum<?>> enumValue = Enums.getIfPresent( (Class<? extends Enum>) klass, stringValue );
+
+            if ( enumValue.isPresent() )
+            {
+                return enumValue.get();
+            }
+        }
+
+        return null;
     }
 }

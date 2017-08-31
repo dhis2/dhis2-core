@@ -41,7 +41,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.render.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.render.ParseDateStdDeserializer;
@@ -196,6 +198,23 @@ public class PatchServiceTest
         patchService.apply( patch, dataElement );
 
         assertEquals( 2, dataElement.getAggregationLevels().size() );
+    }
+
+    @Test
+    public void testUpdateValueTypeEnumFromString()
+    {
+        DataElement dataElement = createDataElement( 'A' );
+        assertTrue( dataElement.getAggregationLevels().isEmpty() );
+
+        Patch patch = new Patch()
+            .addMutation( new Mutation( "name", "Updated Name" ) )
+            .addMutation( new Mutation( "domainType", "TRACKER" ) )
+            .addMutation( new Mutation( "valueType", "BOOLEAN" ) );
+
+        patchService.apply( patch, dataElement );
+
+        assertEquals( DataElementDomain.TRACKER, dataElement.getDomainType() );
+        assertEquals( ValueType.BOOLEAN, dataElement.getValueType() );
     }
 
     @Test
