@@ -179,7 +179,7 @@ public class ImportDataValueAction
 
         log.info( options );
 
-        scheduler.executeTask( new ImportDataValueTask( dataValueSetService,
+        scheduler.executeJob( new ImportDataValueTask( dataValueSetService,
             adxDataService, sessionFactory, in, options, taskId, importFormat ) );
 
         return SUCCESS;

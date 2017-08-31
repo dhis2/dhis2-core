@@ -108,7 +108,7 @@
     <constructor-arg ref="maxAttempts" />
     <constructor-arg>
       <map>
-        <entry key="org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException" value="true"></entry>
+        <entry key="org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException" value="true"/>
       </map>
     </constructor-arg>
   </bean>

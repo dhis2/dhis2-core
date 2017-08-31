@@ -184,17 +184,17 @@ public class MetaDataImportAction
         {
             if ( classKey != null && CSV_SUPPORTED_CLASSES.containsKey( classKey ) )
             {
-                scheduler.executeTask( new ImportMetaDataCsvTask( importService, csvImportService, schemaService,
+                scheduler.executeJob( new ImportMetaDataCsvTask( importService, csvImportService, schemaService,
                     importParams, in, CSV_SUPPORTED_CLASSES.get( classKey ) ) );
             }
         }
         else if ( "gml".equals( importFormat ) )
         {
-            scheduler.executeTask( new ImportMetaDataGmlTask( gmlImportService, importParams, in ) );
+            scheduler.executeJob( new ImportMetaDataGmlTask( gmlImportService, importParams, in ) );
         }
         else if ( "json".equals( importFormat ) || "xml".equals( importFormat ) )
         {
-            scheduler.executeTask( new ImportMetaDataTask( importService, schemaService, importParams, in, importFormat ) );
+            scheduler.executeJob( new ImportMetaDataTask( importService, schemaService, importParams, in, importFormat ) );
         }
 
         return SUCCESS;

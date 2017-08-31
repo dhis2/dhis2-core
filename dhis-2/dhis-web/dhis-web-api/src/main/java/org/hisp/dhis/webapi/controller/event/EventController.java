@@ -627,7 +627,8 @@ public class EventController
         {
             TaskId taskId = new TaskId( TaskCategory.EVENT_IMPORT, currentUserService.getCurrentUser() );
             List<Event> events = eventService.getEventsXml( inputStream );
-            scheduler.executeTask( new ImportEventTask( events, eventService, importOptions, taskId ) );
+            //HH
+            scheduler.executeJob( new ImportEventTask( events, eventService, importOptions, taskId ) );
             response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TaskCategory.EVENT_IMPORT );
             response.setStatus( HttpServletResponse.SC_NO_CONTENT );
         }
@@ -673,7 +674,7 @@ public class EventController
         {
             TaskId taskId = new TaskId( TaskCategory.EVENT_IMPORT, currentUserService.getCurrentUser() );
             List<Event> events = eventService.getEventsJson( inputStream );
-            scheduler.executeTask( new ImportEventTask( events, eventService, importOptions, taskId ) );
+            scheduler.executeJob( new ImportEventTask( events, eventService, importOptions, taskId ) );
             response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TaskCategory.EVENT_IMPORT );
             response.setStatus( HttpServletResponse.SC_NO_CONTENT );
         }
@@ -714,8 +715,9 @@ public class EventController
         }
         else
         {
+            // HH
             TaskId taskId = new TaskId( TaskCategory.EVENT_IMPORT, currentUserService.getCurrentUser() );
-            scheduler.executeTask( new ImportEventsTask( events.getEvents(), eventService, importOptions, taskId ) );
+            scheduler.executeJob( new ImportEventsTask( events.getEvents(), eventService, importOptions, taskId ) );
             response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TaskCategory.EVENT_IMPORT );
             response.setStatus( HttpServletResponse.SC_NO_CONTENT );
         }

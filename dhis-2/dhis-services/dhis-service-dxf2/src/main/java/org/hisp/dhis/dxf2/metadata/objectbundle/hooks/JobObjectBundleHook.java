@@ -1,5 +1,10 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
+import org.hisp.dhis.scheduling.SchedulingManager;
+
 /**
  * Created by henninghakonsen on 28/08/2017.
  * Project: dhis-2.
@@ -7,7 +12,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 public class JobObjectBundleHook
     extends AbstractObjectBundleHook
 {
-    /*private SchedulingManager schedulingManager;
+    private SchedulingManager schedulingManager;
 
     public void setSchedulingManager( SchedulingManager schedulingManager )
     {
@@ -17,49 +22,46 @@ public class JobObjectBundleHook
     @Override
     public void preCreate( IdentifiableObject object, ObjectBundle bundle )
     {
-        if ( !Job.class.isInstance( object ) )
+        if ( !JobConfiguration.class.isInstance( object ) )
         {
             return;
         }
 
-        Job job = handleJob( object );
-        sessionFactory.getCurrentSession().save( job );
+        JobConfiguration jobConfiguration = (JobConfiguration) object;
+        jobConfiguration.setKey( "" );
+        sessionFactory.getCurrentSession().save( jobConfiguration );
     }
 
     @Override
     public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
     {
-        if ( !Job.class.isInstance( object ) )
+        if ( !JobConfiguration.class.isInstance( object ) )
         {
             return;
         }
 
-        Job job = handleJob( object );
+        JobConfiguration job = (JobConfiguration) persistedObject;
+        schedulingManager.stopJob( job.getKey() );
+
         sessionFactory.getCurrentSession().saveOrUpdate( job );
+    }
+
+    @Override
+    public <T extends IdentifiableObject> void preDelete( T persistedObject, ObjectBundle bundle )
+    {
+        schedulingManager.stopJob( ((JobConfiguration) persistedObject).getKey() );
+        sessionFactory.getCurrentSession().delete( persistedObject );
     }
 
     @Override
     public <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle )
     {
-        schedulingManager.scheduleJob( (Job) persistedObject );
+        schedulingManager.scheduleJob( (JobConfiguration) persistedObject );
     }
 
     @Override
     public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
     {
-        Job job = (Job) persistedObject;
-
-        schedulingManager.stopJob( job.getKey() );
-        schedulingManager.scheduleJob( job );
+        schedulingManager.scheduleJob( (JobConfiguration) persistedObject );
     }
-
-    private Job handleJob( IdentifiableObject object )
-    {
-        Job job = (Job) object;
-        job.setStatus( null );
-        job.setKey( "" );
-        job.setNextExecutionTime();
-
-        return job;
-    }*/
 }

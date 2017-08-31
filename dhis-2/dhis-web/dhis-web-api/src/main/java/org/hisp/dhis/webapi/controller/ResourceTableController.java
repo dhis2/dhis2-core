@@ -28,14 +28,15 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+import org.hisp.dhis.analytics.table.AnalyticsTableType;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.scheduling.TaskCategory;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.validation.scheduling.MonitoringTask;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -44,14 +45,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import org.hisp.dhis.analytics.AnalyticsTableGenerator;
-import org.hisp.dhis.analytics.table.AnalyticsTableType;
-
-import java.util.HashSet;
-import java.util.Set;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -65,9 +62,6 @@ public class ResourceTableController
 
     @Autowired
     private AnalyticsTableGenerator analyticsTableGenerator;
-
-    @Autowired
-    private MonitoringTask monitoringTask;
 
     @Autowired
     private Scheduler scheduler;
@@ -109,7 +103,7 @@ public class ResourceTableController
             skipTableTypes.add( AnalyticsTableType.ENROLLMENT );
         }
         
-        scheduler.executeTask( () -> analyticsTableGenerator.generateTables( lastYears, taskId, skipTableTypes, skipResourceTables ) );
+        scheduler.executeJob( () -> analyticsTableGenerator.generateTables( lastYears, taskId, skipTableTypes, skipResourceTables ) );
         
         webMessageService.send( WebMessageUtils.ok( "Initiated analytics table update" ), response, request );
     }
@@ -120,7 +114,8 @@ public class ResourceTableController
     {
         TaskId taskId = new TaskId( TaskCategory.RESOURCETABLE_UPDATE, currentUserService.getCurrentUser() );
 
-        scheduler.executeTask( () -> analyticsTableGenerator.generateResourceTables( taskId ) );
+        // HH
+        scheduler.executeJob( () -> analyticsTableGenerator.generateResourceTables( taskId ) );
 
         webMessageService.send( WebMessageUtils.ok( "Initiated resource table update" ), response, request );
     }
@@ -129,9 +124,9 @@ public class ResourceTableController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void monitoring( HttpServletResponse response, HttpServletRequest request )
     {
-        monitoringTask.setTaskId( new TaskId( TaskCategory.MONITORING, currentUserService.getCurrentUser() ) );
+        /*monitoringTask.setTaskId( new TaskId( TaskCategory.MONITORING, currentUserService.getCurrentUser() ) );
 
-        scheduler.executeTask( monitoringTask );
+        scheduler.executeTask( () -> MonitoringJob() );*/
 
         webMessageService.send( WebMessageUtils.ok( "Initiated data monitoring" ), response, request );
     }

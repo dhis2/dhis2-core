@@ -157,7 +157,7 @@ public class ImportEventAction
         if ( FORMAT_CSV.equals( payloadFormat ) )
         {
             Events events = csvEventService.readEvents( in, skipFirst );
-            scheduler.executeTask( new ImportEventsTask( events.getEvents(), eventService, importOptions, taskId ) );
+            scheduler.executeJob( new ImportEventsTask( events.getEvents(), eventService, importOptions, taskId ) );
         }
         else
         {
@@ -172,7 +172,7 @@ public class ImportEventAction
                 events = eventService.getEventsXml( in );
             }
 
-            scheduler.executeTask( new ImportEventTask( events, eventService, importOptions, taskId ) );
+            scheduler.executeJob( new ImportEventTask( events, eventService, importOptions, taskId ) );
         }
 
         return SUCCESS;

@@ -271,7 +271,7 @@ public class ProcessingSendQuickSMSAction
         sendSmsTask.setSmsSubject( smsSubject );
         sendSmsTask.setText( text );
 
-        scheduler.executeTask( sendSmsTask );
+        scheduler.executeJob( sendSmsTask );
 
         if ( message != null && !message.equals( "success" ) )
         {

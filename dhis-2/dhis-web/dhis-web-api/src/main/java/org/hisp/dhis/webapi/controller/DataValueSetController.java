@@ -311,7 +311,7 @@ public class DataValueSetController
         InputStream inputStream = saveTmp( request.getInputStream() );
 
         TaskId taskId = new TaskId( TaskCategory.DATAVALUE_IMPORT, currentUserService.getCurrentUser() );
-        scheduler.executeTask( new ImportDataValueTask( dataValueSetService, adxDataService, sessionFactory, inputStream, importOptions, taskId, format ) );
+        scheduler.executeJob( new ImportDataValueTask( dataValueSetService, adxDataService, sessionFactory, inputStream, importOptions, taskId, format ) );
 
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TaskCategory.DATAVALUE_IMPORT );
         response.setStatus( HttpServletResponse.SC_ACCEPTED );

@@ -153,6 +153,7 @@ public class DefaultSchemaService
         add( new UserGroupAccessSchemaDescriptor() ).
         add( new MinMaxDataElementSchemaDescriptor() ).
         add( new ValidationResultSchemaDescriptor() ).
+        add( new JobConfigurationSchemaDescriptor() ).
         build();
 
     private Map<Class<?>, Schema> classSchemaMap = new HashMap<>();
@@ -200,6 +201,8 @@ public class DefaultSchemaService
             {
                 schema.setPropertyMap( Maps.newHashMap( propertyIntrospectorService.getPropertiesMap( schema.getKlass() ) ) );
             }
+
+            System.out.println("desc: " + descriptor + ", schema: " + schema);
 
             classSchemaMap.put( schema.getKlass(), schema );
             singularSchemaMap.put( schema.getSingular(), schema );

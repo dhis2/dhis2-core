@@ -131,20 +131,6 @@ public class DefaultSchedulingManager
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    /**
-     * Returns a ScheduledTasks object for the given cron expression. The
-     * ScheduledTasks object contains a list of tasks.
-     */
-    /*private ScheduledJobs getScheduledTasksForCron( String cron, ListMap<String, String> cronKeyMap )
-    {
-        ScheduledJobs scheduledJobs = new ScheduledJobs();
-
-        scheduledJobs.addJobs( jobConfigs.stream().filter( job -> Objects.equals( job.getCronExpression(), cron ) ).map(
-            JobConfiguration::getRunnable ).collect( Collectors.toList()) );
-        
-        return scheduledJobs;
-    }*/
-
     @Override
     public boolean isJobInProgress(String jobKey)
     {

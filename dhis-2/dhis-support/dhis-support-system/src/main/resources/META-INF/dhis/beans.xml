@@ -31,8 +31,7 @@
   <bean id="restTemplate" class="org.springframework.web.client.RestTemplate"/>
   
   <bean id="uriBuilder" class="org.springframework.web.util.UriComponentsBuilder"/>
- 
-  
+
   <bean id="org.hisp.dhis.system.velocity.VelocityManager" class="org.hisp.dhis.system.velocity.VelocityManager" />
 
   <bean id="notifier" class="org.hisp.dhis.system.notification.InMemoryNotifier" />

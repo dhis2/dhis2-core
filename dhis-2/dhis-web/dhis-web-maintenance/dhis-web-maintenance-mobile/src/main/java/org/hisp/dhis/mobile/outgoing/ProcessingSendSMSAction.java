@@ -28,12 +28,11 @@ package org.hisp.dhis.mobile.outgoing;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
@@ -50,11 +49,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.opensymphony.xwork2.Action;
+import java.util.*;
 
 /**
  * @author Dang Duy Hieu
@@ -262,7 +257,7 @@ public class ProcessingSendSMSAction
         sendSmsTask.setSmsSubject( smsSubject );
         sendSmsTask.setText( text );
         
-        scheduler.executeTask( sendSmsTask );
+        scheduler.executeJob( sendSmsTask );
 
         if ( message != null && !message.equals( "success" ) )
         {

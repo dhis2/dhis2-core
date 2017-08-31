@@ -1,18 +1,20 @@
 package org.hisp.dhis.scheduling.Configuration;
 
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.SimpleTriggerContext;
 
-import javax.validation.constraints.NotNull;
 import java.util.Date;
 
 /**
  * @author Henning Håkonsen
  */
+@JacksonXmlRootElement( localName = "jobConfiguration", namespace = DxfNamespaces.DXF_2_0 )
 public class JobConfiguration
     extends BaseIdentifiableObject
     implements IdentifiableObject
@@ -40,6 +42,22 @@ public class JobConfiguration
         return "Name: " + name + ", job type: " + jobType.name() + ", cronExpression: " + cronExpression;
     }
 
+    public void setNextExecutionTime()
+    {
+        this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext(  ) );
+    }
+
+    public void setKey( String key )
+    {
+        if ( !key.equals( "" ) && key.length() == codeSize )
+        {
+            this.key = key;
+        } else
+        {
+            this.key = CodeGenerator.generateCode( codeSize );
+        }
+    }
+
     public String getKey()
     {
         return key;
@@ -60,10 +78,7 @@ public class JobConfiguration
         return nextExecutionTime;
     }
 
-    public void setNextExecutionTime()
-    {
-        this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext(  ) );
-    }
+
 
     @Override
     public int compareTo( IdentifiableObject jobConfiguration )

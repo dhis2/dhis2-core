@@ -455,6 +455,12 @@
     <property name="cacheable" value="true" />
   </bean>
 
+  <bean id="org.hisp.dhis.scheduling.JobConfigurationStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.scheduling.Configuration.JobConfiguration" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
   <bean id="org.hisp.dhis.deletedobject.DeletedObjectStore" class="org.hisp.dhis.deletedobject.hibernate.HibernateDeletedObjectStore" />
 
   <bean id="org.hisp.dhis.version.VersionStore" class="org.hisp.dhis.version.hibernate.HibernateVersionStore">
@@ -809,8 +815,6 @@
     <property name="uploadCallback" ref="org.hisp.dhis.fileresource.FileResourceUploadCallback" />
   </bean>
 
-  <bean id="org.hisp.dhis."
-
   <bean id="org.hisp.dhis.fileresource.ExternalFileResourceService" class="org.hisp.dhis.fileresource.DefaultExternalFileResourceService">
     <property name="externalFileResourceStore" ref="org.hisp.dhis.fileresource.ExternalFileResourceStore" />
   </bean>
@@ -940,6 +944,14 @@
     <property name="deletionManager" ref="deletionManager" />
   </bean>
 
+  <bean id="org.hisp.dhis.organisationunit.OrganisationUnitService" class="org.hisp.dhis.organisationunit.DefaultOrganisationUnitService">
+    <property name="organisationUnitStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitStore" />
+    <property name="organisationUnitLevelStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitLevelStore" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="versionService" ref="org.hisp.dhis.version.VersionService" />
+    <property name="configurationService" ref="org.hisp.dhis.configuration.ConfigurationService" />
+  </bean>
+
   <bean id="org.hisp.dhis.organisationunit.OrganisationUnitGroupService"
     class="org.hisp.dhis.organisationunit.DefaultOrganisationUnitGroupService">
     <property name="organisationUnitGroupStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupStore" />
@@ -1044,6 +1056,10 @@
 
   <bean id="org.hisp.dhis.constant.ConstantService" class="org.hisp.dhis.constant.DefaultConstantService">
     <property name="constantStore" ref="org.hisp.dhis.constant.ConstantStore" />
+  </bean>
+
+  <bean id="schedulingService" class="org.hisp.dhis.scheduling.DefaultJobConfigurationService">
+    <property name="jobConfigurationStore" ref="org.hisp.dhis.scheduling.JobConfigurationStore" />
   </bean>
 
   <bean id="org.hisp.dhis.deletedobject.DeletedObjectService" class="org.hisp.dhis.deletedobject.DefaultDeletedObjectService" />
