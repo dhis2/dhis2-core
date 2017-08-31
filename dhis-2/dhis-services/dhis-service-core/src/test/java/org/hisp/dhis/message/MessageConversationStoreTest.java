@@ -28,6 +28,7 @@ package org.hisp.dhis.message;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -56,6 +57,9 @@ public class MessageConversationStoreTest
 
     @Autowired
     private UserService _userService;
+
+    @Autowired
+    private SessionFactory sessionFactory;
 
     private User userB;
 
@@ -108,6 +112,8 @@ public class MessageConversationStoreTest
         mc = messageService.getMessageConversation( conversationC );
         messageService.updateMessageConversation( mc );
         conversationIds.add( mc.getUid() );
+
+        sessionFactory.getCurrentSession().flush();
 
     }
 
