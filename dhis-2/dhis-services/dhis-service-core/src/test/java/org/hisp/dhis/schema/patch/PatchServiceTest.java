@@ -373,6 +373,13 @@ public class PatchServiceTest
         assertEquals( 2, dataElement.getGroups().size() );
     }
 
+    @Test
+    public void testPatchFromJsonNode3()
+    {
+        JsonNode jsonNode = loadJsonNodeFromFile( "patch/complex.json" );
+        Patch patch = patchService.diff( jsonNode );
+    }
+
     private JsonNode loadJsonNodeFromFile( String path )
     {
         try

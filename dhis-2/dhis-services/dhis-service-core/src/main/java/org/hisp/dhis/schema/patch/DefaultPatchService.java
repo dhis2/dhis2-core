@@ -104,40 +104,55 @@ public class DefaultPatchService implements PatchService
         return mutations;
     }
 
+    @SuppressWarnings( "unchecked" )
     private List<Mutation> calculateMutations( String path, JsonNode node )
     {
         List<Mutation> mutations = new ArrayList<>();
 
         switch ( node.getNodeType() )
         {
-            case BOOLEAN:
-                mutations.add( new Mutation( path, node.booleanValue() ) );
-                break;
-            case NUMBER:
-                mutations.add( new Mutation( path, node.numberValue() ) );
-                break;
-            case STRING:
-                mutations.add( new Mutation( path, node.textValue() ) );
-                break;
-            case NULL:
-                mutations.add( new Mutation( path, null ) );
+            case OBJECT:
+                List<String> fieldNames = Lists.newArrayList( node.fieldNames() );
+
+                for ( String fieldName : fieldNames )
+                {
+                    mutations.addAll( calculateMutations( path + "." + fieldName, node.get( fieldName ) ) );
+                }
+
                 break;
             case ARRAY:
-                List<String> identifiers = new ArrayList<>();
+                Collection identifiers = new ArrayList<>();
 
                 for ( JsonNode jsonNode : node )
                 {
-                    if ( jsonNode.isTextual() )
-                    {
-                        identifiers.add( jsonNode.textValue() );
-                    }
+                    identifiers.add( getValue( jsonNode ) );
                 }
 
                 mutations.add( new Mutation( path, identifiers ) );
                 break;
+            default:
+                mutations.add( new Mutation( path, getValue( node ) ) );
+                break;
         }
 
         return mutations;
+    }
+
+    private Object getValue( JsonNode node )
+    {
+        switch ( node.getNodeType() )
+        {
+            case BOOLEAN:
+                return node.booleanValue();
+            case NUMBER:
+                return node.numberValue();
+            case STRING:
+                return node.textValue();
+            case NULL:
+                return null;
+        }
+
+        return null;
     }
 
     @Override
