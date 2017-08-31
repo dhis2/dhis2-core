@@ -90,30 +90,51 @@ public class DefaultPatchService implements PatchService
         return patch;
     }
 
-    private List<Mutation> calculateMutations( JsonNode jsonNode )
+    private List<Mutation> calculateMutations( JsonNode rootNode )
     {
         List<Mutation> mutations = new ArrayList<>();
-        List<String> fieldNames = Lists.newArrayList( jsonNode.fieldNames() );
+        List<String> fieldNames = Lists.newArrayList( rootNode.fieldNames() );
 
         for ( String fieldName : fieldNames )
         {
-            JsonNode node = jsonNode.get( fieldName );
+            JsonNode node = rootNode.get( fieldName );
+            mutations.addAll( calculateMutations( fieldName, node ) );
+        }
 
-            switch ( node.getNodeType() )
-            {
-                case BOOLEAN:
-                    mutations.add( new Mutation( fieldName, node.booleanValue() ) );
-                    break;
-                case NUMBER:
-                    mutations.add( new Mutation( fieldName, node.numberValue() ) );
-                    break;
-                case STRING:
-                    mutations.add( new Mutation( fieldName, node.textValue() ) );
-                    break;
-                case NULL:
-                    mutations.add( new Mutation( fieldName, null ) );
-                    break;
-            }
+        return mutations;
+    }
+
+    private List<Mutation> calculateMutations( String path, JsonNode node )
+    {
+        List<Mutation> mutations = new ArrayList<>();
+
+        switch ( node.getNodeType() )
+        {
+            case BOOLEAN:
+                mutations.add( new Mutation( path, node.booleanValue() ) );
+                break;
+            case NUMBER:
+                mutations.add( new Mutation( path, node.numberValue() ) );
+                break;
+            case STRING:
+                mutations.add( new Mutation( path, node.textValue() ) );
+                break;
+            case NULL:
+                mutations.add( new Mutation( path, null ) );
+                break;
+            case ARRAY:
+                List<String> identifiers = new ArrayList<>();
+
+                for ( JsonNode jsonNode : node )
+                {
+                    if ( jsonNode.isTextual() )
+                    {
+                        identifiers.add( jsonNode.textValue() );
+                    }
+                }
+
+                mutations.add( new Mutation( path, identifiers ) );
+                break;
         }
 
         return mutations;

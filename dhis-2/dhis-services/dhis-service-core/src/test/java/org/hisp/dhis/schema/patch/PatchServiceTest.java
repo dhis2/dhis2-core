@@ -352,6 +352,27 @@ public class PatchServiceTest
         assertEquals( dataElement.getShortName(), "Updated Short Name" );
     }
 
+    @Test
+    public void testPatchFromJsonNode2()
+    {
+        JsonNode jsonNode = loadJsonNodeFromFile( "patch/id-collection.json" );
+        DataElement dataElement = createDataElement( 'A' );
+
+        DataElementGroup degA = createDataElementGroup( 'C' );
+        DataElementGroup degB = createDataElementGroup( 'D' );
+
+        manager.save( degA );
+        manager.save( degB );
+
+        Patch patch = patchService.diff( jsonNode );
+        System.err.println( "Patch: " + patch );
+        patchService.apply( patch, dataElement );
+
+        assertEquals( dataElement.getName(), "Updated Name" );
+        assertEquals( dataElement.getShortName(), "Updated Short Name" );
+        assertEquals( 2, dataElement.getGroups().size() );
+    }
+
     private JsonNode loadJsonNodeFromFile( String path )
     {
         try
