@@ -512,7 +512,7 @@ public class ValidationServiceTest
         // appear in the same order.
 
         Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( getDate( 2000, 2, 1 ),
-            getDate( 2000, 6, 1 ), sourcesA, null, null, false, null );
+            getDate( 2000, 6, 1 ), sourcesA, false, null, null, false, null );
 
         Collection<ValidationResult> reference = new HashSet<>();
 
@@ -563,7 +563,7 @@ public class ValidationServiceTest
         validationRuleService.addValidationRuleGroup( group );
 
         Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( getDate( 2000, 2, 1 ),
-            getDate( 2000, 6, 1 ), sourcesA, null, group, false, null );
+            getDate( 2000, 6, 1 ), sourcesA, false, null, group, false, null );
 
         Collection<ValidationResult> reference = new HashSet<>();
 
