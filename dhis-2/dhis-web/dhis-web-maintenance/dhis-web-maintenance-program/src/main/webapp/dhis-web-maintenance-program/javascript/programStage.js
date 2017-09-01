@@ -310,3 +310,14 @@ function autoGenerateEventOnChange(openAfterEnrollment)
 	}
 }
 
+function hideDueDateOnChange()
+{
+    if( byId('hideDueDate') ){
+        if(byId('hideDueDate').checked){
+            disable('dueDateLabel');
+        }
+        else{
+            enable('dueDateLabel');
+        }
+    }
+}

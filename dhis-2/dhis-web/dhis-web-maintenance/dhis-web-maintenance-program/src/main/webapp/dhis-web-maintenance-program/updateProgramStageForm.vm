@@ -202,7 +202,7 @@
 			</tr>
 			<tr>
         		<td><label for="hideDueDate">$i18n.getString( "hide_due_date" )</label></td>
-        		<td><input type="checkbox" id="hideDueDate" name="hideDueDate" value='true' #if( $programStage.hideDueDate=='true' ) checked #end ></td>
+        		<td><input type="checkbox" id="hideDueDate" name="hideDueDate" value='true' #if( $programStage.hideDueDate=='true' ) checked #end onchange='hideDueDateOnChange();'></td>
         		<td></td>
         	</tr>
 			#end
