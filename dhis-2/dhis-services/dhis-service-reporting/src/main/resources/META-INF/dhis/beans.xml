@@ -156,6 +156,10 @@
     <property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
   </bean>
 
+  <!-- Prediction -->
+
+  <bean id="org.hisp.dhis.predictor.PredictionService" class="org.hisp.dhis.predictor.DefaultPredictionService" />
+
   <!-- Validation -->
 
   <bean id="org.hisp.dhis.validation.ValidationService" class="org.hisp.dhis.validation.DefaultValidationService" >

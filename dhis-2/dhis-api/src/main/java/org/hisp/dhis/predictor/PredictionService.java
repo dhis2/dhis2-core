@@ -28,31 +28,12 @@ package org.hisp.dhis.predictor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.List;
+import java.util.Date;
 
 /**
- * Created by haase on 6/12/16.
+ * @author Jim Grace
  */
-public interface PredictorService
+public interface PredictionService
 {
-    String ID = PredictorService.class.getName();
-
-    int addPredictor( Predictor prediector );
-
-    void updatePredictor( Predictor prediector );
-
-    void deletePredictor( Predictor prediector );
-
-    Predictor getPredictor( int id );
-
-    Predictor getPredictor( String uid );
-
-    List<Predictor> getAllPredictors();
-
-    List<Predictor> getPredictorsByUid( Collection<String> uids );
-
-    List<Predictor> getPredictorsByName( String name );
-
-    int getPredictorCount();
+    int predict( Predictor predictor, Date startDate, Date endDate );
 }
