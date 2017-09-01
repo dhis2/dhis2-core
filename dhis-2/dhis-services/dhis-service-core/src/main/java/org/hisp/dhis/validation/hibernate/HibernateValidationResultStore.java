@@ -46,13 +46,10 @@ import org.hisp.dhis.validation.ValidationResultStore;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 /**
  * @author Stian Sandvold
@@ -106,11 +103,6 @@ public class HibernateValidationResultStore
     public List<ValidationResult> getValidationResults( List<OrganisationUnit> orgUnits,
         Collection<ValidationRule> validationRules, Collection<Period> periods )
     {
-        if ( isEmpty( orgUnits ) || isEmpty( validationRules ) || isEmpty( periods ) )
-        {
-            return new ArrayList<>();
-        }
-
         Query query = getQuery( "from ValidationResult vr where vr.organisationUnit in :orgUnits and validationRule in :validationRules and vr.period in :periods " );
 
         query.setParameter( "orgUnits", orgUnits );
