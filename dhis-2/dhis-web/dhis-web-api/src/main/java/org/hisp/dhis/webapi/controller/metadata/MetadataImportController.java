@@ -78,8 +78,6 @@ public class MetadataImportController
         MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
         params.setObjects( renderService.fromMetadata( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ), RenderFormat.JSON ) );
 
-        System.err.println( "P: " + params.hasTaskId() );
-
         if ( params.hasTaskId() )
         {
             startAsync( params );
