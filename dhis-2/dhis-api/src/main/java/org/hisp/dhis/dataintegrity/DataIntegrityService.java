@@ -28,10 +28,7 @@ package org.hisp.dhis.dataintegrity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.SortedMap;
+import java.util.*;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
@@ -42,6 +39,7 @@ import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.validation.ValidationRule;
 
 /**
@@ -207,4 +205,14 @@ public interface DataIntegrityService
      * Returns a FlattenedDataIntegrityReport.
      */
     FlattenedDataIntegrityReport getFlattenedDataIntegrityReport();
+
+    /**
+     * Get all ProgramIndicators with invalid expressions.
+     */
+    Map<ProgramIndicator, String> getInvalidProgramIndicatorExpressions();
+
+    /**
+     * Get all ProgramIndicators with invalid filters.
+     */
+    Map<ProgramIndicator, String> getInvalidProgramIndicatorFilters();
 }
