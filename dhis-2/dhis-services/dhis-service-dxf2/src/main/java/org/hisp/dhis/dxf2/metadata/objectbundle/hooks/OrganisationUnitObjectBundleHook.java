@@ -100,7 +100,8 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
 
         if ( organisationUnit.getClosedDate() != null && organisationUnit.getClosedDate().before( organisationUnit.getOpeningDate() ) )
         {
-            errors.add( new ErrorReport( OrganisationUnit.class, ErrorCode.E4013 ) );
+            errors.add( new ErrorReport( OrganisationUnit.class, ErrorCode.E4013 , organisationUnit.getClosedDate(), organisationUnit
+                .getOpeningDate()) );
         }
 
         return errors;
