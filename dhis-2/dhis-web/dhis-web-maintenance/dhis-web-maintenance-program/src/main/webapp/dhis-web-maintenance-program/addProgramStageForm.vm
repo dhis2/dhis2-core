@@ -59,7 +59,7 @@
 
 <h4>$program.displayName</h4>
 		
-<form id="addProgramStageForm" name="addProgramStageForm" action="addProgramStage.action" method="get" class="inputForm">
+<form id="addProgramStageForm" name="addProgramStageForm" action="addProgramStage.action" method="post" class="inputForm">
 	<input type="hidden" id="programId" name="programId" value="$program.id"/>
 	<input type='hidden' id="id" name="id" value="$program.id"/>
 <table>

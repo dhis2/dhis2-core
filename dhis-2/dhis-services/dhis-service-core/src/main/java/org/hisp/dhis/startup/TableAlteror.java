@@ -191,6 +191,11 @@ public class TableAlteror
         executeSql( "ALTER TABLE mapview DROP COLUMN legendtype" );
         executeSql( "ALTER TABLE mapview ALTER COLUMN opacity TYPE double precision" );
 
+        executeSql( "ALTER TABLE smscommands ALTER COLUMN completenessmethod TYPE text" );
+        executeSql( "ALTER TABLE smscommands ALTER COLUMN uid set NOT NULL" );
+        executeSql( "ALTER TABLE smscommands ALTER COLUMN created set NOT NULL" );
+        executeSql( "ALTER TABLE smscommands ALTER COLUMN lastUpdated set NOT NULL" );
+
         executeSql( "ALTER TABLE maplegend DROP CONSTRAINT maplegend_name_key" );
 
         executeSql( "UPDATE mapview SET layer = 'thematic1' WHERE layer IS NULL" );
@@ -462,6 +467,7 @@ public class TableAlteror
         executeSql( "update reporttable set showdimensionlabels = false where showdimensionlabels is null" );
         executeSql( "update eventreport set showdimensionlabels = false where showdimensionlabels is null" );
         executeSql( "update reporttable set skiprounding = false where skiprounding is null" );
+        executeSql( "update validationrule set skipformvalidation = false where skipformvalidation is null" );
         executeSql( "update validationnotificationtemplate set sendstrategy = 'COLLECTIVE_SUMMARY' where sendstrategy is null" );
 
         // move timelydays from system setting => dataset property

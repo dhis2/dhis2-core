@@ -44,7 +44,6 @@ import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.comparator.ValidationResultComparator;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -148,6 +147,13 @@ public class RunValidationAction
         this.validationRuleGroupId = validationRuleGroupId;
     }
 
+    private boolean persistResults;
+
+    public void setPersistResults( boolean persistResults )
+    {
+        this.persistResults = persistResults;
+    }
+
     private boolean sendNotifications;
 
     public void setSendNotifications( boolean sendNotifications )
@@ -201,7 +207,7 @@ public class RunValidationAction
         log.info( "Validating data for " + ( group == null ? "all rules" : "group: " + group.getName() ) );
 
         validationResults = new ArrayList<>( validationService.startInteractiveValidationAnalysis( format.parseDate( startDate ), format.parseDate( endDate ),
-                organisationUnits, attributeOptionCombo, group, sendNotifications, format ) );
+                organisationUnits, persistResults, attributeOptionCombo, group, sendNotifications, format ) );
 
         maxExceeded = validationResults.size() > ValidationService.MAX_INTERACTIVE_ALERTS;
 

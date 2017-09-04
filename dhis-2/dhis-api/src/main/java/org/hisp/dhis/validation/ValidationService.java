@@ -53,13 +53,14 @@ public interface ValidationService
      * @param startDate         the start date.
      * @param endDate           the end date.
      * @param orgUnits          a list of organisation units.
+     * @param persistResults    should results be persisted after run
      * @param attributeCombo    attribute category option combo (null for all).
      * @param group             validation rule group (null for all validationRules).
      * @param sendNotifications whether to send notifications upon rule violations.
      * @param format            the i18n format.
      * @return a Collection of ValidationResults for each validation violation.
      */
-    Collection<ValidationResult> startInteractiveValidationAnalysis( Date startDate, Date endDate, List<OrganisationUnit> orgUnits,
+    Collection<ValidationResult> startInteractiveValidationAnalysis( Date startDate, Date endDate, List<OrganisationUnit> orgUnits, boolean persistResults,
         DataElementCategoryOptionCombo attributeCombo, ValidationRuleGroup group, boolean sendNotifications, I18nFormat format );
 
     /**

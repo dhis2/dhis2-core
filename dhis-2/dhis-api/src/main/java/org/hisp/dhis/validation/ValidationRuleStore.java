@@ -44,13 +44,10 @@ public interface ValidationRuleStore
     String ID = ValidationRuleStore.class.getName();
 
     /**
-     * Returns all ValidationRules which are associated through their left or
-     * right side Expression with the given collection of DataElements.
-     * 
-     * @param dataElements the collection of DataElements.
-     * @return a collection of ValidationRules.
+     * Returns all ValidationRules that should be used for form validation.
+     * @return
      */
-    List<ValidationRule> getValidationRulesByDataElements( Collection<DataElement> dataElements );
+    List<ValidationRule> getAllFormValidationRules();
 
     /**
      * Returns all ValidationRules which have associated ValidationNotificationTemplates.

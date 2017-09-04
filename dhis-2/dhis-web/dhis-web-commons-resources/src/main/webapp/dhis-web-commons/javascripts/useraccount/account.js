@@ -79,7 +79,7 @@ function checkPasswordForUsername() {
   if (passWord) {
     if (userName) {
       if ((passWord.indexOf(userName) !== -1) ||  (userName.indexOf(passWord) !== -1)) {
-        alert("Username cannot be part of password");
+        alert( i18n_username_in_password );
         $("#password").val("");      }
     }
   }
@@ -92,7 +92,7 @@ function checkPasswordForEmail() {
   if (passWord) {
     if (email) {
       if ((passWord.indexOf(email) !== -1) ||  (email.indexOf(passWord) !== -1)) {
-        alert("Email cannot be part of password");
+        alert( i18n_email_in_password );
         $("#password").val("");
       }
     }

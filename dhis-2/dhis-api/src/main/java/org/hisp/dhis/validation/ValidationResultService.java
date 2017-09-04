@@ -27,6 +27,8 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 
 import java.util.Collection;
@@ -78,4 +80,7 @@ public interface ValidationResultService
     List<ValidationResult> getValidationResults( ValidationResultQuery query );
 
     int countValidationResults( ValidationResultQuery query );
+
+    List<ValidationResult> getValidationResults( List<OrganisationUnit> orgUnits, Collection<ValidationRule> validationRules,
+        Collection<Period> periods );
 }

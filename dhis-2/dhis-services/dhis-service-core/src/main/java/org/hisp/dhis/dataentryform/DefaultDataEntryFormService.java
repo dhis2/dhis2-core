@@ -348,19 +348,19 @@ public class DefaultDataEntryFormService
                     inputHtml = inputHtml.replaceAll(inputHtml, TAG_CLOSE);
                     
                     appendCode += "<label>";
-                    appendCode += "<input type=\"radio\" class=\"entryselect\" name=\"" + dataElementId + "-" + optionComboId + "-val\"  id=\"" + dataElementId + "-" + optionComboId + "-val\" tabindex=\"" + i++ + "\" value=\"\">";
-                    appendCode += i18n.getString( "no_value" );
-                    appendCode += "</label>";
-                    
-                    appendCode += "<label>";
-                    appendCode += "<input type=\"radio\" class=\"entryselect\" name=\"" + dataElementId + "-" + optionComboId + "-val\"  id=\"" + dataElementId + "-" + optionComboId + "-val\" tabindex=\"" + i++ + "\" value=\"true\">";
+                    appendCode += "<input type=\"radio\" class=\"entryselect\" name=\"" + dataElementId + "-" +
+                        optionComboId + "-val\"  id=\"" + dataElementId + "-" + optionComboId + "-val\" tabindex=\"" + i++ + "\" value=\"true\">";
                     appendCode += i18n.getString( "yes" );
                     appendCode += "</label>";
                     
                     appendCode += "<label>";
-                    appendCode += "<input type=\"radio\" class=\"entryselect\" name=\"" + dataElementId + "-" + optionComboId + "-val\"  id=\"" + dataElementId + "-" + optionComboId + "-val\" tabindex=\"" + i++ + "\" value=\"false\">";
+                    appendCode += "<input type=\"radio\" class=\"entryselect\" name=\"" + dataElementId + "-" + optionComboId + "-val\" " +
+                        " id=\"" + dataElementId + "-" + optionComboId + "-val\" tabindex=\"" + i++ + "\" value=\"false\">";
                     appendCode += i18n.getString( "no" );
                     appendCode += "</label>";
+
+                    appendCode += "<img class=\"commentlink\" id=\"" + dataElementId + "-" + optionComboId +"-comment\" " +
+                                    "src=\"../images/comment.png\" title=\"View " + "comment\" style=\"cursor: pointer;\"" + TAG_CLOSE;
                 }
                 else if ( ValueType.TRUE_ONLY == valueType )
                 {

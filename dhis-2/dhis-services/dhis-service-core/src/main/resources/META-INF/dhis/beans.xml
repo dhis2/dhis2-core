@@ -46,6 +46,8 @@
 
   <bean id="org.hisp.dhis.node.NodeService" class="org.hisp.dhis.node.DefaultNodeService" />
 
+  <bean class="org.hisp.dhis.schema.patch.DefaultPatchService" />
+
   <bean class="org.hisp.dhis.node.transformers.PagingNodeTransformer" />
 
   <bean class="org.hisp.dhis.node.transformers.RenameNodeTransformer" />
@@ -94,12 +96,6 @@
 
   <bean id="org.hisp.dhis.chart.ChartStore" class="org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore">
     <property name="clazz" value="org.hisp.dhis.chart.Chart" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="cacheable" value="true" />
-  </bean>
-
-  <bean id="org.hisp.dhis.document.DocumentStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
-    <property name="clazz" value="org.hisp.dhis.document.Document" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
@@ -765,6 +761,7 @@
 
   <bean id="org.hisp.dhis.sms.command.hibernate.SMSCommandStore"
     class="org.hisp.dhis.sms.command.hibernate.HibernateSMSCommandStore">
+    <property name="clazz" value="org.hisp.dhis.sms.command.SMSCommand" />
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
@@ -1522,7 +1519,7 @@
 
 
   <bean id="org.hisp.dhis.sms.listener.ProgramStageDataEntrySMSListener"
-        class="org.hisp.dhis.sms.listener.ProgramStageDataEntrySMSListener" />
+    class="org.hisp.dhis.sms.listener.ProgramStageDataEntrySMSListener" />
 
   <bean id="org.hisp.dhis.sms.listener.SingleEventListener" class="org.hisp.dhis.sms.listener.SingleEventListener" />
 
@@ -1641,6 +1638,7 @@
         <value>relationshiptype</value>
         <value>sqlview</value>
         <value>dataentryform</value>
+        <value>smscommands</value>
       </list>
     </property>
   </bean>
