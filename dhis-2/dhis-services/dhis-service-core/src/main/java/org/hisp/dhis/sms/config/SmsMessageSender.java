@@ -66,6 +66,8 @@ public class SmsMessageSender
 
     private static final String NO_CONFIG = "No default gateway configured";
 
+    private static final String SMS_DISABLED = "sms notifications are disabled";
+
     private static final Pattern SUMMARY_PATTERN = Pattern.compile( "\\s*High\\s*[0-9]*\\s*,\\s*medium\\s*[0-9]*\\s*,\\s*low\\s*[0-9]*\\s*" );
 
     // -------------------------------------------------------------------------
@@ -94,24 +96,11 @@ public class SmsMessageSender
     {
         Set<User> toSendList = new HashSet<>();
 
-        User currentUser = currentUserService.getCurrentUser();
+        toSendList = users.stream().filter( u -> forceSend || isQualifiedReceiver( u ) ).collect( Collectors.toSet() );
 
-        if ( !forceSend )
+        if ( toSendList.isEmpty() )
         {
-            for ( User user : users )
-            {
-                if ( currentUser == null || !currentUser.equals( user ) )
-                {
-                    if ( isQualifiedReceiver( user ) )
-                    {
-                        toSendList.add( user );
-                    }
-                }
-            }
-        }
-        else
-        {
-            toSendList.addAll( users );
+            return new OutboundMessageResponse( SMS_DISABLED, GatewayResponse.FAILED, false );
         }
 
         if ( toSendList.isEmpty() )
@@ -141,6 +130,8 @@ public class SmsMessageSender
 
         if ( defaultGateway == null )
         {
+            log.info( "Gateway configuration does not exist" );
+
             return new OutboundMessageResponse( NO_CONFIG, GatewayResponse.NO_GATEWAY_CONFIGURATION, false );
         }
 
@@ -184,17 +175,10 @@ public class SmsMessageSender
 
     private boolean isQualifiedReceiver( User user )
     {
-        if ( user.getFirstName() == null )
-        {
-            return true;
-        }
-        else
-        {
-            Serializable userSetting = userSettingService.getUserSetting( UserSettingKey.MESSAGE_SMS_NOTIFICATION,
-                user );
+        Serializable userSetting = userSettingService.getUserSetting( UserSettingKey.MESSAGE_SMS_NOTIFICATION,
+            user );
 
             return userSetting != null ? (Boolean) userSetting : false;
-        }
     }
 
     private OutboundMessageResponse sendMessage( String subject, String text, Set<String> recipients,
