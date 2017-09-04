@@ -80,7 +80,5 @@
   
   <bean id="resourceTableJob" class="org.hisp.dhis.analytics.table.scheduling.ResourceTableJob" scope="prototype" />
 
-
   <bean id="analyticsTableJob" class="org.hisp.dhis.analytics.table.scheduling.AnalyticsTableJob" />
-
 </beans>

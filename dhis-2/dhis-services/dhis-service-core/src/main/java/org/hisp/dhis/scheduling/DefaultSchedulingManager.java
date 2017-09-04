@@ -104,7 +104,7 @@ public class DefaultSchedulingManager
     {
         if ( jobConfiguration != null && !isJobInProgress( jobConfiguration.getKey() ) )
         {
-            scheduler.executeJob( jobConfiguration.getKey(), () -> jobMap.get( jobConfiguration.getJobType() ).execute( jobConfiguration ) );
+            scheduler.executeJob( () -> jobMap.get( jobConfiguration.getJobType() ).execute( jobConfiguration ) );
         }
     }
 

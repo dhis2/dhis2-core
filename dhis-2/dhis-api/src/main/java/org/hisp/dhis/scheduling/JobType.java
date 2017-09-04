@@ -15,7 +15,8 @@ public enum JobType
     VALIDATION_RESULTS_NOTIFICATION( "validationResultNotificationJob" ),
     CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob" ),
     MONITORING( "monitoringJob" ),
-    PUSH_ANALYSIS( "pushAnalysis" );
+    PUSH_ANALYSIS( "pushAnalysis" ),
+    TEST( "test" );
 
     private final String key;
 

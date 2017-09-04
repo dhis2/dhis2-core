@@ -202,8 +202,6 @@ public class DefaultSchemaService
                 schema.setPropertyMap( Maps.newHashMap( propertyIntrospectorService.getPropertiesMap( schema.getKlass() ) ) );
             }
 
-            System.out.println("desc: " + descriptor + ", schema: " + schema);
-
             classSchemaMap.put( schema.getKlass(), schema );
             singularSchemaMap.put( schema.getSingular(), schema );
             pluralSchemaMap.put( schema.getPlural(), schema );

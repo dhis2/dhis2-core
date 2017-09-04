@@ -162,10 +162,6 @@
 
   <!-- Scheduling -->
 
-  <bean id="org.hisp.dhis.scheduling.SchedulingManager" class="org.hisp.dhis.scheduling.DefaultSchedulingManager">
-    <property name="scheduler" ref="scheduler" />
-  </bean>
-
   <bean id="dataStatisticsJob" class="org.hisp.dhis.datastatistics.DataStatisticsJob" />
   <bean id="credentialsExpiryAlertJob" class="org.hisp.dhis.credentials.CredentialsExpiryAlertJob" />
   <bean id="monitoringJob" class="org.hisp.dhis.validation.scheduling.MonitoringJob" />
