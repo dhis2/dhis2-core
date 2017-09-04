@@ -1,10 +1,7 @@
 package org.hisp.dhis.scheduling.Configuration;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.SimpleTriggerContext;
@@ -17,17 +14,19 @@ import java.util.Date;
 @JacksonXmlRootElement( localName = "jobConfiguration", namespace = DxfNamespaces.DXF_2_0 )
 public class JobConfiguration
     extends BaseIdentifiableObject
-    implements IdentifiableObject
+    implements IdentifiableObject, MetadataObject
 {
     private int codeSize = 10;
 
-    private String name;
     private String key;
     private String cronExpression;
     private JobType jobType;
 
     // Used in JobService for sorting jobConfigurations based on cron expression
     private Date nextExecutionTime;
+
+    public JobConfiguration ()
+    {}
 
     public JobConfiguration( String name, JobType jobType, String cronExpression )
     {
@@ -58,6 +57,16 @@ public class JobConfiguration
         }
     }
 
+    public void setCronExpression( String cronExpression )
+    {
+        this.cronExpression = cronExpression;
+    }
+
+    public void setJobType( JobType jobType )
+    {
+        this.jobType = jobType;
+    }
+
     public String getKey()
     {
         return key;
@@ -77,8 +86,6 @@ public class JobConfiguration
     {
         return nextExecutionTime;
     }
-
-
 
     @Override
     public int compareTo( IdentifiableObject jobConfiguration )
