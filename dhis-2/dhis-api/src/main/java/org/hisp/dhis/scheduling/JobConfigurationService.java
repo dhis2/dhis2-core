@@ -44,11 +44,11 @@ public interface JobConfigurationService
     JobConfiguration getJobConfiguration( int jobId );
 
     /**
-     * Get a job configuration for given key
-     * @param jobKey key to search for
+     * Get a job configuration for given uid
+     * @param uid uid to search for
      * @return job configuration
      */
-    JobConfiguration getJobConfigurationWithKey( String jobKey );
+    JobConfiguration getJobConfigurationWithUid( String uid );
 
     /**
      * Get a list of job configurations with specific cron expression

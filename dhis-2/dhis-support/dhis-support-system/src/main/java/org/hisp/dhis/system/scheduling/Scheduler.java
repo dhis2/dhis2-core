@@ -28,8 +28,9 @@ package org.hisp.dhis.system.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobInstance;
 import org.hisp.dhis.scheduling.JobStatus;
 import org.springframework.util.concurrent.ListenableFuture;
 
@@ -93,6 +94,9 @@ public interface Scheduler
      *         operation, false if not.
      */
     boolean scheduleJob( JobConfiguration jobConfiguration, Job job );
+
+
+    void scheduleJob(JobConfiguration jobConfiguration, JobInstance jobInstance );
 
     /**
      * Deactivates scheduling of the job with the given key.

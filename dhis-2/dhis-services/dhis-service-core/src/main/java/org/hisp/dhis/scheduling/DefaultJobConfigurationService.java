@@ -55,9 +55,9 @@ public class DefaultJobConfigurationService
     }
 
     @Override
-    public JobConfiguration getJobConfigurationWithKey( String jobKey )
+    public JobConfiguration getJobConfigurationWithUid( String uid )
     {
-        return getAllJobConfigurations().stream().filter( job -> Objects.equals( job.getKey(), jobKey ) ).findFirst().orElse( null );
+        return getAllJobConfigurations().stream().filter( job -> Objects.equals( job.getUid(), uid ) ).findFirst().orElse( null );
     }
 
     @Override

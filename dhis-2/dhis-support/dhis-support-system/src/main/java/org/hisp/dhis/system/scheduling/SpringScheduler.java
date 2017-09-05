@@ -30,9 +30,8 @@ package org.hisp.dhis.system.scheduling;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobStatus;
+import org.hisp.dhis.scheduling.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
@@ -102,20 +101,34 @@ public class SpringScheduler
     @Override
     public boolean scheduleJob( JobConfiguration jobConfiguration, Job job )
     {
-        if ( jobConfiguration.getKey() != null && !futures.containsKey( jobConfiguration.getKey() ) )
+        if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) )
         {
             ScheduledFuture<?> future = JobScheduler.schedule( () -> job.execute( jobConfiguration.getJobParameters() ) , new CronTrigger( jobConfiguration
                 .getCronExpression() ) );
 
 
-            futures.put( jobConfiguration.getKey(), future );
+            futures.put( jobConfiguration.getUid(), future );
 
-            log.info( "Scheduled job with key: " + jobConfiguration.getKey() + " and cron: " + jobConfiguration.getCronExpression() );
+            log.info( "Scheduled job with uid: " + jobConfiguration.getUid() + " and cron: " + jobConfiguration.getCronExpression() );
 
             return true;
         }
 
         return false;
+    }
+
+    @Autowired
+    private SchedulingManager schedulingManager;
+
+    @Override
+    public void scheduleJob( JobConfiguration jobConfiguration, JobInstance jobInstance )
+    {
+
+        ScheduledFuture<?> future = JobScheduler.schedule( () -> jobInstance.execute( jobConfiguration, schedulingManager ), new CronTrigger( jobConfiguration.getCronExpression() ) );
+
+        futures.put( jobConfiguration.getUid(), future );
+
+        log.info( "Scheduled job with uid: " + jobConfiguration.getUid() + " and cron: " + jobConfiguration.getCronExpression() );
     }
 
     @Override

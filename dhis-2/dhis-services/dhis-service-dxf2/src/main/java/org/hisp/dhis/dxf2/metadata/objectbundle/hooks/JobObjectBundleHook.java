@@ -50,7 +50,7 @@ public class JobObjectBundleHook
         }
 
         JobConfiguration jobConfiguration = (JobConfiguration) persistedObject;
-        schedulingManager.stopJob( jobConfiguration.getKey() );
+        schedulingManager.stopJob( jobConfiguration.getUid() );
 
         sessionFactory.getCurrentSession().saveOrUpdate( jobConfiguration );
     }
@@ -58,7 +58,7 @@ public class JobObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void preDelete( T persistedObject, ObjectBundle bundle )
     {
-        schedulingManager.stopJob( ((JobConfiguration) persistedObject).getKey() );
+        schedulingManager.stopJob( ((JobConfiguration) persistedObject).getUid() );
         sessionFactory.getCurrentSession().delete( persistedObject );
     }
 

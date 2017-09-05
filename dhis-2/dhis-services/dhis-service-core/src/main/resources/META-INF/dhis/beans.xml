@@ -1062,6 +1062,8 @@
     <property name="jobConfigurationStore" ref="org.hisp.dhis.scheduling.JobConfigurationStore" />
   </bean>
 
+  <bean id="org.hisp.dhis.scheduling.JobInstance" class="org.hisp.dhis.scheduling.DefaultJobInstance" />
+
   <bean id="org.hisp.dhis.scheduling.SchedulingManager" class="org.hisp.dhis.scheduling.DefaultSchedulingManager">
     <property name="scheduler" ref="scheduler" />
   </bean>

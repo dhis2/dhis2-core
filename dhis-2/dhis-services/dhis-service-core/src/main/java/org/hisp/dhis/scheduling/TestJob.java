@@ -18,6 +18,16 @@ public class TestJob implements Job
     public void execute( JobParameters jobParameters )
     {
         TestJobParameters testJobConfigurationParameters = (TestJobParameters) jobParameters;
-        System.out.println( "job configuration message: " + testJobConfigurationParameters.getMessage() );
+        System.out.println( "job configuration message: " + testJobConfigurationParameters.getMessage() + ", sleep for 10 seconds");
+        try
+        {
+            Thread.sleep( 10000 );
+        }
+        catch ( InterruptedException e )
+        {
+            e.printStackTrace();
+        }
+
+        System.out.println("Slept like a child - " + testJobConfigurationParameters.getMessage());
     }
 }

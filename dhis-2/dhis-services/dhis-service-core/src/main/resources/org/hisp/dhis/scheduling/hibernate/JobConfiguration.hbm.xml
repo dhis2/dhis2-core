@@ -17,8 +17,6 @@
 
         <property name="name" column="name" not-null="true" unique="true" length="230" />
 
-        <property name="key" not-null="true" />
-
         <property name="cronExpression" not-null="true" />
 
         <property name="jobType" not-null="true" />

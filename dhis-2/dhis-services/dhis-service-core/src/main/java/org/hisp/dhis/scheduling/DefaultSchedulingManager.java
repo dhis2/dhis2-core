@@ -47,6 +47,24 @@ public class DefaultSchedulingManager
     implements SchedulingManager
 {
     // -------------------------------------------------------------------------
+    // Queues
+    // -------------------------------------------------------------------------
+    private HashMap<String, JobConfiguration> jobConfigurations = new HashMap<>(  );
+
+    private HashMap<String, JobConfiguration> runningJobConfigurations = new HashMap<>(  );
+
+    public boolean isJobConfigurationRunning( String key )
+    {
+        return runningJobConfigurations.containsKey( key );
+    }
+
+    public void runJobConfiguration( JobConfiguration jobConfiguration )
+    {
+        jobConfigurations.remove( jobConfiguration.getUid() );
+        runningJobConfigurations.put( jobConfiguration.getUid(), jobConfiguration );
+    }
+
+    // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
@@ -69,6 +87,11 @@ public class DefaultSchedulingManager
         jobs.forEach( job -> jobMap.put( job.getJobType(), job ) );
     }
 
+    public Job getJob( JobType jobType )
+    {
+        return jobMap.get( jobType );
+    }
+
     // -------------------------------------------------------------------------
     // SchedulingManager implementation
     // -------------------------------------------------------------------------
@@ -76,7 +99,9 @@ public class DefaultSchedulingManager
     @Override
     public void scheduleJob( JobConfiguration jobConfiguration )
     {
-        scheduler.scheduleJob( jobConfiguration, jobMap.get( jobConfiguration.getJobType() ) );
+        scheduler.scheduleJob( jobConfiguration, new DefaultJobInstance() );
+
+        //scheduler.scheduleJob( jobConfiguration, jobMap.get( jobConfiguration.getJobType() ) );
     }
 
     @Override
@@ -94,14 +119,14 @@ public class DefaultSchedulingManager
     @Override
     public void refreshJob( JobConfiguration jobConfiguration )
     {
-        scheduler.stopJob( jobConfiguration.getKey() );
+        scheduler.stopJob( jobConfiguration.getUid() );
         scheduleJob( jobConfiguration );
     }
 
     @Override
     public void executeJob( JobConfiguration jobConfiguration )
     {
-        if ( jobConfiguration != null && !isJobInProgress( jobConfiguration.getKey() ) )
+        if ( jobConfiguration != null && !isJobInProgress( jobConfiguration.getUid() ) )
         {
             scheduler.executeJob( () -> jobMap.get( jobConfiguration.getJobType() ).execute( jobConfiguration.getJobParameters() ) );
         }

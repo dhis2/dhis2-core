@@ -20,8 +20,6 @@ public class JobConfiguration
     implements IdentifiableObject, MetadataObject
 {
     private int codeSize = 10;
-
-    private String key;
     private String cronExpression;
     private JobType jobType;
 
@@ -37,7 +35,6 @@ public class JobConfiguration
     {
         this.name = name;
         this.cronExpression = cronExpression;
-        this.key = CodeGenerator.generateCode( codeSize );
         this.jobType = jobType;
         this.jobParameters = jobParameters;
     }
@@ -52,17 +49,6 @@ public class JobConfiguration
         this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext(  ) );
     }
 
-    public void setKey( String key )
-    {
-        if ( !key.equals( "" ) && key.length() == codeSize )
-        {
-            this.key = key;
-        } else
-        {
-            this.key = CodeGenerator.generateCode( codeSize );
-        }
-    }
-
     public void setCronExpression( String cronExpression )
     {
         this.cronExpression = cronExpression;
@@ -71,13 +57,6 @@ public class JobConfiguration
     public void setJobType( JobType jobType )
     {
         this.jobType = jobType;
-    }
-
-    @JacksonXmlProperty
-    @JsonProperty
-    public String getKey()
-    {
-        return key;
     }
 
     @JacksonXmlProperty

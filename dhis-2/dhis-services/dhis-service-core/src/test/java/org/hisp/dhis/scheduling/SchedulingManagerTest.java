@@ -91,20 +91,16 @@ public class SchedulingManagerTest
 
         schedulingManager.scheduleJob( jobA );
         schedulingManager.scheduleJob( jobB );
-
-        System.out.println( "Jobs: " + schedulingManager.getAllFutureJobs() );
     }
 
     /**
      * No assertions in this test. Tester has to verify by looking at the output in the terminal. JobA should fire at the first minute and every minute after that.
-     * jobB should fire every second.
+     * jobB should fire every second. (Unless sleep in actual job - or the job uses longer time than the expected delay to next execution time)
      */
     @Test
     public void testScheduleJobs()
     {
         createAndSchedule();
-
-        verifyScheduledJobs( 2 );
 
         try
         {
@@ -135,7 +131,7 @@ public class SchedulingManagerTest
         }
 
         System.out.println( "Test stop jobB" );
-        schedulingManager.stopJob( jobB.getKey() );
+        schedulingManager.stopJob( jobB.getUid() );
 
         verifyScheduledJobs( 1 );
 
