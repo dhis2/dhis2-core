@@ -290,11 +290,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             session.update( persistedObject );
 
-            if ( MetadataObject.class.isInstance( object ) )
-            {
-                deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
-            }
-
             objectBundleHooks.forEach( hook -> hook.postUpdate( persistedObject, bundle ) );
 
             bundle.getPreheat().replace( bundle.getPreheatIdentifier(), persistedObject );
@@ -340,6 +335,11 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             objectBundleHooks.forEach( hook -> hook.preDelete( object, bundle ) );
             manager.delete( object, bundle.getUser() );
+
+            if ( MetadataObject.class.isInstance( object ) )
+            {
+                deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
+            }
 
             bundle.getPreheat().remove( bundle.getPreheatIdentifier(), object );
 
