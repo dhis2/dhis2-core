@@ -75,11 +75,20 @@ public class EmbeddedObjectObjectBundleHook
 
     private <T extends IdentifiableObject> void clearEmbeddedObjects( T object, Collection<Property> properties )
     {
+        boolean needFlush = false;
+
         for ( Property property : properties )
         {
             if ( property.isCollection() )
             {
-                ((Collection<?>) ReflectionUtils.invokeMethod( object, property.getGetterMethod() )).clear();
+                Collection<?> objects = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+
+                if ( !objects.isEmpty() )
+                {
+                    needFlush = true;
+                }
+
+                objects.clear();
             }
             else
             {
@@ -87,7 +96,10 @@ public class EmbeddedObjectObjectBundleHook
             }
         }
 
-        sessionFactory.getCurrentSession().flush();
+        if ( needFlush )
+        {
+            sessionFactory.getCurrentSession().flush();
+        }
     }
 
     private <T extends IdentifiableObject> void handleEmbeddedObjects( T object, ObjectBundle bundle, Collection<Property> properties )
