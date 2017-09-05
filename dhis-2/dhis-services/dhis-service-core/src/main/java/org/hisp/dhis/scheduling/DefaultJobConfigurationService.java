@@ -1,7 +1,6 @@
 package org.hisp.dhis.scheduling;
 
 import org.hisp.dhis.common.GenericNameableObjectStore;
-import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -32,7 +31,7 @@ public class DefaultJobConfigurationService
     @EventListener
     public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )
     {
-        //getAllJobConfigurations().forEach( (jobConfiguration -> schedulingManager.scheduleJob( jobConfiguration )) );
+        getAllJobConfigurations().forEach( (jobConfiguration -> schedulingManager.scheduleJob( jobConfiguration )) );
     }
 
     @Override

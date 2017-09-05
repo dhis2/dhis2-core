@@ -1,6 +1,7 @@
-package org.hisp.dhis.scheduling.Configuration;
+package org.hisp.dhis.scheduling.Parameters;
 
-import org.hisp.dhis.scheduling.JobType;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.TaskId;
 
 import java.util.Set;
@@ -8,17 +9,16 @@ import java.util.Set;
 /**
  * @author Henning Håkonsen
  */
-public class AnalyticsJobConfiguration
-    extends JobConfiguration
+public class AnalyticsJobParameters
+    implements JobParameters
 {
     private TaskId taskId;
     private Integer lastYears;
     private Set<String> skipTableTypes;
     private boolean skipResourceTables;
 
-    public AnalyticsJobConfiguration( String name, JobType jobType, String cronExpression, Integer lastYears, TaskId taskId, Set<String> skipTableTypes, boolean skipResourceTables )
+    public AnalyticsJobParameters( Integer lastYears, TaskId taskId, Set<String> skipTableTypes, boolean skipResourceTables )
     {
-        super(name, jobType, cronExpression);
         this.lastYears = lastYears;
         this.taskId = taskId;
         this.skipTableTypes = skipTableTypes;

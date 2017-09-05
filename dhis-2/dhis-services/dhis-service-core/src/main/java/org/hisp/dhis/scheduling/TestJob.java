@@ -1,8 +1,6 @@
 package org.hisp.dhis.scheduling;
 
-import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
-
-import java.util.Date;
+import org.hisp.dhis.scheduling.Parameters.TestJobParameters;
 
 /**
  * Created by henninghakonsen on 04/09/2017.
@@ -17,10 +15,9 @@ public class TestJob implements Job
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration )
+    public void execute( JobParameters jobParameters )
     {
-        if(!jobConfiguration.getCronExpression().equals( "" )) jobConfiguration.setNextExecutionTime();
-
-        System.out.println("Job with name " + jobConfiguration.getName() + " fired, at time: " + new Date() + ", with cron: " + jobConfiguration.getCronExpression() + ", nextEx: " + jobConfiguration.getNextExecutionTime());
+        TestJobParameters testJobConfigurationParameters = (TestJobParameters) jobParameters;
+        System.out.println( "job configuration message: " + testJobConfigurationParameters.getMessage() );
     }
 }

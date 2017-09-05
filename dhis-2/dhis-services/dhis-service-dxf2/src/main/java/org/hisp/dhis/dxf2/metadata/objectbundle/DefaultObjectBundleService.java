@@ -137,6 +137,10 @@ public class DefaultObjectBundleService implements ObjectBundleService
         List<Class<? extends IdentifiableObject>> klasses = getSortedClasses( bundle );
         Session session = sessionFactory.getCurrentSession();
 
+        System.out.println("TESTTESTEST");
+
+        klasses.forEach( System.out::println );
+
         objectBundleHooks.forEach( hook -> hook.preCommit( bundle ) );
 
         for ( Class<? extends IdentifiableObject> klass : klasses )

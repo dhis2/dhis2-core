@@ -30,7 +30,7 @@ package org.hisp.dhis.system.scheduling;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobStatus;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
@@ -104,8 +104,9 @@ public class SpringScheduler
     {
         if ( jobConfiguration.getKey() != null && !futures.containsKey( jobConfiguration.getKey() ) )
         {
-            ScheduledFuture<?> future = JobScheduler.schedule( () -> job.execute( jobConfiguration ) , new CronTrigger( jobConfiguration
+            ScheduledFuture<?> future = JobScheduler.schedule( () -> job.execute( jobConfiguration.getJobParameters() ) , new CronTrigger( jobConfiguration
                 .getCronExpression() ) );
+
 
             futures.put( jobConfiguration.getKey(), future );
 

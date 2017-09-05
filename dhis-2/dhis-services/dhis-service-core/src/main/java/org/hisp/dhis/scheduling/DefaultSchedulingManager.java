@@ -28,7 +28,6 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -104,7 +103,7 @@ public class DefaultSchedulingManager
     {
         if ( jobConfiguration != null && !isJobInProgress( jobConfiguration.getKey() ) )
         {
-            scheduler.executeJob( () -> jobMap.get( jobConfiguration.getJobType() ).execute( jobConfiguration ) );
+            scheduler.executeJob( () -> jobMap.get( jobConfiguration.getJobType() ).execute( jobConfiguration.getJobParameters() ) );
         }
     }
 

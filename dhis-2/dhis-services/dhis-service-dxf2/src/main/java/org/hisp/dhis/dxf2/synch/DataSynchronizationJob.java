@@ -32,8 +32,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.scheduling.Configuration.DataSyncJobConfiguration;
-import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
+import org.hisp.dhis.scheduling.Parameters.DataSyncJobParameters;
+import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
@@ -67,9 +67,9 @@ public class DataSynchronizationJob
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration )
+    public void execute( JobParameters jobParameters )
     {
-        DataSyncJobConfiguration jobConfig = (DataSyncJobConfiguration) jobConfiguration;
+        DataSyncJobParameters jobConfig = (DataSyncJobParameters) jobParameters;
         try
         {
             synchronizationManager.executeDataPush();

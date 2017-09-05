@@ -29,8 +29,8 @@ package org.hisp.dhis.validation.scheduling;
  */
 
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
-import org.hisp.dhis.scheduling.Configuration.MonitoringJobConfiguration;
+import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.scheduling.Parameters.MonitoringJobParameters;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
@@ -74,9 +74,9 @@ public class MonitoringJob
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration )
+    public void execute( JobParameters jobParameters )
     {
-        MonitoringJobConfiguration jobConfig = (MonitoringJobConfiguration) jobConfiguration;
+        MonitoringJobParameters jobConfig = (MonitoringJobParameters) jobParameters;
 
         final Date startTime = new Date();
         

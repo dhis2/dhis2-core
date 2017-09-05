@@ -1,19 +1,19 @@
-package org.hisp.dhis.scheduling.Configuration;
+package org.hisp.dhis.scheduling.Parameters;
 
-import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.TaskId;
 
 /**
  * @author Henning Håkonsen
  */
-public class PushAnalysisJobConfiguration extends JobConfiguration
+public class PushAnalysisJobParameters
+    implements JobParameters
 {
     private int pushAnalysisId;
     private TaskId taskId;
 
-    public PushAnalysisJobConfiguration( String name, JobType jobType, String cronExpression, TaskId taskId, int pushAnalysisId )
+    public PushAnalysisJobParameters( TaskId taskId, int pushAnalysisId )
     {
-        super( name, jobType, cronExpression );
         this.pushAnalysisId = pushAnalysisId;
         this.taskId = taskId;
     }

@@ -1,8 +1,11 @@
-package org.hisp.dhis.scheduling.Configuration;
+package org.hisp.dhis.scheduling;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.*;
-import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.Parameters.JobConfigurationDeserializer;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.SimpleTriggerContext;
 
@@ -12,6 +15,7 @@ import java.util.Date;
  * @author Henning Håkonsen
  */
 @JacksonXmlRootElement( localName = "jobConfiguration", namespace = DxfNamespaces.DXF_2_0 )
+@JsonDeserialize( using = JobConfigurationDeserializer.class )
 public class JobConfiguration
     extends BaseIdentifiableObject
     implements IdentifiableObject, MetadataObject
@@ -22,23 +26,26 @@ public class JobConfiguration
     private String cronExpression;
     private JobType jobType;
 
+    private JobParameters jobParameters;
+
     // Used in JobService for sorting jobConfigurations based on cron expression
     private Date nextExecutionTime;
 
     public JobConfiguration ()
     {}
 
-    public JobConfiguration( String name, JobType jobType, String cronExpression )
+    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters )
     {
         this.name = name;
         this.cronExpression = cronExpression;
         this.key = CodeGenerator.generateCode( codeSize );
         this.jobType = jobType;
+        this.jobParameters = jobParameters;
     }
 
     public String toString()
     {
-        return "Name: " + name + ", job type: " + jobType.name() + ", cronExpression: " + cronExpression;
+        return "Name: " + name + ", job type: " + jobType.name() + ", cronExpression: " + cronExpression + ", parameters: " + jobParameters;
     }
 
     public void setNextExecutionTime()
@@ -67,16 +74,22 @@ public class JobConfiguration
         this.jobType = jobType;
     }
 
+    @JacksonXmlProperty
+    @JsonProperty
     public String getKey()
     {
         return key;
     }
 
+    @JacksonXmlProperty
+    @JsonProperty
     public String getCronExpression()
     {
         return cronExpression;
     }
 
+    @JacksonXmlProperty
+    @JsonProperty
     public JobType getJobType()
     {
         return jobType;
@@ -91,5 +104,15 @@ public class JobConfiguration
     public int compareTo( IdentifiableObject jobConfiguration )
     {
         return nextExecutionTime.compareTo( ((JobConfiguration) jobConfiguration).getNextExecutionTime() );
+    }
+
+    public JobParameters getJobParameters()
+    {
+        return jobParameters;
+    }
+
+    public void setJobParameters( JobParameters jobParameters )
+    {
+        this.jobParameters = jobParameters;
     }
 }

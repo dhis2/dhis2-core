@@ -59,7 +59,7 @@ import static org.mockito.Mockito.*;
  * @author aamerm
  */
 @Category( IntegrationTest.class )
-public class MetadataSyncJobConfigurationTest
+public class MetadataSyncJobParametersTest
     extends DhisSpringTest
 {
     @Rule

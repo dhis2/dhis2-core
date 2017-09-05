@@ -28,7 +28,7 @@ package org.hisp.dhis.system.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobStatus;
 import org.springframework.util.concurrent.ListenableFuture;

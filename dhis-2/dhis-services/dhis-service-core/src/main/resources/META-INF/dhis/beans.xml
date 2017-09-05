@@ -457,7 +457,7 @@
 
   <bean id="org.hisp.dhis.scheduling.JobConfigurationStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
     <property name="sessionFactory" ref="sessionFactory" />
-    <property name="clazz" value="org.hisp.dhis.scheduling.Configuration.JobConfiguration" />
+    <property name="clazz" value="org.hisp.dhis.scheduling.JobConfiguration" />
     <property name="cacheable" value="true" />
   </bean>
 

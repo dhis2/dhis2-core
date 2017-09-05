@@ -31,7 +31,7 @@ package org.hisp.dhis.credentials;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
+import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
@@ -84,7 +84,7 @@ public class CredentialsExpiryAlertJob
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration )
+    public void execute( JobParameters jobParameters )
     {
         boolean isExpiryAlertEnabled = (Boolean) systemSettingManager.getSystemSetting( SettingKey.CREDENTIALS_EXPIRY_ALERT );
 

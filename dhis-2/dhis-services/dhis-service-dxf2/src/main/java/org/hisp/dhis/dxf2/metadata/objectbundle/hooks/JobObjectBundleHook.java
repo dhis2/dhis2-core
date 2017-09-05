@@ -2,12 +2,11 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.SchedulingManager;
 
 /**
- * Created by henninghakonsen on 28/08/2017.
- * Project: dhis-2.
+ * @author Henning Håkonsen
  */
 public class JobObjectBundleHook
     extends AbstractObjectBundleHook
@@ -17,19 +16,6 @@ public class JobObjectBundleHook
     public void setSchedulingManager( SchedulingManager schedulingManager )
     {
         this.schedulingManager = schedulingManager;
-    }
-
-    @Override
-    public void preCreate( IdentifiableObject object, ObjectBundle bundle )
-    {
-        if ( !JobConfiguration.class.isInstance( object ) )
-        {
-            return;
-        }
-
-        JobConfiguration jobConfiguration = (JobConfiguration) object;
-        jobConfiguration.setKey( "" );
-        sessionFactory.getCurrentSession().save( jobConfiguration );
     }
 
     @Override

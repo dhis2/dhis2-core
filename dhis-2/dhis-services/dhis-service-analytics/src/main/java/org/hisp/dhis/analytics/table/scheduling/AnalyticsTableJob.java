@@ -30,8 +30,8 @@ package org.hisp.dhis.analytics.table.scheduling;
 
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.table.AnalyticsTableType;
-import org.hisp.dhis.scheduling.Configuration.AnalyticsJobConfiguration;
-import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
+import org.hisp.dhis.scheduling.Parameters.AnalyticsJobParameters;
+import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,9 +59,9 @@ public class AnalyticsTableJob
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration)
+    public void execute( JobParameters jobParameters )
     {
-        AnalyticsJobConfiguration jobConfig = (AnalyticsJobConfiguration) jobConfiguration;
+        AnalyticsJobParameters jobConfig = (AnalyticsJobParameters) jobParameters;
         Set<AnalyticsTableType> skipTableTypes = new HashSet<AnalyticsTableType>();
 
         jobConfig.getSkipTableTypes().forEach( (s) -> skipTableTypes.add( AnalyticsTableType.valueOf( s ) ) );

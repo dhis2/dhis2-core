@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema.descriptors;
 
 import com.google.common.collect.Lists;
-import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;

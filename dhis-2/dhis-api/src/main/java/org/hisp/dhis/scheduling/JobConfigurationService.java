@@ -1,7 +1,6 @@
 package org.hisp.dhis.scheduling;
 
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 

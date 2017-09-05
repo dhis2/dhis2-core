@@ -6,7 +6,7 @@
         >
 
 <hibernate-mapping>
-    <class name="org.hisp.dhis.scheduling.Configuration.JobConfiguration" table="jobconfiguration">
+    <class name="org.hisp.dhis.scheduling.JobConfiguration" table="jobconfiguration">
 
         <cache usage="read-write" />
 
@@ -22,5 +22,7 @@
         <property name="cronExpression" not-null="true" />
 
         <property name="jobType" not-null="true" />
+
+        <property name="jobParameters" not-null="true" type="serializable" length="65535" />
     </class>
 </hibernate-mapping>

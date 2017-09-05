@@ -28,8 +28,6 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
-
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 

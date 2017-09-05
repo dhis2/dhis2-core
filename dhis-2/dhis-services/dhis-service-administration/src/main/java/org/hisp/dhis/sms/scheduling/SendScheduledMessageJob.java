@@ -30,8 +30,8 @@ package org.hisp.dhis.sms.scheduling;
 
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.scheduling.Configuration.JobConfiguration;
-import org.hisp.dhis.scheduling.Configuration.MessageSendJobConfiguration;
+import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.scheduling.Parameters.MessageSendJobParameters;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.sms.outbound.OutboundSms;
@@ -86,9 +86,9 @@ public class SendScheduledMessageJob
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration )
+    public void execute( JobParameters jobParameters )
     {
-        MessageSendJobConfiguration jobConfig = (MessageSendJobConfiguration) jobConfiguration;
+        MessageSendJobParameters jobConfig = (MessageSendJobParameters) jobParameters;
 
         final int cpuCores = SystemUtils.getCpuCores();
 
