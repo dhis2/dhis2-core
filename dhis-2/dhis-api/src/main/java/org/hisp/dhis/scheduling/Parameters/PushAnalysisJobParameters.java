@@ -12,6 +12,9 @@ public class PushAnalysisJobParameters
     private int pushAnalysisId;
     private TaskId taskId;
 
+    public PushAnalysisJobParameters()
+    {}
+
     public PushAnalysisJobParameters( TaskId taskId, int pushAnalysisId )
     {
         this.pushAnalysisId = pushAnalysisId;

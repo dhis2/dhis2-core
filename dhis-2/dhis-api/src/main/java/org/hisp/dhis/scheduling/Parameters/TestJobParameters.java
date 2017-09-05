@@ -12,6 +12,9 @@ import org.hisp.dhis.scheduling.JobParameters;
 public class TestJobParameters
     implements JobParameters
 {
+    public TestJobParameters()
+    {}
+
     private String message;
 
     @JacksonXmlProperty

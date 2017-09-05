@@ -1,6 +1,5 @@
 package org.hisp.dhis.scheduling.Parameters;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.TaskId;
 
@@ -11,6 +10,9 @@ public class MessageSendJobParameters
     implements JobParameters
 {
     private TaskId taskId;
+
+    public MessageSendJobParameters( )
+    {}
 
     public MessageSendJobParameters( TaskId taskId )
     {

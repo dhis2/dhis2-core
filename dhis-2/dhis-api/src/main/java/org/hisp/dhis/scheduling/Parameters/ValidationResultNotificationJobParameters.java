@@ -12,6 +12,9 @@ public class ValidationResultNotificationJobParameters
 {
     private TaskId taskId;
 
+    public ValidationResultNotificationJobParameters()
+    {}
+
     public ValidationResultNotificationJobParameters( TaskId taskId )
     {
         this.taskId = taskId;

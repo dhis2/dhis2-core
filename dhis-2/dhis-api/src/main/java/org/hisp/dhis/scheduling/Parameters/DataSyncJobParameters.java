@@ -1,6 +1,5 @@
 package org.hisp.dhis.scheduling.Parameters;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.TaskId;
 
@@ -11,6 +10,9 @@ public class DataSyncJobParameters
     implements JobParameters
 {
     private TaskId taskId;
+
+    public DataSyncJobParameters()
+    {}
 
     public DataSyncJobParameters( TaskId taskId )
     {

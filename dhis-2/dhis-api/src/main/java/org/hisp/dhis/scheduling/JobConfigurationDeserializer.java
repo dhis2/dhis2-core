@@ -1,13 +1,10 @@
-package org.hisp.dhis.scheduling.Parameters;
+package org.hisp.dhis.scheduling;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.JobType;
 
 import java.io.IOException;
 

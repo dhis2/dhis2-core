@@ -12,6 +12,9 @@ public class MonitoringJobParameters
 {
     private TaskId taskId;
 
+    public MonitoringJobParameters()
+    {}
+
     public MonitoringJobParameters( TaskId taskId )
     {
         this.taskId = taskId;

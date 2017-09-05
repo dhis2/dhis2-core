@@ -1,6 +1,5 @@
 package org.hisp.dhis.scheduling.Parameters;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.TaskId;
 
@@ -16,6 +15,9 @@ public class AnalyticsJobParameters
     private Integer lastYears;
     private Set<String> skipTableTypes;
     private boolean skipResourceTables;
+
+    public AnalyticsJobParameters()
+    {}
 
     public AnalyticsJobParameters( Integer lastYears, TaskId taskId, Set<String> skipTableTypes, boolean skipResourceTables )
     {

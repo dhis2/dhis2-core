@@ -12,6 +12,9 @@ public class ResourceTableJobParameters
 {
     private TaskId taskId;
 
+    public ResourceTableJobParameters()
+    {}
+
     public ResourceTableJobParameters( TaskId taskId )
     {
         this.taskId = taskId;

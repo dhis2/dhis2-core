@@ -8,4 +8,6 @@ import org.hisp.dhis.scheduling.JobParameters;
 public class DataStatisticsJobParameters
     implements JobParameters
 {
+    public DataStatisticsJobParameters()
+    {}
 }

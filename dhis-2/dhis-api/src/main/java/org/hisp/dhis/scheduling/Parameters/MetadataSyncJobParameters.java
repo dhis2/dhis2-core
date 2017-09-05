@@ -9,6 +9,7 @@ import org.hisp.dhis.scheduling.JobParameters;
 public class MetadataSyncJobParameters
     implements JobParameters
 {
-    // HH configuration options?
+    public MetadataSyncJobParameters()
+    {}
 
 }
