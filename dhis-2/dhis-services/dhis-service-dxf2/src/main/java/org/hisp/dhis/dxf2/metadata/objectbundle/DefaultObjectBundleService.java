@@ -223,11 +223,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             session.save( object );
 
-            if ( MetadataObject.class.isInstance( object ) )
-            {
-                deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
-            }
-
             bundle.getPreheat().replace( bundle.getPreheatIdentifier(), object );
 
             objectBundleHooks.forEach( hook -> hook.postCreate( object, bundle ) );
