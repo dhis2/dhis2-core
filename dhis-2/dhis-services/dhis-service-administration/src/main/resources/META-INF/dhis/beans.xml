@@ -6,6 +6,8 @@
 
   <bean id="org.hisp.dhis.appstore.AppStoreManager" class="org.hisp.dhis.appstore.DefaultAppStoreManager" />
 
+  <bean id="org.hisp.dhis.appstore2.AppStoreService" class="org.hisp.dhis.appstore2.DefaultAppStoreService" />
+
   <!-- ResourceTable -->
 
   <bean id="org.hisp.dhis.resourcetable.ResourceTableStore" class="org.hisp.dhis.resourcetable.jdbc.JdbcResourceTableStore">
