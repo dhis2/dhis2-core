@@ -206,7 +206,11 @@ public class DefaultObjectBundleService implements ObjectBundleService
             notifier.notify( bundle.getTaskId(), message );
         }
 
-        objects.forEach( object -> objectBundleHooks.forEach( hook -> hook.preCreate( object, bundle ) ) );
+        objects.forEach( object -> objectBundleHooks.forEach( hook -> {
+            hook.preCreate( object, bundle );
+        } ) );
+
+        session.flush();
 
         for ( int idx = 0; idx < objects.size(); idx++ )
         {
@@ -259,6 +263,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
             IdentifiableObject persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
             objectBundleHooks.forEach( hook -> hook.preUpdate( object, persistedObject, bundle ) );
         } );
+
+        session.flush();
 
         for ( int idx = 0; idx < objects.size(); idx++ )
         {
