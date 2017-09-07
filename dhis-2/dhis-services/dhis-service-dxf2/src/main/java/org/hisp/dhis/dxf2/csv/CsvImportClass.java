@@ -1,7 +1,6 @@
 package org.hisp.dhis.dxf2.csv;
-
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,16 +27,47 @@ package org.hisp.dhis.dxf2.csv;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.metadata.Metadata;
-
-import java.io.IOException;
-import java.io.InputStream;
-
 /**
- * @author Lars Helge Overland
+ * @author Stian Sandvold
  */
-public interface CsvImportService
+public enum CsvImportClass
 {
-    Metadata fromCsv( InputStream input, CsvImportClass importClass )
-        throws IOException;
+    ORGANISATION_UNIT_GROUP_MEMBERSHIP("organisation_unit_group_membership"),
+    DATA_ELEMENT_GROUP_MEMBERSHIP("data_element_group_membership"),
+    INDICATOR_GROUP_MEMBERSHIP("indicator_group_membership"),
+    DATA_ELEMENT("data_element"),
+    DATA_ELEMENT_GROUP("data_element_group"),
+    CATEGORY_OPTION("category_option"),
+    CATEGORY_OPTION_GROUP("category_option_group"),
+    ORGANISATION_UNIT("organisation_unit"),
+    ORGANISATION_UNIT_GROUP("organisation_unit_group"),
+    VALIDATION_RULE("validation_rule"),
+    OPTION_SET("option_set"),
+    TRANSLATION("translation");
+
+    private String name;
+
+    CsvImportClass(String name)
+    {
+        this.name = name;
+    }
+
+    public static boolean classExists( String classKey )
+    {
+        try
+        {
+            valueOf( classKey );
+        }
+        catch ( IllegalArgumentException e )
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
 }

@@ -795,6 +795,12 @@
 
   <!-- Service definitions -->
 
+  <bean id="org.hisp.dhis.dataelement.DataElementGroupService" class="org.hisp.dhis.dataelement.DefaultDataElementGroupService" />
+
+  <bean id="org.hisp.dhis.indicator.IndicatorGroupService" class="org.hisp.dhis.indicator.DefaultIndicatorGroupService">
+    <property name="indicatorGroupStore" ref="org.hisp.dhis.indicator.IndicatorGroupStore" />
+  </bean>
+
   <bean id="org.hisp.dhis.dimension.DimensionService" class="org.hisp.dhis.dimension.DefaultDimensionService" />
 
   <bean id="org.hisp.dhis.fileresource.FileResourceService" class="org.hisp.dhis.fileresource.DefaultFileResourceService">
