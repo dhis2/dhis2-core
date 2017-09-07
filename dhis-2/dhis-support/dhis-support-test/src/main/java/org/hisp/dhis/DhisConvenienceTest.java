@@ -163,7 +163,7 @@ public abstract class DhisConvenienceTest
     protected static final String BASE_IN_UID = "inabcdefgh";
     protected static final String BASE_DE_UID = "deabcdefgh";
     protected static final String BASE_DS_UID = "dsabcdefgh";
-        protected static final String BASE_OU_UID = "ouabcdefgh";
+    protected static final String BASE_OU_UID = "ouabcdefgh";
     protected static final String BASE_COC_UID = "cuabcdefgh";
     protected static final String BASE_USER_UID = "userabcdef";
     protected static final String BASE_USER_GROUP_UID = "ugabcdefgh";
