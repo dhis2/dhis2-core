@@ -101,12 +101,11 @@ public class DefaultAppStoreService implements AppStoreService
     private Optional<AppVersion> getWebAppVersion( String id )
         throws IOException
     {
-        List<WebApp> apps = getAppStore();
-
-        for ( WebApp app : apps )
+        for ( WebApp app : getAppStore() )
         {
-            app.getVersions().stream().filter( v -> id.equals( v.getId() ) )
-                .forEach( v -> Optional.of( v ) );
+            return app.getVersions().stream()
+                .filter( v -> id.equals( v.getId() ) )
+                .findFirst();
         }
 
         return Optional.empty();
