@@ -28,8 +28,6 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.appstore2.AppStore;
-import org.hisp.dhis.appstore.AppStoreManager;
 import org.hisp.dhis.appstore2.AppStoreService;
 import org.hisp.dhis.appstore2.WebApp;
 import org.hisp.dhis.common.DhisApiVersion;

@@ -30,7 +30,6 @@ package org.hisp.dhis.appstore2;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.appmanager.AppStatus;
-import org.hisp.dhis.appstore.WebAppVersion;
 
 import java.util.Date;
 import java.util.Set;
