@@ -36,9 +36,11 @@ import java.util.concurrent.ScheduledFuture;
  */
 public interface SchedulingManager
 {
-    boolean isJobConfigurationRunning( String key );
+    boolean isJobConfigurationRunning( JobType jobType );
 
     void runJobConfiguration( JobConfiguration jobConfiguration );
+
+    void jobConfigurationFinished( JobConfiguration jobConfiguration );
 
     Job getJob( JobType jobType );
 

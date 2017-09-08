@@ -61,6 +61,9 @@ public class SchedulingManagerTest
     @Autowired
     private SchedulingManager schedulingManager;
 
+    @Autowired
+    private JobConfigurationService jobConfigurationService;
+
     /*private boolean verifySortedJobs( List<JobConfiguration> jobConfigurations )
     {
         for ( int i = 0; i< jobConfigurations.size() - 1; i++ )
@@ -88,6 +91,11 @@ public class SchedulingManagerTest
         jobConfigurationParametersB.setMessage( "parameters B" );
 
         jobB = new JobConfiguration( "jobB", JobType.TEST, CRON_EVERY_SEC, jobConfigurationParametersB );
+
+        jobConfigurationService.addJobConfiguration( jobA );
+        jobConfigurationService.addJobConfiguration( jobB );
+
+        System.out.println(jobConfigurationService.getAllJobConfigurations());
 
         schedulingManager.scheduleJob( jobA );
         schedulingManager.scheduleJob( jobB );

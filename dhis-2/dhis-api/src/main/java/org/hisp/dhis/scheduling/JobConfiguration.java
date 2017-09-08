@@ -1,7 +1,9 @@
 package org.hisp.dhis.scheduling;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.*;
@@ -15,13 +17,15 @@ import java.util.Date;
  */
 @JacksonXmlRootElement( localName = "jobConfiguration", namespace = DxfNamespaces.DXF_2_0 )
 @JsonDeserialize( using = JobConfigurationDeserializer.class )
+@JsonSerialize( using = JobConfigurationSerializer.class )
 public class JobConfiguration
     extends BaseIdentifiableObject
     implements IdentifiableObject, MetadataObject
 {
-    private int codeSize = 10;
     private String cronExpression;
     private JobType jobType;
+    private JobStatus jobStatus = JobStatus.SCHEDULED;
+    private Date lastExecuted;
 
     private JobParameters jobParameters;
 
@@ -29,7 +33,8 @@ public class JobConfiguration
     private Date nextExecutionTime;
 
     public JobConfiguration ()
-    {}
+    {
+    }
 
     public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters )
     {
@@ -41,7 +46,7 @@ public class JobConfiguration
 
     public String toString()
     {
-        return "Name: " + name + ", job type: " + jobType.name() + ", cronExpression: " + cronExpression + ", parameters: " + jobParameters;
+        return "Name: " + name + ", job type: " + jobType.name() + ", cronExpression: " + cronExpression + ", parameters: " + jobParameters + ", status: " + jobStatus;
     }
 
     public void setNextExecutionTime()
@@ -49,11 +54,13 @@ public class JobConfiguration
         this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext(  ) );
     }
 
+    @JsonSetter
     public void setCronExpression( String cronExpression )
     {
         this.cronExpression = cronExpression;
     }
 
+    @JsonSetter
     public void setJobType( JobType jobType )
     {
         this.jobType = jobType;
@@ -84,13 +91,42 @@ public class JobConfiguration
         return nextExecutionTime.compareTo( ((JobConfiguration) jobConfiguration).getNextExecutionTime() );
     }
 
+    @JacksonXmlProperty
+    @JsonProperty
     public JobParameters getJobParameters()
     {
         return jobParameters;
     }
 
+    @JsonSetter
     public void setJobParameters( JobParameters jobParameters )
     {
         this.jobParameters = jobParameters;
+    }
+
+    @JsonSetter
+    public void setJobStatus( JobStatus jobStatus )
+    {
+        this.jobStatus = jobStatus;
+    }
+
+    @JacksonXmlProperty
+    @JsonProperty
+    public JobStatus getJobStatus( )
+    {
+        return jobStatus;
+    }
+
+    @JacksonXmlProperty
+    @JsonProperty
+    public Date getLastExecuted()
+    {
+        return lastExecuted;
+    }
+
+    @JsonSetter
+    public void setLastExecuted( Date lastExecuted )
+    {
+        this.lastExecuted = lastExecuted;
     }
 }

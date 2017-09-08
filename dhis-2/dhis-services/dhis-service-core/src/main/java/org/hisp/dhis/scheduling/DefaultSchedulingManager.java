@@ -32,6 +32,7 @@ import org.hisp.dhis.system.scheduling.Scheduler;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,22 +47,33 @@ import java.util.concurrent.ScheduledFuture;
 public class DefaultSchedulingManager
     implements SchedulingManager
 {
+    @Autowired
+    private JobConfigurationService jobConfigurationService;
     // -------------------------------------------------------------------------
     // Queues
     // -------------------------------------------------------------------------
     private HashMap<String, JobConfiguration> jobConfigurations = new HashMap<>(  );
 
-    private HashMap<String, JobConfiguration> runningJobConfigurations = new HashMap<>(  );
+    private List<JobConfiguration> runningJobConfigurations = new ArrayList<>(  );
 
-    public boolean isJobConfigurationRunning( String key )
+    public boolean isJobConfigurationRunning( JobType jobType )
     {
-        return runningJobConfigurations.containsKey( key );
+        System.out.println("Running jobs: " + runningJobConfigurations);
+        return runningJobConfigurations.stream()
+            .anyMatch( jobConfiguration -> jobConfiguration.getJobType().equals( jobType ) );
     }
 
     public void runJobConfiguration( JobConfiguration jobConfiguration )
     {
         jobConfigurations.remove( jobConfiguration.getUid() );
-        runningJobConfigurations.put( jobConfiguration.getUid(), jobConfiguration );
+        jobConfigurationService.updateJobConfiguration( jobConfiguration );
+        runningJobConfigurations.add( jobConfiguration );
+    }
+
+    public void jobConfigurationFinished( JobConfiguration jobConfiguration )
+    {
+        runningJobConfigurations.remove( jobConfiguration );
+        jobConfigurationService.updateJobConfiguration( jobConfiguration );
     }
 
     // -------------------------------------------------------------------------

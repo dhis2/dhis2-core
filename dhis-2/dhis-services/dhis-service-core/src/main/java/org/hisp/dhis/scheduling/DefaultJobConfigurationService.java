@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -57,7 +56,7 @@ public class DefaultJobConfigurationService
     @Override
     public JobConfiguration getJobConfigurationWithUid( String uid )
     {
-        return getAllJobConfigurations().stream().filter( job -> Objects.equals( job.getUid(), uid ) ).findFirst().orElse( null );
+        return jobConfigurationStore.getByUid( uid );
     }
 
     @Override
