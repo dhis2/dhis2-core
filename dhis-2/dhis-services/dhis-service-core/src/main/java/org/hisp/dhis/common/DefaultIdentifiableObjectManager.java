@@ -40,6 +40,8 @@ import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.translation.ObjectTranslation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -87,11 +89,16 @@ public class DefaultIdentifiableObjectManager
     @Autowired
     private CurrentUserService currentUserService;
 
+    @Autowired
+    private SchemaService schemaService;
+
     private Map<Class<? extends IdentifiableObject>, GenericIdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStoreMap;
 
     private Map<Class<? extends NameableObject>, GenericNameableObjectStore<? extends NameableObject>> nameableObjectStoreMap;
 
     private Map<Class<? extends DimensionalObject>, GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStoreMap;
+
+    private Map<Class<? extends IdentifiableObject>, GenericIdentifiableObjectStore<? extends IdentifiableObject>> classWithUserPropertyMap;
 
     //--------------------------------------------------------------------------
     // IdentifiableObjectManager implementation
@@ -1252,10 +1259,16 @@ public class DefaultIdentifiableObjectManager
         }
 
         identifiableObjectStoreMap = new HashMap<>();
+        classWithUserPropertyMap = new HashMap<>();
 
         for ( GenericIdentifiableObjectStore<? extends IdentifiableObject> store : identifiableObjectStores )
         {
             identifiableObjectStoreMap.put( store.getClazz(), store );
+
+            if (  classHasProperty( store.getClazz(), "user" )  )
+            {
+                classWithUserPropertyMap.put( store.getClazz(), store );
+            }
         }
 
         nameableObjectStoreMap = new HashMap<>();
@@ -1263,6 +1276,11 @@ public class DefaultIdentifiableObjectManager
         for ( GenericNameableObjectStore<? extends NameableObject> store : nameableObjectStores )
         {
             nameableObjectStoreMap.put( store.getClazz(), store );
+
+            if (  classHasProperty( store.getClazz(), "user" )  )
+            {
+                classWithUserPropertyMap.put( store.getClazz(), store );
+            }
         }
 
         dimensionalObjectStoreMap = new HashMap<>();
@@ -1270,6 +1288,37 @@ public class DefaultIdentifiableObjectManager
         for ( GenericDimensionalObjectStore<? extends DimensionalObject> store : dimensionalObjectStores )
         {
             dimensionalObjectStoreMap.put( store.getClazz(), store );
+
+            if (  classHasProperty( store.getClazz(), "user" )  )
+            {
+                classWithUserPropertyMap.put( store.getClazz(), store );
+            }
         }
+    }
+
+    public Set<String> listObjectCreatedByUser( User user )
+    {
+        Set<String> returnList = new HashSet<>();
+
+        classWithUserPropertyMap.forEach( ( clazz, store ) -> {
+            if ( store.countByUser( user ) > 0 )
+            {
+                returnList.add( clazz.getSimpleName() );
+            }
+        } );
+
+        return returnList;
+    }
+
+    private boolean classHasProperty( Class clazz, String property )
+    {
+        Schema schema = schemaService.getDynamicSchema( clazz );
+
+        if ( schema.havePersistedProperty( property ) )
+        {
+            return true;
+        }
+
+        return false;
     }
 }
