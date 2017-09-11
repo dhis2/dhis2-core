@@ -128,7 +128,8 @@ public class DataValueSetController
         dataValueSetService.writeDataValueSetXml( params, response.getOutputStream() );
     }
 
-    @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_XML_ADX )
+    @RequestMapping( method = RequestMethod.GET, produces = {
+        CONTENT_TYPE_XML_ADX, CONTENT_TYPE_XML_ADX_OLD } )
     public void getDataValueSetXmlAdx(
         @RequestParam Set<String> dataSet,
         @RequestParam( required = false ) Set<String> period,
@@ -225,7 +226,8 @@ public class DataValueSetController
         }
     }
 
-    @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_XML_ADX )
+    @RequestMapping( method = RequestMethod.POST, consumes = {
+        CONTENT_TYPE_XML_ADX, CONTENT_TYPE_XML_ADX_OLD } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     public void postAdxDataValueSet( ImportOptions importOptions,
         HttpServletRequest request, HttpServletResponse response ) throws IOException
