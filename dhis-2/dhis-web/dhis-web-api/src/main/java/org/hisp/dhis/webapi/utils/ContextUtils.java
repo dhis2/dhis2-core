@@ -68,7 +68,7 @@ public class ContextUtils
     public static final String CONTENT_TYPE_TEXT = "text/plain; charset=UTF-8";
     public static final String CONTENT_TYPE_CSS = "text/css; charset=UTF-8";
     public static final String CONTENT_TYPE_XML = "application/xml; charset=UTF-8";
-    public static final String CONTENT_TYPE_XML_ADX = "application/xml+adx; charset=UTF-8";
+    public static final String CONTENT_TYPE_XML_ADX = "application/adx+xml; charset=UTF-8";
     public static final String CONTENT_TYPE_CSV = "application/csv; charset=UTF-8";
     public static final String CONTENT_TYPE_PNG = "image/png";
     public static final String CONTENT_TYPE_JPG = "image/jpeg";
