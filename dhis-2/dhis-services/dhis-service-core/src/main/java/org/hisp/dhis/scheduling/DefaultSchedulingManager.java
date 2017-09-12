@@ -111,9 +111,11 @@ public class DefaultSchedulingManager
     @Override
     public void scheduleJob( JobConfiguration jobConfiguration )
     {
-        scheduler.scheduleJob( jobConfiguration, new DefaultJobInstance() );
+        if(!scheduler.isJobInSystem( jobConfiguration.getUid() ))
+        {
+            scheduler.scheduleJob( jobConfiguration, new DefaultJobInstance() );
 
-        //scheduler.scheduleJob( jobConfiguration, jobMap.get( jobConfiguration.getJobType() ) );
+        }
     }
 
     @Override

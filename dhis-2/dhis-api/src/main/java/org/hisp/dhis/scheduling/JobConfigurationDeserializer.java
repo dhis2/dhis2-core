@@ -29,6 +29,6 @@ public class JobConfigurationDeserializer
 
         JobParameters jobParameters = mapper.convertValue( root.get( "jobParameters" ), jobType.getClazz() );
 
-        return new JobConfiguration( root.get( "name" ).toString(), jobType, cronExpression, jobParameters );
+        return new JobConfiguration( root.get( "name" ).toString(), jobType, cronExpression, jobParameters, true );
     }
 }

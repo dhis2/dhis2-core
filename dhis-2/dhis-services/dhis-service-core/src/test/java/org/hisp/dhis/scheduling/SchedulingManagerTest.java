@@ -84,13 +84,13 @@ public class SchedulingManagerTest
         TestJobParameters jobConfigurationParametersA = new TestJobParameters();
         jobConfigurationParametersA.setMessage( "parameters A" );
 
-        jobA = new JobConfiguration( "jobA", JobType.TEST, CRON_EVERY_MIN, jobConfigurationParametersA );
+        jobA = new JobConfiguration( "jobA", JobType.TEST, CRON_EVERY_MIN, jobConfigurationParametersA, true );
 
 
         TestJobParameters jobConfigurationParametersB = new TestJobParameters();
         jobConfigurationParametersB.setMessage( "parameters B" );
 
-        jobB = new JobConfiguration( "jobB", JobType.TEST, CRON_EVERY_SEC, jobConfigurationParametersB );
+        jobB = new JobConfiguration( "jobB", JobType.TEST, CRON_EVERY_SEC, jobConfigurationParametersB, true );
 
         jobConfigurationService.addJobConfiguration( jobA );
         jobConfigurationService.addJobConfiguration( jobB );

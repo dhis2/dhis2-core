@@ -25,6 +25,8 @@
 
         <property name="lastExecuted" />
 
+        <property name="enabled" />
+
         <property name="jobParameters" not-null="true" type="serializable" length="65535" />
     </class>
 </hibernate-mapping>

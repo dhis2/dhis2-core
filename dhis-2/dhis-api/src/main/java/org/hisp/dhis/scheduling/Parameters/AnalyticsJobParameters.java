@@ -1,12 +1,9 @@
 package org.hisp.dhis.scheduling.Parameters;
 
-import com.cronutils.model.field.CronField;
-import com.cronutils.model.field.CronFieldName;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.TaskId;
 
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -49,11 +46,5 @@ public class AnalyticsJobParameters
     public boolean isSkipResourceTables()
     {
         return skipResourceTables;
-    }
-
-    @Override
-    public ErrorReport validate( Map<CronFieldName, CronField> cronFieldNameCronFieldMap )
-    {
-        return null;
     }
 }

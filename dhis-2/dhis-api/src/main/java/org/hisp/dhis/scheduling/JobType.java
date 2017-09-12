@@ -9,27 +9,30 @@ import java.util.Optional;
  */
 public enum JobType
 {
-    DATA_STATISTICS( "dataStatisticsJob", DataStatisticsJobParameters.class ),
-    RESOURCE_TABLE( "resourceTableJob", ResourceTableJobParameters.class ),
-    ANALYTICS_TABLE( "analyticsTableJob", AnalyticsJobParameters.class ),
-    DATA_SYNC( "dataSyncJob", DataSyncJobParameters.class ),
-    META_DATA_SYNC( "metaDataSyncJob", MetadataSyncJobParameters.class ),
-    MESSAGE_SEND( "messageSendJob", MessageSendJobParameters.class ),
-    PROGRAM_NOTIFICATIONS( "programNotificationsJob", ProgramNotificationJobParameters.class ),
-    VALIDATION_RESULTS_NOTIFICATION( "validationResultNotificationJob", ValidationResultNotificationJobParameters.class ),
-    CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob", null ),
-    MONITORING( "monitoringJob", MonitoringJobParameters.class ),
-    PUSH_ANALYSIS( "pushAnalysis", PushAnalysisJobParameters.class ),
-    TEST( "test", TestJobParameters.class );
+    DATA_STATISTICS( "dataStatisticsJob", DataStatisticsJobParameters.class, 1000 ),
+    RESOURCE_TABLE( "resourceTableJob", ResourceTableJobParameters.class, 1000 ),
+    ANALYTICS_TABLE( "analyticsTableJob", AnalyticsJobParameters.class, 1800 ),
+    DATA_SYNC( "dataSyncJob", DataSyncJobParameters.class, 1000 ),
+    META_DATA_SYNC( "metaDataSyncJob", MetadataSyncJobParameters.class, 1000 ),
+    MESSAGE_SEND( "messageSendJob", MessageSendJobParameters.class, 1000 ),
+    PROGRAM_NOTIFICATIONS( "programNotificationsJob", ProgramNotificationJobParameters.class, 1000 ),
+    VALIDATION_RESULTS_NOTIFICATION( "validationResultNotificationJob", ValidationResultNotificationJobParameters.class, 1000 ),
+    CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob", null, 1000 ),
+    MONITORING( "monitoringJob", MonitoringJobParameters.class, 1000 ),
+    PUSH_ANALYSIS( "pushAnalysis", PushAnalysisJobParameters.class, 1000 ),
+    TEST( "test", TestJobParameters.class, 1 );
 
     private final String key;
 
     private final Class<?> clazz;
 
-    JobType( String key, Class<?> clazz )
+    private final long allowedFrequencyInSeconds;
+
+    JobType( String key, Class<?> clazz, long allowedFrequencyInSeconds)
     {
         this.key = key;
         this.clazz = clazz;
+        this.allowedFrequencyInSeconds = allowedFrequencyInSeconds;
     }
 
     public String getKey()
@@ -60,5 +63,10 @@ public enum JobType
         Optional<JobType> getJobType = getByJobType( jobType );
 
         return getJobType.get().getClazz();
+    }
+
+    public long getAllowedFrequencyInSeconds()
+    {
+        return allowedFrequencyInSeconds;
     }
 }

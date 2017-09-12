@@ -135,6 +135,13 @@ public interface Scheduler
     JobStatus getJobStatus( String key );
 
     /**
+     * Check if jobConfiguration is in system
+     * @param key identifier of jobConfiguration
+     * @return boolean
+     */
+    boolean isJobInSystem( String key );
+
+    /**
      * Gets the status for the current job with the given key.
      *
      * @param key the job key.

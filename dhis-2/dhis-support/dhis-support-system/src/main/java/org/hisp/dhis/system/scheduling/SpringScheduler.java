@@ -30,6 +30,7 @@ package org.hisp.dhis.system.scheduling;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
@@ -51,6 +52,7 @@ import java.util.concurrent.ScheduledFuture;
 public class SpringScheduler
     implements Scheduler
 {
+
     private static final Log log = LogFactory.getLog( SpringScheduler.class );
 
     private Map<String, ScheduledFuture<?>> futures = new HashMap<>();
@@ -60,6 +62,9 @@ public class SpringScheduler
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+
+    @Autowired
+    private MessageService messageService;
 
     private TaskScheduler JobScheduler;
 
@@ -124,7 +129,7 @@ public class SpringScheduler
     public void scheduleJob( JobConfiguration jobConfiguration, JobInstance jobInstance )
     {
 
-        ScheduledFuture<?> future = JobScheduler.schedule( () -> jobInstance.execute( jobConfiguration, schedulingManager ), new CronTrigger( jobConfiguration.getCronExpression() ) );
+        ScheduledFuture<?> future = JobScheduler.schedule( () -> jobInstance.execute( jobConfiguration, schedulingManager, messageService ), new CronTrigger( jobConfiguration.getCronExpression() ) );
 
         futures.put( jobConfiguration.getUid(), future );
 
@@ -212,6 +217,12 @@ public class SpringScheduler
         ScheduledFuture<?> future = futures.get( key );
 
         return getStatus( future );
+    }
+
+    @Override
+    public boolean isJobInSystem( String key )
+    {
+        return futures.get( key ) != null || currentTasks.get( key ) != null;
     }
 
     @Override
