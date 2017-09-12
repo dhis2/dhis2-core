@@ -27,7 +27,7 @@ public class JobConfiguration
     private JobStatus jobStatus = JobStatus.SCHEDULED;
     private Date lastExecuted;
     private JobParameters jobParameters;
-    private boolean enabled = true;
+    private boolean enabled;
 
     // Used in JobService for sorting jobConfigurations based on cron expression
     private Date nextExecutionTime;
@@ -126,6 +126,8 @@ public class JobConfiguration
         this.lastExecuted = lastExecuted;
     }
 
+    @JacksonXmlProperty
+    @JsonProperty
     public boolean getEnabled()
     {
         return enabled;

@@ -61,9 +61,9 @@ public class JobObjectBundleHook
         // Validate that no other jobs of the same JobType has the same cron expression
         List<JobConfiguration> jobConfigurations = jobConfigurationService.getAllJobConfigurations();
         errorReports = jobConfigurations.stream()
-            .filter( jobConfiguration1 -> jobConfiguration.getJobType() == jobConfiguration1.getJobType() ).filter(
-                jobConfiguration1 -> jobConfiguration.getCronExpression()
-                    .equals( jobConfiguration1.getCronExpression() ) )
+            .filter( jobConfiguration1 -> !jobConfiguration.getUid().equals( jobConfiguration1.getUid() ) )
+            .filter( jobConfiguration1 -> jobConfiguration.getJobType() == jobConfiguration1.getJobType() )
+            .filter( jobConfiguration1 -> jobConfiguration.getCronExpression().equals( jobConfiguration1.getCronExpression() ) )
             .map( jobConfiguration1 -> new ErrorReport( JobConfiguration.class, ErrorCode.E4013 ) )
             .collect( Collectors.toList() );
 
@@ -89,16 +89,18 @@ public class JobObjectBundleHook
         {
             return;
         }
-
-        JobConfiguration jobConfiguration = (JobConfiguration) persistedObject;
-        schedulingManager.stopJob( jobConfiguration.getUid() );
-
-        sessionFactory.getCurrentSession().saveOrUpdate( jobConfiguration );
+        schedulingManager.stopJob( persistedObject.getUid() );
+        sessionFactory.getCurrentSession().update( persistedObject );
     }
 
     @Override
     public <T extends IdentifiableObject> void preDelete( T persistedObject, ObjectBundle bundle )
     {
+        if ( !JobConfiguration.class.isInstance( persistedObject ) )
+        {
+            return;
+        }
+
         schedulingManager.stopJob( persistedObject.getUid() );
         sessionFactory.getCurrentSession().delete( persistedObject );
     }
@@ -106,12 +108,22 @@ public class JobObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle )
     {
+        if ( !JobConfiguration.class.isInstance( persistedObject ) )
+        {
+            return;
+        }
+
         schedulingManager.scheduleJob( (JobConfiguration) persistedObject );
     }
 
     @Override
     public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
     {
+        if ( !JobConfiguration.class.isInstance( persistedObject ) )
+        {
+            return;
+        }
+
         schedulingManager.scheduleJob( (JobConfiguration) persistedObject );
     }
 }

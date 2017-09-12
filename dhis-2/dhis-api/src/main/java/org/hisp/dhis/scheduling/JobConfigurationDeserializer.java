@@ -29,6 +29,11 @@ public class JobConfigurationDeserializer
 
         JobParameters jobParameters = mapper.convertValue( root.get( "jobParameters" ), jobType.getClazz() );
 
-        return new JobConfiguration( root.get( "name" ).toString(), jobType, cronExpression, jobParameters, true );
+        System.out.println(root.get( "enabled" ).toString() + ", : " + (root.get( "enabled" ) == null || root.get( "enabled" ).booleanValue()));
+        boolean enabled = root.get( "enabled" ) == null || root.get( "enabled" ).booleanValue();
+
+        System.out.println("Enabled: " + enabled);
+
+        return new JobConfiguration( root.get( "name" ).toString(), jobType, cronExpression, jobParameters, enabled );
     }
 }
