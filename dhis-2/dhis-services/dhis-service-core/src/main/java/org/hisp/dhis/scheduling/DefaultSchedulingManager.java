@@ -162,7 +162,6 @@ public class DefaultSchedulingManager
         return scheduler.getJobStatus( jobKey );
     }
 
-
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
