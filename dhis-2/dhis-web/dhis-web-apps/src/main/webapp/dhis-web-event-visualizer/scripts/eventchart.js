@@ -3156,7 +3156,7 @@ Ext.onReady( function() {
 
                 var hasRelativeOrgunits = service.layout.hasRecordIds(layout, userIdDestroyCacheKeys);
 
-                paramString = '/api/analytics/events/aggregate/' + layout.program.id + '.' + (format || 'json') + '?';
+                paramString = '/api/25/analytics/events/aggregate/' + layout.program.id + '.' + (format || 'json') + '?';
 
 				// stage
 				paramString += 'stage=' + layout.programStage.id;
