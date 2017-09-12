@@ -8,8 +8,7 @@ import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
 /**
- * Created by henninghakonsen on 31/08/2017.
- * Project: dhis-2.
+ * @author Henning Håkonsen
  */
 public class JobConfigurationSchemaDescriptor implements SchemaDescriptor
 {

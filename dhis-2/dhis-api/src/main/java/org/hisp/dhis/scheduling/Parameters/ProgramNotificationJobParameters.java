@@ -1,6 +1,5 @@
 package org.hisp.dhis.scheduling.Parameters;
 
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.TaskId;
 
@@ -15,7 +14,7 @@ public class ProgramNotificationJobParameters
     public ProgramNotificationJobParameters()
     {}
 
-    public ProgramNotificationJobParameters( TaskId taskId)
+    public ProgramNotificationJobParameters( TaskId taskId )
     {
         this.taskId = taskId;
     }
@@ -23,5 +22,10 @@ public class ProgramNotificationJobParameters
     public TaskId getTaskId()
     {
         return taskId;
+    }
+
+    public void setTaskId( TaskId taskId )
+    {
+        this.taskId = taskId;
     }
 }

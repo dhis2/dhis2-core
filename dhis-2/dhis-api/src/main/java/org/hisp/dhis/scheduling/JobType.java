@@ -5,6 +5,9 @@ import org.hisp.dhis.scheduling.Parameters.*;
 import java.util.Optional;
 
 /**
+ * Enum describing the different jobs in the system.
+ * Each job has a name, class and an identifier describing the minimum interval time between executions.
+ *
  * @author Henning Håkonsen
  */
 public enum JobType
@@ -26,13 +29,13 @@ public enum JobType
 
     private final Class<?> clazz;
 
-    private final long allowedFrequencyInSeconds;
+    private final long minimumFrequencyInSeconds;
 
-    JobType( String key, Class<?> clazz, long allowedFrequencyInSeconds)
+    JobType( String key, Class<?> clazz, long minimumFrequencyInSeconds )
     {
         this.key = key;
         this.clazz = clazz;
-        this.allowedFrequencyInSeconds = allowedFrequencyInSeconds;
+        this.minimumFrequencyInSeconds = minimumFrequencyInSeconds;
     }
 
     public String getKey()
@@ -65,8 +68,8 @@ public enum JobType
         return getJobType.get().getClazz();
     }
 
-    public long getAllowedFrequencyInSeconds()
+    public long getMinimumFrequencyInSeconds()
     {
-        return allowedFrequencyInSeconds;
+        return minimumFrequencyInSeconds;
     }
 }

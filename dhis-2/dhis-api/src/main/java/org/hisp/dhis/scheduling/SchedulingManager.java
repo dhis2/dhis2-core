@@ -32,6 +32,19 @@ import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 
 /**
+ * Interface for scheduling jobs.
+ *
+ * <p>
+ * The main steps of the scheduling:
+ * <p>
+ * <ul>
+ * <li>Create a job configuration {@link JobConfiguration}</li>
+ * <li>This job configuration needs a job specific parameters object {@link JobParameters}, ie {@link org.hisp.dhis.scheduling.Parameters.AnalyticsJobParameters}.</li>
+ * <li>Call scheduleJob with the job configuration.</li>
+ * <li>The schedulingManager calls the spring scheduler with a runnable object {@link JobInstance}.</li>
+ * <li>When the cron expression ocours the job will try to execute from the runnable object, job instance.</li>
+ * </ul>
+ *
  * @author Henning Håkonsen
  */
 public interface SchedulingManager

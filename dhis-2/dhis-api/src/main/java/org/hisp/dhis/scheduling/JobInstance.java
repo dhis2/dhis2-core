@@ -3,8 +3,9 @@ package org.hisp.dhis.scheduling;
 import org.hisp.dhis.message.MessageService;
 
 /**
- * Created by henninghakonsen on 05/09/2017.
- * Project: dhis-2.
+ * This interface an abstraction for the actual execution of jobs based on a job configuration.
+ *
+ * @author Henning Håkonsen
  */
 public interface JobInstance
 {

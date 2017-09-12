@@ -1,8 +1,9 @@
 package org.hisp.dhis.scheduling;
 
 /**
- * Created by henninghakonsen on 12/09/2017.
- * Project: dhis-2.
+ * Simple exception for job failure
+ *
+ * @author Henning Håkonsen
  */
 class JobFailureException extends RuntimeException
 {

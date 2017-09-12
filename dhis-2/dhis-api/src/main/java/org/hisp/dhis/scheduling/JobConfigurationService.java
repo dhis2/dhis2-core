@@ -7,6 +7,8 @@ import org.springframework.context.event.EventListener;
 import java.util.List;
 
 /**
+ * Simple service for {@link JobConfiguration} objects.
+ *
  * @author Henning Håkonsen
  */
 public interface JobConfigurationService

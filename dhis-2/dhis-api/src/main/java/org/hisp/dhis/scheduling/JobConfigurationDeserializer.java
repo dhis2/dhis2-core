@@ -9,6 +9,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 
 /**
+ * Custom deserializer for {@link JobConfiguration} objects. This is due to different objects
+ * being stored in the parameter variable.
+ *
  * @author Henning Håkonsen
  */
 public class JobConfigurationDeserializer
@@ -29,10 +32,7 @@ public class JobConfigurationDeserializer
 
         JobParameters jobParameters = mapper.convertValue( root.get( "jobParameters" ), jobType.getClazz() );
 
-        System.out.println(root.get( "enabled" ).toString() + ", : " + (root.get( "enabled" ) == null || root.get( "enabled" ).booleanValue()));
         boolean enabled = root.get( "enabled" ) == null || root.get( "enabled" ).booleanValue();
-
-        System.out.println("Enabled: " + enabled);
 
         return new JobConfiguration( root.get( "name" ).toString(), jobType, cronExpression, jobParameters, enabled );
     }

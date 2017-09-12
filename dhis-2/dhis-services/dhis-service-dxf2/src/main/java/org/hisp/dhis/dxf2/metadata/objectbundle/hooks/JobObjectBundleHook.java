@@ -1,6 +1,5 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import com.cronutils.descriptor.CronDescriptor;
 import com.cronutils.model.Cron;
 import com.cronutils.model.definition.CronDefinition;
 import com.cronutils.model.definition.CronDefinitionBuilder;
@@ -19,7 +18,6 @@ import org.threeten.bp.Duration;
 import org.threeten.bp.ZonedDateTime;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
 
 import static com.cronutils.model.CronType.QUARTZ;
@@ -44,19 +42,14 @@ public class JobObjectBundleHook
     public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
     {
         List<ErrorReport> errorReports;
-
         JobConfiguration jobConfiguration = (JobConfiguration) object;
 
+        // validate the cron expression
         CronDefinition cronDefinition = CronDefinitionBuilder.instanceDefinitionFor(QUARTZ);
         CronParser parser = new CronParser( cronDefinition );
         Cron quartzCron = parser.parse( jobConfiguration.getCronExpression() );
 
-        // validate the cron expression
         quartzCron.validate();
-
-        CronDescriptor descriptor = CronDescriptor.instance( Locale.ENGLISH);
-        String description = descriptor.describe(parser.parse( jobConfiguration.getCronExpression() ));
-        System.out.println("Cron in natural language: " + description );
 
         // Validate that no other jobs of the same JobType has the same cron expression
         List<JobConfiguration> jobConfigurations = jobConfigurationService.getAllJobConfigurations();
@@ -75,8 +68,8 @@ public class JobObjectBundleHook
 
         long timeIntervalInSeconds = timeFromLastExecution.getSeconds() + timeToNextExecution.getSeconds();
 
-        if( timeIntervalInSeconds < jobConfiguration.getJobType().getAllowedFrequencyInSeconds() ) {
-            errorReports.add( new ErrorReport( JobConfiguration.class, new ErrorMessage( ErrorCode.E4014, timeIntervalInSeconds, jobConfiguration.getJobType().getAllowedFrequencyInSeconds() ) ) );
+        if( timeIntervalInSeconds < jobConfiguration.getJobType().getMinimumFrequencyInSeconds() ) {
+            errorReports.add( new ErrorReport( JobConfiguration.class, new ErrorMessage( ErrorCode.E4014, timeIntervalInSeconds, jobConfiguration.getJobType().getMinimumFrequencyInSeconds() ) ) );
         }
 
         return errorReports;
@@ -89,6 +82,7 @@ public class JobObjectBundleHook
         {
             return;
         }
+
         schedulingManager.stopJob( persistedObject.getUid() );
         sessionFactory.getCurrentSession().update( persistedObject );
     }

@@ -1,6 +1,5 @@
 package org.hisp.dhis.scheduling.Parameters;
 
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.TaskId;
 
@@ -30,5 +29,10 @@ public class PushAnalysisJobParameters
     public TaskId getTaskId()
     {
         return taskId;
+    }
+
+    public void setTaskId( TaskId taskId )
+    {
+        this.taskId = taskId;
     }
 }

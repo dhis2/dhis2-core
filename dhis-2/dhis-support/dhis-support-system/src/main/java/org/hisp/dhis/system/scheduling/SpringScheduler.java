@@ -66,11 +66,11 @@ public class SpringScheduler
     @Autowired
     private MessageService messageService;
 
-    private TaskScheduler JobScheduler;
+    private TaskScheduler jobScheduler;
 
     public void setTaskScheduler( TaskScheduler JobScheduler )
     {
-        this.JobScheduler = JobScheduler;
+        this.jobScheduler = JobScheduler;
     }
 
     private AsyncListenableTaskExecutor jobExecutor;
@@ -108,9 +108,9 @@ public class SpringScheduler
     {
         if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) )
         {
-            ScheduledFuture<?> future = JobScheduler.schedule( () -> job.execute( jobConfiguration.getJobParameters() ) , new CronTrigger( jobConfiguration
+            ScheduledFuture<?> future = jobScheduler
+                .schedule( () -> job.execute( jobConfiguration.getJobParameters() ) , new CronTrigger( jobConfiguration
                 .getCronExpression() ) );
-
 
             futures.put( jobConfiguration.getUid(), future );
 
@@ -128,8 +128,8 @@ public class SpringScheduler
     @Override
     public void scheduleJob( JobConfiguration jobConfiguration, JobInstance jobInstance )
     {
-
-        ScheduledFuture<?> future = JobScheduler.schedule( () -> jobInstance.execute( jobConfiguration, schedulingManager, messageService ), new CronTrigger( jobConfiguration.getCronExpression() ) );
+        ScheduledFuture<?> future = jobScheduler
+            .schedule( () -> jobInstance.execute( jobConfiguration, schedulingManager, messageService ), new CronTrigger( jobConfiguration.getCronExpression() ) );
 
         futures.put( jobConfiguration.getUid(), future );
 
@@ -158,12 +158,6 @@ public class SpringScheduler
     @Override
     public boolean refreshJob( JobConfiguration jobConfiguration )
     {
-        /*if( getJobStatus( jobConfiguration.getKey() ) != ScheduledTaskStatus.NOT_STARTED )
-        {
-            stopJob( jobConfiguration.getKey() );
-        }
-
-        return scheduleJob( jobConfiguration );*/
         return false;
     }
 

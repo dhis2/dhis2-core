@@ -58,7 +58,6 @@ public class DefaultSchedulingManager
 
     public boolean isJobConfigurationRunning( JobType jobType )
     {
-        System.out.println("Running jobs: " + runningJobConfigurations);
         return runningJobConfigurations.stream()
             .anyMatch( jobConfiguration -> jobConfiguration.getJobType().equals( jobType ) );
     }

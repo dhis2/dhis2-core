@@ -2,20 +2,25 @@ package org.hisp.dhis.scheduling.Parameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.scheduling.TaskId;
 
 /**
- * Created by henninghakonsen on 04/09/2017.
- * Project: dhis-2.
+ * @author Henning Håkonsen
  */
 public class TestJobParameters
     implements JobParameters
 {
+    private TaskId taskId;
+    private String message;
+
     public TestJobParameters()
     {}
 
-    private String message;
+    public TestJobParameters( TaskId taskId )
+    {
+        this.taskId = taskId;
+    }
 
     @JacksonXmlProperty
     @JsonProperty
@@ -27,5 +32,16 @@ public class TestJobParameters
     public void setMessage( String message )
     {
         this.message = message;
+    }
+
+    @Override
+    public TaskId getTaskId()
+    {
+        return taskId;
+    }
+
+    public void setTaskId( TaskId taskId )
+    {
+        this.taskId = taskId;
     }
 }

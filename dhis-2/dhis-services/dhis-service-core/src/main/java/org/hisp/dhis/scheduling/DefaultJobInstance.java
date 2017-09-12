@@ -4,8 +4,7 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.system.util.Clock;
 
 /**
- * Created by henninghakonsen on 05/09/2017.
- * Project: dhis-2.
+ * @author Henning Håkonsen
  */
 public class DefaultJobInstance implements JobInstance
 {
@@ -15,7 +14,6 @@ public class DefaultJobInstance implements JobInstance
 
         if(!jobConfiguration.getEnabled()) return;
 
-        System.out.println( "idRunning? " + schedulingManager.isJobConfigurationRunning( jobConfiguration.getJobType() ));
         if(!schedulingManager.isJobConfigurationRunning( jobConfiguration.getJobType() ))
         {
             schedulingManager.runJobConfiguration( jobConfiguration );

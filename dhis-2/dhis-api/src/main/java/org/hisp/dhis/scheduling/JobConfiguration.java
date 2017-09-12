@@ -14,6 +14,9 @@ import org.springframework.scheduling.support.SimpleTriggerContext;
 import java.util.Date;
 
 /**
+ * This class defines configuration for a job in the system. The job is defined with general identifiers, as well as job
+ * specific, such as jobType {@link JobType}.
+ * 
  * @author Henning Håkonsen
  */
 @JacksonXmlRootElement( localName = "jobConfiguration", namespace = DxfNamespaces.DXF_2_0 )
@@ -45,16 +48,6 @@ public class JobConfiguration
         this.enabled = enabled;
     }
 
-    public String toString()
-    {
-        return "Name: " + name + ", job type: " + jobType.name() + ", cronExpression: " + cronExpression + ", parameters: " + jobParameters + ", status: " + jobStatus;
-    }
-
-    public void setNextExecutionTime()
-    {
-        this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext(  ) );
-    }
-
     public void setCronExpression( String cronExpression )
     {
         this.cronExpression = cronExpression;
@@ -63,6 +56,31 @@ public class JobConfiguration
     public void setJobType( JobType jobType )
     {
         this.jobType = jobType;
+    }
+
+    public void setJobStatus( JobStatus jobStatus )
+    {
+        this.jobStatus = jobStatus;
+    }
+
+    public void setLastExecuted( Date lastExecuted )
+    {
+        this.lastExecuted = lastExecuted;
+    }
+
+    public void setJobParameters( JobParameters jobParameters )
+    {
+        this.jobParameters = jobParameters;
+    }
+
+    public void setEnabled( boolean enabled )
+    {
+        this.enabled = enabled;
+    }
+
+    public void setNextExecutionTime()
+    {
+        this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext(  ) );
     }
 
     @JacksonXmlProperty
@@ -79,34 +97,6 @@ public class JobConfiguration
         return jobType;
     }
 
-    public Date getNextExecutionTime()
-    {
-        return nextExecutionTime;
-    }
-
-    @Override
-    public int compareTo( IdentifiableObject jobConfiguration )
-    {
-        return nextExecutionTime.compareTo( ((JobConfiguration) jobConfiguration).getNextExecutionTime() );
-    }
-
-    @JacksonXmlProperty
-    @JsonProperty
-    public JobParameters getJobParameters()
-    {
-        return jobParameters;
-    }
-
-    public void setJobParameters( JobParameters jobParameters )
-    {
-        this.jobParameters = jobParameters;
-    }
-
-    public void setJobStatus( JobStatus jobStatus )
-    {
-        this.jobStatus = jobStatus;
-    }
-
     @JacksonXmlProperty
     @JsonProperty
     public JobStatus getJobStatus( )
@@ -121,9 +111,11 @@ public class JobConfiguration
         return lastExecuted;
     }
 
-    public void setLastExecuted( Date lastExecuted )
+    @JacksonXmlProperty
+    @JsonProperty
+    public JobParameters getJobParameters()
     {
-        this.lastExecuted = lastExecuted;
+        return jobParameters;
     }
 
     @JacksonXmlProperty
@@ -133,8 +125,15 @@ public class JobConfiguration
         return enabled;
     }
 
-    public void setEnabled( boolean enabled )
+    private Date getNextExecutionTime()
     {
-        this.enabled = enabled;
+        return nextExecutionTime;
     }
+
+    @Override
+    public int compareTo( IdentifiableObject jobConfiguration )
+    {
+        return nextExecutionTime.compareTo( ((JobConfiguration) jobConfiguration).getNextExecutionTime() );
+    }
+
 }
