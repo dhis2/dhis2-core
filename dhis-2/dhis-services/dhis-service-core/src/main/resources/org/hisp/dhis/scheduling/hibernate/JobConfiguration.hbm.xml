@@ -23,9 +23,11 @@
 
         <property name="jobStatus" not-null="true" />
 
-        <property name="lastExecuted" />
+        <property name="lastExecuted" type="timestamp"/>
 
-        <property name="enabled" />
+        <property name="nextExecutionTime" type="timestamp"/>
+
+        <property name="enabled" not-null="true" type="boolean"/>
 
         <property name="jobParameters" not-null="true" type="serializable" length="65535" />
     </class>

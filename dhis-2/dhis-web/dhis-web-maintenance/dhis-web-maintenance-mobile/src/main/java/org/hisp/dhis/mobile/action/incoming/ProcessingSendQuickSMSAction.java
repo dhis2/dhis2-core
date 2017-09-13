@@ -28,32 +28,26 @@ package org.hisp.dhis.mobile.action.incoming;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.*;
+import org.hisp.dhis.scheduling.Parameters.SmsJobParameters;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
-import org.hisp.dhis.sms.task.SendSmsTask;
+import org.hisp.dhis.sms.task.SendSmsJob;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.opensymphony.xwork2.Action;
+import java.util.*;
 
 public class ProcessingSendQuickSMSAction
     implements Action
@@ -75,13 +69,13 @@ public class ProcessingSendQuickSMSAction
     private GatewayAdministrationService gatewayAdminService;
 
     @Autowired
-    private Scheduler scheduler;
+    private SchedulingManager schedulingManager;
 
     @Autowired
     private Notifier notifier;
 
     @Autowired
-    private SendSmsTask sendSmsTask;
+    private SendSmsJob sendSmsJob;
 
     // -------------------------------------------------------------------------
     // Input & Output
@@ -265,13 +259,11 @@ public class ProcessingSendQuickSMSAction
         TaskId taskId = new TaskId( TaskCategory.SENDING_SMS, currentUser );
         notifier.clear( taskId );
 
-        sendSmsTask.setTaskId( taskId );
-        sendSmsTask.setCurrentUser( currentUser );
-        sendSmsTask.setRecipientsList( recipientsList );
-        sendSmsTask.setSmsSubject( smsSubject );
-        sendSmsTask.setText( text );
+        SmsJobParameters jobParameters = new SmsJobParameters(smsSubject, text, currentUser, recipientsList, text, taskId);
 
-        scheduler.executeJob( sendSmsTask );
+        JobConfiguration processingSendSmsJobConfiguration = new JobConfiguration( "processingSendSmsAction", JobType.SMS_SEND, null, jobParameters, true );
+
+        schedulingManager.executeJob( processingSendSmsJobConfiguration );
 
         if ( message != null && !message.equals( "success" ) )
         {

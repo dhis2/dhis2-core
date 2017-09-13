@@ -6,15 +6,17 @@ import org.hisp.dhis.scheduling.TaskId;
 /**
  * @author Henning Håkonsen
  */
-public class MessageSendJobParameters
+public class SendScheduledMessageJobParameters
     implements JobParameters
 {
+    private static final long serialVersionUID = 8L;
+
     private TaskId taskId;
 
-    public MessageSendJobParameters( )
+    public SendScheduledMessageJobParameters( )
     {}
 
-    public MessageSendJobParameters( TaskId taskId )
+    public SendScheduledMessageJobParameters( TaskId taskId )
     {
         this.taskId = taskId;
     }

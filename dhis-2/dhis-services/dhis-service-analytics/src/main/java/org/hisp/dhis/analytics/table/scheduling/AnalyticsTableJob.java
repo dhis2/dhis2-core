@@ -65,7 +65,7 @@ public class AnalyticsTableJob
 
         Set<AnalyticsTableType> skipTableTypes = new HashSet<AnalyticsTableType>();
 
-        if( jobConfig.getSkipTableTypes().size() != 0 ) jobConfig.getSkipTableTypes().forEach( (s) -> skipTableTypes.add( AnalyticsTableType.valueOf( s ) ) );
+        jobConfig.getSkipTableTypes().forEach( (s) -> skipTableTypes.add( AnalyticsTableType.valueOf( s ) ) );
 
         analyticsTableGenerator.generateTables( jobConfig.getLastYears(), jobConfig.getTaskId(), skipTableTypes, jobConfig.isSkipResourceTables() );
     }

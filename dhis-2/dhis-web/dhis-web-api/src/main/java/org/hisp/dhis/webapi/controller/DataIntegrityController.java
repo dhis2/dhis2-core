@@ -80,7 +80,6 @@ public class DataIntegrityController
         TaskId taskId = new TaskId( TaskCategory.DATAINTEGRITY, currentUserService.getCurrentUser() );
         notifier.clear( taskId );
 
-        // HH
         scheduler.executeJob( new DataIntegrityTask( taskId, dataIntegrityService, notifier ) );
 
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TaskCategory.DATAINTEGRITY );

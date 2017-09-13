@@ -9,6 +9,8 @@ import org.hisp.dhis.scheduling.TaskId;
 public class ResourceTableJobParameters
     implements JobParameters
 {
+    private static final long serialVersionUID = 7L;
+
     private TaskId taskId;
 
     public ResourceTableJobParameters()

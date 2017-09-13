@@ -11,6 +11,8 @@ import java.util.Set;
 public class AnalyticsJobParameters
     implements JobParameters
 {
+    private static final long serialVersionUID = 1L;
+
     private TaskId taskId;
     private Integer lastYears;
     private Set<String> skipTableTypes;

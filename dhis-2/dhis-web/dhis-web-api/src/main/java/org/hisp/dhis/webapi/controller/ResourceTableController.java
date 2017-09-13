@@ -114,7 +114,6 @@ public class ResourceTableController
     {
         TaskId taskId = new TaskId( TaskCategory.RESOURCETABLE_UPDATE, currentUserService.getCurrentUser() );
 
-        // HH
         scheduler.executeJob( () -> analyticsTableGenerator.generateResourceTables( taskId ) );
 
         webMessageService.send( WebMessageUtils.ok( "Initiated resource table update" ), response, request );

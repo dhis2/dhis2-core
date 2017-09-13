@@ -46,6 +46,7 @@ public class JobConfiguration
         this.jobType = jobType;
         this.jobParameters = jobParameters;
         this.enabled = enabled;
+        setNextExecutionTime( null );
     }
 
     public void setCronExpression( String cronExpression )
@@ -78,9 +79,9 @@ public class JobConfiguration
         this.enabled = enabled;
     }
 
-    public void setNextExecutionTime()
+    public void setNextExecutionTime( Date nextExecutionTime )
     {
-        this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext(  ) );
+        if( !cronExpression.equals( "" ) ) this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext(  ) );
     }
 
     @JacksonXmlProperty
@@ -125,15 +126,16 @@ public class JobConfiguration
         return enabled;
     }
 
-    private Date getNextExecutionTime()
+    @JacksonXmlProperty
+    @JsonProperty
+    public Date getNextExecutionTime()
     {
         return nextExecutionTime;
     }
 
     @Override
-    public int compareTo( IdentifiableObject jobConfiguration )
+    public int compareTo( IdentifiableObject jobConfiguration  )
     {
         return nextExecutionTime.compareTo( ((JobConfiguration) jobConfiguration).getNextExecutionTime() );
     }
-
 }

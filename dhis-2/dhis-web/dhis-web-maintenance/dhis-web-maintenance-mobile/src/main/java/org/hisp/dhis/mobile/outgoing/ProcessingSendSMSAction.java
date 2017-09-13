@@ -36,13 +36,12 @@ import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.*;
+import org.hisp.dhis.scheduling.Parameters.SmsJobParameters;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
-import org.hisp.dhis.sms.task.SendSmsTask;
+import org.hisp.dhis.sms.task.SendSmsJob;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -74,13 +73,13 @@ public class ProcessingSendSMSAction
     private GatewayAdministrationService gatewayAdminService;
 
     @Autowired
-    private Scheduler scheduler;
+    private SchedulingManager schedulingManager;
 
     @Autowired
     private Notifier notifier;
 
     @Autowired
-    private SendSmsTask sendSmsTask;
+    private SendSmsJob sendSmsJob;
 
     // -------------------------------------------------------------------------
     // Input & Output
@@ -250,14 +249,12 @@ public class ProcessingSendSMSAction
         
         TaskId taskId = new TaskId( TaskCategory.SENDING_SMS, currentUser );
         notifier.clear( taskId );
+
+        SmsJobParameters jobParameters = new SmsJobParameters(smsSubject, text, currentUser, recipientsList, text, taskId);
+
+        JobConfiguration processingSendSmsJobConfiguration = new JobConfiguration( "processingSendSmsAction", JobType.SMS_SEND, null, jobParameters, true );
         
-        sendSmsTask.setTaskId( taskId );
-        sendSmsTask.setCurrentUser( currentUser );
-        sendSmsTask.setRecipientsList( recipientsList );
-        sendSmsTask.setSmsSubject( smsSubject );
-        sendSmsTask.setText( text );
-        
-        scheduler.executeJob( sendSmsTask );
+        schedulingManager.executeJob( processingSendSmsJobConfiguration );
 
         if ( message != null && !message.equals( "success" ) )
         {

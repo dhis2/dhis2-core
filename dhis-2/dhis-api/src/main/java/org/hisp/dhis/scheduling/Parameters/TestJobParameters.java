@@ -11,6 +11,8 @@ import org.hisp.dhis.scheduling.TaskId;
 public class TestJobParameters
     implements JobParameters
 {
+    private static final long serialVersionUID = 10L;
+
     private TaskId taskId;
     private String message;
 
@@ -34,7 +36,6 @@ public class TestJobParameters
         this.message = message;
     }
 
-    @Override
     public TaskId getTaskId()
     {
         return taskId;

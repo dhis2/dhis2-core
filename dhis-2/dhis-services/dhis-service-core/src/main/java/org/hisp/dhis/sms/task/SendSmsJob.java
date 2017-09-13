@@ -1,4 +1,4 @@
-package org.hisp.dhis.validation.scheduling;
+package org.hisp.dhis.sms.task;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,64 +28,72 @@ package org.hisp.dhis.validation.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.Parameters.MonitoringJobParameters;
+import org.hisp.dhis.scheduling.Parameters.SmsJobParameters;
+import org.hisp.dhis.sms.outbound.OutboundSms;
+import org.hisp.dhis.sms.outbound.OutboundSmsService;
+import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.validation.ValidationService;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
+import javax.annotation.Resource;
+import java.util.HashSet;
+import java.util.stream.Collectors;
 
-/**
- * @author Lars Helge Overland
- * @author Jim Grace
- */
-public class MonitoringJob
+public class SendSmsJob
     implements Job
 {
     @Autowired
-    private ValidationService validationService;
+    @Resource( name = "smsMessageSender" )
+    private MessageSender smsSender;
 
     @Autowired
     private Notifier notifier;
 
     @Autowired
-    private MessageService messageService;
+    private OutboundSmsService outboundSmsService;
 
     // -------------------------------------------------------------------------
-    // Implementation
+    // I18n
     // -------------------------------------------------------------------------
 
     @Override
     public JobType getJobType()
     {
-        return JobType.MONITORING;
+        return JobType.SMS_SEND;
     }
 
     @Override
     public void execute( JobParameters jobParameters )
     {
-        MonitoringJobParameters jobConfig = (MonitoringJobParameters) jobParameters;
-        
-        notifier.clear( jobConfig.getTaskId() ).notify( jobConfig.getTaskId(), "Monitoring data" );
-        
-        try
+        SmsJobParameters jobParams = (SmsJobParameters) jobParameters;
+
+        notifier.notify( jobParams.getTaskId(), "Sending SMS" );
+
+        OutboundMessageResponse status = smsSender.sendMessage( jobParams.getSmsSubject(), jobParams.getText(), null, jobParams.getCurrentUser(), new HashSet<>( jobParams.getRecipientsList() ), false );
+
+        OutboundSms sms = new OutboundSms();
+        sms.setMessage( jobParams.getText() );
+        sms.setRecipients( jobParams.getRecipientsList().stream().map( User::getPhoneNumber ).collect( Collectors.toSet() ) );
+
+        if ( status.isOk() )
         {
-            validationService.startScheduledValidationAnalysis();
-            
-            notifier.notify( jobConfig.getTaskId(), INFO, "Monitoring process done", true );
+            notifier.notify( jobParams.getTaskId(), "Message sending successful" );
+
+            sms.setStatus( OutboundSmsStatus.SENT );
         }
-        catch ( RuntimeException ex )
+        else
         {
-            notifier.notify( jobConfig.getTaskId(), ERROR, "Process failed: " + ex.getMessage(), true );
-            
-            messageService.sendSystemErrorNotification( "Monitoring process failed", ex );
-            
-            throw ex;
+            notifier.notify( jobParams.getTaskId(), "Message sending failed" );
+
+            sms.setStatus( OutboundSmsStatus.FAILED );
         }
+
+        outboundSmsService.saveOutboundSms( sms );
     }
 }

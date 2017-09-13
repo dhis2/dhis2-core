@@ -1318,7 +1318,7 @@
 
   <bean id="smsMessageSender" class="org.hisp.dhis.sms.config.SmsMessageSender" />
 
-  <bean id="org.hisp.dhis.sms.task.SendSmsTask" class="org.hisp.dhis.sms.task.SendSmsTask" scope="prototype" />
+  <bean id="org.hisp.dhis.sms.task.SendSmsJob" class="org.hisp.dhis.sms.task.SendSmsJob" scope="prototype" />
 
   <bean id="org.hisp.dhis.program.message.SmsDeliveryChannelStrategy" class="org.hisp.dhis.program.message.SmsDeliveryChannelStrategy" />
 

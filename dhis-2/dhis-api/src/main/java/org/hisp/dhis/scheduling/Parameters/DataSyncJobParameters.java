@@ -9,6 +9,8 @@ import org.hisp.dhis.scheduling.TaskId;
 public class DataSyncJobParameters
     implements JobParameters
 {
+    private static final long serialVersionUID = 3L;
+
     private TaskId taskId;
 
     public DataSyncJobParameters()

@@ -23,7 +23,7 @@ public class JobConfigurationSchemaDescriptor implements SchemaDescriptor
     {
         Schema schema = new Schema( JobConfiguration.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        // HH verify
+
         schema.setOrder( 1040 );
 
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_JOBCONFIGURATION_ADD" ) ) );

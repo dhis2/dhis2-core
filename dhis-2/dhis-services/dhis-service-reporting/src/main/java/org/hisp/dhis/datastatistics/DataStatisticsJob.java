@@ -48,8 +48,6 @@ public class DataStatisticsJob
 {
     private static final Log log = LogFactory.getLog( DataStatisticsJob.class );
     
-    //HH public static final String KEY_TASK = "dataStatisticsTask";
-    
     @Autowired
     private DataStatisticsService dataStatisticsService;
 

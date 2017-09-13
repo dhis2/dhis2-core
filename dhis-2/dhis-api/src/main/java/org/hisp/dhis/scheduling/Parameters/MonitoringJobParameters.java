@@ -9,6 +9,8 @@ import org.hisp.dhis.scheduling.TaskId;
 public class MonitoringJobParameters
     implements JobParameters
 {
+    private static final long serialVersionUID = 5L;
+
     private TaskId taskId;
 
     public MonitoringJobParameters()

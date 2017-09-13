@@ -9,6 +9,8 @@ import org.hisp.dhis.scheduling.TaskId;
 public class ProgramNotificationJobParameters
    implements JobParameters
 {
+    private static final long serialVersionUID = 6L;
+
     private TaskId taskId;
 
     public ProgramNotificationJobParameters()

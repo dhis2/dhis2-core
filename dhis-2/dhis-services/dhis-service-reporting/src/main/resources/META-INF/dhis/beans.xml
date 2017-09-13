@@ -158,8 +158,6 @@
 
   <bean id="validationTask" class="org.hisp.dhis.validation.DataValidationTask" scope="prototype" />
 
-  <bean id="monitoringLastDayTask" class="org.hisp.dhis.validation.scheduling.MonitoringJob" scope="prototype" />
-
   <!-- Scheduling -->
 
   <bean id="dataStatisticsJob" class="org.hisp.dhis.datastatistics.DataStatisticsJob" />

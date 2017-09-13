@@ -9,6 +9,8 @@ import org.hisp.dhis.scheduling.TaskId;
 public class ValidationResultNotificationJobParameters
     implements JobParameters
 {
+    private static final long serialVersionUID = 11L;
+
     private TaskId taskId;
 
     public ValidationResultNotificationJobParameters()

@@ -113,7 +113,6 @@ public class DefaultSchedulingManager
         if(!scheduler.isJobInSystem( jobConfiguration.getUid() ))
         {
             scheduler.scheduleJob( jobConfiguration, new DefaultJobInstance() );
-
         }
     }
 

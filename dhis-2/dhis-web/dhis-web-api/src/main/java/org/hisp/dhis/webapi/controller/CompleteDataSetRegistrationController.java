@@ -564,7 +564,6 @@ public class CompleteDataSetRegistrationController
 
         TaskId taskId = new TaskId( TaskCategory.COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser() );
 
-        // HH
         scheduler.executeJob(
             new ImportCompleteDataSetRegistrationsTask(
                 registrationExchangeService, sessionFactory, tmpFile.getLeft(), tmpFile.getRight(), importOptions, format, taskId )

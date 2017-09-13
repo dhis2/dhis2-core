@@ -9,6 +9,8 @@ import org.hisp.dhis.scheduling.TaskId;
 public class PushAnalysisJobParameters
     implements JobParameters
 {
+    private static final long serialVersionUID = 7L;
+
     private int pushAnalysisId;
     private TaskId taskId;
 

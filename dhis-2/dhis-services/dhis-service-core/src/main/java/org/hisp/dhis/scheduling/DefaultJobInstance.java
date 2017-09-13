@@ -6,6 +6,8 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.system.scheduling.SpringScheduler;
 import org.hisp.dhis.system.util.Clock;
 
+import java.util.Date;
+
 /**
  * @author Henning Håkonsen
  */
@@ -49,6 +51,8 @@ public class DefaultJobInstance implements JobInstance
             jobConfiguration.setJobStatus( JobStatus.FAILED );
         }
 
+        jobConfiguration.setNextExecutionTime( null );
+        jobConfiguration.setLastExecuted( new Date(  ) );
         schedulingManager.jobConfigurationFinished( jobConfiguration );
     }
 }

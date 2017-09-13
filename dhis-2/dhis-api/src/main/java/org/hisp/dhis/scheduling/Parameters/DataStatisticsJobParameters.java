@@ -9,6 +9,8 @@ import org.hisp.dhis.scheduling.TaskId;
 public class DataStatisticsJobParameters
     implements JobParameters
 {
+    private static final long serialVersionUID = 2L;
+
     private TaskId taskId;
 
     public DataStatisticsJobParameters()
@@ -19,7 +21,6 @@ public class DataStatisticsJobParameters
         this.taskId = taskId;
     }
 
-    @Override
     public TaskId getTaskId()
     {
         return taskId;

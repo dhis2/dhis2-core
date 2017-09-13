@@ -9,6 +9,8 @@ import org.hisp.dhis.scheduling.TaskId;
 public class MetadataSyncJobParameters
     implements JobParameters
 {
+    private static final long serialVersionUID = 4L;
+
     private TaskId taskId;
 
     public MetadataSyncJobParameters()
@@ -19,7 +21,6 @@ public class MetadataSyncJobParameters
         this.taskId = taskId;
     }
 
-    @Override
     public TaskId getTaskId()
     {
         return taskId;
