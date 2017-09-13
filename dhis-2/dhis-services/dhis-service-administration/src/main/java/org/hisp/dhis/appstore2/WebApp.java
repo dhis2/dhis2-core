@@ -33,6 +33,7 @@ import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.appmanager.AppType;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -60,11 +61,11 @@ public class WebApp
 
     private Developer developer;
 
-    private Set<AppVersion> versions;
+    private Set<AppVersion> versions = new HashSet<>();
 
-    private Set<Review> reviews;
+    private Set<Review> reviews = new HashSet<>();
 
-    private Set<ImageResource> images;
+    private Set<ImageResource> images = new HashSet<>();
 
     public WebApp()
     {
