@@ -50,7 +50,7 @@ import java.util.List;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V28 } )
 public class AppStore2Controller
 {
-    public static final String RESOURCE_PATH = "/appStore2";
+    public static final String RESOURCE_PATH = "/appStore";
 
     @Autowired
     private AppStoreService appStoreService;
