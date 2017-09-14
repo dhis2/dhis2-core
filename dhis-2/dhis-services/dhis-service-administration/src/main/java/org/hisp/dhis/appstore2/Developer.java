@@ -1,4 +1,4 @@
-package org.hisp.dhis.appmanager;
+package org.hisp.dhis.appstore2;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,34 +28,66 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public enum AppStatus
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * Created by zubair@dhis2.org on 07.09.17.
+ */
+public class Developer
 {
-    OK( "ok" ), 
-    NAMESPACE_TAKEN( "namespace_defined_in_manifest_is_in_use" ), 
-    INVALID_ZIP_FORMAT( "zip_file_could_not_be_read" ),
-    MISSING_MANIFEST( "missing_manifest"),
-    INVALID_MANIFEST_JSON( "invalid_json_in_app_manifest_file" ), 
-    INSTALLATION_FAILED( "app_could_not_be_installed_on_file_system" ),
-    NOT_FOUND( "app_could_not_be_found" ),
-    MISSING_SYSTEM_BASE_URL( "system_base_url_is_not_defined" ),
-    APPROVED( "approved" ),
-    PENDING( "pending" ),
-    NOT_APPROVED( "not_approved" );
-    
-    private String message;
-    
-    AppStatus( String message )
+    private String name;
+
+    private String organisation;
+
+    private String address;
+
+    private String email;
+
+    public Developer()
     {
-        this.message = message;
     }
 
-    public boolean ok()
+    @JsonProperty
+    public String getName()
     {
-        return this == OK;
+        return name;
     }
-    
-    public String getMessage()
+
+    public void setName( String name )
     {
-        return message;
+        this.name = name;
+    }
+
+    @JsonProperty
+    public String getOrganisation()
+    {
+        return organisation;
+    }
+
+    public void setOrganisation( String organisation )
+    {
+        this.organisation = organisation;
+    }
+
+    @JsonProperty
+    public String getEmail()
+    {
+        return email;
+    }
+
+    public void setEmail( String email )
+    {
+        this.email = email;
+    }
+
+    @JsonProperty
+    public String getAddress()
+    {
+        return address;
+    }
+
+    public void setAddress( String address )
+    {
+        this.address = address;
     }
 }

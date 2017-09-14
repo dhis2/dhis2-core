@@ -1,4 +1,4 @@
-package org.hisp.dhis.appmanager;
+package org.hisp.dhis.appstore2;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,34 +28,100 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public enum AppStatus
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Date;
+
+/**
+ * Created by zubair@dhis2.org on 07.09.17.
+ */
+public class Review
 {
-    OK( "ok" ), 
-    NAMESPACE_TAKEN( "namespace_defined_in_manifest_is_in_use" ), 
-    INVALID_ZIP_FORMAT( "zip_file_could_not_be_read" ),
-    MISSING_MANIFEST( "missing_manifest"),
-    INVALID_MANIFEST_JSON( "invalid_json_in_app_manifest_file" ), 
-    INSTALLATION_FAILED( "app_could_not_be_installed_on_file_system" ),
-    NOT_FOUND( "app_could_not_be_found" ),
-    MISSING_SYSTEM_BASE_URL( "system_base_url_is_not_defined" ),
-    APPROVED( "approved" ),
-    PENDING( "pending" ),
-    NOT_APPROVED( "not_approved" );
-    
-    private String message;
-    
-    AppStatus( String message )
+    private String id;
+
+    private String userId;
+
+    private String reviewText;
+
+    private int rate;
+
+    private Date created;
+
+    private Date lastUpdated;
+
+    public Review()
     {
-        this.message = message;
     }
 
-    public boolean ok()
+    public Review( String userId, String reviewText )
     {
-        return this == OK;
+        this.userId = userId;
+        this.reviewText = reviewText;
     }
-    
-    public String getMessage()
+
+    @JsonProperty
+    public String getUserId()
     {
-        return message;
+        return userId;
+    }
+
+    public void setUserId( String userId )
+    {
+        this.userId = userId;
+    }
+
+    @JsonProperty
+    public String getReviewText()
+    {
+        return reviewText;
+    }
+
+    public void setReviewText( String reviewText )
+    {
+        this.reviewText = reviewText;
+    }
+
+    @JsonProperty
+    public int getRate()
+    {
+        return rate;
+    }
+
+    public void setRate( int rate )
+    {
+        this.rate = rate;
+    }
+
+    @JsonProperty
+    public Date getCreated()
+    {
+        return created;
+    }
+
+    public void setCreated( Date created )
+    {
+        this.created = created;
+    }
+
+    @JsonProperty
+    public String getId()
+    {
+        return id;
+    }
+
+    public void setId( String id )
+    {
+        this.id = id;
+    }
+
+    @JsonProperty
+    public Date getLastUpdated()
+    {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated( Date lastUpdated )
+    {
+        this.lastUpdated = lastUpdated;
     }
 }

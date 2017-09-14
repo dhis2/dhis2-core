@@ -1,4 +1,4 @@
-package org.hisp.dhis.appmanager;
+package org.hisp.dhis.webapi.controller;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,34 +28,45 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public enum AppStatus
+import org.hisp.dhis.appstore2.AppStoreService;
+import org.hisp.dhis.appstore2.WebApp;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
+
+/**
+ * Created by zubair@dhis2.org on 07.09.17.
+ */
+@Controller
+@RequestMapping( AppStore2Controller.RESOURCE_PATH )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V28 } )
+public class AppStore2Controller
 {
-    OK( "ok" ), 
-    NAMESPACE_TAKEN( "namespace_defined_in_manifest_is_in_use" ), 
-    INVALID_ZIP_FORMAT( "zip_file_could_not_be_read" ),
-    MISSING_MANIFEST( "missing_manifest"),
-    INVALID_MANIFEST_JSON( "invalid_json_in_app_manifest_file" ), 
-    INSTALLATION_FAILED( "app_could_not_be_installed_on_file_system" ),
-    NOT_FOUND( "app_could_not_be_found" ),
-    MISSING_SYSTEM_BASE_URL( "system_base_url_is_not_defined" ),
-    APPROVED( "approved" ),
-    PENDING( "pending" ),
-    NOT_APPROVED( "not_approved" );
-    
-    private String message;
-    
-    AppStatus( String message )
+    public static final String RESOURCE_PATH = "/appStore2";
+
+    @Autowired
+    private AppStoreService appStoreService;
+
+    @RequestMapping( method = RequestMethod.GET, produces = "application/json" )
+    public @ResponseBody List<WebApp> listAppStore(HttpServletResponse response )
+        throws IOException
     {
-        this.message = message;
+        return appStoreService.getAppStore();
     }
 
-    public boolean ok()
+    @RequestMapping( value = "/{versionId}", method = RequestMethod.POST )
+    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-maintenance-appmanager')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void installAppFromStore( @PathVariable String versionId )
     {
-        return this == OK;
-    }
-    
-    public String getMessage()
-    {
-        return message;
+        appStoreService.installAppFromAppStore( versionId );
     }
 }
