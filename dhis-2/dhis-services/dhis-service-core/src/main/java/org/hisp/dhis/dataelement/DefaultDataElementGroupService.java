@@ -1,7 +1,6 @@
-package org.hisp.dhis.dxf2.csv;
-
+package org.hisp.dhis.dataelement;
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,16 +27,22 @@ package org.hisp.dhis.dxf2.csv;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.metadata.Metadata;
-
-import java.io.IOException;
-import java.io.InputStream;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author Lars Helge Overland
+ * @author Stian Sandvold
  */
-public interface CsvImportService
+@Transactional
+public class DefaultDataElementGroupService
+    implements DataElementGroupService
 {
-    Metadata fromCsv( InputStream input, CsvImportClass importClass )
-        throws IOException;
+    @Autowired
+    private DataElementGroupStore dataElementGroupStore;
+
+    @Override
+    public DataElementGroup getDataElementGroupByUid( String uid )
+    {
+        return dataElementGroupStore.getByUid( uid );
+    }
 }
