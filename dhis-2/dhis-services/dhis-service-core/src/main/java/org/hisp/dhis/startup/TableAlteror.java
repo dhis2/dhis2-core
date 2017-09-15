@@ -441,6 +441,7 @@ public class TableAlteror
         executeSql( "update chart set userorganisationunit = false where userorganisationunit is null" );
         executeSql( "update chart set percentstackedvalues = false where percentstackedvalues is null" );
         executeSql( "update chart set cumulativevalues = false where cumulativevalues is null" );
+        executeSql( "update chart set nospacebetweencolumns = false where nospacebetweencolumns is null" );
         executeSql( "update indicator set annualized = false where annualized is null" );
         executeSql( "update indicatortype set indicatornumber = false where indicatornumber is null" );
         executeSql( "update dataset set mobile = false where mobile is null" );
@@ -459,6 +460,7 @@ public class TableAlteror
         executeSql( "update eventchart set hidenadata = false where hidenadata is null" );
         executeSql( "update eventchart set percentstackedvalues = false where percentstackedvalues is null" );
         executeSql( "update eventchart set cumulativevalues = false where cumulativevalues is null" );
+        executeSql( "update eventchart set nospacebetweencolumns = false where nospacebetweencolumns is null" );
         executeSql( "update reporttable set showdimensionlabels = false where showdimensionlabels is null" );
         executeSql( "update eventreport set showdimensionlabels = false where showdimensionlabels is null" );
         executeSql( "update reporttable set skiprounding = false where skiprounding is null" );
