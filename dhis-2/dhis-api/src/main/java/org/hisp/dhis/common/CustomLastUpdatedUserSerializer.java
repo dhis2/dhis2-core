@@ -31,8 +31,8 @@ package org.hisp.dhis.common;
  */
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
 import org.hisp.dhis.user.User;
 
@@ -44,13 +44,8 @@ import java.io.NotSerializableException;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public class CustomLastUpdatedUserSerializer extends StdSerializer<User>
+public class CustomLastUpdatedUserSerializer extends JsonSerializer<User>
 {
-    public CustomLastUpdatedUserSerializer( Class<User> t )
-    {
-        super( t );
-    }
-
     @Override
     public void serialize( User user, JsonGenerator jsonGenerator, SerializerProvider serializerProvider ) throws  IOException
     {
