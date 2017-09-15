@@ -127,7 +127,7 @@ public class BulkSmsGateway
 
         try
         {
-            URI url = uriBuilder.build().encode( "ISO-8859-1" ).toUri();
+            URI url = uriBuilder.build().encode().toUri();
 
             responseEntity = restTemplate.exchange( url, HttpMethod.POST, null, String.class );
         }
