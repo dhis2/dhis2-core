@@ -69,6 +69,8 @@ public abstract class BaseChart
 
     protected boolean hideLegend;
 
+    protected boolean noSpaceBetweenColumns;
+
     protected RegressionType regressionType;
 
     protected Double targetLineValue;
@@ -94,7 +96,7 @@ public abstract class BaseChart
     protected Integer rangeAxisSteps; // Minimum 1
 
     protected Integer rangeAxisDecimals;
-
+    
     // -------------------------------------------------------------------------
     // Dimensional properties
     // -------------------------------------------------------------------------
@@ -447,6 +449,18 @@ public abstract class BaseChart
     public void setRangeAxisDecimals( Integer rangeAxisDecimals )
     {
         this.rangeAxisDecimals = rangeAxisDecimals;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isNoSpaceBetweenColumns()
+    {
+        return noSpaceBetweenColumns;
+    }
+
+    public void setNoSpaceBetweenColumns( boolean noSpaceBetweenColumns )
+    {
+        this.noSpaceBetweenColumns = noSpaceBetweenColumns;
     }
 
     @JsonProperty
