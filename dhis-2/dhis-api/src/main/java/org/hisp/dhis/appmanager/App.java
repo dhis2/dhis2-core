@@ -329,7 +329,7 @@ public class App
     @JsonProperty( "folderName")
     public String getUrlFriendlyName()
     {
-        String result = name.replaceAll("[^A-Za-z0-9 ]", "");
+        String result = name.replaceAll("[^A-Za-z0-9 -]", "");
         result = result.replaceAll(" ", "-");
 
         return result;

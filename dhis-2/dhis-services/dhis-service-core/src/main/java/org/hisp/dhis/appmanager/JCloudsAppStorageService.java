@@ -223,6 +223,7 @@ public class JCloudsAppStorageService
 
                 app.setAppStorageSource( AppStorageSource.JCLOUDS );
                 app.setFolderName( resource.getName() );
+
                 appList.add( app );
             }
             catch ( IOException e )
@@ -315,7 +316,7 @@ public class JCloudsAppStorageService
 
             if ( apps.containsKey( app.getName() ) )
             {
-                deleteApp( app );
+                deleteApp( apps.get( app.getName() ) );
             }
 
             // -----------------------------------------------------------------
@@ -392,7 +393,6 @@ public class JCloudsAppStorageService
     @Override
     public boolean deleteApp( App app )
     {
-
         blobStore.deleteDirectory( config.container, app.getFolderName() );
 
         log.info( "Deleted app " + app.getName() );
