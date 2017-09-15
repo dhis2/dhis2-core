@@ -111,6 +111,11 @@ public class ReportTable
     // -------------------------------------------------------------------------
 
     /**
+     * Indicates the criteria to apply to data measures.
+     */
+    private String measureCriteria;
+    
+    /**
      * Indicates whether the ReportTable contains regression columns.
      */
     private boolean regression;
@@ -777,6 +782,18 @@ public class ReportTable
     // -------------------------------------------------------------------------
     // Get- and set-methods for persisted properties
     // -------------------------------------------------------------------------
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getMeasureCriteria()
+    {
+        return measureCriteria;
+    }
+
+    public void setMeasureCriteria( String measureCriteria )
+    {
+        this.measureCriteria = measureCriteria;
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

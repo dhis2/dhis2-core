@@ -228,6 +228,8 @@
 
     <property name="hideLegend" />
 
+    <property name="noSpaceBetweenColumns" />
+
     <property name="regressionType" length="40">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.common.RegressionType</param>

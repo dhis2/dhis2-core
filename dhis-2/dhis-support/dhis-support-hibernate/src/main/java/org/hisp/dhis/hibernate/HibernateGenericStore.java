@@ -28,11 +28,10 @@ package org.hisp.dhis.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import jdk.nashorn.internal.objects.annotations.Constructor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
-import org.hibernate.Query;
-import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Criterion;
@@ -42,6 +41,8 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Property;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
+import org.hibernate.query.NativeQuery;
+import org.hibernate.query.Query;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
@@ -67,6 +68,10 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
 
+import javax.annotation.PostConstruct;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -151,6 +156,16 @@ public class HibernateGenericStore<T>
         this.cacheable = cacheable;
     }
 
+    protected CriteriaBuilder builder;
+
+    protected CriteriaQuery query;
+
+    @PostConstruct
+    private void initiateCriteriaProperties()
+    {
+        builder = getCriteriaBuilder();
+    }
+
     // -------------------------------------------------------------------------
     // Convenience methods
     // -------------------------------------------------------------------------
@@ -182,10 +197,10 @@ public class HibernateGenericStore<T>
      * @param sql the sql query.
      * @return a SqlQuery instance.
      */
-    protected final SQLQuery getSqlQuery( String sql )
+    protected final NativeQuery getSqlQuery( String sql )
     {
-        SQLQuery query = getSession().createSQLQuery( sql );
-        query.setCacheable( cacheable );
+        NativeQuery query = getSession().createNativeQuery( sql );
+        query.setHint( HibernateUtils.HIBERNATE_CACHEABLE_HINT , cacheable );
         return query;
     }
 
@@ -308,6 +323,21 @@ public class HibernateGenericStore<T>
     protected Criteria getClazzCriteria()
     {
         return getSession().createCriteria( getClazz() );
+    }
+
+    protected CriteriaBuilder getCriteriaBuilder()
+    {
+        return sessionFactory.getCriteriaBuilder();
+    }
+
+    protected CriteriaQuery getCriteriaQuery()
+    {
+        return getCriteriaBuilder().createQuery();
+    }
+
+    protected TypedQuery executeQuery( CriteriaQuery query )
+    {
+        return sessionFactory.getCurrentSession().createQuery( query );
     }
 
     /**

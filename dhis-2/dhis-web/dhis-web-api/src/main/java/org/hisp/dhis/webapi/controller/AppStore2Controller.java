@@ -28,48 +28,45 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.appstore.AppStore;
-import org.hisp.dhis.appstore.AppStoreManager;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.appstore2.AppStoreService;
+import org.hisp.dhis.appstore2.WebApp;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 
 /**
- * @author Lars Helge Overland
+ * Created by zubair@dhis2.org on 07.09.17.
  */
 @Controller
-@RequestMapping( AppStoreController.RESOURCE_PATH )
-@ApiVersion( { DhisApiVersion.V25, DhisApiVersion.V26, DhisApiVersion.V27 } )
-public class AppStoreController
+@RequestMapping( AppStore2Controller.RESOURCE_PATH )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V28 } )
+public class AppStore2Controller
 {
     public static final String RESOURCE_PATH = "/appStore";
 
     @Autowired
-    private AppStoreManager appStoreManager;
+    private AppStoreService appStoreService;
 
     @RequestMapping( method = RequestMethod.GET, produces = "application/json" )
-    public @ResponseBody AppStore getAppStore( HttpServletResponse response )
+    public @ResponseBody List<WebApp> listAppStore(HttpServletResponse response )
         throws IOException
     {
-        return appStoreManager.getAppStore();
+        return appStoreService.getAppStore();
     }
 
     @RequestMapping( value = "/{versionId}", method = RequestMethod.POST )
     @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-maintenance-appmanager')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void installAppFromAppStore( @PathVariable String versionId )
+    public void installAppFromStore( @PathVariable String versionId )
     {
-        appStoreManager.installAppFromAppStore( versionId );
+        appStoreService.installAppFromAppStore( versionId );
     }
 }

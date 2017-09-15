@@ -503,9 +503,10 @@ dhis2.de.uploadLocalData = function()
 
 dhis2.de.addEventListeners = function()
 {
-    $( '.entryfield' ).each( function( i )
+    $( '.entryfield, .entrytime' ).each( function( i )
     {
         var id = $( this ).attr( 'id' );
+        var isTimeField = $( this ).hasClass('entrytime');
 
         // If entry field is a date picker, remove old target field, and change id
         if( /-dp$/.test( id ) )
@@ -548,7 +549,7 @@ dhis2.de.addEventListeners = function()
             keyPress( event, this );
         } );
 
-        if ( type === 'DATE' )
+        if ( ( type === 'DATE' || type === 'DATETIME' ) && !isTimeField )
         {
             // Fake event, needed for valueBlur / valueFocus when using date-picker
             var fakeEvent = {
@@ -1653,6 +1654,7 @@ function getAndInsertDataValues()
     // Clear existing values and colors, grey disabled fields
 
     $( '.entryfield' ).val( '' );
+    $( '.entrytime' ).val( '' );
     $( '.entryselect' ).removeAttr( 'checked' );
     $( '.entrytrueonly' ).removeAttr( 'checked' );
     $( '.entrytrueonly' ).removeAttr( 'onclick' );
@@ -1697,7 +1699,7 @@ function getAndInsertDataValues()
 	    	$( '#infoDiv' ).hide();
 	    	
 	    	var json = getOfflineDataValueJson( params );
-	    	
+
 	    	insertDataValues( json );
 	    },
 	    success: function( json ) // online
@@ -1809,7 +1811,6 @@ function insertDataValues( json )
     {
         var fieldId = '#' + value.id + '-val';
         var commentId = '#' + value.id + '-comment';
-
         if ( $( fieldId ).length > 0 ) // Set values
         {
             if ( $( fieldId ).attr( 'name' ) == 'entrytrueonly' && 'true' == value.val ) 
@@ -1885,6 +1886,11 @@ function insertDataValues( json )
                 } ).appendTo( $filename );
 
                 $field.find( '.upload-fileinfo-size' ).text( size );
+            }
+            else if ( $( fieldId.replace('val', 'time') ).length > 0 )
+            {
+                $( fieldId ).val( value.val );
+                $( fieldId.replace('val', 'time') ).val( value.val.split('T')[1] );
             }
             else 
             {                

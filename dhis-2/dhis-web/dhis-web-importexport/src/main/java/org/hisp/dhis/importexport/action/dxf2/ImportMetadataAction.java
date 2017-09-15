@@ -1,7 +1,6 @@
-package org.hisp.dhis.appmanager;
-
+package org.hisp.dhis.importexport.action.dxf2;
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,34 +27,26 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public enum AppStatus
+/**
+ * @author Stian Sandvold
+ */
+
+import com.opensymphony.xwork2.Action;
+import org.hisp.dhis.dxf2.csv.CsvImportClass;
+
+public class ImportMetadataAction implements Action
 {
-    OK( "ok" ), 
-    NAMESPACE_TAKEN( "namespace_defined_in_manifest_is_in_use" ), 
-    INVALID_ZIP_FORMAT( "zip_file_could_not_be_read" ),
-    MISSING_MANIFEST( "missing_manifest"),
-    INVALID_MANIFEST_JSON( "invalid_json_in_app_manifest_file" ), 
-    INSTALLATION_FAILED( "app_could_not_be_installed_on_file_system" ),
-    NOT_FOUND( "app_could_not_be_found" ),
-    MISSING_SYSTEM_BASE_URL( "system_base_url_is_not_defined" ),
-    APPROVED( "approved" ),
-    PENDING( "pending" ),
-    NOT_APPROVED( "not_approved" );
-    
-    private String message;
-    
-    AppStatus( String message )
+    private CsvImportClass[] csvImportClasses = CsvImportClass.values();
+
+    @Override
+    public String execute()
+        throws Exception
     {
-        this.message = message;
+        return SUCCESS;
     }
 
-    public boolean ok()
+    public CsvImportClass[] getCsvImportClasses()
     {
-        return this == OK;
-    }
-    
-    public String getMessage()
-    {
-        return message;
+        return csvImportClasses;
     }
 }

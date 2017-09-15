@@ -1,7 +1,6 @@
-package org.hisp.dhis.appmanager;
-
+package org.hisp.dhis.dxf2.csv;
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,34 +27,47 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public enum AppStatus
+/**
+ * @author Stian Sandvold
+ */
+public enum CsvImportClass
 {
-    OK( "ok" ), 
-    NAMESPACE_TAKEN( "namespace_defined_in_manifest_is_in_use" ), 
-    INVALID_ZIP_FORMAT( "zip_file_could_not_be_read" ),
-    MISSING_MANIFEST( "missing_manifest"),
-    INVALID_MANIFEST_JSON( "invalid_json_in_app_manifest_file" ), 
-    INSTALLATION_FAILED( "app_could_not_be_installed_on_file_system" ),
-    NOT_FOUND( "app_could_not_be_found" ),
-    MISSING_SYSTEM_BASE_URL( "system_base_url_is_not_defined" ),
-    APPROVED( "approved" ),
-    PENDING( "pending" ),
-    NOT_APPROVED( "not_approved" );
-    
-    private String message;
-    
-    AppStatus( String message )
+    ORGANISATION_UNIT_GROUP_MEMBERSHIP("organisation_unit_group_membership"),
+    DATA_ELEMENT_GROUP_MEMBERSHIP("data_element_group_membership"),
+    INDICATOR_GROUP_MEMBERSHIP("indicator_group_membership"),
+    DATA_ELEMENT("data_element"),
+    DATA_ELEMENT_GROUP("data_element_group"),
+    CATEGORY_OPTION("category_option"),
+    CATEGORY_OPTION_GROUP("category_option_group"),
+    ORGANISATION_UNIT("organisation_unit"),
+    ORGANISATION_UNIT_GROUP("organisation_unit_group"),
+    VALIDATION_RULE("validation_rule"),
+    OPTION_SET("option_set"),
+    TRANSLATION("translation");
+
+    private String name;
+
+    CsvImportClass(String name)
     {
-        this.message = message;
+        this.name = name;
     }
 
-    public boolean ok()
+    public static boolean classExists( String classKey )
     {
-        return this == OK;
+        try
+        {
+            valueOf( classKey );
+        }
+        catch ( IllegalArgumentException e )
+        {
+            return false;
+        }
+
+        return true;
     }
-    
-    public String getMessage()
+
+    public String getName()
     {
-        return message;
+        return name;
     }
 }

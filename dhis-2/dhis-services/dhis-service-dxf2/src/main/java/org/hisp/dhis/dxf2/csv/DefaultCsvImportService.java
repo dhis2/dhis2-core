@@ -29,29 +29,28 @@ package org.hisp.dhis.dxf2.csv;
  */
 
 import com.csvreader.CsvReader;
+import com.google.api.client.util.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.CategoryOptionGroup;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.hisp.dhis.dataelement.DataElementDomain;
-import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.expression.Operator;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorGroup;
+import org.hisp.dhis.indicator.IndicatorGroupService;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.validation.Importance;
@@ -79,12 +78,21 @@ public class DefaultCsvImportService
     @Autowired
     private DataElementCategoryService categoryService;
 
+    @Autowired
+    private OrganisationUnitGroupService organisationUnitGroupService;
+
+    @Autowired
+    private DataElementGroupService dataElementGroupService;
+
+    @Autowired
+    private IndicatorGroupService indicatorGroupService;
+
     // -------------------------------------------------------------------------
     // CsvImportService implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public Metadata fromCsv( InputStream input, Class<? extends IdentifiableObject> clazz )
+    public Metadata fromCsv( InputStream input, CsvImportClass importClass )
         throws IOException
     {
         CsvReader reader = new CsvReader( input, Charset.forName( "UTF-8" ) );
@@ -92,40 +100,155 @@ public class DefaultCsvImportService
 
         Metadata metadata = new Metadata();
 
-        if ( DataElement.class.equals( clazz ) )
+        switch ( importClass )
         {
+        case ORGANISATION_UNIT_GROUP_MEMBERSHIP:
+            metadata.setOrganisationUnitGroups( organisationUnitGroupMembership( reader ) );
+            break;
+        case DATA_ELEMENT_GROUP_MEMBERSHIP:
+            metadata.setDataElementGroups( dataElementGroupMembership( reader ) );
+            break;
+        case INDICATOR_GROUP_MEMBERSHIP:
+            metadata.setIndicatorGroups( indicatorGroupMembership( reader ) );
+            break;
+        case DATA_ELEMENT:
             metadata.setDataElements( dataElementsFromCsv( reader ) );
-        }
-        else if ( DataElementGroup.class.equals( clazz ) )
-        {
+            break;
+        case DATA_ELEMENT_GROUP:
             metadata.setDataElementGroups( dataElementGroupsFromCsv( reader ) );
-        }
-        else if ( DataElementCategoryOption.class.equals( clazz ) )
-        {
+            break;
+        case CATEGORY_OPTION:
             metadata.setCategoryOptions( categoryOptionsFromCsv( reader ) );
-        }
-        else if ( CategoryOptionGroup.class.equals( clazz ) )
-        {
+            break;
+        case CATEGORY_OPTION_GROUP:
             metadata.setCategoryOptionGroups( categoryOptionGroupsFromCsv( reader ) );
-        }
-        else if ( OrganisationUnit.class.equals( clazz ) )
-        {
+            break;
+        case ORGANISATION_UNIT:
             metadata.setOrganisationUnits( organisationUnitsFromCsv( reader ) );
-        }
-        else if ( OrganisationUnitGroup.class.equals( clazz ) )
-        {
+            break;
+        case ORGANISATION_UNIT_GROUP:
             metadata.setOrganisationUnitGroups( organisationUnitGroupsFromCsv( reader ) );
-        }
-        else if ( ValidationRule.class.equals( clazz ) )
-        {
+            break;
+        case VALIDATION_RULE:
             metadata.setValidationRules( validationRulesFromCsv( reader ) );
-        }
-        else if ( OptionSet.class.equals( clazz ) )
-        {
+            break;
+        case OPTION_SET:
             setOptionSetsFromCsv( reader, metadata );
+            break;
+        case TRANSLATION:
+            break;
+        default:
+            break;
         }
 
         return metadata;
+    }
+
+    private List<DataElementGroup> dataElementGroupMembership( CsvReader reader )
+        throws IOException
+    {
+        CachingMap<String, DataElementGroup> uidMap = new CachingMap<>();
+
+        while ( reader.readRecord() )
+        {
+            String[] values = reader.getValues();
+
+            if ( values != null && values.length > 0 )
+            {
+                String groupUid = values[0];
+                String memberUid = values[1];
+
+                DataElementGroup persistedGroup = dataElementGroupService.getDataElementGroupByUid( groupUid );
+
+                if ( persistedGroup != null )
+                {
+
+                    DataElementGroup group = uidMap.get( groupUid, () -> {
+                        DataElementGroup nonPersistedGroup = new DataElementGroup();
+                        nonPersistedGroup.setUid( persistedGroup.getUid() );
+                        nonPersistedGroup.setName( persistedGroup.getName() );
+                        return nonPersistedGroup;
+                    } );
+
+                    DataElement member = new DataElement();
+                    member.setUid( memberUid );
+                    group.addDataElement( member );
+                }
+            }
+        }
+        return Lists.newArrayList( uidMap.values() );
+    }
+
+    private List<IndicatorGroup> indicatorGroupMembership( CsvReader reader )
+        throws IOException
+    {
+        CachingMap<String, IndicatorGroup> uidMap = new CachingMap<>();
+
+        while ( reader.readRecord() )
+        {
+            String[] values = reader.getValues();
+
+            if ( values != null && values.length > 0 )
+            {
+                String groupUid = values[0];
+                String memberUid = values[1];
+
+                IndicatorGroup persistedGroup = indicatorGroupService.getIndicatorGroupByUid( groupUid );
+
+                if ( persistedGroup != null )
+                {
+
+                    IndicatorGroup group = uidMap.get( groupUid, () -> {
+                        IndicatorGroup nonPersistedGroup = new IndicatorGroup();
+                        nonPersistedGroup.setUid( persistedGroup.getUid() );
+                        nonPersistedGroup.setName( persistedGroup.getName() );
+                        return nonPersistedGroup;
+                    } );
+
+                    Indicator member = new Indicator();
+                    member.setUid( memberUid );
+                    group.addIndicator( member );
+                }
+            }
+        }
+        return Lists.newArrayList( uidMap.values() );
+    }
+
+    private List<OrganisationUnitGroup> organisationUnitGroupMembership( CsvReader reader )
+        throws IOException
+    {
+        CachingMap<String, OrganisationUnitGroup> uidMap = new CachingMap<>();
+
+        while ( reader.readRecord() )
+        {
+            String[] values = reader.getValues();
+
+            if ( values != null && values.length > 0 )
+            {
+                String groupUid = values[0];
+                String memberUid = values[1];
+
+                OrganisationUnitGroup persistedGroup = organisationUnitGroupService.getOrganisationUnitGroup( groupUid );
+
+                if ( persistedGroup != null )
+                {
+
+                    OrganisationUnitGroup group = uidMap.get( groupUid, () -> {
+                        OrganisationUnitGroup nonPersistedGroup = new OrganisationUnitGroup();
+
+                        nonPersistedGroup.setUid( persistedGroup.getUid() );
+                        nonPersistedGroup.setName( persistedGroup.getName() );
+
+                        return nonPersistedGroup;
+                    } );
+
+                    OrganisationUnit member = new OrganisationUnit();
+                    member.setUid( memberUid );
+                    group.addOrganisationUnit( member );
+                }
+            }
+        }
+        return Lists.newArrayList( uidMap.values() );
     }
 
     // -------------------------------------------------------------------------
@@ -197,7 +320,8 @@ public class DefaultCsvImportService
                 object.setDomainType( DataElementDomain.fromValue( domainType ) );
                 object.setValueType( ValueType.valueOf( getSafe( values, 7, ValueType.INTEGER.toString(), 50 ) ) );
 
-                object.setAggregationType( AggregationType.valueOf( getSafe( values, 8, AggregationType.SUM.toString(), 50 ) ) );
+                object.setAggregationType(
+                    AggregationType.valueOf( getSafe( values, 8, AggregationType.SUM.toString(), 50 ) ) );
                 String categoryComboUid = getSafe( values, 9, null, 11 );
                 object.setUrl( getSafe( values, 10, null, 255 ) );
                 object.setZeroIsSignificant( Boolean.valueOf( getSafe( values, 11, "false", null ) ) );
@@ -279,19 +403,24 @@ public class DefaultCsvImportService
                 setIdentifiableObject( object, values );
                 object.setDescription( getSafe( values, 3, null, 255 ) );
                 object.setInstruction( getSafe( values, 4, null, 255 ) );
-                object.setImportance( Importance.valueOf( getSafe( values, 5, Importance.MEDIUM.toString(), 255 ) ) );
+                object
+                    .setImportance( Importance.valueOf( getSafe( values, 5, Importance.MEDIUM.toString(), 255 ) ) );
                 // Left here so nobody wonders what field 6 is for
                 // object.setRuleType( RuleType.valueOf( getSafe( values, 6, RuleType.VALIDATION.toString(), 255 ) ) );
-                object.setOperator( Operator.safeValueOf( getSafe( values, 7, Operator.equal_to.toString(), 255 ) ) );
-                object.setPeriodType( PeriodType.getByNameIgnoreCase( getSafe( values, 8, MonthlyPeriodType.NAME, 255 ) ) );
+                object
+                    .setOperator( Operator.safeValueOf( getSafe( values, 7, Operator.equal_to.toString(), 255 ) ) );
+                object.setPeriodType(
+                    PeriodType.getByNameIgnoreCase( getSafe( values, 8, MonthlyPeriodType.NAME, 255 ) ) );
 
                 leftSide.setExpression( getSafe( values, 9, null, 255 ) );
                 leftSide.setDescription( getSafe( values, 10, null, 255 ) );
-                leftSide.setMissingValueStrategy( MissingValueStrategy.safeValueOf( getSafe( values, 11, MissingValueStrategy.NEVER_SKIP.toString(), 50 ) ) );
+                leftSide.setMissingValueStrategy( MissingValueStrategy
+                    .safeValueOf( getSafe( values, 11, MissingValueStrategy.NEVER_SKIP.toString(), 50 ) ) );
 
                 rightSide.setExpression( getSafe( values, 12, null, 255 ) );
                 rightSide.setDescription( getSafe( values, 13, null, 255 ) );
-                rightSide.setMissingValueStrategy( MissingValueStrategy.safeValueOf( getSafe( values, 14, MissingValueStrategy.NEVER_SKIP.toString(), 50 ) ) );
+                rightSide.setMissingValueStrategy( MissingValueStrategy
+                    .safeValueOf( getSafe( values, 14, MissingValueStrategy.NEVER_SKIP.toString(), 50 ) ) );
 
                 object.setLeftSide( leftSide );
                 object.setRightSide( rightSide );
@@ -380,6 +509,7 @@ public class DefaultCsvImportService
      * <li>option code</li>
      * </ul>
      */
+
     private void setOptionSetsFromCsv( CsvReader reader, Metadata metadata )
         throws IOException
     {

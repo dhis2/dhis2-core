@@ -163,8 +163,28 @@ function saveVal( dataElementId, optionComboId, fieldId, feedbackId )
     fieldId = '#' + fieldId;
 
     var dataElementName = getDataElementName( dataElementId );
-    var value = $( fieldId ).val();
+
     var type = getDataElementType( dataElementId );
+
+    var value;
+
+    if( type === 'DATETIME' )
+    {
+        var date = $( '#' + dataElementId + '-' + optionComboId + '-val-dp').val();
+        var time = $( '#' + dataElementId + '-' + optionComboId + '-time').val();
+        if ( date )
+        {
+          value = date + 'T' + ( time  ? time :  '00:00');
+        }
+        else
+        {
+          return;
+        }
+    }
+    else
+    {
+        value = $(fieldId).val();
+    }
 
     $( feedbackId ).css( 'background-color', dhis2.de.cst.colorYellow );
 

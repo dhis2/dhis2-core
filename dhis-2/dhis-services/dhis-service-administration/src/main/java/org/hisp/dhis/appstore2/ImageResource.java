@@ -1,4 +1,4 @@
-package org.hisp.dhis.user.hibernate;
+package org.hisp.dhis.appstore2;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,38 +28,103 @@ package org.hisp.dhis.user.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.query.Query;
-import org.hisp.dhis.hibernate.HibernateGenericStore;
-import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.user.UserCredentialsStore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Date;
 
 /**
- * @author Lars Helge Overland
+ * Created by zubair@dhis2.org on 07.09.17.
  */
-public class HibernateUserCredentialsStore
-    extends HibernateGenericStore<UserCredentials>
-    implements UserCredentialsStore
+public class ImageResource
 {
-    @Override
-    public UserCredentials getUserCredentialsByUsername( String username )
+    private String id;
+
+    private String caption;
+
+    private String description;
+
+    private String imageUrl;
+
+    private boolean logo;
+
+    private Date created;
+
+    private Date lastUpdated;
+
+    @JsonProperty
+    public String getCaption()
     {
-        Query query = getQuery( "from UserCredentials uc where uc.username = :username" );
-        query.setParameter( "username", username );
-        return ( UserCredentials ) query.uniqueResult();
+        return caption;
     }
 
-    @Override
-    public UserCredentials getUserCredentialsByOpenId( String openId )
+    public void setCaption( String caption )
     {
-        Query query = getQuery( "from UserCredentials uc where uc.openId = :openId" );
-        query.setParameter( "openId", openId );
-        return ( UserCredentials ) query.uniqueResult();
+        this.caption = caption;
     }
-    
-    public UserCredentials getUserCredentialsByLdapId( String ldapId )
+
+    @JsonProperty
+    public String getDescription()
     {
-        Query query = getQuery( "from UserCredentials uc where uc.ldapId = :ldapId" );
-        query.setParameter( "ldapId", ldapId );
-        return ( UserCredentials ) query.uniqueResult();
+        return description;
+    }
+
+    public void setDescription( String description )
+    {
+        this.description = description;
+    }
+
+    @JsonProperty
+    public boolean isLogo()
+    {
+        return logo;
+    }
+
+    public void setLogo( boolean logo )
+    {
+        this.logo = logo;
+    }
+
+    @JsonProperty
+    public String getImageUrl()
+    {
+        return imageUrl;
+    }
+
+    public void setImageUrl( String imageUrl )
+    {
+        this.imageUrl = imageUrl;
+    }
+
+    @JsonProperty
+    public Date getCreated()
+    {
+        return created;
+    }
+
+    public void setCreated( Date created )
+    {
+        this.created = created;
+    }
+
+    @JsonProperty
+    public Date getLastUpdated()
+    {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated( Date lastUpdated )
+    {
+        this.lastUpdated = lastUpdated;
+    }
+
+    @JsonProperty
+    public String getId()
+    {
+        return id;
+    }
+
+    public void setId( String id )
+    {
+        this.id = id;
     }
 }
