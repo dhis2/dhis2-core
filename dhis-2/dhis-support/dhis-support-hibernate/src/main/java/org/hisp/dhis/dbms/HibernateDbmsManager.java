@@ -235,6 +235,9 @@ public class HibernateDbmsManager
         emptyTable( "program_attributes" );
         emptyTable( "programindicator" );
         emptyTable( "program" );
+
+        emptyTable( "trackedentityattributevalue" );
+        emptyTable( "trackedentityattribute" );
         emptyTable( "trackedentityinstance" );
 
         emptyTable( "minmaxdataelement" );
