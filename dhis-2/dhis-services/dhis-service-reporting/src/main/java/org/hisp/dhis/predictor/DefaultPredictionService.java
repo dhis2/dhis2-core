@@ -28,9 +28,14 @@ package org.hisp.dhis.predictor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.ListMapMap;
 import org.hisp.dhis.common.MapMap;
@@ -62,6 +67,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 
@@ -85,6 +91,9 @@ public class DefaultPredictionService implements PredictionService
 
     @Autowired
     private DataValueService dataValueService;
+
+    @Autowired
+    private AnalyticsService analyticsService;
 
     @Autowired
     private DataElementCategoryService categoryService;
@@ -121,7 +130,7 @@ public class DefaultPredictionService implements PredictionService
         List<Period> outputPeriods = getPeriodsBetweenDates( predictor.getPeriodType(), startDate, endDate );
         ListMap<Period, Period> samplePeriodsMap = getSamplePeriodsMap( outputPeriods, predictor );
         Set<Period> allSamplePeriods = samplePeriodsMap.uniqueValues();
-        Set<DataElementOperand> dataElementOperands = getDataElementOperands( aggregates, skipTest );
+        Set<DimensionalItemObject> dimensionItems = getdimensionItems( aggregates, skipTest );
         User currentUser = currentUserService.getCurrentUser();
 
         DataElementCategoryOptionCombo outputOptionCombo = predictor.getOutputCombo() == null ?
@@ -134,8 +143,8 @@ public class DefaultPredictionService implements PredictionService
 
         for ( OrganisationUnit orgUnit : orgUnits )
         {
-            MapMapMap<Period, String, DimensionalItemObject, Double> dataMap = dataElementOperands.isEmpty() ? null :
-                dataValueService.getDataElementOperandValues( dataElementOperands, allSamplePeriods, orgUnit );
+            MapMapMap<Period, String, DimensionalItemObject, Double> dataMap = dimensionItems.isEmpty() ? null :
+                getDataValues( dimensionItems, allSamplePeriods, orgUnit );
 
             applySkipTest( dataMap, skipTest, constantMap );
 
@@ -174,7 +183,7 @@ public class DefaultPredictionService implements PredictionService
     }
 
     /**
-     * Gets all DataElementOperands from the aggregate expressions and skip test.
+     * Gets all DimensionalItemObjects from the aggregate expressions and skip test.
      *
      * @param aggregates set of aggregate expressions. These are subexpressions
      *                   which are passed to aggregate functions (such as AVG,
@@ -183,18 +192,18 @@ public class DefaultPredictionService implements PredictionService
      * @param skipTest the skip test expression.
      * @return set of all DataElementOperands found in all expressions.
      */
-    private Set<DataElementOperand> getDataElementOperands( Set<String> aggregates, Expression skipTest )
+    private Set<DimensionalItemObject> getdimensionItems( Set<String> aggregates, Expression skipTest )
     {
-        Set<DataElementOperand> operands = new HashSet<DataElementOperand>();
+        Set<DimensionalItemObject> operands = new HashSet<>();
 
         for ( String aggregate : aggregates )
         {
-            operands.addAll( expressionService.getOperandsInExpression( aggregate ) );
+            operands.addAll( expressionService.getDimensionalItemObjectsInExpression( aggregate ) );
         }
 
         if ( skipTest != null )
         {
-            operands.addAll( expressionService.getOperandsInExpression( skipTest.getExpression() ) );
+            operands.addAll( expressionService.getDimensionalItemObjectsInExpression( skipTest.getExpression() ) );
         }
 
         return operands;
@@ -393,6 +402,108 @@ public class DefaultPredictionService implements PredictionService
         {
             samplePeriodsMap.putValue( outputPeriod, foundPeriod );
         }
+    }
+
+    /**
+     * Gets data values for a set of DimensionalItemObjects over a set of
+     * Periods for an organisation unit and/or any of the organisation unit's
+     * descendants.
+     *
+     * DimensionalItemObjects may reference aggregate and/or event data.
+     *
+     * Returns the values mapped by Period, then attribute option combo UID,
+     * then DimensionalItemObject.
+     *
+     * @param dimensionItems the dimensionItems.
+     * @param periods the Periods of the DataValues.
+     * @param orgUnit the root of the OrganisationUnit tree to include.
+     * @return the map of values
+     */
+    private MapMapMap<Period, String, DimensionalItemObject, Double> getDataValues(
+        Set<DimensionalItemObject> dimensionItems, Set<Period> periods, OrganisationUnit orgUnit)
+    {
+        Set<DataElementOperand> dataElementOperands = new HashSet<>();
+        Set<DimensionalItemObject> eventObjects = new HashSet<>();
+        MapMapMap<Period, String, DimensionalItemObject, Double> dataValues = new MapMapMap<>();
+
+        for ( DimensionalItemObject o : dimensionItems )
+        {
+            if ( o instanceof DataElementOperand )
+            {
+                dataElementOperands.add( (DataElementOperand) o );
+            }
+            else if ( o instanceof DataElement )
+            {
+                dataElementOperands.add( new DataElementOperand( (DataElement) o ) );
+            }
+            else
+            {
+                eventObjects.add( o );
+            }
+        }
+
+        if ( !dataElementOperands.isEmpty() )
+        {
+            dataValues = dataValueService.getDataElementOperandValues( dataElementOperands, periods, orgUnit );
+        }
+
+        if ( !eventObjects.isEmpty() )
+        {
+            dataValues.putAll( getEventDataValues( eventObjects, periods, orgUnit ) );
+        }
+
+        return dataValues;
+    }
+
+    /**
+     * Gets data values for a set of Event dimensionItems over a set of
+     * Periods for an organisation unit and/or any of the organisation unit's
+     * descendants.
+     *
+     * Returns the values mapped by Period, then attribute option combo UID,
+     * then DimensionalItemObject.
+     *
+     * @param dimensionItems the dimensionItems.
+     * @param periods the Periods of the DataValues.
+     * @param orgUnit the root of the OrganisationUnit tree to include.
+     * @return the map of values
+     */
+    private MapMapMap<Period, String, DimensionalItemObject, Double> getEventDataValues(
+        Set<DimensionalItemObject> dimensionItems, Set<Period> periods, OrganisationUnit orgUnit)
+    {
+        MapMapMap<Period, String, DimensionalItemObject, Double> eventDataValues = new MapMapMap<>();
+
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withPeriods( new ArrayList( periods ) )
+            .withDataDimensionItems( Lists.newArrayList( dimensionItems ) )
+            .withAttributeOptionCombos( Lists.newArrayList() )
+            .withFilterOrganisationUnits( Lists.newArrayList( orgUnit ) )
+            .build();
+
+        Grid grid = analyticsService.getAggregatedDataValues( params );
+
+        int peInx = grid.getIndexOfHeader( DimensionalObject.PERIOD_DIM_ID );
+        int aoInx = grid.getIndexOfHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID );
+        int dxInx = grid.getIndexOfHeader( DimensionalObject.DATA_X_DIM_ID );
+        int vlInx = grid.getWidth() - 1;
+
+        Map<String, Period> periodLookup = periods.stream().collect( Collectors.toMap( p -> p.getIsoDate(), p -> p ) );
+        Map<String, DimensionalItemObject> dimensionItemLookup = dimensionItems.stream().collect( Collectors.toMap( d -> d.getDimensionItem(), d -> d ) );
+
+        for ( List<Object> row : grid.getRows() )
+        {
+            String pe = (String) row.get( peInx );
+            String ao = (String) row.get( aoInx );
+            String dx = (String) row.get( dxInx );
+            Double vl = (Double) row.get( vlInx );
+
+            Period period = periodLookup.get( pe );
+            DimensionalItemObject dimensionItem = dimensionItemLookup.get( dx );
+
+            eventDataValues.putEntry( period, ao, dimensionItem, vl );
+        }
+
+        return eventDataValues;
     }
 
     /**
