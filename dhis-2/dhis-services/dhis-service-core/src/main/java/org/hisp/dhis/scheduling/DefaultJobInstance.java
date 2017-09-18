@@ -15,6 +15,15 @@ public class DefaultJobInstance implements JobInstance
 {
     private static final Log log = LogFactory.getLog( SpringScheduler.class );
 
+    private void setFinishingStatus( SchedulingManager schedulingManager, JobConfiguration jobConfiguration )
+    {
+        jobConfiguration.setJobStatus( JobStatus.SCHEDULED );
+        jobConfiguration.setNextExecutionTime( null );
+        jobConfiguration.setLastExecuted( new Date(  ) );
+
+        schedulingManager.jobConfigurationFinished( jobConfiguration );
+    }
+
     public void execute( JobConfiguration jobConfiguration, SchedulingManager schedulingManager, MessageService messageService )
     {
         final Clock clock = new Clock().startClock();
@@ -37,22 +46,20 @@ public class DefaultJobInstance implements JobInstance
             catch ( RuntimeException ex )
             {
                 messageService.sendSystemErrorNotification( "Job '" + jobConfiguration.getName() + "' failed", ex );
-                jobConfiguration.setJobStatus( JobStatus.FAILED );
+                jobConfiguration.setLastExecutedStatus( JobStatus.FAILED );
 
-                schedulingManager.jobConfigurationFinished( jobConfiguration );
+                setFinishingStatus( schedulingManager, jobConfiguration );
 
                 throw ex;
             }
 
-            jobConfiguration.setJobStatus( JobStatus.COMPLETED );
+            jobConfiguration.setLastExecutedStatus( JobStatus.COMPLETED );
         } else {
             messageService.sendSystemErrorNotification( "Job '" + jobConfiguration.getName() + "' failed, jobtype '" + jobConfiguration.getJobType() + "' is already running [" + clock.time() + "]", new JobFailureException(jobConfiguration) );
 
-            jobConfiguration.setJobStatus( JobStatus.FAILED );
+            jobConfiguration.setLastExecutedStatus( JobStatus.FAILED );
         }
 
-        jobConfiguration.setNextExecutionTime( null );
-        jobConfiguration.setLastExecuted( new Date(  ) );
-        schedulingManager.jobConfigurationFinished( jobConfiguration );
+        setFinishingStatus( schedulingManager, jobConfiguration );
     }
 }

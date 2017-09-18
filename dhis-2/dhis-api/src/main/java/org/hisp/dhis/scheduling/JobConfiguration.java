@@ -29,6 +29,7 @@ public class JobConfiguration
     private JobType jobType;
     private JobStatus jobStatus = JobStatus.SCHEDULED;
     private Date lastExecuted;
+    private JobStatus lastExecutedStatus = JobStatus.SCHEDULED;
     private JobParameters jobParameters;
     private boolean enabled;
 
@@ -67,6 +68,11 @@ public class JobConfiguration
     public void setLastExecuted( Date lastExecuted )
     {
         this.lastExecuted = lastExecuted;
+    }
+
+    public void setLastExecutedStatus( JobStatus lastExecutedStatus )
+    {
+        this.lastExecutedStatus = lastExecutedStatus;
     }
 
     public void setJobParameters( JobParameters jobParameters )
@@ -110,6 +116,13 @@ public class JobConfiguration
     public Date getLastExecuted()
     {
         return lastExecuted;
+    }
+
+    @JacksonXmlProperty
+    @JsonProperty
+    public JobStatus getLastExecutedStatus()
+    {
+        return lastExecutedStatus;
     }
 
     @JacksonXmlProperty

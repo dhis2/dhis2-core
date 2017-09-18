@@ -72,7 +72,7 @@ public class JobObjectBundleHook
         // Validate that the given interval is allowed for the given JobType
         ZonedDateTime now = ZonedDateTime.now();
         ExecutionTime executionTime = ExecutionTime.forCron(parser.parse(jobConfiguration.getCronExpression()));
-        Duration timeFromLastExecution = executionTime.timeFromLastExecution(now).get();
+        Duration timeFromLastExecution =  executionTime.timeFromLastExecution(now).get();
         Duration timeToNextExecution = executionTime.timeToNextExecution(now).get();
 
         long timeIntervalInSeconds = timeFromLastExecution.getSeconds() + timeToNextExecution.getSeconds();

@@ -83,7 +83,6 @@ public class DefaultJobConfigurationService
     {
         List<JobConfiguration> jobConfigurations = getAllJobConfigurations();
 
-        jobConfigurations.forEach( JobConfiguration::setNextExecutionTime );
         Collections.sort( jobConfigurations );
 
         return jobConfigurations;

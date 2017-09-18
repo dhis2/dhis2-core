@@ -25,6 +25,8 @@
 
         <property name="lastExecuted" type="timestamp"/>
 
+        <property name="lastExecutedStatus" />
+
         <property name="nextExecutionTime" type="timestamp"/>
 
         <property name="enabled" not-null="true" type="boolean"/>
