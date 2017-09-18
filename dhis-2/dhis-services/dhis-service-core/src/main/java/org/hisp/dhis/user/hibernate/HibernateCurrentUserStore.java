@@ -28,11 +28,13 @@ package org.hisp.dhis.user.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Query;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.user.CurrentUserStore;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.persistence.Query;
 
 /**
  * @author Lars Helge Overland
@@ -49,9 +51,9 @@ public class HibernateCurrentUserStore
         String hql = "from UserCredentials uc where uc.username = :username";
         
         Query query = sessionFactory.getCurrentSession().createQuery( hql );
-        query.setString( "username", username );
-        query.setCacheable( true );
+        query.setParameter( "username", username );
+        query.setHint( HibernateUtils.HIBERNATE_CACHEABLE_HINT, true );
         
-        return (UserCredentials) query.uniqueResult();
+        return ( UserCredentials ) query.getSingleResult();
     }
 }
