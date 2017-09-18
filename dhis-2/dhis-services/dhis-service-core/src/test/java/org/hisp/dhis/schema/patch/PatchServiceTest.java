@@ -61,7 +61,6 @@ import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
@@ -309,14 +308,11 @@ public class PatchServiceTest
         DataElement deB = createDataElement( 'B' );
 
         deA.getAggregationLevels().add( 1 );
+        deB.getAggregationLevels().add( 1 );
         deB.getAggregationLevels().add( 2 );
         deB.getAggregationLevels().add( 3 );
 
         Patch patch = patchService.diff( deA, deB );
-
-        checkCount( patch, "aggregationLevels", Mutation.Operation.ADDITION, 2 );
-        checkCount( patch, "aggregationLevels", Mutation.Operation.DELETION, 1 );
-
         patchService.apply( patch, deA );
 
         assertEquals( deA.getName(), deB.getName() );
@@ -337,26 +333,15 @@ public class PatchServiceTest
         manager.save( degA );
         manager.save( degB );
 
-        deA.getGroups().add( degA );
-        manager.update( degA );
-
+        deB.getGroups().add( degA );
         deB.getGroups().add( degB );
 
         deA.getAggregationLevels().add( 1 );
-        deA.getAggregationLevels().add( 2 );
-
+        deB.getAggregationLevels().add( 1 );
         deB.getAggregationLevels().add( 2 );
         deB.getAggregationLevels().add( 3 );
-        deB.getAggregationLevels().add( 4 );
 
         Patch patch = patchService.diff( deA, deB );
-
-        checkCount( patch, "dataElementGroups", Mutation.Operation.ADDITION, 1 );
-        checkCount( patch, "dataElementGroups", Mutation.Operation.DELETION, 1 );
-
-        checkCount( patch, "aggregationLevels", Mutation.Operation.ADDITION, 2 );
-        checkCount( patch, "aggregationLevels", Mutation.Operation.DELETION, 1 );
-
         patchService.apply( patch, deA );
 
         assertEquals( deA.getName(), deB.getName() );
@@ -450,27 +435,5 @@ public class PatchServiceTest
         }
 
         return null;
-    }
-
-    private void checkCount( Patch patch, String name, Mutation.Operation operation, int expected )
-    {
-        int count = 0;
-
-        for ( Mutation mutation : patch.getMutations() )
-        {
-            if ( mutation.getOperation() == operation && mutation.getPath().equals( name ) )
-            {
-                if ( Collection.class.isInstance( mutation.getValue() ) )
-                {
-                    count += ((Collection) mutation.getValue()).size();
-                }
-                else
-                {
-                    count++;
-                }
-            }
-        }
-
-        assertEquals( "Did not find " + expected + " mutations of type " + operation + " on property " + name, expected, count );
     }
 }

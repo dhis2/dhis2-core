@@ -215,7 +215,7 @@ public class DefaultPatchService implements PatchService
 
         if ( property.isCollection() && property.isIdentifiableObject() && !property.isEmbeddedObject() )
         {
-            Collection addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+            Collection collection = ReflectionUtils.newCollectionInstance( property.getKlass() );
 
             Collection sourceCollection = (Collection) ((Collection) sourceValue).stream()
                 .map( o -> ((IdentifiableObject) o).getUid() ).collect( Collectors.toList() );
@@ -227,46 +227,27 @@ public class DefaultPatchService implements PatchService
             {
                 if ( !sourceCollection.contains( o ) )
                 {
-                    addCollection.add( o );
-                }
-                else
-                {
-                    sourceCollection.remove( o );
+                    collection.add( o );
                 }
             }
 
-            mutations.add( new Mutation( path, addCollection ) );
-
-            Collection delCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
-            delCollection.addAll( sourceCollection );
-
-            mutations.add( new Mutation( path, delCollection, Mutation.Operation.DELETION ) );
+            return Lists.newArrayList( new Mutation( path, collection ) );
         }
         else if ( property.isCollection() && !property.isEmbeddedObject() && !property.isIdentifiableObject() )
         {
-            Collection sourceCollection = new ArrayList( (Collection) sourceValue );
+            Collection collection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+            Collection sourceCollection = (Collection) sourceValue;
             Collection targetCollection = (Collection) targetValue;
-
-            Collection addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
 
             for ( Object o : targetCollection )
             {
                 if ( !sourceCollection.contains( o ) )
                 {
-                    addCollection.add( o );
-                }
-                else
-                {
-                    sourceCollection.remove( o );
+                    collection.add( o );
                 }
             }
 
-            mutations.add( new Mutation( path, addCollection ) );
-
-            Collection delCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
-            delCollection.addAll( sourceCollection );
-
-            mutations.add( new Mutation( path, delCollection, Mutation.Operation.DELETION ) );
+            return Lists.newArrayList( new Mutation( path, collection ) );
         }
         else if ( property.isSimple() || property.isEmbeddedObject() )
         {
