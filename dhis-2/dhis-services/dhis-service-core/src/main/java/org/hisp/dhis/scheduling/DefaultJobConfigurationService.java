@@ -7,6 +7,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,10 +28,25 @@ public class DefaultJobConfigurationService
     @Autowired
     private SchedulingManager schedulingManager;
 
+    /**
+     * This method is called when the context is ready or updated. Since this can be called several times, the schedulingManager checks if the job is already scheduled.
+     * The method also checks if there are jobs which should have been run while the system was down. If the server crashed or something unexpected happened, we want to rerun/reschedule these jobs.
+     *
+     * @param contextRefreshedEvent the new context
+     */
     @EventListener
     public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )
     {
-        getAllJobConfigurations().forEach( (jobConfiguration -> schedulingManager.scheduleJob( jobConfiguration )) );
+        Date now = new Date();
+        getAllJobConfigurations().forEach( (jobConfiguration -> {
+            System.out.println("Next execution time: " + jobConfiguration.getNextExecutionTime() + ", now: " + now + ", compare: " + jobConfiguration.getNextExecutionTime().compareTo( now ));
+            if( jobConfiguration.getNextExecutionTime().compareTo( now ) < 0 ) {
+                jobConfiguration.setNextExecutionTime( null );
+                updateJobConfiguration( jobConfiguration );
+                schedulingManager.executeJob( jobConfiguration );
+            }
+            schedulingManager.scheduleJob( jobConfiguration );
+        }) );
     }
 
     @Override

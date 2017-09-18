@@ -49,10 +49,10 @@ public class DefaultSchedulingManager
 {
     @Autowired
     private JobConfigurationService jobConfigurationService;
+
     // -------------------------------------------------------------------------
-    // Queues
+    // Queue
     // -------------------------------------------------------------------------
-    private HashMap<String, JobConfiguration> jobConfigurations = new HashMap<>(  );
 
     private List<JobConfiguration> runningJobConfigurations = new ArrayList<>(  );
 
@@ -64,9 +64,8 @@ public class DefaultSchedulingManager
 
     public void runJobConfiguration( JobConfiguration jobConfiguration )
     {
-        jobConfigurations.remove( jobConfiguration.getUid() );
-        jobConfigurationService.updateJobConfiguration( jobConfiguration );
         runningJobConfigurations.add( jobConfiguration );
+        jobConfigurationService.updateJobConfiguration( jobConfiguration );
     }
 
     public void jobConfigurationFinished( JobConfiguration jobConfiguration )
@@ -87,7 +86,7 @@ public class DefaultSchedulingManager
         this.scheduler = scheduler;
     }
 
-    private Map<JobType, Job> jobMap = new HashMap<JobType, Job>();
+    private Map<JobType, Job> jobMap = new HashMap<>();
 
     @Autowired
     private List<Job> jobs;
@@ -140,7 +139,7 @@ public class DefaultSchedulingManager
     {
         if ( jobConfiguration != null && !isJobInProgress( jobConfiguration.getUid() ) )
         {
-            scheduler.executeJob( () -> jobMap.get( jobConfiguration.getJobType() ).execute( jobConfiguration.getJobParameters() ) );
+            scheduler.executeJob( jobConfiguration, new DefaultJobInstance());
         }
     }
 

@@ -97,6 +97,13 @@ public class SpringScheduler
     }
 
     @Override
+    public void executeJob( JobConfiguration jobConfiguration, JobInstance jobInstance )
+    {
+        ListenableFuture<?> future = jobExecutor.submitListenable( () -> jobInstance.execute( jobConfiguration, schedulingManager, messageService ) );
+        currentTasks.put( jobConfiguration.getUid(), future );
+    }
+
+    @Override
     public <T> ListenableFuture<T> executeJob( Callable<T> callable )
     {
         return jobExecutor.submitListenable( callable );

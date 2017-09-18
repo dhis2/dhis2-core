@@ -42,6 +42,7 @@ public class JobConfiguration
 
     public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters, boolean enabled )
     {
+        System.out.println("JobConfig constructor called, name: " + name);
         this.name = name;
         this.cronExpression = cronExpression;
         this.jobType = jobType;
@@ -87,7 +88,10 @@ public class JobConfiguration
 
     public void setNextExecutionTime( Date nextExecutionTime )
     {
-        if( !cronExpression.equals( "" ) ) this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext(  ) );
+        if( nextExecutionTime != null) this.nextExecutionTime = nextExecutionTime;
+        else {
+            if( !cronExpression.equals( "" ) ) this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext(  ) );
+        }
     }
 
     @JacksonXmlProperty
