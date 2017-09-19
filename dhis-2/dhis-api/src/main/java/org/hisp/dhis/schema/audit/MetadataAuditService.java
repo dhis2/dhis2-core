@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.patch;
+package org.hisp.dhis.schema.audit;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -29,12 +29,16 @@ package org.hisp.dhis.schema.patch;
  *
  */
 
+import java.util.List;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface PatchService
+public interface MetadataAuditService
 {
-    Patch diff( PatchParams params );
+    void addMetadataAudit( MetadataAudit audit );
 
-    void apply( Patch patch, Object target );
+    void deleteMetadataAudit( MetadataAudit audit );
+
+    List<MetadataAudit> getMetadataAudits( MetadataAuditQuery query );
 }

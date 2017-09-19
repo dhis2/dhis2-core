@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.patch;
+package org.hisp.dhis.schema.audit;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -33,84 +33,128 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.EmbeddedObject;
-import org.hisp.dhis.common.IdentifiableObject;
+
+import java.util.Date;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "mutation", namespace = DxfNamespaces.DXF_2_0 )
-public class Mutation
+@JacksonXmlRootElement( localName = "metadataAudit", namespace = DxfNamespaces.DXF_2_0 )
+public class MetadataAudit
 {
-    private final String path;
+    private int id;
 
-    private final Object value;
+    private Date createdAt = new Date();
 
-    private Operation operation = Operation.ADDITION;
+    private String createdBy;
 
-    enum Operation
+    private String uid;
+
+    private String code;
+
+    private AuditType type;
+
+    private String value;
+
+    public MetadataAudit()
     {
-        ADDITION, DELETION
     }
 
-    public Mutation( String path )
+    public int getId()
     {
-        this.path = path;
-        this.value = null;
+        return id;
     }
 
-    public Mutation( String path, Object value )
+    public void setId( int id )
     {
-        this.path = path;
-        this.value = value;
-    }
-
-    public Mutation( String path, Object value, Operation operation )
-    {
-        this.path = path;
-        this.value = value;
-        this.operation = operation;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getPath()
-    {
-        return path;
-    }
-
-    public Object getValue()
-    {
-        return value;
-    }
-
-    @JsonProperty( "value" )
-    @JacksonXmlProperty( localName = "value", namespace = DxfNamespaces.DXF_2_0 )
-    public Object getLogValue()
-    {
-        if ( IdentifiableObject.class.isInstance( value ) && !EmbeddedObject.class.isInstance( value ) )
-        {
-            return ((IdentifiableObject) value).getUid();
-        }
-
-        return value;
+        this.id = id;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Operation getOperation()
+    public Date getCreatedAt()
     {
-        return operation;
+        return createdAt;
     }
+
+    public void setCreatedAt( Date createdAt )
+    {
+        this.createdAt = createdAt;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getCreatedBy()
+    {
+        return createdBy;
+    }
+
+    public void setCreatedBy( String createdBy )
+    {
+        this.createdBy = createdBy;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getUid()
+    {
+        return uid;
+    }
+
+    public void setUid( String uid )
+    {
+        this.uid = uid;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getCode()
+    {
+        return code;
+    }
+
+    public void setCode( String code )
+    {
+        this.code = code;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AuditType getType()
+    {
+        return type;
+    }
+
+    public void setType( AuditType type )
+    {
+        this.type = type;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getValue()
+    {
+        return value;
+    }
+
+    public void setValue( String value )
+    {
+        this.value = value;
+    }
+
 
     @Override
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-            .add( "path", path )
-            .add( "operation", operation )
-            .add( "value", getLogValue() )
+            .add( "createdAt", createdAt )
+            .add( "createdBy", createdBy )
+            .add( "uid", uid )
+            .add( "code", code )
+            .add( "type", type )
+            .add( "value", value )
             .toString();
     }
 }

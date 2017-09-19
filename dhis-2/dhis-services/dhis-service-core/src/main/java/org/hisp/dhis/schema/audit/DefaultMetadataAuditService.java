@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.patch;
+package org.hisp.dhis.schema.audit;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -29,12 +29,38 @@ package org.hisp.dhis.schema.patch;
  *
  */
 
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface PatchService
+@Transactional
+public class DefaultMetadataAuditService implements MetadataAuditService
 {
-    Patch diff( PatchParams params );
+    private final MetadataAuditStore auditStore;
 
-    void apply( Patch patch, Object target );
+    public DefaultMetadataAuditService( MetadataAuditStore auditStore )
+    {
+        this.auditStore = auditStore;
+    }
+
+    @Override
+    public void addMetadataAudit( MetadataAudit audit )
+    {
+        auditStore.save( audit );
+    }
+
+    @Override
+    public void deleteMetadataAudit( MetadataAudit audit )
+    {
+        auditStore.delete( audit );
+    }
+
+    @Override
+    public List<MetadataAudit> getMetadataAudits( MetadataAuditQuery query )
+    {
+        return auditStore.query( query );
+    }
 }

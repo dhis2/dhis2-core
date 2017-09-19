@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.patch;
+package org.hisp.dhis.system;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -29,12 +29,57 @@ package org.hisp.dhis.schema.patch;
  *
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface PatchService
+@JacksonXmlRootElement( localName = "metadataAudit", namespace = DxfNamespaces.DXF_2_0 )
+public class MetadataAudit
 {
-    Patch diff( PatchParams params );
+    private boolean persist;
 
-    void apply( Patch patch, Object target );
+    private boolean log;
+
+    public MetadataAudit()
+    {
+    }
+
+    public MetadataAudit( boolean persist, boolean log )
+    {
+        this.persist = persist;
+        this.log = log;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isPersist()
+    {
+        return persist;
+    }
+
+    public void setPersist( boolean persist )
+    {
+        this.persist = persist;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isLog()
+    {
+        return log;
+    }
+
+    public void setLog( boolean log )
+    {
+        this.log = log;
+    }
+
+    public boolean isAudit()
+    {
+        return log || persist;
+    }
 }

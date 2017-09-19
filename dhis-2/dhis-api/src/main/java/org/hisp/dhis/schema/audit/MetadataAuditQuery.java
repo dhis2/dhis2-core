@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.patch;
+package org.hisp.dhis.schema.audit;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -32,9 +32,6 @@ package org.hisp.dhis.schema.patch;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface PatchService
+public class MetadataAuditQuery
 {
-    Patch diff( PatchParams params );
-
-    void apply( Patch patch, Object target );
 }

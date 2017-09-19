@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.patch;
+package org.hisp.dhis.schema.audit.hibernate;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -29,12 +29,50 @@ package org.hisp.dhis.schema.patch;
  *
  */
 
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.schema.audit.MetadataAudit;
+import org.hisp.dhis.schema.audit.MetadataAuditQuery;
+import org.hisp.dhis.schema.audit.MetadataAuditStore;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface PatchService
+public class HibernateMetadataAuditStore
+    implements MetadataAuditStore
 {
-    Patch diff( PatchParams params );
+    @Autowired
+    private SessionFactory sessionFactory;
 
-    void apply( Patch patch, Object target );
+    @Override
+    public int save( MetadataAudit audit )
+    {
+        return (int) getCurrentSession().save( audit );
+    }
+
+    @Override
+    public void delete( MetadataAudit audit )
+    {
+        getCurrentSession().delete( audit );
+    }
+
+    @Override
+    public int count( MetadataAuditQuery auditQuery )
+    {
+        return 0;
+    }
+
+    @Override
+    public List<MetadataAudit> query( MetadataAuditQuery query )
+    {
+        return null;
+    }
+
+    private Session getCurrentSession()
+    {
+        return sessionFactory.getCurrentSession();
+    }
 }
