@@ -77,4 +77,9 @@ public class MetadataAudit
     {
         this.log = log;
     }
+
+    public boolean isAudit()
+    {
+        return log || persist;
+    }
 }

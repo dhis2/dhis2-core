@@ -66,6 +66,12 @@ public class DefaultPatchService implements PatchService
     @Override
     public Patch diff( Object source, Object target )
     {
+        return diff( source, target, false );
+    }
+
+    @Override
+    public Patch diff( Object source, Object target, boolean ignoreTransient )
+    {
         Patch patch = new Patch();
 
         if ( source == null || target == null || !source.getClass().isInstance( target ) )
@@ -80,7 +86,7 @@ public class DefaultPatchService implements PatchService
             return patch;
         }
 
-        patch.setMutations( calculateMutations( schema, source, target ) );
+        patch.setMutations( calculateMutations( schema, source, target, ignoreTransient ) );
 
         return patch;
     }
@@ -92,6 +98,143 @@ public class DefaultPatchService implements PatchService
         patch.setMutations( calculateMutations( jsonNode ) );
 
         return patch;
+    }
+
+    @Override
+    public void apply( Patch patch, Object target )
+    {
+        if ( target == null )
+        {
+            return;
+        }
+
+        Schema schema = schemaService.getDynamicSchema( target.getClass() );
+
+        if ( schema == null )
+        {
+            return;
+        }
+
+        patch.getMutations().forEach( mutation -> applyMutation( mutation, schema, target ) );
+    }
+
+    private List<Mutation> calculateMutations( Schema schema, Object source, Object target, boolean ignoreTransient )
+    {
+        List<Mutation> mutations = new ArrayList<>();
+
+        for ( Property property : schema.getProperties() )
+        {
+            if ( ignoreTransient && !property.isPersisted() )
+            {
+                continue;
+            }
+
+            if ( property.isCollection() )
+            {
+                mutations.addAll( calculateMutation( property.getCollectionName(), property, source, target ) );
+            }
+            else
+            {
+                mutations.addAll( calculateMutation( property.getName(), property, source, target ) );
+            }
+        }
+
+        return mutations;
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private List<Mutation> calculateMutation( String path, Property property, Object source, Object target )
+    {
+        Object sourceValue = ReflectionUtils.invokeMethod( source, property.getGetterMethod() );
+        Object targetValue = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
+        List<Mutation> mutations = new ArrayList<>();
+
+        if ( sourceValue == null && targetValue == null )
+        {
+            return mutations;
+        }
+
+        if ( targetValue == null || sourceValue == null )
+        {
+            return Lists.newArrayList( new Mutation( path, targetValue ) );
+        }
+
+        if ( property.isCollection() && property.isIdentifiableObject() && !property.isEmbeddedObject() )
+        {
+            Collection addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+
+            Collection sourceCollection = (Collection) ((Collection) sourceValue).stream()
+                .map( o -> ((IdentifiableObject) o).getUid() ).collect( Collectors.toList() );
+
+            Collection targetCollection = (Collection) ((Collection) targetValue).stream()
+                .map( o -> ((IdentifiableObject) o).getUid() ).collect( Collectors.toList() );
+
+            for ( Object o : targetCollection )
+            {
+                if ( !sourceCollection.contains( o ) )
+                {
+                    addCollection.add( o );
+                }
+                else
+                {
+                    sourceCollection.remove( o );
+                }
+            }
+
+            if ( !addCollection.isEmpty() )
+            {
+                mutations.add( new Mutation( path, addCollection ) );
+            }
+
+            Collection delCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+            delCollection.addAll( sourceCollection );
+
+            if ( !delCollection.isEmpty() )
+            {
+                mutations.add( new Mutation( path, delCollection, Mutation.Operation.DELETION ) );
+            }
+        }
+        else if ( property.isCollection() && !property.isEmbeddedObject() && !property.isIdentifiableObject() )
+        {
+            Collection sourceCollection = new ArrayList( (Collection) sourceValue );
+            Collection targetCollection = (Collection) targetValue;
+
+            Collection addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+
+            for ( Object o : targetCollection )
+            {
+                if ( !sourceCollection.contains( o ) )
+                {
+                    addCollection.add( o );
+                }
+                else
+                {
+                    sourceCollection.remove( o );
+                }
+            }
+
+            if ( !addCollection.isEmpty() )
+            {
+                mutations.add( new Mutation( path, addCollection ) );
+            }
+
+            Collection delCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+            delCollection.addAll( sourceCollection );
+
+            if ( !delCollection.isEmpty() )
+            {
+                mutations.add( new Mutation( path, delCollection, Mutation.Operation.DELETION ) );
+            }
+        }
+        else if ( property.isSimple() || property.isEmbeddedObject() )
+        {
+            if ( !targetValue.equals( sourceValue ) )
+            {
+                return Lists.newArrayList( new Mutation( path, targetValue ) );
+            }
+        }
+
+        return mutations;
     }
 
     private List<Mutation> calculateMutations( JsonNode rootNode )
@@ -157,126 +300,6 @@ public class DefaultPatchService implements PatchService
         }
 
         return null;
-    }
-
-    @Override
-    public void apply( Patch patch, Object target )
-    {
-        if ( target == null )
-        {
-            return;
-        }
-
-        Schema schema = schemaService.getDynamicSchema( target.getClass() );
-
-        if ( schema == null )
-        {
-            return;
-        }
-
-        patch.getMutations().forEach( mutation -> applyMutation( mutation, schema, target ) );
-    }
-
-    private List<Mutation> calculateMutations( Schema schema, Object source, Object target )
-    {
-        List<Mutation> mutations = new ArrayList<>();
-
-        for ( Property property : schema.getProperties() )
-        {
-            if ( property.isCollection() )
-            {
-                mutations.addAll( calculateMutation( property.getCollectionName(), property, source, target ) );
-            }
-            else
-            {
-                mutations.addAll( calculateMutation( property.getName(), property, source, target ) );
-            }
-        }
-
-        return mutations;
-    }
-
-    @SuppressWarnings( "unchecked" )
-    private List<Mutation> calculateMutation( String path, Property property, Object source, Object target )
-    {
-        Object sourceValue = ReflectionUtils.invokeMethod( source, property.getGetterMethod() );
-        Object targetValue = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
-        List<Mutation> mutations = new ArrayList<>();
-
-        if ( sourceValue == null && targetValue == null )
-        {
-            return mutations;
-        }
-
-        if ( targetValue == null || sourceValue == null )
-        {
-            return Lists.newArrayList( new Mutation( path, targetValue ) );
-        }
-
-        if ( property.isCollection() && property.isIdentifiableObject() && !property.isEmbeddedObject() )
-        {
-            Collection addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
-
-            Collection sourceCollection = (Collection) ((Collection) sourceValue).stream()
-                .map( o -> ((IdentifiableObject) o).getUid() ).collect( Collectors.toList() );
-
-            Collection targetCollection = (Collection) ((Collection) targetValue).stream()
-                .map( o -> ((IdentifiableObject) o).getUid() ).collect( Collectors.toList() );
-
-            for ( Object o : targetCollection )
-            {
-                if ( !sourceCollection.contains( o ) )
-                {
-                    addCollection.add( o );
-                }
-                else
-                {
-                    sourceCollection.remove( o );
-                }
-            }
-
-            mutations.add( new Mutation( path, addCollection ) );
-
-            Collection delCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
-            delCollection.addAll( sourceCollection );
-
-            mutations.add( new Mutation( path, delCollection, Mutation.Operation.DELETION ) );
-        }
-        else if ( property.isCollection() && !property.isEmbeddedObject() && !property.isIdentifiableObject() )
-        {
-            Collection sourceCollection = new ArrayList( (Collection) sourceValue );
-            Collection targetCollection = (Collection) targetValue;
-
-            Collection addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
-
-            for ( Object o : targetCollection )
-            {
-                if ( !sourceCollection.contains( o ) )
-                {
-                    addCollection.add( o );
-                }
-                else
-                {
-                    sourceCollection.remove( o );
-                }
-            }
-
-            mutations.add( new Mutation( path, addCollection ) );
-
-            Collection delCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
-            delCollection.addAll( sourceCollection );
-
-            mutations.add( new Mutation( path, delCollection, Mutation.Operation.DELETION ) );
-        }
-        else if ( property.isSimple() || property.isEmbeddedObject() )
-        {
-            if ( !targetValue.equals( sourceValue ) )
-            {
-                return Lists.newArrayList( new Mutation( path, targetValue ) );
-            }
-        }
-
-        return mutations;
     }
 
     private void applyMutation( Mutation mutation, Schema schema, Object target )

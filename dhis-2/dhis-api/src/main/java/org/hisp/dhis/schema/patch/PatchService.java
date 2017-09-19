@@ -38,7 +38,9 @@ public interface PatchService
 {
     Patch diff( Object source, Object target );
 
-    Patch diff( JsonNode node );
+    Patch diff( Object source, Object target, boolean ignoreTransient );
+
+    Patch diff( JsonNode jsonNode );
 
     void apply( Patch patch, Object target );
 }
