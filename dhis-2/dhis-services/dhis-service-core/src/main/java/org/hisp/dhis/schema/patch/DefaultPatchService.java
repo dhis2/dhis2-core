@@ -64,13 +64,35 @@ public class DefaultPatchService implements PatchService
     }
 
     @Override
-    public Patch diff( Object source, Object target )
+    public Patch diff( PatchParams params )
     {
-        return diff( source, target, false );
+        if ( !params.haveJsonNode() )
+        {
+            return diff( params.getSource(), params.getTarget(), params.isIgnoreTransient() );
+        }
+
+        return diff( params.getJsonNode() );
     }
 
     @Override
-    public Patch diff( Object source, Object target, boolean ignoreTransient )
+    public void apply( Patch patch, Object target )
+    {
+        if ( target == null )
+        {
+            return;
+        }
+
+        Schema schema = schemaService.getDynamicSchema( target.getClass() );
+
+        if ( schema == null )
+        {
+            return;
+        }
+
+        patch.getMutations().forEach( mutation -> applyMutation( mutation, schema, target ) );
+    }
+
+    private Patch diff( Object source, Object target, boolean ignoreTransient )
     {
         Patch patch = new Patch();
 
@@ -91,31 +113,12 @@ public class DefaultPatchService implements PatchService
         return patch;
     }
 
-    @Override
-    public Patch diff( JsonNode jsonNode )
+    private Patch diff( JsonNode jsonNode )
     {
         Patch patch = new Patch();
         patch.setMutations( calculateMutations( jsonNode ) );
 
         return patch;
-    }
-
-    @Override
-    public void apply( Patch patch, Object target )
-    {
-        if ( target == null )
-        {
-            return;
-        }
-
-        Schema schema = schemaService.getDynamicSchema( target.getClass() );
-
-        if ( schema == null )
-        {
-            return;
-        }
-
-        patch.getMutations().forEach( mutation -> applyMutation( mutation, schema, target ) );
     }
 
     private List<Mutation> calculateMutations( Schema schema, Object source, Object target, boolean ignoreTransient )

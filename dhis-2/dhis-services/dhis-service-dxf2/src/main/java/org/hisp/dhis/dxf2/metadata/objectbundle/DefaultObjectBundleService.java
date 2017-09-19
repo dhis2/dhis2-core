@@ -51,6 +51,7 @@ import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.patch.Patch;
+import org.hisp.dhis.schema.patch.PatchParams;
 import org.hisp.dhis.schema.patch.PatchService;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
@@ -302,7 +303,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             if ( systemInfo.getMetadataAudit().isAudit() )
             {
-                patch = patchService.diff( persistedObject, object, true );
+                patch = patchService.diff( new PatchParams( persistedObject, object ).setIgnoreTransient( true ) );
             }
 
             if ( bundle.getMergeMode() != MergeMode.NONE )

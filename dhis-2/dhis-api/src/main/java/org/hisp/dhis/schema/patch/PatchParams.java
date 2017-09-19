@@ -29,12 +29,63 @@ package org.hisp.dhis.schema.patch;
  *
  */
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface PatchService
+public class PatchParams
 {
-    Patch diff( PatchParams params );
+    private final Object source;
 
-    void apply( Patch patch, Object target );
+    private final Object target;
+
+    private final JsonNode jsonNode;
+
+    private boolean ignoreTransient;
+
+    public PatchParams( Object source, Object target )
+    {
+        this.source = source;
+        this.target = target;
+        this.jsonNode = null;
+    }
+
+    public PatchParams( JsonNode jsonNode )
+    {
+        this.source = null;
+        this.target = null;
+        this.jsonNode = jsonNode;
+    }
+
+    public Object getSource()
+    {
+        return source;
+    }
+
+    public Object getTarget()
+    {
+        return target;
+    }
+
+    public JsonNode getJsonNode()
+    {
+        return jsonNode;
+    }
+
+    public boolean haveJsonNode()
+    {
+        return jsonNode != null;
+    }
+
+    public boolean isIgnoreTransient()
+    {
+        return ignoreTransient;
+    }
+
+    public PatchParams setIgnoreTransient( boolean ignoreTransient )
+    {
+        this.ignoreTransient = ignoreTransient;
+        return this;
+    }
 }

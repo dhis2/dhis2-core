@@ -294,7 +294,7 @@ public class PatchServiceTest
         DataElement deA = createDataElement( 'A' );
         DataElement deB = createDataElement( 'B' );
 
-        Patch patch = patchService.diff( deA, deB );
+        Patch patch = patchService.diff( new PatchParams( deA, deB ) );
         patchService.apply( patch, deA );
 
         assertEquals( deA.getName(), deB.getName() );
@@ -312,7 +312,7 @@ public class PatchServiceTest
         deB.getAggregationLevels().add( 2 );
         deB.getAggregationLevels().add( 3 );
 
-        Patch patch = patchService.diff( deA, deB );
+        Patch patch = patchService.diff( new PatchParams( deA, deB ) );
 
         checkCount( patch, "aggregationLevels", Mutation.Operation.ADDITION, 2 );
         checkCount( patch, "aggregationLevels", Mutation.Operation.DELETION, 1 );
@@ -349,7 +349,7 @@ public class PatchServiceTest
         deB.getAggregationLevels().add( 3 );
         deB.getAggregationLevels().add( 4 );
 
-        Patch patch = patchService.diff( deA, deB );
+        Patch patch = patchService.diff( new PatchParams( deA, deB ) );
 
         checkCount( patch, "dataElementGroups", Mutation.Operation.ADDITION, 1 );
         checkCount( patch, "dataElementGroups", Mutation.Operation.DELETION, 1 );
@@ -384,7 +384,7 @@ public class PatchServiceTest
         deB.getUserGroupAccesses().add( new UserGroupAccess( userGroup, "rw------" ) );
         deB.getUserAccesses().add( new UserAccess( adminUser, "rw------" ) );
 
-        Patch patch = patchService.diff( deA, deB );
+        Patch patch = patchService.diff( new PatchParams( deA, deB ) );
         patchService.apply( patch, deA );
 
         assertEquals( deA.getName(), deB.getName() );
@@ -401,7 +401,7 @@ public class PatchServiceTest
         JsonNode jsonNode = loadJsonNodeFromFile( "patch/simple.json" );
         DataElement dataElement = createDataElement( 'A' );
 
-        Patch patch = patchService.diff( jsonNode );
+        Patch patch = patchService.diff( new PatchParams( jsonNode ) );
         assertEquals( 2, patch.getMutations().size() );
 
         patchService.apply( patch, dataElement );
@@ -422,7 +422,7 @@ public class PatchServiceTest
         manager.save( degA );
         manager.save( degB );
 
-        Patch patch = patchService.diff( jsonNode );
+        Patch patch = patchService.diff( new PatchParams( jsonNode ) );
         patchService.apply( patch, dataElement );
 
         assertEquals( dataElement.getName(), "Updated Name" );
@@ -434,7 +434,7 @@ public class PatchServiceTest
     public void testPatchFromJsonNode3()
     {
         JsonNode jsonNode = loadJsonNodeFromFile( "patch/complex.json" );
-        Patch patch = patchService.diff( jsonNode );
+        Patch patch = patchService.diff( new PatchParams( jsonNode ) );
     }
 
     private JsonNode loadJsonNodeFromFile( String path )
