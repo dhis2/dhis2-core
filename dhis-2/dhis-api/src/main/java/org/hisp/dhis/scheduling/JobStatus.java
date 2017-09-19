@@ -1,6 +1,9 @@
 package org.hisp.dhis.scheduling;
 
 /**
+ * Enum for job status. This is used for current status of a job(RUNNING or SCHEDULED) and for last executed status, for which the
+ * status can be COMPLETED, STOPPED or FAILED.
+ *
  * @author Henning Håkonsen
  */
 public enum JobStatus

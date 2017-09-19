@@ -14,7 +14,6 @@ import java.util.Date;
 public class DefaultJobInstance implements JobInstance
 {
     private static final Log log = LogFactory.getLog( SpringScheduler.class );
-    private static final Long oneDayInSeconds = (long)24*24*60;
 
     private void setFinishingStatus( SchedulingManager schedulingManager, JobConfiguration jobConfiguration )
     {
@@ -59,18 +58,6 @@ public class DefaultJobInstance implements JobInstance
             messageService.sendSystemErrorNotification( "Job '" + jobConfiguration.getName() + "' failed, jobtype '" + jobConfiguration.getJobType() + "' is already running [" + clock.time() + "]", new JobFailureException(jobConfiguration) );
             jobConfiguration.setLastExecutedStatus( JobStatus.FAILED );
 
-            // Simple solution for rescheduling jobs. If the next execution time is more than a day away, we wait the configured amount of minimum interval time and reschedule the job.
-            Long duration = jobConfiguration.getNextExecutionTime().getTime() - new Date().getTime();
-            if( duration > oneDayInSeconds ) {
-                try
-                {
-                    Thread.sleep( jobConfiguration.getJobType().getMinimumFrequencyInSeconds() );
-                }
-                catch ( InterruptedException e )
-                {
-                    e.printStackTrace();
-                }
-            }
             schedulingManager.executeJob( jobConfiguration );
         }
 

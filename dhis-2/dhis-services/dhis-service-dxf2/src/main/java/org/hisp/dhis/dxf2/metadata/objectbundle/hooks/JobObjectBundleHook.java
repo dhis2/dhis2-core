@@ -100,7 +100,7 @@ public class JobObjectBundleHook
             return;
         }
 
-        schedulingManager.stopJob( persistedObject.getUid() );
+        schedulingManager.stopJob( (JobConfiguration) persistedObject );
         sessionFactory.getCurrentSession().update( persistedObject );
     }
 
@@ -112,7 +112,7 @@ public class JobObjectBundleHook
             return;
         }
 
-        schedulingManager.stopJob( persistedObject.getUid() );
+        schedulingManager.stopJob( (JobConfiguration) persistedObject );
         sessionFactory.getCurrentSession().delete( persistedObject );
     }
 

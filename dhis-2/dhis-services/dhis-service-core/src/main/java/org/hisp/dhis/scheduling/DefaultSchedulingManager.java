@@ -116,15 +116,19 @@ public class DefaultSchedulingManager
     }
 
     @Override
-    public void stopJob( String jobKey )
+    public void stopJob( JobConfiguration jobConfiguration )
     {
-        scheduler.stopJob( jobKey );
+        jobConfiguration.setLastExecutedStatus( JobStatus.STOPPED );
+        jobConfigurationService.updateJobConfiguration( jobConfiguration );
+
+        scheduler.stopJob( jobConfiguration.getUid() );
     }
 
     @Override
     public void stopAllJobs()
     {
         scheduler.stopAllJobs();
+
     }
 
     @Override

@@ -15,31 +15,41 @@ public interface JobConfigurationService
 {
     String ID = OrganisationUnitService.class.getName();
 
+    /**
+     * This method is called when the context is ready or updated. Since this can be called several times, the schedulingManager checks if the job is already scheduled.
+     * The method also checks if there are jobs which should have been run while the system was down. If the server crashed or something unexpected happened, we want to rerun these jobs.
+     *
+     * @param event the new context
+     */
     @EventListener
     void handleContextRefresh( ContextRefreshedEvent event);
 
     /**
      * Add a job configuration
-     * @param jobConfiguration the jobconfiguration to be added
+     *
+     * @param jobConfiguration the job configuration to be added
      * @return id
      */
     int addJobConfiguration( JobConfiguration jobConfiguration );
 
     /**
      * Update an existing job configuration
-     * @param jobConfiguration the jobconfiguration to be added
+     *
+     * @param jobConfiguration the job configuration to be added
      * @return id
      */
     int updateJobConfiguration( JobConfiguration jobConfiguration );
 
     /**
-     * deleta a job configuration
+     * Delete a job configuration
+     *
      * @param jobId the id of the job configuration to be deleted
      */
     void deleteJobConfiguration( int jobId );
 
     /**
      * Get job configuration for given id
+     *
      * @param jobId id for job configuration
      * @return Job configuration
      */
@@ -47,6 +57,7 @@ public interface JobConfigurationService
 
     /**
      * Get a job configuration for given uid
+     *
      * @param uid uid to search for
      * @return job configuration
      */
@@ -54,6 +65,7 @@ public interface JobConfigurationService
 
     /**
      * Get a list of job configurations with specific cron expression
+     *
      * @param cron cron expression to search for
      * @return list of job configuration
      */
@@ -61,6 +73,7 @@ public interface JobConfigurationService
 
     /**
      * Get all job configurations
+     *
      * @return list of all job configurations in the system
      */
     List<JobConfiguration> getAllJobConfigurations( );
@@ -68,6 +81,7 @@ public interface JobConfigurationService
     /**
      * Get a sorted list of all job configurations based on cron expressions
      * and the current time
+     *
      * @return list of all job configurations in the system(sorted)
      */
     List<JobConfiguration> getAllJobConfigurationsSorted( );

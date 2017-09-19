@@ -51,11 +51,11 @@ public enum JobType
 
     public static Optional<JobType> getByJobType( String jobType )
     {
-        for ( JobType sJobType : JobType.values() )
+        for ( JobType jobType1 : JobType.values() )
         {
-            if ( sJobType.getKey().equals( jobType ) )
+            if ( jobType1.getKey().equals( jobType ) )
             {
-                return Optional.of( sJobType );
+                return Optional.of( jobType1 );
             }
         }
 

@@ -16,6 +16,10 @@ import java.util.Date;
 /**
  * This class defines configuration for a job in the system. The job is defined with general identifiers, as well as job
  * specific, such as jobType {@link JobType}.
+ *
+ * All system jobs should be included in JobType enum and can be scheduled/executed with {@link SchedulingManager}.
+ *
+ * The class uses a custom deserializer to handle several potential {@link JobParameters}.
  * 
  * @author Henning Håkonsen
  */
@@ -32,8 +36,6 @@ public class JobConfiguration
     private JobStatus lastExecutedStatus = JobStatus.SCHEDULED;
     private JobParameters jobParameters;
     private boolean enabled;
-
-    // Used in JobService for sorting jobConfigurations based on cron expression
     private Date nextExecutionTime;
 
     public JobConfiguration ()

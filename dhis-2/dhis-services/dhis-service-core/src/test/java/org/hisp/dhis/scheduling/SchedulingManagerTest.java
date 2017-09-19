@@ -64,16 +64,6 @@ public class SchedulingManagerTest
     @Autowired
     private JobConfigurationService jobConfigurationService;
 
-    /*private boolean verifySortedJobs( List<JobConfiguration> jobConfigurations )
-    {
-        for ( int i = 0; i< jobConfigurations.size() - 1; i++ )
-        {
-            if ( jobConfigurations.get( i ).getNextExecutionTime().compareTo( jobConfigurations.get( i + 1 ).getNextExecutionTime() ) > 0 ) return false;
-        }
-
-        return true;
-    }*/
-
     private void verifyScheduledJobs( int expectedFutureJobs )
     {
         assertEquals(expectedFutureJobs, schedulingManager.getAllFutureJobs().size());
@@ -139,7 +129,7 @@ public class SchedulingManagerTest
         }
 
         System.out.println( "Test stop jobB" );
-        schedulingManager.stopJob( jobB.getUid() );
+        schedulingManager.stopJob( jobB );
 
         verifyScheduledJobs( 1 );
 
@@ -172,8 +162,8 @@ public class SchedulingManagerTest
             e.printStackTrace();
         }
 
-        //JobConfiguration jobC = new JobConfiguration( "jobC", JobType.TEST, "" );
-        //schedulingManager.executeJob( jobC );
+        JobConfiguration jobC = new JobConfiguration( "jobC", JobType.TEST, "", new TestJobParameters( null ), true );
+        schedulingManager.executeJob( jobC );
 
         verifyScheduledJobs( 2 );
 

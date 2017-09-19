@@ -67,7 +67,7 @@ public interface SchedulingManager
     /**
      * Stops one job.
      */
-    void stopJob( String jobKey );
+    void stopJob( JobConfiguration jobConfiguration );
 
     /**
      * Stops all jobs.

@@ -23,9 +23,9 @@
 
         <property name="jobStatus" not-null="true" />
 
-        <property name="lastExecuted" type="timestamp"/>
-
         <property name="lastExecutedStatus" />
+
+        <property name="lastExecuted" type="timestamp"/>
 
         <property name="nextExecutionTime" type="timestamp"/>
 
