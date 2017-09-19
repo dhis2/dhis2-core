@@ -286,9 +286,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         session.flush();
 
-        System.err.println( "metadata.audit.persist: " + systemInfo.getMetadataAudit().isPersist() );
-        System.err.println( "metadata.audit.log: " + systemInfo.getMetadataAudit().isLog() );
-
         for ( int idx = 0; idx < objects.size(); idx++ )
         {
             Patch patch = null;
