@@ -32,6 +32,7 @@ package org.hisp.dhis.schema.audit;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DxfNamespaces;
 
@@ -141,5 +142,19 @@ public class MetadataAudit
     public void setValue( String value )
     {
         this.value = value;
+    }
+
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "createdAt", createdAt )
+            .add( "createdBy", createdBy )
+            .add( "uid", uid )
+            .add( "code", code )
+            .add( "type", type )
+            .add( "value", value )
+            .toString();
     }
 }

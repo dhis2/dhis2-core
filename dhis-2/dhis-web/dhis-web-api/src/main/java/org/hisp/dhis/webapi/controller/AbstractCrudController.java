@@ -83,6 +83,7 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.patch.Patch;
+import org.hisp.dhis.schema.patch.PatchParams;
 import org.hisp.dhis.schema.patch.PatchService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.translation.ObjectTranslation;
@@ -391,11 +392,15 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         if ( isJson( request ) )
         {
-            patch = patchService.diff( DefaultRenderService.getJsonMapper().readTree( request.getInputStream() ) );
+            patch = patchService.diff(
+                new PatchParams( DefaultRenderService.getJsonMapper().readTree( request.getInputStream() ) )
+            );
         }
         else if ( isXml( request ) )
         {
-            patch = patchService.diff( DefaultRenderService.getXmlMapper().readTree( request.getInputStream() ) );
+            patch = patchService.diff(
+                new PatchParams( DefaultRenderService.getXmlMapper().readTree( request.getInputStream() ) )
+            );
         }
 
         prePatchEntity( persistedObject );
