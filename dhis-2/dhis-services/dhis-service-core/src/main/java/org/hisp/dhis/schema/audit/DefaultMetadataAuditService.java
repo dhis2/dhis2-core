@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.schema.audit;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,24 +26,41 @@ package org.hisp.dhis.common;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
+
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
- * @author Halvdan Hoem Grelland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum AuditType
+@Transactional
+public class DefaultMetadataAuditService implements MetadataAuditService
 {
-    CREATE( "create" ), UPDATE( "update" ), DELETE( "delete" );
+    private final MetadataAuditStore auditStore;
 
-    private final String value;
-
-    AuditType( String value )
+    public DefaultMetadataAuditService( MetadataAuditStore auditStore )
     {
-        this.value = value;
+        this.auditStore = auditStore;
     }
 
-    public String getValue()
+    @Override
+    public void addMetadataAudit( MetadataAudit audit )
     {
-        return value;
+        auditStore.save( audit );
+    }
+
+    @Override
+    public void deleteMetadataAudit( MetadataAudit audit )
+    {
+        auditStore.delete( audit );
+    }
+
+    @Override
+    public List<MetadataAudit> getMetadataAudits( MetadataAuditQuery query )
+    {
+        return auditStore.query( query );
     }
 }

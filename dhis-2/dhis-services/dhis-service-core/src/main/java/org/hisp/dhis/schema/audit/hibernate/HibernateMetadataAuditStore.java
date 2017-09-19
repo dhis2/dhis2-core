@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.schema.audit.hibernate;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,24 +26,53 @@ package org.hisp.dhis.common;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.schema.audit.MetadataAudit;
+import org.hisp.dhis.schema.audit.MetadataAuditQuery;
+import org.hisp.dhis.schema.audit.MetadataAuditStore;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
 
 /**
- * @author Halvdan Hoem Grelland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum AuditType
+public class HibernateMetadataAuditStore
+    implements MetadataAuditStore
 {
-    CREATE( "create" ), UPDATE( "update" ), DELETE( "delete" );
+    @Autowired
+    private SessionFactory sessionFactory;
 
-    private final String value;
-
-    AuditType( String value )
+    @Override
+    public int save( MetadataAudit audit )
     {
-        this.value = value;
+        return (int) getCurrentSession().save( audit );
     }
 
-    public String getValue()
+    @Override
+    public void delete( MetadataAudit audit )
     {
-        return value;
+        getCurrentSession().delete( audit );
+    }
+
+    @Override
+    public int count( MetadataAuditQuery auditQuery )
+    {
+        return 0;
+    }
+
+    @Override
+    public List<MetadataAudit> query( MetadataAuditQuery query )
+    {
+        return null;
+    }
+
+    private Session getCurrentSession()
+    {
+        return sessionFactory.getCurrentSession();
     }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.schema.audit;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,24 +26,12 @@ package org.hisp.dhis.common;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
 /**
- * @author Halvdan Hoem Grelland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum AuditType
+public class MetadataAuditQuery
 {
-    CREATE( "create" ), UPDATE( "update" ), DELETE( "delete" );
-
-    private final String value;
-
-    AuditType( String value )
-    {
-        this.value = value;
-    }
-
-    public String getValue()
-    {
-        return value;
-    }
 }
