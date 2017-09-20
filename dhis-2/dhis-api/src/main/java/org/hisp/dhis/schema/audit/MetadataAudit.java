@@ -50,6 +50,8 @@ public class MetadataAudit
 
     private String createdBy;
 
+    private Class<?> klass;
+
     private String uid;
 
     private String code;
@@ -94,6 +96,18 @@ public class MetadataAudit
     public void setCreatedBy( String createdBy )
     {
         this.createdBy = createdBy;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Class<?> getKlass()
+    {
+        return klass;
+    }
+
+    public void setKlass( Class<?> klass )
+    {
+        this.klass = klass;
     }
 
     @JsonProperty
