@@ -36,8 +36,18 @@ import java.util.List;
  */
 public interface MetadataAuditService
 {
+    /**
+     * Persists the given MetadataAudit instance.
+     *
+     * @param audit Instance to add
+     */
     void addMetadataAudit( MetadataAudit audit );
 
+    /**
+     * Removes the given MetadataAudit instance.
+     *
+     * @param audit Instance to remove
+     */
     void deleteMetadataAudit( MetadataAudit audit );
 
     List<MetadataAudit> getMetadataAudits( MetadataAuditQuery query );
