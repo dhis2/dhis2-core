@@ -127,7 +127,7 @@ public class DefaultPatchService implements PatchService
 
         for ( Property property : schema.getProperties() )
         {
-            if ( ignoreTransient && !property.isPersisted() )
+            if ( ignoreTransient && !property.isOwner() )
             {
                 continue;
             }
