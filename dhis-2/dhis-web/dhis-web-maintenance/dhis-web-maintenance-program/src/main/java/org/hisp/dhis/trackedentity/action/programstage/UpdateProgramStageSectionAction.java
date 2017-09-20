@@ -100,6 +100,13 @@ public class UpdateProgramStageSectionAction
     {
         this.name = name;
     }
+    
+    private String description;
+
+    public void setDescription( String description )
+    {
+        this.description = description;
+    }
 
     private List<Integer> dataElementIds;
 
@@ -129,6 +136,7 @@ public class UpdateProgramStageSectionAction
 
         ProgramStageSection section = programStageSectionService.getProgramStageSection( id );
         section.setName( StringUtils.trimToNull( name ) );
+        section.setDescription( StringUtils.trimToNull( description ) );
 
         List<DataElement> dataElements = new ArrayList<>();
         

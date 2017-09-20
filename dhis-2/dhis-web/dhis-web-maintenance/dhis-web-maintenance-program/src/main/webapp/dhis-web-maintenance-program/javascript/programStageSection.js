@@ -18,7 +18,8 @@ function programStageSectionList( programStageId )
 function showSectionDetails( context )
 {
 	jQuery.getJSON( 'getProgramStageSection.action', { id: context.id }, function ( json ) {
-		setInnerHTML( 'nameField', json.programStageSection.name );	
+		setInnerHTML( 'nameField', json.programStageSection.name );
+		setInnerHTML( 'descriptionField', json.programStageSection.description);
 		setInnerHTML( 'dataElementCountField', json.programStageSection.dataElementCount ); 
 		setInnerHTML( 'idField', json.programStageSection.uid ); 
 		showDetails();
