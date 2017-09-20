@@ -367,6 +367,25 @@ public class PatchServiceTest
     }
 
     @Test
+    public void testEmbeddedObjectEquality()
+    {
+        User adminUser = createAndInjectAdminUser();
+        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( adminUser ) );
+        manager.save( userGroup );
+
+        DataElement deA = createDataElement( 'A' );
+        DataElement deB = createDataElement( 'B' );
+
+        deA.getUserGroupAccesses().add( new UserGroupAccess( userGroup, "rw------" ) );
+        deA.getUserAccesses().add( new UserAccess( adminUser, "rw------" ) );
+
+        deB.getUserGroupAccesses().add( new UserGroupAccess( userGroup, "rw------" ) );
+        deB.getUserAccesses().add( new UserAccess( adminUser, "rw------" ) );
+
+        Patch patch = patchService.diff( new PatchParams( deA, deB ) );
+    }
+
+    @Test
     public void testEmbeddedObjectCollectionDiff()
     {
         User adminUser = createAndInjectAdminUser();
