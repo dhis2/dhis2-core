@@ -347,7 +347,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
                     if ( systemInfo.getMetadataAudit().isLog() )
                     {
-                        log.info( patch );
+                        log.info( renderService.toJsonAsString( patch ) );
                     }
                 }
 
