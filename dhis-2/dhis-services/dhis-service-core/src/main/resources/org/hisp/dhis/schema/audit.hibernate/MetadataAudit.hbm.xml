@@ -16,6 +16,8 @@
 
     <property name="createdBy" column="created_by" not-null="true" />
 
+    <property name="klass" not-null="true" />
+
     <property name="uid" not-null="true" />
 
     <property name="code" />
