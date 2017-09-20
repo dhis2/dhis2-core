@@ -43,10 +43,19 @@ import org.hisp.dhis.common.IdentifiableObject;
 @JacksonXmlRootElement( localName = "mutation", namespace = DxfNamespaces.DXF_2_0 )
 public class Mutation
 {
+    /**
+     * Full dot separated path of this mutation (e.g a.b.c).
+     */
     private final String path;
 
+    /**
+     * New value for given path.
+     */
     private final Object value;
 
+    /**
+     * Is the mutation an ADD or DEL, this mainly applies to collections.
+     */
     private Operation operation = Operation.ADDITION;
 
     enum Operation

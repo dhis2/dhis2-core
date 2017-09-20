@@ -42,6 +42,9 @@ public class PatchParams
 
     private final JsonNode jsonNode;
 
+    /**
+     * Ignore properties that are not owned by the source class.
+     */
     private boolean ignoreTransient;
 
     public PatchParams( Object source, Object target )
