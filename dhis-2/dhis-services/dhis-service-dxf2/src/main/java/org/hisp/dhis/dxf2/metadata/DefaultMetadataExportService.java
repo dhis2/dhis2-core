@@ -231,7 +231,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         MetadataExportParams params = new MetadataExportParams();
         Map<Class<? extends IdentifiableObject>, Map<String, List<String>>> map = new HashMap<>();
 
-        params.setDefaults( getEnumWithDefault( Defaults.class, parameters, "defaults", Defaults.INCLUDE ) );
+        params.setDefaults( getEnumWithDefault( Defaults.class, parameters, "defaults", Defaults.EXCLUDE ) );
         params.setInclusionStrategy( getEnumWithDefault( InclusionStrategy.Include.class, parameters, "inclusionStrategy",
             InclusionStrategy.Include.NON_NULL ) );
 

@@ -57,6 +57,7 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
@@ -233,7 +234,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
 
-        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( entities, fields ) ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(),
+            new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", "EXCLUDE" ) ) ) ) );
 
         return rootNode;
     }
@@ -481,7 +483,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             postProcessEntity( entity, options, parameters );
         }
 
-        CollectionNode collectionNode = fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( entities, fields ) );
+        CollectionNode collectionNode = fieldFilterService.toCollectionNode( getEntityClass(),
+            new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", "EXCLUDE" ) ) ) );
 
         if ( options.isTrue( "useWrapper" ) || entities.size() > 1 )
         {
