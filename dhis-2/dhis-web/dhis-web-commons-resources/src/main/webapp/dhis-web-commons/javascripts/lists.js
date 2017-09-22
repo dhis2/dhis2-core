@@ -126,7 +126,7 @@ function listContains( list, value, text ) {
  * @param listId the id of the list.
  */
 function selectAllById( listId ) {
-    $('#' + listId).find('option').attr('selected', true);
+    $('#' + listId).find('option').prop('selected', true);
 }
 
 /**
@@ -135,7 +135,7 @@ function selectAllById( listId ) {
  * @param list the list.
  */
 function selectAll( list ) {
-    $(list).find('option').attr('selected', true);
+    $(list).find('option').prop('selected', true);
 }
 
 /**
