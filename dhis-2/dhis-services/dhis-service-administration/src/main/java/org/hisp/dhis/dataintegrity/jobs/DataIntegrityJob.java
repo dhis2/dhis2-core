@@ -1,4 +1,4 @@
-package org.hisp.dhis.dataintegrity.tasks;
+package org.hisp.dhis.dataintegrity.jobs;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,61 +28,60 @@ package org.hisp.dhis.dataintegrity.tasks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataintegrity.DataIntegrityService;
-import org.hisp.dhis.dataintegrity.FlattenedDataIntegrityReport;
-import org.hisp.dhis.scheduling.JobId;
-import org.hisp.dhis.system.notification.NotificationLevel;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
+import org.hisp.dhis.dataintegrity.DataIntegrityService;
+import org.hisp.dhis.dataintegrity.FlattenedDataIntegrityReport;
+import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.system.notification.NotificationLevel;
+import org.hisp.dhis.system.notification.Notifier;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
 @Async
-public class DataIntegrityTask
-    implements Runnable
+public class DataIntegrityJob
+    implements Job
 {
-    private JobId jobId;
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
+    // HH verify that autowiring works
+    @Autowired
     private DataIntegrityService dataIntegrityService;
 
+    @Autowired
     private Notifier notifier;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-    
-    public DataIntegrityTask( JobId jobId, DataIntegrityService dataIntegrityService, Notifier notifier )
+    @Override
+    public JobType getJobType()
     {
-        this.jobId = jobId;
-        this.dataIntegrityService = dataIntegrityService;
-        this.notifier = notifier;
+        return JobType.DATA_INTEGRITY;
     }
 
     // -------------------------------------------------------------------------
-    // Runnable implementation
+    // Implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public void run()
+    public void execute( JobParameters jobParameters )
     {
         Timer timer = new SystemTimer().start();
 
         FlattenedDataIntegrityReport report = dataIntegrityService.getFlattenedDataIntegrityReport();
-        
+
         timer.stop();
 
-        if ( jobId != null )
+        if ( jobParameters.getJobId() != null )
         {
             notifier.notify(
-                jobId, NotificationLevel.INFO, "Data integrity checks completed in " + timer.toString() + ".", true )
-                .addTaskSummary( jobId, report );
+                jobParameters.getJobId(), NotificationLevel.INFO, "Data integrity checks completed in " + timer.toString() + ".", true )
+                .addTaskSummary( jobParameters.getJobId(), report );
         }
     }
 }

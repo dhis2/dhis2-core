@@ -13,9 +13,11 @@ import java.util.Optional;
 public enum JobType
 {
     DATA_STATISTICS( "dataStatisticsJob", DataStatisticsJobParameters.class, 1000 ),
+    DATA_INTEGRITY( "dataIntegrity", DataIntegrityJobParameters.class, 1000 ),
     RESOURCE_TABLE( "resourceTableJob", ResourceTableJobParameters.class, 1000 ),
     ANALYTICS_TABLE( "analyticsTableJob", AnalyticsJobParameters.class, 1800 ),
     DATA_SYNC( "dataSyncJob", DataSyncJobParameters.class, 1000 ),
+    FILE_RESOURCE_CLEANUP( "fileResourceCleanUp", FileResourceCleanUpJobParameters.class, 1000 ),
     META_DATA_SYNC( "metaDataSyncJob", MetadataSyncJobParameters.class, 1000 ),
     SMS_SEND( "smsSendJob", SmsJobParameters.class, 1000 ),
     SEND_SCHEDULED_MESSAGE( "sendScheduledMessageJob", SendScheduledMessageJobParameters.class, 1000 ),

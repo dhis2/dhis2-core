@@ -796,12 +796,12 @@
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
-  <!-- File resource tasks -->
+  <!-- File resource jobs -->
 
   <bean id="org.hisp.dhis.fileresource.FileResourceUploadCallback" class="org.hisp.dhis.fileresource.FileResourceUploadCallback" />
 
   <bean id="org.hisp.dhis.fileresource.FileResourceCleanUpTask"
-    class="org.hisp.dhis.fileresource.FileResourceCleanUpTask"
+    class="org.hisp.dhis.fileresource.FileResourceCleanUpJob"
     scope="prototype" />
 
   <!-- Service definitions -->

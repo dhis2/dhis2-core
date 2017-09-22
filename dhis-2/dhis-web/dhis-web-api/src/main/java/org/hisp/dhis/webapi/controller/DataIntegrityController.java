@@ -28,15 +28,13 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dataintegrity.DataIntegrityService;
-import org.hisp.dhis.dataintegrity.tasks.DataIntegrityTask;
-import org.hisp.dhis.scheduling.JobCategory;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.*;
+import org.hisp.dhis.scheduling.Parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -59,7 +57,7 @@ public class DataIntegrityController
     private CurrentUserService currentUserService;
 
     @Autowired
-    private Scheduler scheduler;
+    private SchedulingManager schedulingManager;
 
     @Autowired
     private DataIntegrityService dataIntegrityService;
@@ -80,7 +78,9 @@ public class DataIntegrityController
         JobId jobId = new JobId( JobCategory.DATAINTEGRITY, currentUserService.getCurrentUser() );
         notifier.clear( jobId );
 
-        scheduler.executeJob( new DataIntegrityTask( jobId, dataIntegrityService, notifier ) );
+        DataIntegrityJobParameters dataIntegrityJobParameters = new DataIntegrityJobParameters( jobId );
+        JobConfiguration jobConfiguration = new JobConfiguration( "runAsyncDataIntegrity", JobType.DATA_INTEGRITY, null, dataIntegrityJobParameters, true );
+        schedulingManager.executeJob( jobConfiguration );
 
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobCategory.DATAINTEGRITY );
         response.setStatus( HttpServletResponse.SC_ACCEPTED );

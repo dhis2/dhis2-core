@@ -41,8 +41,8 @@ import org.hisp.dhis.dxf2.pdfform.PdfFormFontSettings;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobCategory;
+import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.user.CurrentUserService;
@@ -140,15 +140,15 @@ public class PdfFormController
     public void sendFormPdfDataSet( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        TaskId taskId = new TaskId( TaskCategory.DATAVALUE_IMPORT, currentUserService.getCurrentUser() );
+        JobId jobId = new JobId( JobCategory.DATAVALUE_IMPORT, currentUserService.getCurrentUser() );
 
-        notifier.clear( taskId );
+        notifier.clear( jobId );
 
         InputStream in = request.getInputStream();
 
         in = StreamUtils.wrapAndCheckCompressionFormat( in );
 
-        dataValueSetService.saveDataValueSetPdf( in, ImportOptions.getDefaultImportOptions(), taskId );
+        dataValueSetService.saveDataValueSetPdf( in, ImportOptions.getDefaultImportOptions(), jobId );
 
         webMessageService.send( WebMessageUtils.ok( "Import successful." ), response, request );
     }

@@ -32,6 +32,9 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.scheduling.JobType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -43,18 +46,27 @@ import java.util.List;
  *
  * @author Halvdan Hoem Grelland
  */
-public class FileResourceCleanUpTask
-    implements Runnable
+public class FileResourceCleanUpJob
+    implements Job
 {
-    public static final String KEY_TASK = "fileResourceCleanupTask";
-    
-    private static final Log log = LogFactory.getLog( FileResourceCleanUpTask.class );
+    private static final Log log = LogFactory.getLog( FileResourceCleanUpJob.class );
 
+    // HH verify that autowiring works
     @Autowired
     private FileResourceService fileResourceService;
 
+    // -------------------------------------------------------------------------
+    // Implementation
+    // -------------------------------------------------------------------------
+
     @Override
-    public void run()
+    public JobType getJobType()
+    {
+        return JobType.FILE_RESOURCE_CLEANUP;
+    }
+
+    @Override
+    public void execute( JobParameters jobParameters )
     {
         List<Pair<String, String>> deleted = new ArrayList<>();
 
@@ -85,4 +97,6 @@ public class FileResourceCleanUpTask
 
         return sb.toString();
     }
+
+
 }
