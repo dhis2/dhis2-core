@@ -41,7 +41,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.User;
@@ -121,7 +121,7 @@ public class MetadataImportParams
     /**
      * Task id to use for threaded imports.
      */
-    private TaskId taskId;
+    private JobId jobId;
 
     /**
      * Objects to import.
@@ -296,20 +296,20 @@ public class MetadataImportParams
         return this;
     }
 
-    public TaskId getTaskId()
+    public JobId getJobId()
     {
-        return taskId;
+        return jobId;
     }
 
-    public MetadataImportParams setTaskId( TaskId taskId )
+    public MetadataImportParams setJobId( JobId jobId )
     {
-        this.taskId = taskId;
+        this.jobId = jobId;
         return this;
     }
 
     public boolean hasTaskId()
     {
-        return taskId != null;
+        return jobId != null;
     }
 
     public Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> getObjects()
@@ -391,7 +391,7 @@ public class MetadataImportParams
         params.setUser( user );
         params.setSkipSharing( skipSharing );
         params.setSkipValidation( skipValidation );
-        params.setTaskId( taskId );
+        params.setJobId( jobId );
         params.setImportStrategy( importStrategy );
         params.setAtomicMode( atomicMode );
         params.setObjects( objects );

@@ -67,6 +67,6 @@ public class AnalyticsTableJob
 
         jobConfig.getSkipTableTypes().forEach( (s) -> skipTableTypes.add( AnalyticsTableType.valueOf( s ) ) );
 
-        analyticsTableGenerator.generateTables( jobConfig.getLastYears(), jobConfig.getTaskId(), skipTableTypes, jobConfig.isSkipResourceTables() );
+        analyticsTableGenerator.generateTables( jobConfig.getLastYears(), jobConfig.getJobId(), skipTableTypes, jobConfig.isSkipResourceTables() );
     }
 }

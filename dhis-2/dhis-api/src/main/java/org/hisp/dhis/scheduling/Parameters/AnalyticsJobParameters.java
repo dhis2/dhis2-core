@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling.Parameters;
 
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 
 import java.util.Set;
 
@@ -13,7 +13,7 @@ public class AnalyticsJobParameters
 {
     private static final long serialVersionUID = 1L;
 
-    private TaskId taskId;
+    private JobId jobId;
     private Integer lastYears;
     private Set<String> skipTableTypes;
     private boolean skipResourceTables;
@@ -21,17 +21,17 @@ public class AnalyticsJobParameters
     public AnalyticsJobParameters()
     {}
 
-    public AnalyticsJobParameters( Integer lastYears, TaskId taskId, Set<String> skipTableTypes, boolean skipResourceTables )
+    public AnalyticsJobParameters( Integer lastYears, JobId jobId, Set<String> skipTableTypes, boolean skipResourceTables )
     {
         this.lastYears = lastYears;
-        this.taskId = taskId;
+        this.jobId = jobId;
         this.skipTableTypes = skipTableTypes;
         this.skipResourceTables = skipResourceTables;
     }
 
-    public TaskId getTaskId()
+    public JobId getJobId()
     {
-        return taskId;
+        return jobId;
     }
 
     public Integer getLastYears()

@@ -58,6 +58,6 @@ public class ResourceTableJob
     public void execute( JobParameters jobParameters )
     {
         ResourceTableJobParameters jobConfig = (ResourceTableJobParameters) jobParameters;
-        analyticsTableGenerator.generateResourceTables( jobConfig.getTaskId() );
+        analyticsTableGenerator.generateResourceTables( jobConfig.getJobId() );
     }
 }

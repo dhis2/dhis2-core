@@ -30,8 +30,8 @@ package org.hisp.dhis.webapi.controller;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityService;
 import org.hisp.dhis.dataintegrity.tasks.DataIntegrityTask;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobCategory;
+import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
@@ -77,12 +77,12 @@ public class DataIntegrityController
     @RequestMapping( value = DataIntegrityController.RESOURCE_PATH, method = RequestMethod.POST )
     public void runAsyncDataIntegrity( HttpServletResponse response, HttpServletRequest request )
     {
-        TaskId taskId = new TaskId( TaskCategory.DATAINTEGRITY, currentUserService.getCurrentUser() );
-        notifier.clear( taskId );
+        JobId jobId = new JobId( JobCategory.DATAINTEGRITY, currentUserService.getCurrentUser() );
+        notifier.clear( jobId );
 
-        scheduler.executeJob( new DataIntegrityTask( taskId, dataIntegrityService, notifier ) );
+        scheduler.executeJob( new DataIntegrityTask( jobId, dataIntegrityService, notifier ) );
 
-        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TaskCategory.DATAINTEGRITY );
+        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobCategory.DATAINTEGRITY );
         response.setStatus( HttpServletResponse.SC_ACCEPTED );
     }
 }

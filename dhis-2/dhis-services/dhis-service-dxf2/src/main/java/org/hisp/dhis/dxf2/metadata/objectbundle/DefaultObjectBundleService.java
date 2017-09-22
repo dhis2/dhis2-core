@@ -203,7 +203,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         if ( bundle.hasTaskId() )
         {
-            notifier.notify( bundle.getTaskId(), message );
+            notifier.notify( bundle.getJobId(), message );
         }
 
         objects.forEach( object -> objectBundleHooks.forEach( hook -> hook.preCreate( object, bundle ) ) );
@@ -256,7 +256,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         if ( bundle.hasTaskId() )
         {
-            notifier.notify( bundle.getTaskId(), message );
+            notifier.notify( bundle.getJobId(), message );
         }
 
         objects.forEach( object ->
@@ -321,7 +321,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         if ( bundle.hasTaskId() )
         {
-            notifier.notify( bundle.getTaskId(), message );
+            notifier.notify( bundle.getJobId(), message );
         }
 
         List<IdentifiableObject> persistedObjects = bundle.getPreheat().getAll( bundle.getPreheatIdentifier(), objects );

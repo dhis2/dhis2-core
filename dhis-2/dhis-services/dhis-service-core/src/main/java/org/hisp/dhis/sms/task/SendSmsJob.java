@@ -73,7 +73,7 @@ public class SendSmsJob
     {
         SmsJobParameters jobParams = (SmsJobParameters) jobParameters;
 
-        notifier.notify( jobParams.getTaskId(), "Sending SMS" );
+        notifier.notify( jobParams.getJobId(), "Sending SMS" );
 
         OutboundMessageResponse status = smsSender.sendMessage( jobParams.getSmsSubject(), jobParams.getText(), null, jobParams.getCurrentUser(), new HashSet<>( jobParams.getRecipientsList() ), false );
 
@@ -83,13 +83,13 @@ public class SendSmsJob
 
         if ( status.isOk() )
         {
-            notifier.notify( jobParams.getTaskId(), "Message sending successful" );
+            notifier.notify( jobParams.getJobId(), "Message sending successful" );
 
             sms.setStatus( OutboundSmsStatus.SENT );
         }
         else
         {
-            notifier.notify( jobParams.getTaskId(), "Message sending failed" );
+            notifier.notify( jobParams.getJobId(), "Message sending failed" );
 
             sms.setStatus( OutboundSmsStatus.FAILED );
         }

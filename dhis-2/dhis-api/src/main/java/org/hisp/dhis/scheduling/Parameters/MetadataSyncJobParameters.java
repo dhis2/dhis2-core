@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling.Parameters;
 
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 
 /**
  * @author Henning Håkonsen
@@ -11,23 +11,23 @@ public class MetadataSyncJobParameters
 {
     private static final long serialVersionUID = 4L;
 
-    private TaskId taskId;
+    private JobId jobId;
 
     public MetadataSyncJobParameters()
     {}
 
-    public MetadataSyncJobParameters( TaskId taskId )
+    public MetadataSyncJobParameters( JobId jobId )
     {
-        this.taskId = taskId;
+        this.jobId = jobId;
     }
 
-    public TaskId getTaskId()
+    public JobId getJobId()
     {
-        return taskId;
+        return jobId;
     }
 
-    public void setTaskId( TaskId taskId )
+    public void setJobId( JobId jobId )
     {
-        this.taskId = taskId;
+        this.jobId = jobId;
     }
 }

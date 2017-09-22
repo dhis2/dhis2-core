@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics;
  */
 
 import org.hisp.dhis.analytics.table.AnalyticsTableType;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 
 import javax.annotation.Nullable;
 import java.util.Set;
@@ -47,13 +47,13 @@ public interface AnalyticsTableGenerator
      *
      * @param lastYears the number of years relative to now to include,
      *        can be null.
-     * @param taskId the task identifier, can be null.
+     * @param jobId the task identifier, can be null.
      * @param skipTableTypes indicates the types of analytics tables for
      *        which to skip generation.
      * @param skipResourceTables indicates whether to skip generation of
      *        resource tables.
      */
-    void generateTables( @Nullable Integer lastYears, @Nullable TaskId taskId, Set<AnalyticsTableType> skipTableTypes, boolean skipResourceTables );
+    void generateTables( @Nullable Integer lastYears, @Nullable JobId jobId, Set<AnalyticsTableType> skipTableTypes, boolean skipResourceTables );
 
     /**
      * Drops all existing analytics tables.
@@ -63,7 +63,7 @@ public interface AnalyticsTableGenerator
     /**
      * Generates all resource tables.
      *
-     * @param taskId the task identifier, can be null.
+     * @param jobId the task identifier, can be null.
      */
-    void generateResourceTables( @Nullable TaskId taskId );
+    void generateResourceTables( @Nullable JobId jobId );
 }

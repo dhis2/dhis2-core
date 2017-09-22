@@ -38,8 +38,8 @@ import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.events.event.ImportEventTask;
 import org.hisp.dhis.dxf2.events.event.ImportEventsTask;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobCategory;
+import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
@@ -141,9 +141,9 @@ public class ImportEventAction
     @Override
     public String execute() throws Exception
     {
-        TaskId taskId = new TaskId( TaskCategory.EVENT_IMPORT, currentUserService.getCurrentUser() );
+        JobId jobId = new JobId( JobCategory.EVENT_IMPORT, currentUserService.getCurrentUser() );
 
-        notifier.clear( taskId );
+        notifier.clear( jobId );
 
         InputStream in = new FileInputStream( upload );
         in = StreamUtils.wrapAndCheckCompressionFormat( in );
@@ -157,7 +157,7 @@ public class ImportEventAction
         if ( FORMAT_CSV.equals( payloadFormat ) )
         {
             Events events = csvEventService.readEvents( in, skipFirst );
-            scheduler.executeJob( new ImportEventsTask( events.getEvents(), eventService, importOptions, taskId ) );
+            scheduler.executeJob( new ImportEventsTask( events.getEvents(), eventService, importOptions, jobId ) );
         }
         else
         {
@@ -172,7 +172,7 @@ public class ImportEventAction
                 events = eventService.getEventsXml( in );
             }
 
-            scheduler.executeJob( new ImportEventTask( events, eventService, importOptions, taskId ) );
+            scheduler.executeJob( new ImportEventTask( events, eventService, importOptions, jobId ) );
         }
 
         return SUCCESS;

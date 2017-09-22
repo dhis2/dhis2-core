@@ -78,17 +78,17 @@ public class ProgramNotificationJob
 
         final Clock clock = new Clock().startClock();
 
-        notifier.notify( jobConfig.getTaskId(), "Generating and sending scheduled program notifications" );
+        notifier.notify( jobConfig.getJobId(), "Generating and sending scheduled program notifications" );
 
         try
         {
             runInternal();
 
-            notifier.notify( jobConfig.getTaskId(), NotificationLevel.INFO, "Generated and sent scheduled program notifications: " + clock.time(), true );
+            notifier.notify( jobConfig.getJobId(), NotificationLevel.INFO, "Generated and sent scheduled program notifications: " + clock.time(), true );
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( jobConfig.getTaskId(), NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
+            notifier.notify( jobConfig.getJobId(), NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
 
             messageService.sendSystemErrorNotification( "Generating and sending scheduled program notifications failed", ex );
 

@@ -58,6 +58,6 @@ public class PushAnalysisJob
     {
         PushAnalysisJobParameters jobConfig = (PushAnalysisJobParameters) jobParameters;
 
-        pushAnalysisService.runPushAnalysis( jobConfig.getPushAnalysisId(), jobConfig.getTaskId() );
+        pushAnalysisService.runPushAnalysis( jobConfig.getPushAnalysisId(), jobConfig.getJobId() );
     }
 }

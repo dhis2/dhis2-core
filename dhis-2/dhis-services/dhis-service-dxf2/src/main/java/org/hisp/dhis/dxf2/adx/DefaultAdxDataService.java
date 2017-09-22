@@ -33,7 +33,7 @@ import java.util.Set;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
-import org.hisp.dhis.scheduling.TaskCategory;
+import org.hisp.dhis.scheduling.JobCategory;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.hisp.staxwax.reader.XMLReader;
@@ -64,7 +64,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.util.ObjectUtils;
@@ -244,7 +244,7 @@ public class DefaultAdxDataService
 
     @Override
     @Transactional
-    public ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, TaskId id )
+    public ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, JobId id )
     {
         try
         {
@@ -258,7 +258,7 @@ public class DefaultAdxDataService
         }
     }
 
-    private ImportSummary saveDataValueSetInternal( InputStream in, ImportOptions importOptions, TaskId id )
+    private ImportSummary saveDataValueSetInternal( InputStream in, ImportOptions importOptions, JobId id )
     {
         notifier.clear( id ).notify( id, "ADX parsing process started" );
 
@@ -295,14 +295,14 @@ public class DefaultAdxDataService
         ExecutorService executor = Executors.newSingleThreadExecutor();
 
         // For Async runs, give the DXF import a different notification task ID so it doesn't conflict with notifications from this level.
-        TaskId dxfTaskId = ( id == null ) ? null : new TaskId( TaskCategory.DATAVALUE_IMPORT_INTERNAL, id.getUser() );
+        JobId dxfJobId = ( id == null ) ? null : new JobId( JobCategory.DATAVALUE_IMPORT_INTERNAL, id.getUser() );
 
         int groupCount = 0;
 
         try ( PipedOutputStream pipeOut = new PipedOutputStream() )
         {
             Future<ImportSummary> futureImportSummary = executor.submit( new AdxPipedImporter(
-                dataValueSetService, adxImportOptions, dxfTaskId, pipeOut, sessionFactory ) );
+                dataValueSetService, adxImportOptions, dxfJobId, pipeOut, sessionFactory ) );
             XMLOutputFactory factory = XMLOutputFactory.newInstance();
             XMLStreamWriter dxfWriter = factory.createXMLStreamWriter( pipeOut );
 

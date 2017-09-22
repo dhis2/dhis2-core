@@ -28,16 +28,16 @@ package org.hisp.dhis.system.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.scheduling.TaskCategory.ANALYTICSTABLE_UPDATE;
-import static org.hisp.dhis.scheduling.TaskCategory.DATAVALUE_IMPORT;
-import static org.hisp.dhis.scheduling.TaskCategory.METADATA_IMPORT;
+import static org.hisp.dhis.scheduling.JobCategory.ANALYTICSTABLE_UPDATE;
+import static org.hisp.dhis.scheduling.JobCategory.DATAVALUE_IMPORT;
+import static org.hisp.dhis.scheduling.JobCategory.METADATA_IMPORT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.user.User;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,9 +53,9 @@ public class NotifierTest
 
     private User user = createUser( 'A' );
     
-    private TaskId id1 = new TaskId( DATAVALUE_IMPORT, user );
-    private TaskId id2 = new TaskId( ANALYTICSTABLE_UPDATE, user );
-    private TaskId id3 = new TaskId( METADATA_IMPORT, user );
+    private JobId id1 = new JobId( DATAVALUE_IMPORT, user );
+    private JobId id2 = new JobId( ANALYTICSTABLE_UPDATE, user );
+    private JobId id3 = new JobId( METADATA_IMPORT, user );
     
     @Test
     public void testNotifiy()

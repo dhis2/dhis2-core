@@ -71,18 +71,18 @@ public class ValidationResultNotificationJob
 
         final Clock clock = new Clock().startClock();
 
-        notifier.notify( jobConfig.getTaskId(), "Sending new validation result notifications" );
+        notifier.notify( jobConfig.getJobId(), "Sending new validation result notifications" );
 
         try
         {
             runInternal();
 
-            notifier.notify( jobConfig.getTaskId(), NotificationLevel.INFO,
+            notifier.notify( jobConfig.getJobId(), NotificationLevel.INFO,
                 "Sent validation result notifications: " + clock.time(), true );
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( jobConfig.getTaskId(), NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
+            notifier.notify( jobConfig.getJobId(), NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
 
             messageService
                 .sendSystemErrorNotification( "Sending validation result notifications failed", ex );

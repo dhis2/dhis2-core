@@ -32,7 +32,7 @@ import java.util.Date;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.scheduling.TaskCategory;
+import org.hisp.dhis.scheduling.JobCategory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -48,7 +48,7 @@ public class Notification
     
     private NotificationLevel level;
     
-    private TaskCategory category;
+    private JobCategory category;
     
     private Date time;
     
@@ -65,7 +65,7 @@ public class Notification
         this.uid = CodeGenerator.generateUid();
     }
 
-    public Notification( NotificationLevel level, TaskCategory category, Date time, String message, boolean completed )
+    public Notification( NotificationLevel level, JobCategory category, Date time, String message, boolean completed )
     {
         this.uid = CodeGenerator.generateUid();
         this.level = level;
@@ -105,12 +105,12 @@ public class Notification
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TaskCategory getCategory()
+    public JobCategory getCategory()
     {
         return category;
     }
 
-    public void setCategory( TaskCategory category )
+    public void setCategory( JobCategory category )
     {
         this.category = category;
     }

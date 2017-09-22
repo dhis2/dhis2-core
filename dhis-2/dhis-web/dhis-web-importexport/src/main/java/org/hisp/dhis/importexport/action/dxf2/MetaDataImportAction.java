@@ -48,8 +48,8 @@ import org.hisp.dhis.importexport.action.util.ImportMetaDataTask;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobCategory;
+import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.scheduling.Scheduler;
@@ -171,13 +171,13 @@ public class MetaDataImportAction
 
         User user = currentUserService.getCurrentUser();
 
-        TaskId taskId = new TaskId( TaskCategory.METADATA_IMPORT, user );
+        JobId jobId = new JobId( JobCategory.METADATA_IMPORT, user );
 
-        notifier.clear( taskId );
+        notifier.clear( jobId );
 
         InputStream in = StreamUtils.wrapAndCheckCompressionFormat( new FileInputStream( upload ) );
 
-        MetadataImportParams importParams = createMetadataImportParams( taskId, strategy, atomicMode, dryRun )
+        MetadataImportParams importParams = createMetadataImportParams( jobId, strategy, atomicMode, dryRun )
             .setFilename( uploadFileName );
 
         if ( "csv".equals( importFormat ) )
@@ -200,10 +200,10 @@ public class MetaDataImportAction
         return SUCCESS;
     }
 
-    private MetadataImportParams createMetadataImportParams( TaskId taskId, ImportStrategy strategy, AtomicMode atomicMode, boolean dryRun )
+    private MetadataImportParams createMetadataImportParams( JobId jobId, ImportStrategy strategy, AtomicMode atomicMode, boolean dryRun )
     {
         MetadataImportParams importParams = new MetadataImportParams();
-        importParams.setTaskId( taskId );
+        importParams.setJobId( jobId );
         importParams.setImportMode( dryRun ? ObjectBundleMode.VALIDATE : ObjectBundleMode.COMMIT );
         importParams.setAtomicMode( atomicMode );
         importParams.setImportStrategy( strategy );

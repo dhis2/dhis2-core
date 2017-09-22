@@ -71,17 +71,17 @@ public class MonitoringJob
     {
         MonitoringJobParameters jobConfig = (MonitoringJobParameters) jobParameters;
         
-        notifier.clear( jobConfig.getTaskId() ).notify( jobConfig.getTaskId(), "Monitoring data" );
+        notifier.clear( jobConfig.getJobId() ).notify( jobConfig.getJobId(), "Monitoring data" );
         
         try
         {
             validationService.startScheduledValidationAnalysis();
             
-            notifier.notify( jobConfig.getTaskId(), INFO, "Monitoring process done", true );
+            notifier.notify( jobConfig.getJobId(), INFO, "Monitoring process done", true );
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( jobConfig.getTaskId(), ERROR, "Process failed: " + ex.getMessage(), true );
+            notifier.notify( jobConfig.getJobId(), ERROR, "Process failed: " + ex.getMessage(), true );
             
             messageService.sendSystemErrorNotification( "Monitoring process failed", ex );
             

@@ -96,12 +96,12 @@ public class SendScheduledMessageJob
             "Aggregate process started, number of CPU cores: " + cpuCores + ", " + SystemUtils.getMemoryString() );
 
         clock.logTime( "Starting to send messages in outbound" );
-        notifier.notify( jobConfig.getTaskId(), INFO, "Start to send messages in outbound", true );
+        notifier.notify( jobConfig.getJobId(), INFO, "Start to send messages in outbound", true );
 
         sendMessages();
 
         clock.logTime( "Sending messages in outbound completed" );
-        notifier.notify( jobConfig.getTaskId(), INFO, "Sending messages in outbound completed", true );
+        notifier.notify( jobConfig.getJobId(), INFO, "Sending messages in outbound completed", true );
     }
 
     // -------------------------------------------------------------------------

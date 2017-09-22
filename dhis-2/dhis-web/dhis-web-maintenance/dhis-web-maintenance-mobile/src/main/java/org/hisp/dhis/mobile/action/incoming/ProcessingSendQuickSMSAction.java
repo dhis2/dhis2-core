@@ -256,10 +256,11 @@ public class ProcessingSendQuickSMSAction
             }
         }
 
-        TaskId taskId = new TaskId( TaskCategory.SENDING_SMS, currentUser );
-        notifier.clear( taskId );
+        JobId jobId = new JobId( JobCategory.SENDING_SMS, currentUser );
+        notifier.clear( jobId );
 
-        SmsJobParameters jobParameters = new SmsJobParameters(smsSubject, text, currentUser, recipientsList, text, taskId);
+        SmsJobParameters jobParameters = new SmsJobParameters(smsSubject, text, currentUser, recipientsList, text,
+            jobId );
 
         JobConfiguration processingSendSmsJobConfiguration = new JobConfiguration( "processingSendSmsAction", JobType.SMS_SEND, null, jobParameters, true );
 

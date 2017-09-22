@@ -32,8 +32,8 @@ import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.table.AnalyticsTableType;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobCategory;
+import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -82,7 +82,7 @@ public class ResourceTableController
         @RequestParam( required = false ) Integer lastYears,
         HttpServletResponse response, HttpServletRequest request )
     {
-        TaskId taskId = new TaskId( TaskCategory.ANALYTICSTABLE_UPDATE, currentUserService.getCurrentUser() );
+        JobId jobId = new JobId( JobCategory.ANALYTICSTABLE_UPDATE, currentUserService.getCurrentUser() );
         
         Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
         
@@ -103,7 +103,7 @@ public class ResourceTableController
             skipTableTypes.add( AnalyticsTableType.ENROLLMENT );
         }
         
-        scheduler.executeJob( () -> analyticsTableGenerator.generateTables( lastYears, taskId, skipTableTypes, skipResourceTables ) );
+        scheduler.executeJob( () -> analyticsTableGenerator.generateTables( lastYears, jobId, skipTableTypes, skipResourceTables ) );
         
         webMessageService.send( WebMessageUtils.ok( "Initiated analytics table update" ), response, request );
     }
@@ -112,9 +112,9 @@ public class ResourceTableController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void resourceTables( HttpServletResponse response, HttpServletRequest request )
     {
-        TaskId taskId = new TaskId( TaskCategory.RESOURCETABLE_UPDATE, currentUserService.getCurrentUser() );
+        JobId jobId = new JobId( JobCategory.RESOURCETABLE_UPDATE, currentUserService.getCurrentUser() );
 
-        scheduler.executeJob( () -> analyticsTableGenerator.generateResourceTables( taskId ) );
+        scheduler.executeJob( () -> analyticsTableGenerator.generateResourceTables( jobId ) );
 
         webMessageService.send( WebMessageUtils.ok( "Initiated resource table update" ), response, request );
     }

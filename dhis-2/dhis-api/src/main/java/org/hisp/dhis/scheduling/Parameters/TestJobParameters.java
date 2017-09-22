@@ -3,7 +3,7 @@ package org.hisp.dhis.scheduling.Parameters;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 
 /**
  * @author Henning Håkonsen
@@ -13,15 +13,15 @@ public class TestJobParameters
 {
     private static final long serialVersionUID = 10L;
 
-    private TaskId taskId;
+    private JobId jobId;
     private String message;
 
     public TestJobParameters()
     {}
 
-    public TestJobParameters( TaskId taskId )
+    public TestJobParameters( JobId jobId )
     {
-        this.taskId = taskId;
+        this.jobId = jobId;
     }
 
     @JacksonXmlProperty
@@ -36,13 +36,13 @@ public class TestJobParameters
         this.message = message;
     }
 
-    public TaskId getTaskId()
+    public JobId getJobId()
     {
-        return taskId;
+        return jobId;
     }
 
-    public void setTaskId( TaskId taskId )
+    public void setJobId( JobId jobId )
     {
-        this.taskId = taskId;
+        this.jobId = jobId;
     }
 }

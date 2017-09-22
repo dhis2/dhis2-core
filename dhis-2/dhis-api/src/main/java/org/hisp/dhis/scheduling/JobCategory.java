@@ -31,7 +31,7 @@ package org.hisp.dhis.scheduling;
 /**
  * @author Lars Helge Overland
  */
-public enum TaskCategory
+public enum JobCategory
 {
     RESOURCETABLE_UPDATE,
     ANALYTICSTABLE_UPDATE,

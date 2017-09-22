@@ -11,5 +11,5 @@ import java.io.Serializable;
 public interface JobParameters
     extends Serializable
 {
-    TaskId getTaskId();
+    JobId getJobId();
 }

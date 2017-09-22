@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling.Parameters;
 
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 
 /**
  * @author Henning Håkonsen
@@ -11,24 +11,24 @@ public class ResourceTableJobParameters
 {
     private static final long serialVersionUID = 7L;
 
-    private TaskId taskId;
+    private JobId jobId;
 
     public ResourceTableJobParameters()
     {}
 
-    public ResourceTableJobParameters( TaskId taskId )
+    public ResourceTableJobParameters( JobId jobId )
     {
-        this.taskId = taskId;
+        this.jobId = jobId;
     }
 
-    public TaskId getTaskId()
+    public JobId getJobId()
     {
-        return taskId;
+        return jobId;
     }
 
-    public void setTaskId( TaskId taskId )
+    public void setJobId( JobId jobId )
     {
-        this.taskId = taskId;
+        this.jobId = jobId;
     }
 }
 

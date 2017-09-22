@@ -30,7 +30,7 @@ package org.hisp.dhis.dataintegrity.tasks;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityService;
 import org.hisp.dhis.dataintegrity.FlattenedDataIntegrityReport;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.commons.timer.SystemTimer;
@@ -44,7 +44,7 @@ import org.springframework.scheduling.annotation.Async;
 public class DataIntegrityTask
     implements Runnable
 {
-    private TaskId taskId;
+    private JobId jobId;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -58,9 +58,9 @@ public class DataIntegrityTask
     // Constructors
     // -------------------------------------------------------------------------
     
-    public DataIntegrityTask( TaskId taskId, DataIntegrityService dataIntegrityService, Notifier notifier )
+    public DataIntegrityTask( JobId jobId, DataIntegrityService dataIntegrityService, Notifier notifier )
     {
-        this.taskId = taskId;
+        this.jobId = jobId;
         this.dataIntegrityService = dataIntegrityService;
         this.notifier = notifier;
     }
@@ -78,10 +78,11 @@ public class DataIntegrityTask
         
         timer.stop();
 
-        if ( taskId != null )
+        if ( jobId != null )
         {
-            notifier.notify( taskId, NotificationLevel.INFO, "Data integrity checks completed in " + timer.toString() + ".", true )
-                .addTaskSummary( taskId, report );
+            notifier.notify(
+                jobId, NotificationLevel.INFO, "Data integrity checks completed in " + timer.toString() + ".", true )
+                .addTaskSummary( jobId, report );
         }
     }
 }

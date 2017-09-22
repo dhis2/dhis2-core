@@ -33,19 +33,19 @@ import org.hisp.dhis.user.User;
 /**
  * @author Lars Helge Overland
  */
-public class TaskId
+public class JobId
 {
     private static final String SEPARATOR = "-";
     
-    private TaskCategory category;
+    private JobCategory category;
     
     private User user;
     
-    protected TaskId()
+    protected JobId()
     {
     }
     
-    public TaskId( TaskCategory category, User user )
+    public JobId( JobCategory category, User user )
     {
         this.category = category;
         this.user = user;
@@ -63,7 +63,7 @@ public class TaskId
         return id;
     }
 
-    public TaskCategory getCategory()
+    public JobCategory getCategory()
     {
         return category;
     }
@@ -97,7 +97,7 @@ public class TaskId
             return false;
         }
         
-        TaskId other = (TaskId) obj;
+        JobId other = (JobId) obj;
         
         return getId().equals( other.getId() );
     }

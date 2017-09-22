@@ -2,7 +2,7 @@ package org.hisp.dhis.scheduling.Parameters;
 
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.user.User;
 
 import java.util.List;
@@ -25,20 +25,20 @@ public class SmsJobParameters
 
     private String message;
 
-    private TaskId taskId;
+    private JobId jobId;
 
     public SmsJobParameters()
     {}
 
     public SmsJobParameters( String smsSubject, String text, User currentUser, List<User> recipientsList,
-        String message, TaskId taskId )
+        String message, JobId jobId )
     {
         this.smsSubject = smsSubject;
         this.text = text;
         this.currentUser = currentUser;
         this.recipientsList = recipientsList;
         this.message = message;
-        this.taskId = taskId;
+        this.jobId = jobId;
     }
 
     private I18n i18n;
@@ -103,13 +103,13 @@ public class SmsJobParameters
         this.message = message;
     }
 
-    public TaskId getTaskId()
+    public JobId getJobId()
     {
         return null;
     }
 
-    public void setTaskId( TaskId taskId )
+    public void setJobId( JobId jobId )
     {
-        this.taskId = taskId;
+        this.jobId = jobId;
     }
 }

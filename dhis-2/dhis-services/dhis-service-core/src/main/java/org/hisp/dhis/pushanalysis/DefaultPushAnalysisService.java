@@ -48,8 +48,8 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobCategory;
+import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
@@ -182,7 +182,7 @@ public class DefaultPushAnalysisService
     }
 
     @Override
-    public void runPushAnalysis( int id, TaskId taskId )
+    public void runPushAnalysis( int id, JobId jobId )
     {
         //----------------------------------------------------------------------
         // Set up
@@ -190,57 +190,57 @@ public class DefaultPushAnalysisService
 
         PushAnalysis pushAnalysis = pushAnalysisStore.get( id );
         Set<User> receivingUsers = new HashSet<>();
-        notifier.clear( taskId );
+        notifier.clear( jobId );
 
         //----------------------------------------------------------------------
         // Pre-check
         //----------------------------------------------------------------------
 
-        log( taskId, NotificationLevel.INFO, "Starting pre-check on PushAnalysis", false, null );
+        log( jobId, NotificationLevel.INFO, "Starting pre-check on PushAnalysis", false, null );
 
         if ( !setPushAnalysisIsRunningFlag( pushAnalysis, true ) )
         {
-            log( taskId, NotificationLevel.ERROR,
+            log( jobId, NotificationLevel.ERROR,
                 "PushAnalysis with id '" + id + "' is already running. Terminating new PushAnalysis job.", true, null );
             return;
         }
 
         if ( pushAnalysis == null )
         {
-            log( taskId, NotificationLevel.ERROR,
+            log( jobId, NotificationLevel.ERROR,
                 "PushAnalysis with id '" + id + "' was not found. Terminating PushAnalysis", true, null );
             return;
         }
 
         if ( pushAnalysis.getRecipientUserGroups().size() == 0 )
         {
-            log( taskId, NotificationLevel.ERROR,
+            log( jobId, NotificationLevel.ERROR,
                 "PushAnalysis with id '" + id + "' has no userGroups assigned. Terminating PushAnalysis.", true, null );
             return;
         }
 
         if ( pushAnalysis.getDashboard() == null )
         {
-            log( taskId, NotificationLevel.ERROR,
+            log( jobId, NotificationLevel.ERROR,
                 "PushAnalysis with id '" + id + "' has no dashboard assigned. Terminating PushAnalysis.", true, null );
             return;
         }
 
         if ( systemSettingManager.getInstanceBaseUrl() == null )
         {
-            log( taskId, NotificationLevel.ERROR,
+            log( jobId, NotificationLevel.ERROR,
                 "Missing system setting '" + SettingKey.INSTANCE_BASE_URL.getName() + "'. Terminating PushAnalysis.",
                 true, null );
             return;
         }
 
-        log( taskId, NotificationLevel.INFO, "pre-check completed successfully", false, null );
+        log( jobId, NotificationLevel.INFO, "pre-check completed successfully", false, null );
 
         //----------------------------------------------------------------------
         // Compose list of users that can receive PushAnalysis
         //----------------------------------------------------------------------
 
-        log( taskId, NotificationLevel.INFO, "Composing list of receiving users", false, null );
+        log( jobId, NotificationLevel.INFO, "Composing list of receiving users", false, null );
 
         for ( UserGroup userGroup : pushAnalysis.getRecipientUserGroups() )
         {
@@ -248,7 +248,7 @@ public class DefaultPushAnalysisService
             {
                 if ( !user.hasEmail() )
                 {
-                    log( taskId, NotificationLevel.WARN,
+                    log( jobId, NotificationLevel.WARN,
                         "Skipping user: User '" + user.getUsername() + "' is missing a valid email.", false, null );
                     continue;
                 }
@@ -257,21 +257,21 @@ public class DefaultPushAnalysisService
             }
         }
 
-        log( taskId, NotificationLevel.INFO, "List composed. " + receivingUsers.size() + " eligible users found.",
+        log( jobId, NotificationLevel.INFO, "List composed. " + receivingUsers.size() + " eligible users found.",
             false, null );
 
         //----------------------------------------------------------------------
         // Generating reports
         //----------------------------------------------------------------------
 
-        log( taskId, NotificationLevel.INFO, "Generating and sending reports", false, null );
+        log( jobId, NotificationLevel.INFO, "Generating and sending reports", false, null );
 
         for ( User user : receivingUsers )
         {
             try
             {
                 String title = pushAnalysis.getTitle();
-                String html = generateHtmlReport( pushAnalysis, user, taskId );
+                String html = generateHtmlReport( pushAnalysis, user, jobId );
 
                 // TODO: Better handling of messageStatus; Might require refactoring of EmailMessageSender
                 @SuppressWarnings( "unused" )
@@ -281,7 +281,7 @@ public class DefaultPushAnalysisService
             }
             catch ( Exception e )
             {
-                log( taskId, NotificationLevel.ERROR,
+                log( jobId, NotificationLevel.ERROR,
                     "Could not create or send report for PushAnalysis '" + pushAnalysis.getName() + "' and User '" +
                         user.getUsername() + "': " + e.getMessage(), false, e );
             }
@@ -296,17 +296,17 @@ public class DefaultPushAnalysisService
     }
 
     @Override
-    public String generateHtmlReport( PushAnalysis pushAnalysis, User user, TaskId taskId )
+    public String generateHtmlReport( PushAnalysis pushAnalysis, User user, JobId jobId )
         throws IOException
     {
-        if ( taskId == null )
+        if ( jobId == null )
         {
-            taskId = new TaskId( TaskCategory.PUSH_ANALYSIS, currentUserService.getCurrentUser() );
-            notifier.clear( taskId );
+            jobId = new JobId( JobCategory.PUSH_ANALYSIS, currentUserService.getCurrentUser() );
+            notifier.clear( jobId );
         }
 
         user = user == null ? currentUserService.getCurrentUser() : user;
-        log( taskId, NotificationLevel.INFO, "Generating PushAnalysis for user '" + user.getUsername() + "'.", false,
+        log( jobId, NotificationLevel.INFO, "Generating PushAnalysis for user '" + user.getUsername() + "'.", false,
             null );
 
         //----------------------------------------------------------------------
@@ -318,7 +318,7 @@ public class DefaultPushAnalysisService
 
         for ( DashboardItem item : pushAnalysis.getDashboard().getItems() )
         {
-            itemHtml.put( item.getUid(), getItemHtml( item, user, taskId ) );
+            itemHtml.put( item.getUid(), getItemHtml( item, user, jobId ) );
             itemLink.put( item.getUid(), getItemLink( item ));
         }
 
@@ -346,7 +346,7 @@ public class DefaultPushAnalysisService
 
         new VelocityManager().getEngine().getTemplate( "push-analysis-main-html.vm" ).merge( context, stringWriter );
 
-        log( taskId, NotificationLevel.INFO, "Finished generating PushAnalysis for user '" + user.getUsername() + "'.",
+        log( jobId, NotificationLevel.INFO, "Finished generating PushAnalysis for user '" + user.getUsername() + "'.",
             false, null );
 
         return stringWriter.toString().replaceAll( "\\R", "" );
@@ -362,11 +362,11 @@ public class DefaultPushAnalysisService
      *
      * @param item   to generate resource
      * @param user   to generate for
-     * @param taskId for logging
+     * @param jobId for logging
      * @return
      * @throws Exception
      */
-    private String getItemHtml( DashboardItem item, User user, TaskId taskId )
+    private String getItemHtml( DashboardItem item, User user, JobId jobId )
         throws IOException
     {
         switch ( item.getType() )
@@ -384,7 +384,7 @@ public class DefaultPushAnalysisService
                 // TODO: Add support for EventReports
                 return "";
             default:
-                log( taskId, NotificationLevel.WARN,
+                log( jobId, NotificationLevel.WARN,
                     "Dashboard item of type '" + item.getType() + "' not supported. Skipping.", false, null );
                 return "";
         }
@@ -506,16 +506,16 @@ public class DefaultPushAnalysisService
     /**
      * Helper method for logging both for custom logger and for notifier.
      *
-     * @param taskId            associated with the task running (for notifier)
+     * @param jobId            associated with the task running (for notifier)
      * @param notificationLevel The level this message should be logged
      * @param message           message to be logged
      * @param completed         a flag indicating the task is completed (notifier)
      * @param exception         exception if one exists (logger)
      */
-    private void log( TaskId taskId, NotificationLevel notificationLevel, String message, boolean completed,
+    private void log( JobId jobId, NotificationLevel notificationLevel, String message, boolean completed,
         Throwable exception )
     {
-        notifier.notify( taskId, notificationLevel, message, completed );
+        notifier.notify( jobId, notificationLevel, message, completed );
 
         switch ( notificationLevel )
         {

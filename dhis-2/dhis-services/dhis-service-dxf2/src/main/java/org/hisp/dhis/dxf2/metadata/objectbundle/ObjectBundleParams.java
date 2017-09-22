@@ -38,7 +38,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.preheat.PreheatParams;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
@@ -75,7 +75,7 @@ public class ObjectBundleParams
 
     private boolean skipValidation;
 
-    private TaskId taskId;
+    private JobId jobId;
 
     public ObjectBundleParams()
     {
@@ -203,20 +203,20 @@ public class ObjectBundleParams
         return this;
     }
 
-    public TaskId getTaskId()
+    public JobId getJobId()
     {
-        return taskId;
+        return jobId;
     }
 
-    public ObjectBundleParams setTaskId( TaskId taskId )
+    public ObjectBundleParams setJobId( JobId jobId )
     {
-        this.taskId = taskId;
+        this.jobId = jobId;
         return this;
     }
 
     public boolean haveTaskId()
     {
-        return taskId != null;
+        return jobId != null;
     }
 
     public Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> getObjects()

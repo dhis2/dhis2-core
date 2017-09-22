@@ -30,7 +30,7 @@ import org.hisp.dhis.analytics.table.AnalyticsTableType;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 
 /**
  * Service for analytics table generation and analysis.
@@ -50,9 +50,9 @@ public interface AnalyticsTableService
      * Rebuilds the analytics tables.
      * 
      * @param lastYears the number of last years of data to include, null if all.
-     * @param taskId the {@link TaskId}.
+     * @param jobId the {@link JobId}.
      */
-    void update( Integer lastYears, TaskId taskId );
+    void update( Integer lastYears, JobId jobId );
     
     /**
      * Drops main and temporary analytics tables.

@@ -51,8 +51,8 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobCategory;
+import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
@@ -109,7 +109,7 @@ public class DefaultMetadataImportService implements MetadataImportService
 
         if ( params.hasTaskId() )
         {
-            notifier.notify( params.getTaskId(), message );
+            notifier.notify( params.getJobId(), message );
         }
 
         ObjectBundleParams bundleParams = params.toObjectBundleParams();
@@ -148,8 +148,8 @@ public class DefaultMetadataImportService implements MetadataImportService
 
         if ( bundle.hasTaskId() )
         {
-            notifier.notify( bundle.getTaskId(), NotificationLevel.INFO, message, true )
-                .addTaskSummary( bundle.getTaskId(), importReport );
+            notifier.notify( bundle.getJobId(), NotificationLevel.INFO, message, true )
+                .addTaskSummary( bundle.getJobId(), importReport );
         }
 
         if ( ObjectBundleMode.VALIDATE == params.getImportMode() )
@@ -210,9 +210,9 @@ public class DefaultMetadataImportService implements MetadataImportService
 
         if ( getBooleanWithDefault( parameters, "async", false ) )
         {
-            TaskId taskId = new TaskId( TaskCategory.METADATA_IMPORT, params.getUser() );
-            notifier.clear( taskId );
-            params.setTaskId( taskId );
+            JobId jobId = new JobId( JobCategory.METADATA_IMPORT, params.getUser() );
+            notifier.clear( jobId );
+            params.setJobId( jobId );
         }
 
         return params;

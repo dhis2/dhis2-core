@@ -39,8 +39,8 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.datavalueset.tasks.ImportDataValueTask;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobCategory;
+import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
@@ -160,9 +160,9 @@ public class ImportDataValueAction
     {
         strategy = strategy != null ? strategy : ImportStrategy.NEW_AND_UPDATES;
 
-        TaskId taskId = new TaskId( TaskCategory.DATAVALUE_IMPORT, currentUserService.getCurrentUser() );
+        JobId jobId = new JobId( JobCategory.DATAVALUE_IMPORT, currentUserService.getCurrentUser() );
 
-        notifier.clear( taskId );
+        notifier.clear( jobId );
 
         InputStream in = new FileInputStream( upload );
 
@@ -180,7 +180,7 @@ public class ImportDataValueAction
         log.info( options );
 
         scheduler.executeJob( new ImportDataValueTask( dataValueSetService,
-            adxDataService, sessionFactory, in, options, taskId, importFormat ) );
+            adxDataService, sessionFactory, in, options, jobId, importFormat ) );
 
         return SUCCESS;
     }

@@ -38,7 +38,7 @@ import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
@@ -93,7 +93,7 @@ public class DefaultAnalyticsTableService
     }
     
     @Override
-    public void update( Integer lastYears, TaskId taskId )
+    public void update( Integer lastYears, JobId jobId )
     {
         int processNo = getProcessNo();
         int orgUnitLevelNo = organisationUnitService.getNumberOfOrganisationalLevels();
@@ -110,54 +110,54 @@ public class DefaultAnalyticsTableService
 
         if ( validState != null )
         {
-            notifier.notify( taskId, validState );
+            notifier.notify( jobId, validState );
             return;
         }
                 
         final List<AnalyticsTable> tables = tableManager.getTables( earliest );
                 
         clock.logTime( "Table update start: " + tableName + ", partitions: " + tables + ", last years: " + lastYears + ", earliest: " + earliest );
-        notifier.notify( taskId, "Performing pre-create table work, org unit levels: " + orgUnitLevelNo );
+        notifier.notify( jobId, "Performing pre-create table work, org unit levels: " + orgUnitLevelNo );
         
         tableManager.preCreateTables();
         
         clock.logTime( "Performed pre-create table work" );
-        notifier.notify( taskId, "Creating analytics tables" );
+        notifier.notify( jobId, "Creating analytics tables" );
         
         createTables( tables );
         
         clock.logTime( "Created analytics tables" );
-        notifier.notify( taskId, "Populating analytics tables" );
+        notifier.notify( jobId, "Populating analytics tables" );
         
         populateTables( tables );
         
         clock.logTime( "Populated analytics tables" );
-        notifier.notify( taskId, "Applying aggregation levels" );
+        notifier.notify( jobId, "Applying aggregation levels" );
         
         applyAggregationLevels( tables );
         
         clock.logTime( "Applied aggregation levels" );
-        notifier.notify( taskId, "Creating indexes" );
+        notifier.notify( jobId, "Creating indexes" );
         
         createIndexes( tables );
         
         clock.logTime( "Created indexes" );
-        notifier.notify( taskId, "Analyzing analytics tables" );
+        notifier.notify( jobId, "Analyzing analytics tables" );
         
         tableManager.analyzeTables( tables );
         
         clock.logTime( "Analyzed tables" );
-        notifier.notify( taskId, "Swapping analytics tables" );
+        notifier.notify( jobId, "Swapping analytics tables" );
         
-        swapTables( tables, clock, taskId );
+        swapTables( tables, clock, jobId );
         
         clock.logTime( "Swapped tables" );
-        notifier.notify( taskId, "Clearing caches" );
+        notifier.notify( jobId, "Clearing caches" );
 
         partitionManager.clearCaches();
 
         clock.logTime( "Table update done: " + tableName );
-        notifier.notify( taskId, "Table update done" );
+        notifier.notify( jobId, "Table update done" );
     }
 
     @Override
@@ -293,12 +293,12 @@ public class DefaultAnalyticsTableService
         ConcurrentUtils.waitForCompletion( futures );
     }
 
-    private void swapTables( List<AnalyticsTable> tables, Clock clock, TaskId taskId )
+    private void swapTables( List<AnalyticsTable> tables, Clock clock, JobId jobId )
     {
         resourceTableService.dropAllSqlViews();
         
         clock.logTime( "Dropped SQL views"  );
-        notifier.notify( taskId, "Swapping tables" );
+        notifier.notify( jobId, "Swapping tables" );
         
         for ( AnalyticsTable table : tables )
         {
@@ -306,7 +306,7 @@ public class DefaultAnalyticsTableService
         }
 
         clock.logTime( "Swapped tables"  );
-        notifier.notify( taskId, "Creating SQL views" );
+        notifier.notify( jobId, "Creating SQL views" );
         
         resourceTableService.createAllSqlViews();
     }

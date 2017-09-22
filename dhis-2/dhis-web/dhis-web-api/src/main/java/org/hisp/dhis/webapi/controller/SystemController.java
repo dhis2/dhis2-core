@@ -45,8 +45,8 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobCategory;
+import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.StyleObject;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -184,11 +184,11 @@ public class SystemController
 
         if ( category != null )
         {
-            TaskCategory taskCategory = TaskCategory.valueOf( category.toUpperCase() );
+            JobCategory jobCategory = JobCategory.valueOf( category.toUpperCase() );
 
-            TaskId taskId = new TaskId( taskCategory, currentUserService.getCurrentUser() );
+            JobId jobId = new JobId( jobCategory, currentUserService.getCurrentUser() );
 
-            notifications = notifier.getNotifications( taskId, lastId );
+            notifications = notifier.getNotifications( jobId, lastId );
         }
 
         renderService.toJson( response.getOutputStream(), notifications );
@@ -199,11 +199,11 @@ public class SystemController
     {
         if ( category != null )
         {
-            TaskCategory taskCategory = TaskCategory.valueOf( category.toUpperCase() );
+            JobCategory jobCategory = JobCategory.valueOf( category.toUpperCase() );
 
-            TaskId taskId = new TaskId( taskCategory, currentUserService.getCurrentUser() );
+            JobId jobId = new JobId( jobCategory, currentUserService.getCurrentUser() );
             
-            Object summary = notifier.getTaskSummary( taskId );
+            Object summary = notifier.getTaskSummary( jobId );
 
             if ( summary != null && summary.getClass().isAssignableFrom( ImportSummary.class ) ) //TODO improve this
             {
