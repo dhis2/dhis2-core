@@ -30,6 +30,7 @@ package org.hisp.dhis.query;
 
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.User;
 import org.springframework.util.StringUtils;
@@ -58,6 +59,8 @@ public class Query extends Criteria
     private Junction.Type rootJunctionType = Junction.Type.AND;
 
     private boolean plannedQuery;
+
+    private Defaults defaults = Defaults.EXCLUDE;
 
     private List<? extends IdentifiableObject> objects;
 
@@ -209,6 +212,17 @@ public class Query extends Criteria
     public Query setPlannedQuery( boolean plannedQuery )
     {
         this.plannedQuery = plannedQuery;
+        return this;
+    }
+
+    public Defaults getDefaults()
+    {
+        return defaults;
+    }
+
+    public Query setDefaults( Defaults defaults )
+    {
+        this.defaults = defaults;
         return this;
     }
 
