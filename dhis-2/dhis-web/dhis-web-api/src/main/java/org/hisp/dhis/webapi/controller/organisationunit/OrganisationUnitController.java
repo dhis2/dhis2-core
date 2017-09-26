@@ -150,7 +150,7 @@ public class OrganisationUnitController
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
         query.setUser( currentUser );
         query.setDefaultOrder();
-        query.setDefaults( Defaults.valueOf( options.get( "defaults", "EXCLUDE" ) ) );
+        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
         if ( anySpecialPropertySet || anyQueryPropertySet )
         {

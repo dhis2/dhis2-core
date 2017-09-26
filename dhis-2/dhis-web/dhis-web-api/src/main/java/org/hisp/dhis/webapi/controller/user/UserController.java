@@ -164,7 +164,7 @@ public class UserController
 
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
         query.setDefaultOrder();
-        query.setDefaults( Defaults.valueOf( options.get( "defaults", "EXCLUDE" ) ) );
+        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setObjects( users );
 
         return (List<User>) queryService.query( query );

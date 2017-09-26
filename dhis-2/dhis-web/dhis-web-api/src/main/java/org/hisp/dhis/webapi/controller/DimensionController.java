@@ -96,7 +96,7 @@ public class DimensionController
         List<DimensionalObject> dimensionalObjects;
         Query query = queryService.getQueryFromUrl( DimensionalObject.class, filters, orders, options.getRootJunction() );
         query.setDefaultOrder();
-        query.setDefaults( Defaults.valueOf( options.get( "defaults", "EXCLUDE" ) ) );
+        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setObjects( dimensionService.getAllDimensions() );
         dimensionalObjects = (List<DimensionalObject>) queryService.query( query );
 

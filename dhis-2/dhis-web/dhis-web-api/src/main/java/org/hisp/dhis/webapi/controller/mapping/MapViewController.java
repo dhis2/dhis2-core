@@ -127,7 +127,7 @@ public class MapViewController
         List<MapView> entityList;
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
         query.setDefaultOrder();
-        query.setDefaults( Defaults.valueOf( options.get( "defaults", "EXCLUDE" ) ) );
+        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
         if ( options.getOptions().containsKey( "query" ) )
         {

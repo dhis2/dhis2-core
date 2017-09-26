@@ -129,6 +129,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 {
     protected static final WebOptions NO_WEB_OPTIONS = new WebOptions( new HashMap<>() );
 
+    protected static final String DEFAULTS = "EXCLUDE";
+
     //--------------------------------------------------------------------------
     // Dependencies
     //--------------------------------------------------------------------------
@@ -235,7 +237,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(),
-            new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", "EXCLUDE" ) ) ) ) );
+            new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) ) ) );
 
         return rootNode;
     }
@@ -484,7 +486,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         CollectionNode collectionNode = fieldFilterService.toCollectionNode( getEntityClass(),
-            new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", "EXCLUDE" ) ) ) );
+            new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) ) );
 
         if ( options.isTrue( "useWrapper" ) || entities.size() > 1 )
         {
@@ -1008,7 +1010,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         List<T> entityList;
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
         query.setDefaultOrder();
-        query.setDefaults( Defaults.valueOf( options.get( "defaults", "EXCLUDE" ) ) );
+        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
         if ( options.getOptions().containsKey( "query" ) )
         {

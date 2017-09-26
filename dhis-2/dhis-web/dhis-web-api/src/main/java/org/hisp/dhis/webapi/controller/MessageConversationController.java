@@ -160,7 +160,7 @@ public class MessageConversationController
 
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
         query.setDefaultOrder();
-        query.setDefaults( Defaults.valueOf( options.get( "defaults", "EXCLUDE" ) ) );
+        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setObjects( messageConversations );
 
         return (List<org.hisp.dhis.message.MessageConversation>) queryService.query( query );
