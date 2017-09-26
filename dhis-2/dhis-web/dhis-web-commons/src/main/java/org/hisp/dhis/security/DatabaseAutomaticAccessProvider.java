@@ -83,10 +83,6 @@ public class DatabaseAutomaticAccessProvider
 
         userService.encodeAndSetPassword( userCredentials, password );
         userService.addUserCredentials( userCredentials );
-
-        user.setUserCredentials( userCredentials );
-
-        userService.updateUser( user );
     }
 
     @Override
