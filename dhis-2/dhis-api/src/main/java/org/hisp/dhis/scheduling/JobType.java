@@ -26,7 +26,7 @@ public enum JobType
     CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob", null, 1000 ),
     MONITORING( "monitoringJob", MonitoringJobParameters.class, 1000 ),
     PUSH_ANALYSIS( "pushAnalysis", PushAnalysisJobParameters.class, 1000 ),
-    TEST( "test", TestJobParameters.class, 1 );
+    TEST( "test", TestJobParameters.class, 1800 );
 
     private final String key;
 

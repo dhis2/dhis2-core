@@ -15,15 +15,14 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.system.scheduling.SpringScheduler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.threeten.bp.Duration;
 import org.threeten.bp.ZonedDateTime;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
+import java.util.*;
 
 import static com.cronutils.model.CronType.QUARTZ;
 
@@ -45,29 +44,9 @@ public class JobObjectBundleHook
         this.schedulingManager = schedulingManager;
     }
 
-    @Override
-    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    private List<ErrorReport> validateCronForJobType( JobConfiguration jobConfiguration, CronParser parser )
     {
-        List<ErrorReport> errorReports;
-        JobConfiguration jobConfiguration = (JobConfiguration) object;
-
-        // validate the cron expression
-        CronDefinition cronDefinition = CronDefinitionBuilder.instanceDefinitionFor(QUARTZ);
-        CronParser parser = new CronParser( cronDefinition );
-        Cron quartzCron = parser.parse( jobConfiguration.getCronExpression() );
-
-        quartzCron.validate();
-
-        CronDescriptor cronDescriptor = CronDescriptor.instance( Locale.UK);
-
-        // Validate that no other jobs of the same JobType has the same cron expression
-        List<JobConfiguration> jobConfigurations = jobConfigurationService.getAllJobConfigurations();
-        errorReports = jobConfigurations.stream()
-            .filter( jobConfiguration1 -> !jobConfiguration.getUid().equals( jobConfiguration1.getUid() ) )
-            .filter( jobConfiguration1 -> jobConfiguration.getJobType() == jobConfiguration1.getJobType() )
-            .filter( jobConfiguration1 -> jobConfiguration.getCronExpression().equals( jobConfiguration1.getCronExpression() ) )
-            .map( jobConfiguration1 -> new ErrorReport( JobConfiguration.class, ErrorCode.E4013 ) )
-            .collect( Collectors.toList() );
+        List<ErrorReport> errorReports = new ArrayList<>(  );
 
         // Validate that the given interval is allowed for the given JobType
         ZonedDateTime now = ZonedDateTime.now();
@@ -80,6 +59,65 @@ public class JobObjectBundleHook
         if( timeIntervalInSeconds < jobConfiguration.getJobType().getMinimumFrequencyInSeconds() ) {
             errorReports.add( new ErrorReport( JobConfiguration.class, new ErrorMessage( ErrorCode.E4014, timeIntervalInSeconds, jobConfiguration.getJobType().getMinimumFrequencyInSeconds() ) ) );
         }
+
+        // Make list of all jobs for each job type
+        Map<JobType, List<JobConfiguration>> jobConfigurationForJobTypes = new HashMap<>(  );
+
+        jobConfigurationService.getAllJobConfigurations().stream()
+            .filter( configuration -> !Objects.equals( configuration.getUid(), jobConfiguration.getUid() ) )
+            .forEach( configuration -> {
+                List<JobConfiguration> jobConfigurationList = new ArrayList<>();
+                List<JobConfiguration> oldList = jobConfigurationForJobTypes.get( configuration.getJobType() );
+                if ( oldList != null )
+                    jobConfigurationList.addAll( oldList );
+                jobConfigurationList.add( configuration );
+                jobConfigurationForJobTypes.put( configuration.getJobType(), jobConfigurationList );
+            } );
+
+        /*
+         *  Validate that there are no other jobs of the same job type which are scheduled within the allowed frequency range.
+         *  I.E a job scheduled for 15:40 on monday is not allowed if a job already is scheduled for 15:20 on monday if the
+         *  minimum frequency is 30 minutes
+         */
+        List<JobConfiguration> listForJobType = jobConfigurationForJobTypes.get( jobConfiguration.getJobType() );
+
+        if ( listForJobType != null )
+        {
+            for ( JobConfiguration jobConfig : listForJobType )
+            {
+                if ( jobConfig.getCronExpression().equals( jobConfiguration.getCronExpression() ) ) {
+                    errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E4013 ) );
+                }
+
+                Duration jobConfigTimeToNextExecution = ExecutionTime.forCron(parser.parse(jobConfig.getCronExpression())).timeToNextExecution( now ).get();
+
+                if ( Math.abs(((timeToNextExecution.getSeconds() - jobConfigTimeToNextExecution.getSeconds()))) < jobConfig.getJobType().getMinimumFrequencyInSeconds() )
+                {
+                    errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E4015, jobConfig.getName() ) );
+                }
+            }
+        }
+
+        return errorReports;
+    }
+
+    @Override
+    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    {
+        List<ErrorReport> errorReports = new ArrayList<>(  );
+        JobConfiguration jobConfiguration = (JobConfiguration) object;
+
+        // validate the cron expression
+        CronDefinition cronDefinition = CronDefinitionBuilder.instanceDefinitionFor(QUARTZ);
+        CronParser parser = new CronParser( cronDefinition );
+        Cron quartzCron = parser.parse( jobConfiguration.getCronExpression() );
+
+        quartzCron.validate();
+
+        CronDescriptor cronDescriptor = CronDescriptor.instance( Locale.UK);
+
+        // Validate cron expression with relation to all other jobs
+        errorReports.addAll( validateCronForJobType( jobConfiguration, parser ) );
 
         if( errorReports.size() == 0 )
         {
