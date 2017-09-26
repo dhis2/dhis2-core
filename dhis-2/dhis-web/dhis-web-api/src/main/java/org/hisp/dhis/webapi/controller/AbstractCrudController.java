@@ -129,7 +129,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 {
     protected static final WebOptions NO_WEB_OPTIONS = new WebOptions( new HashMap<>() );
 
-    protected static final String DEFAULTS = "EXCLUDE";
+    protected static final String DEFAULTS = "INCLUDE";
 
     //--------------------------------------------------------------------------
     // Dependencies

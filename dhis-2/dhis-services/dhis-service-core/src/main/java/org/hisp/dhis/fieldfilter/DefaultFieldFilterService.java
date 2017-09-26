@@ -35,6 +35,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeTransformer;
@@ -43,6 +44,7 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -177,6 +179,12 @@ public class DefaultFieldFilterService implements FieldFilterService
         return buildNode( fieldMap, klass, object, schema.getName(), defaults );
     }
 
+    private boolean shouldExclude( Object object, Defaults defaults )
+    {
+        return Defaults.EXCLUDE == defaults && IdentifiableObject.class.isInstance( object ) &&
+            Preheat.isDefaultClass( (IdentifiableObject) object ) && "default".equals( ((IdentifiableObject) object).getName() );
+    }
+
     private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object, String nodeName, Defaults defaults )
     {
         Schema schema = schemaService.getDynamicSchema( klass );
@@ -187,6 +195,13 @@ public class DefaultFieldFilterService implements FieldFilterService
         if ( object == null )
         {
             return new SimpleNode( schema.getName(), null );
+        }
+
+
+        if ( shouldExclude( object, defaults ) )
+        {
+            System.err.println( "Exclude: " + object );
+            return null;
         }
 
         updateFields( fieldMap, schema.getKlass() );
@@ -237,7 +252,10 @@ public class DefaultFieldFilterService implements FieldFilterService
                     {
                         for ( Object collectionObject : collection )
                         {
-                            child.addChild( getProperties( property, collectionObject, fields ) );
+                            if ( !shouldExclude( collectionObject, defaults ) )
+                            {
+                                child.addChild( getProperties( property, collectionObject, fields ) );
+                            }
                         }
                     }
                     else if ( !property.isSimple() )
@@ -268,7 +286,10 @@ public class DefaultFieldFilterService implements FieldFilterService
                 }
                 else if ( property.isIdentifiableObject() && isProperIdObject( property.getKlass() ) )
                 {
-                    child = getProperties( property, returnValue, fields );
+                    if ( !shouldExclude( returnValue, defaults ) )
+                    {
+                        child = getProperties( property, returnValue, fields );
+                    }
                 }
                 else
                 {

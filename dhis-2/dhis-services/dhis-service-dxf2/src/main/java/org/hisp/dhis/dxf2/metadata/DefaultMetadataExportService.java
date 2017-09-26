@@ -174,6 +174,8 @@ public class DefaultMetadataExportService implements MetadataExportService
             }
 
             query.setDefaultOrder();
+            query.setDefaults( params.getDefaults() );
+
             List<? extends IdentifiableObject> objects = queryService.query( query );
 
             if ( !objects.isEmpty() )
@@ -231,7 +233,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         MetadataExportParams params = new MetadataExportParams();
         Map<Class<? extends IdentifiableObject>, Map<String, List<String>>> map = new HashMap<>();
 
-        params.setDefaults( getEnumWithDefault( Defaults.class, parameters, "defaults", Defaults.EXCLUDE ) );
+        params.setDefaults( getEnumWithDefault( Defaults.class, parameters, "defaults", Defaults.INCLUDE ) );
         params.setInclusionStrategy( getEnumWithDefault( InclusionStrategy.Include.class, parameters, "inclusionStrategy",
             InclusionStrategy.Include.NON_NULL ) );
 
