@@ -14,7 +14,7 @@ Go to [GitHub](https://github.com/dhis2/dhis2-core) and fork the repository unde
 
 Clone the repository:
 
-    git clone git@github.com:BLSQ/dhis2-core.git
+    git clone git@github.com:dhis2/dhis2-core.git
 
 ## Install
 
