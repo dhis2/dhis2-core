@@ -192,7 +192,7 @@ public class DefaultFieldFilterService implements FieldFilterService
         }
 
         if ( Defaults.EXCLUDE == defaults && IdentifiableObject.class.isInstance( object )
-            && Preheat.isDefaultClass( (IdentifiableObject) object ) )
+            && "default".equals( ((IdentifiableObject) object).getName() ) )
         {
             return null;
         }
@@ -260,7 +260,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                         {
                             Node node = buildNode( map, property.getItemKlass(), collectionObject, defaults );
 
-                            if ( !node.getChildren().isEmpty() )
+                            if ( node != null && !node.getChildren().isEmpty() )
                             {
                                 child.addChild( node );
                             }
