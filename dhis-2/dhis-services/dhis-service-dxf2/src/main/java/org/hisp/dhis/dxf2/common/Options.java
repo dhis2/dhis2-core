@@ -120,6 +120,15 @@ public class Options
     }
 
     /**
+     * Returns the option value for the given parameter key.
+     */
+    public String get( String key, String defaultValue )
+    {
+        String value = options.get( key );
+        return value != null ? value : defaultValue;
+    }
+
+    /**
      * Returns the option value for the given parameter key as in Integer.
      */
     public Integer getInt( String key )
