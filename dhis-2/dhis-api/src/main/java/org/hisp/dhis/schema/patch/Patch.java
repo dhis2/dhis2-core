@@ -29,7 +29,11 @@ package org.hisp.dhis.schema.patch;
  *
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import org.hisp.dhis.common.DxfNamespaces;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +41,7 @@ import java.util.List;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@JacksonXmlRootElement( localName = "patch", namespace = DxfNamespaces.DXF_2_0 )
 public class Patch
 {
     private List<Mutation> mutations = new ArrayList<>();
@@ -50,6 +55,8 @@ public class Patch
         this.mutations = mutations;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<Mutation> getMutations()
     {
         return mutations;
@@ -69,7 +76,6 @@ public class Patch
 
         return this;
     }
-
 
     @Override
     public String toString()

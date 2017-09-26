@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.patch;
+package org.hisp.dhis.schema.audit.hibernate;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -29,25 +29,50 @@ package org.hisp.dhis.schema.patch;
  *
  */
 
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.schema.audit.MetadataAudit;
+import org.hisp.dhis.schema.audit.MetadataAuditQuery;
+import org.hisp.dhis.schema.audit.MetadataAuditStore;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface PatchService
+public class HibernateMetadataAuditStore
+    implements MetadataAuditStore
 {
-    /**
-     * Creates a patch by checking the differences between a source object and
-     * a target object (given by PatchParams).
-     *
-     * @param params PatchParams instance containing source and target object
-     * @return Patch containing the differences between source and target
-     */
-    Patch diff( PatchParams params );
+    @Autowired
+    private SessionFactory sessionFactory;
 
-    /**
-     * Applies given patch on the given object.
-     *
-     * @param patch  Patch instance (either created manually or by using the diff function)
-     * @param target Object to apply the patch to
-     */
-    void apply( Patch patch, Object target );
+    @Override
+    public int save( MetadataAudit audit )
+    {
+        return (int) getCurrentSession().save( audit );
+    }
+
+    @Override
+    public void delete( MetadataAudit audit )
+    {
+        getCurrentSession().delete( audit );
+    }
+
+    @Override
+    public int count( MetadataAuditQuery auditQuery )
+    {
+        return 0;
+    }
+
+    @Override
+    public List<MetadataAudit> query( MetadataAuditQuery query )
+    {
+        return null;
+    }
+
+    private Session getCurrentSession()
+    {
+        return sessionFactory.getCurrentSession();
+    }
 }

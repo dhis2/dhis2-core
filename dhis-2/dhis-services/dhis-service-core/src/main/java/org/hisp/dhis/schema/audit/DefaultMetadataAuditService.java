@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.patch;
+package org.hisp.dhis.schema.audit;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -29,25 +29,38 @@ package org.hisp.dhis.schema.patch;
  *
  */
 
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface PatchService
+@Transactional
+public class DefaultMetadataAuditService implements MetadataAuditService
 {
-    /**
-     * Creates a patch by checking the differences between a source object and
-     * a target object (given by PatchParams).
-     *
-     * @param params PatchParams instance containing source and target object
-     * @return Patch containing the differences between source and target
-     */
-    Patch diff( PatchParams params );
+    private final MetadataAuditStore auditStore;
 
-    /**
-     * Applies given patch on the given object.
-     *
-     * @param patch  Patch instance (either created manually or by using the diff function)
-     * @param target Object to apply the patch to
-     */
-    void apply( Patch patch, Object target );
+    public DefaultMetadataAuditService( MetadataAuditStore auditStore )
+    {
+        this.auditStore = auditStore;
+    }
+
+    @Override
+    public void addMetadataAudit( MetadataAudit audit )
+    {
+        auditStore.save( audit );
+    }
+
+    @Override
+    public void deleteMetadataAudit( MetadataAudit audit )
+    {
+        auditStore.delete( audit );
+    }
+
+    @Override
+    public List<MetadataAudit> getMetadataAudits( MetadataAuditQuery query )
+    {
+        return auditStore.query( query );
+    }
 }

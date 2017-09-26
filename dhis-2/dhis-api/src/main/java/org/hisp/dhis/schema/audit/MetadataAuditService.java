@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.patch;
+package org.hisp.dhis.schema.audit;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -29,25 +29,26 @@ package org.hisp.dhis.schema.patch;
  *
  */
 
+import java.util.List;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface PatchService
+public interface MetadataAuditService
 {
     /**
-     * Creates a patch by checking the differences between a source object and
-     * a target object (given by PatchParams).
+     * Persists the given MetadataAudit instance.
      *
-     * @param params PatchParams instance containing source and target object
-     * @return Patch containing the differences between source and target
+     * @param audit Instance to add
      */
-    Patch diff( PatchParams params );
+    void addMetadataAudit( MetadataAudit audit );
 
     /**
-     * Applies given patch on the given object.
+     * Removes the given MetadataAudit instance.
      *
-     * @param patch  Patch instance (either created manually or by using the diff function)
-     * @param target Object to apply the patch to
+     * @param audit Instance to remove
      */
-    void apply( Patch patch, Object target );
+    void deleteMetadataAudit( MetadataAudit audit );
+
+    List<MetadataAudit> getMetadataAudits( MetadataAuditQuery query );
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.patch;
+package org.hisp.dhis.system;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -32,94 +32,54 @@ package org.hisp.dhis.schema.patch;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.EmbeddedObject;
-import org.hisp.dhis.common.IdentifiableObject;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "mutation", namespace = DxfNamespaces.DXF_2_0 )
-public class Mutation
+@JacksonXmlRootElement( localName = "metadataAudit", namespace = DxfNamespaces.DXF_2_0 )
+public class MetadataAudit
 {
-    /**
-     * Full dot separated path of this mutation (e.g a.b.c).
-     */
-    private final String path;
+    private boolean persist;
 
-    /**
-     * New value for given path.
-     */
-    private final Object value;
+    private boolean log;
 
-    /**
-     * Is the mutation an ADD or DEL, this mainly applies to collections.
-     */
-    private Operation operation = Operation.ADDITION;
-
-    enum Operation
+    public MetadataAudit()
     {
-        ADDITION, DELETION
     }
 
-    public Mutation( String path )
+    public MetadataAudit( boolean persist, boolean log )
     {
-        this.path = path;
-        this.value = null;
-    }
-
-    public Mutation( String path, Object value )
-    {
-        this.path = path;
-        this.value = value;
-    }
-
-    public Mutation( String path, Object value, Operation operation )
-    {
-        this.path = path;
-        this.value = value;
-        this.operation = operation;
+        this.persist = persist;
+        this.log = log;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getPath()
+    public boolean isPersist()
     {
-        return path;
+        return persist;
     }
 
-    public Object getValue()
+    public void setPersist( boolean persist )
     {
-        return value;
-    }
-
-    @JsonProperty( "value" )
-    @JacksonXmlProperty( localName = "value", namespace = DxfNamespaces.DXF_2_0 )
-    public Object getLogValue()
-    {
-        if ( IdentifiableObject.class.isInstance( value ) && !EmbeddedObject.class.isInstance( value ) )
-        {
-            return ((IdentifiableObject) value).getUid();
-        }
-
-        return value;
+        this.persist = persist;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Operation getOperation()
+    public boolean isLog()
     {
-        return operation;
+        return log;
     }
 
-    @Override
-    public String toString()
+    public void setLog( boolean log )
     {
-        return MoreObjects.toStringHelper( this )
-            .add( "path", path )
-            .add( "operation", operation )
-            .add( "value", getLogValue() )
-            .toString();
+        this.log = log;
+    }
+
+    public boolean isAudit()
+    {
+        return log || persist;
     }
 }
