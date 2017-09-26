@@ -13,10 +13,13 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
+import static org.hisp.dhis.commons.util.TextUtils.removeLast;
+
 /**
  * @author Henning Håkonsen
  */
-public class JdbcValidationViolationTableManager extends AbstractJdbcTableManager
+public class JdbcValidationViolationTableManager
+    extends AbstractJdbcTableManager
 {
     @Autowired
     PeriodService periodService;
@@ -62,7 +65,30 @@ public class JdbcValidationViolationTableManager extends AbstractJdbcTableManage
     @Override
     public void createTable( AnalyticsTable table )
     {
+        final String tableName = table.getTempTableName();
 
+        final String sqlDrop = "drop table " + tableName;
+
+        executeSilently( sqlDrop );
+
+        String sqlCreate = "create table " + tableName + " (";
+
+        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
+
+        validateDimensionColumns( columns );
+
+        for ( AnalyticsTableColumn col : columns )
+        {
+            sqlCreate += col.getName() + " " + col.getDataType() + ",";
+        }
+
+        sqlCreate = removeLast( sqlCreate, 1 ) + ")";
+
+        log.info( "Creating table: " + tableName + ", columns: " + columns.size() );
+
+        log.debug( "Create SQL: " + sqlCreate );
+
+        jdbcTemplate.execute( sqlCreate );
     }
 
     @Override
