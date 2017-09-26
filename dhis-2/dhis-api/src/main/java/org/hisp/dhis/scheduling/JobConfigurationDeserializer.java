@@ -34,6 +34,6 @@ public class JobConfigurationDeserializer
 
         boolean enabled = root.get( "enabled" ) == null || root.get( "enabled" ).booleanValue();
 
-        return new JobConfiguration( root.get( "name" ).toString(), jobType, cronExpression, jobParameters, enabled );
+        return new JobConfiguration( root.get( "name" ).textValue(), jobType, cronExpression, jobParameters, enabled );
     }
 }
