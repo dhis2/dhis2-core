@@ -29,13 +29,17 @@ package org.hisp.dhis.dataentryform;
  */
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -54,6 +58,9 @@ public class DataEntryFormStoreTest
 
     @Autowired
     private DataEntryFormStore dataEntryFormStore;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
 
     private PeriodType periodType;
 
@@ -130,9 +137,13 @@ public class DataEntryFormStoreTest
         DataEntryForm dataEntryForm = createDataEntryForm( 'A' );
 
         dataEntryFormStore.save( dataEntryForm );
+
+        assertNotNull( dataEntryForm );
+
         int id = dataEntryForm.getId();
 
         dataEntryForm = dataEntryFormStore.get( id );
+
 
         assertEquals( dataEntryFormStore.getDataEntryFormByName( "DataEntryFormA" ), dataEntryForm );
         assertNull( dataEntryFormStore.getDataEntryFormByName( "DataEntryFormX" ) );
@@ -152,5 +163,37 @@ public class DataEntryFormStoreTest
         assertEquals( dataEntryForms.size(), 2 );
         assertTrue( dataEntryForms.contains( dataEntryFormA ) );
         assertTrue( dataEntryForms.contains( dataEntryFormB ) );
+    }
+
+    @Test
+    public void testListDistinctDataEntryFormByProgramStageIds()
+    {
+        DataEntryForm dataEntryFormA = createDataEntryForm( 'A' );
+        DataEntryForm dataEntryFormB = createDataEntryForm( 'B' );
+
+        dataEntryFormStore.save( dataEntryFormA );
+        dataEntryFormStore.save( dataEntryFormB );
+
+        List<Integer> programStageIds = new ArrayList<>();
+
+        Program program = createProgram( 'A' );
+        manager.save( program );
+
+        ProgramStage programStageA = createProgramStage( 'A', program );
+        programStageA.setDataEntryForm( dataEntryFormA );
+        manager.save( programStageA );
+        programStageIds.add( programStageA.getId() );
+
+        ProgramStage programStageB = createProgramStage( 'B', program );
+        programStageB.setDataEntryForm( dataEntryFormB );
+        manager.save( programStageB );
+        programStageIds.add( programStageB.getId() );
+
+        ProgramStage programStageC = createProgramStage( 'C', program );
+        programStageC.setDataEntryForm( dataEntryFormB );
+        manager.save( programStageC );
+        programStageIds.add( programStageC.getId() );
+
+        assertEquals( 2, dataEntryFormStore.listDistinctDataEntryFormByProgramStageIds( programStageIds ).size() );
     }
 }

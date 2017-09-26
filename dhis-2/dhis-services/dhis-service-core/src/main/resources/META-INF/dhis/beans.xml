@@ -46,6 +46,8 @@
 
   <bean id="org.hisp.dhis.node.NodeService" class="org.hisp.dhis.node.DefaultNodeService" />
 
+  <bean class="org.hisp.dhis.schema.patch.DefaultPatchService" />
+
   <bean class="org.hisp.dhis.node.transformers.PagingNodeTransformer" />
 
   <bean class="org.hisp.dhis.node.transformers.RenameNodeTransformer" />
@@ -94,12 +96,6 @@
 
   <bean id="org.hisp.dhis.chart.ChartStore" class="org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore">
     <property name="clazz" value="org.hisp.dhis.chart.Chart" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="cacheable" value="true" />
-  </bean>
-
-  <bean id="org.hisp.dhis.document.DocumentStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
-    <property name="clazz" value="org.hisp.dhis.document.Document" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
@@ -248,6 +244,20 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
   </bean>
+
+  <!--DataSetNotifications-->
+
+  <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateStore" class="org.hisp.dhis.dataset.notifications.HibernateDataSetNotificationTemplateStore">
+    <property name="clazz" value="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationService" class="org.hisp.dhis.dataset.notifications.DefaultDataSetNotificationService" />
+
+  <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateService" class="org.hisp.dhis.dataset.notifications.DefaultDataSetNotificationTemplateService" />
+
+  <bean id="scheduledDataSetNotificationTask" class="org.hisp.dhis.dataset.notifications.DataSetNotificationTask" />
 
   <bean id="org.hisp.dhis.minmax.MinMaxDataElementStore" class="org.hisp.dhis.minmax.hibernate.HibernateMinMaxDataElementStore">
     <property name="clazz" value="org.hisp.dhis.minmax.MinMaxDataElement" />
@@ -456,6 +466,8 @@
   </bean>
 
   <bean id="org.hisp.dhis.deletedobject.DeletedObjectStore" class="org.hisp.dhis.deletedobject.hibernate.HibernateDeletedObjectStore" />
+
+  <bean id="org.hisp.dhis.schema.audit.MetadataAuditStore" class="org.hisp.dhis.schema.audit.hibernate.HibernateMetadataAuditStore" />
 
   <bean id="org.hisp.dhis.version.VersionStore" class="org.hisp.dhis.version.hibernate.HibernateVersionStore">
     <property name="sessionFactory" ref="sessionFactory" />
@@ -751,6 +763,7 @@
 
   <bean id="org.hisp.dhis.sms.command.hibernate.SMSCommandStore"
     class="org.hisp.dhis.sms.command.hibernate.HibernateSMSCommandStore">
+    <property name="clazz" value="org.hisp.dhis.sms.command.SMSCommand" />
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
@@ -799,6 +812,12 @@
     scope="prototype" />
 
   <!-- Service definitions -->
+
+  <bean id="org.hisp.dhis.dataelement.DataElementGroupService" class="org.hisp.dhis.dataelement.DefaultDataElementGroupService" />
+
+  <bean id="org.hisp.dhis.indicator.IndicatorGroupService" class="org.hisp.dhis.indicator.DefaultIndicatorGroupService">
+    <property name="indicatorGroupStore" ref="org.hisp.dhis.indicator.IndicatorGroupStore" />
+  </bean>
 
   <bean id="org.hisp.dhis.dimension.DimensionService" class="org.hisp.dhis.dimension.DefaultDimensionService" />
 
@@ -884,6 +903,7 @@
     <property name="completeDataSetRegistrationStore" ref="org.hisp.dhis.dataset.CompleteDataSetRegistrationStore" />
     <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
     <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="dataSetNotificationService" ref="org.hisp.dhis.dataset.notifications.DataSetNotificationService" />
   </bean>
 
   <bean id="org.hisp.dhis.dataset.SectionService" class="org.hisp.dhis.dataset.DefaultSectionService">
@@ -1053,6 +1073,8 @@
   </bean>
 
   <bean id="org.hisp.dhis.deletedobject.DeletedObjectService" class="org.hisp.dhis.deletedobject.DefaultDeletedObjectService" />
+
+  <bean id="org.hisp.dhis.schema.audit.MetadataAuditService" class="org.hisp.dhis.schema.audit.DefaultMetadataAuditService" />
 
   <bean id="org.hisp.dhis.version.VersionService" class="org.hisp.dhis.version.DefaultVersionService">
     <property name="versionStore" ref="org.hisp.dhis.version.VersionStore" />
@@ -1507,7 +1529,7 @@
 
 
   <bean id="org.hisp.dhis.sms.listener.ProgramStageDataEntrySMSListener"
-        class="org.hisp.dhis.sms.listener.ProgramStageDataEntrySMSListener" />
+    class="org.hisp.dhis.sms.listener.ProgramStageDataEntrySMSListener" />
 
   <bean id="org.hisp.dhis.sms.listener.SingleEventListener" class="org.hisp.dhis.sms.listener.SingleEventListener" />
 
@@ -1516,6 +1538,9 @@
   <bean id="programNotificationMessageRenderer" class="org.hisp.dhis.notification.ProgramNotificationMessageRenderer" />
 
   <bean id="programStageNotificationMessageRenderer" class="org.hisp.dhis.notification.ProgramStageNotificationMessageRenderer" />
+
+  <bean id="dataSetNotificationMessageRenderer" class="org.hisp.dhis.notification.DataSetNotificationMessageRenderer" />
+
 
   <!-- I18n UI -->
 
@@ -1623,6 +1648,7 @@
         <value>relationshiptype</value>
         <value>sqlview</value>
         <value>dataentryform</value>
+        <value>smscommands</value>
       </list>
     </property>
   </bean>

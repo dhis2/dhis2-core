@@ -29,7 +29,6 @@ package org.hisp.dhis.predictor;
  */
 
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -56,6 +55,4 @@ public interface PredictorService
     List<Predictor> getPredictorsByName( String name );
 
     int getPredictorCount();
-
-    int predict( Predictor predictor, Date startDate, Date endDate );
 }

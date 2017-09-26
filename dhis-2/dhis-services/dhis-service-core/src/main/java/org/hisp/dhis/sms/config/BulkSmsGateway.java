@@ -85,7 +85,7 @@ public class BulkSmsGateway
     @Override
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch smsBatch, SmsGatewayConfig config )
     {
-        return smsBatch.getMessages().stream()
+        return smsBatch.getMessages().parallelStream()
             .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), config ) )
             .collect( Collectors.toList() );
     }
@@ -124,7 +124,7 @@ public class BulkSmsGateway
 
         try
         {
-            URI url = uriBuilder.build().encode( "ISO-8859-1" ).toUri();
+            URI url = uriBuilder.build().encode().toUri();
 
             responseEntity = restTemplate.exchange( url, HttpMethod.POST, null, String.class );
         }

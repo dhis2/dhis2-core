@@ -34,6 +34,10 @@
 
   <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService" class="org.hisp.dhis.dxf2.metadata.objectbundle.DefaultObjectBundleValidationService" />
 
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.SmsCommandObjectBundleHook" />
+
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataSetNotificationTemplateObjectBundleHook" />
+
   <bean id="org.hisp.dhis.dxf2.metadata.MetadataExportService" class="org.hisp.dhis.dxf2.metadata.DefaultMetadataExportService" />
 
   <bean id="org.hisp.dhis.dxf2.metadata.MetadataImportService" class="org.hisp.dhis.dxf2.metadata.DefaultMetadataImportService" />

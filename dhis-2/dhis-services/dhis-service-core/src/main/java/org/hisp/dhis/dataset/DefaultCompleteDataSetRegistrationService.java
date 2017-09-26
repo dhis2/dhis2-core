@@ -30,6 +30,7 @@ package org.hisp.dhis.dataset;
 
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationService;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -71,6 +72,13 @@ public class DefaultCompleteDataSetRegistrationService
         this.categoryService = categoryService;
     }
 
+    private DataSetNotificationService dataSetNotificationService;
+
+    public void setDataSetNotificationService( DataSetNotificationService dataSetNotificationService )
+    {
+        this.dataSetNotificationService = dataSetNotificationService;
+    }
+
     // -------------------------------------------------------------------------
     // CompleteDataSetRegistrationService
     // -------------------------------------------------------------------------
@@ -97,6 +105,8 @@ public class DefaultCompleteDataSetRegistrationService
             {
                 messageService.sendCompletenessMessage( registration );
             }
+
+            dataSetNotificationService.sendCompleteDataSetNotifications( registration );
         }
     }
 

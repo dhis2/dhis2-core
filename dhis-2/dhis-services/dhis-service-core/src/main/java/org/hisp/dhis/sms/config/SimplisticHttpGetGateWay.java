@@ -80,7 +80,7 @@ public class SimplisticHttpGetGateWay
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
         return batch.getMessages()
-          .stream()
+          .parallelStream()
           .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), gatewayConfig ) )
           .collect( Collectors.toList() );
      }
@@ -104,11 +104,11 @@ public class SimplisticHttpGetGateWay
         {
             HttpEntity<?> request = new HttpEntity<>( getRequestHeaderParameters( genericHttpConfiguration.getParameters() ) );
 
-            HttpStatus httpStatus = send( uri.build().encode( "ISO-8859-1" ).toUriString(), request, String.class );
+            HttpStatus httpStatus = send( uri.build().encode().toUriString(), request, String.class );
 
             return wrapHttpStatus( httpStatus );
         }
-        catch ( IOException e )
+        catch ( Exception e )
         {
             log.error( "Message failed: " + e.getMessage() );
 

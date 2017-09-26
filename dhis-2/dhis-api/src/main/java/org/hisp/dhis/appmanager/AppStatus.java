@@ -37,7 +37,10 @@ public enum AppStatus
     INVALID_MANIFEST_JSON( "invalid_json_in_app_manifest_file" ), 
     INSTALLATION_FAILED( "app_could_not_be_installed_on_file_system" ),
     NOT_FOUND( "app_could_not_be_found" ),
-    MISSING_SYSTEM_BASE_URL( "system_base_url_is_not_defined" );
+    MISSING_SYSTEM_BASE_URL( "system_base_url_is_not_defined" ),
+    APPROVED( "approved" ),
+    PENDING( "pending" ),
+    NOT_APPROVED( "not_approved" );
     
     private String message;
     

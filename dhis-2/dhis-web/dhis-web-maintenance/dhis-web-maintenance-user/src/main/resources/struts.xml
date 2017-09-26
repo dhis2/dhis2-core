@@ -207,6 +207,15 @@
       <param name="onExceptionReturn">plainTextError</param>
     </action>
     
+    <!-- Profile -->
+
+    <action name="profile"
+      class="org.hisp.dhis.user.action.GetUserAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-user/profile.vm</param>
+      <param name="menu">/dhis-web-maintenance-user/menu.vm</param>
+      <param name="stylesheets">/dhis-web-maintenance-user/style/userProfile.css</param>
+    </action>
 
   </package>
 </struts>

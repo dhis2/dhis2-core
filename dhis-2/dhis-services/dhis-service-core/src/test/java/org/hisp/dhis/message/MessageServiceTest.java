@@ -32,6 +32,7 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -45,6 +46,7 @@ import static org.junit.Assert.*;
 /**
  * @author Lars Helge Overland
  */
+@Ignore
 public class MessageServiceTest
     extends DhisSpringTest
 {

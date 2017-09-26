@@ -1056,6 +1056,20 @@ public abstract class DhisConvenienceTest
     public static ValidationRule createValidationRule( String uniqueCharacter, Operator operator, Expression leftSide,
         Expression rightSide, PeriodType periodType )
     {
+        return createValidationRule( uniqueCharacter, operator, leftSide, rightSide, periodType, false );
+    }
+
+    /**
+     * @param uniqueCharacter A unique character to identify the object.
+     * @param operator           The operator.
+     * @param leftSide           The left side expression.
+     * @param rightSide          The right side expression.
+     * @param periodType         The period-type.
+     * @param skipFormValidation Skip when validating forms.
+     */
+    public static ValidationRule createValidationRule( String uniqueCharacter, Operator operator, Expression leftSide,
+        Expression rightSide, PeriodType periodType, boolean skipFormValidation )
+    {
         Assert.notNull( leftSide, "Left side expression must be specified" );
         Assert.notNull( rightSide, "Rigth side expression must be specified" );
 
@@ -1068,6 +1082,7 @@ public abstract class DhisConvenienceTest
         validationRule.setLeftSide( leftSide );
         validationRule.setRightSide( rightSide );
         validationRule.setPeriodType( periodType );
+        validationRule.setSkipFormValidation( skipFormValidation );
 
         return validationRule;
     }

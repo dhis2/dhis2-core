@@ -49,7 +49,8 @@ public class UserParameterValidationRule
         String password = credentialsInfo.getPassword();
         String username = credentialsInfo.getUsername();
 
-        if ( StringUtils.containsIgnoreCase( password, username ) || StringUtils.containsIgnoreCase( password, email ) )
+        if ( StringUtils.containsIgnoreCase( password, StringUtils.defaultIfEmpty( username, null ) ) ||
+            StringUtils.containsIgnoreCase( password, StringUtils.defaultIfEmpty( email, null ) ) )
         {
             return new PasswordValidationResult( "Username/Email must not be a part of password", "password_username_validation", false );
         }

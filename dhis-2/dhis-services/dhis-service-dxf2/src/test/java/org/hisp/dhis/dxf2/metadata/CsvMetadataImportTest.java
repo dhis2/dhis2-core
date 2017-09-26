@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.metadata;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dxf2.csv.CsvImportClass;
 import org.hisp.dhis.dxf2.csv.CsvImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.option.OptionService;
@@ -76,7 +77,7 @@ public class CsvMetadataImportTest
     {
         input = new ClassPathResource( "metadata/dataElements.csv" ).getInputStream();
 
-        Metadata metadata = csvImportService.fromCsv( input, DataElement.class );
+        Metadata metadata = csvImportService.fromCsv( input, CsvImportClass.DATA_ELEMENT );
 
         assertEquals( 2, metadata.getDataElements().size() );
 
@@ -98,7 +99,7 @@ public class CsvMetadataImportTest
     {
         input = new ClassPathResource( "metadata/optionSets.csv" ).getInputStream();
 
-        Metadata metadata = csvImportService.fromCsv( input, OptionSet.class );
+        Metadata metadata = csvImportService.fromCsv( input, CsvImportClass.OPTION_SET );
 
         assertEquals( 4, metadata.getOptionSets().size() );
         assertEquals( 3, metadata.getOptionSets().get( 0 ).getOptions().size() );

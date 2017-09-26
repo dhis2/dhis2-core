@@ -315,6 +315,7 @@
         ../dhis-web-commons/ckeditor/adapters/jquery.js,
         javascript/viewDataEntryForm.js
       </param>
+      <param name="stylesheets">style/basic.css</param>
     </action>
 
     <action name="saveDataEntryForm"

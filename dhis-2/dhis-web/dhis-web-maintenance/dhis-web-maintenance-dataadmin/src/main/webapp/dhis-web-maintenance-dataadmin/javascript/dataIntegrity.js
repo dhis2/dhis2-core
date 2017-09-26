@@ -128,4 +128,6 @@ function populateIntegrityItems( json ) {
     displayViolation( json.validationRulesWithoutGroups, "validationRulesWithoutGroups", false, asList );
     displayViolation( json.invalidValidationRuleLeftSideExpressions, "invalidValidationRuleLeftSideExpressions", true, asMapList );
     displayViolation( json.invalidValidationRuleRightSideExpressions, "invalidValidationRuleRightSideExpressions", true, asMapList );
+    displayViolation( json.invalidProgramIndicatorExpressions, "invalidProgramIndicatorExpressions", true, asMap );
+    displayViolation( json.invalidProgramIndicatorFilters, "invalidProgramIndicatorFilters", true, asMap );
 }

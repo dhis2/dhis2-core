@@ -3,6 +3,7 @@ var endDate;
 var validationRuleGroupId;
 var sendNotifications;
 var organisationUnitId;
+var persistResults;
 
 function organisationUnitSelected( ids )
 {
@@ -24,6 +25,7 @@ function validateRunValidation()
 
   validationRuleGroupId = $( '#validationRuleGroupId' ).val();
   sendNotifications = $( '#sendNotifications' ).is( ':checked' );
+  persistResults = $( '#persistResults').is( ':checked');
 
   $.getJSON( 'validateRunValidation.action',
     {
@@ -41,7 +43,8 @@ function validateRunValidation()
             organisationUnitId: organisationUnitId,
             startDate: startDate, endDate: endDate,
             validationRuleGroupId: validationRuleGroupId,
-            sendNotifications: sendNotifications
+            sendNotifications: sendNotifications,
+            persistResults: persistResults
           },
           function(data) {
             hideHeaderMessage();

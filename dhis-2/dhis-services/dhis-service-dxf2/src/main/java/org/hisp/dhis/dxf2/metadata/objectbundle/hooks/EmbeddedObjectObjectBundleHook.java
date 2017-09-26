@@ -86,8 +86,6 @@ public class EmbeddedObjectObjectBundleHook
                 ReflectionUtils.invokeMethod( object, property.getSetterMethod(), (Object) null );
             }
         }
-
-        sessionFactory.getCurrentSession().flush();
     }
 
     private <T extends IdentifiableObject> void handleEmbeddedObjects( T object, ObjectBundle bundle, Collection<Property> properties )

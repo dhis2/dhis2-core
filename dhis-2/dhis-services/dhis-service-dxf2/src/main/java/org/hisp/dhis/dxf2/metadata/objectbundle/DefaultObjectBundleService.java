@@ -33,6 +33,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -47,9 +48,17 @@ import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.preheat.PreheatParams;
 import org.hisp.dhis.preheat.PreheatService;
+import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.schema.audit.MetadataAudit;
+import org.hisp.dhis.schema.audit.MetadataAuditService;
+import org.hisp.dhis.schema.patch.Patch;
+import org.hisp.dhis.schema.patch.PatchParams;
+import org.hisp.dhis.schema.patch.PatchService;
+import org.hisp.dhis.system.SystemInfo;
+import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +66,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -99,6 +109,18 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
     @Autowired
     private DeletedObjectService deletedObjectService;
+
+    @Autowired
+    private PatchService patchService;
+
+    @Autowired
+    private MetadataAuditService metadataAuditService;
+
+    @Autowired
+    private RenderService renderService;
+
+    @Autowired
+    private SystemService systemService;
 
     @Autowired( required = false )
     private List<ObjectBundleHook> objectBundleHooks = new ArrayList<>();
@@ -191,6 +213,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
     private TypeReport handleCreates( Session session, Class<? extends IdentifiableObject> klass, List<IdentifiableObject> objects, ObjectBundle bundle )
     {
         TypeReport typeReport = new TypeReport( klass );
+        SystemInfo systemInfo = systemService.getSystemInfo();
 
         if ( objects.isEmpty() )
         {
@@ -206,7 +229,11 @@ public class DefaultObjectBundleService implements ObjectBundleService
             notifier.notify( bundle.getTaskId(), message );
         }
 
-        objects.forEach( object -> objectBundleHooks.forEach( hook -> hook.preCreate( object, bundle ) ) );
+        objects.forEach( object -> objectBundleHooks.forEach( hook -> {
+            hook.preCreate( object, bundle );
+        } ) );
+
+        session.flush();
 
         for ( int idx = 0; idx < objects.size(); idx++ )
         {
@@ -220,19 +247,32 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             session.save( object );
 
-            if ( MetadataObject.class.isInstance( object ) )
-            {
-                deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
-            }
-
             bundle.getPreheat().replace( bundle.getPreheatIdentifier(), object );
 
             objectBundleHooks.forEach( hook -> hook.postCreate( object, bundle ) );
 
-            if ( log.isDebugEnabled() )
+            if ( systemInfo.getMetadataAudit().isAudit() || log.isDebugEnabled() )
             {
                 String msg = "(" + bundle.getUsername() + ") Created object '" + bundle.getPreheatIdentifier().getIdentifiersWithName( object ) + "'";
-                log.debug( msg );
+
+                if ( systemInfo.getMetadataAudit().isLog() || log.isDebugEnabled() )
+                {
+                    log.info( msg );
+                }
+
+                if ( systemInfo.getMetadataAudit().isPersist() )
+                {
+                    MetadataAudit audit = new MetadataAudit();
+                    audit.setCreatedAt( new Date() );
+                    audit.setCreatedBy( bundle.getUsername() );
+                    audit.setKlass( klass );
+                    audit.setUid( object.getUid() );
+                    audit.setCode( object.getCode() );
+                    audit.setType( AuditType.CREATE );
+                    audit.setValue( renderService.toJsonAsString( object ) );
+
+                    metadataAuditService.addMetadataAudit( audit );
+                }
             }
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() ) session.flush();
@@ -244,6 +284,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
     private TypeReport handleUpdates( Session session, Class<? extends IdentifiableObject> klass, List<IdentifiableObject> objects, ObjectBundle bundle )
     {
         TypeReport typeReport = new TypeReport( klass );
+        SystemInfo systemInfo = systemService.getSystemInfo();
 
         if ( objects.isEmpty() )
         {
@@ -265,8 +306,11 @@ public class DefaultObjectBundleService implements ObjectBundleService
             objectBundleHooks.forEach( hook -> hook.preUpdate( object, persistedObject, bundle ) );
         } );
 
+        session.flush();
+
         for ( int idx = 0; idx < objects.size(); idx++ )
         {
+            Patch patch = null;
             IdentifiableObject object = objects.get( idx );
             IdentifiableObject persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
 
@@ -275,6 +319,11 @@ public class DefaultObjectBundleService implements ObjectBundleService
             typeReport.addObjectReport( objectReport );
 
             preheatService.connectReferences( object, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+
+            if ( systemInfo.getMetadataAudit().isAudit() )
+            {
+                patch = patchService.diff( new PatchParams( persistedObject, object ).setIgnoreTransient( true ) );
+            }
 
             if ( bundle.getMergeMode() != MergeMode.NONE )
             {
@@ -285,19 +334,37 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             session.update( persistedObject );
 
-            if ( MetadataObject.class.isInstance( object ) )
-            {
-                deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
-            }
-
             objectBundleHooks.forEach( hook -> hook.postUpdate( persistedObject, bundle ) );
 
             bundle.getPreheat().replace( bundle.getPreheatIdentifier(), persistedObject );
 
-            if ( log.isDebugEnabled() )
+            if ( systemInfo.getMetadataAudit().isAudit() || log.isDebugEnabled() )
             {
                 String msg = "(" + bundle.getUsername() + ") Updated object '" + bundle.getPreheatIdentifier().getIdentifiersWithName( persistedObject ) + "'";
-                log.debug( msg );
+
+                if ( systemInfo.getMetadataAudit().isLog() || log.isDebugEnabled() )
+                {
+                    log.info( msg );
+
+                    if ( systemInfo.getMetadataAudit().isLog() )
+                    {
+                        log.info( renderService.toJsonAsString( patch ) );
+                    }
+                }
+
+                if ( systemInfo.getMetadataAudit().isPersist() )
+                {
+                    MetadataAudit audit = new MetadataAudit();
+                    audit.setCreatedAt( new Date() );
+                    audit.setCreatedBy( bundle.getUsername() );
+                    audit.setKlass( klass );
+                    audit.setUid( object.getUid() );
+                    audit.setCode( object.getCode() );
+                    audit.setType( AuditType.UPDATE );
+                    audit.setValue( renderService.toJsonAsString( patch ) );
+
+                    metadataAuditService.addMetadataAudit( audit );
+                }
             }
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() ) session.flush();
@@ -309,6 +376,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
     private TypeReport handleDeletes( Session session, Class<? extends IdentifiableObject> klass, List<IdentifiableObject> objects, ObjectBundle bundle )
     {
         TypeReport typeReport = new TypeReport( klass );
+        SystemInfo systemInfo = systemService.getSystemInfo();
 
         if ( objects.isEmpty() )
         {
@@ -336,12 +404,35 @@ public class DefaultObjectBundleService implements ObjectBundleService
             objectBundleHooks.forEach( hook -> hook.preDelete( object, bundle ) );
             manager.delete( object, bundle.getUser() );
 
+            if ( MetadataObject.class.isInstance( object ) )
+            {
+                deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
+            }
+
             bundle.getPreheat().remove( bundle.getPreheatIdentifier(), object );
 
-            if ( log.isDebugEnabled() )
+            if ( systemInfo.getMetadataAudit().isAudit() || log.isDebugEnabled() )
             {
                 String msg = "(" + bundle.getUsername() + ") Deleted object '" + bundle.getPreheatIdentifier().getIdentifiersWithName( object ) + "'";
-                log.debug( msg );
+
+                if ( systemInfo.getMetadataAudit().isLog() || log.isDebugEnabled() )
+                {
+                    log.info( msg );
+                }
+
+                if ( systemInfo.getMetadataAudit().isPersist() )
+                {
+                    MetadataAudit audit = new MetadataAudit();
+                    audit.setCreatedAt( new Date() );
+                    audit.setCreatedBy( bundle.getUsername() );
+                    audit.setKlass( klass );
+                    audit.setUid( object.getUid() );
+                    audit.setCode( object.getCode() );
+                    audit.setType( AuditType.DELETE );
+                    audit.setValue( renderService.toJsonAsString( object ) );
+
+                    metadataAuditService.addMetadataAudit( audit );
+                }
             }
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() ) session.flush();

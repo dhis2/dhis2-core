@@ -460,7 +460,7 @@ dhis2.de.uploadLocalData = function()
         $.ajax( {
             url: '../api/dataValues',
             data: value,
-            dataType: 'json',
+            dataType: 'text',
             type: 'post',
             success: function( data, textStatus, xhr )
             {
@@ -503,9 +503,10 @@ dhis2.de.uploadLocalData = function()
 
 dhis2.de.addEventListeners = function()
 {
-    $( '.entryfield' ).each( function( i )
+    $( '.entryfield, .entrytime' ).each( function( i )
     {
         var id = $( this ).attr( 'id' );
+        var isTimeField = $( this ).hasClass('entrytime');
 
         // If entry field is a date picker, remove old target field, and change id
         if( /-dp$/.test( id ) )
@@ -548,7 +549,7 @@ dhis2.de.addEventListeners = function()
             keyPress( event, this );
         } );
 
-        if ( type === 'DATE' )
+        if ( ( type === 'DATE' || type === 'DATETIME' ) && !isTimeField )
         {
             // Fake event, needed for valueBlur / valueFocus when using date-picker
             var fakeEvent = {
@@ -573,16 +574,34 @@ dhis2.de.addEventListeners = function()
         }
     } );
 
-    $( '.entryselect' ).each( function( i )
+    $( '.entryselect' ).each( function()
     {
         var id = $( this ).attr( 'id' );
         var split = dhis2.de.splitFieldId( id );
 
         var dataElementId = split.dataElementId;
-        var optionComboId = split.optionComboId;       
+        var optionComboId = split.optionComboId;
+        var name = dataElementId + "-" + optionComboId + "-val";
 
-        $( this ).change( function()
+        $( this ).click( function()
         {
+            if ( $(this).hasClass( "checked" ) )
+            {
+                $( this ).removeClass( "checked" );
+                $( this ).prop('checked', false );
+            }
+            else
+            {
+                $(  '[name='+ name +']' ).each( function()
+                {
+                    $( this ).removeClass( 'checked' );
+                    $( this ).prop( 'checked', false );
+                });
+
+                $( this ).prop( 'checked', true );
+                $( this ).addClass( 'checked' );
+            }
+
             saveBoolean( dataElementId, optionComboId, id );
         } );
     } );
@@ -690,7 +709,7 @@ dhis2.de.loadForm = function()
 
 	                dhis2.de.enableSectionFilter();	               
 	                $( document ).trigger( dhis2.de.event.formLoaded, dhis2.de.currentDataSetId );
-	
+
 	                loadDataValues();
                     var table = $( '.sectionTable' );
                     table.floatThead({
@@ -698,6 +717,8 @@ dhis2.de.loadForm = function()
                         top: 44,
                         zIndex: 9
                     });
+
+
 
                   dhis2.de.insertOptionSets();
 
@@ -1633,6 +1654,7 @@ function getAndInsertDataValues()
     // Clear existing values and colors, grey disabled fields
 
     $( '.entryfield' ).val( '' );
+    $( '.entrytime' ).val( '' );
     $( '.entryselect' ).removeAttr( 'checked' );
     $( '.entrytrueonly' ).removeAttr( 'checked' );
     $( '.entrytrueonly' ).removeAttr( 'onclick' );
@@ -1677,7 +1699,7 @@ function getAndInsertDataValues()
 	    	$( '#infoDiv' ).hide();
 	    	
 	    	var json = getOfflineDataValueJson( params );
-	    	
+
 	    	insertDataValues( json );
 	    },
 	    success: function( json ) // online
@@ -1789,7 +1811,6 @@ function insertDataValues( json )
     {
         var fieldId = '#' + value.id + '-val';
         var commentId = '#' + value.id + '-comment';
-
         if ( $( fieldId ).length > 0 ) // Set values
         {
             if ( $( fieldId ).attr( 'name' ) == 'entrytrueonly' && 'true' == value.val ) 
@@ -1803,17 +1824,20 @@ function insertDataValues( json )
             else if ( $( fieldId ).attr( 'class' ) == 'entryselect' )
             {                
                 var fId = fieldId.substring(1, fieldId.length);
+
+                console.log("id "+fId);
     
                 if( value.val == 'true' )
                 {
-                    $('input[id=' + fId + ']')[1].checked = true;
+                  $('input[id=' + fId + ']')[0].click();
                 }
                 else if ( value.val == 'false')
                 {
-                    $('input[id=' + fId + ']')[2].checked = true;
+                  $('input[id=' + fId + ']')[1].click();
                 }
                 else{
-                    $('input[id=' + fId + ']')[0].checked = true;
+                    $('input[id=' + fId + ']')[0].prop('checked',false);
+                    $('input[id=' + fId + ']')[1].prop('checked',false);
                 }
             }
             else if ( $( fieldId ).attr( 'class' ) == 'entryfileresource' )
@@ -1862,6 +1886,11 @@ function insertDataValues( json )
                 } ).appendTo( $filename );
 
                 $field.find( '.upload-fileinfo-size' ).text( size );
+            }
+            else if ( $( fieldId.replace('val', 'time') ).length > 0 )
+            {
+                $( fieldId ).val( value.val );
+                $( fieldId.replace('val', 'time') ).val( value.val.split('T')[1] );
             }
             else 
             {                

@@ -39,14 +39,20 @@ import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultStore;
+import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 /**
  * @author Stian Sandvold
@@ -94,6 +100,24 @@ public class HibernateValidationResultStore
         Query hibernateQuery = getQuery( "from ValidationResult vr" + getRestrictions( "where" ) );
 
         return hibernateQuery.list().size();
+    }
+
+    @Override
+    public List<ValidationResult> getValidationResults( List<OrganisationUnit> orgUnits,
+        Collection<ValidationRule> validationRules, Collection<Period> periods )
+    {
+        if ( isEmpty( orgUnits ) || isEmpty( validationRules ) || isEmpty( periods ) )
+        {
+            return new ArrayList<>();
+        }
+
+        Query query = getQuery( "from ValidationResult vr where vr.organisationUnit in :orgUnits and validationRule in :validationRules and vr.period in :periods " );
+
+        query.setParameter( "orgUnits", orgUnits );
+        query.setParameter( "validationRules", validationRules );
+        query.setParameter( "periods", periods );
+
+        return query.list();
     }
 
     @Override
