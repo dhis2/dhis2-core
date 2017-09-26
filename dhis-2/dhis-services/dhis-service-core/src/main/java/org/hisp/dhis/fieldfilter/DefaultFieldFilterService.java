@@ -35,7 +35,6 @@ import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.EmbeddedObject;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeTransformer;
@@ -44,7 +43,6 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -191,12 +189,6 @@ public class DefaultFieldFilterService implements FieldFilterService
             return new SimpleNode( schema.getName(), null );
         }
 
-        if ( Defaults.EXCLUDE == defaults && IdentifiableObject.class.isInstance( object )
-            && "default".equals( ((IdentifiableObject) object).getName() ) )
-        {
-            return null;
-        }
-
         updateFields( fieldMap, schema.getKlass() );
 
         for ( String fieldKey : fieldMap.keySet() )
@@ -245,11 +237,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                     {
                         for ( Object collectionObject : collection )
                         {
-                            if ( !(Defaults.EXCLUDE == defaults && IdentifiableObject.class.isInstance( collectionObject )
-                                && Preheat.isDefaultClass( (IdentifiableObject) collectionObject )) )
-                            {
-                                child.addChild( getProperties( property, collectionObject, fields ) );
-                            }
+                            child.addChild( getProperties( property, collectionObject, fields ) );
                         }
                     }
                     else if ( !property.isSimple() )
@@ -280,11 +268,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                 }
                 else if ( property.isIdentifiableObject() && isProperIdObject( property.getKlass() ) )
                 {
-                    if ( !(Defaults.EXCLUDE == defaults && IdentifiableObject.class.isInstance( returnValue )
-                        && Preheat.isDefaultClass( (IdentifiableObject) returnValue )) )
-                    {
-                        child = getProperties( property, returnValue, fields );
-                    }
+                    child = getProperties( property, returnValue, fields );
                 }
                 else
                 {
