@@ -1008,6 +1008,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         List<T> entityList;
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
         query.setDefaultOrder();
+        query.setDefaults( Defaults.valueOf( options.get( "defaults", "EXCLUDE" ) ) );
 
         if ( options.getOptions().containsKey( "query" ) )
         {
