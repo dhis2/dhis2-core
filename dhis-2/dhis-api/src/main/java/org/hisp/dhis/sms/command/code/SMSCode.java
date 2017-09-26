@@ -28,9 +28,9 @@ package org.hisp.dhis.sms.command.code;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
@@ -39,8 +39,11 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+import java.io.Serializable;
+
 @JacksonXmlRootElement( localName = "smscode", namespace = DxfNamespaces.DXF_2_0 )
 public class SMSCode
+    implements Serializable
 {
     private int id;
 
@@ -72,6 +75,16 @@ public class SMSCode
     public SMSCode()
     {
         
+    }
+
+    public boolean hasTrackedEntityAttribute()
+    {
+        return this.trackedEntityAttribute != null;
+    }
+
+    public boolean hasDataElement()
+    {
+        return this.dataElement != null;
     }
 
     public int getId()
@@ -156,5 +169,17 @@ public class SMSCode
     public void setCompulsory( boolean compulsory )
     {
         this.compulsory = compulsory;
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "code", code )
+            .add( "dataelement", dataElement )
+            .add( "trackedentityattribute", trackedEntityAttribute )
+            .add( "formula", formula )
+            .add( "compulsory", compulsory )
+            .toString();
     }
 }

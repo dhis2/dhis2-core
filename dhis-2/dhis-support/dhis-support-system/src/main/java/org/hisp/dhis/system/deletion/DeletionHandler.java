@@ -101,6 +101,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.security.oauth2.OAuth2Client;
+import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -956,6 +957,16 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteDataSetNotificationTemplate( DataSetNotificationTemplate dataSetNotificationTemplate )
+    {
+        return null;
+    }
+
+    public void deleteSMSCommand( SMSCommand smsCommand )
+    {
+
+    }
+
+    public String allowDeleteSMSCommand( SMSCommand smsCommand )
     {
         return null;
     }

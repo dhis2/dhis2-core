@@ -30,9 +30,12 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.parse.ParserType;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.function.Consumer;
 
@@ -48,6 +51,13 @@ public class SmsCommandObjectBundleHook extends AbstractObjectBundleHook
         .put( ParserType.ALERT_PARSER, sc -> { sc.setProgram( null ); sc.setProgramStage( null ); } )
         .build();
 
+    @Autowired
+    private DataElementService dataElementService;
+
+    @Autowired
+    private TrackedEntityAttributeService trackedEntityAttributeService;
+
+
     @Override
     public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
     {
@@ -59,10 +69,36 @@ public class SmsCommandObjectBundleHook extends AbstractObjectBundleHook
         SMSCommand command = (SMSCommand) object;
 
         process( command );
+
+        getReferences( command );
     }
 
-    private void process( SMSCommand command )
+    @Override
+    public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
+    {
+        if ( !SMSCommand.class.isInstance( object ) )
+        {
+            return;
+        }
+
+        SMSCommand command = (SMSCommand) object;
+
+        getReferences( command );
+    }
+
+    private void process(SMSCommand command )
     {
         VALUE_POPULATOR.getOrDefault( command.getParserType(), sc -> {} ).accept( command );
+    }
+
+    private void getReferences( SMSCommand command )
+    {
+        command.getCodes().stream()
+            .filter( c -> c.hasDataElement() )
+            .forEach( c -> c.setDataElement( dataElementService.getDataElement( c.getDataElement().getUid() ) ) );
+
+        command.getCodes().stream()
+            .filter( c -> c.hasTrackedEntityAttribute() )
+            .forEach( c -> c.setTrackedEntityAttribute( trackedEntityAttributeService.getTrackedEntityAttribute( c.getTrackedEntityAttribute().getUid() ) ) );
     }
 }
