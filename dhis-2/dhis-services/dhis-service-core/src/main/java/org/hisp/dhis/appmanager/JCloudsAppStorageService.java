@@ -393,7 +393,16 @@ public class JCloudsAppStorageService
     @Override
     public boolean deleteApp( App app )
     {
-        blobStore.deleteDirectory( config.container, app.getFolderName() );
+
+        log.info( "Deleting app " + app.getName() );
+
+        // Delete all files related to app
+        for ( StorageMetadata resource : blobStore.list( config.container, inDirectory( app.getFolderName() ) ) )
+        {
+            log.info( "Deleting app file: " + resource.getName() );
+
+            blobStore.removeBlob( config.container, resource.getName() );
+        }
 
         log.info( "Deleted app " + app.getName() );
 
