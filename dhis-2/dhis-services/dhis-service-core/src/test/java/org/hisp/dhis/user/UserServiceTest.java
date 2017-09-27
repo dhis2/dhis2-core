@@ -28,16 +28,7 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -45,9 +36,12 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import static org.hisp.dhis.setting.SettingKey.*;
+import static org.hisp.dhis.setting.SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -689,5 +683,36 @@ public class UserServiceTest
         assertEquals( 0, users.size() );
 
         assertEquals( 0, userService.getUserCount( params ) );
+    }
+
+    @Test
+    public void testGetExpiringUser()
+    {
+        User userA = createUser( 'A' );
+        User userB = createUser( 'B' );
+        User userC = createUser( 'C' );
+        User userD = createUser( 'D' );
+
+        UserCredentials credentialsA = createUserCredentials( 'A', userA );
+        UserCredentials credentialsB = createUserCredentials( 'B', userB );
+        UserCredentials credentialsC = createUserCredentials( 'C', userC );
+        UserCredentials credentialsD = createUserCredentials( 'D', userD );
+
+        credentialsB.setDisabled( true );
+        credentialsD.setDisabled( true );
+
+        userService.addUser( userA );
+        userService.addUser( userB );
+        userService.addUser( userC );
+        userService.addUser( userD );
+
+        userService.addUserCredentials( credentialsA );
+        userService.addUserCredentials( credentialsB );
+        userService.addUserCredentials( credentialsC );
+        userService.addUserCredentials( credentialsD );
+
+        List<User> users = userService.getExpiringUsers();
+
+        assertEquals( 2, users.size() );
     }
 }

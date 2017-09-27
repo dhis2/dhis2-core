@@ -661,6 +661,8 @@ public class DefaultUserService
 
         UserQueryParams userQueryParams = new UserQueryParams();
 
+        userQueryParams.setDisabled( false );
+
         userQueryParams.setDaysPassedSincePasswordChange( daysPassed );
 
         return userStore.getExpiringUsers( userQueryParams );
