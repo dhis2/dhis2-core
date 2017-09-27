@@ -15,7 +15,7 @@
   <bean id="oauthAccessDeniedHandler" class="org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler" />
 
   <oauth:resource-server id="resourceServerFilter" token-services-ref="tokenServices" entry-point-ref="oauthAuthenticationEntryPoint"
-    authentication-manager-ref="authenticationManager" />
+    authentication-manager-ref="oAuth2AuthenticationManager" stateless="false"/>
 
   <sec:http pattern="/uaa/oauth/token/**" create-session="stateless" authentication-manager-ref="authenticationManager" disable-url-rewriting="true"
     use-expressions="false" access-decision-manager-ref="accessDecisionManager">
@@ -149,7 +149,7 @@
     <sec:intercept-url pattern="/dhis-web-cache-cleaner/**" access="hasAnyRole('ALL,M_dhis-web-cache-cleaner')" />
 
     <sec:intercept-url pattern="/**" access="isAuthenticated()" />
-    <!-- <sec:custom-filter ref="resourceServerFilter" before="PRE_AUTH_FILTER" /> -->
+    <sec:custom-filter ref="resourceServerFilter" before="PRE_AUTH_FILTER"  />
     <sec:custom-filter ref="automaticAccessFilter" before="LOGOUT_FILTER" />
     <sec:custom-filter ref="corsFilter" before="BASIC_AUTH_FILTER" />
     <sec:custom-filter ref="customAuthenticationFilter" before="FORM_LOGIN_FILTER" />
