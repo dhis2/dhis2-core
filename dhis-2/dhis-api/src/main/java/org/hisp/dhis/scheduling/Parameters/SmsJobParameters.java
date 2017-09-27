@@ -3,8 +3,10 @@ package org.hisp.dhis.scheduling.Parameters;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.user.User;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -15,14 +17,18 @@ public class SmsJobParameters
 {
     private static final long serialVersionUID = 9L;
 
+    @Property
     private String smsSubject;
 
+    @Property
     private String text;
 
     private User currentUser;
 
+    @Property
     private List<User> recipientsList;
 
+    @Property
     private String message;
 
     private JobId jobId;

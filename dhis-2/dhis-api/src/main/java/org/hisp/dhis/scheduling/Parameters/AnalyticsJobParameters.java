@@ -1,8 +1,10 @@
 package org.hisp.dhis.scheduling.Parameters;
 
-import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.schema.annotation.Property;
 
+import java.util.HashMap;
 import java.util.Set;
 
 /**
@@ -14,12 +16,19 @@ public class AnalyticsJobParameters
     private static final long serialVersionUID = 1L;
 
     private JobId jobId;
+
+    @Property
     private Integer lastYears;
+
+    @Property
     private Set<String> skipTableTypes;
+
+    @Property
     private boolean skipResourceTables;
 
     public AnalyticsJobParameters()
-    {}
+    {
+    }
 
     public AnalyticsJobParameters( Integer lastYears, JobId jobId, Set<String> skipTableTypes, boolean skipResourceTables )
     {

@@ -3,6 +3,8 @@ package org.hisp.dhis.scheduling.Parameters;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobId;
 
+import java.util.HashMap;
+
 /**
  * @author Henning Håkonsen
  */

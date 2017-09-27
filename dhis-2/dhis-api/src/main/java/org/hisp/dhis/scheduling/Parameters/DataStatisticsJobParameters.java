@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling.Parameters;
 
-import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobParameters;
 
 /**
  * @author Henning Håkonsen
