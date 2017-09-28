@@ -54,16 +54,20 @@ public class RabbitMQAmqpService implements AmqpService
     }
 
     @Override
+    public boolean isEnabled()
+    {
+        return getAmqpTemplate() != null;
+    }
+
+    @Override
     public void publish( String key, Message message )
     {
-        AmqpTemplate template = getAmqpTemplate();
-
-        if ( template == null )
+        if ( !isEnabled() )
         {
             return;
         }
 
-        template.convertAndSend( "dhis2", key, message );
+        amqpTemplate.convertAndSend( "dhis2", key, message );
     }
 
     private AmqpTemplate getAmqpTemplate()
