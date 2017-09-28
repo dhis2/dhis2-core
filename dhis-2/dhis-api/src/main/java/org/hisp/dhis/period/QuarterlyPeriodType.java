@@ -53,7 +53,7 @@ public class QuarterlyPeriodType
 
     private static final String ISO_FORMAT = "yyyyQn";
 
-    private static final String ISO8601_DURATION = "P1Q";
+    private static final String ISO8601_DURATION = "P3M";
 
     /**
      * The name of the QuarterlyPeriodType, which is "Quarterly".
