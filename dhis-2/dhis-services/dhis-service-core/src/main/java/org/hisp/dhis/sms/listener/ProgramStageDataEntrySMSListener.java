@@ -48,6 +48,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Created by zubair@dhis2.org on 11.08.17.
  */
+
+@Transactional
 public class ProgramStageDataEntrySMSListener
     extends BaseSMSListener
 {

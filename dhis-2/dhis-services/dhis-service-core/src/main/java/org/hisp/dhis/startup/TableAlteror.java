@@ -191,6 +191,7 @@ public class TableAlteror
         executeSql( "ALTER TABLE mapview DROP COLUMN legendtype" );
         executeSql( "ALTER TABLE mapview ALTER COLUMN opacity TYPE double precision" );
 
+        executeSql( "UPDATE incomingsms SET userid = 0 WHERE userid IS NULL" );
         executeSql( "ALTER TABLE smscommands ALTER COLUMN completenessmethod TYPE text" );
         executeSql( "ALTER TABLE smscommands ALTER COLUMN uid set NOT NULL" );
         executeSql( "ALTER TABLE smscommands ALTER COLUMN created set NOT NULL" );
