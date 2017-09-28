@@ -230,6 +230,24 @@ public class DefaultSystemService
         ) );
 
         // ---------------------------------------------------------------------
+        // RabbitMQ
+        // ---------------------------------------------------------------------
+
+        RabbitMQ rabbitMQ = new RabbitMQ(
+            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_HOST ),
+            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_VIRTUAL_HOST ),
+            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PORT ) == null
+                ? null : Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PORT ) ),
+            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_USERNAME ),
+            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PASSWORD )
+        );
+
+        if ( rabbitMQ.isValid() )
+        {
+            info.setRabbitMQ( rabbitMQ );
+        }
+
+        // ---------------------------------------------------------------------
         // System env variables and properties
         // ---------------------------------------------------------------------
 
