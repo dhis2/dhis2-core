@@ -32,6 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.amqp.AmqpService;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -61,6 +62,8 @@ import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -121,6 +124,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
     @Autowired
     private SystemService systemService;
+
+    @Autowired
+    private AmqpService amqpService;
 
     @Autowired( required = false )
     private List<ObjectBundleHook> objectBundleHooks = new ArrayList<>();
@@ -251,6 +257,18 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             objectBundleHooks.forEach( hook -> hook.postCreate( object, bundle ) );
 
+            MetadataAudit audit = new MetadataAudit();
+            audit.setCreatedAt( new Date() );
+            audit.setCreatedBy( bundle.getUsername() );
+            audit.setKlass( klass );
+            audit.setUid( object.getUid() );
+            audit.setCode( object.getCode() );
+            audit.setType( AuditType.CREATE );
+            audit.setValue( renderService.toJsonAsString( object ) );
+
+            amqpService.publish( "metadata.create." + klass.getSimpleName() + "." + object.getUid(),
+                new Message( audit.getValue().getBytes(), new MessageProperties() ) );
+
             if ( systemInfo.getMetadataAudit().isAudit() || log.isDebugEnabled() )
             {
                 String msg = "(" + bundle.getUsername() + ") Created object '" + bundle.getPreheatIdentifier().getIdentifiersWithName( object ) + "'";
@@ -262,15 +280,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
                 if ( systemInfo.getMetadataAudit().isPersist() )
                 {
-                    MetadataAudit audit = new MetadataAudit();
-                    audit.setCreatedAt( new Date() );
-                    audit.setCreatedBy( bundle.getUsername() );
-                    audit.setKlass( klass );
-                    audit.setUid( object.getUid() );
-                    audit.setCode( object.getCode() );
-                    audit.setType( AuditType.CREATE );
-                    audit.setValue( renderService.toJsonAsString( object ) );
-
                     metadataAuditService.addMetadataAudit( audit );
                 }
             }
@@ -338,6 +347,18 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             bundle.getPreheat().replace( bundle.getPreheatIdentifier(), persistedObject );
 
+            MetadataAudit audit = new MetadataAudit();
+            audit.setCreatedAt( new Date() );
+            audit.setCreatedBy( bundle.getUsername() );
+            audit.setKlass( klass );
+            audit.setUid( object.getUid() );
+            audit.setCode( object.getCode() );
+            audit.setType( AuditType.UPDATE );
+            audit.setValue( renderService.toJsonAsString( patch ) );
+
+            amqpService.publish( "metadata.update." + klass.getSimpleName() + "." + object.getUid(),
+                new Message( audit.getValue().getBytes(), new MessageProperties() ) );
+
             if ( systemInfo.getMetadataAudit().isAudit() || log.isDebugEnabled() )
             {
                 String msg = "(" + bundle.getUsername() + ") Updated object '" + bundle.getPreheatIdentifier().getIdentifiersWithName( persistedObject ) + "'";
@@ -354,15 +375,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
                 if ( systemInfo.getMetadataAudit().isPersist() )
                 {
-                    MetadataAudit audit = new MetadataAudit();
-                    audit.setCreatedAt( new Date() );
-                    audit.setCreatedBy( bundle.getUsername() );
-                    audit.setKlass( klass );
-                    audit.setUid( object.getUid() );
-                    audit.setCode( object.getCode() );
-                    audit.setType( AuditType.UPDATE );
-                    audit.setValue( renderService.toJsonAsString( patch ) );
-
                     metadataAuditService.addMetadataAudit( audit );
                 }
             }
@@ -411,6 +423,18 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             bundle.getPreheat().remove( bundle.getPreheatIdentifier(), object );
 
+            MetadataAudit audit = new MetadataAudit();
+            audit.setCreatedAt( new Date() );
+            audit.setCreatedBy( bundle.getUsername() );
+            audit.setKlass( klass );
+            audit.setUid( object.getUid() );
+            audit.setCode( object.getCode() );
+            audit.setType( AuditType.DELETE );
+            audit.setValue( renderService.toJsonAsString( object ) );
+
+            amqpService.publish( "metadata.delete." + klass.getSimpleName() + "." + object.getUid(),
+                new Message( audit.getValue().getBytes(), new MessageProperties() ) );
+
             if ( systemInfo.getMetadataAudit().isAudit() || log.isDebugEnabled() )
             {
                 String msg = "(" + bundle.getUsername() + ") Deleted object '" + bundle.getPreheatIdentifier().getIdentifiersWithName( object ) + "'";
@@ -422,15 +446,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
                 if ( systemInfo.getMetadataAudit().isPersist() )
                 {
-                    MetadataAudit audit = new MetadataAudit();
-                    audit.setCreatedAt( new Date() );
-                    audit.setCreatedBy( bundle.getUsername() );
-                    audit.setKlass( klass );
-                    audit.setUid( object.getUid() );
-                    audit.setCode( object.getCode() );
-                    audit.setType( AuditType.DELETE );
-                    audit.setValue( renderService.toJsonAsString( object ) );
-
                     metadataAuditService.addMetadataAudit( audit );
                 }
             }
