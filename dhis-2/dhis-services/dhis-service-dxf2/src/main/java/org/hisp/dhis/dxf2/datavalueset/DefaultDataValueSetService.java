@@ -1179,6 +1179,15 @@ public class DefaultDataValueSetService
                             if ( !dryRun )
                             {
                                 added = dataValueBatchHandler.addObject( internalValue );
+
+                                if ( added && dataElement.isFileType() )
+                                {
+                                    FileResource fr = fileResourceService.getFileResource( internalValue.getValue() );
+
+                                    fr.setAssigned( true );
+
+                                    fileResourceService.updateFileResource( fr );
+                                }
                             }
 
                             if ( dryRun || added )
