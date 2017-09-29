@@ -29,6 +29,7 @@ package org.hisp.dhis.amqp;
  *
  */
 
+import org.hisp.dhis.schema.audit.MetadataAudit;
 import org.springframework.amqp.core.Message;
 
 /**
@@ -38,5 +39,7 @@ public interface AmqpService
 {
     boolean isEnabled();
 
-    void publish( String key, Message message );
+    void publish( String routingKey, Message message );
+
+    void publish( MetadataAudit audit );
 }

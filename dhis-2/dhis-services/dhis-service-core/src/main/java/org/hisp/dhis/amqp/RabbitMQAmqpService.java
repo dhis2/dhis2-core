@@ -29,11 +29,14 @@ package org.hisp.dhis.amqp;
  *
  */
 
+import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.schema.audit.MetadataAudit;
 import org.hisp.dhis.system.RabbitMQ;
 import org.hisp.dhis.system.SystemService;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
@@ -46,13 +49,16 @@ public class RabbitMQAmqpService implements AmqpService
 {
     private final SystemService systemService;
 
+    private final RenderService renderService;
+
     private AmqpTemplate amqpTemplate;
 
     private Boolean enabled;
 
-    public RabbitMQAmqpService( SystemService systemService )
+    public RabbitMQAmqpService( SystemService systemService, RenderService renderService )
     {
         this.systemService = systemService;
+        this.renderService = renderService;
     }
 
     @Override
@@ -67,14 +73,26 @@ public class RabbitMQAmqpService implements AmqpService
     }
 
     @Override
-    public void publish( String key, Message message )
+    public void publish( String routingKey, Message message )
     {
         if ( !isEnabled() )
         {
             return;
         }
 
-        amqpTemplate.convertAndSend( "dhis2", key, message );
+        amqpTemplate.convertAndSend( "dhis2", routingKey, message );
+    }
+
+    @Override
+    public void publish( MetadataAudit audit )
+    {
+        String routingKey = "metadata."
+            + audit.getKlass().getSimpleName().toLowerCase()
+            + "." + audit.getType().toString().toLowerCase();
+
+        String auditJson = renderService.toJsonAsString( audit );
+
+        publish( routingKey, new Message( auditJson.getBytes(), new MessageProperties() ) );
     }
 
     private AmqpTemplate getAmqpTemplate()

@@ -62,8 +62,6 @@ import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -265,17 +263,13 @@ public class DefaultObjectBundleService implements ObjectBundleService
             audit.setCode( object.getCode() );
             audit.setType( AuditType.CREATE );
 
-            String auditJson = null;
+            String auditJson;
 
             if ( amqpService.isEnabled() )
             {
                 audit.setValue( renderService.toJsonAsString( object ) );
-                auditJson = renderService.toJsonAsString( audit );
-
-                amqpService.publish( "metadata.create." + klass.getSimpleName() + "." + object.getUid(),
-                    new Message( auditJson.getBytes(), new MessageProperties() ) );
+                amqpService.publish( audit );
             }
-
 
             if ( systemInfo.getMetadataAudit().isAudit() || log.isDebugEnabled() )
             {
@@ -286,15 +280,16 @@ public class DefaultObjectBundleService implements ObjectBundleService
                     log.debug( msg );
                 }
 
+                auditJson = renderService.toJsonAsString( audit );
+
                 if ( systemInfo.getMetadataAudit().isLog() )
                 {
-                    if ( auditJson == null )
+                    if ( audit.getValue() == null )
                     {
                         audit.setValue( renderService.toJsonAsString( object ) );
-                        auditJson = renderService.toJsonAsString( audit );
                     }
 
-                    log.info( auditJson );
+                    log.info( "MetadataAuditEvent: " + auditJson );
                 }
 
                 if ( systemInfo.getMetadataAudit().isPersist() )
@@ -379,15 +374,12 @@ public class DefaultObjectBundleService implements ObjectBundleService
             audit.setCode( object.getCode() );
             audit.setType( AuditType.UPDATE );
 
-            String auditJson = null;
+            String auditJson;
 
             if ( amqpService.isEnabled() )
             {
                 audit.setValue( renderService.toJsonAsString( patch ) );
-                auditJson = renderService.toJsonAsString( audit );
-
-                amqpService.publish( "metadata.update." + klass.getSimpleName() + "." + object.getUid(),
-                    new Message( audit.getValue().getBytes(), new MessageProperties() ) );
+                amqpService.publish( audit );
             }
 
             if ( systemInfo.getMetadataAudit().isAudit() || log.isDebugEnabled() )
@@ -399,15 +391,16 @@ public class DefaultObjectBundleService implements ObjectBundleService
                     log.debug( msg );
                 }
 
+                auditJson = renderService.toJsonAsString( audit );
+
                 if ( systemInfo.getMetadataAudit().isLog() )
                 {
-                    if ( auditJson == null )
+                    if ( audit.getValue() == null )
                     {
                         audit.setValue( renderService.toJsonAsString( patch ) );
-                        auditJson = renderService.toJsonAsString( audit );
                     }
 
-                    log.info( auditJson );
+                    log.info( "MetadataAuditEvent: " + auditJson );
                 }
 
                 if ( systemInfo.getMetadataAudit().isPersist() )
@@ -473,15 +466,12 @@ public class DefaultObjectBundleService implements ObjectBundleService
             audit.setCode( object.getCode() );
             audit.setType( AuditType.DELETE );
 
-            String auditJson = null;
+            String auditJson;
 
             if ( amqpService.isEnabled() )
             {
                 audit.setValue( renderService.toJsonAsString( object ) );
-                auditJson = renderService.toJsonAsString( audit );
-
-                amqpService.publish( "metadata.delete." + klass.getSimpleName() + "." + object.getUid(),
-                    new Message( auditJson.getBytes(), new MessageProperties() ) );
+                amqpService.publish( audit );
             }
 
             if ( systemInfo.getMetadataAudit().isAudit() || log.isDebugEnabled() )
@@ -493,15 +483,16 @@ public class DefaultObjectBundleService implements ObjectBundleService
                     log.debug( msg );
                 }
 
+                auditJson = renderService.toJsonAsString( audit );
+
                 if ( systemInfo.getMetadataAudit().isLog() )
                 {
-                    if ( auditJson == null )
+                    if ( audit.getValue() == null )
                     {
                         audit.setValue( renderService.toJsonAsString( object ) );
-                        auditJson = renderService.toJsonAsString( audit );
                     }
 
-                    log.info( auditJson );
+                    log.info( "MetadataAuditEvent: " + auditJson );
                 }
 
                 if ( systemInfo.getMetadataAudit().isPersist() )
