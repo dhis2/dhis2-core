@@ -2,14 +2,12 @@ package org.hisp.dhis.webapi.controller.scheduling;
 
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
-import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.schema.NodePropertyIntrospectorService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -31,14 +29,25 @@ import java.util.Map;
 public class JobConfigurationController
     extends AbstractCrudController<JobConfiguration>
 {
-    @Autowired
-    private FieldFilterService fieldFilterService;
-
     @RequestMapping( value = "/jobTypes", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
     public @ResponseBody
     List<JobType> getJobTypes()
     {
         return Arrays.asList( JobType.values() );
+    }
+
+    private String prettyPrint( String field )
+    {
+        String[] fieldStrings = field.split("(?=[A-Z])");
+
+        fieldStrings[0] = fieldStrings[0].substring(0, 1).toUpperCase() + fieldStrings[0].substring(1);
+
+        for ( int i = 1; i<fieldStrings.length; i++)
+        {
+            fieldStrings[i] = fieldStrings[i].toLowerCase();
+        }
+
+        return String.join(" ", fieldStrings);
     }
 
     @RequestMapping( value = "/jobTypesExtended", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
@@ -56,13 +65,11 @@ public class JobConfigurationController
 
             for ( Field field : clazz.getDeclaredFields() )
             {
-                Property property = null;
-
                 if( Arrays.stream( field.getAnnotations() ).anyMatch( f -> f.annotationType().getSimpleName().equals( "Property" ) ) )
                 {
-                    property = new Property( Primitives.wrap( field.getType() ), null, null );
+                    Property property = new Property( Primitives.wrap( field.getType() ), null, null );
                     property.setName( field.getName() );
-                    property.setFieldName( field.getName() );
+                    property.setFieldName( prettyPrint( field.getName() ) );
 
                     String relativeApiElements = jobType.getRelativeApiElements() != null ? jobType.getRelativeApiElements().get( field.getName() ) : "";
                     if( relativeApiElements != null && !relativeApiElements.equals( "" ) ) property.setRelativeApiEndpoint( relativeApiElements );
@@ -71,18 +78,8 @@ public class JobConfigurationController
                     {
                         property = new NodePropertyIntrospectorService().setPropertyIfCollection( property, field, clazz );
                     }
-                }
 
-                if ( property != null )
-                {
-                    if ( property.isCollection() )
-                    {
-                        jobParameters.put( property.getCollectionName(), property );
-                    }
-                    else
-                    {
-                        jobParameters.put( property.getName(), property );
-                    }
+                    jobParameters.put( property.getName(), property );
                 }
             }
             propertyMap.put( jobType.name(), jobParameters );

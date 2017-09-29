@@ -9,6 +9,7 @@ import java.util.Optional;
  * Enum describing the different jobs in the system.
  * Each job has a name, class and an identifier describing the minimum interval time between executions.
  *
+ *
  * @author Henning Håkonsen
  */
 public enum JobType
@@ -29,8 +30,15 @@ public enum JobType
     VALIDATION_RESULTS_NOTIFICATION( "validationResultNotificationJob", ValidationResultNotificationJobParameters.class, 1000,
         null ),
     CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob", null, 1000, null ),
-    MONITORING( "monitoringJob", MonitoringJobParameters.class, 1000, null ),
-    PUSH_ANALYSIS( "pushAnalysis", PushAnalysisJobParameters.class, 1000, null ),
+    MONITORING( "monitoringJob", MonitoringJobParameters.class, 1000, new HashMap<String, String>()
+    {{
+        put("organisationUnits", "/api/organisationUnits");
+        put("validationRuleGroups", "/api/validationRuleGroups");
+    }}),
+    PUSH_ANALYSIS( "pushAnalysis", PushAnalysisJobParameters.class, 1000, new HashMap<String, String>()
+    {{
+        put("pushAnalysisId", "/api/pushAnalysis");
+    }}),
     TEST( "test", TestJobParameters.class, 1800, null );
 
     private final String key;
