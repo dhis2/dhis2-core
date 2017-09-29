@@ -301,7 +301,7 @@ public class DefaultPushAnalysisService
     {
         if ( jobId == null )
         {
-            jobId = new JobId( JobCategory.PUSH_ANALYSIS, currentUserService.getCurrentUser() );
+            jobId = new JobId( JobCategory.PUSH_ANALYSIS, currentUserService.getCurrentUser().getUid() );
             notifier.clear( jobId );
         }
 

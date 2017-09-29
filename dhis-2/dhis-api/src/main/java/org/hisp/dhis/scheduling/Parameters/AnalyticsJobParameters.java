@@ -4,7 +4,6 @@ import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.schema.annotation.Property;
 
-import java.util.HashMap;
 import java.util.Set;
 
 /**
@@ -38,9 +37,16 @@ public class AnalyticsJobParameters
         this.skipResourceTables = skipResourceTables;
     }
 
+    @Override
     public JobId getJobId()
     {
         return jobId;
+    }
+
+    @Override
+    public void setJobId( JobId jobId )
+    {
+        this.jobId = jobId;
     }
 
     public Integer getLastYears()

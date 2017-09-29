@@ -10,6 +10,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.SimpleTriggerContext;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 
@@ -44,7 +45,6 @@ public class JobConfiguration
 
     public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters, boolean enabled )
     {
-        System.out.println("JobConfig constructor called, name: " + name);
         this.name = name;
         this.cronExpression = cronExpression;
         this.jobType = jobType;

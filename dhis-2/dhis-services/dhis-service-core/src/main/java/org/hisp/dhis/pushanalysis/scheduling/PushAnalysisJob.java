@@ -56,6 +56,8 @@ public class PushAnalysisJob
     @Override
     public void execute( JobParameters jobParameters )
     {
+        System.out.println(jobParameters.getJobId());
+
         PushAnalysisJobParameters jobConfig = (PushAnalysisJobParameters) jobParameters;
 
         pushAnalysisService.runPushAnalysis( jobConfig.getPushAnalysisId(), jobConfig.getJobId() );

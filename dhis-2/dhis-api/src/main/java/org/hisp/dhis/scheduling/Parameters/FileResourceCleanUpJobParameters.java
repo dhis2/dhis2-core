@@ -3,8 +3,6 @@ package org.hisp.dhis.scheduling.Parameters;
 import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.scheduling.JobParameters;
 
-import java.util.HashMap;
-
 /**
  * @author Henning Håkonsen
  */
@@ -25,5 +23,11 @@ public class FileResourceCleanUpJobParameters
     public JobId getJobId()
     {
         return null;
+    }
+
+    @Override
+    public void setJobId( JobId jobId )
+    {
+        this.jobId = jobId;
     }
 }

@@ -140,7 +140,7 @@ public class PdfFormController
     public void sendFormPdfDataSet( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        JobId jobId = new JobId( JobCategory.DATAVALUE_IMPORT, currentUserService.getCurrentUser() );
+        JobId jobId = new JobId( JobCategory.DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid() );
 
         notifier.clear( jobId );
 

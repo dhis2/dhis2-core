@@ -66,7 +66,7 @@ public class GetImportEventSummariesAction
     @Override
     public String execute()
     {
-        JobId taskId = new JobId( JobCategory.EVENT_IMPORT, currentUserService.getCurrentUser() );
+        JobId taskId = new JobId( JobCategory.EVENT_IMPORT, currentUserService.getCurrentUser().getUid() );
 
         importSummaries = (ImportSummaries) notifier.getTaskSummary( taskId );
 

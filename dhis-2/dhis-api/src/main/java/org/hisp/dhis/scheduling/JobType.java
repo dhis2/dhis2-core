@@ -39,7 +39,7 @@ public enum JobType
     {{
         put("pushAnalysisId", "/api/pushAnalysis");
     }}),
-    TEST( "test", TestJobParameters.class, 1800, null );
+    TEST( "test", TestJobParameters.class, 300, null );
 
     private final String key;
 

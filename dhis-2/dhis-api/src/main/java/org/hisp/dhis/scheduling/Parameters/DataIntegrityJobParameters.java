@@ -24,4 +24,10 @@ public class DataIntegrityJobParameters
     {
         return jobId;
     }
+
+    @Override
+    public void setJobId( JobId jobId )
+    {
+        this.jobId = jobId;
+    }
 }

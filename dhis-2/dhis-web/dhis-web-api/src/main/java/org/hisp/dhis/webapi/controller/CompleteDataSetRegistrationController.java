@@ -562,7 +562,7 @@ public class CompleteDataSetRegistrationController
     {
         Pair<InputStream, Path> tmpFile = saveTmpFile( request.getInputStream() );
 
-        JobId jobId = new JobId( JobCategory.COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser() );
+        JobId jobId = new JobId( JobCategory.COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser().getUid() );
 
         scheduler.executeJob(
             new ImportCompleteDataSetRegistrationsTask(

@@ -7,7 +7,6 @@
 
 <hibernate-mapping>
     <class name="org.hisp.dhis.scheduling.JobConfiguration" table="jobconfiguration">
-
         <cache usage="read-write" />
 
         <id name="id" column="jobconfigurationid">

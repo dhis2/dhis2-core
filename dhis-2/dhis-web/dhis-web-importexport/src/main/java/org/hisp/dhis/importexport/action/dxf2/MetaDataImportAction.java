@@ -171,7 +171,7 @@ public class MetaDataImportAction
 
         User user = currentUserService.getCurrentUser();
 
-        JobId jobId = new JobId( JobCategory.METADATA_IMPORT, user );
+        JobId jobId = new JobId( JobCategory.METADATA_IMPORT, user.getUid() );
 
         notifier.clear( jobId );
 

@@ -32,6 +32,7 @@ import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.scheduling.JobCategory;
 import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,7 +78,7 @@ public class GetImportReportAction
     @Override
     public String execute()
     {
-        JobId taskId = new JobId( category, currentUserService.getCurrentUser() );
+        JobId taskId = new JobId( category, currentUserService.getCurrentUser().getUid() );
 
         importReport = (ImportReport) notifier.getTaskSummary( taskId );
 

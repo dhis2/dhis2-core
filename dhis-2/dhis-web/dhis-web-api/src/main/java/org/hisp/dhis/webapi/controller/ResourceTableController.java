@@ -82,7 +82,7 @@ public class ResourceTableController
         @RequestParam( required = false ) Integer lastYears,
         HttpServletResponse response, HttpServletRequest request )
     {
-        JobId jobId = new JobId( JobCategory.ANALYTICSTABLE_UPDATE, currentUserService.getCurrentUser() );
+        JobId jobId = new JobId( JobCategory.ANALYTICSTABLE_UPDATE, currentUserService.getCurrentUser().getUid() );
         
         Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
         
@@ -112,7 +112,7 @@ public class ResourceTableController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void resourceTables( HttpServletResponse response, HttpServletRequest request )
     {
-        JobId jobId = new JobId( JobCategory.RESOURCETABLE_UPDATE, currentUserService.getCurrentUser() );
+        JobId jobId = new JobId( JobCategory.RESOURCETABLE_UPDATE, currentUserService.getCurrentUser().getUid() );
 
         scheduler.executeJob( () -> analyticsTableGenerator.generateResourceTables( jobId ) );
 

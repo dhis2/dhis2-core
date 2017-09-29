@@ -625,7 +625,7 @@ public class EventController
         }
         else
         {
-            JobId jobId = new JobId( JobCategory.EVENT_IMPORT, currentUserService.getCurrentUser() );
+            JobId jobId = new JobId( JobCategory.EVENT_IMPORT, currentUserService.getCurrentUser().getUid() );
             List<Event> events = eventService.getEventsXml( inputStream );
 
             scheduler.executeJob( new ImportEventTask( events, eventService, importOptions, jobId ) );
@@ -672,7 +672,7 @@ public class EventController
         }
         else
         {
-            JobId jobId = new JobId( JobCategory.EVENT_IMPORT, currentUserService.getCurrentUser() );
+            JobId jobId = new JobId( JobCategory.EVENT_IMPORT, currentUserService.getCurrentUser().getUid() );
             List<Event> events = eventService.getEventsJson( inputStream );
             scheduler.executeJob( new ImportEventTask( events, eventService, importOptions, jobId ) );
             response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobCategory.EVENT_IMPORT );
@@ -715,7 +715,7 @@ public class EventController
         }
         else
         {
-            JobId jobId = new JobId( JobCategory.EVENT_IMPORT, currentUserService.getCurrentUser() );
+            JobId jobId = new JobId( JobCategory.EVENT_IMPORT, currentUserService.getCurrentUser().getUid() );
             scheduler.executeJob( new ImportEventsTask( events.getEvents(), eventService, importOptions, jobId ) );
             response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobCategory.EVENT_IMPORT );
             response.setStatus( HttpServletResponse.SC_NO_CONTENT );

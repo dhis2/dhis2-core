@@ -256,7 +256,7 @@ public class ProcessingSendQuickSMSAction
             }
         }
 
-        JobId jobId = new JobId( JobCategory.SENDING_SMS, currentUser );
+        JobId jobId = new JobId( JobCategory.SENDING_SMS, currentUser.getUid() );
         notifier.clear( jobId );
 
         SmsJobParameters jobParameters = new SmsJobParameters(smsSubject, text, currentUser, recipientsList, text,

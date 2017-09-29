@@ -28,37 +28,42 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.user.User;
+import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author Lars Helge Overland
  */
-public class JobId
+public class JobId implements Serializable
 {
+    private static final long serialVersionUID = 1L;
+
     private static final String SEPARATOR = "-";
     
     private JobCategory category;
     
-    private User user;
+    private String userUid;
     
     protected JobId()
     {
     }
     
-    public JobId( JobCategory category, User user )
+    public JobId( JobCategory category, String userUid )
     {
         this.category = category;
-        this.user = user;
+        this.userUid = userUid;
     }
     
     public String getId()
     {
         String id = category.toString();
+
+        id += !Objects.equals( userUid, "" ) ? SEPARATOR + userUid : "";
         
-        if ( user != null && user.getUserCredentials() != null )
+        /*if ( user != null && user.getUserCredentials() != null )
         {
             id += SEPARATOR + user.getUserCredentials().getUsername();
-        }
+        }*/
         
         return id;
     }
@@ -68,9 +73,9 @@ public class JobId
         return category;
     }
 
-    public User getUser()
+    public String getUser()
     {
-        return user;
+        return userUid;
     }
 
     @Override

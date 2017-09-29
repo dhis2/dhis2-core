@@ -75,7 +75,7 @@ public class DataIntegrityController
     @RequestMapping( value = DataIntegrityController.RESOURCE_PATH, method = RequestMethod.POST )
     public void runAsyncDataIntegrity( HttpServletResponse response, HttpServletRequest request )
     {
-        JobId jobId = new JobId( JobCategory.DATAINTEGRITY, currentUserService.getCurrentUser() );
+        JobId jobId = new JobId( JobCategory.DATAINTEGRITY, currentUserService.getCurrentUser().getUid() );
         notifier.clear( jobId );
 
         DataIntegrityJobParameters dataIntegrityJobParameters = new DataIntegrityJobParameters( jobId );

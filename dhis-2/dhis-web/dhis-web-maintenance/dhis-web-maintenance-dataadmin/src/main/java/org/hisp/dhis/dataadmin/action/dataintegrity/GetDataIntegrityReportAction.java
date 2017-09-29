@@ -73,7 +73,7 @@ public class GetDataIntegrityReportAction
     @Override
     public String execute()
     {
-        JobId taskId = new JobId( category, currentUserService.getCurrentUser() );
+        JobId taskId = new JobId( category, currentUserService.getCurrentUser().getUid() );
 
         dataIntegrityReport = (DataIntegrityReport) notifier.getTaskSummary( taskId );
 

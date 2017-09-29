@@ -13,11 +13,9 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.scheduling.*;
 import org.hisp.dhis.system.scheduling.SpringScheduler;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.threeten.bp.Duration;
 import org.threeten.bp.ZonedDateTime;
@@ -34,6 +32,9 @@ public class JobObjectBundleHook
 {
     @Autowired
     private JobConfigurationService jobConfigurationService;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     private SchedulingManager schedulingManager;
 
@@ -131,12 +132,37 @@ public class JobObjectBundleHook
     }
 
     @Override
+    public void preCreate( IdentifiableObject object, ObjectBundle bundle )
+    {
+        if ( !JobConfiguration.class.isInstance( object ) )
+        {
+            return;
+        }
+
+        JobConfiguration jobConfiguration = (JobConfiguration) object;
+        JobParameters jobParameters = jobConfiguration.getJobParameters();
+
+        jobParameters.setJobId( new JobId( JobCategory.valueOf( jobConfiguration.getJobType().toString() ), currentUserService.getCurrentUser().getUid() ) );
+        jobConfiguration.setJobParameters( jobParameters );
+
+        object = jobConfiguration;
+    }
+
+    @Override
     public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
     {
         if ( !JobConfiguration.class.isInstance( object ) )
         {
             return;
         }
+
+        JobConfiguration jobConfiguration = (JobConfiguration) object;
+        JobParameters jobParameters = jobConfiguration.getJobParameters();
+
+        jobParameters.setJobId( new JobId( JobCategory.valueOf( jobConfiguration.getJobType().toString() ), currentUserService.getCurrentUser().getUid() ) );
+        jobConfiguration.setJobParameters( jobParameters );
+
+        object = jobConfiguration;
 
         schedulingManager.stopJob( (JobConfiguration) persistedObject );
         sessionFactory.getCurrentSession().update( persistedObject );
