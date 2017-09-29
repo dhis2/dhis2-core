@@ -88,7 +88,8 @@ public class RabbitMQAmqpService implements AmqpService
     {
         String routingKey = "metadata."
             + audit.getKlass().getSimpleName().toLowerCase()
-            + "." + audit.getType().toString().toLowerCase();
+            + "." + audit.getType().toString().toLowerCase()
+            + "." + audit.getUid();
 
         String auditJson = renderService.toJsonAsString( audit );
 
