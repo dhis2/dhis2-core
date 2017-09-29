@@ -48,6 +48,8 @@ public class RabbitMQAmqpService implements AmqpService
 
     private AmqpTemplate amqpTemplate;
 
+    private Boolean enabled;
+
     public RabbitMQAmqpService( SystemService systemService )
     {
         this.systemService = systemService;
@@ -56,7 +58,12 @@ public class RabbitMQAmqpService implements AmqpService
     @Override
     public boolean isEnabled()
     {
-        return getAmqpTemplate() != null;
+        if ( enabled == null )
+        {
+            enabled = getAmqpTemplate() != null;
+        }
+
+        return enabled;
     }
 
     @Override
