@@ -47,6 +47,8 @@ public class RabbitMQ
 
     private Integer port;
 
+    private String exchange;
+
     private String username;
 
     private String password;
@@ -55,11 +57,12 @@ public class RabbitMQ
     {
     }
 
-    public RabbitMQ( String host, String virtualHost, Integer port, String username, String password )
+    public RabbitMQ( String host, String virtualHost, Integer port, String exchange, String username, String password )
     {
         this.host = host;
         this.virtualHost = virtualHost;
         this.port = port;
+        this.exchange = exchange;
         this.username = username;
         this.password = password;
     }
@@ -98,6 +101,18 @@ public class RabbitMQ
     public void setPort( Integer port )
     {
         this.port = port;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getExchange()
+    {
+        return exchange;
+    }
+
+    public void setExchange( String exchange )
+    {
+        this.exchange = exchange;
     }
 
     @JsonProperty

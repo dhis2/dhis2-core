@@ -113,7 +113,7 @@ public class RabbitMQAmqpService implements AmqpService
             connectionFactory.setPassword( rabbitMQ.getPassword() );
 
             AmqpAdmin admin = new RabbitAdmin( connectionFactory );
-            admin.declareExchange( new TopicExchange( "dhis2", true, false ) );
+            admin.declareExchange( new TopicExchange( rabbitMQ.getExchange(), true, false ) );
 
             amqpTemplate = new RabbitTemplate( connectionFactory );
         }

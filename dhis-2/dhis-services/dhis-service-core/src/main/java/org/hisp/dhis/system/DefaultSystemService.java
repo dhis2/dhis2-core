@@ -238,6 +238,7 @@ public class DefaultSystemService
             dhisConfig.getProperty( ConfigurationKey.RABBITMQ_VIRTUAL_HOST ),
             dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PORT ) == null
                 ? null : Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PORT ) ),
+            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_EXCHANGE ),
             dhisConfig.getProperty( ConfigurationKey.RABBITMQ_USERNAME ),
             dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PASSWORD )
         );

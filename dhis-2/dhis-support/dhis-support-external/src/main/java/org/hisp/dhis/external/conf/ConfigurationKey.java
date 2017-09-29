@@ -68,6 +68,7 @@ public enum ConfigurationKey
     RABBITMQ_HOST( "rabbitmq.host" ),
     RABBITMQ_VIRTUAL_HOST( "rabbitmq.virtual-host", "/", false ),
     RABBITMQ_PORT( "rabbitmq.port" ),
+    RABBITMQ_EXCHANGE( "rabbitmq.exchange", "dhis2", false ),
     RABBITMQ_USERNAME( "rabbitmq.username", "guest", false ),
     RABBITMQ_PASSWORD( "rabbitmq.password", "guest", true );
 
