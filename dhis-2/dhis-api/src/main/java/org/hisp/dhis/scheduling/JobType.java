@@ -35,11 +35,11 @@ public enum JobType
         put("organisationUnits", "/api/organisationUnits");
         put("validationRuleGroups", "/api/validationRuleGroups");
     }}),
-    PUSH_ANALYSIS( "pushAnalysis", PushAnalysisJobParameters.class, 1000, new HashMap<String, String>()
+    PUSH_ANALYSIS( "pushAnalysis", PushAnalysisJobParameters.class, 1, new HashMap<String, String>()
     {{
         put("pushAnalysisId", "/api/pushAnalysis");
     }}),
-    TEST( "test", TestJobParameters.class, 300, null );
+    TEST( "test", TestJobParameters.class, 1, null );
 
     private final String key;
 

@@ -56,9 +56,16 @@ public class PushAnalysisJob
     @Override
     public void execute( JobParameters jobParameters )
     {
-        System.out.println(jobParameters.getJobId());
-
         PushAnalysisJobParameters jobConfig = (PushAnalysisJobParameters) jobParameters;
+
+        try
+        {
+            Thread.sleep( 60000 );
+        }
+        catch ( InterruptedException e )
+        {
+            e.printStackTrace();
+        }
 
         pushAnalysisService.runPushAnalysis( jobConfig.getPushAnalysisId(), jobConfig.getJobId() );
     }
