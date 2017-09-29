@@ -263,24 +263,21 @@ public class DefaultObjectBundleService implements ObjectBundleService
             audit.setCode( object.getCode() );
             audit.setType( AuditType.CREATE );
 
-            String auditJson;
-
             if ( amqpService.isEnabled() )
             {
                 audit.setValue( renderService.toJsonAsString( object ) );
                 amqpService.publish( audit );
             }
 
-            if ( systemInfo.getMetadataAudit().isAudit() || log.isDebugEnabled() )
+            if ( log.isDebugEnabled() )
             {
                 String msg = "(" + bundle.getUsername() + ") Created object '" + bundle.getPreheatIdentifier().getIdentifiersWithName( object ) + "'";
+                log.debug( msg );
+            }
 
-                if ( log.isDebugEnabled() )
-                {
-                    log.debug( msg );
-                }
-
-                auditJson = renderService.toJsonAsString( audit );
+            if ( systemInfo.getMetadataAudit().isAudit() )
+            {
+                String auditJson = renderService.toJsonAsString( audit );
 
                 if ( systemInfo.getMetadataAudit().isLog() )
                 {
@@ -374,24 +371,21 @@ public class DefaultObjectBundleService implements ObjectBundleService
             audit.setCode( object.getCode() );
             audit.setType( AuditType.UPDATE );
 
-            String auditJson;
-
             if ( amqpService.isEnabled() )
             {
                 audit.setValue( renderService.toJsonAsString( patch ) );
                 amqpService.publish( audit );
             }
 
-            if ( systemInfo.getMetadataAudit().isAudit() || log.isDebugEnabled() )
+            if ( log.isDebugEnabled() )
             {
                 String msg = "(" + bundle.getUsername() + ") Updated object '" + bundle.getPreheatIdentifier().getIdentifiersWithName( persistedObject ) + "'";
+                log.debug( msg );
+            }
 
-                if ( log.isDebugEnabled() )
-                {
-                    log.debug( msg );
-                }
-
-                auditJson = renderService.toJsonAsString( audit );
+            if ( systemInfo.getMetadataAudit().isAudit() )
+            {
+                String auditJson = renderService.toJsonAsString( audit );
 
                 if ( systemInfo.getMetadataAudit().isLog() )
                 {
@@ -466,24 +460,21 @@ public class DefaultObjectBundleService implements ObjectBundleService
             audit.setCode( object.getCode() );
             audit.setType( AuditType.DELETE );
 
-            String auditJson;
-
             if ( amqpService.isEnabled() )
             {
                 audit.setValue( renderService.toJsonAsString( object ) );
                 amqpService.publish( audit );
             }
 
-            if ( systemInfo.getMetadataAudit().isAudit() || log.isDebugEnabled() )
+            if ( log.isDebugEnabled() )
             {
                 String msg = "(" + bundle.getUsername() + ") Deleted object '" + bundle.getPreheatIdentifier().getIdentifiersWithName( object ) + "'";
+                log.debug( msg );
+            }
 
-                if ( log.isDebugEnabled() )
-                {
-                    log.debug( msg );
-                }
-
-                auditJson = renderService.toJsonAsString( audit );
+            if ( systemInfo.getMetadataAudit().isAudit() )
+            {
+                String auditJson = renderService.toJsonAsString( audit );
 
                 if ( systemInfo.getMetadataAudit().isLog() )
                 {
