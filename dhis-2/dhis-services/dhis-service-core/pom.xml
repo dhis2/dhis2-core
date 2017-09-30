@@ -1,6 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -21,7 +21,7 @@
       </plugin>
     </plugins>
   </build>
-  
+
   <dependencies>
 
     <!-- DHIS -->
@@ -29,7 +29,7 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-api</artifactId>
-    </dependency>    
+    </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-hibernate</artifactId>
@@ -50,7 +50,7 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-jdbc</artifactId>
     </dependency>
-    
+
     <!-- Other -->
 
     <dependency>
@@ -84,7 +84,11 @@
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-ldap</artifactId>
-    </dependency>    
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.amqp</groupId>
+      <artifactId>spring-rabbit</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.hisp</groupId>
       <artifactId>quick</artifactId>
@@ -114,7 +118,7 @@
       <groupId>com.googlecode.jsmpp</groupId>
       <artifactId>jsmpp</artifactId>
     </dependency>
-      
+
   </dependencies>
   <properties>
     <rootDir>../../</rootDir>

@@ -64,7 +64,13 @@ public enum ConfigurationKey
     CACHE_SERVERS( "cache.servers", "localhost:11211", false ),
     CACHE_TIME( "cache.time", "600", false ),
     METADATA_AUDIT_PERSIST( "metadata.audit.persist", "off", false ),
-    METADATA_AUDIT_LOG( "metadata.audit.log", "off", false );
+    METADATA_AUDIT_LOG( "metadata.audit.log", "off", false ),
+    RABBITMQ_HOST( "rabbitmq.host" ),
+    RABBITMQ_VIRTUAL_HOST( "rabbitmq.virtual-host", "/", false ),
+    RABBITMQ_PORT( "rabbitmq.port" ),
+    RABBITMQ_EXCHANGE( "rabbitmq.exchange", "dhis2", false ),
+    RABBITMQ_USERNAME( "rabbitmq.username", "guest", false ),
+    RABBITMQ_PASSWORD( "rabbitmq.password", "guest", true );
 
     private final String key;
 
