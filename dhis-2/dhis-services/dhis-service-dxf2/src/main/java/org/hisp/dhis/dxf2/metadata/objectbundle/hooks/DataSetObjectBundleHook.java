@@ -66,19 +66,19 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
         {
             for ( DataInputPeriod period : inputPeriods )
             {
-                if ( !ObjectUtils.allNonNull( period.getOpeningDate(), period.getClosingDate() ) )
+                if ( period.getOpeningDate() != null && !DateUtils.between( period.getOpeningDate(), period.getPeriod().getStartDate(), period.getPeriod().getEndDate() ) )
                 {
-                    errors.add( new ErrorReport( DataSet.class, ErrorCode.E4014, period.getClosingDate(), period.getOpeningDate() ) );
+                    errors.add( new ErrorReport( DataSet.class, ErrorCode.E4015, period.getClosingDate(), period.getOpeningDate(), period.getPeriod().toString() ) );
                 }
-                else if ( period.getOpeningDate().after( period.getClosingDate() ) )
+
+                if ( period.getClosingDate() != null && !DateUtils.between( period.getClosingDate(), period.getPeriod().getStartDate(), period.getPeriod().getEndDate() ) )
+                {
+                    errors.add( new ErrorReport( DataSet.class, ErrorCode.E4015, period.getClosingDate(), period.getOpeningDate(), period.getPeriod().toString() ) );
+                }
+
+                if ( ObjectUtils.allNonNull( period.getOpeningDate(), period.getClosingDate() ) && period.getOpeningDate().after( period.getClosingDate() ) )
                 {
                     errors.add( new ErrorReport( DataSet.class, ErrorCode.E4013, period.getClosingDate(), period.getOpeningDate() ) );
-                }
-                else if ( !DateUtils.between( period.getOpeningDate(), period.getPeriod().getStartDate(), period.getPeriod().getEndDate() )
-                    || !DateUtils.between( period.getClosingDate(), period.getPeriod().getStartDate(), period.getPeriod().getEndDate() ))
-                {
-                    errors.add( new ErrorReport( DataSet.class, ErrorCode.E4015, period.getClosingDate(), period.getOpeningDate(),
-                        period.getPeriod().toString() ) );
                 }
             }
         }
