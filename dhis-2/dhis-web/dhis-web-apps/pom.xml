@@ -30,8 +30,6 @@
             </goals>
             <configuration>
               <artifactItems>
-              <!-- 2.25 -->
-
                 <!-- Core Resource -->
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
@@ -54,7 +52,7 @@
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-app-management</artifactId>
-                  <version>2.25-SNAPSHOT</version>
+                  <version>2.28-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-app-management</outputDirectory>
                   <includes>**/*.*</includes>
@@ -86,14 +84,11 @@
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-user-profile</outputDirectory>
                   <includes>**/*.*</includes>
                 </artifactItem>
-
-                <!-- 2.26 -->
-
                 <!-- Settings -->
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-settings</artifactId>
-                  <version>2.26-SNAPSHOT</version>
+                  <version>2.28-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-settings</outputDirectory>
                   <includes>**/*.*</includes>
