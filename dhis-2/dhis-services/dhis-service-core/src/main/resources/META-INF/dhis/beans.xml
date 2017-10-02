@@ -86,6 +86,8 @@
 
   <bean id="org.hisp.dhis.schema.validation.SchemaValidator" class="org.hisp.dhis.schema.validation.DefaultSchemaValidator" />
 
+  <bean class="org.hisp.dhis.amqp.RabbitMQAmqpService" />
+
   <!-- Store definitions -->
 
   <bean id="org.hisp.dhis.report.ReportStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">

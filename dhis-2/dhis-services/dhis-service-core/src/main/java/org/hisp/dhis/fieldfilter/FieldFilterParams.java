@@ -48,7 +48,7 @@ public final class FieldFilterParams
      */
     private List<String> fields;
 
-    private Defaults defaults = Defaults.INCLUDE;
+    private Defaults defaults = Defaults.EXCLUDE;
 
     public FieldFilterParams( List<?> objects, List<String> fields )
     {

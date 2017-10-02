@@ -109,6 +109,7 @@
       <param name="menu">/dhis-web-validationrule/menu.vm</param>
       <param name="javascripts">
         ../dhis-web-commons/oust/oust.js,
+
         ../dhis-web-commons/javascripts/lists.js,
         javascript/dataAnalysis.js
       </param>

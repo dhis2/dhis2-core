@@ -23,10 +23,6 @@ This repository contains the source code for the server-side component of DHIS 2
 
 To build it you must first install the root POM file, navigate to the dhis-web directory and then build the web POM file.
 
-<pre>
-cd dhis-2
-mvn install
-cd dhis-web
-mvn install
-</pre>
+Check [contributing](https://github.com/dhis2/dhis2-core/blob/master/CONTRIBUTING.md) for the procedure to make it run locally.
+
 [![Build Status](https://travis-ci.org/dhis2/dhis2-core.svg?branch=master)](https://travis-ci.org/dhis2/dhis2-core)

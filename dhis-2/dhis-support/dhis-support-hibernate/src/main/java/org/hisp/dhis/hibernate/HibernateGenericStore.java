@@ -191,6 +191,11 @@ public class HibernateGenericStore<T>
         return getSession().createQuery( hql ).setCacheable( cacheable );
     }
 
+    protected final TypedQuery getJpaQuery( String jpaQuery )
+    {
+        return getSession().createQuery( jpaQuery ).setCacheable( cacheable );
+    }
+
     /**
      * Creates a SqlQuery.
      *

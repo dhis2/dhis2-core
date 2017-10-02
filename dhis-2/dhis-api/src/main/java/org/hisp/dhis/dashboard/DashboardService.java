@@ -28,14 +28,15 @@ package org.hisp.dhis.dashboard;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.document.Document;
+import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
+
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -83,6 +84,8 @@ public interface DashboardService
     int countMapDashboardItems( Map map );
 
     int countChartDashboardItems( Chart chart );
+
+    int countEventChartDashboardItems( EventChart eventChart );
 
     int countReportTableDashboardItems( ReportTable reportTable );
 

@@ -174,6 +174,8 @@ public class DefaultMetadataExportService implements MetadataExportService
             }
 
             query.setDefaultOrder();
+            query.setDefaults( params.getDefaults() );
+
             List<? extends IdentifiableObject> objects = queryService.query( query );
 
             if ( !objects.isEmpty() )

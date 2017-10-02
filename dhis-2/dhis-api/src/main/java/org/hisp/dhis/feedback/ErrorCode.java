@@ -64,6 +64,9 @@ public enum ErrorCode
     E4010( "Attribute `{0}` is not supported for type `{1}`." ),
     E4011( "Attribute `{0}` is required, but no value was found." ),
     E4012( "Attribute `{0}` contains elements of different period type than the data set it was added to" ),
+    E4013( "Invalid Closing date `{0}`, must be after Opening date `{1}`"),
+    E4014( "Invalid Closing date `{0}` or Opening date `{1}`"),
+    E4015( "Closing date `{0}` or Opening date `{1}` is out of period range {3}"),
 
     /* Preheat Errors */
     E5000( "Found matching object for given reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),

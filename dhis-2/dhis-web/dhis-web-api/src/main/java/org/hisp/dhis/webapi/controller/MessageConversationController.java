@@ -33,6 +33,7 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.message.MessageConversationPriority;
@@ -159,6 +160,7 @@ public class MessageConversationController
 
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
         query.setDefaultOrder();
+        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setObjects( messageConversations );
 
         return (List<org.hisp.dhis.message.MessageConversation>) queryService.query( query );

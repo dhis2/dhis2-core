@@ -127,6 +127,8 @@ public class SystemInfo
 
     private MetadataAudit metadataAudit;
 
+    private RabbitMQ rabbitMQ;
+
     public SystemInfo instance()
     {
         SystemInfo info = new SystemInfo();
@@ -597,5 +599,17 @@ public class SystemInfo
     public void setMetadataAudit( MetadataAudit metadataAudit )
     {
         this.metadataAudit = metadataAudit;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public RabbitMQ getRabbitMQ()
+    {
+        return rabbitMQ;
+    }
+
+    public void setRabbitMQ( RabbitMQ rabbitMQ )
+    {
+        this.rabbitMQ = rabbitMQ;
     }
 }

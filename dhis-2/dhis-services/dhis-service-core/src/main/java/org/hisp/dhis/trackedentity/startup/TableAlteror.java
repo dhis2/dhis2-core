@@ -120,6 +120,8 @@ public class TableAlteror
         executeSql( "ALTER TABLE programstage DROP COLUMN stageinprogram" );
 
         executeSql( "CREATE INDEX index_programinstance ON programinstance( programinstanceid )" );
+        executeSql( "CREATE INDEX index_trackedentitydatavalue_programstageinstanceid ON trackedentitydatavalue( programstageinstanceid )" );
+        executeSql( "CREATE INDEX index_trackedentitydatavalueaudit_programstageinstanceid ON trackedentitydatavalueaudit( programstageinstanceid )" );
 
         executeSql( "ALTER TABLE program DROP COLUMN maxDaysAllowedInputData" );
 

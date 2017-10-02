@@ -54,6 +54,6 @@ public class HibernateCurrentUserStore
         query.setParameter( "username", username );
         query.setHint( HibernateUtils.HIBERNATE_CACHEABLE_HINT, true );
         
-        return ( UserCredentials ) query.getSingleResult();
+        return ( UserCredentials ) query.getResultList().stream().findFirst().orElse( null );
     }
 }

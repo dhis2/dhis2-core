@@ -55,13 +55,13 @@ import org.hisp.dhis.system.util.DateUtils;
  */
 public class AdxPeriod
 {
-    public static enum Duration
+    public enum Duration
     {
         P1D, // daily
-        P7D, // weekly
+        P7D,// weekly
         P1M, // monthly
         P2M, // bi-monthly
-        P1Q, // quarterly
+        P3M, // quarterly
         P6M, // 6monthly (including 6monthlyApril)
         P1Y  // yearly, financialApril, financialJuly, financialOctober
     }
@@ -78,7 +78,7 @@ public class AdxPeriod
 
         try
         {
-            Period period = null;
+            Period period;
             PeriodType periodType = null;
             Date startDate = DateUtils.getMediumDate( tokens[0] );
             Calendar cal = Calendar.getInstance();
@@ -99,7 +99,7 @@ public class AdxPeriod
                 case P2M:
                     periodType = new BiMonthlyPeriodType();
                     break;
-                case P1Q:
+                case P3M:
                     periodType = new QuarterlyPeriodType();
                     break;
                 case P6M:

@@ -28,9 +28,7 @@ package org.hisp.dhis.validationrule.action.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.dataanalysis.DataAnalysisService;
 import org.hisp.dhis.dataanalysis.FollowupAnalysisService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
@@ -38,7 +36,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
 import org.hisp.dhis.util.SessionUtils;
 
-import com.opensymphony.xwork2.Action;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -64,6 +63,18 @@ public class GetFollowupAction
     public void setSelectionTreeManager( SelectionTreeManager selectionTreeManager )
     {
         this.selectionTreeManager = selectionTreeManager;
+    }
+
+    private String dataSetId;
+
+    public void setDataSetId( String dataSetId )
+    {
+        this.dataSetId = dataSetId;
+    }
+
+    public String getDataSetId()
+    {
+        return this.dataSetId;
     }
 
     // -------------------------------------------------------------------------
@@ -95,7 +106,9 @@ public class GetFollowupAction
 
         if ( orgUnit != null )
         {
-            dataValues = followupAnalysisService.getFollowupDataValues( orgUnit, DataAnalysisService.MAX_OUTLIERS + 1 ); // +1 to detect overflow
+
+            dataValues = followupAnalysisService.getFollowupDataValues( orgUnit, dataSetId, DataAnalysisService.MAX_OUTLIERS + 1 ); // +1 to
+            // detect overflow
 
             maxExceeded = dataValues.size() > DataAnalysisService.MAX_OUTLIERS;
         }

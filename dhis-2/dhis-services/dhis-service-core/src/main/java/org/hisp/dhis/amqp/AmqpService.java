@@ -1,4 +1,4 @@
-package org.hisp.dhis.dataanalysis;
+package org.hisp.dhis.amqp;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,51 +26,20 @@ package org.hisp.dhis.dataanalysis;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.datavalue.DeflatedDataValue;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.hisp.dhis.schema.audit.MetadataAudit;
+import org.springframework.amqp.core.Message;
 
 /**
- * @author Halvdan Hoem Grelland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DefaultFollowupAnalysisService
-    implements FollowupAnalysisService
+public interface AmqpService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    boolean isEnabled();
 
-    private DataAnalysisStore dataAnalysisStore;
-    
-    public void setDataAnalysisStore( DataAnalysisStore dataAnalysisStore )
-    {
-        this.dataAnalysisStore = dataAnalysisStore;
-    }
+    void publish( String routingKey, Message message );
 
-    @Autowired
-    private DataSetService dataSetService;
-
-    // -------------------------------------------------------------------------
-    // FollowupAnalysisService implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, String dataSetId, int limit )
-    {
-        if( organisationUnit == null || limit < 1 )
-        {
-            return new ArrayList<>();
-        }
-
-        DataSet dataSet = dataSetService.getDataSet( dataSetId );
-
-        return dataAnalysisStore.getFollowupDataValues( organisationUnit, dataSet, limit );
-    }
+    void publish( MetadataAudit audit );
 }

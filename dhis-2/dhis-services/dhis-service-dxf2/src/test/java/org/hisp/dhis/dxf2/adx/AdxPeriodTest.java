@@ -56,9 +56,9 @@ public class AdxPeriodTest
             assertEquals( "201501", period.getIsoDate() );
             period = AdxPeriod.parse( "2015-01-01/P1D" );
             assertEquals( "20150101", period.getIsoDate() );
-            period = AdxPeriod.parse( "2015-01-01/P1Q" );
+            period = AdxPeriod.parse( "2015-01-01/P3M" );
             assertEquals( "2015Q1", period.getIsoDate() );
-            period = AdxPeriod.parse( "2015-04-01/P1Q" );
+            period = AdxPeriod.parse( "2015-04-01/P3M" );
             assertEquals( "2015Q2", period.getIsoDate() );
             period = AdxPeriod.parse( "2015-01-01/P7D" );
             assertEquals( "2015W1", period.getIsoDate() );
@@ -129,7 +129,7 @@ public class AdxPeriodTest
         period = PeriodType.getPeriodFromIsoString( "2015W1" );
         assertEquals( "2014-12-29/P7D", AdxPeriod.serialize( period ) );
         period = PeriodType.getPeriodFromIsoString( "2015Q2" );
-        assertEquals( "2015-04-01/P1Q", AdxPeriod.serialize( period ) );
+        assertEquals( "2015-04-01/P3M", AdxPeriod.serialize( period ) );
         period = PeriodType.getPeriodFromIsoString( "2015April" );
         assertEquals( "2015-04-01/P1Y", AdxPeriod.serialize( period ) );
         period = PeriodType.getPeriodFromIsoString( "2015S2" );

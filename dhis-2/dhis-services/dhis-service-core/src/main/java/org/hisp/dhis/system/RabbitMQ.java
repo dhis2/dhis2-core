@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.audit;
+package org.hisp.dhis.system;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -30,146 +30,130 @@ package org.hisp.dhis.schema.audit;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DxfNamespaces;
-
-import java.util.Date;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "metadataAudit", namespace = DxfNamespaces.DXF_2_0 )
-public class MetadataAudit
+@JacksonXmlRootElement( localName = "rabbitmq", namespace = DxfNamespaces.DXF_2_0 )
+public class RabbitMQ
 {
-    private int id;
+    private String host;
 
-    private Date createdAt = new Date();
+    private String virtualHost;
 
-    private String createdBy;
+    private Integer port;
 
-    private Class<?> klass;
+    private String exchange;
 
-    private String uid;
+    private String username;
 
-    private String code;
+    private String password;
 
-    private AuditType type;
-
-    private String value;
-
-    public MetadataAudit()
+    public RabbitMQ()
     {
     }
 
-    public int getId()
+    public RabbitMQ( String host, String virtualHost, Integer port, String exchange, String username, String password )
     {
-        return id;
-    }
-
-    public void setId( int id )
-    {
-        this.id = id;
+        this.host = host;
+        this.virtualHost = virtualHost;
+        this.port = port;
+        this.exchange = exchange;
+        this.username = username;
+        this.password = password;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getCreatedAt()
+    public String getHost()
     {
-        return createdAt;
+        return host;
     }
 
-    public void setCreatedAt( Date createdAt )
+    public void setHost( String host )
     {
-        this.createdAt = createdAt;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getCreatedBy()
-    {
-        return createdBy;
-    }
-
-    public void setCreatedBy( String createdBy )
-    {
-        this.createdBy = createdBy;
+        this.host = host;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Class<?> getKlass()
+    public String getVirtualHost()
     {
-        return klass;
+        return virtualHost;
     }
 
-    public void setKlass( Class<?> klass )
+    public void setVirtualHost( String virtualHost )
     {
-        this.klass = klass;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getUid()
-    {
-        return uid;
-    }
-
-    public void setUid( String uid )
-    {
-        this.uid = uid;
+        this.virtualHost = virtualHost;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getCode()
+    public Integer getPort()
     {
-        return code;
+        return port;
     }
 
-    public void setCode( String code )
+    public void setPort( Integer port )
     {
-        this.code = code;
+        this.port = port;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AuditType getType()
+    public String getExchange()
     {
-        return type;
+        return exchange;
     }
 
-    public void setType( AuditType type )
+    public void setExchange( String exchange )
     {
-        this.type = type;
+        this.exchange = exchange;
     }
 
     @JsonProperty
-    @JsonRawValue
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getValue()
+    public String getUsername()
     {
-        return value;
+        return username;
     }
 
-    public void setValue( String value )
+    public void setUsername( String username )
     {
-        this.value = value;
+        this.username = username;
     }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getPassword()
+    {
+        return password;
+    }
+
+    public void setPassword( String password )
+    {
+        this.password = password;
+    }
+
+    public boolean isValid()
+    {
+        return host != null && port != null;
+    }
+
 
     @Override
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-            .add( "createdAt", createdAt )
-            .add( "createdBy", createdBy )
-            .add( "uid", uid )
-            .add( "code", code )
-            .add( "type", type )
-            .add( "value", value )
+            .add( "host", host )
+            .add( "virtualHost", virtualHost )
+            .add( "port", port )
+            .add( "username", username )
+            .add( "password", password )
             .toString();
     }
 }
