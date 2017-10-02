@@ -67,10 +67,11 @@ public enum ConfigurationKey
     METADATA_AUDIT_LOG( "metadata.audit.log", "off", false ),
     RABBITMQ_HOST( "rabbitmq.host" ),
     RABBITMQ_VIRTUAL_HOST( "rabbitmq.virtual-host", "/", false ),
-    RABBITMQ_PORT( "rabbitmq.port" ),
+    RABBITMQ_PORT( "rabbitmq.port", "5672", false ),
     RABBITMQ_EXCHANGE( "rabbitmq.exchange", "dhis2", false ),
     RABBITMQ_USERNAME( "rabbitmq.username", "guest", false ),
-    RABBITMQ_PASSWORD( "rabbitmq.password", "guest", true );
+    RABBITMQ_PASSWORD( "rabbitmq.password", "guest", true ),
+    RABBITMQ_CONNECTION_TIMEOUT( "rabbitmq.connection-timeout", "60000", false );
 
     private final String key;
 

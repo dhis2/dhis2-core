@@ -53,11 +53,13 @@ public class RabbitMQ
 
     private String password;
 
+    private int connectionTimeout;
+
     public RabbitMQ()
     {
     }
 
-    public RabbitMQ( String host, String virtualHost, Integer port, String exchange, String username, String password )
+    public RabbitMQ( String host, String virtualHost, Integer port, String exchange, String username, String password, int connectionTimeout )
     {
         this.host = host;
         this.virtualHost = virtualHost;
@@ -65,6 +67,7 @@ public class RabbitMQ
         this.exchange = exchange;
         this.username = username;
         this.password = password;
+        this.connectionTimeout = connectionTimeout;
     }
 
     @JsonProperty
@@ -139,11 +142,22 @@ public class RabbitMQ
         this.password = password;
     }
 
-    public boolean isValid()
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getConnectionTimeout()
     {
-        return host != null && port != null;
+        return connectionTimeout;
     }
 
+    public void setConnectionTimeout( int connectionTimeout )
+    {
+        this.connectionTimeout = connectionTimeout;
+    }
+
+    public boolean isValid()
+    {
+        return host != null;
+    }
 
     @Override
     public String toString()
@@ -154,6 +168,7 @@ public class RabbitMQ
             .add( "port", port )
             .add( "username", username )
             .add( "password", password )
+            .add( "connectionTimeout", connectionTimeout )
             .toString();
     }
 }
