@@ -1,13 +1,13 @@
 package org.hisp.dhis.analytics.validation.data;
 
 import org.hisp.dhis.analytics.AnalyticsTableManager;
-import org.hisp.dhis.analytics.validation.ValidationViolationAnalyticsTableService;
+import org.hisp.dhis.analytics.validation.ValidationResultAnalyticsService;
 
 /**
  * @author Henning Håkonsen
  */
-public class DefaultValidationViolationAnalyticsTableService
-    implements ValidationViolationAnalyticsTableService
+public class DefaultValidationResultAnalyticsService
+    implements ValidationResultAnalyticsService
 {
     private AnalyticsTableManager tableManager;
 
@@ -15,6 +15,7 @@ public class DefaultValidationViolationAnalyticsTableService
     {
         this.tableManager = tableManager;
     }
+
 
 
 

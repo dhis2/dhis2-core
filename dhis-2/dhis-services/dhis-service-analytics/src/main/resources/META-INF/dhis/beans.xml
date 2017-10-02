@@ -16,7 +16,7 @@
   
   <bean id="org.hisp.dhis.analytics.EnrollmentAnalyticsTableManager" class="org.hisp.dhis.analytics.table.JdbcEnrollmentAnalyticsTableManager" />
 
-  <bean id="org.hisp.dhis.analytics.ValidationViolationAnalyticsTableManager" class="org.hisp.dhis.analytics.table.JdbcValidationViolationTableManager" />
+  <bean id="org.hisp.dhis.analytics.ValidationResultAnalyticsTableManager" class="org.hisp.dhis.analytics.table.JdbcValidationResultTableManager" />
   
   <!-- Table services -->
   
@@ -40,8 +40,8 @@
     <property name="tableManager" ref="org.hisp.dhis.analytics.EventAnalyticsTableManager" />
   </bean>
   
-  <bean id="org.hisp.dhis.analytics.ValidationViolationAnalyticsTableService" class="org.hisp.dhis.analytics.validation.data.DefaultValidationViolationAnalyticsTableService">
-    <property name="tableManager" ref="org.hisp.dhis.analytics.ValidationViolationAnalyticsTableManager" />
+  <bean id="org.hisp.dhis.analytics.ValidationResultTableService" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableService">
+    <property name="tableManager" ref="org.hisp.dhis.analytics.ValidationResultAnalyticsTableManager" />
   </bean>
 
   <bean id="org.hisp.dhis.analytics.EnrollmentAnalyticsTableService" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableService">
@@ -85,9 +85,7 @@
 
   <!-- Validation violation analytics -->
 
-  <bean id="org.hisp.dhis.analytics.validation.ValidationViolationManager" class="org.hisp.dhis.analytics.validation.data.JdbcValidationViolationAnalyticsManager" />
-
-  <bean id="org.hisp.dhis.analytics.validation.ValidationViolationService" class="org.hisp.dhis.analytics.validation.data.DefaultValidationViolationAnalyticsTableService" />
+  <bean id="org.hisp.dhis.analytics.validation.ValidationResultManager" class="org.hisp.dhis.analytics.validation.data.JdbcValidationResultAnalyticsManager" />
 
   <!-- Scheduled tasks -->
   

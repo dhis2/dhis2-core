@@ -41,8 +41,8 @@ public enum AnalyticsTableType
     ORG_UNIT_TARGET( "analytics_orgunittarget" ),
     EVENT( "analytics_event" ),
     ENROLLMENT( "analytics_enrollment" ),
-    VALIDATION_VIOLATION( "analytics_validation_violation" );
-    
+    VALIDATION_RESULT( "analytics_validation_result" );
+
     private String tableName;
     
     AnalyticsTableType( String tableName )

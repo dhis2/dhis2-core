@@ -1,24 +1,22 @@
 package org.hisp.dhis.analytics.table;
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
-import static org.hisp.dhis.commons.util.TextUtils.removeLast;
-
 /**
  * @author Henning Håkonsen
  */
-public class JdbcValidationViolationTableManager
+public class JdbcValidationResultTableManager
     extends AbstractJdbcTableManager
 {
     @Autowired
@@ -27,19 +25,62 @@ public class JdbcValidationViolationTableManager
     @Override
     protected void populateTable( AnalyticsTable table )
     {
+        final String start = DateUtils.getMediumDateString( table.getPeriod().getStartDate() );
+        final String end = DateUtils.getMediumDateString( table.getPeriod().getEndDate() );
+        final String tableName = table.getTempTableName();
 
+        String insert = "insert into " + table.getTempTableName() + " (";
+
+        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
+
+        validateDimensionColumns( columns );
+
+        for ( AnalyticsTableColumn col : columns )
+        {
+            insert += col.getName() + ",";
+        }
+
+        insert += "value) ";
+
+        String select = "select ";
+
+        for ( AnalyticsTableColumn col : columns )
+        {
+            select += col.getAlias() + ",";
+        }
+
+        select = select.replace( "organisationunitid", "sourceid" ); // Legacy fix
+
+        select +=
+            "cdr.created as value " +
+                "from validationresult cdr " +
+                "inner join validationrule vr on vr.validationruleid=cdr.validationruleid " +
+                "inner join _organisationunitgroupsetstructure ougs on cdr.organisationunitid=ougs.organisationunitid " +
+                "left join _orgunitstructure ous on cdr.organisationunitid=ous.organisationunitid " +
+                "inner join _categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid " +
+                "inner join period pe on cdr.periodid=pe.periodid " +
+                "inner join _periodstructure ps on cdr.periodid=ps.periodid " +
+                "where pe.startdate >= '" + start + "' " +
+                "and pe.startdate <= '" + end + "' " +
+                "and cdr.created is not null";
+
+        final String sql = insert + select;
+
+        populateAndLog( sql, tableName );
     }
 
     @Override
     public AnalyticsTableType getAnalyticsTableType()
     {
-        return AnalyticsTableType.VALIDATION_VIOLATION;
+        return AnalyticsTableType.VALIDATION_RESULT;
     }
 
     @Override
     public List<AnalyticsTable> getTables( Date earliest )
     {
-        return null;
+        log.info( "Get tables using earliest: " + earliest );
+
+        return getTables( getDataYears( earliest ) );
     }
 
     @Override
@@ -51,8 +92,8 @@ public class JdbcValidationViolationTableManager
     @Override
     public String validState()
     {
-        // TODO verify
-        boolean hasData = jdbcTemplate.queryForRowSet( "select datasetid from validationviolation limit 1" ).next();
+        boolean hasData = jdbcTemplate.queryForRowSet( "SELECT validationresultid FROM validationresult LIMIT 1" )
+            .next();
 
         if ( !hasData )
         {
@@ -82,13 +123,29 @@ public class JdbcValidationViolationTableManager
             sqlCreate += col.getName() + " " + col.getDataType() + ",";
         }
 
-        sqlCreate = removeLast( sqlCreate, 1 ) + ")";
+        sqlCreate += "value date)";
 
         log.info( "Creating table: " + tableName + ", columns: " + columns.size() );
 
         log.debug( "Create SQL: " + sqlCreate );
 
         jdbcTemplate.execute( sqlCreate );
+    }
+
+    private List<Integer> getDataYears( Date earliest )
+    {
+        String sql =
+            "select distinct(extract(year from pe.startdate)) " +
+                "from validationresult cdr " +
+                "inner join period pe on cdr.periodid=pe.periodid " +
+                "where pe.startdate is not null ";
+
+        if ( earliest != null )
+        {
+            sql += "and pe.startdate >= '" + DateUtils.getMediumDateString( earliest ) + "'";
+        }
+
+        return jdbcTemplate.queryForList( sql, Integer.class );
     }
 
     @Override
@@ -117,12 +174,14 @@ public class JdbcValidationViolationTableManager
 
         for ( OrganisationUnitGroupSet groupSet : orgUnitGroupSets )
         {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "ougs." + quote( groupSet.getUid() ), groupSet.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)",
+                "ougs." + quote( groupSet.getUid() ), groupSet.getCreated() ) );
         }
 
         for ( DataElementCategory category : attributeCategories )
         {
-            columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "acs." + quote( category.getUid() ), category.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)",
+                "acs." + quote( category.getUid() ), category.getCreated() ) );
         }
 
         for ( PeriodType periodType : PeriodType.getAvailablePeriodTypes() )
@@ -131,15 +190,10 @@ public class JdbcValidationViolationTableManager
             columns.add( new AnalyticsTableColumn( column, "character varying(15)", "ps." + column ) );
         }
 
-        String timelyDateDiff = statementBuilder.getDaysBetweenDates( "pe.enddate", statementBuilder.getCastToDate( "cdr.date" ) );
-        String timelyAlias = "(select (" + timelyDateDiff + ") <= ds.timelydays) as timely";
+        AnalyticsTableColumn vr = new AnalyticsTableColumn( quote( "dx" ), "character(11) not null",
+            "vr.uid" );
 
-        AnalyticsTableColumn tm = new AnalyticsTableColumn( quote( "timely" ), "boolean", timelyAlias );
-
-        AnalyticsTableColumn ds = new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "ds.uid" );
-
-        columns.addAll( Lists.newArrayList( ds, tm ) );
-
+        columns.add( vr );
 
         return filterDimensionColumns( columns );
     }
