@@ -99,6 +99,8 @@
     <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
     <property name="programService" ref="org.hisp.dhis.program.ProgramService" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="programStageDataElementService"
+      ref="org.hisp.dhis.program.ProgramStageDataElementService" />
   </bean>
 
   <bean
