@@ -277,25 +277,20 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             if ( systemInfo.getMetadataAudit().isAudit() )
             {
+                if ( audit.getValue() == null )
+                {
+                    audit.setValue( renderService.toJsonAsString( object ) );
+                }
+
                 String auditJson = renderService.toJsonAsString( audit );
 
                 if ( systemInfo.getMetadataAudit().isLog() )
                 {
-                    if ( audit.getValue() == null )
-                    {
-                        audit.setValue( renderService.toJsonAsString( object ) );
-                    }
-
                     log.info( "MetadataAuditEvent: " + auditJson );
                 }
 
                 if ( systemInfo.getMetadataAudit().isPersist() )
                 {
-                    if ( audit.getValue() == null )
-                    {
-                        audit.setValue( renderService.toJsonAsString( object ) );
-                    }
-
                     metadataAuditService.addMetadataAudit( audit );
                 }
             }
@@ -385,25 +380,20 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             if ( systemInfo.getMetadataAudit().isAudit() )
             {
+                if ( audit.getValue() == null )
+                {
+                    audit.setValue( renderService.toJsonAsString( patch ) );
+                }
+
                 String auditJson = renderService.toJsonAsString( audit );
 
                 if ( systemInfo.getMetadataAudit().isLog() )
                 {
-                    if ( audit.getValue() == null )
-                    {
-                        audit.setValue( renderService.toJsonAsString( patch ) );
-                    }
-
                     log.info( "MetadataAuditEvent: " + auditJson );
                 }
 
                 if ( systemInfo.getMetadataAudit().isPersist() )
                 {
-                    if ( audit.getValue() == null )
-                    {
-                        audit.setValue( renderService.toJsonAsString( patch ) );
-                    }
-
                     metadataAuditService.addMetadataAudit( audit );
                 }
             }
@@ -474,25 +464,20 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             if ( systemInfo.getMetadataAudit().isAudit() )
             {
+                if ( audit.getValue() == null )
+                {
+                    audit.setValue( renderService.toJsonAsString( object ) );
+                }
+
                 String auditJson = renderService.toJsonAsString( audit );
 
                 if ( systemInfo.getMetadataAudit().isLog() )
                 {
-                    if ( audit.getValue() == null )
-                    {
-                        audit.setValue( renderService.toJsonAsString( object ) );
-                    }
-
                     log.info( "MetadataAuditEvent: " + auditJson );
                 }
 
                 if ( systemInfo.getMetadataAudit().isPersist() )
                 {
-                    if ( audit.getValue() == null )
-                    {
-                        audit.setValue( renderService.toJsonAsString( object ) );
-                    }
-
                     metadataAuditService.addMetadataAudit( audit );
                 }
             }
