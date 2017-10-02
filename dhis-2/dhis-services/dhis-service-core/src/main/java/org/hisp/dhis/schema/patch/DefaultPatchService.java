@@ -33,15 +33,25 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Enums;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.amqp.AmqpService;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
+import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.schema.audit.MetadataAudit;
+import org.hisp.dhis.schema.audit.MetadataAuditService;
+import org.hisp.dhis.system.SystemInfo;
+import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.hisp.dhis.user.CurrentUserService;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -54,13 +64,32 @@ import java.util.stream.Collectors;
  */
 public class DefaultPatchService implements PatchService
 {
+    private static final Log log = LogFactory.getLog( DefaultPatchService.class );
+
     private final SchemaService schemaService;
+
     private final QueryService queryService;
 
-    public DefaultPatchService( SchemaService schemaService, QueryService queryService )
+    private final AmqpService amqpService;
+
+    private final MetadataAuditService metadataAuditService;
+
+    private final CurrentUserService currentUserService;
+
+    private final RenderService renderService;
+
+    private final SystemService systemService;
+
+    public DefaultPatchService( SchemaService schemaService, QueryService queryService, AmqpService amqpService,
+        MetadataAuditService metadataAuditService, CurrentUserService currentUserService, RenderService renderService, SystemService systemService )
     {
         this.schemaService = schemaService;
         this.queryService = queryService;
+        this.amqpService = amqpService;
+        this.metadataAuditService = metadataAuditService;
+        this.currentUserService = currentUserService;
+        this.renderService = renderService;
+        this.systemService = systemService;
     }
 
     @Override
@@ -90,6 +119,11 @@ public class DefaultPatchService implements PatchService
         }
 
         patch.getMutations().forEach( mutation -> applyMutation( mutation, schema, target ) );
+
+        if ( !patch.getMutations().isEmpty() )
+        {
+            logAudit( patch, target, schema );
+        }
     }
 
     private Patch diff( Object source, Object target, boolean ignoreTransient )
@@ -533,5 +567,49 @@ public class DefaultPatchService implements PatchService
         }
 
         return null;
+    }
+
+    private void logAudit( Patch patch, Object target, Schema schema )
+    {
+        SystemInfo systemInfo = systemService.getSystemInfo();
+
+        MetadataAudit audit = new MetadataAudit();
+        audit.setCreatedAt( new Date() );
+        audit.setCreatedBy( currentUserService.getCurrentUsername() );
+        audit.setKlass( schema.getKlass() );
+
+        if ( IdentifiableObject.class.isInstance( target ) )
+        {
+            audit.setUid( ((IdentifiableObject) target).getUid() );
+            audit.setCode( ((IdentifiableObject) target).getCode() );
+        }
+
+        audit.setType( AuditType.UPDATE );
+
+        if ( amqpService.isEnabled() )
+        {
+            audit.setValue( renderService.toJsonAsString( patch ) );
+            amqpService.publish( audit );
+        }
+
+        if ( systemInfo.getMetadataAudit().isAudit() )
+        {
+            if ( audit.getValue() == null )
+            {
+                audit.setValue( renderService.toJsonAsString( patch ) );
+            }
+
+            String auditJson = renderService.toJsonAsString( audit );
+
+            if ( systemInfo.getMetadataAudit().isLog() )
+            {
+                log.info( "MetadataAuditEvent: " + auditJson );
+            }
+
+            if ( systemInfo.getMetadataAudit().isPersist() )
+            {
+                metadataAuditService.addMetadataAudit( audit );
+            }
+        }
     }
 }
