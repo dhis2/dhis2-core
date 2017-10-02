@@ -39,6 +39,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -61,6 +62,13 @@ public class AddProgramStageAction
     public void setProgramStageService( ProgramStageService programStageService )
     {
         this.programStageService = programStageService;
+    }
+    
+    private ProgramStageDataElementService programStageDataElementService;
+
+    public void setProgramStageDataElementService( ProgramStageDataElementService programStageDataElementService )
+    {
+        this.programStageDataElementService = programStageDataElementService;
     }
 
     private ProgramService programService;
@@ -365,7 +373,8 @@ public class AddProgramStageAction
         programStage.setSortOrder( program.getProgramStages().size() + 1 );
         programStage.setHideDueDate( hideDueDate );
                 
-
+        programStageService.saveProgramStage( programStage );
+        
         // Data elements
 
         for ( int i = 0; i < this.selectedDataElementsValidator.size(); i++ )
@@ -380,16 +389,14 @@ public class AddProgramStageAction
             programStageDataElement.setAllowProvidedElsewhere( allowed );
             programStageDataElement.setDisplayInReports( displayInReport );
             programStageDataElement.setAllowFutureDate( allowDate );
-            programStage.getProgramStageDataElements().add( programStageDataElement );
+            programStageDataElementService.addProgramStageDataElement( programStageDataElement );
         }
         
-        programStageService.saveProgramStage( programStage );
+        programStageService.updateProgramStage( programStage );
         
         
         // Custom attributes
         
-        programStageService.saveProgramStage( programStage );
-
         if ( jsonAttributeValues != null )
         {
             attributeService.updateAttributeValues( programStage, jsonAttributeValues );
