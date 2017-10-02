@@ -116,6 +116,7 @@ public class RabbitMQAmqpService implements AmqpService
             connectionFactory.setVirtualHost( rabbitMQ.getVirtualHost() );
             connectionFactory.setUsername( rabbitMQ.getUsername() );
             connectionFactory.setPassword( rabbitMQ.getPassword() );
+            connectionFactory.setConnectionTimeout( rabbitMQ.getConnectionTimeout() );
 
             if ( !verifyConnection( connectionFactory ) )
             {

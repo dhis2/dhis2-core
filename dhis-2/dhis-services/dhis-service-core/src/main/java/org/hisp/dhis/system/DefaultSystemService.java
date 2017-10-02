@@ -236,11 +236,11 @@ public class DefaultSystemService
         RabbitMQ rabbitMQ = new RabbitMQ(
             dhisConfig.getProperty( ConfigurationKey.RABBITMQ_HOST ),
             dhisConfig.getProperty( ConfigurationKey.RABBITMQ_VIRTUAL_HOST ),
-            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PORT ) == null
-                ? null : Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PORT ) ),
+            Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PORT ) ),
             dhisConfig.getProperty( ConfigurationKey.RABBITMQ_EXCHANGE ),
             dhisConfig.getProperty( ConfigurationKey.RABBITMQ_USERNAME ),
-            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PASSWORD )
+            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PASSWORD ),
+            Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_CONNECTION_TIMEOUT ) )
         );
 
         if ( rabbitMQ.isValid() )
