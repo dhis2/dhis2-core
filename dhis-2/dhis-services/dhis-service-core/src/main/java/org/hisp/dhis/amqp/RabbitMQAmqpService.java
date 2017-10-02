@@ -41,7 +41,6 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
-import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -137,8 +136,7 @@ public class RabbitMQAmqpService implements AmqpService
     {
         try
         {
-            Connection connection = connectionFactory.createConnection();
-            connection.close();
+            connectionFactory.createConnection().close();
         }
         catch ( Exception ignored )
         {
