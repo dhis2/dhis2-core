@@ -29,6 +29,8 @@ package org.hisp.dhis.amqp;
  *
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.audit.MetadataAudit;
 import org.hisp.dhis.system.RabbitMQ;
@@ -39,6 +41,8 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.connection.Connection;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
@@ -47,6 +51,8 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
  */
 public class RabbitMQAmqpService implements AmqpService
 {
+    private static final Log log = LogFactory.getLog( RabbitMQAmqpService.class );
+
     private final SystemService systemService;
 
     private final RenderService renderService;
@@ -112,6 +118,12 @@ public class RabbitMQAmqpService implements AmqpService
             connectionFactory.setUsername( rabbitMQ.getUsername() );
             connectionFactory.setPassword( rabbitMQ.getPassword() );
 
+            if ( !verifyConnection( connectionFactory ) )
+            {
+                log.warn( "Unable to connect to RabbitMQ message broker: " + connectionFactory );
+                return null;
+            }
+
             AmqpAdmin admin = new RabbitAdmin( connectionFactory );
             admin.declareExchange( new TopicExchange( rabbitMQ.getExchange(), true, false ) );
 
@@ -119,5 +131,20 @@ public class RabbitMQAmqpService implements AmqpService
         }
 
         return amqpTemplate;
+    }
+
+    private boolean verifyConnection( ConnectionFactory connectionFactory )
+    {
+        try
+        {
+            Connection connection = connectionFactory.createConnection();
+            connection.close();
+        }
+        catch ( Exception ignored )
+        {
+            return false;
+        }
+
+        return true;
     }
 }
