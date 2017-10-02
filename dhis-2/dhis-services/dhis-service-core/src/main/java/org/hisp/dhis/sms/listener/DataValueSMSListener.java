@@ -129,7 +129,7 @@ public class DataValueSMSListener
         SMSCommand smsCommand = smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
             ParserType.KEY_VALUE_PARSER );
 
-        Map<String, String> parsedMessage = this.parse( message, smsCommand );
+        Map<String, String> parsedMessage = this.parseMessageInput( sms, smsCommand );
 
         Date date = SmsUtils.lookForDate( message );
         String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
@@ -210,34 +210,6 @@ public class DataValueSMSListener
     {
         // Not supported for DataValueListener
         return StringUtils.EMPTY;
-    }
-
-    private Map<String, String> parse( String sms, SMSCommand smsCommand )
-    {
-        HashMap<String, String> output = new HashMap<>();
-        Pattern pattern = Pattern.compile( DEFAULTPATTERN );
-
-        String separator = smsCommand.getSeparator() != null ? smsCommand.getSeparator().trim() : SEPARATOR;
-
-        if ( !StringUtils.isBlank( smsCommand.getSeparator() ) )
-        {
-            String x = "([^\\s|" + separator + "]+)\\s*\\" + separator + "\\s*([^|]+)\\s*(\\" + separator + "|$)*\\s*";
-            pattern = Pattern.compile( x );
-        }
-
-        Matcher matcher = pattern.matcher( sms );
-        while ( matcher.find() )
-        {
-            String key = matcher.group( 1 ).trim();
-            String value = matcher.group( 2 ).trim();
-
-            if ( !StringUtils.isEmpty( key ) && !StringUtils.isEmpty( value ) )
-            {
-                output.put( key, value );
-            }
-        }
-
-        return output;
     }
 
     private Period getPeriod( SMSCommand command, Date date )

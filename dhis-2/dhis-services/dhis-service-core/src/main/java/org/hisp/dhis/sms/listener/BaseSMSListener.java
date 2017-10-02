@@ -246,13 +246,15 @@ public abstract class BaseSMSListener implements IncomingSmsListener
 
         String message = sms.getText().substring( SmsUtils.getCommandString( sms ).length() ).trim();
 
-        String[] messageParts = StringUtils.split( message, smsCommand.getSeparator() != null ? smsCommand.getSeparator() : FIELD_SEPARATOR );
+        String[] messageParts = StringUtils.split( message, !StringUtils.isBlank( smsCommand.getSeparator() ) ? smsCommand.getSeparator() : FIELD_SEPARATOR );
+
+        String codeValueSeparator = !StringUtils.isBlank( smsCommand.getCodeValueSeparator() ) ? smsCommand.getCodeValueSeparator() : CODE_VALUE_SEPARATOR;
 
         for ( String string : messageParts )
         {
-            String key = StringUtils.split( string, smsCommand.getCodeValueSeparator() != null ? smsCommand.getCodeValueSeparator() : CODE_VALUE_SEPARATOR )[0].trim();
+            String key = StringUtils.split( string, codeValueSeparator )[0].trim();
 
-            String value = StringUtils.split( string, smsCommand.getCodeValueSeparator() != null ? smsCommand.getCodeValueSeparator() : CODE_VALUE_SEPARATOR )[1].trim();
+            String value = StringUtils.split( string, codeValueSeparator )[1].trim();
 
             output.put( key, value );
         }
