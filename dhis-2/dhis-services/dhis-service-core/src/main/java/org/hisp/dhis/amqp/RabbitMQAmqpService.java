@@ -38,12 +38,13 @@ import org.hisp.dhis.system.SystemService;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.http.MediaType;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -98,7 +99,11 @@ public class RabbitMQAmqpService implements AmqpService
 
         String auditJson = renderService.toJsonAsString( audit );
 
-        publish( routingKey, new Message( auditJson.getBytes(), new MessageProperties() ) );
+        Message message = MessageBuilder.withBody( auditJson.getBytes() )
+            .setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE )
+            .build();
+
+        publish( routingKey, message );
     }
 
     private AmqpTemplate getAmqpTemplate()
