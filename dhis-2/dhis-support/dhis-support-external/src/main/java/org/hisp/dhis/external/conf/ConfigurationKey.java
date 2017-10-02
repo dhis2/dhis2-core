@@ -66,6 +66,7 @@ public enum ConfigurationKey
     METADATA_AUDIT_PERSIST( "metadata.audit.persist", "off", false ),
     METADATA_AUDIT_LOG( "metadata.audit.log", "off", false ),
     RABBITMQ_HOST( "rabbitmq.host" ),
+    RABBITMQ_ADDRESSES( "rabbitmq.addresses" ),
     RABBITMQ_VIRTUAL_HOST( "rabbitmq.virtual-host", "/", false ),
     RABBITMQ_PORT( "rabbitmq.port", "5672", false ),
     RABBITMQ_EXCHANGE( "rabbitmq.exchange", "dhis2", false ),

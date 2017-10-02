@@ -41,6 +41,8 @@ import org.hisp.dhis.common.DxfNamespaces;
 @JacksonXmlRootElement( localName = "rabbitmq", namespace = DxfNamespaces.DXF_2_0 )
 public class RabbitMQ
 {
+    private String addresses;
+
     private String host;
 
     private String virtualHost;
@@ -59,15 +61,25 @@ public class RabbitMQ
     {
     }
 
-    public RabbitMQ( String host, String virtualHost, Integer port, String exchange, String username, String password, int connectionTimeout )
+    public RabbitMQ( String host, Integer port, String username, String password )
     {
         this.host = host;
-        this.virtualHost = virtualHost;
         this.port = port;
-        this.exchange = exchange;
         this.username = username;
         this.password = password;
-        this.connectionTimeout = connectionTimeout;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getAddresses()
+    {
+        return addresses;
+    }
+
+    public RabbitMQ setAddresses( String addresses )
+    {
+        this.addresses = addresses;
+        return this;
     }
 
     @JsonProperty
@@ -77,9 +89,10 @@ public class RabbitMQ
         return host;
     }
 
-    public void setHost( String host )
+    public RabbitMQ setHost( String host )
     {
         this.host = host;
+        return this;
     }
 
     @JsonProperty
@@ -89,9 +102,10 @@ public class RabbitMQ
         return virtualHost;
     }
 
-    public void setVirtualHost( String virtualHost )
+    public RabbitMQ setVirtualHost( String virtualHost )
     {
         this.virtualHost = virtualHost;
+        return this;
     }
 
     @JsonProperty
@@ -101,9 +115,10 @@ public class RabbitMQ
         return port;
     }
 
-    public void setPort( Integer port )
+    public RabbitMQ setPort( Integer port )
     {
         this.port = port;
+        return this;
     }
 
     @JsonProperty
@@ -113,9 +128,10 @@ public class RabbitMQ
         return exchange;
     }
 
-    public void setExchange( String exchange )
+    public RabbitMQ setExchange( String exchange )
     {
         this.exchange = exchange;
+        return this;
     }
 
     @JsonProperty
@@ -125,9 +141,10 @@ public class RabbitMQ
         return username;
     }
 
-    public void setUsername( String username )
+    public RabbitMQ setUsername( String username )
     {
         this.username = username;
+        return this;
     }
 
     @JsonProperty
@@ -137,9 +154,10 @@ public class RabbitMQ
         return password;
     }
 
-    public void setPassword( String password )
+    public RabbitMQ setPassword( String password )
     {
         this.password = password;
+        return this;
     }
 
     @JsonProperty
@@ -149,9 +167,10 @@ public class RabbitMQ
         return connectionTimeout;
     }
 
-    public void setConnectionTimeout( int connectionTimeout )
+    public RabbitMQ setConnectionTimeout( int connectionTimeout )
     {
         this.connectionTimeout = connectionTimeout;
+        return this;
     }
 
     public boolean isValid()
@@ -163,6 +182,7 @@ public class RabbitMQ
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
+            .add( "addresses", addresses )
             .add( "host", host )
             .add( "virtualHost", virtualHost )
             .add( "port", port )

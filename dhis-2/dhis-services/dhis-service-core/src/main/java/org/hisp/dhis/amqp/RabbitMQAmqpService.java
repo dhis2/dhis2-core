@@ -113,9 +113,10 @@ public class RabbitMQAmqpService implements AmqpService
             }
 
             CachingConnectionFactory connectionFactory = new CachingConnectionFactory( rabbitMQ.getHost(), rabbitMQ.getPort() );
-            connectionFactory.setVirtualHost( rabbitMQ.getVirtualHost() );
             connectionFactory.setUsername( rabbitMQ.getUsername() );
             connectionFactory.setPassword( rabbitMQ.getPassword() );
+            connectionFactory.setAddresses( rabbitMQ.getAddresses() );
+            connectionFactory.setVirtualHost( rabbitMQ.getVirtualHost() );
             connectionFactory.setConnectionTimeout( rabbitMQ.getConnectionTimeout() );
 
             if ( !verifyConnection( connectionFactory ) )
