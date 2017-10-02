@@ -129,28 +129,6 @@ public class ProgramStageDataEntrySMSListener
         return SUCCESS;
     }
 
-    private Map<String, String> parseMessageInput(IncomingSms sms, SMSCommand smsCommand )
-    {
-        HashMap<String, String> output = new HashMap<>();
-
-        String message = sms.getText().substring( SmsUtils.getCommandString( sms ).length() ).trim();
-
-        String[] messageParts = org.apache.commons.lang.StringUtils.split( message, "," );
-
-        for ( String string : messageParts )
-        {
-            String key = org.apache.commons.lang.StringUtils.split( string,
-                    smsCommand.getCodeValueSeparator() != null ? smsCommand.getCodeValueSeparator() : "=" )[0].trim();
-
-            String value = org.apache.commons.lang.StringUtils.split( string,
-                    smsCommand.getCodeValueSeparator() != null ? smsCommand.getCodeValueSeparator() : "=" )[1].trim();
-
-            output.put( key, value );
-        }
-
-        return output;
-    }
-
     private void registerProgramStage( TrackedEntityInstance tei, IncomingSms sms, SMSCommand smsCommand, Map<String, String> keyValue, Set<OrganisationUnit> ous )
     {
         List<ProgramInstance> programInstances = new ArrayList<>(
