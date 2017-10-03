@@ -28,12 +28,11 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -43,6 +42,7 @@ import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.system.util.SmsUtils;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -129,5 +129,18 @@ public class ProgramStageDataEntrySMSListener
         }
 
         return output;
+    }
+
+    private User getUser( IncomingSms sms )
+    {
+        return userService.getUser( sms.getUser().getUid() );
+    }
+
+    private Set<OrganisationUnit> getOrganisationUnits( IncomingSms sms )
+    {
+        Collection<OrganisationUnit> orgUnits = SmsUtils.getOrganisationUnitsByPhoneNumber( sms.getOriginator(),
+            Collections.singleton( getUser( sms ) ) );
+
+        return  Sets.newHashSet( orgUnits );
     }
 }

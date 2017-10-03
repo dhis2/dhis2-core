@@ -30,6 +30,7 @@ package org.hisp.dhis.sms.listener;
 
 import javax.annotation.Resource;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -52,17 +53,12 @@ import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -342,9 +338,16 @@ public class SingleEventListener
         smsSender.sendMessage( null, message, sender );
     }
 
-    private Collection<OrganisationUnit> getOrganisationUnits( IncomingSms sms )
+    private User getUser( IncomingSms sms )
     {
-        return SmsUtils.getOrganisationUnitsByPhoneNumber( sms.getOriginator(),
-            userService.getUsersByPhoneNumber( sms.getOriginator() ) );
+        return userService.getUser( sms.getUser().getUid() );
+    }
+
+    private Set<OrganisationUnit> getOrganisationUnits( IncomingSms sms )
+    {
+        Collection<OrganisationUnit> orgUnits = SmsUtils.getOrganisationUnitsByPhoneNumber( sms.getOriginator(),
+            Collections.singleton( getUser( sms ) ) );
+
+        return  Sets.newHashSet( orgUnits );
     }
 }

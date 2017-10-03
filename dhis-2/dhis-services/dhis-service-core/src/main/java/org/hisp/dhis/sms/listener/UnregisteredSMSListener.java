@@ -28,10 +28,12 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -49,10 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 public class UnregisteredSMSListener
     implements IncomingSmsListener
@@ -142,5 +141,18 @@ public class UnregisteredSMSListener
             sms.setParsed( true );
             incomingSmsService.update( sms );
         }
+    }
+
+    private User getUser( IncomingSms sms )
+    {
+        return userService.getUser( sms.getUser().getUid() );
+    }
+
+    private Set<OrganisationUnit> getOrganisationUnits(IncomingSms sms )
+    {
+        Collection<OrganisationUnit> orgUnits = SmsUtils.getOrganisationUnitsByPhoneNumber( sms.getOriginator(),
+            Collections.singleton( getUser( sms ) ) );
+
+        return  Sets.newHashSet( orgUnits );
     }
 }
