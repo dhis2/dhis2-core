@@ -87,8 +87,7 @@ public class ProgramStageDataEntrySMSListener
         SmsUtils.lookForDate( message );
 
         String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
-        Collection<OrganisationUnit> orgUnits = SmsUtils.getOrganisationUnitsByPhoneNumber( senderPhoneNumber,
-            userService.getUsersByPhoneNumber( senderPhoneNumber ) );
+        Collection<OrganisationUnit> orgUnits = getOrganisationUnits( sms );
 
         if ( orgUnits == null || orgUnits.size() == 0 )
         {
