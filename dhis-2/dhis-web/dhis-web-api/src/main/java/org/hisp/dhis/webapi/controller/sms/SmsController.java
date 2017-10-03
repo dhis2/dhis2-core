@@ -226,7 +226,7 @@ public class SmsController
         webMessageService.send( WebMessageUtils.ok( "Import successful" ), response, request );
     }
 
-    private User getUserByPhoneNumber(String phoneNumber ) throws WebMessageException
+    private User getUserByPhoneNumber( String phoneNumber ) throws WebMessageException
     {
         List<User> users = userService.getUsersByPhoneNumber( phoneNumber );
 
