@@ -28,10 +28,7 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 import javax.annotation.Resource;
 
@@ -50,7 +47,6 @@ import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserService;
 import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,9 +61,6 @@ public class DhisMessageAlertListener
 
     @Autowired
     private SMSCommandService smsCommandService;
-
-    @Autowired
-    private UserService userService;
 
     @Autowired
     private MessageService messageService;
@@ -98,7 +91,7 @@ public class DhisMessageAlertListener
 
         if ( userGroup != null )
         {
-            Collection<User> users = userService.getUsersByPhoneNumber( senderPhoneNumber );
+            Collection<User> users = Collections.singleton( sms.getUser() );
 
             if ( users != null && users.size() > 1 )
             {

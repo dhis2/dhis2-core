@@ -28,6 +28,7 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -56,15 +57,12 @@ import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
@@ -120,8 +118,7 @@ public class J2MEDataValueSMSListener
         Map<String, String> parsedMessage = this.parse( token[1], smsCommand );
 
         String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
-        Collection<OrganisationUnit> orgUnits = SmsUtils.getOrganisationUnitsByPhoneNumber( senderPhoneNumber,
-            userService.getUsersByPhoneNumber( senderPhoneNumber ) );
+        Collection<OrganisationUnit> orgUnits = getOrganisationUnits( sms );
 
         if ( orgUnits == null || orgUnits.size() == 0 )
         {
@@ -143,7 +140,7 @@ public class J2MEDataValueSMSListener
         {
             if ( parsedMessage.containsKey( code.getCode().toUpperCase() ) )
             {
-                storeDataValue( senderPhoneNumber, orgUnit, parsedMessage, code, smsCommand, period,
+                storeDataValue( sms, orgUnit, parsedMessage, code, smsCommand, period,
                     smsCommand.getDataset() );
                 valueStored = true;
             }
@@ -190,12 +187,13 @@ public class J2MEDataValueSMSListener
         return keyValueMap;
     }
 
-    private void storeDataValue( String sender, OrganisationUnit orgUnit, Map<String, String> parsedMessage,
+    private void storeDataValue( IncomingSms sms, OrganisationUnit orgUnit, Map<String, String> parsedMessage,
         SMSCode code, SMSCommand command, Period period, DataSet dataset )
     {
+        String sender = sms.getOriginator();
         String upperCaseCode = code.getCode().toUpperCase();
 
-        String storedBy = SmsUtils.getUser( sender, command, userService.getUsersByPhoneNumber( sender ) )
+        String storedBy = SmsUtils.getUser( sender, command, Collections.singletonList( getUser( sms ) ) )
             .getUsername();
 
         if ( StringUtils.isBlank( storedBy ) )
@@ -406,5 +404,18 @@ public class J2MEDataValueSMSListener
 
         throw new IllegalArgumentException(
             "Couldn't make a period of type " + periodType.getName() + " and name " + periodName );
+    }
+
+    private User getUser( IncomingSms sms )
+    {
+        return userService.getUser( sms.getUser().getUid() );
+    }
+
+    private Set<OrganisationUnit> getOrganisationUnits( IncomingSms sms )
+    {
+        Collection<OrganisationUnit> orgUnits = SmsUtils.getOrganisationUnitsByPhoneNumber( sms.getOriginator(),
+                Collections.singleton( getUser( sms ) ) );
+
+        return Sets.newHashSet( orgUnits );
     }
 }

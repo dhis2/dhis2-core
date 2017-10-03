@@ -34,6 +34,7 @@ import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.user.User;
 
 @JacksonXmlRootElement( localName = "inboundsms" )
 public class IncomingSms
@@ -69,9 +70,11 @@ public class IncomingSms
 
     private boolean parsed = false;
 
+    private User user;
+
     /**
      * Incoming smses are one of two types, text or binary.
-     * 
+     *
      * @return is this message a text (not binary) message?
      */
     public boolean isTextSms()
@@ -209,5 +212,17 @@ public class IncomingSms
     public void setParsed( boolean parsed )
     {
         this.parsed = parsed;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( localName = "user" )
+    public User getUser()
+    {
+        return user;
+    }
+
+    public void setUser( User user )
+    {
+        this.user = user;
     }
 }
