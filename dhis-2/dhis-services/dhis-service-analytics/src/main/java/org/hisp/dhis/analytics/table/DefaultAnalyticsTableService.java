@@ -116,8 +116,6 @@ public class DefaultAnalyticsTableService
                 
         final List<AnalyticsTable> tables = tableManager.getTables( earliest );
 
-        tables.forEach( table -> System.out.println(table.getTableName()) );
-
         clock.logTime( "Table update start: " + tableName + ", partitions: " + tables + ", last years: " + lastYears + ", earliest: " + earliest );
         notifier.notify( taskId, "Performing pre-create table work, org unit levels: " + orgUnitLevelNo );
         
