@@ -192,6 +192,7 @@ public class CompleteDataSetRegistrationController
     }
 
     @RequestMapping( method = RequestMethod.POST, produces = "text/plain" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void saveCompleteDataSetRegistration(
         @RequestParam String ds,
         @RequestParam String pe,
