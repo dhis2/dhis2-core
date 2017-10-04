@@ -40,7 +40,7 @@ public class JdbcValidationResultTableManager
             insert += col.getName() + ",";
         }
 
-        insert += "value) ";
+        insert += "\"leftsidevalue\",\"rightsidevalue\") ";
 
         String select = "select ";
 
@@ -52,7 +52,8 @@ public class JdbcValidationResultTableManager
         select = select.replace( "organisationunitid", "sourceid" ); // Legacy fix
 
         select +=
-            "cdr.created as value " +
+            "cdr.leftsidevalue as leftsidevalue, " +
+                "cdr.rightsidevalue as rightsidevalue " +
                 "from validationresult cdr " +
                 "inner join validationrule vr on vr.validationruleid=cdr.validationruleid " +
                 "inner join _organisationunitgroupsetstructure ougs on cdr.organisationunitid=ougs.organisationunitid " +
@@ -123,11 +124,15 @@ public class JdbcValidationResultTableManager
             sqlCreate += col.getName() + " " + col.getDataType() + ",";
         }
 
-        sqlCreate += "value date)";
+        sqlCreate += "\"leftsidevalue\" FLOAT, ";
+
+        sqlCreate += "\"rightsidevalue\" FLOAT)";
 
         log.info( "Creating table: " + tableName + ", columns: " + columns.size() );
 
         log.debug( "Create SQL: " + sqlCreate );
+
+        System.out.println("sqlCreate: " + sqlCreate);
 
         jdbcTemplate.execute( sqlCreate );
     }
