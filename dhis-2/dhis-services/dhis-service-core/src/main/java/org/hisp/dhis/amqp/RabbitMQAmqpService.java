@@ -93,7 +93,7 @@ public class RabbitMQAmqpService implements AmqpService
     public void publish( MetadataAudit audit )
     {
         String routingKey = "metadata."
-            + audit.getKlass().getSimpleName().toLowerCase()
+            + audit.getKlass().getSimpleName()
             + "." + audit.getType().toString().toLowerCase()
             + "." + audit.getUid();
 
