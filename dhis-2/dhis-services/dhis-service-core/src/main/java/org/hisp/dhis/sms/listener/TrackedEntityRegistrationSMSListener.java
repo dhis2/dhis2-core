@@ -28,12 +28,7 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,7 +42,6 @@ import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.ParserType;
@@ -58,10 +52,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 public class TrackedEntityRegistrationSMSListener
     extends BaseSMSListener
 {
@@ -73,9 +67,6 @@ public class TrackedEntityRegistrationSMSListener
 
     @Autowired
     private SMSCommandService smsCommandService;
-
-    @Autowired
-    private UserService userService;
 
     @Autowired
     private TrackedEntityService trackedEntityService;
@@ -117,8 +108,7 @@ public class TrackedEntityRegistrationSMSListener
 
         Date date = SmsUtils.lookForDate( message );
         String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
-        Collection<OrganisationUnit> orgUnits = SmsUtils.getOrganisationUnitsByPhoneNumber( senderPhoneNumber,
-            userService.getUsersByPhoneNumber( senderPhoneNumber ) );
+        Collection<OrganisationUnit> orgUnits = getOrganisationUnits( sms );
 
         if ( orgUnits == null || orgUnits.size() == 0 )
         {

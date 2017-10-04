@@ -235,13 +235,15 @@ public class DefaultSystemService
 
         RabbitMQ rabbitMQ = new RabbitMQ(
             dhisConfig.getProperty( ConfigurationKey.RABBITMQ_HOST ),
-            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_VIRTUAL_HOST ),
-            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PORT ) == null
-                ? null : Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PORT ) ),
-            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_EXCHANGE ),
+            Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PORT ) ),
             dhisConfig.getProperty( ConfigurationKey.RABBITMQ_USERNAME ),
             dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PASSWORD )
         );
+
+        rabbitMQ.setExchange( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_EXCHANGE ) );
+        rabbitMQ.setAddresses( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_ADDRESSES ) );
+        rabbitMQ.setVirtualHost( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_VIRTUAL_HOST ) );
+        rabbitMQ.setConnectionTimeout( Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_CONNECTION_TIMEOUT ) ) );
 
         if ( rabbitMQ.isValid() )
         {

@@ -32,6 +32,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.sms.MessageQueue;
+import org.hisp.dhis.user.User;
 
 public class DefaultIncomingSmsService
     implements IncomingSmsService
@@ -73,13 +74,14 @@ public class DefaultIncomingSmsService
     }
 
     @Override
-    public int save( String message, String originator, String gateway, Date receivedTime )
+    public int save( String message, String originator, String gateway, Date receivedTime, User user )
     {
 
         IncomingSms sms = new IncomingSms();
         sms.setText( message );
         sms.setOriginator( originator );
         sms.setGatewayId( gateway );
+        sms.setUser( user );
 
         if ( receivedTime != null )
         {
