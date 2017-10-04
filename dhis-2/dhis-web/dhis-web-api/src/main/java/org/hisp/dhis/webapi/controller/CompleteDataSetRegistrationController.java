@@ -296,6 +296,7 @@ public class CompleteDataSetRegistrationController
 
     @ApiVersion( { DhisApiVersion.V23, DhisApiVersion.V24, DhisApiVersion.V25, } )
     @RequestMapping( method = RequestMethod.POST, produces = "text/plain" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void saveCompleteDataSetRegistration(
         @RequestParam String ds,
         @RequestParam String pe,
