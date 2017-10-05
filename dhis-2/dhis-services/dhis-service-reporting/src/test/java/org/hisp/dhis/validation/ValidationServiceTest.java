@@ -414,8 +414,6 @@ public class ValidationServiceTest
                 .append( formatResultsList ( "But was", resultsList ) )
                 .append( getAllDataValues() )
                 .append( getAllValidationRules() );
-
-            log.error( sb.toString() );
         }
 
         assertTrue( referenceList.equals( resultsList ) );
