@@ -245,11 +245,14 @@ public class ValidationResult
     }
 
     /**
-     * Comparing validation results is done by priority, then time
+     * Compare ValidationResults so they will be listed in the desired
+     * order: by validationRule, period, attributeOptionCombo and orgUnit.
      *
-     * @param identifiableObject
-     * @return
+     * @param other The other ValidationResult to compare with.
+     * @return a negative integer, zero, or a positive integer as this object
+     *         is less than, equal to, or greater than the specified object.
      */
+    @Override
     public int compareTo( ValidationResult other )
     {
         return new CompareToBuilder()
