@@ -66,16 +66,6 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
         {
             for ( DataInputPeriod period : inputPeriods )
             {
-                if ( period.getOpeningDate() != null && !DateUtils.between( period.getOpeningDate(), period.getPeriod().getStartDate(), period.getPeriod().getEndDate() ) )
-                {
-                    errors.add( new ErrorReport( DataSet.class, ErrorCode.E4015, period.getClosingDate(), period.getOpeningDate(), period.getPeriod().toString() ) );
-                }
-
-                if ( period.getClosingDate() != null && !DateUtils.between( period.getClosingDate(), period.getPeriod().getStartDate(), period.getPeriod().getEndDate() ) )
-                {
-                    errors.add( new ErrorReport( DataSet.class, ErrorCode.E4015, period.getClosingDate(), period.getOpeningDate(), period.getPeriod().toString() ) );
-                }
-
                 if ( ObjectUtils.allNonNull( period.getOpeningDate(), period.getClosingDate() ) && period.getOpeningDate().after( period.getClosingDate() ) )
                 {
                     errors.add( new ErrorReport( DataSet.class, ErrorCode.E4013, period.getClosingDate(), period.getOpeningDate() ) );
