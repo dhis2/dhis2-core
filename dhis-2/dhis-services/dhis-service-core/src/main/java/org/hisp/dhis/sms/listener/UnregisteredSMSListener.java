@@ -102,27 +102,28 @@ public class UnregisteredSMSListener
         UserGroup userGroup = smsCommand.getUserGroup();
 
         String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
+        String userName = sms.getOriginator();
 
         if ( userGroup != null )
         {
             Set<User> receivers = new HashSet<>( userGroup.getMembers() );
 
-            UserCredentials anonymousUser = userService.getUserCredentialsByUsername( "anonymous" );
+            UserCredentials anonymousUser = userService.getUserCredentialsByUsername( userName );
 
             if ( anonymousUser == null )
             {
                 User user = new User();
                 UserCredentials usercredential = new UserCredentials();
-                usercredential.setUsername( USER_NAME );
+                usercredential.setUsername( userName );
                 usercredential.setPassword( USER_NAME );
                 usercredential.setUserInfo( user );
-                user.setSurname( USER_NAME );
-                user.setFirstName( USER_NAME );
+                user.setSurname( userName );
+                user.setFirstName( "" );
                 user.setUserCredentials( usercredential );
 
                 userService.addUserCredentials( usercredential );
                 userService.addUser( user );
-                anonymousUser = userService.getUserCredentialsByUsername( "anonymous" );
+                anonymousUser = userService.getUserCredentialsByUsername( userName );
             }
 
             // forward to user group by SMS, E-mail, DHIS conversation
@@ -135,7 +136,7 @@ public class UnregisteredSMSListener
             sender.setPhoneNumber( senderPhoneNumber );
             feedbackList.add( sender );
 
-            smsSender.sendMessage( smsCommand.getName(), smsCommand.getReceivedMessage(), null, null, feedbackList, true );
+            smsSender.sendMessage( smsCommand.getName(), smsCommand.getReceivedMessage() != null ? smsCommand.getReceivedMessage() : SMSCommand.RECEIVED_MESSAGE, null, null, feedbackList, true );
 
             sms.setStatus( SmsMessageStatus.PROCESSED );
             sms.setParsed( true );

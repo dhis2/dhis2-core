@@ -39,6 +39,7 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.parse.ParserType;
+import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -193,7 +194,7 @@ public class SmsController
             throw new WebMessageException( WebMessageUtils.conflict( "Message must be specified" ) );
         }
 
-        int smsId = incomingSMSService.save( message, originator, gateway, receivedTime, getUserByPhoneNumber( originator ) );
+        int smsId = incomingSMSService.save( message, originator, gateway, receivedTime, getUserByPhoneNumber( originator, message ) );
 
         webMessageService.send( WebMessageUtils.ok( "Received SMS: " + smsId ), response, request );
     }
@@ -204,7 +205,7 @@ public class SmsController
         throws WebMessageException, ParseException, IOException
     {
         IncomingSms sms = renderService.fromJson( request.getInputStream(), IncomingSms.class );
-        sms.setUser( getUserByPhoneNumber( sms.getOriginator() ) );
+        sms.setUser( getUserByPhoneNumber( sms.getOriginator(), sms.getText() ) );
 
         int smsId = incomingSMSService.save( sms );
 
@@ -226,13 +227,20 @@ public class SmsController
         webMessageService.send( WebMessageUtils.ok( "Import successful" ), response, request );
     }
 
-    private User getUserByPhoneNumber( String phoneNumber ) throws WebMessageException
+    private User getUserByPhoneNumber( String phoneNumber, String text ) throws WebMessageException
     {
+        SMSCommand unregisteredParser = smsCommandService.getSMSCommand( SmsUtils.getCommandString( text ), ParserType.UNREGISTERED_PARSER );
+
         List<User> users = userService.getUsersByPhoneNumber( phoneNumber );
 
-        if ( users.isEmpty() || users.size() > 1 )
+        if ( users == null || users.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "User either not registered or phoneNumber belongs to more than one user" ) );
+            if ( unregisteredParser != null )
+            {
+                return null;
+            }
+
+            throw new WebMessageException( WebMessageUtils.conflict( "User not registered in the system" ) );
         }
 
         return users.iterator().next();

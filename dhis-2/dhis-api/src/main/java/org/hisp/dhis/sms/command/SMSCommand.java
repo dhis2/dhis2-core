@@ -51,9 +51,10 @@ public class SMSCommand
 
     public static final String WRONG_FORMAT_MESSAGE = "Wrong format for command";
     public static final String MORE_THAN_ONE_ORGUNIT_MESSAGE = "Found more than one org unit for this number. Please specify one organisation unit";
-    public static final String NO_USER_MESSAGE = "No user associated with this phone number. Please contact your supervisor.";
+    public static final String NO_USER_MESSAGE = "No user associated with this phone number. Please contact your supervisor";
     public static final String ALERT_FEEDBACK = "Your alert message sent";    
     public static final String PARAMETER_MISSING = "Mandatory parameter is missing";
+    public static final String RECEIVED_MESSAGE = "Message has been processed";
     
     // Completeness method code
 

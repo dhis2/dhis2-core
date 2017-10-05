@@ -61,11 +61,16 @@ public class SmsUtils
 
     public static String getCommandString( IncomingSms sms )
     {
+        return getCommandString( sms.getText() );
+    }
+
+    public static String getCommandString( String text )
+    {
         String commandString = null;
 
         Pattern pattern = Pattern.compile( COMMAND_PATTERN );
 
-        Matcher matcher = pattern.matcher( sms.getText() );
+        Matcher matcher = pattern.matcher( text );
 
         if ( matcher.find() )
         {
