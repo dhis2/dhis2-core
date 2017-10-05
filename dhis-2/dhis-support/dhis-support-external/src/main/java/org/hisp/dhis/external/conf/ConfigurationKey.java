@@ -40,7 +40,7 @@ public enum ConfigurationKey
     ENCRYPTION_PASSWORD( "encryption.password", "", true ),
     CONNECTION_DIALECT( "connection.dialect", "", false ),
     CONNECTION_DRIVER_CLASS( "connection.driver_class", "", false ),
-    CONNECTION_URL( "connection.url","", false ),
+    CONNECTION_URL( "connection.url", "", false ),
     CONNECTION_USERNAME( "connection.username", "", false ),
     CONNECTION_PASSWORD( "connection.password", "", true ),
     CONNECTION_SCHEMA( "connection.schema", "", false ),
@@ -62,14 +62,24 @@ public enum ConfigurationKey
     CLUSTER_INSTANCE_CACHE_PORT( "cluster.instance0.cache.port", "4001", false ),
     CACHE_PROVIDER( "cache.provider", "ehcache", false ),
     CACHE_SERVERS( "cache.servers", "localhost:11211", false ),
-    CACHE_TIME( "cache.time", "600", false );
+    CACHE_TIME( "cache.time", "600", false ),
+    METADATA_AUDIT_PERSIST( "metadata.audit.persist", "off", false ),
+    METADATA_AUDIT_LOG( "metadata.audit.log", "off", false ),
+    RABBITMQ_HOST( "rabbitmq.host" ),
+    RABBITMQ_ADDRESSES( "rabbitmq.addresses" ),
+    RABBITMQ_VIRTUAL_HOST( "rabbitmq.virtual-host", "/", false ),
+    RABBITMQ_PORT( "rabbitmq.port", "5672", false ),
+    RABBITMQ_EXCHANGE( "rabbitmq.exchange", "dhis2", false ),
+    RABBITMQ_USERNAME( "rabbitmq.username", "guest", false ),
+    RABBITMQ_PASSWORD( "rabbitmq.password", "guest", true ),
+    RABBITMQ_CONNECTION_TIMEOUT( "rabbitmq.connection-timeout", "60000", false );
 
     private final String key;
-    
+
     private final String defaultValue;
 
     private final boolean confidential;
-    
+
     ConfigurationKey( String key )
     {
         this.key = key;
@@ -83,12 +93,12 @@ public enum ConfigurationKey
         this.defaultValue = defaultValue;
         this.confidential = confidential;
     }
-    
+
     public String getKey()
     {
         return key;
     }
-    
+
     public String getDefaultValue()
     {
         return defaultValue;

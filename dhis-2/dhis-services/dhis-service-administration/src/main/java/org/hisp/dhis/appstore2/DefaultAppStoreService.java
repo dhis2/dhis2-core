@@ -29,6 +29,8 @@ package org.hisp.dhis.appstore2;
  */
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.setting.SettingKey;
@@ -42,7 +44,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,6 +53,8 @@ import java.util.Optional;
  */
 public class DefaultAppStoreService implements AppStoreService
 {
+    private static final Log log = LogFactory.getLog( DefaultAppStoreService.class );
+
     @Autowired
     private RestTemplate restTemplate;
 
@@ -60,7 +64,9 @@ public class DefaultAppStoreService implements AppStoreService
     @Override
     public List<WebApp> getAppStore()
     {
-        return restTemplate.getForObject( SettingKey.APP_STORE_API_URL.getDefaultValue().toString(), new ArrayList<WebApp>().getClass() );
+        WebApp[] apps = restTemplate.getForObject( SettingKey.APP_STORE_API_URL.getDefaultValue().toString(), WebApp[].class );
+
+        return Arrays.asList( apps );
     }
 
     @Override
@@ -86,6 +92,8 @@ public class DefaultAppStoreService implements AppStoreService
                 return appManager.installApp( getFile( url ), filename );
             }
 
+            log.info( String.format( "No version found for id %s", id ) );
+
             return AppStatus.NOT_FOUND;
         }
         catch ( IOException ex )
@@ -103,9 +111,13 @@ public class DefaultAppStoreService implements AppStoreService
     {
         for ( WebApp app : getAppStore() )
         {
-            return app.getVersions().stream()
-                .filter( v -> id.equals( v.getId() ) )
-                .findFirst();
+            for ( AppVersion version : app.getVersions() )
+            {
+                if ( id.equals( version.getId() ) )
+                {
+                    return Optional.of( version );
+                }
+            }
         }
 
         return Optional.empty();

@@ -48,11 +48,12 @@ public class HibernateDataEntryFormStore
     // -------------------------------------------------------------------------
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public DataEntryForm getDataEntryFormByName( String name )
     {
         query = getCriteriaQuery();
 
-        Root dataEntryForm = query.from( DataEntryForm.class );
+        Root<DataEntryForm> dataEntryForm = query.from( DataEntryForm.class );
         query.select( dataEntryForm );
         query.where( builder.like( dataEntryForm.get( "name" ), name ) );
 
@@ -73,8 +74,6 @@ public class HibernateDataEntryFormStore
                 builder.isNotNull( programStage.get( "dataEntryForm" ) )
             )
         );
-
-        query.groupBy( programStage.get( "dataEntryForm" ) );
 
         return sessionFactory.getCurrentSession().createQuery( query ).list();
     }

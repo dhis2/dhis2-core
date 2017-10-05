@@ -127,3 +127,7 @@ fieldset
 .bordered-table>tfoot>tr {
     border-bottom: 1px solid #cad5e5;
 }
+
+.ui-dialog {
+    z-index: 10000;
+}

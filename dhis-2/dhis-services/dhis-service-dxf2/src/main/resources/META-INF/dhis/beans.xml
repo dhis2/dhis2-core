@@ -18,6 +18,8 @@
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.OrganisationUnitObjectBundleHook" />
 
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataSetObjectBundleHook" />
+
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.UserObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.UserRoleObjectBundleHook" />
@@ -33,6 +35,10 @@
   <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService" class="org.hisp.dhis.dxf2.metadata.objectbundle.DefaultObjectBundleService" />
 
   <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService" class="org.hisp.dhis.dxf2.metadata.objectbundle.DefaultObjectBundleValidationService" />
+
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.SmsCommandObjectBundleHook" />
+
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataSetNotificationTemplateObjectBundleHook" />
 
   <bean id="org.hisp.dhis.dxf2.metadata.MetadataExportService" class="org.hisp.dhis.dxf2.metadata.DefaultMetadataExportService" />
 

@@ -299,8 +299,8 @@ public class DefaultDhisConfigurationProvider
     public Map<String, Serializable> getConfigurationsAsMap()
     {
         return Stream.of( ConfigurationKey.values() )
-            .parallel()
-            .collect( Collectors.toMap( ConfigurationKey::getKey, v -> v.isConfidential() ? "" : getPropertyOrDefault( v, v.getDefaultValue() ) ) );
+            .collect( Collectors.toMap( ConfigurationKey::getKey, v -> v.isConfidential() ? "" :
+            getPropertyOrDefault( v, v.getDefaultValue() != null ? v.getDefaultValue() : "" ) ) );
     }
 
     // -------------------------------------------------------------------------

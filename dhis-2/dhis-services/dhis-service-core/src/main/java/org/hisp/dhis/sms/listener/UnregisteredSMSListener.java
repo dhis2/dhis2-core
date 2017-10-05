@@ -54,6 +54,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+@Transactional
 public class UnregisteredSMSListener
     extends BaseSMSListener
 {
@@ -94,27 +95,29 @@ public class UnregisteredSMSListener
 
         UserGroup userGroup = smsCommand.getUserGroup();
 
+        String userName = sms.getOriginator();
+
         if ( userGroup != null )
         {
-            UserCredentials anonymousUser = userService.getUserCredentialsByUsername( "anonymous" );
+            UserCredentials anonymousUser = userService.getUserCredentialsByUsername( userName );
 
             if ( anonymousUser == null )
             {
                 User user = new User();
 
                 UserCredentials usercredential = new UserCredentials();
-                usercredential.setUsername( USER_NAME );
+                usercredential.setUsername( userName );
                 usercredential.setPassword( USER_NAME );
                 usercredential.setUserInfo( user );
 
-                user.setSurname( USER_NAME );
-                user.setFirstName( USER_NAME );
+                user.setSurname( userName );
+                user.setFirstName( "" );
                 user.setUserCredentials( usercredential );
 
                 userService.addUserCredentials( usercredential );
                 userService.addUser( user );
 
-                anonymousUser = userService.getUserCredentialsByUsername( "anonymous" );
+                anonymousUser = userService.getUserCredentialsByUsername( userName );
             }
 
             messageService.sendMessage( smsCommand.getName(), sms.getText(), null, userGroup.getMembers(), anonymousUser.getUserInfo(),

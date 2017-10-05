@@ -33,7 +33,7 @@ package org.hisp.dhis.common;
  */
 public enum AuditType
 {
-    UPDATE( "update" ), DELETE( "delete" );
+    CREATE( "create" ), UPDATE( "update" ), DELETE( "delete" );
 
     private final String value;
 

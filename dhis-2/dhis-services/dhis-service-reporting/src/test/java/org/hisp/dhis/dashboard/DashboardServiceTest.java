@@ -31,8 +31,14 @@ package org.hisp.dhis.dashboard;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartService;
+import org.hisp.dhis.chart.ChartType;
+import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
+import org.hisp.dhis.eventchart.EventChart;
+import org.hisp.dhis.eventchart.EventChartService;
+import org.hisp.dhis.program.Program;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -49,6 +55,12 @@ public class DashboardServiceTest
 
     @Autowired
     private DocumentService documentService;
+
+    @Autowired
+    private EventChartService eventChartService;
+
+    @Autowired
+    private IdentifiableObjectManager objectManager;
 
     private Dashboard dA;
     private Dashboard dB;
@@ -166,5 +178,31 @@ public class DashboardServiceTest
 
         assertNotNull( itemA );
         assertNotNull( itemA.getUid() );
+    }
+
+    @Test( expected = DeleteNotAllowedException.class)
+    public void testDeleteWithDashboardItem()
+    {
+        Program prA = createProgram( 'A', null, null );
+        objectManager.save( prA );
+
+        EventChart eventChart = new EventChart( "ecA" );
+        eventChart.setProgram( prA );
+        eventChart.setType( ChartType.COLUMN );
+
+        int idA = eventChartService.saveEventChart( eventChart );
+
+        assertNotNull( eventChartService.getEventChart( idA ) );
+
+        Dashboard dashboard = new Dashboard( "A" );
+        dashboard.setAutoFields();
+
+        dashboardService.saveDashboard( dashboard );
+
+        DashboardItem itemA = dashboardService.addItemContent( dashboard.getUid(), DashboardItemType.EVENT_CHART, eventChart.getUid() );
+
+        assertNotNull( itemA );
+
+        eventChartService.deleteEventChart( eventChart );
     }
 }

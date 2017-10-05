@@ -460,7 +460,7 @@ dhis2.de.uploadLocalData = function()
         $.ajax( {
             url: '../api/dataValues',
             data: value,
-            dataType: 'json',
+            dataType: 'text',
             type: 'post',
             success: function( data, textStatus, xhr )
             {

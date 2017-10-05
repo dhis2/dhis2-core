@@ -57,6 +57,7 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
@@ -83,6 +84,7 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.patch.Patch;
+import org.hisp.dhis.schema.patch.PatchParams;
 import org.hisp.dhis.schema.patch.PatchService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.translation.ObjectTranslation;
@@ -126,6 +128,8 @@ import java.util.Map;
 public abstract class AbstractCrudController<T extends IdentifiableObject>
 {
     protected static final WebOptions NO_WEB_OPTIONS = new WebOptions( new HashMap<>() );
+
+    protected static final String DEFAULTS = "INCLUDE";
 
     //--------------------------------------------------------------------------
     // Dependencies
@@ -232,7 +236,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
 
-        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( entities, fields ) ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(),
+            new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) ) ) );
 
         return rootNode;
     }
@@ -391,11 +396,15 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         if ( isJson( request ) )
         {
-            patch = patchService.diff( DefaultRenderService.getJsonMapper().readTree( request.getInputStream() ) );
+            patch = patchService.diff(
+                new PatchParams( DefaultRenderService.getJsonMapper().readTree( request.getInputStream() ) )
+            );
         }
         else if ( isXml( request ) )
         {
-            patch = patchService.diff( DefaultRenderService.getXmlMapper().readTree( request.getInputStream() ) );
+            patch = patchService.diff(
+                new PatchParams( DefaultRenderService.getXmlMapper().readTree( request.getInputStream() ) )
+            );
         }
 
         prePatchEntity( persistedObject );
@@ -476,7 +485,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             postProcessEntity( entity, options, parameters );
         }
 
-        CollectionNode collectionNode = fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( entities, fields ) );
+        CollectionNode collectionNode = fieldFilterService.toCollectionNode( getEntityClass(),
+            new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) ) );
 
         if ( options.isTrue( "useWrapper" ) || entities.size() > 1 )
         {
@@ -1000,6 +1010,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         List<T> entityList;
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
         query.setDefaultOrder();
+        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
         if ( options.getOptions().containsKey( "query" ) )
         {

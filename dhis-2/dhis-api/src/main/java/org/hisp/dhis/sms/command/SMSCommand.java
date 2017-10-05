@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 
@@ -135,7 +136,7 @@ public class SMSCommand extends BaseIdentifiableObject
         this.dataset = dataset;
     }
 
-    @JsonProperty( value = "smsCode" )
+    @JsonProperty( value = "smsCodes" )
     @JacksonXmlElementWrapper( localName = "smsCodes", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "smsCode", namespace = DxfNamespaces.DXF_2_0 )
     public Set<SMSCode> getCodes()
@@ -330,5 +331,20 @@ public class SMSCommand extends BaseIdentifiableObject
     public void setCompletenessMethod( CompletenessMethod completenessMethod )
     {
         this.completenessMethod = completenessMethod;
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+                .add( "uid", uid )
+                .add( "smscodes", codes )
+                .add( "program", program )
+                .add( "parsertype", parserType )
+                .add( "separator", separator )
+                .add( "dataset", dataset )
+                .add( "usergroup", userGroup )
+                .add( "programstage", programStage )
+                .toString();
     }
 }

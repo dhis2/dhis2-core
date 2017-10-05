@@ -96,4 +96,9 @@
     <constructor-arg ref="clientDetailsService" />
   </bean>
 
+  <bean id="oAuth2AuthenticationManager" class="org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationManager">
+    <property name="tokenServices" ref="tokenServices"/>
+    <property name="clientDetailsService" ref="clientDetailsService"/>
+  </bean>
+
 </beans>

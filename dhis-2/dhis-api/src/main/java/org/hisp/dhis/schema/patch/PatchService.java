@@ -29,16 +29,25 @@ package org.hisp.dhis.schema.patch;
  *
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface PatchService
 {
-    Patch diff( Object source, Object target );
+    /**
+     * Creates a patch by checking the differences between a source object and
+     * a target object (given by PatchParams).
+     *
+     * @param params PatchParams instance containing source and target object
+     * @return Patch containing the differences between source and target
+     */
+    Patch diff( PatchParams params );
 
-    Patch diff( JsonNode node );
-
+    /**
+     * Applies given patch on the given object.
+     *
+     * @param patch  Patch instance (either created manually or by using the diff function)
+     * @param target Object to apply the patch to
+     */
     void apply( Patch patch, Object target );
 }

@@ -351,6 +351,12 @@ public class DefaultDashboardService
     }
 
     @Override
+    public int countEventChartDashboardItems( EventChart eventChart )
+    {
+        return dashboardItemStore.countEventChartDashboardItems( eventChart );
+    }
+
+    @Override
     public int countReportTableDashboardItems( ReportTable reportTable )
     {
         return dashboardItemStore.countReportTableDashboardItems( reportTable );

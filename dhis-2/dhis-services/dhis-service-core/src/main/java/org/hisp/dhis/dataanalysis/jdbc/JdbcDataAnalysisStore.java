@@ -28,18 +28,6 @@ package org.hisp.dhis.dataanalysis.jdbc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.AggregatedValue.ZERO;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-import static org.hisp.dhis.system.util.MathUtils.isEqual;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.collection.PaginatedList;
@@ -47,6 +35,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataanalysis.DataAnalysisStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -55,6 +44,18 @@ import org.hisp.dhis.system.objectmapper.DeflatedDataValueNameMinMaxRowMapper;
 import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.hisp.dhis.common.AggregatedValue.ZERO;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.system.util.MathUtils.isEqual;
 
 /**
  * @author Lars Helge Overland
@@ -282,8 +283,11 @@ public class JdbcDataAnalysisStore
     }
 
     @Override
-    public List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, int limit )
+    public List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, DataSet dataSet, int limit )
     {
+        String dataSetIdCheck = dataSet != null ? " and dse.datasetid =" + dataSet.getId() + " " : " ";
+        String joinDataSet =  dataSet != null ?  " join datasetelement dse on dse.dataelementid = de.dataelementid" + " " : " ";
+
         final String sql =
             "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.value, " +
             "dv.storedby, dv.lastupdated, dv.created, dv.comment, dv.followup, mm.minimumvalue, mm.maximumvalue, de.name AS dataelementname, " +
@@ -294,10 +298,10 @@ public class JdbcDataAnalysisStore
             "join period pe on dv.periodid = pe.periodid " +
             "join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
             "join organisationunit ou on ou.organisationunitid = dv.sourceid " +
-            "join categoryoptioncombo cc on dv.categoryoptioncomboid = cc.categoryoptioncomboid " +
+            "join categoryoptioncombo cc on dv.categoryoptioncomboid = cc.categoryoptioncomboid " + joinDataSet +
             "where ou.path like '%" + organisationUnit.getUid() + "%' " +
             "and dv.followup = true " +
-            "and dv.deleted is false " +
+            "and dv.deleted is false " + dataSetIdCheck +
             statementBuilder.limitRecord( 0, limit );
         
         return jdbcTemplate.query( sql, new DeflatedDataValueNameMinMaxRowMapper() );

@@ -45,8 +45,10 @@ import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -57,9 +59,13 @@ import java.util.regex.Pattern;
 /**
  * Created by zubair@dhis2.org on 11.08.17.
  */
+@Transactional
 public abstract class BaseSMSListener implements IncomingSmsListener
 {
     private static final Log log = LogFactory.getLog( BaseSMSListener.class );
+
+    private static final String FIELD_SEPARATOR = "|";
+    private static final String CODE_VALUE_SEPARATOR = "=";
 
     protected static final int INFO = 1;
 
@@ -130,7 +136,12 @@ public abstract class BaseSMSListener implements IncomingSmsListener
     protected Set<OrganisationUnit> getOrganisationUnits( IncomingSms sms )
     {
         return SmsUtils.getOrganisationUnitsByPhoneNumber( sms.getOriginator(),
-            userService.getUsersByPhoneNumber( sms.getOriginator() ) );
+            Collections.singleton( getUser( sms ) ) );
+    }
+
+    protected User getUser( IncomingSms sms )
+    {
+        return userService.getUser( sms.getUser().getUid() );
     }
 
     protected void update( IncomingSms sms, SmsMessageStatus status, boolean parsed )
@@ -228,6 +239,28 @@ public abstract class BaseSMSListener implements IncomingSmsListener
     protected abstract String getDefaultPattern();
 
     protected abstract String getSuccessMessage();
+
+    protected  Map<String, String> parseMessageInput( IncomingSms sms, SMSCommand smsCommand )
+    {
+        HashMap<String, String> output = new HashMap<>();
+
+        String message = sms.getText().substring( SmsUtils.getCommandString( sms ).length() ).trim();
+
+        String[] messageParts = StringUtils.split( message, !StringUtils.isBlank( smsCommand.getSeparator() ) ? smsCommand.getSeparator() : FIELD_SEPARATOR );
+
+        String codeValueSeparator = !StringUtils.isBlank( smsCommand.getCodeValueSeparator() ) ? smsCommand.getCodeValueSeparator() : CODE_VALUE_SEPARATOR;
+
+        for ( String string : messageParts )
+        {
+            String key = StringUtils.split( string, codeValueSeparator )[0].trim();
+
+            String value = StringUtils.split( string, codeValueSeparator )[1].trim();
+
+            output.put( key, value );
+        }
+
+        return output;
+    }
 
     // -------------------------------------------------------------------------
     // Supportive Methods

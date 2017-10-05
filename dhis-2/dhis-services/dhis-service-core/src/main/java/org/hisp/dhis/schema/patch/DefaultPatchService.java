@@ -33,15 +33,25 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Enums;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.amqp.AmqpService;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
+import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.schema.audit.MetadataAudit;
+import org.hisp.dhis.schema.audit.MetadataAuditService;
+import org.hisp.dhis.system.SystemInfo;
+import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.hisp.dhis.user.CurrentUserService;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -54,17 +64,69 @@ import java.util.stream.Collectors;
  */
 public class DefaultPatchService implements PatchService
 {
+    private static final Log log = LogFactory.getLog( DefaultPatchService.class );
+
     private final SchemaService schemaService;
+
     private final QueryService queryService;
 
-    public DefaultPatchService( SchemaService schemaService, QueryService queryService )
+    private final AmqpService amqpService;
+
+    private final MetadataAuditService metadataAuditService;
+
+    private final CurrentUserService currentUserService;
+
+    private final RenderService renderService;
+
+    private final SystemService systemService;
+
+    public DefaultPatchService( SchemaService schemaService, QueryService queryService, AmqpService amqpService,
+        MetadataAuditService metadataAuditService, CurrentUserService currentUserService, RenderService renderService, SystemService systemService )
     {
         this.schemaService = schemaService;
         this.queryService = queryService;
+        this.amqpService = amqpService;
+        this.metadataAuditService = metadataAuditService;
+        this.currentUserService = currentUserService;
+        this.renderService = renderService;
+        this.systemService = systemService;
     }
 
     @Override
-    public Patch diff( Object source, Object target )
+    public Patch diff( PatchParams params )
+    {
+        if ( !params.haveJsonNode() )
+        {
+            return diff( params.getSource(), params.getTarget(), params.isIgnoreTransient() );
+        }
+
+        return diff( params.getJsonNode() );
+    }
+
+    @Override
+    public void apply( Patch patch, Object target )
+    {
+        if ( target == null )
+        {
+            return;
+        }
+
+        Schema schema = schemaService.getDynamicSchema( target.getClass() );
+
+        if ( schema == null )
+        {
+            return;
+        }
+
+        patch.getMutations().forEach( mutation -> applyMutation( mutation, schema, target ) );
+
+        if ( !patch.getMutations().isEmpty() )
+        {
+            logAudit( patch, target, schema );
+        }
+    }
+
+    private Patch diff( Object source, Object target, boolean ignoreTransient )
     {
         Patch patch = new Patch();
 
@@ -80,18 +142,136 @@ public class DefaultPatchService implements PatchService
             return patch;
         }
 
-        patch.setMutations( calculateMutations( schema, source, target ) );
+        patch.setMutations( calculateMutations( schema, source, target, ignoreTransient ) );
 
         return patch;
     }
 
-    @Override
-    public Patch diff( JsonNode jsonNode )
+    private Patch diff( JsonNode jsonNode )
     {
         Patch patch = new Patch();
         patch.setMutations( calculateMutations( jsonNode ) );
 
         return patch;
+    }
+
+    private List<Mutation> calculateMutations( Schema schema, Object source, Object target, boolean ignoreTransient )
+    {
+        List<Mutation> mutations = new ArrayList<>();
+
+        for ( Property property : schema.getProperties() )
+        {
+            if ( ignoreTransient && !property.isOwner() )
+            {
+                continue;
+            }
+
+            if ( property.isCollection() )
+            {
+                mutations.addAll( calculateMutation( property.getCollectionName(), property, source, target ) );
+            }
+            else
+            {
+                mutations.addAll( calculateMutation( property.getName(), property, source, target ) );
+            }
+        }
+
+        return mutations;
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private List<Mutation> calculateMutation( String path, Property property, Object source, Object target )
+    {
+        Object sourceValue = ReflectionUtils.invokeMethod( source, property.getGetterMethod() );
+        Object targetValue = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
+        List<Mutation> mutations = new ArrayList<>();
+
+        if ( sourceValue == null && targetValue == null )
+        {
+            return mutations;
+        }
+
+        if ( targetValue == null || sourceValue == null )
+        {
+            return Lists.newArrayList( new Mutation( path, targetValue ) );
+        }
+
+        if ( property.isCollection() && property.isIdentifiableObject() && !property.isEmbeddedObject() )
+        {
+            Collection addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+
+            Collection sourceCollection = (Collection) ((Collection) sourceValue).stream()
+                .map( o -> ((IdentifiableObject) o).getUid() ).collect( Collectors.toList() );
+
+            Collection targetCollection = (Collection) ((Collection) targetValue).stream()
+                .map( o -> ((IdentifiableObject) o).getUid() ).collect( Collectors.toList() );
+
+            for ( Object o : targetCollection )
+            {
+                if ( !sourceCollection.contains( o ) )
+                {
+                    addCollection.add( o );
+                }
+                else
+                {
+                    sourceCollection.remove( o );
+                }
+            }
+
+            if ( !addCollection.isEmpty() )
+            {
+                mutations.add( new Mutation( path, addCollection ) );
+            }
+
+            Collection delCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+            delCollection.addAll( sourceCollection );
+
+            if ( !delCollection.isEmpty() )
+            {
+                mutations.add( new Mutation( path, delCollection, Mutation.Operation.DELETION ) );
+            }
+        }
+        else if ( property.isCollection() && !property.isEmbeddedObject() && !property.isIdentifiableObject() )
+        {
+            Collection sourceCollection = new ArrayList( (Collection) sourceValue );
+            Collection targetCollection = (Collection) targetValue;
+
+            Collection addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+
+            for ( Object o : targetCollection )
+            {
+                if ( !sourceCollection.contains( o ) )
+                {
+                    addCollection.add( o );
+                }
+                else
+                {
+                    sourceCollection.remove( o );
+                }
+            }
+
+            if ( !addCollection.isEmpty() )
+            {
+                mutations.add( new Mutation( path, addCollection ) );
+            }
+
+            Collection delCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+            delCollection.addAll( sourceCollection );
+
+            if ( !delCollection.isEmpty() )
+            {
+                mutations.add( new Mutation( path, delCollection, Mutation.Operation.DELETION ) );
+            }
+        }
+        else if ( property.isSimple() || property.isEmbeddedObject() )
+        {
+            if ( !targetValue.equals( sourceValue ) )
+            {
+                return Lists.newArrayList( new Mutation( path, targetValue ) );
+            }
+        }
+
+        return mutations;
     }
 
     private List<Mutation> calculateMutations( JsonNode rootNode )
@@ -157,126 +337,6 @@ public class DefaultPatchService implements PatchService
         }
 
         return null;
-    }
-
-    @Override
-    public void apply( Patch patch, Object target )
-    {
-        if ( target == null )
-        {
-            return;
-        }
-
-        Schema schema = schemaService.getDynamicSchema( target.getClass() );
-
-        if ( schema == null )
-        {
-            return;
-        }
-
-        patch.getMutations().forEach( mutation -> applyMutation( mutation, schema, target ) );
-    }
-
-    private List<Mutation> calculateMutations( Schema schema, Object source, Object target )
-    {
-        List<Mutation> mutations = new ArrayList<>();
-
-        for ( Property property : schema.getProperties() )
-        {
-            if ( property.isCollection() )
-            {
-                mutations.addAll( calculateMutation( property.getCollectionName(), property, source, target ) );
-            }
-            else
-            {
-                mutations.addAll( calculateMutation( property.getName(), property, source, target ) );
-            }
-        }
-
-        return mutations;
-    }
-
-    @SuppressWarnings( "unchecked" )
-    private List<Mutation> calculateMutation( String path, Property property, Object source, Object target )
-    {
-        Object sourceValue = ReflectionUtils.invokeMethod( source, property.getGetterMethod() );
-        Object targetValue = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
-        List<Mutation> mutations = new ArrayList<>();
-
-        if ( sourceValue == null && targetValue == null )
-        {
-            return mutations;
-        }
-
-        if ( targetValue == null || sourceValue == null )
-        {
-            return Lists.newArrayList( new Mutation( path, targetValue ) );
-        }
-
-        if ( property.isCollection() && property.isIdentifiableObject() && !property.isEmbeddedObject() )
-        {
-            Collection addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
-
-            Collection sourceCollection = (Collection) ((Collection) sourceValue).stream()
-                .map( o -> ((IdentifiableObject) o).getUid() ).collect( Collectors.toList() );
-
-            Collection targetCollection = (Collection) ((Collection) targetValue).stream()
-                .map( o -> ((IdentifiableObject) o).getUid() ).collect( Collectors.toList() );
-
-            for ( Object o : targetCollection )
-            {
-                if ( !sourceCollection.contains( o ) )
-                {
-                    addCollection.add( o );
-                }
-                else
-                {
-                    sourceCollection.remove( o );
-                }
-            }
-
-            mutations.add( new Mutation( path, addCollection ) );
-
-            Collection delCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
-            delCollection.addAll( sourceCollection );
-
-            mutations.add( new Mutation( path, delCollection, Mutation.Operation.DELETION ) );
-        }
-        else if ( property.isCollection() && !property.isEmbeddedObject() && !property.isIdentifiableObject() )
-        {
-            Collection sourceCollection = new ArrayList( (Collection) sourceValue );
-            Collection targetCollection = (Collection) targetValue;
-
-            Collection addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
-
-            for ( Object o : targetCollection )
-            {
-                if ( !sourceCollection.contains( o ) )
-                {
-                    addCollection.add( o );
-                }
-                else
-                {
-                    sourceCollection.remove( o );
-                }
-            }
-
-            mutations.add( new Mutation( path, addCollection ) );
-
-            Collection delCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
-            delCollection.addAll( sourceCollection );
-
-            mutations.add( new Mutation( path, delCollection, Mutation.Operation.DELETION ) );
-        }
-        else if ( property.isSimple() || property.isEmbeddedObject() )
-        {
-            if ( !targetValue.equals( sourceValue ) )
-            {
-                return Lists.newArrayList( new Mutation( path, targetValue ) );
-            }
-        }
-
-        return mutations;
     }
 
     private void applyMutation( Mutation mutation, Schema schema, Object target )
@@ -507,5 +567,49 @@ public class DefaultPatchService implements PatchService
         }
 
         return null;
+    }
+
+    private void logAudit( Patch patch, Object target, Schema schema )
+    {
+        SystemInfo systemInfo = systemService.getSystemInfo();
+
+        MetadataAudit audit = new MetadataAudit();
+        audit.setCreatedAt( new Date() );
+        audit.setCreatedBy( currentUserService.getCurrentUsername() );
+        audit.setKlass( schema.getKlass() );
+
+        if ( IdentifiableObject.class.isInstance( target ) )
+        {
+            audit.setUid( ((IdentifiableObject) target).getUid() );
+            audit.setCode( ((IdentifiableObject) target).getCode() );
+        }
+
+        audit.setType( AuditType.UPDATE );
+
+        if ( amqpService.isEnabled() )
+        {
+            audit.setValue( renderService.toJsonAsString( patch ) );
+            amqpService.publish( audit );
+        }
+
+        if ( systemInfo.getMetadataAudit().isAudit() )
+        {
+            if ( audit.getValue() == null )
+            {
+                audit.setValue( renderService.toJsonAsString( patch ) );
+            }
+
+            String auditJson = renderService.toJsonAsString( audit );
+
+            if ( systemInfo.getMetadataAudit().isLog() )
+            {
+                log.info( "MetadataAuditEvent: " + auditJson );
+            }
+
+            if ( systemInfo.getMetadataAudit().isPersist() )
+            {
+                metadataAuditService.addMetadataAudit( audit );
+            }
+        }
     }
 }
