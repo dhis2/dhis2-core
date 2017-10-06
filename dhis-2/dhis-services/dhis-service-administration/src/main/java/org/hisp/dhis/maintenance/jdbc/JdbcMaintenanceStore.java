@@ -52,14 +52,9 @@ public class JdbcMaintenanceStore
     @Override
     public int deleteZeroDataValues()
     {
-        String sql =
-            "delete from datavalue dv " +
-            "where dv.dataelementid in ( " +
-              "select de.dataelementid " +
-              "from dataelement de " +
-              "where de.aggregationtype = 'SUM' " +
-              "and de.zeroissignificant is false ) " +
-            "and dv.value = '0';";
+        String sql = "delete from datavalue dv " + "where dv.dataelementid in ( " + "select de.dataelementid "
+            + "from dataelement de " + "where de.aggregationtype = 'SUM' " + "and de.zeroissignificant is false ) "
+            + "and dv.value = '0';";
 
         return jdbcTemplate.update( sql );
     }
@@ -67,9 +62,7 @@ public class JdbcMaintenanceStore
     @Override
     public int deleteSoftDeletedDataValues()
     {
-        String sql =
-            "delete from datavalue dv " +
-            "where dv.deleted is true;";
+        String sql = "delete from datavalue dv " + "where dv.deleted is true;";
 
         return jdbcTemplate.update( sql );
     }
@@ -77,30 +70,79 @@ public class JdbcMaintenanceStore
     @Override
     public int deleteSoftDeletedProgramStageInstances()
     {
-        String sql =
-            "delete from programstageinstance " +
-            "where deleted is true";
+        String psiSelect = "(select programstageinstanceid from programstageinstance where deleted is true)";
 
-        return jdbcTemplate.update( sql );
+        /*
+         * Delete event values, event value audits, event comments, events
+         * 
+         */
+        String[] sqlStmts = new String[] {
+            "delete from trackedentitydatavalue where programstageinstanceid in " + psiSelect,
+            "delete from trackedentitydatavalueaudit where programstageinstanceid in " + psiSelect,
+            "delete from programstageinstancecomments where programstageinstanceid in " + psiSelect,
+            "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from programstageinstancecomments union all select trackedentitycommentid from programinstancecomments)",
+            "delete from programstageinstance where deleted is true" };
+
+        return jdbcTemplate.batchUpdate( sqlStmts )[sqlStmts.length - 1];
     }
 
     @Override
     public int deleteSoftDeletedProgramInstances()
     {
-        String sql =
-            "delete from programinstance " +
-            "where deleted is true";
+        String piSelect = "(select programinstanceid from programinstance where deleted is true)";
 
-        return jdbcTemplate.update( sql );
+        String psiSelect = "(select programstageinstanceid from programstageinstance where programinstanceid in "
+            + piSelect + " )";
+
+        /*
+         * Delete event values, event value audits, event comments, events,
+         * enrollment comments, enrollments
+         * 
+         */
+        String[] sqlStmts = new String[] {
+            "delete from trackedentitydatavalue where programstageinstanceid in " + psiSelect,
+            "delete from trackedentitydatavalueaudit where programstageinstanceid in " + psiSelect,
+            "delete from trackedentitycomment where trackedentitycommentid in (select trackedentitycommentid from programstageinstancecomments where programstageinstanceid in "
+                + psiSelect + ")",
+            "delete from programstageinstancecomments where programstageinstanceid in " + psiSelect,
+            "delete from programstageinstance where programinstanceid in " + piSelect,
+            "delete from programinstancecomments where programinstanceid in " + piSelect,
+            "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from programstageinstancecomments union all select trackedentitycommentid from programinstancecomments)",
+            "delete from programinstance where deleted is true" };
+
+        return jdbcTemplate.batchUpdate( sqlStmts )[sqlStmts.length - 1];
     }
 
     @Override
     public int deleteSoftDeletedTrackedEntityInstances()
     {
-        String sql =
-            "delete from trackedentityinstance " +
-                "where deleted is true";
+        String teiSelect = "(select trackedentityinstanceid from trackedentityinstance where deleted is true)";
 
-        return jdbcTemplate.update( sql );
+        String piSelect = "(select programinstanceid from programinstance where trackedentityinstanceid in " + teiSelect
+            + " )";
+
+        String psiSelect = "(select programstageinstanceid from programstageinstance where programinstanceid in "
+            + piSelect + " )";
+
+        /*
+         * Delete event values, event audits, event comments, events, enrollment
+         * comments, enrollments, tei attribtue values, tei attribtue value
+         * audits, teis
+         * 
+         */
+        String[] sqlStmts = new String[] {
+            "delete from trackedentitydatavalue where programstageinstanceid in " + psiSelect,
+            "delete from trackedentitydatavalueaudit where programstageinstanceid in " + psiSelect,
+            "delete from programstageinstancecomments where programstageinstanceid in " + psiSelect,
+            "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from programstageinstancecomments union all select trackedentitycommentid from programinstancecomments)",
+            "delete from programstageinstance where programinstanceid in " + piSelect,
+            "delete from programinstancecomments where programinstanceid in " + piSelect,
+            "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from programstageinstancecomments union all select trackedentitycommentid from programinstancecomments)",
+            "delete from programinstance where programinstanceid in " + piSelect,
+            "delete from trackedentityattributevalue where trackedentityinstanceid in " + teiSelect,
+            "delete from trackedentityattributevalueaudit where trackedentityinstanceid in " + teiSelect,
+            "delete from trackedentityinstance where deleted is true" };
+
+        return jdbcTemplate.batchUpdate( sqlStmts )[sqlStmts.length - 1];
     }
 }
