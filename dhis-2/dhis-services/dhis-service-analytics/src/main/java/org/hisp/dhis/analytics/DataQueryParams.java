@@ -2179,6 +2179,12 @@ public class DataQueryParams
             this.withOrganisationUnits( getList( organisationUnit ) );
             return this;
         }
+
+        public Builder withValidationRules( List<? extends DimensionalItemObject> validationRules )
+        {
+            this.params.setDataDimensionOptions( DataDimensionItemType.VALIDATION_RULE, validationRules );
+            return this;
+        }
         
         public Builder addFilter( DimensionalObject filter )
         {

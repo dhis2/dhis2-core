@@ -105,7 +105,6 @@ public class DefaultAnalyticsTableGenerator
             {
                 AnalyticsTableType tableType = service.getAnalyticsTableType();
 
-
                 if ( !skipTypes.contains( tableType ) )
                 {
                     notifier.notify( taskId, "Updating tables: " + tableType );

@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.data;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisTest;
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.utils.AnalyticsTestUtils;
 import org.hisp.dhis.common.*;
@@ -57,7 +56,6 @@ import org.hisp.dhis.validation.ValidationResultStore;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleStore;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -81,7 +79,7 @@ import static org.junit.Assert.assertEquals;
  * 
  * @author Henning Haakonsen
  */
-@Category( IntegrationTest.class )
+//@Category( IntegrationTest.class )
 public class AnalyticsServiceTest
     extends DhisTest
 {
@@ -594,43 +592,23 @@ public class AnalyticsServiceTest
             .withAggregationType( AggregationType.SUM )
             .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
-        BaseDimensionalObject baseValidationRuleA = new BaseDimensionalObject("validationRuleA");
-        baseValidationRuleA.setDimensionType(DimensionType.DATA_X);
-        baseValidationRuleA.setDisplayName("Data");
-        baseValidationRuleA.setAggregationType(AggregationType.COUNT);
-        baseValidationRuleA.setDimension("dx");
-        baseValidationRuleA.setItems(  Lists.newArrayList( validationRuleA ) );
-
-        BaseDimensionalObject baseValidationRuleB = new BaseDimensionalObject("validationRuleB");
-        baseValidationRuleB.setDimensionType(DimensionType.DATA_X);
-        baseValidationRuleB.setDisplayName("Data");
-        baseValidationRuleB.setAggregationType(AggregationType.COUNT);
-        baseValidationRuleB.setDimension("dx");
-        baseValidationRuleB.setItems(  Lists.newArrayList( validationRuleB ) );
-
-        BaseDimensionalObject baseValidationRuleAB = new BaseDimensionalObject("validationRuleAB");
-        baseValidationRuleAB.setDimensionType(DimensionType.DATA_X);
-        baseValidationRuleAB.setDisplayName("Data");
-        baseValidationRuleAB.setAggregationType(AggregationType.COUNT);
-        baseValidationRuleAB.setDimension("dx");
-        baseValidationRuleAB.setItems(  Lists.newArrayList( validationRuleA, validationRuleB ) );
-
+        // Validation result queries
         DataQueryParams ou_2017_validationruleA_params = DataQueryParams.newBuilder()
-                .withDimensions( Lists.newArrayList( baseValidationRuleA ) )
+                .withValidationRules( Lists.newArrayList( validationRuleA ) )
                 .withOrganisationUnits( organisationUnitService.getAllOrganisationUnits() )
                 .withAggregationType( AggregationType.COUNT )
                 .withPeriod( y2017 )
                 .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         DataQueryParams ou_2017_validationruleB_params = DataQueryParams.newBuilder()
-                .withDimensions( Lists.newArrayList( baseValidationRuleB ) )
+                .withValidationRules( Lists.newArrayList( validationRuleB ) )
                 .withOrganisationUnits( organisationUnitService.getAllOrganisationUnits() )
                 .withAggregationType( AggregationType.COUNT )
                 .withPeriod( y2017 )
                 .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         DataQueryParams ou_2017_validationruleAB_params = DataQueryParams.newBuilder()
-                .withDimensions( Lists.newArrayList( baseValidationRuleAB ) )
+                .withValidationRules( Lists.newArrayList( validationRuleA, validationRuleB ) )
                 .withOrganisationUnits( organisationUnitService.getAllOrganisationUnits() )
                 .withAggregationType( AggregationType.COUNT )
                 .withPeriod( y2017 )

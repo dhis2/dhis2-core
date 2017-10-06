@@ -83,10 +83,6 @@
 
   <bean id="org.hisp.dhis.analytics.event.EventQueryPlanner" class="org.hisp.dhis.analytics.event.data.DefaultEventQueryPlanner" />
 
-  <!-- Validation violation analytics -->
-
-  <bean id="org.hisp.dhis.analytics.validation.ValidationResultManager" class="org.hisp.dhis.analytics.validation.data.JdbcValidationResultAnalyticsManager" />
-
   <!-- Scheduled tasks -->
   
   <bean id="analyticsAllTask" class="org.hisp.dhis.analytics.table.scheduling.AnalyticsTableTask" scope="prototype" />

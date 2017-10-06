@@ -48,7 +48,7 @@ public enum DimensionType
     CATEGORY,
     STATIC,
     OPTION_GROUP_SET,
-    VALIDATION_RESULT;
+    VALIDATION_RULE;
     
     private static final int LAST_ORDER = 999;
     

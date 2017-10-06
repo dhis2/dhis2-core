@@ -707,6 +707,7 @@ public class DefaultAnalyticsService
         {
             DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )
                 .retainDataDimension( DataDimensionItemType.VALIDATION_RULE )
+                .withAggregationType( AggregationType.COUNT )
                 .withIncludeNumDen( false ).build();
 
             Map<String, Double> aggregatedDataMap = getAggregatedValidationResultMapObjectTyped( dataSourceParams );
