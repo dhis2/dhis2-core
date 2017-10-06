@@ -22,7 +22,7 @@ public class JdbcValidationResultTableManager
     extends AbstractJdbcTableManager
 {
     @Autowired
-    PeriodService periodService;
+    private PeriodService periodService;
 
     @Override
     protected void populateTable( AnalyticsTable table )
@@ -94,12 +94,12 @@ public class JdbcValidationResultTableManager
     @Override
     public String validState()
     {
-        boolean hasData = jdbcTemplate.queryForRowSet( "SELECT validationresultid FROM validationresult LIMIT 1" )
+        boolean hasData = jdbcTemplate.queryForRowSet( "select validationresultid from validationresult limit 1" )
             .next();
 
         if ( !hasData )
         {
-            return "No validation violation rules exist, not updating validation violation analytics tables";
+            return "No validation results exist, not updating validation result analytics tables";
         }
 
         return null;

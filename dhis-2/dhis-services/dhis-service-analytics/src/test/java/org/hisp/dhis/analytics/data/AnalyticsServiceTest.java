@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.data;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.utils.AnalyticsTestUtils;
 import org.hisp.dhis.common.*;
@@ -56,6 +57,7 @@ import org.hisp.dhis.validation.ValidationResultStore;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleStore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -79,7 +81,7 @@ import static org.junit.Assert.assertEquals;
  * 
  * @author Henning Haakonsen
  */
-//@Category( IntegrationTest.class )
+@Category( IntegrationTest.class )
 public class AnalyticsServiceTest
     extends DhisTest
 {
