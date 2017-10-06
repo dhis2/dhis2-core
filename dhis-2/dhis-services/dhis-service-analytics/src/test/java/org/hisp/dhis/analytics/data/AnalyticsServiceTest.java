@@ -33,14 +33,8 @@ import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.utils.AnalyticsTestUtils;
-import org.hisp.dhis.common.AnalyticalObject;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.ReportingRate;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -48,20 +42,30 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.*;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.validation.ValidationResult;
+import org.hisp.dhis.validation.ValidationResultStore;
+import org.hisp.dhis.validation.ValidationRule;
+import org.hisp.dhis.validation.ValidationRuleStore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.*;
 
+import static org.hisp.dhis.expression.Operator.equal_to;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -120,10 +124,22 @@ public class AnalyticsServiceTest
     private DataSetService dataSetService;
 
     @Autowired
+    private ExpressionService expressionService;
+
+    @Autowired
+    private ValidationRuleStore validationRuleStore;
+
+    @Autowired
+    private ValidationResultStore validationResultStore;
+
+    @Autowired
     private CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
+
+    @Resource( name = "readOnlyJdbcTemplate" )
+    private JdbcTemplate jdbcTemplate;
 
     // Database (value, data element, period)
     // --------------------------------------------------------------------
@@ -325,6 +341,80 @@ public class AnalyticsServiceTest
         indicatorService.addIndicator( indicatorE );
         indicatorService.addIndicator( indicatorF );
 
+        // Validation results
+        DataElementCategoryOption optionA = new DataElementCategoryOption( "CategoryOptionA" );
+        DataElementCategoryOption optionB = new DataElementCategoryOption( "CategoryOptionB" );
+        categoryService.addDataElementCategoryOption( optionA );
+        categoryService.addDataElementCategoryOption( optionB );
+
+        DataElementCategory categoryA = createDataElementCategory( 'A', optionA, optionB );
+        categoryA.setDataDimensionType( DataDimensionType.ATTRIBUTE );
+        categoryService.addDataElementCategory( categoryA );
+
+        DataElementCategoryCombo categoryComboA = createCategoryCombo( 'A', categoryA );
+        categoryService.addDataElementCategoryCombo( categoryComboA );
+
+        DataElementCategoryOptionCombo optionComboA = createCategoryOptionCombo( 'A', categoryComboA, optionA );
+        DataElementCategoryOptionCombo optionComboB = createCategoryOptionCombo( 'B', categoryComboA, optionB );
+        DataElementCategoryOptionCombo optionComboC = createCategoryOptionCombo( 'C', categoryComboA, optionA, optionB );
+
+        categoryService.addDataElementCategoryOptionCombo( optionComboA );
+        categoryService.addDataElementCategoryOptionCombo( optionComboB );
+        categoryService.addDataElementCategoryOptionCombo( optionComboC );
+
+        CategoryOptionGroup optionGroupA = createCategoryOptionGroup( 'A', optionA );
+        CategoryOptionGroup optionGroupB = createCategoryOptionGroup( 'B', optionB );
+        categoryService.saveCategoryOptionGroup( optionGroupA );
+        categoryService.saveCategoryOptionGroup( optionGroupB );
+
+        CategoryOptionGroupSet optionGroupSetB = new CategoryOptionGroupSet( "OptionGroupSetB" );
+        categoryService.saveCategoryOptionGroupSet( optionGroupSetB );
+
+        optionGroupSetB.addCategoryOptionGroup( optionGroupA );
+        optionGroupSetB.addCategoryOptionGroup( optionGroupB );
+
+        optionGroupA.getGroupSets().add( optionGroupSetB );
+        optionGroupB.getGroupSets().add( optionGroupSetB );
+
+        Expression expressionVRA = new Expression( "expressionA", "descriptionA" );
+        Expression expressionVRB = new Expression( "expressionB", "descriptionB" );
+        expressionService.addExpression( expressionVRA );
+        expressionService.addExpression( expressionVRB );
+
+        PeriodType periodType = PeriodType.getPeriodTypeByName( "Monthly" );
+
+        ValidationRule validationRuleA = createValidationRule( 'A', equal_to, expressionVRA, expressionVRB, periodType );
+        validationRuleA.setUid( "a234567vruA" );
+
+        ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionVRA, expressionVRB, periodType );
+        validationRuleB.setUid( "a234567vruB" );
+        validationRuleStore.save( validationRuleA );
+        validationRuleStore.save( validationRuleB );
+
+        Date today = new Date();
+        ValidationResult validationResultBA = new ValidationResult( validationRuleA, peJan, ouB, optionComboA, 1.0,2.0, 3 );
+        validationResultBA.setCreated(today);
+        ValidationResult validationResultBB = new ValidationResult( validationRuleA, peJan, ouB, optionComboB, 1.0,2.0, 3 );
+        validationResultBB.setCreated(today);
+        ValidationResult validationResultAA = new ValidationResult( validationRuleA, peJan, ouA, optionComboA, 1.0,2.0, 3 );
+        validationResultAA.setCreated(today);
+        ValidationResult validationResultAB = new ValidationResult( validationRuleA, peJan, ouA, optionComboB, 1.0,2.0, 3 );
+        validationResultAB.setCreated(today);
+
+        ValidationResult validationResultBAB = new ValidationResult( validationRuleB, peJan, ouA, optionComboB, 1.0,2.0, 3 );
+        validationResultBAB.setCreated(today);
+        ValidationResult validationResultBBB = new ValidationResult( validationRuleB, peFeb, ouB, optionComboB, 1.0,2.0, 3 );
+        validationResultBBB.setCreated(today);
+        ValidationResult validationResultBBA = new ValidationResult( validationRuleB, peFeb, ouB, optionComboA, 1.0,2.0, 3 );
+
+        validationResultStore.save( validationResultAA );
+        validationResultStore.save( validationResultAB );
+        validationResultStore.save( validationResultBB );
+        validationResultStore.save( validationResultBA );
+        validationResultStore.save( validationResultBAB );
+        validationResultStore.save( validationResultBBB );
+        validationResultStore.save( validationResultBBA );
+
         // Generate analytics tables
         // --------------------------------------------------------------------
         analyticsTableGenerator.generateTables( null, null, null, false );
@@ -504,6 +594,28 @@ public class AnalyticsServiceTest
             .withAggregationType( AggregationType.SUM )
             .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
+        // Validation result queries
+        DataQueryParams ou_2017_validationruleA_params = DataQueryParams.newBuilder()
+                .withValidationRules( Lists.newArrayList( validationRuleA ) )
+                .withOrganisationUnits( organisationUnitService.getAllOrganisationUnits() )
+                .withAggregationType( AggregationType.COUNT )
+                .withPeriod( y2017 )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build();
+
+        DataQueryParams ou_2017_validationruleB_params = DataQueryParams.newBuilder()
+                .withValidationRules( Lists.newArrayList( validationRuleB ) )
+                .withOrganisationUnits( organisationUnitService.getAllOrganisationUnits() )
+                .withAggregationType( AggregationType.COUNT )
+                .withPeriod( y2017 )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build();
+
+        DataQueryParams ou_2017_validationruleAB_params = DataQueryParams.newBuilder()
+                .withValidationRules( Lists.newArrayList( validationRuleA, validationRuleB ) )
+                .withOrganisationUnits( organisationUnitService.getAllOrganisationUnits() )
+                .withAggregationType( AggregationType.COUNT )
+                .withPeriod( y2017 )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build();
+
         dataQueryParams.put( "ou_2017", ou_2017_params );
         dataQueryParams.put( "ou_2017_01", ou_2017_01_params );
         dataQueryParams.put( "ouB_2017_02", ouB_2017_02_params );
@@ -528,6 +640,9 @@ public class AnalyticsServiceTest
         dataQueryParams.put( "ouGroupSetB_2017_03", ouGroupSetB_2017_03_params );
         dataQueryParams.put( "reRate_2017_Q01_ouC", reRate_2017_Q01_ouC_params );
         dataQueryParams.put( "reRate_2017_Q01_ouD", reRate_2017_Q01_ouD_params );
+        dataQueryParams.put( "ou_2017_validationruleA", ou_2017_validationruleA_params );
+        dataQueryParams.put( "ou_2017_validationruleB", ou_2017_validationruleB_params );
+        dataQueryParams.put( "ou_2017_validationruleAB", ou_2017_validationruleAB_params );
 
         analyticalObjectHashMap.put( "deC_ouB_2017_03", deC_ouB_2017_03_analytical );
         analyticalObjectHashMap.put( "deA_ouA_2017_Q01", deA_ouA_2017_Q01_analytical );
@@ -623,6 +738,20 @@ public class AnalyticsServiceTest
         Map<String, Double> reRate_2017_Q01_ouD_keyValue = new HashMap<>();
         reRate_2017_Q01_ouD_keyValue.put( "a23dataSetB.REPORTING_RATE-ouabcdefghD-2017Q1", 33.3 );
 
+        Map<String, Double> ou_2017_validationruleA_keyValue = new HashMap<>();
+        ou_2017_validationruleA_keyValue.put( "a234567vruA-ouabcdefghA-2017", 4.0 );
+        ou_2017_validationruleA_keyValue.put( "a234567vruA-ouabcdefghB-2017", 2.0 );
+
+        Map<String, Double> ou_2017_validationruleB_keyValue = new HashMap<>();
+        ou_2017_validationruleB_keyValue.put( "a234567vruB-ouabcdefghA-2017", 3.0 );
+        ou_2017_validationruleB_keyValue.put( "a234567vruB-ouabcdefghB-2017", 2.0 );
+
+        Map<String, Double> ou_2017_validationruleAB_keyValue = new HashMap<>();
+        ou_2017_validationruleAB_keyValue.put( "a234567vruA-ouabcdefghA-2017", 4.0 );
+        ou_2017_validationruleAB_keyValue.put( "a234567vruA-ouabcdefghB-2017", 2.0 );
+        ou_2017_validationruleAB_keyValue.put( "a234567vruB-ouabcdefghA-2017", 3.0 );
+        ou_2017_validationruleAB_keyValue.put( "a234567vruB-ouabcdefghB-2017", 2.0 );
+
         results.put( "ou_2017", ou_2017_keyValue );
         results.put( "ou_2017_01", ou_2017_01_keyValue );
         results.put( "ouB_2017_02", ouB_2017_02_keyValue );
@@ -648,6 +777,9 @@ public class AnalyticsServiceTest
         results.put( "ouGroupSetB_2017_03", ouGroupSetB_2017_03_keyValue );
         results.put( "reRate_2017_Q01_ouC", reRate_2017_Q01_ouC_keyValue );
         results.put( "reRate_2017_Q01_ouD", reRate_2017_Q01_ouD_keyValue );
+        results.put( "ou_2017_validationruleA", ou_2017_validationruleA_keyValue );
+        results.put( "ou_2017_validationruleB", ou_2017_validationruleB_keyValue );
+        results.put( "ou_2017_validationruleAB", ou_2017_validationruleAB_keyValue );
     }
 
     @Override
@@ -660,6 +792,14 @@ public class AnalyticsServiceTest
     public void tearDownTest()
     {
         analyticsTableGenerator.dropTables();
+    }
+
+    @Test
+    public void queryValidationResultTable()
+    {
+        List<Map<String, Object>> resultMap = jdbcTemplate.queryForList( "select * from analytics_validationresult_2017;" );
+
+        assertEquals(7, resultMap.size());
     }
 
     @Test

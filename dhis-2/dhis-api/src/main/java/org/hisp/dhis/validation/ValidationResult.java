@@ -51,7 +51,6 @@ import java.util.Date;
 public class ValidationResult
     implements Comparable<ValidationResult>
 {
-
     private int id;
 
     private Date created;
@@ -107,6 +106,11 @@ public class ValidationResult
         this.leftsideValue = leftsideValue;
         this.rightsideValue = rightsideValue;
         this.dayInPeriod = dayInPeriod;
+    }
+
+    public String getUid()
+    {
+        return validationRule != null ? validationRule.getUid() : null;
     }
 
     // -------------------------------------------------------------------------
