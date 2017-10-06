@@ -36,7 +36,6 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 
 import java.util.ArrayList;
@@ -66,19 +65,9 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
         {
             for ( DataInputPeriod period : inputPeriods )
             {
-                if ( !ObjectUtils.allNonNull( period.getOpeningDate(), period.getClosingDate() ) )
-                {
-                    errors.add( new ErrorReport( DataSet.class, ErrorCode.E4014, period.getClosingDate(), period.getOpeningDate() ) );
-                }
-                else if ( period.getOpeningDate().after( period.getClosingDate() ) )
+                if ( ObjectUtils.allNonNull( period.getOpeningDate(), period.getClosingDate() ) && period.getOpeningDate().after( period.getClosingDate() ) )
                 {
                     errors.add( new ErrorReport( DataSet.class, ErrorCode.E4013, period.getClosingDate(), period.getOpeningDate() ) );
-                }
-                else if ( !DateUtils.between( period.getOpeningDate(), period.getPeriod().getStartDate(), period.getPeriod().getEndDate() )
-                    || !DateUtils.between( period.getClosingDate(), period.getPeriod().getStartDate(), period.getPeriod().getEndDate() ))
-                {
-                    errors.add( new ErrorReport( DataSet.class, ErrorCode.E4015, period.getClosingDate(), period.getOpeningDate(),
-                        period.getPeriod().toString() ) );
                 }
             }
         }

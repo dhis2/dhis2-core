@@ -38,13 +38,12 @@ import org.hisp.dhis.system.SystemService;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageBuilder;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.http.MediaType;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -86,24 +85,22 @@ public class RabbitMQAmqpService implements AmqpService
             return;
         }
 
-        amqpTemplate.convertAndSend( "dhis2", routingKey, message );
+        RabbitMQ rabbitMQ = systemService.getSystemInfo().getRabbitMQ();
+
+        amqpTemplate.convertAndSend( rabbitMQ.getExchange(), routingKey, message );
     }
 
     @Override
     public void publish( MetadataAudit audit )
     {
         String routingKey = "metadata."
-            + audit.getKlass().getSimpleName().toLowerCase()
+            + audit.getKlass().getSimpleName()
             + "." + audit.getType().toString().toLowerCase()
             + "." + audit.getUid();
 
         String auditJson = renderService.toJsonAsString( audit );
 
-        Message message = MessageBuilder.withBody( auditJson.getBytes() )
-            .setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE )
-            .build();
-
-        publish( routingKey, message );
+        publish( routingKey, new Message( auditJson.getBytes(), new MessageProperties() ) );
     }
 
     private AmqpTemplate getAmqpTemplate()
