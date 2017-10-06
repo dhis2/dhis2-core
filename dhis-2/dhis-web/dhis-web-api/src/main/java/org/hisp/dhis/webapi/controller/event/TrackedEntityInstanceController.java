@@ -37,6 +37,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -151,7 +152,8 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
-        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) String order ) throws Exception
     {
@@ -170,9 +172,12 @@ public class TrackedEntityInstanceController
 
         List<TrackedEntityInstance> trackedEntityInstances;
 
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
         TrackedEntityInstanceQueryParams queryParams = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate, trackedEntity,
-            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, includeDeleted, getOrderParams( order ) );
+            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, includeDeleted,
+            getOrderParams( order ) );
 
         if ( trackedEntityInstance == null )
         {
@@ -255,7 +260,8 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
-        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) String order,
         Model model,
@@ -264,9 +270,13 @@ public class TrackedEntityInstanceController
         programEnrollmentStartDate = ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
         programEnrollmentEndDate = ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
         Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
+
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
         TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate, trackedEntity,
-            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, includeDeleted, getOrderParams( order ) );
+            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, includeDeleted,
+            getOrderParams( order ) );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
         return instanceService.getTrackedEntityInstancesGrid( params );
@@ -298,7 +308,8 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
-        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) String order,
         HttpServletResponse response ) throws Exception
@@ -306,9 +317,13 @@ public class TrackedEntityInstanceController
         programEnrollmentStartDate = ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
         programEnrollmentEndDate = ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
         Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
+
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
         TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate, trackedEntity,
-            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, includeDeleted, getOrderParams( order ) );
+            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, includeDeleted,
+            getOrderParams( order ) );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.NO_CACHE );
         Grid grid = instanceService.getTrackedEntityInstancesGrid( params );
@@ -341,7 +356,8 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
-        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) String order,
         HttpServletResponse response ) throws Exception
@@ -349,9 +365,13 @@ public class TrackedEntityInstanceController
         programEnrollmentStartDate = ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
         programEnrollmentEndDate = ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
         Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
+
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
         TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate, trackedEntity,
-            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, includeDeleted, getOrderParams( order ) );
+            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, includeDeleted,
+            getOrderParams( order ) );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.NO_CACHE );
         Grid grid = instanceService.getTrackedEntityInstancesGrid( params );
@@ -384,7 +404,8 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
-        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) String order,
         HttpServletResponse response ) throws Exception
@@ -392,9 +413,13 @@ public class TrackedEntityInstanceController
         programEnrollmentStartDate = ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
         programEnrollmentEndDate = ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
         Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
+
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
         TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate, trackedEntity,
-            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, includeDeleted, getOrderParams( order ) );
+            eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging, includeDeleted,
+            getOrderParams( order ) );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE );
         Grid grid = instanceService.getTrackedEntityInstancesGrid( params );
