@@ -1,9 +1,11 @@
 package org.hisp.dhis.analytics.table;
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.DateUtils;
@@ -49,7 +51,7 @@ public class JdbcValidationResultTableManager
             select += col.getAlias() + ",";
         }
 
-        select = select.replace( "organisationunitid", "sourceid" ); // Legacy fix
+        select = select.replace( "organisationunitid", "sourceid" ); // HH still? -> Legacy fix
 
         select +=
             "cdr.created as value " +
@@ -86,7 +88,7 @@ public class JdbcValidationResultTableManager
     @Override
     public Set<String> getExistingDatabaseTables()
     {
-        return null;
+        return Sets.newHashSet( getTableName() );
     }
 
     @Override
@@ -169,6 +171,9 @@ public class JdbcValidationResultTableManager
         List<OrganisationUnitGroupSet> orgUnitGroupSets =
             idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class );
 
+        List<OrganisationUnitLevel> levels =
+                organisationUnitService.getFilledOrganisationUnitLevels();
+
         List<DataElementCategory> attributeCategories =
             categoryService.getAttributeDataDimensionCategoriesNoAcl();
 
@@ -176,6 +181,12 @@ public class JdbcValidationResultTableManager
         {
             columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)",
                 "ougs." + quote( groupSet.getUid() ), groupSet.getCreated() ) );
+        }
+
+        for ( OrganisationUnitLevel level : levels )
+        {
+            String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
+            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column, level.getCreated() ) );
         }
 
         for ( DataElementCategory category : attributeCategories )

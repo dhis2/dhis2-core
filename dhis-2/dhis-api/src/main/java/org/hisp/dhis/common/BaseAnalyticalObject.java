@@ -62,6 +62,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.validation.ValidationResult;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -125,6 +126,8 @@ public abstract class BaseAnalyticalObject
     protected List<TrackedEntityDataElementDimension> dataElementDimensions = new ArrayList<>();
 
     protected List<TrackedEntityProgramIndicatorDimension> programIndicatorDimensions = new ArrayList<>();
+
+    protected List<ValidationResult> validationResultDimensions = new ArrayList<>();
 
     protected boolean userOrganisationUnit;
 
@@ -503,6 +506,17 @@ public abstract class BaseAnalyticalObject
 
                 return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_INDICATOR, null, teid.getDisplayName(), teid.getLegendSet(), teid.getFilter() );
             }
+
+            //HH Validation result
+
+            /*Map<String, ValidationResult> validationResults = Maps.uniqueIndex( validationResultDimensions, ValidationResult::getUid );
+
+            if ( validationResults.containsKey( dimension ) )
+            {
+                ValidationResult validationResult = validationResults.get( dimension );
+
+                return new BaseDimensionalObject( dimension, DimensionType.VALIDATION_RESULT, null, validationResult.getId(), validationResult..getLegendSet(), teid.getFilter() );
+            }*/
         }
 
         IdentifiableObjectUtils.removeDuplicates( items );

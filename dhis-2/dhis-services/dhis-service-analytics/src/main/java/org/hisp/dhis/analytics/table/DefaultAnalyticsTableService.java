@@ -164,7 +164,7 @@ public class DefaultAnalyticsTableService
     public void dropTables()
     {
         Set<String> tables = tableManager.getExistingDatabaseTables();
-        
+
         tables.forEach( table -> tableManager.dropTable( table ) );
         
         log.info( "Analytics tables dropped" );

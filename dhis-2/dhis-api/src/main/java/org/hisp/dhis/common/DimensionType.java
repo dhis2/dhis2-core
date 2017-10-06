@@ -47,7 +47,8 @@ public enum DimensionType
     ORGANISATION_UNIT_GROUP_SET,
     CATEGORY,
     STATIC,
-    OPTION_GROUP_SET;
+    OPTION_GROUP_SET,
+    VALIDATION_RESULT;
     
     private static final int LAST_ORDER = 999;
     

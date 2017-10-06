@@ -270,6 +270,8 @@ public class DefaultAnalyticsService
 
         addDynamicDimensionValues( params, grid );
 
+        addValidationResultValues( params, grid );
+
         // ---------------------------------------------------------------------
         // Meta-data
         // ---------------------------------------------------------------------
@@ -688,19 +690,28 @@ public class DefaultAnalyticsService
             Map<String, Double> aggregatedDataMap = getAggregatedDataValueMap( DataQueryParams.newBuilder( params )
                 .withIncludeNumDen( false ).build() );
 
-            for ( Map.Entry<String, Double> entry : aggregatedDataMap.entrySet() )
-            {
-                Double value = params.isSkipRounding() ? entry.getValue() : MathUtils.getRounded( entry.getValue() );
+            fillGridWithAggregatedDataMap(params, grid, aggregatedDataMap);
+        }
+    }
 
-                grid.addRow()
-                    .addValues( entry.getKey().split( DIMENSION_SEP ) )
-                    .addValue( value );
+    /**
+     * Adds validation results to the given grid based on the given data query
+     * parameters.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @param grid the grid.
+     */
+    private void addValidationResultValues( DataQueryParams params, Grid grid )
+    {
+        if ( !params.getAllValidationResults().isEmpty() && !params.isSkipData() )
+        {
+            DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )
+                .retainDataDimension( DataDimensionItemType.VALIDATION_RULE )
+                .withIncludeNumDen( false ).build();
 
-                if ( params.isIncludeNumDen() )
-                {
-                    grid.addNullValues( 3 );
-                }
-            }
+            Map<String, Double> aggregatedDataMap = getAggregatedValidationResultMapObjectTyped( dataSourceParams );
+
+            fillGridWithAggregatedDataMap(params, grid, aggregatedDataMap);
         }
     }
 
@@ -898,6 +909,30 @@ public class DefaultAnalyticsService
     // -------------------------------------------------------------------------
 
     /**
+     * Fill grid with aggregated data map with key and value
+     *
+     * @param params the {@link DataQueryParams}.
+     * @param grid the grid
+     * @param aggregatedDataMap the aggregated data map
+     */
+    private void fillGridWithAggregatedDataMap( DataQueryParams params, Grid grid, Map<String, Double> aggregatedDataMap)
+    {
+        for ( Map.Entry<String, Double> entry : aggregatedDataMap.entrySet() )
+        {
+            Double value = params.isSkipRounding() ? entry.getValue() : MathUtils.getRounded( entry.getValue() );
+
+            grid.addRow()
+                .addValues( entry.getKey().split( DIMENSION_SEP ) )
+                .addValue( value );
+
+            if ( params.isIncludeNumDen() )
+            {
+                grid.addNullValues( 3 );
+            }
+        }
+    }
+
+    /**
      * Generates a mapping of permutations keys (organisation unit id or null)
      * and mappings of organisation unit group and counts.
      *
@@ -992,6 +1027,17 @@ public class DefaultAnalyticsService
     private Map<String, Double> getAggregatedOrganisationUnitTargetMap( DataQueryParams params )
     {
         return AnalyticsUtils.getDoubleMap( getAggregatedValueMap( params, AnalyticsTableType.ORG_UNIT_TARGET.getTableName(), Lists.newArrayList() ) );
+    }
+
+    /**
+     * Generates a mapping between the count of a validation result.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a mapping between validation results and counts of them
+     */
+    private Map<String, Double> getAggregatedValidationResultMapObjectTyped( DataQueryParams params )
+    {
+        return AnalyticsUtils.getDoubleMap( getAggregatedValueMap( params, AnalyticsTableType.VALIDATION_RESULT.getTableName(), Lists.newArrayList() ) );
     }
 
     /**
