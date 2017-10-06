@@ -43,6 +43,7 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
@@ -69,6 +70,9 @@ public class AclServiceTest
 
     @Autowired
     private IdentifiableObjectManager manager;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     @Override
     protected void setUpTest() throws Exception
@@ -732,9 +736,6 @@ public class AclServiceTest
         User user2 = createUser( "user2", "F_DATAELEMENT_PRIVATE_ADD" );
         User user3 = createUser( "user3", "ALL" );
 
-        manager.save( user1 );
-        manager.save( user2 );
-
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user1, user2 ) );
         manager.save( userGroup );
 
@@ -802,5 +803,86 @@ public class AclServiceTest
         assertTrue( errorReports.isEmpty() );
 
         manager.update( program );
+    }
+
+    @Test
+    public void testShouldBlockUpdatesForNoAuthorityUser()
+    {
+        User adminUser = createAndInjectAdminUser();
+        assertEquals( adminUser, currentUserService.getCurrentUser() );
+
+        User userNoAuthorities = createUser( "user1" );
+        manager.save( userNoAuthorities );
+
+        ReportTable reportTable = new ReportTable();
+        reportTable.setName( "RT" );
+        reportTable.setUser( adminUser );
+        reportTable.setAutoFields();
+        reportTable.setPublicAccess( AccessStringHelper.READ );
+        reportTable.setExternalAccess( true );
+
+        manager.save( reportTable );
+
+        injectSecurityContext( userNoAuthorities );
+        assertEquals( userNoAuthorities, currentUserService.getCurrentUser() );
+
+        List<ErrorReport> errorReports = aclService.verifySharing( reportTable, userNoAuthorities );
+        assertFalse( errorReports.isEmpty() );
+    }
+
+    @Test
+    public void testShouldBlockUpdatesForNoAuthorityUserEvenWithNonPublicObject()
+    {
+        User adminUser = createAndInjectAdminUser();
+        assertEquals( adminUser, currentUserService.getCurrentUser() );
+
+        User user1 = createUser( "user1" );
+        User user2 = createUser( "user2" );
+
+        injectSecurityContext( user1 );
+        assertEquals( user1, currentUserService.getCurrentUser() );
+
+        ReportTable reportTable = new ReportTable();
+        reportTable.setName( "RT" );
+        reportTable.setUser( user1 );
+        reportTable.setAutoFields();
+        reportTable.setExternalAccess( false );
+
+        manager.save( reportTable );
+        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+        manager.update( reportTable );
+
+        injectSecurityContext( user2 );
+        assertEquals( user2, currentUserService.getCurrentUser() );
+
+        List<ErrorReport> errorReports = aclService.verifySharing( reportTable, user2 );
+        assertFalse( errorReports.isEmpty() );
+    }
+
+    @Test
+    public void testNotShouldBlockAdminUpdatesForNoAuthorityUserEvenWithNonPublicObject()
+    {
+        User adminUser = createAndInjectAdminUser();
+        assertEquals( adminUser, currentUserService.getCurrentUser() );
+
+        User user1 = createUser( "user1" );
+        injectSecurityContext( user1 );
+        assertEquals( user1, currentUserService.getCurrentUser() );
+
+        ReportTable reportTable = new ReportTable();
+        reportTable.setName( "RT" );
+        reportTable.setUser( user1 );
+        reportTable.setAutoFields();
+        reportTable.setExternalAccess( false );
+
+        manager.save( reportTable );
+        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+        manager.update( reportTable );
+
+        injectSecurityContext( adminUser );
+        assertEquals( adminUser, currentUserService.getCurrentUser() );
+
+        List<ErrorReport> errorReports = aclService.verifySharing( reportTable, adminUser );
+        assertTrue( errorReports.isEmpty() );
     }
 }

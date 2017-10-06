@@ -399,7 +399,7 @@ public class DefaultAclService implements AclService
     {
         List<ErrorReport> errorReports = new ArrayList<>();
 
-        if ( object == null || !isShareable( object.getClass() ) || user == null )
+        if ( object == null || haveOverrideAuthority( user ) || !isShareable( object.getClass() ) )
         {
             return errorReports;
         }
@@ -408,6 +408,13 @@ public class DefaultAclService implements AclService
         {
             errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3010, object.getPublicAccess() ) );
             return errorReports;
+        }
+
+        Schema schema = schemaService.getSchema( object.getClass() );
+
+        if ( schema.isImplicitPrivateAuthority() && !checkUser( user, object ) )
+        {
+            errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3001, user.getUsername(), object.getClass() ) );
         }
 
         boolean canMakePublic = canMakePublic( user, object.getClass() );

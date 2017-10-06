@@ -39,7 +39,6 @@ import org.hisp.dhis.scheduling.TaskCategory;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.After;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -131,8 +130,9 @@ public class GmlImportServiceTest
         importOptions.setPreheatCache( true );
     }
 
-    @After
-    public void after()
+    @Override
+    protected void tearDownTest()
+        throws Exception
     {
         IOUtils.closeQuietly( inputStream );
     }
