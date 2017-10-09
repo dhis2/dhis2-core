@@ -68,6 +68,11 @@ public class BaseDimensionalObject
      * Indicates whether all available items in this dimension are included.
      */
     private boolean allItems;
+    
+    /**
+     * Indicates whether null/no value should be included as an item in the response.
+     */
+    private boolean noValueItem;
 
     /**
      * The legend set for this dimension.
@@ -130,7 +135,8 @@ public class BaseDimensionalObject
         this.displayName = displayName;
     }
 
-    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String displayName, List<? extends DimensionalItemObject> items, boolean allItems )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String displayName, List<? extends DimensionalItemObject> items, 
+        boolean allItems, boolean noValueItem )
     {
         this( dimension, dimensionType, dimensionName, displayName, items );
         this.allItems = allItems;
@@ -155,7 +161,7 @@ public class BaseDimensionalObject
     public DimensionalObject instance()
     {
         BaseDimensionalObject object = new BaseDimensionalObject( this.uid,
-            this.dimensionType, this.dimensionName, this.displayName, this.items, this.allItems );
+            this.dimensionType, this.dimensionName, this.displayName, this.items, this.allItems, this.noValueItem );
 
         object.legendSet = this.legendSet;
         object.aggregationType = this.aggregationType;
@@ -274,6 +280,19 @@ public class BaseDimensionalObject
     public void setAllItems( boolean allItems )
     {
         this.allItems = allItems;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isNoValueItem()
+    {
+        return noValueItem;
+    }
+
+    public void setNoValueItem( boolean noValueItem )
+    {
+        this.noValueItem = noValueItem;
     }
 
     @Override

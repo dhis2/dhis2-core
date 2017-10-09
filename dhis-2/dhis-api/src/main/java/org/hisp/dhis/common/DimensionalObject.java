@@ -64,6 +64,7 @@ public interface DimensionalObject
     String DIMENSION_NAME_SEP = ":";
     String OPTION_SEP = ";";
     String ITEM_SEP = "-";
+    String NO_VALUE_ITEM = "NO_VALUE";
         
     List<String> STATIC_DIMS = ImmutableList.<String>builder().add( 
         LONGITUDE_DIM_ID, LATITUDE_DIM_ID ).build();
@@ -116,6 +117,11 @@ public interface DimensionalObject
      * Indicates whether all available items in this dimension are included.
      */
     boolean isAllItems();
+
+    /**
+     * Indicates whether null/no value should be included as an item in the response.
+     */
+    boolean isNoValueItem();
     
     /**
      * Indicates whether this dimension has any dimension items.

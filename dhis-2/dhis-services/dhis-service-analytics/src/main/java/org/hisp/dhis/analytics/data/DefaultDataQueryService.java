@@ -213,6 +213,7 @@ public class DefaultDataQueryService
         List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull, boolean allowAllPeriodItems, IdScheme inputIdScheme )
     {
         final boolean allItems = items.isEmpty();
+        final boolean noValueItem = items.contains( DimensionalObject.NO_VALUE_ITEM );
 
         if ( DATA_X_DIM_ID.equals( dimension ) )
         {
@@ -463,7 +464,7 @@ public class DefaultDataQueryService
 
                 List<DimensionalItemObject> dimItems = !allItems ? asList( idObjectManager.getByUidOrdered( itemClass, items ) ) : dimObject.getItems();
 
-                DimensionalObject object = new BaseDimensionalObject( dimension, dimObject.getDimensionType(), null, dimObject.getName(), dimItems, allItems );
+                DimensionalObject object = new BaseDimensionalObject( dimension, dimObject.getDimensionType(), null, dimObject.getName(), dimItems, allItems, noValueItem );
 
                 return object;
             }
