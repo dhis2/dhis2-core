@@ -473,8 +473,7 @@ public class DefaultAnalyticsService
         if ( !params.getDataElementOperands().isEmpty() && !params.isSkipData() )
         {
             DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )
-                .retainDataDimension( DataDimensionItemType.DATA_ELEMENT_OPERAND )
-                .withIncludeNumDen( false ).build();
+                .retainDataDimension( DataDimensionItemType.DATA_ELEMENT_OPERAND ).build();
             
             for ( DataElementOperand.TotalType type : DataElementOperand.TotalType.values() )
             {
