@@ -39,7 +39,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -54,11 +53,15 @@ import static org.springframework.util.CollectionUtils.containsAny;
  */
 public class DefaultAclService implements AclService
 {
-    @Autowired
-    private SchemaService schemaService;
+    private final SchemaService schemaService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
+
+    public DefaultAclService( SchemaService schemaService, CurrentUserService currentUserService )
+    {
+        this.schemaService = schemaService;
+        this.currentUserService = currentUserService;
+    }
 
     @Override
     public boolean isSupported( String type )
@@ -96,19 +99,15 @@ public class DefaultAclService implements AclService
 
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        if ( schema == null || object.getUser() == null || object.getPublicAccess() == null )
+        if ( schema == null )
         {
             return true;
         }
 
         if ( canAccess( user, schema.getAuthorityByType( AuthorityType.READ ) ) )
         {
-            if ( !schema.isShareable() )
-            {
-                return true;
-            }
-
-            if ( checkUser( user, object ) || checkSharingPermission( user, object, AccessStringHelper.Permission.READ ) )
+            if ( !schema.isShareable() || object.getUser() == null || object.getPublicAccess() == null || checkUser( user, object )
+                || checkSharingPermission( user, object, AccessStringHelper.Permission.READ ) )
             {
                 return true;
             }
@@ -124,9 +123,14 @@ public class DefaultAclService implements AclService
     @Override
     public boolean canWrite( User user, IdentifiableObject object )
     {
+        if ( object == null || haveOverrideAuthority( user ) )
+        {
+            return true;
+        }
+
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        if ( schema == null || haveOverrideAuthority( user ) )
+        if ( schema == null )
         {
             return true;
         }
@@ -163,9 +167,14 @@ public class DefaultAclService implements AclService
     @Override
     public boolean canUpdate( User user, IdentifiableObject object )
     {
+        if ( object == null || haveOverrideAuthority( user ) )
+        {
+            return true;
+        }
+
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        if ( schema == null || haveOverrideAuthority( user ) )
+        if ( schema == null )
         {
             return true;
         }
@@ -203,9 +212,14 @@ public class DefaultAclService implements AclService
     @Override
     public boolean canDelete( User user, IdentifiableObject object )
     {
+        if ( object == null || haveOverrideAuthority( user ) )
+        {
+            return true;
+        }
+
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        if ( schema == null || haveOverrideAuthority( user ) )
+        if ( schema == null )
         {
             return true;
         }
@@ -221,12 +235,13 @@ public class DefaultAclService implements AclService
 
         if ( canAccess( user, anyAuthorities ) )
         {
-            if ( !schema.isShareable() )
+            if ( !schema.isShareable() || object.getPublicAccess() == null )
             {
                 return true;
             }
 
-            if ( checkUser( user, object ) || checkSharingPermission( user, object, AccessStringHelper.Permission.WRITE ) )
+            if ( checkSharingAccess( user, object ) &&
+                (checkUser( user, object ) || checkSharingPermission( user, object, AccessStringHelper.Permission.WRITE )) )
             {
                 return true;
             }
@@ -455,10 +470,10 @@ public class DefaultAclService implements AclService
     {
         if ( user == null || object.getUser() == null )
         {
-            return false;
+            return true;
         }
 
-        return user.equals( object.getUser() );
+        return user.getUid().equals( object.getUser().getUid() );
     }
 
     private boolean checkSharingAccess( User user, IdentifiableObject object )
