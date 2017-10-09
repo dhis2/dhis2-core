@@ -101,7 +101,7 @@ public class DefaultDataSetNotificationService
             .put( DeliveryChannel.EMAIL, ou ->  ou.getEmail() != null && !ou.getEmail().isEmpty() ) // Valid Ou Email
             .build();
 
-    private final BiFunction<SendStrategy, Set<DataSetNotificationTemplate>, Set<DataSetNotificationTemplate>> segregator = ( s, t )  -> t.parallelStream()
+    private final BiFunction<SendStrategy, Set<DataSetNotificationTemplate>, Set<DataSetNotificationTemplate>> SEGREGATOR = ( s, t )  -> t.parallelStream()
         .filter( f -> s.equals( f.getSendStrategy() ) )
         .collect( Collectors.toSet() );
 
@@ -189,7 +189,7 @@ public class DefaultDataSetNotificationService
     {
         Map<SendStrategy, Set<DataSetNotificationTemplate>> sendStrategySetMap = new HashMap<>();
 
-        Stream.of( SendStrategy.values() ).forEach( ss -> sendStrategySetMap.put( ss, segregator.apply( ss, Sets.newHashSet( templates ) ) ) );
+        Stream.of( SendStrategy.values() ).forEach( ss -> sendStrategySetMap.put( ss, SEGREGATOR.apply( ss, Sets.newHashSet( templates ) ) ) );
 
         return sendStrategySetMap;
     }
