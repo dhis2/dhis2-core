@@ -885,4 +885,76 @@ public class AclServiceTest
         List<ErrorReport> errorReports = aclService.verifySharing( reportTable, adminUser );
         assertTrue( errorReports.isEmpty() );
     }
+
+    @Test
+    public void shouldUseAuthoritiesIfSharingPropsAreNullOrEmpty()
+    {
+        User user1 = createUser( "user1", "F_DATAELEMENT_PUBLIC_ADD" );
+        User user2 = createUser( "user2", "F_DATAELEMENT_PUBLIC_ADD" );
+
+        injectSecurityContext( user1 );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setUser( user1 );
+
+        Access access = aclService.getAccess( dataElement, user1 );
+        assertTrue( access.isRead() );
+        assertTrue( access.isWrite() );
+        assertTrue( access.isUpdate() );
+        assertFalse( access.isDelete() );
+
+        manager.save( dataElement );
+
+        dataElement.setPublicAccess( null );
+        manager.update( dataElement );
+
+        injectSecurityContext( user2 );
+
+        access = aclService.getAccess( dataElement, user2 );
+        assertTrue( access.isRead() );
+        assertFalse( access.isWrite() );
+        assertFalse( access.isUpdate() );
+        assertFalse( access.isDelete() );
+
+        assertFalse( aclService.canUpdate( user2, dataElement ) );
+
+        List<ErrorReport> errorReports = aclService.verifySharing( dataElement, user2 );
+        assertTrue( errorReports.isEmpty() );
+    }
+
+    @Test
+    public void testDefaultShouldBlockReadsFromOtherUsers()
+    {
+        User user1 = createUser( "user1", "F_DATAELEMENT_PUBLIC_ADD" );
+        User user2 = createUser( "user2", "F_DATAELEMENT_PUBLIC_ADD" );
+
+        injectSecurityContext( user1 );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setUser( user1 );
+
+        Access access = aclService.getAccess( dataElement, user1 );
+        assertTrue( access.isRead() );
+        assertTrue( access.isWrite() );
+        assertTrue( access.isUpdate() );
+        assertFalse( access.isDelete() );
+
+        manager.save( dataElement );
+
+        dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
+        manager.update( dataElement );
+
+        injectSecurityContext( user2 );
+
+        access = aclService.getAccess( dataElement, user2 );
+        assertFalse( access.isRead() );
+        assertFalse( access.isWrite() );
+        assertFalse( access.isUpdate() );
+        assertFalse( access.isDelete() );
+
+        assertFalse( aclService.canUpdate( user2, dataElement ) );
+
+        List<ErrorReport> errorReports = aclService.verifySharing( dataElement, user2 );
+        assertTrue( errorReports.isEmpty() );
+    }
 }
