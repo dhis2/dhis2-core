@@ -131,7 +131,7 @@
                                 #elseif( "LONG_TEXT" == $dataElement.valueType )
                                     <td><textarea #if( $compulsory ) required="required" #end name="entryfield" class="entryfield entryarea" id="${dataEntryId}" tabindex="${tabIndex}" #if( $greyedField || !$hasAccess ) disabled="disabled"#end></textarea></td>
                                 #elseif( "URL" == $dataElement.valueType )
-                                    <td><input #if( $compulsory ) required="required" #end type="url" name="entryfield" class="entryfieldclear" id="${dataEntryId}" tabindex="${tabIndex}" #if( $greyedField || !$hasAccess ) disabled="disabled"#end></input></td>
+                                    <td><input #if( $compulsory ) required="required" #end type="url" name="entryfield" class="entryfield" id="${dataEntryId}" tabindex="${tabIndex}" #if( $greyedField || !$hasAccess ) disabled="disabled"#end></input></td>
                                 #elseif( "FILE_RESOURCE" == $dataElement.valueType )
                                     <td>
                                         <div class="entryfileresource" id="${dataEntryId}" tabindex="${tabIndex}">

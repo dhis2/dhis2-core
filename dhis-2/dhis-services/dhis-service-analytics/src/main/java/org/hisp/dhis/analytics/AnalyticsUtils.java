@@ -149,7 +149,7 @@ public class AnalyticsUtils
         for ( DimensionalItemObject object : dataDimensionOptions )
         {
             Class<?> clazz = ReflectionUtils.getRealClass( object.getClass() );
-            
+
             if ( clazz.equals( DATA_DIMENSION_TYPE_CLASS_MAP.get( itemType ) ) )
             {
                 list.add( object );

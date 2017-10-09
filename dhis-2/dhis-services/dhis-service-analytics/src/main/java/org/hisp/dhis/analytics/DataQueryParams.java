@@ -730,7 +730,7 @@ public class DataQueryParams
     public List<DimensionalItemObject> getDimensionOptions( String dimension )
     {
         int index = dimensions.indexOf( new BaseDimensionalObject( dimension ) );
-        
+
         return index != -1 ? dimensions.get( index ).getItems() : new ArrayList<DimensionalItemObject>();
     }
     
@@ -762,6 +762,7 @@ public class DataQueryParams
      */
     public List<DimensionalItemObject> getFilterOptions( String filter )
     {
+
         int index = filters.indexOf( new BaseDimensionalObject( filter ) );
         
         return index != -1 ? filters.get( index ).getItems() : new ArrayList<DimensionalItemObject>();
@@ -1836,7 +1837,15 @@ public class DataQueryParams
     {
         return ListUtils.union( getAllProgramAttributes(), getAllProgramDataElements() );
     }
-    
+
+    /**
+     * Returns all validation results part of a dimension or filter.
+     */
+    public List<DimensionalItemObject> getAllValidationResults()
+    {
+        return ImmutableList.copyOf( ListUtils.union( getValidationResults(), getFilterValidationResults() ) );
+    }
+
     // -------------------------------------------------------------------------
     // Get helpers for dimensions
     // -------------------------------------------------------------------------
@@ -1921,6 +1930,14 @@ public class DataQueryParams
         return ListUtils.union( dimensions, filters ).stream().
             filter( d -> DimensionType.DATA_ELEMENT_GROUP_SET.equals( d.getDimensionType() ) ).collect( Collectors.toList() );
     }
+
+    /**
+     * Returns all program data elements part of the data dimension.
+     */
+    public List<DimensionalItemObject> getValidationResults()
+    {
+        return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.VALIDATION_RULE, getDimensionOptions( DATA_X_DIM_ID ) ) );
+    }
             
     // -------------------------------------------------------------------------
     // Get helpers for filters
@@ -1964,6 +1981,14 @@ public class DataQueryParams
     public List<DimensionalItemObject> getFilterProgramAttributes()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_ATTRIBUTE, getFilterOptions( DATA_X_DIM_ID ) ) );
+    }
+
+    /**
+     * Returns all validation results part of the validation result filter.
+     */
+    public List<DimensionalItemObject> getFilterValidationResults()
+    {
+        return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.VALIDATION_RULE, getFilterOptions( DATA_X_DIM_ID ) ) );
     }
 
     /**
@@ -2152,6 +2177,12 @@ public class DataQueryParams
         public Builder withOrganisationUnit( DimensionalItemObject organisationUnit )
         {
             this.withOrganisationUnits( getList( organisationUnit ) );
+            return this;
+        }
+
+        public Builder withValidationRules( List<? extends DimensionalItemObject> validationRules )
+        {
+            this.params.setDataDimensionOptions( DataDimensionItemType.VALIDATION_RULE, validationRules );
             return this;
         }
         
