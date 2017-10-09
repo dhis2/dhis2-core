@@ -14,6 +14,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.*;
+import org.hisp.dhis.scheduling.Parameters.AnalyticsJobParameters;
 import org.hisp.dhis.system.scheduling.SpringScheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,8 +118,21 @@ public class JobObjectBundleHook
 
         CronDescriptor cronDescriptor = CronDescriptor.instance( Locale.UK);
 
-        // Validate cron expression with relation to all other jobs
-        errorReports.addAll( validateCronForJobType( jobConfiguration, parser ) );
+        boolean analyticsContinuous = false;
+        if ( jobConfiguration.getJobParameters().getClass().equals(AnalyticsJobParameters.class) ) {
+            AnalyticsJobParameters analyticsJobParameters = (AnalyticsJobParameters) jobConfiguration.getJobParameters();
+
+            if (!analyticsJobParameters.isContinuousGeneration()) {
+                analyticsContinuous = true;
+            }
+        }
+
+        // Validate cron expression with relation to all other jobs unless the job is analytics and should run continuously
+        if ( analyticsContinuous )
+        {
+            errorReports.addAll( validateCronForJobType( jobConfiguration, parser ) );
+        }
+
 
         if( errorReports.size() == 0 )
         {

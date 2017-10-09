@@ -5,8 +5,11 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.hisp.dhis.scheduling.Parameters.AnalyticsJobParameters;
 
 import java.io.IOException;
+
+import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 
 /**
  * Custom deserializer for {@link JobConfiguration} objects. This is due to different objects
@@ -27,10 +30,22 @@ public class JobConfigurationDeserializer
 
         String jobTypeString = root.get( "jobType" ).toString();
         JobType jobType = JobType.valueOf( jobTypeString.substring( 1, jobTypeString.length() - 1 ) );
+        assertNotNull(jobType, "jobType must not be null.");
 
         String cronExpression = mapper.convertValue( root.get( "cronExpression" ), String.class );
 
         JobParameters jobParameters = mapper.convertValue( root.get( "jobParameters" ), jobType.getClazz() );
+        assertNotNull(jobParameters, "jobParameters must not be null.");
+        if ( jobParameters.getClass().equals(AnalyticsJobParameters.class) ) {
+            AnalyticsJobParameters analyticsJobParameters = (AnalyticsJobParameters) jobParameters;
+
+            // If continuous generation is activated we set cron expression to every minute which in the system will generate continuous analytics generation
+            if ( analyticsJobParameters.isContinuousGeneration() ) {
+                cronExpression = "0 * * ? * *";
+            }
+        }
+
+        assertNotNull(cronExpression, "cronExpression must not be null.");
 
         boolean enabled = root.get( "enabled" ) == null || root.get( "enabled" ).booleanValue();
 

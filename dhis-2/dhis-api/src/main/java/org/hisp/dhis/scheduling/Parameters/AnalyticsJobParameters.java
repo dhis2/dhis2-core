@@ -23,18 +23,22 @@ public class AnalyticsJobParameters
     private Set<String> skipTableTypes;
 
     @Property
+    private boolean continuousGeneration;
+
+    @Property
     private boolean skipResourceTables;
 
     public AnalyticsJobParameters()
     {
     }
 
-    public AnalyticsJobParameters( Integer lastYears, JobId jobId, Set<String> skipTableTypes, boolean skipResourceTables )
+    public AnalyticsJobParameters( Integer lastYears, JobId jobId, Set<String> skipTableTypes, boolean skipResourceTables, boolean continuousGeneration )
     {
         this.lastYears = lastYears;
         this.jobId = jobId;
         this.skipTableTypes = skipTableTypes;
         this.skipResourceTables = skipResourceTables;
+        this.continuousGeneration = continuousGeneration;
     }
 
     @Override
@@ -62,5 +66,13 @@ public class AnalyticsJobParameters
     public boolean isSkipResourceTables()
     {
         return skipResourceTables;
+    }
+
+    public boolean isContinuousGeneration() {
+        return continuousGeneration;
+    }
+
+    public void setContinuousGeneration(boolean continuousGeneration) {
+        this.continuousGeneration = continuousGeneration;
     }
 }
