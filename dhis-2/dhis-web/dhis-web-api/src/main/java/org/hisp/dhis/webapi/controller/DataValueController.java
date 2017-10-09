@@ -63,6 +63,7 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.jclouds.rest.AuthorizationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -292,7 +293,16 @@ public class DataValueController
 
             if ( dataElement.isFileType() )
             {
-                fileResourceService.deleteFileResource( dataValue.getValue() );
+                try
+                {
+                    fileResourceService.deleteFileResource( dataValue.getValue() );
+                }
+                catch ( AuthorizationException exception )
+                {
+                    // If we fail to delete the fileResource now, mark it as unassigned for removal later
+                    fileResourceService.getFileResource( dataValue.getValue() ).setAssigned( false );
+                }
+                dataValue.setValue( "" );
             }
 
             // -----------------------------------------------------------------
