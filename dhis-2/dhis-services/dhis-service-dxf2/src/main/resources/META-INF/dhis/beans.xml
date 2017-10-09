@@ -32,6 +32,8 @@
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.PredictorObjectBundleHook" />
 
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.SectionObjectBundleHook" />
+
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ProgramNotificationTemplateObjectBundleHook" />
 
   <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService" class="org.hisp.dhis.dxf2.metadata.objectbundle.DefaultObjectBundleService" />
