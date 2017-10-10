@@ -65,6 +65,13 @@ public interface SchedulingManager
     void scheduleJob( JobConfiguration jobConfiguration );
 
     /**
+     * Schedules a job with the given job configuration with a fixed delay
+     *
+     * @param jobConfiguration the job to schedule.
+     */
+    void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration );
+
+    /**
      * Stops one job.
      */
     void stopJob( JobConfiguration jobConfiguration );

@@ -14,7 +14,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.*;
-import org.hisp.dhis.scheduling.Parameters.AnalyticsJobParameters;
 import org.hisp.dhis.system.scheduling.SpringScheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,37 +108,26 @@ public class JobObjectBundleHook
         List<ErrorReport> errorReports = new ArrayList<>(  );
         JobConfiguration jobConfiguration = (JobConfiguration) object;
 
-        // validate the cron expression
-        CronDefinition cronDefinition = CronDefinitionBuilder.instanceDefinitionFor(QUARTZ);
-        CronParser parser = new CronParser( cronDefinition );
-        Cron quartzCron = parser.parse( jobConfiguration.getCronExpression() );
-
-        quartzCron.validate();
-
-        CronDescriptor cronDescriptor = CronDescriptor.instance( Locale.UK);
-
-        boolean analyticsContinuous = false;
-        if ( jobConfiguration.getJobParameters().getClass().equals(AnalyticsJobParameters.class) ) {
-            AnalyticsJobParameters analyticsJobParameters = (AnalyticsJobParameters) jobConfiguration.getJobParameters();
-
-            if (!analyticsJobParameters.isContinuousGeneration()) {
-                analyticsContinuous = true;
-            }
-        }
-
-        // Validate cron expression with relation to all other jobs unless the job is analytics and should run continuously
-        if ( analyticsContinuous )
+        if ( !jobConfiguration.getCronExpression().equals( "CONTINUOUS" ) )
         {
+            // validate the cron expression
+            CronDefinition cronDefinition = CronDefinitionBuilder.instanceDefinitionFor(QUARTZ);
+            CronParser parser = new CronParser( cronDefinition );
+            Cron quartzCron = parser.parse( jobConfiguration.getCronExpression() );
+
+            quartzCron.validate();
+
+            CronDescriptor cronDescriptor = CronDescriptor.instance( Locale.UK);
+
+            // Validate cron expression with relation to all other jobs
             errorReports.addAll( validateCronForJobType( jobConfiguration, parser ) );
-        }
-
-
-        if( errorReports.size() == 0 )
-        {
-            log.info( "Validation of '" + jobConfiguration.getName() + "' succeeded with cron description '" + cronDescriptor.describe( quartzCron ) + "'" );
-        } else
-        {
-            log.info( "Validation of '" + jobConfiguration.getName() + "' failed." );
+            if( errorReports.size() == 0 )
+            {
+                log.info( "Validation of '" + jobConfiguration.getName() + "' succeeded with cron description '" + cronDescriptor.describe( quartzCron ) + "'" );
+            } else
+            {
+                log.info( "Validation of '" + jobConfiguration.getName() + "' failed." );
+            }
         }
 
         return errorReports;
@@ -202,6 +190,13 @@ public class JobObjectBundleHook
             return;
         }
 
+        JobConfiguration jobConfiguration = (JobConfiguration) persistedObject;
+        if ( jobConfiguration.getCronExpression().equals( "CONTINUOUS" ) )
+        {
+            jobConfiguration.setCronExpression( "0 * * ? * *");
+            //schedulingManager.scheduleJobWithFixedDelay( jobConfiguration );
+        }
+
         schedulingManager.scheduleJob( (JobConfiguration) persistedObject );
     }
 
@@ -211,6 +206,13 @@ public class JobObjectBundleHook
         if ( !JobConfiguration.class.isInstance( persistedObject ) )
         {
             return;
+        }
+
+        JobConfiguration jobConfiguration = (JobConfiguration) persistedObject;
+        if ( jobConfiguration.getCronExpression().equals( "CONTINUOUS" ) )
+        {
+            jobConfiguration.setCronExpression( "0 * * ? * *");
+            //schedulingManager.scheduleJobWithFixedDelay( jobConfiguration );
         }
 
         schedulingManager.scheduleJob( (JobConfiguration) persistedObject );

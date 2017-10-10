@@ -116,6 +116,15 @@ public class DefaultSchedulingManager
     }
 
     @Override
+    public void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration )
+    {
+        if(!scheduler.isJobInSystem( jobConfiguration.getUid() ))
+        {
+            scheduler.scheduleJobWithFixedDelay( jobConfiguration, new DefaultJobInstance() );
+        }
+    }
+
+    @Override
     public void stopJob( JobConfiguration jobConfiguration )
     {
         jobConfiguration.setLastExecutedStatus( JobStatus.STOPPED );

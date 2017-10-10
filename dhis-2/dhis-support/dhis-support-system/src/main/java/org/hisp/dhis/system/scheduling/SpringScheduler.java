@@ -143,6 +143,16 @@ public class SpringScheduler
     }
 
     @Override
+    public void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration, JobInstance jobInstance )
+    {
+        ScheduledFuture<?> future = jobScheduler.scheduleWithFixedDelay( () -> jobInstance.execute( jobConfiguration, schedulingManager, messageService ), 10 );
+
+        futures.put( jobConfiguration.getUid(), future );
+
+        log.info( "Scheduled job with uid: " + jobConfiguration.getUid() + " and fixed delay" );
+    }
+
+    @Override
     public boolean stopJob( String key )
     {
         if ( key != null )

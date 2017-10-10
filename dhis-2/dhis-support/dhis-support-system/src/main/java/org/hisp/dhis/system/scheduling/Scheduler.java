@@ -99,7 +99,15 @@ public interface Scheduler
     boolean scheduleJob( JobConfiguration jobConfiguration, Job job );
 
 
-    void scheduleJob(JobConfiguration jobConfiguration, JobInstance jobInstance );
+    void scheduleJob( JobConfiguration jobConfiguration, JobInstance jobInstance );
+
+    /**
+     * Schedule the given job for continuous execution
+     *
+     * @param jobConfiguration the job to schedule
+     * @param jobInstance the default job instance which runs the given job
+     */
+    void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration, JobInstance jobInstance );
 
     /**
      * Deactivates scheduling of the job with the given key.

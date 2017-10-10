@@ -10,7 +10,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.SimpleTriggerContext;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 
@@ -92,7 +91,7 @@ public class JobConfiguration
     {
         if( nextExecutionTime != null) this.nextExecutionTime = nextExecutionTime;
         else {
-            if( !cronExpression.equals( "" ) ) this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext(  ) );
+            if( !cronExpression.equals( "" ) && !cronExpression.equals( "CONTINUOUS" ) ) this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext(  ) );
         }
     }
 
