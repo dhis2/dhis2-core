@@ -29,6 +29,7 @@ package org.hisp.dhis.amqp;
  *
  */
 
+import com.google.common.base.CaseFormat;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.render.RenderService;
@@ -94,7 +95,7 @@ public class RabbitMQAmqpService implements AmqpService
     public void publish( MetadataAudit audit )
     {
         String routingKey = "metadata."
-            + audit.getKlass().getSimpleName()
+            + CaseFormat.UPPER_CAMEL.to( CaseFormat.LOWER_CAMEL, audit.getKlass().getSimpleName() )
             + "." + audit.getType().toString().toLowerCase()
             + "." + audit.getUid();
 
