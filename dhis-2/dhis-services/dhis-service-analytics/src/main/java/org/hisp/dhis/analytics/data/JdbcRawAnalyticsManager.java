@@ -105,20 +105,17 @@ public class JdbcRawAnalyticsManager
             {
                 grid.addValue( rowSet.getString( dim.getDimensionName() ) );
 
-                if ( dim.getDimensionType() == DimensionType.ORGANISATION_UNIT ) {
-                    if ( params.isIncludeOrgUnitNames() ) {
-                        String orgUnitUid = rowSet.getString( dim.getDimensionName() );
+                if (dim.getDimensionType() == DimensionType.ORGANISATION_UNIT && params.isIncludeOrgUnitNames()) {
+                    String orgUnitUid = rowSet.getString(dim.getDimensionName());
 
-                        // Use hash map as a cache to speed up the fetching
-                        String name = orgUnitNamesWithUid.get(orgUnitUid);
-                        if ( name == null )
-                        {
-                            name = organisationUnitService.getOrganisationUnit(orgUnitUid).getName();
-                            orgUnitNamesWithUid.put( orgUnitUid, name );
-                        }
-
-                        grid.addValue( name );
+                    // Use hash map as a cache to speed up the fetching
+                    String name = orgUnitNamesWithUid.get(orgUnitUid);
+                    if (name == null) {
+                        name = organisationUnitService.getOrganisationUnit(orgUnitUid).getName();
+                        orgUnitNamesWithUid.put(orgUnitUid, name);
                     }
+
+                    grid.addValue(name);
                 }
 
             }
