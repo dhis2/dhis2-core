@@ -218,8 +218,8 @@ public class PredictionServiceTest
         categoryService.addDataElementCategoryOptionCombo( altCombo );
 
         expressionA = new Expression(
-            "AVG(#{" + dataElementA.getUid() + "})+1.5*STDDEV(#{" + dataElementA.getUid() + "})", "descriptionA" );
-        expressionB = new Expression( "AVG(#{" + dataElementB.getUid() + "." + defaultCombo.getUid() + "})", "descriptionB" );
+            "AVG(#{" + dataElementA.getUid() + "})+1.5*StdDev(#{" + dataElementA.getUid() + "})", "descriptionA" );
+        expressionB = new Expression( "avg(#{" + dataElementB.getUid() + "." + defaultCombo.getUid() + "})", "descriptionB" );
         expressionC = new Expression( "135.79", "descriptionC" );
         expressionD = new Expression( SYMBOL_DAYS, "descriptionD" );
 
