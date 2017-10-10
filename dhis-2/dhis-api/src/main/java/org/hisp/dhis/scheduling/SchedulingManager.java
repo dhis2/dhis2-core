@@ -49,7 +49,7 @@ import java.util.concurrent.ScheduledFuture;
  */
 public interface SchedulingManager
 {
-    boolean isJobConfigurationRunning( JobType jobType );
+    boolean isJobConfigurationRunning( JobConfiguration jobConfiguration );
 
     void runJobConfiguration( JobConfiguration jobConfiguration );
 

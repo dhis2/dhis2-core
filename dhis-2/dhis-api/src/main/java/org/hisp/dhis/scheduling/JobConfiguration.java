@@ -36,19 +36,21 @@ public class JobConfiguration
     private JobStatus lastExecutedStatus = JobStatus.SCHEDULED;
     private JobParameters jobParameters;
     private boolean enabled;
+    private boolean continuousExecution;
     private Date nextExecutionTime;
 
     public JobConfiguration ()
     {
     }
 
-    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters, boolean enabled )
+    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters, boolean enabled, boolean continuousExecution )
     {
         this.name = name;
         this.cronExpression = cronExpression;
         this.jobType = jobType;
         this.jobParameters = jobParameters;
         this.enabled = enabled;
+        this.continuousExecution = continuousExecution;
         setNextExecutionTime( null );
     }
 
@@ -91,8 +93,12 @@ public class JobConfiguration
     {
         if( nextExecutionTime != null) this.nextExecutionTime = nextExecutionTime;
         else {
-            if( !cronExpression.equals( "" ) && !cronExpression.equals( "CONTINUOUS" ) ) this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext(  ) );
+            if( !isContinuousExecution() && !cronExpression.equals( "" ) ) this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext(  ) );
         }
+    }
+
+    public void setContinuousExecution(boolean continuousExecution) {
+        this.continuousExecution = continuousExecution;
     }
 
     @JacksonXmlProperty
@@ -149,6 +155,12 @@ public class JobConfiguration
     public Date getNextExecutionTime()
     {
         return nextExecutionTime;
+    }
+
+    @JacksonXmlProperty
+    @JsonProperty
+    public boolean isContinuousExecution() {
+        return continuousExecution;
     }
 
     @Override

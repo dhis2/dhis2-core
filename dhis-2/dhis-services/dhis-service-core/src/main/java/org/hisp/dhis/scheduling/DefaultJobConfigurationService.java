@@ -33,7 +33,7 @@ public class DefaultJobConfigurationService
     {
         Date now = new Date();
         getAllJobConfigurations().forEach( (jobConfiguration -> {
-            if( jobConfiguration.getNextExecutionTime().compareTo( now ) < 0 ) {
+            if( !jobConfiguration.isContinuousExecution() && jobConfiguration.getNextExecutionTime().compareTo( now ) < 0 ) {
                 jobConfiguration.setNextExecutionTime( null );
                 updateJobConfiguration( jobConfiguration );
                 schedulingManager.executeJob( jobConfiguration );

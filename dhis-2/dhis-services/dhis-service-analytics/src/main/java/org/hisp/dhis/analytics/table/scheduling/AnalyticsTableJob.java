@@ -63,7 +63,7 @@ public class AnalyticsTableJob
     {
         AnalyticsJobParameters jobConfig = (AnalyticsJobParameters) jobParameters;
 
-        Set<AnalyticsTableType> skipTableTypes = new HashSet<AnalyticsTableType>();
+        Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
 
         jobConfig.getSkipTableTypes().forEach( (s) -> skipTableTypes.add( AnalyticsTableType.valueOf( s ) ) );
 

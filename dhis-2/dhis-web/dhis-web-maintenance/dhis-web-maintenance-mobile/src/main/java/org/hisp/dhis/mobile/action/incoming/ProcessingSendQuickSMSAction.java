@@ -262,7 +262,7 @@ public class ProcessingSendQuickSMSAction
         SmsJobParameters jobParameters = new SmsJobParameters(smsSubject, text, currentUser, recipientsList, text,
             jobId );
 
-        JobConfiguration processingSendSmsJobConfiguration = new JobConfiguration( "processingSendSmsAction", JobType.SMS_SEND, null, jobParameters, true );
+        JobConfiguration processingSendSmsJobConfiguration = new JobConfiguration( "processingSendSmsAction", JobType.SMS_SEND, null, jobParameters, true, false );
 
         schedulingManager.executeJob( processingSendSmsJobConfiguration );
 

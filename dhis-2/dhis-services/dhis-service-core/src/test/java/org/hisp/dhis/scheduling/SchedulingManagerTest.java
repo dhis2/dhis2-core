@@ -74,13 +74,13 @@ public class SchedulingManagerTest
         TestJobParameters jobConfigurationParametersA = new TestJobParameters();
         jobConfigurationParametersA.setMessage( "parameters A" );
 
-        jobA = new JobConfiguration( "jobA", JobType.TEST, CRON_EVERY_MIN, jobConfigurationParametersA, true );
+        jobA = new JobConfiguration( "jobA", JobType.TEST, CRON_EVERY_MIN, jobConfigurationParametersA, true, false );
 
 
         TestJobParameters jobConfigurationParametersB = new TestJobParameters();
         jobConfigurationParametersB.setMessage( "parameters B" );
 
-        jobB = new JobConfiguration( "jobB", JobType.TEST, CRON_EVERY_SEC, jobConfigurationParametersB, true );
+        jobB = new JobConfiguration( "jobB", JobType.TEST, CRON_EVERY_SEC, jobConfigurationParametersB, true, false );
 
         jobConfigurationService.addJobConfiguration( jobA );
         jobConfigurationService.addJobConfiguration( jobB );
@@ -162,7 +162,7 @@ public class SchedulingManagerTest
             e.printStackTrace();
         }
 
-        JobConfiguration jobC = new JobConfiguration( "jobC", JobType.TEST, "", new TestJobParameters( null ), true );
+        JobConfiguration jobC = new JobConfiguration( "jobC", JobType.TEST, "", new TestJobParameters( null ), true, false );
         schedulingManager.executeJob( jobC );
 
         verifyScheduledJobs( 2 );

@@ -50,15 +50,20 @@ public class JobObjectBundleHook
         List<ErrorReport> errorReports = new ArrayList<>(  );
 
         // Validate that the given interval is allowed for the given JobType
-        ZonedDateTime now = ZonedDateTime.now();
-        ExecutionTime executionTime = ExecutionTime.forCron(parser.parse(jobConfiguration.getCronExpression()));
-        Duration timeFromLastExecution =  executionTime.timeFromLastExecution(now).get();
-        Duration timeToNextExecution = executionTime.timeToNextExecution(now).get();
+        ZonedDateTime now = null;
+        Duration timeToNextExecution = null;
+        if ( !jobConfiguration.isContinuousExecution() )
+        {
+            now = ZonedDateTime.now();
+            ExecutionTime executionTime = ExecutionTime.forCron(parser.parse(jobConfiguration.getCronExpression()));
+            Duration timeFromLastExecution =  executionTime.timeFromLastExecution(now).get();
+            timeToNextExecution = executionTime.timeToNextExecution(now).get();
 
-        long timeIntervalInSeconds = timeFromLastExecution.getSeconds() + timeToNextExecution.getSeconds();
+            long timeIntervalInSeconds = timeFromLastExecution.getSeconds() + timeToNextExecution.getSeconds();
 
-        if( timeIntervalInSeconds < jobConfiguration.getJobType().getMinimumFrequencyInSeconds() ) {
-            errorReports.add( new ErrorReport( JobConfiguration.class, new ErrorMessage( ErrorCode.E4014, timeIntervalInSeconds, jobConfiguration.getJobType().getMinimumFrequencyInSeconds() ) ) );
+            if( timeIntervalInSeconds < jobConfiguration.getJobType().getMinimumFrequencyInSeconds() ) {
+                errorReports.add( new ErrorReport( JobConfiguration.class, new ErrorMessage( ErrorCode.E4014, timeIntervalInSeconds, jobConfiguration.getJobType().getMinimumFrequencyInSeconds() ) ) );
+            }
         }
 
         // Make list of all jobs for each job type
@@ -79,6 +84,8 @@ public class JobObjectBundleHook
          *  Validate that there are no other jobs of the same job type which are scheduled within the allowed frequency range.
          *  I.E a job scheduled for 15:40 on monday is not allowed if a job already is scheduled for 15:20 on monday if the
          *  minimum frequency is 30 minutes
+         *
+         *  Also check if the job is trying to run continuously while other jobs of the same type is running continuously - this should not be allowed
          */
         List<JobConfiguration> listForJobType = jobConfigurationForJobTypes.get( jobConfiguration.getJobType() );
 
@@ -86,15 +93,23 @@ public class JobObjectBundleHook
         {
             for ( JobConfiguration jobConfig : listForJobType )
             {
-                if ( jobConfig.getCronExpression().equals( jobConfiguration.getCronExpression() ) ) {
-                    errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E4013 ) );
-                }
+                if ( jobConfiguration.isContinuousExecution() ) {
+                    if ( jobConfig.isContinuousExecution() ) {
+                        errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E4016 ) );
+                    }
+                } else {
+                    if ( !jobConfig.isContinuousExecution() ) {
+                        if ( jobConfig.getCronExpression().equals( jobConfiguration.getCronExpression() ) ) {
+                            errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E4013 ) );
+                        }
 
-                Duration jobConfigTimeToNextExecution = ExecutionTime.forCron(parser.parse(jobConfig.getCronExpression())).timeToNextExecution( now ).get();
+                        Duration jobConfigTimeToNextExecution = ExecutionTime.forCron(parser.parse(jobConfig.getCronExpression())).timeToNextExecution( now ).get();
 
-                if ( Math.abs(((timeToNextExecution.getSeconds() - jobConfigTimeToNextExecution.getSeconds()))) < jobConfig.getJobType().getMinimumFrequencyInSeconds() )
-                {
-                    errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E4015, jobConfig.getName() ) );
+                        if ( Math.abs(((timeToNextExecution.getSeconds() - jobConfigTimeToNextExecution.getSeconds()))) < jobConfig.getJobType().getMinimumFrequencyInSeconds() )
+                        {
+                            errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E4015, jobConfig.getName() ) );
+                        }
+                    }
                 }
             }
         }
@@ -108,26 +123,23 @@ public class JobObjectBundleHook
         List<ErrorReport> errorReports = new ArrayList<>(  );
         JobConfiguration jobConfiguration = (JobConfiguration) object;
 
-        if ( !jobConfiguration.getCronExpression().equals( "CONTINUOUS" ) )
+        // validate the cron expression
+        CronDefinition cronDefinition = CronDefinitionBuilder.instanceDefinitionFor(QUARTZ);
+        CronParser parser = new CronParser( cronDefinition );
+        Cron quartzCron = parser.parse( jobConfiguration.getCronExpression() );
+
+        quartzCron.validate();
+
+        CronDescriptor cronDescriptor = CronDescriptor.instance( Locale.UK);
+
+        // Validate cron expression with relation to all other jobs
+        errorReports.addAll( validateCronForJobType( jobConfiguration, parser ) );
+        if( errorReports.size() == 0 )
         {
-            // validate the cron expression
-            CronDefinition cronDefinition = CronDefinitionBuilder.instanceDefinitionFor(QUARTZ);
-            CronParser parser = new CronParser( cronDefinition );
-            Cron quartzCron = parser.parse( jobConfiguration.getCronExpression() );
-
-            quartzCron.validate();
-
-            CronDescriptor cronDescriptor = CronDescriptor.instance( Locale.UK);
-
-            // Validate cron expression with relation to all other jobs
-            errorReports.addAll( validateCronForJobType( jobConfiguration, parser ) );
-            if( errorReports.size() == 0 )
-            {
-                log.info( "Validation of '" + jobConfiguration.getName() + "' succeeded with cron description '" + cronDescriptor.describe( quartzCron ) + "'" );
-            } else
-            {
-                log.info( "Validation of '" + jobConfiguration.getName() + "' failed." );
-            }
+            log.info( "Validation of '" + jobConfiguration.getName() + "' succeeded with cron description '" + cronDescriptor.describe( quartzCron ) + "'" );
+        } else
+        {
+            log.info( "Validation of '" + jobConfiguration.getName() + "' failed." );
         }
 
         return errorReports;
@@ -146,8 +158,6 @@ public class JobObjectBundleHook
 
         jobParameters.setJobId( new JobId( JobCategory.valueOf( jobConfiguration.getJobType().toString() ), currentUserService.getCurrentUser().getUid() ) );
         jobConfiguration.setJobParameters( jobParameters );
-
-        object = jobConfiguration;
     }
 
     @Override
@@ -163,8 +173,6 @@ public class JobObjectBundleHook
 
         jobParameters.setJobId( new JobId( JobCategory.valueOf( jobConfiguration.getJobType().toString() ), currentUserService.getCurrentUser().getUid() ) );
         jobConfiguration.setJobParameters( jobParameters );
-
-        object = jobConfiguration;
 
         schedulingManager.stopJob( (JobConfiguration) persistedObject );
         sessionFactory.getCurrentSession().update( persistedObject );
@@ -190,13 +198,6 @@ public class JobObjectBundleHook
             return;
         }
 
-        JobConfiguration jobConfiguration = (JobConfiguration) persistedObject;
-        if ( jobConfiguration.getCronExpression().equals( "CONTINUOUS" ) )
-        {
-            jobConfiguration.setCronExpression( "0 * * ? * *");
-            //schedulingManager.scheduleJobWithFixedDelay( jobConfiguration );
-        }
-
         schedulingManager.scheduleJob( (JobConfiguration) persistedObject );
     }
 
@@ -206,13 +207,6 @@ public class JobObjectBundleHook
         if ( !JobConfiguration.class.isInstance( persistedObject ) )
         {
             return;
-        }
-
-        JobConfiguration jobConfiguration = (JobConfiguration) persistedObject;
-        if ( jobConfiguration.getCronExpression().equals( "CONTINUOUS" ) )
-        {
-            jobConfiguration.setCronExpression( "0 * * ? * *");
-            //schedulingManager.scheduleJobWithFixedDelay( jobConfiguration );
         }
 
         schedulingManager.scheduleJob( (JobConfiguration) persistedObject );

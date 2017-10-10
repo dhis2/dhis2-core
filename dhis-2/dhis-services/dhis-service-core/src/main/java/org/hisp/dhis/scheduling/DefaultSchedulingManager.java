@@ -56,10 +56,9 @@ public class DefaultSchedulingManager
 
     private List<JobConfiguration> runningJobConfigurations = new ArrayList<>(  );
 
-    public boolean isJobConfigurationRunning( JobType jobType )
-    {
-        return runningJobConfigurations.stream()
-            .anyMatch( jobConfiguration -> jobConfiguration.getJobType().equals( jobType ) );
+    public boolean isJobConfigurationRunning( JobConfiguration jobConfiguration ) {
+        return !jobConfiguration.isContinuousExecution() && runningJobConfigurations.stream().anyMatch(jobConfig -> jobConfig.getJobType().equals(jobConfiguration.getJobType()) && !jobConfig.isContinuousExecution());
+
     }
 
     public void runJobConfiguration( JobConfiguration jobConfiguration )
@@ -73,7 +72,7 @@ public class DefaultSchedulingManager
         runningJobConfigurations.remove( jobConfiguration );
         jobConfigurationService.updateJobConfiguration( jobConfiguration );
     }
-
+//"cronExpression": "0 30 * ? * *",
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

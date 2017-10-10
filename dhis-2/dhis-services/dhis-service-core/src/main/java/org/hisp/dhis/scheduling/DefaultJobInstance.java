@@ -30,7 +30,7 @@ public class DefaultJobInstance implements JobInstance
 
         if(!jobConfiguration.getEnabled()) return;
 
-        if(!schedulingManager.isJobConfigurationRunning( jobConfiguration.getJobType() ))
+        if(!schedulingManager.isJobConfigurationRunning( jobConfiguration ))
         {
             jobConfiguration.setJobStatus( JobStatus.RUNNING );
             schedulingManager.runJobConfiguration( jobConfiguration );
