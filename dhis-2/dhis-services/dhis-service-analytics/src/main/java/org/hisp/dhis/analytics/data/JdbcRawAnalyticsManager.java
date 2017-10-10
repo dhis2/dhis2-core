@@ -137,7 +137,6 @@ public class JdbcRawAnalyticsManager
     {
         String sql = StringUtils.EMPTY;
 
-
         for ( String partition : params.getPartitions().getPartitions() )
         {
             sql += getStatement( params, partition ) + "union all ";
