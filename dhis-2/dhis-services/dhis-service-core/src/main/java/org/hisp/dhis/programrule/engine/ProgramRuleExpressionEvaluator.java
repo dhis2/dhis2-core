@@ -1,4 +1,4 @@
-package org.hisp.dhis.programrule;
+package org.hisp.dhis.programrule.engine;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,42 +28,22 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang.StringUtils;
+import org.hisp.dhis.commons.util.ExpressionUtils;
+import org.hisp.dhis.rules.RuleExpressionEvaluator;
+
+import java.util.HashMap;
+
 /**
- * @author Markus Bekken
+ * Created by zubair@dhis2.org on 11.10.17.
  */
-public enum ProgramRuleActionType
+public class ProgramRuleExpressionEvaluator implements RuleExpressionEvaluator
 {
-    DISPLAYTEXT( "displaytext" ),
-    DISPLAYKEYVALUEPAIR( "displaykeyvaluepair" ),
-    HIDEFIELD( "hidefield" ),
-    HIDESECTION( "hidesection" ),
-    HIDEPROGRAMSTAGE( "hideprogramstage"),
-    ASSIGN( "assign" ),
-    SHOWWARNING( "showwarning" ),
-    WARNINGONCOMPLETE( "warningoncomplete" ),
-    SHOWERROR( "showerror" ),
-    ERRORONCOMPLETE( "erroroncomplete" ),
-    CREATEEVENT( "createevent" ),
-    SETMANDATORYFIELD( "setmandatoryfield" ),
-    SENDMESSAGE( "sendmessage" );
-
-    final String value;
-
-    ProgramRuleActionType( String value )
+    @Override
+    public String evaluate( String expression )
     {
-        this.value = value;
-    }
+        Object result = ExpressionUtils.evaluate( expression, new HashMap<>());
 
-    public static ProgramRuleActionType fromValue( String value )
-    {
-        for ( ProgramRuleActionType type : ProgramRuleActionType.values() )
-        {
-            if ( type.value.equalsIgnoreCase( value ) )
-            {
-                return type;
-            }
-        }
-
-        return null;
+        return result != null ? result.toString() : "";
     }
 }
