@@ -40,7 +40,6 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.system.util.SmsUtils;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -86,9 +85,6 @@ public class SmsController
 
     @Autowired
     private SMSCommandService smsCommandService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     @Autowired
     private UserService userService;

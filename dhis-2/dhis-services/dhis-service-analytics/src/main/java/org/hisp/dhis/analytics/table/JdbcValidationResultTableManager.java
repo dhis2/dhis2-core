@@ -6,10 +6,8 @@ import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
-import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -21,9 +19,6 @@ import java.util.concurrent.Future;
 public class JdbcValidationResultTableManager
     extends AbstractJdbcTableManager
 {
-    @Autowired
-    private PeriodService periodService;
-
     @Override
     protected void populateTable( AnalyticsTable table )
     {
