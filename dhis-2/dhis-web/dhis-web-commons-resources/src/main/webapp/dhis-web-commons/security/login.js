@@ -19,6 +19,8 @@ $( document ).ready( function()
         sessionStorage.removeItem( 'USER_PROFILE' );
 		sessionStorage.removeItem( 'eventCaptureGridColumns');
 		sessionStorage.removeItem( 'trackerCaptureGridColumns');
+		sessionStorage.removeItem( 'trackerCaptureCategoryOptions');
+		sessionStorage.removeItem( 'eventCaptureCategoryOptions');
     } );
     
     var locale = localStorage[login.localeKey];
