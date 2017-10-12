@@ -41,15 +41,30 @@ public class MetadataItem
     
     private String legendSet;
 
+    private MetaDataItemDetails metaDataDetails;
+
     public MetadataItem( String name )
     {
         this.name = name;
     }
-    
+
     public MetadataItem( String name, String legendSet )
     {
         this.name = name;
         this.legendSet = legendSet;
+    }
+    
+    public MetadataItem( String name, String legendSet, MetaDataItemDetails metaDataDetails )
+    {
+        this.name = name;
+        this.legendSet = legendSet;
+        this.metaDataDetails = metaDataDetails;
+    }
+
+    public MetadataItem( String name, MetaDataItemDetails metaDataDetails )
+    {
+        this.name = name;
+        this.metaDataDetails = metaDataDetails;
     }
     
     @JsonProperty
@@ -72,5 +87,14 @@ public class MetadataItem
     public void setLegendSet( String legendSet )
     {
         this.legendSet = legendSet;
+    }
+
+    @JsonProperty
+    public MetaDataItemDetails getMetaDataDetails() {
+        return metaDataDetails;
+    }
+
+    public void setMetaDataDetails(MetaDataItemDetails metaDataDetails) {
+        this.metaDataDetails = metaDataDetails;
     }
 }
