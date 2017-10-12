@@ -18,10 +18,9 @@ public class MetaDataItemDetails {
 
     private DimensionType dimensionType;
 
-    // Specific type for item - i.e indicator type
     private AggregationType aggregationType;
 
-    MetaDataItemDetails( DimensionalItemObject dimensionalItemObject, String itemSpecificType )
+    MetaDataItemDetails( DimensionalItemObject dimensionalItemObject )
     {
         this.code = dimensionalItemObject.getCode();
         this.dimensionItemType = dimensionalItemObject.getDimensionItemType();
@@ -29,7 +28,7 @@ public class MetaDataItemDetails {
         this.uid = dimensionalItemObject.getUid();
     }
 
-    MetaDataItemDetails( DimensionalObject dimensionalObject, String itemSpecificType )
+    MetaDataItemDetails( DimensionalObject dimensionalObject )
     {
         this.code = dimensionalObject.getCode();
         this.dimensionType = dimensionalObject.getDimensionType();
