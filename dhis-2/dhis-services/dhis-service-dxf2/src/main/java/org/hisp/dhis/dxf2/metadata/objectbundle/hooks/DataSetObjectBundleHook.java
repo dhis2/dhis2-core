@@ -55,7 +55,7 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
             return new ArrayList<>();
         }
 
-        List errors = new ArrayList<ErrorReport>();
+        List<ErrorReport> errors = new ArrayList<>();
 
         DataSet dataSet = (DataSet) object;
 

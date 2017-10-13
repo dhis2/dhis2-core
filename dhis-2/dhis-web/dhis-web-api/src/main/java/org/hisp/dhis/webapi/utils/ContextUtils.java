@@ -158,7 +158,7 @@ public class ContextUtils
         {
             Cacheability cacheability = (Cacheability) systemSettingManager.getSystemSetting( SettingKey.CACHEABILITY );
 
-            if (cacheability.equals( Cacheability.PUBLIC ))
+            if ( cacheability.equals( Cacheability.PUBLIC ) )
             {
                 cacheControl.cachePublic();
             }
