@@ -98,10 +98,11 @@
                         #end
                         <tr>
                             <td id="${dataElement.uid}-cell" #if( $mark == 1 )class="alt"#else class="reg"#end>
-                                <span id="${dataElement.uid}-dataelement" #if( $decoration && $dataElement.hasDescription() ) title="$!{dataElement.displayDescription}"#end >
+                                <span id="${dataElement.uid}-dataelement" #if( $decoration && $dataElement.hasDescription() ) class="dataelement-label" style="cursor: pointer" #end  >
                                     #if( $decoration && $!dataElement.hasUrl() )<a href="${dataElement.url}" target="_blank">#end${encoder.htmlEncode( $dataElement.displayFormName )}#if( $decoration && $dataElement.hasUrl() )</a>#end
                                 </span>
-                            </td>    
+                                <input type="hidden" id="${dataElement.uid}-dataelement-description" value="$!{dataElement.displayDescription}"/>
+                            </td>
                             #foreach( $optionCombo in $optionCombos )
                                 #set( $compulsory = false )
                                 #foreach( $compulsoryDe in $dataSet.compulsoryDataElementOperands )
