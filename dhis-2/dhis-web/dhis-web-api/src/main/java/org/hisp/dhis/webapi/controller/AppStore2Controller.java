@@ -36,7 +36,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -47,7 +51,7 @@ import java.util.List;
  */
 @Controller
 @RequestMapping( AppStore2Controller.RESOURCE_PATH )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V28 } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V28, DhisApiVersion.V29 } )
 public class AppStore2Controller
 {
     public static final String RESOURCE_PATH = "/appStore";
@@ -56,7 +60,7 @@ public class AppStore2Controller
     private AppStoreService appStoreService;
 
     @RequestMapping( method = RequestMethod.GET, produces = "application/json" )
-    public @ResponseBody List<WebApp> listAppStore(HttpServletResponse response )
+    public @ResponseBody List<WebApp> listAppStore( HttpServletResponse response )
         throws IOException
     {
         return appStoreService.getAppStore();
