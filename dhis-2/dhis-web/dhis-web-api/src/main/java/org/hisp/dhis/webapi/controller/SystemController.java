@@ -134,7 +134,7 @@ public class SystemController
         }
 
         response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
-        
+
         return rootNode;
     }
 
@@ -178,7 +178,7 @@ public class SystemController
         }
 
         response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
-        
+
         return rootNode;
     }
 
@@ -198,7 +198,7 @@ public class SystemController
         }
 
         response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
-        
+
         renderService.toJson( response.getOutputStream(), notifications );
     }
 
@@ -210,7 +210,7 @@ public class SystemController
             TaskCategory taskCategory = TaskCategory.valueOf( category.toUpperCase() );
 
             TaskId taskId = new TaskId( taskCategory, currentUserService.getCurrentUser() );
-            
+
             Object summary = notifier.getTaskSummary( taskId );
 
             if ( summary != null && summary.getClass().isAssignableFrom( ImportSummary.class ) ) //TODO improve this
@@ -227,7 +227,7 @@ public class SystemController
         }
 
         response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
-        
+
         renderService.toJson( response.getOutputStream(), new ImportSummary() );
     }
 
@@ -245,7 +245,7 @@ public class SystemController
         }
 
         response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
-        
+
         return info;
     }
 
@@ -264,7 +264,7 @@ public class SystemController
     }
 
     @RequestMapping( value = "/ping", method = RequestMethod.GET, produces = "text/plain" )
-    @ApiVersion( exclude = { DhisApiVersion.V24, DhisApiVersion.V25, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 } )
+    @ApiVersion( exclude = { DhisApiVersion.V24, DhisApiVersion.V25, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
     public @ResponseBody String pingLegacy()
     {
         return "pong";
