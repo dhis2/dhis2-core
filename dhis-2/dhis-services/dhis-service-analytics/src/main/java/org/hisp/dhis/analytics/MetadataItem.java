@@ -29,6 +29,10 @@ package org.hisp.dhis.analytics;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
 
 /**
  * Item part of meta data analytics response.
@@ -41,7 +45,15 @@ public class MetadataItem
     
     private String legendSet;
 
-    private MetaDataItemDetails metaDataDetails;
+    private String uid;
+
+    private String code;
+
+    private DimensionItemType dimensionItemType;
+
+    private DimensionType dimensionType;
+
+    private AggregationType aggregationType;
 
     public MetadataItem( String name )
     {
@@ -53,18 +65,98 @@ public class MetadataItem
         this.name = name;
         this.legendSet = legendSet;
     }
-    
-    public MetadataItem( String name, String legendSet, MetaDataItemDetails metaDataDetails )
+
+    public MetadataItem( String name, String legendSet, DimensionalItemObject dimensionalItemObject )
     {
         this.name = name;
         this.legendSet = legendSet;
-        this.metaDataDetails = metaDataDetails;
+
+        setDataItem( dimensionalItemObject );
     }
 
-    public MetadataItem( String name, MetaDataItemDetails metaDataDetails )
+    public MetadataItem( String name, String legendSet,DimensionalObject dimensionalObject )
     {
         this.name = name;
-        this.metaDataDetails = metaDataDetails;
+        this.legendSet = legendSet;
+
+        setDataItem( dimensionalObject );
+    }
+
+    public MetadataItem( String name, DimensionalItemObject dimensionalItemObject )
+    {
+        this.name = name;
+        setDataItem( dimensionalItemObject );
+    }
+
+    public MetadataItem( String name, DimensionalObject dimensionalObject )
+    {
+        this.name = name;
+        setDataItem( dimensionalObject );
+    }
+
+    public void setDataItem( DimensionalItemObject dimensionalItemObject )
+    {
+        if ( dimensionalItemObject == null ) return;
+
+        this.code = dimensionalItemObject.getCode();
+        this.dimensionItemType = dimensionalItemObject.getDimensionItemType();
+        this.aggregationType = dimensionalItemObject.getAggregationType();
+        this.uid = dimensionalItemObject.getUid();
+    }
+
+    public void setDataItem( DimensionalObject dimensionalObject )
+    {
+        if ( dimensionalObject == null ) return;
+
+        this.code = dimensionalObject.getCode();
+        this.dimensionType = dimensionalObject.getDimensionType();
+        this.aggregationType = dimensionalObject.getAggregationType();
+        this.uid = dimensionalObject.getUid();
+    }
+
+    @JsonProperty
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
+
+    @JsonProperty
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    @JsonProperty
+    public DimensionType getDimensionType() {
+        return dimensionType;
+    }
+
+    public void setDimensionType(DimensionType type) {
+        this.dimensionType = type;
+    }
+
+    @JsonProperty
+    public AggregationType getAggregationType() {
+        return aggregationType;
+    }
+
+    public void setAggregationType(AggregationType itemSpecificType) {
+        this.aggregationType = itemSpecificType;
+    }
+
+    @JsonProperty
+    public DimensionItemType getDimensionItemType() {
+        return dimensionItemType;
+    }
+
+    public void setDimensionItemType(DimensionItemType dimensionItemType) {
+        this.dimensionItemType = dimensionItemType;
     }
     
     @JsonProperty
@@ -87,14 +179,5 @@ public class MetadataItem
     public void setLegendSet( String legendSet )
     {
         this.legendSet = legendSet;
-    }
-
-    @JsonProperty
-    public MetaDataItemDetails getMetaDataDetails() {
-        return metaDataDetails;
-    }
-
-    public void setMetaDataDetails(MetaDataItemDetails metaDataDetails) {
-        this.metaDataDetails = metaDataDetails;
     }
 }

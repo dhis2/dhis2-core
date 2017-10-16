@@ -560,12 +560,12 @@ public class AnalyticsUtils
                 {
                     Period period = (Period) item;
                     DateTimeUnit dateTimeUnit = calendar.fromIso( period.getStartDate() );
-                    map.put( period.getPeriodType().getIsoDate( dateTimeUnit ), new MetadataItem( period.getDisplayName(), includeMetaDataItemDetails ? new MetaDataItemDetails( period ) : null ) );
+                    map.put( period.getPeriodType().getIsoDate( dateTimeUnit ), new MetadataItem( period.getDisplayName(), includeMetaDataItemDetails ? period : null ) );
                 }
                 else
                 {
                     String legendSet = item.hasLegendSet() ? item.getLegendSet().getUid() : null;
-                    map.put( item.getDimensionItem(), new MetadataItem( item.getDisplayProperty( params.getDisplayProperty() ), legendSet, includeMetaDataItemDetails ? new MetaDataItemDetails( item ) : null ) );
+                    map.put( item.getDimensionItem(), new MetadataItem( item.getDisplayProperty( params.getDisplayProperty() ), legendSet, includeMetaDataItemDetails ? item : null ) );
                 }
 
                 if ( DimensionType.ORGANISATION_UNIT == dimension.getDimensionType() && params.isHierarchyMeta() )
@@ -574,7 +574,7 @@ public class AnalyticsUtils
                     
                     for ( OrganisationUnit ancestor : unit.getAncestors() )
                     {
-                        map.put( ancestor.getUid(), new MetadataItem( ancestor.getDisplayProperty( params.getDisplayProperty() ), includeMetaDataItemDetails ? new MetaDataItemDetails( ancestor ) : null ) );
+                        map.put( ancestor.getUid(), new MetadataItem( ancestor.getDisplayProperty( params.getDisplayProperty() ), includeMetaDataItemDetails ? ancestor : null ) );
                     }
                 }
                 
@@ -584,12 +584,12 @@ public class AnalyticsUtils
                     
                     for ( DataElementCategoryOptionCombo coc : dataElement.getCategoryOptionCombos() )
                     {
-                        map.put( coc.getUid(), new MetadataItem( coc.getDisplayProperty( params.getDisplayProperty() ), includeMetaDataItemDetails ? new MetaDataItemDetails( coc ) : null ) );
+                        map.put( coc.getUid(), new MetadataItem( coc.getDisplayProperty( params.getDisplayProperty() ), includeMetaDataItemDetails ? coc : null ) );
                     }
                 }
             }
 
-            map.put( dimension.getDimension(), new MetadataItem( dimension.getDisplayProperty( params.getDisplayProperty() ), includeMetaDataItemDetails ? new MetaDataItemDetails( dimension ) : null ) );
+            map.put( dimension.getDimension(), new MetadataItem( dimension.getDisplayProperty( params.getDisplayProperty() ), includeMetaDataItemDetails ? dimension : null ) );
         }
 
         return map;
