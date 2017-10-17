@@ -3287,7 +3287,7 @@ dhis2.de.loadOptionSets = function()
  */
 dhis2.de.enableDEDescriptionEvent = function()
 {
-    $('.dataelement-label').on({
+    $('.dataelement-label, .indicator-label').on({
         "click": function () {
             var description = $('#' + $(this).attr('id') + '-description' ).val();
             $(this).tooltip({ items: '#' + $(this).attr('id'), content: description });
