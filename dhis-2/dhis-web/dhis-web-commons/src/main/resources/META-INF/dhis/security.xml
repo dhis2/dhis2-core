@@ -95,9 +95,17 @@
   </sec:http>
   -->
 
+  <!-- Custom Entry Point -->
+
   <bean id="http401LoginUrlAuthenticationEntryPoint" class="org.hisp.dhis.security.Http401LoginUrlAuthenticationEntryPoint">
     <constructor-arg name="loginFormUrl" value="/dhis-web-commons/security/login.action" />
   </bean>
+
+  <bean id="basicAuthenticationEntryPoint" class="org.hisp.dhis.security.CustomBasicAuthenticationEntryPoint">
+    <property name="realmName" value="dhis2" />
+  </bean>
+
+  <!-- Security configurations -->
 
   <sec:http access-decision-manager-ref="accessDecisionManager" realm="DHIS2" disable-url-rewriting="true" use-expressions="true"
     authentication-manager-ref="authenticationManager" entry-point-ref="http401LoginUrlAuthenticationEntryPoint">
@@ -123,7 +131,7 @@
 
     <sec:csrf disabled="true" />
 
-    <sec:http-basic entry-point-ref="http401LoginUrlAuthenticationEntryPoint" />
+    <sec:http-basic entry-point-ref="basicAuthenticationEntryPoint" />
     <sec:logout logout-url="/dhis-web-commons-security/logout.action" logout-success-url="/" />
     <sec:intercept-url pattern="/dhis-web-commons/i18nJavaScript.action" access="permitAll()" />
     <sec:intercept-url pattern="/dhis-web-commons/security/**" access="permitAll()" />
@@ -191,6 +199,8 @@
   <!-- Security : Listener -->
 
   <bean id="loggerListener" class="org.springframework.security.authentication.event.LoggerListener" />
+
+  <bean id="authenticationListener" class="org.hisp.dhis.security.AuthenticationListener"/>
 
   <!-- Security : AccessProvider -->
 
@@ -446,6 +456,6 @@
 
   <bean id="appsSystemAuthoritiesProvider" class="org.hisp.dhis.security.authority.AppsSystemAuthoritiesProvider" />
 
-  <bean id="authenticationListener" class="org.hisp.dhis.security.AuthenticationListener"/>
+
 
 </beans>
