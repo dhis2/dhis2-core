@@ -46,7 +46,6 @@ import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.system.util.SmsUtils;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -77,9 +76,6 @@ public class SmsMessageSender
 
     @Autowired
     private List<SmsGateway> smsGateways;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     @Autowired
     private UserSettingService userSettingService;
