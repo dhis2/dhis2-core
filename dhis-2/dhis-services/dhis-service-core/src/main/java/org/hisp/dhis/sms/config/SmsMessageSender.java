@@ -94,32 +94,26 @@ public class SmsMessageSender
     {
         Set<User> toSendList = new HashSet<>();
 
-        User currentUser = currentUserService.getCurrentUser();
+        if ( users.isEmpty() )
+        {
+            log.info( GatewayResponse.NO_RECIPIENT.getResponseMessage() );
 
-        if ( !forceSend )
-        {
-            for ( User user : users )
-            {
-                if ( currentUser == null || !currentUser.equals( user ) )
-                {
-                    if ( isQualifiedReceiver( user ) )
-                    {
-                        toSendList.add( user );
-                    }
-                }
-            }
-        }
-        else
-        {
-            toSendList.addAll( users );
+            return new OutboundMessageResponse( GatewayResponse.NO_RECIPIENT.getResponseMessage(), GatewayResponse.NO_RECIPIENT, false );
         }
 
-        Set<String> phoneNumbers = SmsUtils.getRecipientsPhoneNumber( toSendList );
+        toSendList = users.stream().filter( u -> forceSend || isQualifiedReceiver( u ) ).collect( Collectors.toSet() );
+
+        if ( toSendList.isEmpty() )
+        {
+            log.info( GatewayResponse.SMS_DISABLED.getResponseMessage() );
+
+            return new OutboundMessageResponse( GatewayResponse.SMS_DISABLED.getResponseMessage(), GatewayResponse.SMS_DISABLED, false );
+        }
 
         // Extract summary from text in case of COLLECTIVE_SUMMARY
         text = SUMMARY_PATTERN.matcher( text ).find() ? StringUtils.substringBefore( text, LN ) : text;
 
-        return sendMessage( subject, text, phoneNumbers );
+        return sendMessage( subject, text, SmsUtils.getRecipientsPhoneNumber( toSendList ) );
     }
 
     @Override
@@ -181,17 +175,9 @@ public class SmsMessageSender
 
     private boolean isQualifiedReceiver( User user )
     {
-        if ( user.getFirstName() == null )
-        {
-            return true;
-        }
-        else
-        {
-            Serializable userSetting = userSettingService.getUserSetting( UserSettingKey.MESSAGE_SMS_NOTIFICATION,
-                user );
+        Serializable userSetting = userSettingService.getUserSetting( UserSettingKey.MESSAGE_SMS_NOTIFICATION, user );
 
-            return userSetting != null ? (Boolean) userSetting : false;
-        }
+        return userSetting != null ? (Boolean) userSetting : false;
     }
 
     private OutboundMessageResponse sendMessage( String subject, String text, Set<String> recipients,
