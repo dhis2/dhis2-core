@@ -256,7 +256,6 @@ public class ProcessingSendSMSAction
         sms.setRecipients( recipientsList.stream().map( item -> item.getPhoneNumber() ).collect( Collectors.toSet() ) );
         sms.setSender( OutboundSms.DHIS_SYSTEM_SENDER );
 
-        System.out.println("processingSendSMSACtion");
         sendSmsTask.setTaskId( taskId );
         sendSmsTask.setCurrentUser( currentUser );
         sendSmsTask.setSms( sms );

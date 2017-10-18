@@ -272,9 +272,6 @@ public class ProcessingSendQuickSMSAction
         sms.setRecipients( recipientsList.stream().map( item -> item.getPhoneNumber() ).collect( Collectors.toSet() ) );
         sms.setSender( OutboundSms.DHIS_SYSTEM_SENDER );
 
-        System.out.println("processingSendQuickSMSACtion");
-
-
         sendSmsTask.setTaskId( taskId );
         sendSmsTask.setCurrentUser( currentUser );
         sendSmsTask.setSms( sms );
