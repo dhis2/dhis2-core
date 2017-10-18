@@ -118,13 +118,11 @@ public class TrackedEntityRegistrationSMSListener
 
         if ( orgUnits == null || orgUnits.size() == 0 )
         {
-            if ( StringUtils.isEmpty( smsCommand.getNoUserMessage() ) )
+            if ( orgUnits == null || orgUnits.size() == 0 )
             {
-                throw new SMSParserException( SMSCommand.NO_USER_MESSAGE );
-            }
-            else
-            {
-                throw new SMSParserException( smsCommand.getNoUserMessage() );
+                smsSender.sendMessage( null, StringUtils.defaultIfEmpty( smsCommand.getNoUserMessage(), SMSCommand.NO_USER_MESSAGE ), sms.getOriginator() );
+
+                throw new SMSParserException( StringUtils.defaultIfEmpty( smsCommand.getNoUserMessage(), SMSCommand.NO_USER_MESSAGE ) );
             }
         }
 
@@ -132,7 +130,7 @@ public class TrackedEntityRegistrationSMSListener
 
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
         trackedEntityInstance.setOrganisationUnit( orgUnit );
-        trackedEntityInstance.setTrackedEntity( trackedEntityService.getTrackedEntityByName( "Person" ) );
+        trackedEntityInstance.setTrackedEntity( trackedEntityService.getTrackedEntityByName( smsCommand.getProgram().getTrackedEntity().getName() ) );
         Set<TrackedEntityAttributeValue> patientAttributeValues = new HashSet<>();
 
         for ( SMSCode code : smsCommand.getCodes() )
@@ -156,7 +154,7 @@ public class TrackedEntityRegistrationSMSListener
             trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceId ), smsCommand.getProgram(),
             new Date(), date, orgUnit );
         
-        smsSender.sendMessage( null, "Entity Registered Successfully ", senderPhoneNumber );
+        smsSender.sendMessage( null, "Tracked Entity Registered Successfully ", senderPhoneNumber );
         
         sms.setStatus( SmsMessageStatus.PROCESSED );
         sms.setParsed( true );
