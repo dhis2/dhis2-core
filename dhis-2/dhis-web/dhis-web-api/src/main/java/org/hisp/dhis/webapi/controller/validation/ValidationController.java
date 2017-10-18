@@ -39,6 +39,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.scheduling.*;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.validation.ValidationService;
@@ -134,9 +135,10 @@ public class ValidationController
     @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     public void runValidationNotificationsTask( HttpServletResponse response, HttpServletRequest request )
     {
-        /* HH validationResultNotificationJob
-            .setTaskId( new TaskId( TaskCategory.SENDING_VALIDATION_RESULT, currentUserService.getSender() ) );
-        scheduler.executeTask( validationResultNotificationJob );*/
+        // HH validate
+        JobConfiguration validationResultNotification = new JobConfiguration("validation result notification from validation controller", JobType.VALIDATION_RESULTS_NOTIFICATION, "", null, true, false, new JobId(JobCategory.VALIDATION_RESULTS_NOTIFICATION, currentUserService.getCurrentUser().getUid() ) );
+
+        scheduler.executeJob( validationResultNotification, new DefaultJobInstance() );
 
         webMessageService.send( WebMessageUtils.ok( "Initiated validation result notification" ), response, request );
     }
