@@ -267,7 +267,6 @@ public class JCloudsAppStorageService
         return reservedNamespaces;
     }
 
-    @SuppressWarnings( "Duplicates" )
     @Override
     public AppStatus installApp( File file, String filename )
     {
@@ -285,6 +284,8 @@ public class JCloudsAppStorageService
             if ( entry == null )
             {
                 log.error( "Failed to install app: Missing manifest.webapp in zip" );
+                
+                zip.close();
                 return AppStatus.MISSING_MANIFEST;
             }
 

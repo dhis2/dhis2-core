@@ -78,6 +78,8 @@ import org.hisp.dhis.webapi.webdomain.user.Inbox;
 import org.hisp.dhis.webapi.webdomain.user.Recipients;
 import org.hisp.dhis.webapi.webdomain.user.UserAccount;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -181,6 +183,7 @@ public class CurrentUserController
         rootNode.setDefaultNamespace( DxfNamespaces.DXF_2_0 );
         rootNode.setNamespace( DxfNamespaces.DXF_2_0 );
 
+        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
         return rootNode;
     }
 
@@ -207,6 +210,7 @@ public class CurrentUserController
         }
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
         renderService.toJson( response.getOutputStream(), dashboards );
     }
 
@@ -235,6 +239,7 @@ public class CurrentUserController
         }
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
         renderService.toJson( response.getOutputStream(), inbox );
     }
 
@@ -257,6 +262,7 @@ public class CurrentUserController
             messageConversation.setAccess( aclService.getAccess( messageConversation, user ) );
         }
 
+        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
         renderService.toJson( response.getOutputStream(), messageConversations );
     }
 
@@ -278,6 +284,7 @@ public class CurrentUserController
             interpretation.setAccess( aclService.getAccess( interpretation, user ) );
         }
 
+        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
         renderService.toJson( response.getOutputStream(), interpretations );
     }
 
@@ -296,6 +303,7 @@ public class CurrentUserController
         dashboard.setUnreadInterpretations( interpretationService.getNewInterpretationCount() );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
         renderService.toJson( response.getOutputStream(), dashboard );
     }
 
@@ -305,6 +313,7 @@ public class CurrentUserController
         UserAccount userAccount = getUserAccount();
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
         renderService.toJson( response.getOutputStream(), userAccount );
     }
 
@@ -314,6 +323,7 @@ public class CurrentUserController
         UserAccount userAccount = getUserAccount();
 
         response.setContentType( "application/javascript" );
+        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
         renderService.toJsonP( response.getOutputStream(), userAccount, callback );
     }
 
@@ -402,6 +412,7 @@ public class CurrentUserController
         User currentUser = currentUserService.getCurrentUser();
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
         renderService.toJson( response.getOutputStream(), currentUser.getUserCredentials().getAllAuthorities() );
     }
 
@@ -413,6 +424,7 @@ public class CurrentUserController
         boolean hasAuth = currentUser != null && currentUser.getUserCredentials().isAuthorized( auth );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
         renderService.toJson( response.getOutputStream(), hasAuth );
     }
 
@@ -441,6 +453,7 @@ public class CurrentUserController
         recipients.setUserGroups( new HashSet<>( userGroupService.getUserGroupsBetweenByName( filter, 0, MAX_OBJECTS ) ) );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
         renderService.toJson( response.getOutputStream(), recipients );
     }
 
@@ -481,6 +494,7 @@ public class CurrentUserController
         }
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
         renderService.toJson( response.getOutputStream(), userOrganisationUnits );
     }
 
@@ -595,6 +609,7 @@ public class CurrentUserController
         }
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
         renderService.toJson( response.getOutputStream(), forms );
     }
 
@@ -716,6 +731,7 @@ public class CurrentUserController
         }
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
         renderService.toJson( response.getOutputStream(), forms );
     }
 
@@ -724,6 +740,7 @@ public class CurrentUserController
     {
         List<DataApprovalLevel> approvalLevels = approvalLevelService.getUserDataApprovalLevels();
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
         renderService.toJson( response.getOutputStream(), approvalLevels );
     }
 
@@ -732,6 +749,7 @@ public class CurrentUserController
     {
         Map<OrganisationUnit, Integer> orgUnitApprovalLevelMap = approvalLevelService.getUserReadApprovalLevels();
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
         renderService.toJson( response.getOutputStream(), orgUnitApprovalLevelMap );
     }
 }

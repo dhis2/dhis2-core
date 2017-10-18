@@ -809,15 +809,17 @@ public class DefaultExpressionService
             int start = matcher.end();
             int end = Expression.matchExpression( expression, start );
 
+            sb.append( expression.substring( scan, matcher.start() ) );
+            sb.append( expression.substring( matcher.start(), start ).toUpperCase() );
+
             if ( end < 0 )
             {
-                sb.append( expression.substring( scan, start ) );
                 scan = start + 1;
                 tail = start;
             }
             else if ( aggregateMap == null || expression.charAt( start ) == '<' )
             {
-                sb.append( expression.substring( scan, end ) );
+                sb.append( expression.substring( start, end ) );
                 scan = end + 1;
                 tail = end;
             }
@@ -836,7 +838,6 @@ public class DefaultExpressionService
                 else
                 {
                     String literal = (samples == null) ? ("[]") : (samples.toString());
-                    sb.append( expression.substring( scan, start ) );
                     sb.append( literal );
                 }
 
