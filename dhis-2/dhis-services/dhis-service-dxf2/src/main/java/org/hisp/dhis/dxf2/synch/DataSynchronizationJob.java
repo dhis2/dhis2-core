@@ -32,7 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.scheduling.Parameters.DataSyncJobParameters;
+import org.hisp.dhis.scheduling.parameters.DataSyncJobParameters;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobType;

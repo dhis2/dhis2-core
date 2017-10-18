@@ -1,4 +1,4 @@
-package org.hisp.dhis.scheduling.Parameters;
+package org.hisp.dhis.scheduling.parameters;
 
 import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.scheduling.JobParameters;
@@ -6,17 +6,15 @@ import org.hisp.dhis.scheduling.JobParameters;
 /**
  * @author Henning Håkonsen
  */
-public class DataIntegrityJobParameters
-    implements JobParameters
-{
-    private static final long serialVersionUID = 12L;
+public class CredentialsExpiryAlertJobParameters implements JobParameters {
+    private static final long serialVersionUID = 13L;
 
     private JobId jobId;
 
-    DataIntegrityJobParameters()
+    CredentialsExpiryAlertJobParameters()
     {}
 
-    public DataIntegrityJobParameters( JobId jobId ) {
+    public CredentialsExpiryAlertJobParameters( JobId jobId ) {
         this.jobId = jobId;
     }
 

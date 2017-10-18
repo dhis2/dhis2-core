@@ -28,7 +28,10 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.system.scheduling.Scheduler;
+import org.hisp.dhis.system.scheduling.SpringScheduler;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
@@ -49,6 +52,38 @@ public class DefaultSchedulingManager
 {
     @Autowired
     private JobConfigurationService jobConfigurationService;
+
+    @Autowired
+    private List<Job> jobs;
+
+    private Map<JobType, Job> jobMap = new HashMap<>();
+
+    private static final Log log = LogFactory.getLog( SpringScheduler.class );
+
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
+
+    private Scheduler scheduler;
+
+    @Autowired
+    public void setScheduler( Scheduler scheduler )
+    {
+        this.scheduler = scheduler;
+    }
+
+    @PostConstruct
+    public void init( )
+    {
+        jobs.forEach( job -> {
+            System.out.println("job: " + job + ", type: " + job.getJobType());
+            if ( job == null ) {
+                log.fatal("Scheduling manager tried to add job, but it was null");
+            } else {
+                jobMap.put(job.getJobType(), job);
+            }
+        });
+    }
 
     // -------------------------------------------------------------------------
     // Queue
@@ -71,34 +106,6 @@ public class DefaultSchedulingManager
     {
         runningJobConfigurations.remove( jobConfiguration );
         jobConfigurationService.updateJobConfiguration( jobConfiguration );
-    }
-//"cronExpression": "0 30 * ? * *",
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private Scheduler scheduler;
-
-    @Autowired
-    public void setScheduler( Scheduler scheduler )
-    {
-        this.scheduler = scheduler;
-    }
-
-    private Map<JobType, Job> jobMap = new HashMap<>();
-
-    @Autowired
-    private List<Job> jobs;
-
-    @PostConstruct
-    public void init( )
-    {
-        jobs.forEach( job -> jobMap.put( job.getJobType(), job ) );
-    }
-
-    public Job getJob( JobType jobType )
-    {
-        return jobMap.get( jobType );
     }
 
     // -------------------------------------------------------------------------
@@ -180,5 +187,11 @@ public class DefaultSchedulingManager
     public boolean isJobInProgress(String jobKey)
     {
         return JobStatus.RUNNING == scheduler.getCurrentJobStatus( jobKey );
+    }
+
+    public Job getJob( JobType jobType )
+    {
+        System.out.println("jobs: " + jobs);
+        return jobMap.get( jobType );
     }
 }

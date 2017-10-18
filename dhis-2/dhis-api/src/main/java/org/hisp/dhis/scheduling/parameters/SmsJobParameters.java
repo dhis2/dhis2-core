@@ -1,12 +1,10 @@
-package org.hisp.dhis.scheduling.Parameters;
+package org.hisp.dhis.scheduling.parameters;
 
 import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.user.User;
 
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -23,10 +21,8 @@ public class SmsJobParameters
     @Property
     private String text;
 
-    private User currentUser;
-
     @Property
-    private List<User> recipientsList;
+    private List<String> recipientsList;
 
     @Property
     private String message;
@@ -36,12 +32,11 @@ public class SmsJobParameters
     public SmsJobParameters()
     {}
 
-    public SmsJobParameters( String smsSubject, String text, User currentUser, List<User> recipientsList,
-        String message, JobId jobId )
+    public SmsJobParameters(String smsSubject, String text, List<String> recipientsList,
+                            String message, JobId jobId )
     {
         this.smsSubject = smsSubject;
         this.text = text;
-        this.currentUser = currentUser;
         this.recipientsList = recipientsList;
         this.message = message;
         this.jobId = jobId;
@@ -79,22 +74,12 @@ public class SmsJobParameters
         this.text = text;
     }
 
-    public User getCurrentUser()
-    {
-        return currentUser;
-    }
-
-    public void setCurrentUser( User currentUser )
-    {
-        this.currentUser = currentUser;
-    }
-
-    public List<User> getRecipientsList()
+    public List<String> getRecipientsList()
     {
         return recipientsList;
     }
 
-    public void setRecipientsList( List<User> recipientsList )
+    public void setRecipientsList( List<String> recipientsList )
     {
         this.recipientsList = recipientsList;
     }

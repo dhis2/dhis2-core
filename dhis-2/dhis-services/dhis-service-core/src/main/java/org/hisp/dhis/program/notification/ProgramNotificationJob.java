@@ -30,7 +30,7 @@ package org.hisp.dhis.program.notification;
 
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.Parameters.ProgramNotificationJobParameters;
+import org.hisp.dhis.scheduling.parameters.ProgramNotificationJobParameters;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;

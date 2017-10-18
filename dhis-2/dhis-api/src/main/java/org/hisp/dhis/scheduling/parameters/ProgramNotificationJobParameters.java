@@ -1,9 +1,7 @@
-package org.hisp.dhis.scheduling.Parameters;
+package org.hisp.dhis.scheduling.parameters;
 
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobId;
-
-import java.util.HashMap;
 
 /**
  * @author Henning Håkonsen

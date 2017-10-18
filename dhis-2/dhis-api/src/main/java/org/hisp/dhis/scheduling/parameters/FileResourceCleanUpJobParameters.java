@@ -1,4 +1,4 @@
-package org.hisp.dhis.scheduling.Parameters;
+package org.hisp.dhis.scheduling.parameters;
 
 import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.scheduling.JobParameters;
@@ -6,26 +6,26 @@ import org.hisp.dhis.scheduling.JobParameters;
 /**
  * @author Henning Håkonsen
  */
-public class DataStatisticsJobParameters
+public class FileResourceCleanUpJobParameters
     implements JobParameters
 {
-    private static final long serialVersionUID = 2L;
+    JobId jobId;
 
-    private JobId jobId;
-
-    public DataStatisticsJobParameters()
+    FileResourceCleanUpJobParameters()
     {}
 
-    public DataStatisticsJobParameters( JobId jobId )
+    FileResourceCleanUpJobParameters( JobId jobId )
     {
         this.jobId = jobId;
     }
 
+    @Override
     public JobId getJobId()
     {
-        return jobId;
+        return null;
     }
 
+    @Override
     public void setJobId( JobId jobId )
     {
         this.jobId = jobId;

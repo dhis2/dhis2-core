@@ -30,7 +30,7 @@ package org.hisp.dhis.validation.notification;
 
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.Parameters.ValidationResultNotificationJobParameters;
+import org.hisp.dhis.scheduling.parameters.ValidationResultNotificationJobParameters;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;

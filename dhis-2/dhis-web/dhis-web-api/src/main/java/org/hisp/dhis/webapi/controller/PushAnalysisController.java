@@ -110,7 +110,7 @@ public class PushAnalysisController
 
         /*HH scheduler.executeTask( new PushAnalysisTask(
             pushAnalysis.getId(),
-            new TaskId( TaskCategory.PUSH_ANALYSIS, currentUserService.getCurrentUser() ),
+            new TaskId( TaskCategory.PUSH_ANALYSIS, currentUserService.getSender() ),
             pushAnalysisService ) );*/
     }
 

@@ -37,7 +37,6 @@ import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 
 /**
@@ -51,12 +50,19 @@ public class DataIntegrityJob
     // Dependencies
     // -------------------------------------------------------------------------
 
-    // HH verify that autowiring works
-    @Autowired
     private DataIntegrityService dataIntegrityService;
 
-    @Autowired
+    public void setDataIntegrityService( DataIntegrityService dataIntegrityService )
+    {
+        this.dataIntegrityService = dataIntegrityService;
+    }
+
     private Notifier notifier;
+
+    public void setNotifier( Notifier notifier )
+    {
+        this.notifier = notifier;
+    }
 
     @Override
     public JobType getJobType()

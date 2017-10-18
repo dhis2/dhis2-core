@@ -123,7 +123,7 @@ public class ResourceTableController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void monitoring( HttpServletResponse response, HttpServletRequest request )
     {
-        /*monitoringTask.setTaskId( new TaskId( TaskCategory.MONITORING, currentUserService.getCurrentUser() ) );
+        /*monitoringTask.setTaskId( new TaskId( TaskCategory.MONITORING, currentUserService.getSender() ) );
 
         scheduler.executeTask( () -> MonitoringJob() );*/
 

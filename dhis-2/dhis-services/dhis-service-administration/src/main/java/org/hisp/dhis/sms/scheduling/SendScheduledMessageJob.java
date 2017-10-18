@@ -31,7 +31,7 @@ package org.hisp.dhis.sms.scheduling;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.Parameters.SendScheduledMessageJobParameters;
+import org.hisp.dhis.scheduling.parameters.SendScheduledMessageJobParameters;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.sms.outbound.OutboundSms;

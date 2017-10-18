@@ -135,7 +135,7 @@ public class ValidationController
     public void runValidationNotificationsTask( HttpServletResponse response, HttpServletRequest request )
     {
         /* HH validationResultNotificationJob
-            .setTaskId( new TaskId( TaskCategory.SENDING_VALIDATION_RESULT, currentUserService.getCurrentUser() ) );
+            .setTaskId( new TaskId( TaskCategory.SENDING_VALIDATION_RESULT, currentUserService.getSender() ) );
         scheduler.executeTask( validationResultNotificationJob );*/
 
         webMessageService.send( WebMessageUtils.ok( "Initiated validation result notification" ), response, request );

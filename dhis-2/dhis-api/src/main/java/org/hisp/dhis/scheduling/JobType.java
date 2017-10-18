@@ -1,6 +1,6 @@
 package org.hisp.dhis.scheduling;
 
-import org.hisp.dhis.scheduling.Parameters.*;
+import org.hisp.dhis.scheduling.parameters.*;
 
 import java.util.HashMap;
 import java.util.Optional;
@@ -14,23 +14,23 @@ import java.util.Optional;
  */
 public enum JobType
 {
-    DATA_STATISTICS( "dataStatisticsJob", DataStatisticsJobParameters.class, 1000, null ),
-    DATA_INTEGRITY( "dataIntegrity", DataIntegrityJobParameters.class, 1000, null ),
-    RESOURCE_TABLE( "resourceTableJob", ResourceTableJobParameters.class, 1000, null ),
-    ANALYTICS_TABLE( "analyticsTableJob", AnalyticsJobParameters.class, 1800, new HashMap<String, String>()
+    DATA_STATISTICS( "dataStatisticsJob", DataStatisticsJobParameters.class, 1, null ),
+    DATA_INTEGRITY( "dataIntegrity", DataIntegrityJobParameters.class, 1, null ),
+    RESOURCE_TABLE( "resourceTableJob", ResourceTableJobParameters.class, 1, null ),
+    ANALYTICS_TABLE( "analyticsTableJob", AnalyticsJobParameters.class, 1, new HashMap<String, String>()
     {{
         put("skipTableTypes", "/api/analytics/tableTypes");
     }}),
-    DATA_SYNC( "dataSyncJob", DataSyncJobParameters.class, 1000, null ),
-    FILE_RESOURCE_CLEANUP( "fileResourceCleanUp", FileResourceCleanUpJobParameters.class, 1000, null ),
-    META_DATA_SYNC( "metaDataSyncJob", MetadataSyncJobParameters.class, 1000, null ),
-    SMS_SEND( "smsSendJob", SmsJobParameters.class, 1000, null ),
-    SEND_SCHEDULED_MESSAGE( "sendScheduledMessageJob", SendScheduledMessageJobParameters.class, 1000, null ),
-    PROGRAM_NOTIFICATIONS( "programNotificationsJob", ProgramNotificationJobParameters.class, 1000, null ),
-    VALIDATION_RESULTS_NOTIFICATION( "validationResultNotificationJob", ValidationResultNotificationJobParameters.class, 1000,
+    DATA_SYNC( "dataSyncJob", DataSyncJobParameters.class, 1, null ),
+    FILE_RESOURCE_CLEANUP( "fileResourceCleanUp", FileResourceCleanUpJobParameters.class, 1, null ),
+    META_DATA_SYNC( "metaDataSyncJob", MetadataSyncJobParameters.class, 1, null ),
+    SMS_SEND( "smsSendJob", SmsJobParameters.class, 1, null ),
+    SEND_SCHEDULED_MESSAGE( "sendScheduledMessageJob", SendScheduledMessageJobParameters.class, 1, null ),
+    PROGRAM_NOTIFICATIONS( "programNotificationsJob", ProgramNotificationJobParameters.class, 1, null ),
+    VALIDATION_RESULTS_NOTIFICATION( "validationResultNotificationJob", ValidationResultNotificationJobParameters.class, 1,
         null ),
-    CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob", null, 1000, null ),
-    MONITORING( "monitoringJob", MonitoringJobParameters.class, 1000, new HashMap<String, String>()
+    CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob", CredentialsExpiryAlertJobParameters.class, 1, null ),
+    MONITORING( "monitoringJob", MonitoringJobParameters.class, 1, new HashMap<String, String>()
     {{
         put("organisationUnits", "/api/organisationUnits");
         put("validationRuleGroups", "/api/validationRuleGroups");

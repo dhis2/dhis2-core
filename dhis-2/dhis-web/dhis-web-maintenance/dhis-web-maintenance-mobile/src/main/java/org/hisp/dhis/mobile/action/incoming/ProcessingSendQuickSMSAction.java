@@ -37,9 +37,8 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
 import org.hisp.dhis.scheduling.*;
-import org.hisp.dhis.scheduling.Parameters.SmsJobParameters;
+import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
-import org.hisp.dhis.sms.task.SendSmsJob;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -73,9 +72,6 @@ public class ProcessingSendQuickSMSAction
 
     @Autowired
     private Notifier notifier;
-
-    @Autowired
-    private SendSmsJob sendSmsJob;
 
     // -------------------------------------------------------------------------
     // Input & Output
@@ -150,7 +146,6 @@ public class ProcessingSendQuickSMSAction
     public String execute()
         throws Exception
     {
-
         gatewayId = gatewayAdminService.getDefaultGateway().getName();
 
         if ( gatewayId == null || gatewayId.trim().length() == 0 )

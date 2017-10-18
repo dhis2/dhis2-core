@@ -31,7 +31,7 @@ package org.hisp.dhis.webapi.controller;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dataintegrity.DataIntegrityService;
 import org.hisp.dhis.scheduling.*;
-import org.hisp.dhis.scheduling.Parameters.DataIntegrityJobParameters;
+import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;

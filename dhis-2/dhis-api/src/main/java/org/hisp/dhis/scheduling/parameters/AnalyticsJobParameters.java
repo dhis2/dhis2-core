@@ -1,4 +1,4 @@
-package org.hisp.dhis.scheduling.Parameters;
+package org.hisp.dhis.scheduling.parameters;
 
 import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.scheduling.JobParameters;
@@ -29,7 +29,7 @@ public class AnalyticsJobParameters
     {
     }
 
-    public AnalyticsJobParameters( Integer lastYears, JobId jobId, Set<String> skipTableTypes, boolean skipResourceTables, boolean continuousGeneration )
+    public AnalyticsJobParameters(Integer lastYears, JobId jobId, Set<String> skipTableTypes, boolean skipResourceTables)
     {
         this.lastYears = lastYears;
         this.jobId = jobId;

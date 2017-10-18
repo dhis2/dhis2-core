@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics.table.scheduling;
 
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.Parameters.ResourceTableJobParameters;
+import org.hisp.dhis.scheduling.parameters.ResourceTableJobParameters;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.beans.factory.annotation.Autowired;

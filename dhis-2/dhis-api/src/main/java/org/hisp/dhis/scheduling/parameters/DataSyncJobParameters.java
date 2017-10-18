@@ -1,24 +1,22 @@
-package org.hisp.dhis.scheduling.Parameters;
+package org.hisp.dhis.scheduling.parameters;
 
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobId;
 
-import java.util.HashMap;
-
 /**
  * @author Henning Håkonsen
  */
-public class MetadataSyncJobParameters
+public class DataSyncJobParameters
     implements JobParameters
 {
-    private static final long serialVersionUID = 4L;
+    private static final long serialVersionUID = 3L;
 
     private JobId jobId;
 
-    public MetadataSyncJobParameters()
+    public DataSyncJobParameters()
     {}
 
-    public MetadataSyncJobParameters( JobId jobId )
+    public DataSyncJobParameters( JobId jobId )
     {
         this.jobId = jobId;
     }

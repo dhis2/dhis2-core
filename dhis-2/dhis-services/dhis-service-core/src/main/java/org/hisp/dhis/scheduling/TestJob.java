@@ -1,6 +1,6 @@
 package org.hisp.dhis.scheduling;
 
-import org.hisp.dhis.scheduling.Parameters.TestJobParameters;
+import org.hisp.dhis.scheduling.parameters.TestJobParameters;
 
 /**
  * @author Henning Håkonsen

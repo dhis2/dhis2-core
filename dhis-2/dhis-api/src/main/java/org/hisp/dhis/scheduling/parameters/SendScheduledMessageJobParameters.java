@@ -1,24 +1,22 @@
-package org.hisp.dhis.scheduling.Parameters;
+package org.hisp.dhis.scheduling.parameters;
 
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobId;
 
-import java.util.HashMap;
-
 /**
  * @author Henning Håkonsen
  */
-public class ResourceTableJobParameters
+public class SendScheduledMessageJobParameters
     implements JobParameters
 {
-    private static final long serialVersionUID = 7L;
+    private static final long serialVersionUID = 8L;
 
     private JobId jobId;
 
-    public ResourceTableJobParameters()
+    public SendScheduledMessageJobParameters( )
     {}
 
-    public ResourceTableJobParameters( JobId jobId )
+    public SendScheduledMessageJobParameters( JobId jobId )
     {
         this.jobId = jobId;
     }
@@ -33,4 +31,3 @@ public class ResourceTableJobParameters
         this.jobId = jobId;
     }
 }
-

@@ -45,7 +45,7 @@ public class DefaultJobInstance implements JobInstance
             }
             catch ( RuntimeException ex )
             {
-                messageService.sendSystemErrorNotification( "Job '" + jobConfiguration.getName() + "' failed", ex );
+                //messageService.sendSystemErrorNotification( "Job '" + jobConfiguration.getName() + "' failed", ex );
                 jobConfiguration.setLastExecutedStatus( JobStatus.FAILED );
 
                 setFinishingStatus( schedulingManager, jobConfiguration );

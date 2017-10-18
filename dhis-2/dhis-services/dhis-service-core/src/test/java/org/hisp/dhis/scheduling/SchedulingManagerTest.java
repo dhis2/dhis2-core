@@ -29,7 +29,7 @@ package org.hisp.dhis.scheduling;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.scheduling.Parameters.TestJobParameters;
+import org.hisp.dhis.scheduling.parameters.TestJobParameters;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;

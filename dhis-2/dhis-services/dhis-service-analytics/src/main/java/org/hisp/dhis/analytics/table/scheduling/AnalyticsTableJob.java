@@ -33,7 +33,7 @@ import org.hisp.dhis.analytics.table.AnalyticsTableType;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.Parameters.AnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;

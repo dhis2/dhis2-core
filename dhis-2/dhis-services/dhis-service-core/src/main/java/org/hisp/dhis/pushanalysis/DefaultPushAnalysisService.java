@@ -162,7 +162,7 @@ public class DefaultPushAnalysisService
             new PushAnalysisJob(
                 new TaskId(
                     TaskCategory.PUSH_ANALYSIS,
-                    currentUserService.getCurrentUser()
+                    currentUserService.getSender()
                 ),  pushAnalysis.getId()
             ),
             getPushAnalysisCronExpression( pushAnalysis )

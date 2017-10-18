@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms.task;
+package org.hisp.dhis.sms.job;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -33,16 +33,19 @@ import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.Parameters.SmsJobParameters;
+import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class SendSmsJob
@@ -57,6 +60,9 @@ public class SendSmsJob
 
     @Autowired
     private OutboundSmsService outboundSmsService;
+
+    @Autowired
+    private UserService userService;
 
     // -------------------------------------------------------------------------
     // I18n
@@ -75,11 +81,20 @@ public class SendSmsJob
 
         notifier.notify( jobParams.getJobId(), "Sending SMS" );
 
-        OutboundMessageResponse status = smsSender.sendMessage( jobParams.getSmsSubject(), jobParams.getText(), null, jobParams.getCurrentUser(), new HashSet<>( jobParams.getRecipientsList() ), false );
+        List<User> userList = new ArrayList<>();
+        jobParams.getRecipientsList().forEach( userUid -> {
+            if ( userUid != null )
+            {
+                userList.add( userService.getUser( userUid ) );
+            }
+        } );
+
+        OutboundMessageResponse status = smsSender.sendMessage( jobParams.getSmsSubject(), jobParams.getText(), null, null, new HashSet<>( userList ), false );
 
         OutboundSms sms = new OutboundSms();
         sms.setMessage( jobParams.getText() );
-        sms.setRecipients( jobParams.getRecipientsList().stream().map( User::getPhoneNumber ).collect( Collectors.toSet() ) );
+
+        sms.setRecipients( userList.stream().map( User::getPhoneNumber ).collect( Collectors.toSet() ) );
 
         if ( status.isOk() )
         {

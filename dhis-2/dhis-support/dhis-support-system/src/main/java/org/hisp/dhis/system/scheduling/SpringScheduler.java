@@ -65,6 +65,9 @@ public class SpringScheduler
     @Autowired
     private MessageService messageService;
 
+    @Autowired
+    private SchedulingManager schedulingManager;
+
     private TaskScheduler jobScheduler;
 
     public void setTaskScheduler( TaskScheduler JobScheduler )
@@ -127,9 +130,6 @@ public class SpringScheduler
 
         return false;
     }
-
-    @Autowired
-    private SchedulingManager schedulingManager;
 
     @Override
     public void scheduleJob( JobConfiguration jobConfiguration, JobInstance jobInstance )

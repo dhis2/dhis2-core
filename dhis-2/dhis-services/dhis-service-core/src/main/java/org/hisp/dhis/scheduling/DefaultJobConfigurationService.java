@@ -18,15 +18,15 @@ import java.util.stream.Collectors;
 public class DefaultJobConfigurationService
     implements JobConfigurationService
 {
+    @Autowired
+    private SchedulingManager schedulingManager;
+
     private GenericNameableObjectStore<JobConfiguration> jobConfigurationStore;
 
     public void setJobConfigurationStore( GenericNameableObjectStore<JobConfiguration> jobConfigurationStore )
     {
         this.jobConfigurationStore = jobConfigurationStore;
     }
-
-    @Autowired
-    private SchedulingManager schedulingManager;
 
     @EventListener
     public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )
