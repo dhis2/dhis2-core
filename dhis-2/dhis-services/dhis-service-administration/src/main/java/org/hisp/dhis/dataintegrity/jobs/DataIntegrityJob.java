@@ -33,16 +33,14 @@ import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataintegrity.DataIntegrityService;
 import org.hisp.dhis.dataintegrity.FlattenedDataIntegrityReport;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
-import org.springframework.scheduling.annotation.Async;
 
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
-@Async
 public class DataIntegrityJob
     implements Job
 {
@@ -75,7 +73,7 @@ public class DataIntegrityJob
     // -------------------------------------------------------------------------
 
     @Override
-    public void execute( JobParameters jobParameters )
+    public void execute( JobConfiguration jobConfiguration )
     {
         Timer timer = new SystemTimer().start();
 
@@ -83,11 +81,10 @@ public class DataIntegrityJob
 
         timer.stop();
 
-        if ( jobParameters.getJobId() != null )
-        {
+        if (jobConfiguration.getJobId() != null) {
             notifier.notify(
-                jobParameters.getJobId(), NotificationLevel.INFO, "Data integrity checks completed in " + timer.toString() + ".", true )
-                .addTaskSummary( jobParameters.getJobId(), report );
+                    jobConfiguration.getJobId(), NotificationLevel.INFO, "Data integrity checks completed in " + timer.toString() + ".", true)
+                    .addTaskSummary(jobConfiguration.getJobId(), report);
         }
     }
 }

@@ -30,9 +30,8 @@ package org.hisp.dhis.validation.scheduling;
 
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.validation.ValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,21 +66,19 @@ public class MonitoringJob
     }
 
     @Override
-    public void execute( JobParameters jobParameters )
+    public void execute( JobConfiguration jobConfiguration )
     {
-        MonitoringJobParameters jobConfig = (MonitoringJobParameters) jobParameters;
-        
-        notifier.clear( jobConfig.getJobId() ).notify( jobConfig.getJobId(), "Monitoring data" );
+        notifier.clear( jobConfiguration.getJobId() ).notify( jobConfiguration.getJobId(), "Monitoring data" );
         
         try
         {
             validationService.startScheduledValidationAnalysis();
             
-            notifier.notify( jobConfig.getJobId(), INFO, "Monitoring process done", true );
+            notifier.notify( jobConfiguration.getJobId(), INFO, "Monitoring process done", true );
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( jobConfig.getJobId(), ERROR, "Process failed: " + ex.getMessage(), true );
+            notifier.notify( jobConfiguration.getJobId(), ERROR, "Process failed: " + ex.getMessage(), true );
             
             messageService.sendSystemErrorNotification( "Monitoring process failed", ex );
             

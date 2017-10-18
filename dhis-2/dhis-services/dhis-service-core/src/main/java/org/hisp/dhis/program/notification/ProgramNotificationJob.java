@@ -29,9 +29,8 @@ package org.hisp.dhis.program.notification;
  */
 
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.parameters.ProgramNotificationJobParameters;
 import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -72,23 +71,21 @@ public class ProgramNotificationJob
     }
 
     @Override
-    public void execute( JobParameters jobParameters )
+    public void execute( JobConfiguration jobConfiguration )
     {
-        ProgramNotificationJobParameters jobConfig = (ProgramNotificationJobParameters) jobParameters;
-
         final Clock clock = new Clock().startClock();
 
-        notifier.notify( jobConfig.getJobId(), "Generating and sending scheduled program notifications" );
+        notifier.notify( jobConfiguration.getJobId(), "Generating and sending scheduled program notifications" );
 
         try
         {
             runInternal();
 
-            notifier.notify( jobConfig.getJobId(), NotificationLevel.INFO, "Generated and sent scheduled program notifications: " + clock.time(), true );
+            notifier.notify( jobConfiguration.getJobId(), NotificationLevel.INFO, "Generated and sent scheduled program notifications: " + clock.time(), true );
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( jobConfig.getJobId(), NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
+            notifier.notify( jobConfiguration.getJobId(), NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
 
             messageService.sendSystemErrorNotification( "Generating and sending scheduled program notifications failed", ex );
 

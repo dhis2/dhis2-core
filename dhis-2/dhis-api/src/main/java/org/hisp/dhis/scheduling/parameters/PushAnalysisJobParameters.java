@@ -1,7 +1,6 @@
 package org.hisp.dhis.scheduling.parameters;
 
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.JobId;
 
 /**
  * @author Henning Håkonsen
@@ -12,29 +11,17 @@ public class PushAnalysisJobParameters
     private static final long serialVersionUID = 7L;
 
     private int pushAnalysisId;
-    private JobId jobId;
 
     public PushAnalysisJobParameters()
     {}
 
-    public PushAnalysisJobParameters( JobId jobId, int pushAnalysisId )
+    public PushAnalysisJobParameters( int pushAnalysisId )
     {
         this.pushAnalysisId = pushAnalysisId;
-        this.jobId = jobId;
     }
 
     public int getPushAnalysisId()
     {
         return pushAnalysisId;
-    }
-
-    public JobId getJobId()
-    {
-        return jobId;
-    }
-
-    public void setJobId( JobId jobId )
-    {
-        this.jobId = jobId;
     }
 }

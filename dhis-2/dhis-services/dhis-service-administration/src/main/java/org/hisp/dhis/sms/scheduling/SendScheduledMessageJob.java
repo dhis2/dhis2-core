@@ -30,9 +30,8 @@ package org.hisp.dhis.sms.scheduling;
 
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.parameters.SendScheduledMessageJobParameters;
 import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
@@ -86,22 +85,20 @@ public class SendScheduledMessageJob
     }
 
     @Override
-    public void execute( JobParameters jobParameters )
+    public void execute( JobConfiguration jobConfiguration )
     {
-        SendScheduledMessageJobParameters jobConfig = (SendScheduledMessageJobParameters) jobParameters;
-
         final int cpuCores = SystemUtils.getCpuCores();
 
         Clock clock = new Clock().startClock().logTime(
             "Aggregate process started, number of CPU cores: " + cpuCores + ", " + SystemUtils.getMemoryString() );
 
         clock.logTime( "Starting to send messages in outbound" );
-        notifier.notify( jobConfig.getJobId(), INFO, "Start to send messages in outbound", true );
+        notifier.notify( jobConfiguration.getJobId(), INFO, "Start to send messages in outbound", true );
 
         sendMessages();
 
         clock.logTime( "Sending messages in outbound completed" );
-        notifier.notify( jobConfig.getJobId(), INFO, "Sending messages in outbound completed", true );
+        notifier.notify( jobConfiguration.getJobId(), INFO, "Sending messages in outbound completed", true );
     }
 
     // -------------------------------------------------------------------------

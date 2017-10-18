@@ -28,10 +28,10 @@ package org.hisp.dhis.pushanalysis.scheduling;
  */
 
 import org.hisp.dhis.pushanalysis.PushAnalysisService;
-import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
 import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -54,9 +54,9 @@ public class PushAnalysisJob
     }
 
     @Override
-    public void execute( JobParameters jobParameters )
+    public void execute( JobConfiguration jobConfiguration )
     {
-        PushAnalysisJobParameters jobConfig = (PushAnalysisJobParameters) jobParameters;
+        PushAnalysisJobParameters parameters = (PushAnalysisJobParameters) jobConfiguration.getJobParameters();
 
         try
         {
@@ -67,6 +67,6 @@ public class PushAnalysisJob
             e.printStackTrace();
         }
 
-        pushAnalysisService.runPushAnalysis( jobConfig.getPushAnalysisId(), jobConfig.getJobId() );
+        pushAnalysisService.runPushAnalysis( parameters.getPushAnalysisId(), jobConfiguration.getJobId() );
     }
 }

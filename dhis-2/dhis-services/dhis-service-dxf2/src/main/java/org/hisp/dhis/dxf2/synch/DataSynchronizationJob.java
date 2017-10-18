@@ -32,9 +32,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.scheduling.parameters.DataSyncJobParameters;
-import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,16 +66,15 @@ public class DataSynchronizationJob
     }
 
     @Override
-    public void execute( JobParameters jobParameters )
+    public void execute( JobConfiguration jobConfiguration )
     {
-        DataSyncJobParameters jobConfig = (DataSyncJobParameters) jobParameters;
         try
         {
             synchronizationManager.executeDataPush();
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( jobConfig.getJobId(), "Data synch failed: " + ex.getMessage() );
+            notifier.notify( jobConfiguration.getJobId(), "Data synch failed: " + ex.getMessage() );
         }
         catch ( WebMessageParseException e )
         {
@@ -89,7 +87,7 @@ public class DataSynchronizationJob
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( jobConfig.getJobId(), "Event synch failed: " + ex.getMessage() );
+            notifier.notify( jobConfiguration.getJobId(), "Event synch failed: " + ex.getMessage() );
             
             messageService.sendSystemErrorNotification( "Event synch failed", ex );
         }
@@ -98,6 +96,6 @@ public class DataSynchronizationJob
             log.error("Error while executing event sync task. "+ e.getMessage(), e );
         }
 
-        notifier.notify( jobConfig.getJobId(), "Data/Event synch successful" );
+        notifier.notify( jobConfiguration.getJobId(), "Data/Event synch successful" );
     }
 }

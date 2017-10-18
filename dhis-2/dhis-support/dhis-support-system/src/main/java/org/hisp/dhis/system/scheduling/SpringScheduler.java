@@ -118,7 +118,7 @@ public class SpringScheduler
         if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) )
         {
             ScheduledFuture<?> future = jobScheduler
-                .schedule( () -> job.execute( jobConfiguration.getJobParameters() ) , new CronTrigger( jobConfiguration
+                .schedule( () -> job.execute( jobConfiguration ) , new CronTrigger( jobConfiguration
                 .getCronExpression() ) );
 
             futures.put( jobConfiguration.getUid(), future );
@@ -132,14 +132,20 @@ public class SpringScheduler
     }
 
     @Override
-    public void scheduleJob( JobConfiguration jobConfiguration, JobInstance jobInstance )
+    public boolean scheduleJob( JobConfiguration jobConfiguration, JobInstance jobInstance )
     {
-        ScheduledFuture<?> future = jobScheduler
-            .schedule( () -> jobInstance.execute( jobConfiguration, schedulingManager, messageService ), new CronTrigger( jobConfiguration.getCronExpression() ) );
+        if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) ) {
+            ScheduledFuture<?> future = jobScheduler
+                    .schedule(() -> jobInstance.execute(jobConfiguration, schedulingManager, messageService), new CronTrigger(jobConfiguration.getCronExpression()));
 
-        futures.put( jobConfiguration.getUid(), future );
+            futures.put(jobConfiguration.getUid(), future);
 
-        log.info( "Scheduled job with uid: " + jobConfiguration.getUid() + " and cron: " + jobConfiguration.getCronExpression() );
+            log.info("Scheduled job with uid: " + jobConfiguration.getUid() + " and cron: " + jobConfiguration.getCronExpression());
+
+            return true;
+        }
+
+        return false;
     }
 
     @Override

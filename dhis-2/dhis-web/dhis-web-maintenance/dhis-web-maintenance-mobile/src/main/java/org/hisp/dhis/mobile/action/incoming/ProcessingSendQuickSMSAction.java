@@ -33,6 +33,7 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opensymphony.xwork2.Action;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
@@ -47,6 +48,7 @@ import org.hisp.dhis.user.UserGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ProcessingSendQuickSMSAction
     implements Action
@@ -254,10 +256,9 @@ public class ProcessingSendQuickSMSAction
         JobId jobId = new JobId( JobCategory.SENDING_SMS, currentUser.getUid() );
         notifier.clear( jobId );
 
-        SmsJobParameters jobParameters = new SmsJobParameters(smsSubject, text, currentUser, recipientsList, text,
-            jobId );
+        SmsJobParameters jobParameters = new SmsJobParameters(smsSubject, text, recipientsList.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toList()), text );
 
-        JobConfiguration processingSendSmsJobConfiguration = new JobConfiguration( "processingSendSmsAction", JobType.SMS_SEND, null, jobParameters, true, false );
+        JobConfiguration processingSendSmsJobConfiguration = new JobConfiguration( "processingSendSmsAction", JobType.SMS_SEND, null, jobParameters, true, false, jobId );
 
         schedulingManager.executeJob( processingSendSmsJobConfiguration );
 

@@ -32,10 +32,11 @@ import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.table.AnalyticsTableType;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.scheduling.JobCategory;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.*;
+import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.validation.scheduling.MonitoringJob;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +72,9 @@ public class ResourceTableController
 
     @Autowired
     private WebMessageService webMessageService;
+
+    @Autowired
+    private MonitoringJob monitoringJob;
 
     @RequestMapping( value = "/analytics", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATA_MART_ADMIN')" )
@@ -112,7 +116,7 @@ public class ResourceTableController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void resourceTables( HttpServletResponse response, HttpServletRequest request )
     {
-        JobId jobId = new JobId( JobCategory.RESOURCETABLE_UPDATE, currentUserService.getCurrentUser().getUid() );
+        JobId jobId = new JobId( JobCategory.RESOURCE_TABLE, currentUserService.getCurrentUser().getUid() );
 
         scheduler.executeJob( () -> analyticsTableGenerator.generateResourceTables( jobId ) );
 
@@ -123,9 +127,10 @@ public class ResourceTableController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void monitoring( HttpServletResponse response, HttpServletRequest request )
     {
-        /*monitoringTask.setTaskId( new TaskId( TaskCategory.MONITORING, currentUserService.getSender() ) );
+        // HH verify
+        JobConfiguration monitoringJob = new JobConfiguration( "monitoring from resource table controller", JobType.MONITORING, "", new MonitoringJobParameters(), true, false, new JobId( JobCategory.MONITORING, currentUserService.getCurrentUser().getUid() ) );
 
-        scheduler.executeTask( () -> MonitoringJob() );*/
+        scheduler.executeJob( monitoringJob, new DefaultJobInstance());
 
         webMessageService.send( WebMessageUtils.ok( "Initiated data monitoring" ), response, request );
     }

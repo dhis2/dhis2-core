@@ -1,6 +1,5 @@
 package org.hisp.dhis.scheduling.parameters;
 
-import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.schema.annotation.Property;
 
@@ -13,8 +12,6 @@ public class AnalyticsJobParameters
     implements JobParameters
 {
     private static final long serialVersionUID = 1L;
-
-    private JobId jobId;
 
     @Property
     private Integer lastYears;
@@ -29,24 +26,11 @@ public class AnalyticsJobParameters
     {
     }
 
-    public AnalyticsJobParameters(Integer lastYears, JobId jobId, Set<String> skipTableTypes, boolean skipResourceTables)
+    public AnalyticsJobParameters(Integer lastYears, Set<String> skipTableTypes, boolean skipResourceTables)
     {
         this.lastYears = lastYears;
-        this.jobId = jobId;
         this.skipTableTypes = skipTableTypes;
         this.skipResourceTables = skipResourceTables;
-    }
-
-    @Override
-    public JobId getJobId()
-    {
-        return jobId;
-    }
-
-    @Override
-    public void setJobId( JobId jobId )
-    {
-        this.jobId = jobId;
     }
 
     public Integer getLastYears()

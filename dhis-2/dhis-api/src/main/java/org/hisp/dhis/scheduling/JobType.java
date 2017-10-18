@@ -14,22 +14,21 @@ import java.util.Optional;
  */
 public enum JobType
 {
-    DATA_STATISTICS( "dataStatisticsJob", DataStatisticsJobParameters.class, 1, null ),
-    DATA_INTEGRITY( "dataIntegrity", DataIntegrityJobParameters.class, 1, null ),
-    RESOURCE_TABLE( "resourceTableJob", ResourceTableJobParameters.class, 1, null ),
+    DATA_STATISTICS( "dataStatisticsJob", null, 1, null ),
+    DATA_INTEGRITY( "dataIntegrity", null, 1, null ),
+    RESOURCE_TABLE( "resourceTableJob", null, 1, null ),
     ANALYTICS_TABLE( "analyticsTableJob", AnalyticsJobParameters.class, 1, new HashMap<String, String>()
     {{
         put("skipTableTypes", "/api/analytics/tableTypes");
     }}),
-    DATA_SYNC( "dataSyncJob", DataSyncJobParameters.class, 1, null ),
-    FILE_RESOURCE_CLEANUP( "fileResourceCleanUp", FileResourceCleanUpJobParameters.class, 1, null ),
-    META_DATA_SYNC( "metaDataSyncJob", MetadataSyncJobParameters.class, 1, null ),
+    DATA_SYNC( "dataSyncJob", null, 1, null ),
+    FILE_RESOURCE_CLEANUP( "fileResourceCleanUp", null, 1, null ),
+    META_DATA_SYNC( "metaDataSyncJob", null, 1, null ),
     SMS_SEND( "smsSendJob", SmsJobParameters.class, 1, null ),
-    SEND_SCHEDULED_MESSAGE( "sendScheduledMessageJob", SendScheduledMessageJobParameters.class, 1, null ),
-    PROGRAM_NOTIFICATIONS( "programNotificationsJob", ProgramNotificationJobParameters.class, 1, null ),
-    VALIDATION_RESULTS_NOTIFICATION( "validationResultNotificationJob", ValidationResultNotificationJobParameters.class, 1,
-        null ),
-    CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob", CredentialsExpiryAlertJobParameters.class, 1, null ),
+    SEND_SCHEDULED_MESSAGE( "sendScheduledMessageJob", null, 1, null ),
+    PROGRAM_NOTIFICATIONS( "programNotificationsJob", null, 1, null ),
+    VALIDATION_RESULTS_NOTIFICATION( "validationResultNotificationJob", null, 1, null ),
+    CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob", null, 1, null ),
     MONITORING( "monitoringJob", MonitoringJobParameters.class, 1, new HashMap<String, String>()
     {{
         put("organisationUnits", "/api/organisationUnits");

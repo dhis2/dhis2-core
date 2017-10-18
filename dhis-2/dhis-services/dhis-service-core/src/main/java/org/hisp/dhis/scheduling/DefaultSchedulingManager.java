@@ -76,7 +76,6 @@ public class DefaultSchedulingManager
     public void init( )
     {
         jobs.forEach( job -> {
-            System.out.println("job: " + job + ", type: " + job.getJobType());
             if ( job == null ) {
                 log.fatal("Scheduling manager tried to add job, but it was null");
             } else {
@@ -191,7 +190,6 @@ public class DefaultSchedulingManager
 
     public Job getJob( JobType jobType )
     {
-        System.out.println("jobs: " + jobs);
         return jobMap.get( jobType );
     }
 }

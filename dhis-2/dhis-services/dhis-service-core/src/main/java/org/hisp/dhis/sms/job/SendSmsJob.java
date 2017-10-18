@@ -31,7 +31,7 @@ package org.hisp.dhis.sms.job;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.sms.outbound.OutboundSms;
@@ -75,36 +75,36 @@ public class SendSmsJob
     }
 
     @Override
-    public void execute( JobParameters jobParameters )
+    public void execute( JobConfiguration jobConfiguration )
     {
-        SmsJobParameters jobParams = (SmsJobParameters) jobParameters;
+        SmsJobParameters parameters = (SmsJobParameters) jobConfiguration.getJobParameters();
 
-        notifier.notify( jobParams.getJobId(), "Sending SMS" );
+        notifier.notify( jobConfiguration.getJobId(), "Sending SMS" );
 
         List<User> userList = new ArrayList<>();
-        jobParams.getRecipientsList().forEach( userUid -> {
+        parameters.getRecipientsList().forEach( userUid -> {
             if ( userUid != null )
             {
                 userList.add( userService.getUser( userUid ) );
             }
         } );
 
-        OutboundMessageResponse status = smsSender.sendMessage( jobParams.getSmsSubject(), jobParams.getText(), null, null, new HashSet<>( userList ), false );
+        OutboundMessageResponse status = smsSender.sendMessage( parameters.getSmsSubject(), parameters.getText(), null, null, new HashSet<>( userList ), false );
 
         OutboundSms sms = new OutboundSms();
-        sms.setMessage( jobParams.getText() );
+        sms.setMessage( parameters.getText() );
 
         sms.setRecipients( userList.stream().map( User::getPhoneNumber ).collect( Collectors.toSet() ) );
 
         if ( status.isOk() )
         {
-            notifier.notify( jobParams.getJobId(), "Message sending successful" );
+            notifier.notify( jobConfiguration.getJobId(), "Message sending successful" );
 
             sms.setStatus( OutboundSmsStatus.SENT );
         }
         else
         {
-            notifier.notify( jobParams.getJobId(), "Message sending failed" );
+            notifier.notify( jobConfiguration.getJobId(), "Message sending failed" );
 
             sms.setStatus( OutboundSmsStatus.FAILED );
         }

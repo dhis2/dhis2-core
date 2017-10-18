@@ -98,8 +98,20 @@ public interface Scheduler
      */
     boolean scheduleJob( JobConfiguration jobConfiguration, Job job );
 
-
-    void scheduleJob( JobConfiguration jobConfiguration, JobInstance jobInstance );
+    /**
+     * Schedule the given job for future execution. The job can be referenced
+     * later through the given job key. A job cannot be scheduled if another
+     * job with the same key is already scheduled. The job must be unique for
+     * the job but can have an arbitrary value.
+     *
+     * This implementation schedules a job instance {@link JobInstance}. This class includes verification before
+     * the job runs
+     *
+     * @param jobConfiguration the job to schedule
+     * @return true if the job was scheduled for execution as a result of this
+     *         operation, false if not.
+     */
+    boolean scheduleJob( JobConfiguration jobConfiguration, JobInstance jobInstance );
 
     /**
      * Schedule the given job for continuous execution

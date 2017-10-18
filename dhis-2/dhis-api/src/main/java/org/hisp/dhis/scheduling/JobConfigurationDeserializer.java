@@ -31,8 +31,10 @@ public class JobConfigurationDeserializer
         JobType jobType = JobType.valueOf( jobTypeString.substring( 1, jobTypeString.length() - 1 ) );
         assertNotNull(jobType, "jobType must not be null.");
 
-        JobParameters jobParameters = mapper.convertValue( root.get( "jobParameters" ), jobType.getClazz() );
-        assertNotNull(jobParameters, "jobParameters must not be null.");
+        JobParameters jobParameters = null;
+        if ( root.get( "jobParameters" ) != null && jobType.getClazz() != null ) {
+            jobParameters = mapper.convertValue( root.get( "jobParameters" ), jobType.getClazz() );
+        }
 
         boolean enabled = root.get( "enabled" ) == null || root.get( "enabled" ).booleanValue();
 
@@ -45,6 +47,6 @@ public class JobConfigurationDeserializer
             cronExpression =  "0 * * ? * *";
         }
 
-        return new JobConfiguration( root.get( "name" ).textValue(), jobType, cronExpression, jobParameters, enabled, continuousExecution );
+        return new JobConfiguration( root.get( "name" ).textValue(), jobType, cronExpression, jobParameters, enabled, continuousExecution, null );
     }
 }

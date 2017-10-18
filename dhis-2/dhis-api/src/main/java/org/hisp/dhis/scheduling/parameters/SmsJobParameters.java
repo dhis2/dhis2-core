@@ -1,7 +1,6 @@
 package org.hisp.dhis.scheduling.parameters;
 
 import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.schema.annotation.Property;
 
@@ -27,19 +26,16 @@ public class SmsJobParameters
     @Property
     private String message;
 
-    private JobId jobId;
-
     public SmsJobParameters()
     {}
 
     public SmsJobParameters(String smsSubject, String text, List<String> recipientsList,
-                            String message, JobId jobId )
+                            String message)
     {
         this.smsSubject = smsSubject;
         this.text = text;
         this.recipientsList = recipientsList;
         this.message = message;
-        this.jobId = jobId;
     }
 
     private I18n i18n;
@@ -92,15 +88,5 @@ public class SmsJobParameters
     public void setMessage( String message )
     {
         this.message = message;
-    }
-
-    public JobId getJobId()
-    {
-        return null;
-    }
-
-    public void setJobId( JobId jobId )
-    {
-        this.jobId = jobId;
     }
 }

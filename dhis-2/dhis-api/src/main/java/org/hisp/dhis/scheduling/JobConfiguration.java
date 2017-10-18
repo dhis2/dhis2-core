@@ -8,10 +8,13 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.schema.annotation.Property;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.SimpleTriggerContext;
 
 import java.util.Date;
+
+import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 
 /**
  * This class defines configuration for a job in the system. The job is defined with general identifiers, as well as job
@@ -34,16 +37,17 @@ public class JobConfiguration
     private JobStatus jobStatus = JobStatus.SCHEDULED;
     private Date lastExecuted;
     private JobStatus lastExecutedStatus = JobStatus.SCHEDULED;
-    private JobParameters jobParameters;
+    private JobParameters jobParameters = null;
     private boolean enabled;
     private boolean continuousExecution;
     private Date nextExecutionTime;
+    private JobId jobId;
 
     public JobConfiguration ()
     {
     }
 
-    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters, boolean enabled, boolean continuousExecution )
+    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters, boolean enabled, boolean continuousExecution, JobId jobId )
     {
         this.name = name;
         this.cronExpression = cronExpression;
@@ -51,6 +55,7 @@ public class JobConfiguration
         this.jobParameters = jobParameters;
         this.enabled = enabled;
         this.continuousExecution = continuousExecution;
+        this.jobId = jobId;
         setNextExecutionTime( null );
     }
 
@@ -97,6 +102,10 @@ public class JobConfiguration
         }
     }
 
+    public void setJobId(JobId jobId) {
+        this.jobId = jobId;
+    }
+
     public void setContinuousExecution(boolean continuousExecution) {
         this.continuousExecution = continuousExecution;
     }
@@ -138,6 +147,7 @@ public class JobConfiguration
 
     @JacksonXmlProperty
     @JsonProperty
+    @Property( required = FALSE )
     public JobParameters getJobParameters()
     {
         return jobParameters;
@@ -167,5 +177,11 @@ public class JobConfiguration
     public int compareTo( IdentifiableObject jobConfiguration  )
     {
         return nextExecutionTime.compareTo( ((JobConfiguration) jobConfiguration).getNextExecutionTime() );
+    }
+
+    @JacksonXmlProperty
+    @JsonProperty
+    public JobId getJobId() {
+        return jobId;
     }
 }

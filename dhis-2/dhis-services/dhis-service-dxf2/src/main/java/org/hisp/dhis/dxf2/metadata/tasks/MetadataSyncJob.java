@@ -31,16 +31,12 @@ package org.hisp.dhis.dxf2.metadata.tasks;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPreProcessor;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
+import org.hisp.dhis.dxf2.metadata.sync.*;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.metadata.version.MetadataVersion;
-import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -100,7 +96,7 @@ public class MetadataSyncJob
     }
 
     @Override
-    public void execute( JobParameters jobParameters )
+    public void execute( JobConfiguration jobConfiguration )
     {
         log.info( "Metadata Sync cron Job started" );
 

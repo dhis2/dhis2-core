@@ -14,10 +14,11 @@ public class TestJob implements Job
     }
 
     @Override
-    public void execute( JobParameters jobParameters )
+    public void execute( JobConfiguration jobConfiguration )
     {
-        TestJobParameters testJobConfigurationParameters = (TestJobParameters) jobParameters;
-        System.out.println( "job configuration message: " + testJobConfigurationParameters.getMessage() + ", sleep for 60 seconds");
+        TestJobParameters parameters = (TestJobParameters) jobConfiguration.getJobParameters();
+
+        System.out.println( "job configuration message: " + parameters.getMessage() + ", sleep for 60 seconds");
         try
         {
             Thread.sleep( 60000 );
@@ -27,6 +28,6 @@ public class TestJob implements Job
             e.printStackTrace();
         }
 
-        System.out.println("Slept like a child - " + testJobConfigurationParameters.getMessage());
+        System.out.println("Slept like a child - " + parameters.getMessage());
     }
 }

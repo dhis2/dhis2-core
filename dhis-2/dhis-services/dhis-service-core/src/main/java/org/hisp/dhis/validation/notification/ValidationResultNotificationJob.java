@@ -29,9 +29,8 @@ package org.hisp.dhis.validation.notification;
  */
 
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.parameters.ValidationResultNotificationJobParameters;
 import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
@@ -65,24 +64,22 @@ public class ValidationResultNotificationJob
     }
 
     @Override
-    public void execute( JobParameters jobParameters )
+    public void execute( JobConfiguration jobConfiguration )
     {
-        ValidationResultNotificationJobParameters jobConfig = (ValidationResultNotificationJobParameters) jobParameters;
-
         final Clock clock = new Clock().startClock();
 
-        notifier.notify( jobConfig.getJobId(), "Sending new validation result notifications" );
+        notifier.notify( jobConfiguration.getJobId(), "Sending new validation result notifications" );
 
         try
         {
             runInternal();
 
-            notifier.notify( jobConfig.getJobId(), NotificationLevel.INFO,
+            notifier.notify( jobConfiguration.getJobId(), NotificationLevel.INFO,
                 "Sent validation result notifications: " + clock.time(), true );
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( jobConfig.getJobId(), NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
+            notifier.notify( jobConfiguration.getJobId(), NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
 
             messageService
                 .sendSystemErrorNotification( "Sending validation result notifications failed", ex );

@@ -154,10 +154,8 @@ public class JobObjectBundleHook
         }
 
         JobConfiguration jobConfiguration = (JobConfiguration) object;
-        JobParameters jobParameters = jobConfiguration.getJobParameters();
 
-        jobParameters.setJobId( new JobId( JobCategory.valueOf( jobConfiguration.getJobType().toString() ), currentUserService.getCurrentUser().getUid() ) );
-        jobConfiguration.setJobParameters( jobParameters );
+        jobConfiguration.setJobId( new JobId( JobCategory.valueOf( jobConfiguration.getJobType().toString() ), currentUserService.getCurrentUser().getUid() ) );
     }
 
     @Override
@@ -169,10 +167,8 @@ public class JobObjectBundleHook
         }
 
         JobConfiguration jobConfiguration = (JobConfiguration) object;
-        JobParameters jobParameters = jobConfiguration.getJobParameters();
 
-        jobParameters.setJobId( new JobId( JobCategory.valueOf( jobConfiguration.getJobType().toString() ), currentUserService.getCurrentUser().getUid() ) );
-        jobConfiguration.setJobParameters( jobParameters );
+        jobConfiguration.setJobId( new JobId( JobCategory.valueOf( jobConfiguration.getJobType().toString() ), currentUserService.getCurrentUser().getUid() ) );
 
         schedulingManager.stopJob( (JobConfiguration) persistedObject );
         sessionFactory.getCurrentSession().update( persistedObject );

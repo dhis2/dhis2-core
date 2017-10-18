@@ -13,5 +13,5 @@ public interface Job
 {
     JobType getJobType();
 
-    void execute( JobParameters jobParameters );
+    void execute( JobConfiguration jobConfiguration );
 }

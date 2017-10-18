@@ -17,8 +17,6 @@ public class MonitoringJobParameters
 {
     private static final long serialVersionUID = 5L;
 
-    private JobId jobId;
-
     @Property
     private List<Period> periods;
 
@@ -38,24 +36,13 @@ public class MonitoringJobParameters
     public MonitoringJobParameters()
     {}
 
-    public MonitoringJobParameters( JobId jobId, List<Period> periods, List<OrganisationUnit> organisationUnits, List<ValidationRuleGroup> validationRuleGroups, boolean sendNotifications, boolean persistResults )
+    public MonitoringJobParameters( List<Period> periods, List<OrganisationUnit> organisationUnits, List<ValidationRuleGroup> validationRuleGroups, boolean sendNotifications, boolean persistResults )
     {
-        this.jobId = jobId;
         this.periods = periods;
         this.organisationUnits = organisationUnits;
         this.validationRuleGroups = validationRuleGroups;
         this.sendNotifications = sendNotifications;
         this.persistResults = persistResults;
-    }
-
-    public JobId getJobId()
-    {
-        return jobId;
-    }
-
-    public void setJobId( JobId jobId )
-    {
-        this.jobId = jobId;
     }
 
     public List<Period> getPeriods()

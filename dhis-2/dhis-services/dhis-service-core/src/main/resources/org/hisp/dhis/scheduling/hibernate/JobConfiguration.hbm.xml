@@ -32,6 +32,6 @@
 
         <property name="continuousExecution" not-null="true" type="boolean"/>
 
-        <property name="jobParameters" not-null="true" type="serializable" length="65535" />
+        <property name="jobParameters" not-null="false" type="serializable" length="65535" />
     </class>
 </hibernate-mapping>

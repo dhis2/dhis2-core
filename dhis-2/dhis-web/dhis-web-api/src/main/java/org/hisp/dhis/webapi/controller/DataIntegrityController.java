@@ -29,9 +29,7 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dataintegrity.DataIntegrityService;
 import org.hisp.dhis.scheduling.*;
-import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -60,9 +58,6 @@ public class DataIntegrityController
     private SchedulingManager schedulingManager;
 
     @Autowired
-    private DataIntegrityService dataIntegrityService;
-
-    @Autowired
     private Notifier notifier;
 
     public static final String RESOURCE_PATH = "/dataIntegrity";
@@ -78,8 +73,7 @@ public class DataIntegrityController
         JobId jobId = new JobId( JobCategory.DATAINTEGRITY, currentUserService.getCurrentUser().getUid() );
         notifier.clear( jobId );
 
-        DataIntegrityJobParameters dataIntegrityJobParameters = new DataIntegrityJobParameters( jobId );
-        JobConfiguration jobConfiguration = new JobConfiguration( "runAsyncDataIntegrity", JobType.DATA_INTEGRITY, null, dataIntegrityJobParameters, true, false );
+        JobConfiguration jobConfiguration = new JobConfiguration( "runAsyncDataIntegrity", JobType.DATA_INTEGRITY, null, null, true, false, jobId );
         schedulingManager.executeJob( jobConfiguration );
 
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobCategory.DATAINTEGRITY );
