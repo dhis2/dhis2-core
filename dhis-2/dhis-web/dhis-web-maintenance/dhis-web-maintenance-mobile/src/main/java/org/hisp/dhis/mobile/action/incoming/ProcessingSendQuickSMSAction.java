@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -40,6 +41,7 @@ import org.hisp.dhis.oust.manager.SelectionTreeManager;
 import org.hisp.dhis.scheduling.TaskCategory;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
+import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.task.SendSmsTask;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.scheduling.Scheduler;
@@ -265,11 +267,17 @@ public class ProcessingSendQuickSMSAction
         TaskId taskId = new TaskId( TaskCategory.SENDING_SMS, currentUser );
         notifier.clear( taskId );
 
+        OutboundSms sms = new OutboundSms();
+        sms.setMessage( text );
+        sms.setRecipients( recipientsList.stream().map( item -> item.getPhoneNumber() ).collect( Collectors.toSet() ) );
+        sms.setSender( OutboundSms.DHIS_SYSTEM_SENDER );
+
+        System.out.println("processingSendQuickSMSACtion");
+
+
         sendSmsTask.setTaskId( taskId );
         sendSmsTask.setCurrentUser( currentUser );
-        sendSmsTask.setRecipientsList( recipientsList );
-        sendSmsTask.setSmsSubject( smsSubject );
-        sendSmsTask.setText( text );
+        sendSmsTask.setSms( sms );
 
         scheduler.executeTask( sendSmsTask );
 
