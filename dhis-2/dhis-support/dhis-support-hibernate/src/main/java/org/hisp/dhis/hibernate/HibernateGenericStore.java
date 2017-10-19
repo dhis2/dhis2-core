@@ -71,6 +71,9 @@ import javax.annotation.PostConstruct;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -655,10 +658,14 @@ public class HibernateGenericStore<T>
             return new ArrayList<>();
         }
 
-        String hql = "select e from " + getClazz().getSimpleName() + "  as e " +
-            "inner join e.attributeValues av inner join av.attribute at where at in (:attributes) )";
+        query = getCriteriaQuery();
 
-        return getQuery( hql ).setParameterList( "attributes", attributes ).list();
+        Root root = query.from( getClazz() );
+        Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
+        query.select( root );
+        query.where( joinAttributeValue.get( "attribute" ).in( attributes ) );
+
+        return  sessionFactory.getCurrentSession().createQuery( query ).list();
     }
 
     @Override
@@ -723,10 +730,14 @@ public class HibernateGenericStore<T>
             return new ArrayList<>();
         }
 
-        String hql = "select av from " + getClazz().getSimpleName() + "  as e " +
-            "inner join e.attributeValues av inner join av.attribute at where at = :attribute )";
+        query = getCriteriaQuery();
 
-        return getQuery( hql ).setEntity( "attribute", attribute ).list();
+        Root root = query.from( getClazz() );
+        Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
+        query.select( root.get( "attributeValues" ) );
+        query.where( builder.equal( joinAttributeValue.get( "attribute" ), attribute ) );
+
+        return  sessionFactory.getCurrentSession().createQuery( query ).list();
     }
 
     @Override
@@ -740,10 +751,14 @@ public class HibernateGenericStore<T>
             return new ArrayList<>();
         }
 
-        String hql = "select av from " + getClazz().getSimpleName() + "  as e " +
-            "inner join e.attributeValues av inner join av.attribute at where at in (:attributes) )";
+        query = getCriteriaQuery();
 
-        return getQuery( hql ).setParameterList( "attributes", attributes ).list();
+        Root root = query.from( getClazz() );
+        Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
+        query.select( root.get( "attributeValues" ) );
+        query.where( joinAttributeValue.get( "attribute" ).in( attributes ) );
+
+        return  sessionFactory.getCurrentSession().createQuery( query ).list();
     }
 
     @Override
@@ -757,10 +772,17 @@ public class HibernateGenericStore<T>
             return null;
         }
 
-        String hql = "select av from " + getClazz().getSimpleName() + "  as e " +
-            "inner join e.attributeValues av inner join av.attribute at where at = :attribute and av.value = :value)";
+        query = getCriteriaQuery();
 
-        return getQuery( hql ).setEntity( "attribute", attribute ).setString( "value", value ).list();
+        Root root = query.from( getClazz() );
+        Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
+        query.select( root.get( "attributeValues" ) );
+        query.where(
+            builder.and(
+                builder.equal( joinAttributeValue.get( "attribute" ), attribute ),
+                builder.equal( joinAttributeValue.get( "value" ), value )  ) ) ;
+
+        return  sessionFactory.getCurrentSession().createQuery( query ).list();
     }
 
     @Override

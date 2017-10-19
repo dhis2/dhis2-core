@@ -1060,7 +1060,7 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param uniqueCharacter A unique character to identify the object.
+     * @param uniqueCharacter    A unique character to identify the object.
      * @param operator           The operator.
      * @param leftSide           The left side expression.
      * @param rightSide          The right side expression.
@@ -1693,7 +1693,7 @@ public abstract class DhisConvenienceTest
     {
         ValidationNotificationTemplate template = new ValidationNotificationTemplate();
         template.setAutoFields();
-        
+
         template.setName( name );
         template.setSubjectTemplate( "Subject" );
         template.setMessageTemplate( "Message" );
@@ -1706,24 +1706,24 @@ public abstract class DhisConvenienceTest
     {
         OptionSet optionSet = new OptionSet();
         optionSet.setAutoFields();
-        
+
         optionSet.setName( "OptionSet" + uniqueCharacter );
         optionSet.setCode( "OptionSetCode" + uniqueCharacter );
-        
+
         return optionSet;
     }
-    
+
     protected static Option createOption( char uniqueCharacter )
     {
         Option option = new Option();
         option.setAutoFields();
-        
+
         option.setName( "Option" + uniqueCharacter );
         option.setCode( "OptionCode" + uniqueCharacter );
-        
+
         return option;
     }
-    
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
@@ -2042,6 +2042,23 @@ public abstract class DhisConvenienceTest
         SecurityContextHolder.getContext().setAuthentication( authentication );
 
         return user;
+    }
+
+    protected void injectSecurityContext( User user )
+    {
+        List<GrantedAuthority> grantedAuthorities = user.getUserCredentials().getAllAuthorities()
+            .stream().map( SimpleGrantedAuthority::new ).collect( Collectors.toList() );
+
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+            user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuthorities );
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
+        SecurityContextHolder.getContext().setAuthentication( authentication );
+    }
+
+    protected void clearSecurityContext()
+    {
+        SecurityContextHolder.clearContext();
     }
 
     protected static String getStackTrace( Throwable t )
