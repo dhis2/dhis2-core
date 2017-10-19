@@ -143,14 +143,9 @@ public class DefaultJobConfigurationService
 
     private String prettyPrint( String field )
     {
-        String[] fieldStrings = field.split("(?=[A-Z])");
+        List<String> fieldStrings = Arrays.stream(field.split("(?=[A-Z])")).map(String::toLowerCase).collect(Collectors.toList());
 
-        fieldStrings[0] = fieldStrings[0].substring(0, 1).toUpperCase() + fieldStrings[0].substring(1);
-
-        for ( int i = 1; i<fieldStrings.length; i++)
-        {
-            fieldStrings[i] = fieldStrings[i].toLowerCase();
-        }
+        fieldStrings.set(0, fieldStrings.get(0).substring(0, 1).toUpperCase() + fieldStrings.get(0).substring(1));
 
         return String.join(" ", fieldStrings);
     }
