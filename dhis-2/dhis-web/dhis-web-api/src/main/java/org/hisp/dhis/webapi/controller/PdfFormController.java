@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 
 import com.lowagie.text.Document;
 import com.lowagie.text.pdf.PdfWriter;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dataset.DataSetService;
@@ -41,13 +42,12 @@ import org.hisp.dhis.dxf2.pdfform.PdfFormFontSettings;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.scheduling.JobCategory;
 import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.PdfDataEntryFormImportUtil;
@@ -140,7 +140,7 @@ public class PdfFormController
     public void sendFormPdfDataSet( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        JobId jobId = new JobId( JobCategory.DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid() );
+        JobId jobId = new JobId( JobType.DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid() );
 
         notifier.clear( jobId );
 

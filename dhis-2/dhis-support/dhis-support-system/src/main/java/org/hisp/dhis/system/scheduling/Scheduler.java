@@ -111,15 +111,14 @@ public interface Scheduler
      * @return true if the job was scheduled for execution as a result of this
      *         operation, false if not.
      */
-    boolean scheduleJob( JobConfiguration jobConfiguration, JobInstance jobInstance );
+    boolean scheduleJob( JobConfiguration jobConfiguration );
 
     /**
      * Schedule the given job for continuous execution
      *
      * @param jobConfiguration the job to schedule
-     * @param jobInstance the default job instance which runs the given job
      */
-    void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration, JobInstance jobInstance );
+    void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration );
 
     /**
      * Deactivates scheduling of the job with the given key.

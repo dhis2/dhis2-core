@@ -17,7 +17,7 @@ public enum JobType
     DATA_STATISTICS( "dataStatisticsJob", null, 1, null ),
     DATA_INTEGRITY( "dataIntegrity", null, 1, null ),
     RESOURCE_TABLE( "resourceTableJob", null, 1, null ),
-    ANALYTICS_TABLE( "analyticsTableJob", AnalyticsJobParameters.class, 1, new HashMap<String, String>()
+    ANALYTICS_TABLE( "analyticsTableJob", AnalyticsJobParameters.class, 1800, new HashMap<String, String>()
     {{
         put("skipTableTypes", "/api/analytics/tableTypes");
     }}),
@@ -38,7 +38,15 @@ public enum JobType
     {{
         put("pushAnalysisId", "/api/pushAnalysis");
     }}),
-    TEST( "test", TestJobParameters.class, 1, null );
+    TEST( "test", TestJobParameters.class, 1, null ),
+
+    // To satifisfy code that used the old enum TaskCategory
+    DATAVALUE_IMPORT(null, null, 0, null),
+    ANALYTICSTABLE_UPDATE(null, null, 0, null),
+    METADATA_IMPORT(null, null, 0, null),
+    DATAVALUE_IMPORT_INTERNAL(null, null, 0, null),
+    EVENT_IMPORT(null, null, 0, null),
+    COMPLETE_DATA_SET_REGISTRATION_IMPORT(null, null, 0, null);
 
     private final String key;
 
@@ -48,8 +56,8 @@ public enum JobType
 
     HashMap<String, String> relativeApiElements;
 
-    JobType( String key, Class<?> clazz, long minimumFrequencyInSeconds,
-        HashMap<String, String> relativeApiElements )
+    JobType(String key, Class<?> clazz, long minimumFrequencyInSeconds,
+            HashMap<String, String> relativeApiElements )
     {
         this.key = key;
         this.clazz = clazz;
@@ -67,7 +75,7 @@ public enum JobType
         return (Class<JobParameters>) clazz;
     }
 
-    public static Optional<JobType> getByJobType( String jobType )
+    public static Optional<JobType> getByJobType(String jobType )
     {
         for ( JobType jobType1 : JobType.values() )
         {

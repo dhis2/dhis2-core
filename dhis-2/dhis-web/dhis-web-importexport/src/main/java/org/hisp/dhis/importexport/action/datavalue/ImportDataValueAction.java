@@ -39,8 +39,8 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.datavalueset.tasks.ImportDataValueTask;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.scheduling.JobCategory;
 import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
@@ -160,7 +160,7 @@ public class ImportDataValueAction
     {
         strategy = strategy != null ? strategy : ImportStrategy.NEW_AND_UPDATES;
 
-        JobId jobId = new JobId( JobCategory.DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid() );
+        JobId jobId = new JobId( JobType.DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid() );
 
         notifier.clear( jobId );
 

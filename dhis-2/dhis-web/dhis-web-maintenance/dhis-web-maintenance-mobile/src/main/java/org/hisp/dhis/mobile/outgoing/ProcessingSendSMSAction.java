@@ -249,7 +249,7 @@ public class ProcessingSendSMSAction
             }
         }
         
-        JobId jobId = new JobId( JobCategory.SENDING_SMS, currentUser.getUid() );
+        JobId jobId = new JobId( JobType.SMS_SEND, currentUser.getUid() );
         notifier.clear( jobId );
 
         SmsJobParameters jobParameters = new SmsJobParameters(smsSubject, text, recipientsList.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toList()), text );

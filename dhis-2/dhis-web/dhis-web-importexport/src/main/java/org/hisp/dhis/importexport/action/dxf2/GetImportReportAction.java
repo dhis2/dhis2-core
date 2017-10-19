@@ -30,7 +30,6 @@ package org.hisp.dhis.importexport.action.dxf2;
 
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.scheduling.JobCategory;
 import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
@@ -53,9 +52,9 @@ public class GetImportReportAction
     // Input
     // -------------------------------------------------------------------------
 
-    private JobCategory category;
+    private JobType category;
 
-    public void setCategory( JobCategory category )
+    public void setCategory( JobType category )
     {
         this.category = category;
     }

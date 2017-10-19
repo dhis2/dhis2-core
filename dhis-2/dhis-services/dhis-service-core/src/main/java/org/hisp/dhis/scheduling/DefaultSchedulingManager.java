@@ -30,6 +30,7 @@ package org.hisp.dhis.scheduling;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.system.scheduling.DefaultJobInstance;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.system.scheduling.SpringScheduler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,7 +117,7 @@ public class DefaultSchedulingManager
     {
         if(!scheduler.isJobInSystem( jobConfiguration.getUid() ))
         {
-            scheduler.scheduleJob( jobConfiguration, new DefaultJobInstance() );
+            scheduler.scheduleJob( jobConfiguration );
         }
     }
 
@@ -125,7 +126,7 @@ public class DefaultSchedulingManager
     {
         if(!scheduler.isJobInSystem( jobConfiguration.getUid() ))
         {
-            scheduler.scheduleJobWithFixedDelay( jobConfiguration, new DefaultJobInstance() );
+            scheduler.scheduleJobWithFixedDelay( jobConfiguration );
         }
     }
 

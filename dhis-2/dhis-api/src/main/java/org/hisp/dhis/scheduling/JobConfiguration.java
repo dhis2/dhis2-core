@@ -54,7 +54,7 @@ public class JobConfiguration
     {
     }
 
-    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters, boolean enabled, boolean continuousExecution, JobId jobId )
+    public JobConfiguration(String name, JobType jobType, String cronExpression, JobParameters jobParameters, boolean enabled, boolean continuousExecution, JobId jobId )
     {
         this.name = name;
         this.cronExpression = cronExpression;

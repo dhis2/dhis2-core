@@ -1,9 +1,12 @@
-package org.hisp.dhis.scheduling;
+package org.hisp.dhis.system.scheduling;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.system.scheduling.SpringScheduler;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobInstance;
+import org.hisp.dhis.scheduling.JobStatus;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.system.util.Clock;
 
 import java.util.Date;
@@ -15,11 +18,11 @@ public class DefaultJobInstance implements JobInstance
 {
     private static final Log log = LogFactory.getLog( SpringScheduler.class );
 
-    private void setFinishingStatus( SchedulingManager schedulingManager, JobConfiguration jobConfiguration )
+    private void setFinishingStatus(SchedulingManager schedulingManager, JobConfiguration jobConfiguration )
     {
         jobConfiguration.setJobStatus( JobStatus.SCHEDULED );
         jobConfiguration.setNextExecutionTime( null );
-        jobConfiguration.setLastExecuted( new Date(  ) );
+        jobConfiguration.setLastExecuted( new Date( ) );
 
         schedulingManager.jobConfigurationFinished( jobConfiguration );
     }
@@ -57,7 +60,7 @@ public class DefaultJobInstance implements JobInstance
         } else {
             log.info( "Job '" + jobConfiguration.getName() + "' failed, jobtype '" + jobConfiguration.getJobType() + "' is already running." );
 
-            messageService.sendSystemErrorNotification( "Job '" + jobConfiguration.getName() + "' failed, jobtype '" + jobConfiguration.getJobType() + "' is already running [" + clock.time() + "]", new JobFailureException(jobConfiguration) );
+            messageService.sendSystemErrorNotification( "Job '" + jobConfiguration.getName() + "' failed, jobtype '" + jobConfiguration.getJobType() + "' is already running [" + clock.time() + "]", new Exception( "Job '" + jobConfiguration.getName() + "' failed" ) );
             jobConfiguration.setLastExecutedStatus( JobStatus.FAILED );
 
             schedulingManager.executeJob( jobConfiguration );

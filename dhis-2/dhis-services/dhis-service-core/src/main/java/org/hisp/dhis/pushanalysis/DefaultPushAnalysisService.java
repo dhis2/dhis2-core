@@ -48,8 +48,8 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
-import org.hisp.dhis.scheduling.JobCategory;
 import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
@@ -301,7 +301,7 @@ public class DefaultPushAnalysisService
     {
         if ( jobId == null )
         {
-            jobId = new JobId( JobCategory.PUSH_ANALYSIS, currentUserService.getCurrentUser().getUid() );
+            jobId = new JobId( JobType.PUSH_ANALYSIS, currentUserService.getCurrentUser().getUid() );
             notifier.clear( jobId );
         }
 

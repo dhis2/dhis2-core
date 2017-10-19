@@ -28,18 +28,17 @@ package org.hisp.dhis.system.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.system.collection.TaskLocalList;
+import org.hisp.dhis.system.collection.TaskLocalMap;
+
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import javax.annotation.PostConstruct;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.scheduling.JobCategory;
-import org.hisp.dhis.scheduling.JobId;
-import org.hisp.dhis.system.collection.TaskLocalList;
-import org.hisp.dhis.system.collection.TaskLocalMap;
 
 /**
  * @author Lars Helge Overland
@@ -53,7 +52,7 @@ public class InMemoryNotifier
     
     private TaskLocalList<Notification> notifications;
     
-    private TaskLocalMap<JobCategory, Object> taskSummaries;
+    private TaskLocalMap<JobType, Object> taskSummaries;
     
     @PostConstruct
     public void init()

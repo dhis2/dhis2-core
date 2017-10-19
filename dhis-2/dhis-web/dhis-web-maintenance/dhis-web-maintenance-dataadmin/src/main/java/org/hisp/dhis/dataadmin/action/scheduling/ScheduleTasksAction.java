@@ -36,9 +36,9 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.scheduling.ScheduledTaskStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
@@ -239,9 +239,9 @@ public class ScheduleTasksAction
     // Output
     // -------------------------------------------------------------------------
 
-    private ScheduledTaskStatus status;
+    private JobStatus status;
 
-    public ScheduledTaskStatus getStatus()
+    public JobStatus getStatus()
     {
         return status;
     }

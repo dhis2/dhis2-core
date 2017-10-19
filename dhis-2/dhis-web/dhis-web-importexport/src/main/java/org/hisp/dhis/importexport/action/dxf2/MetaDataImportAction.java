@@ -48,8 +48,8 @@ import org.hisp.dhis.importexport.action.util.ImportMetaDataTask;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.scheduling.JobCategory;
 import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.scheduling.Scheduler;
@@ -171,7 +171,7 @@ public class MetaDataImportAction
 
         User user = currentUserService.getCurrentUser();
 
-        JobId jobId = new JobId( JobCategory.METADATA_IMPORT, user.getUid() );
+        JobId jobId = new JobId( JobType.METADATA_IMPORT, user.getUid() );
 
         notifier.clear( jobId );
 

@@ -132,8 +132,9 @@ public class SpringScheduler
     }
 
     @Override
-    public boolean scheduleJob( JobConfiguration jobConfiguration, JobInstance jobInstance )
+    public boolean scheduleJob( JobConfiguration jobConfiguration )
     {
+        DefaultJobInstance jobInstance = new DefaultJobInstance();
         if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) ) {
             ScheduledFuture<?> future = jobScheduler
                     .schedule(() -> jobInstance.execute(jobConfiguration, schedulingManager, messageService), new CronTrigger(jobConfiguration.getCronExpression()));
@@ -149,8 +150,9 @@ public class SpringScheduler
     }
 
     @Override
-    public void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration, JobInstance jobInstance )
+    public void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration )
     {
+        DefaultJobInstance jobInstance = new DefaultJobInstance();
         ScheduledFuture<?> future = jobScheduler.scheduleWithFixedDelay( () -> jobInstance.execute( jobConfiguration, schedulingManager, messageService ), 10 );
 
         futures.put( jobConfiguration.getUid(), future );

@@ -40,7 +40,7 @@ public class JobId implements Serializable
 
     private static final String SEPARATOR = "-";
     
-    private JobCategory category;
+    private JobType category;
     
     private String userUid;
     
@@ -48,7 +48,7 @@ public class JobId implements Serializable
     {
     }
     
-    public JobId( JobCategory category, String userUid )
+    public JobId(JobType category, String userUid )
     {
         this.category = category;
         this.userUid = userUid;
@@ -68,7 +68,7 @@ public class JobId implements Serializable
         return id;
     }
 
-    public JobCategory getCategory()
+    public JobType getCategory()
     {
         return category;
     }

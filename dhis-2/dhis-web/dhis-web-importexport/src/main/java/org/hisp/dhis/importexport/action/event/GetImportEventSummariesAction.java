@@ -30,8 +30,8 @@ package org.hisp.dhis.importexport.action.event;
 
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.scheduling.JobCategory;
 import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +66,7 @@ public class GetImportEventSummariesAction
     @Override
     public String execute()
     {
-        JobId taskId = new JobId( JobCategory.EVENT_IMPORT, currentUserService.getCurrentUser().getUid() );
+        JobId taskId = new JobId( JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid() );
 
         importSummaries = (ImportSummaries) notifier.getTaskSummary( taskId );
 

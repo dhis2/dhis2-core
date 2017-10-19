@@ -34,6 +34,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.scheduling.*;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
+import org.hisp.dhis.system.scheduling.DefaultJobInstance;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.validation.scheduling.MonitoringJob;
@@ -86,7 +87,7 @@ public class ResourceTableController
         @RequestParam( required = false ) Integer lastYears,
         HttpServletResponse response, HttpServletRequest request )
     {
-        JobId jobId = new JobId( JobCategory.ANALYTICSTABLE_UPDATE, currentUserService.getCurrentUser().getUid() );
+        JobId jobId = new JobId( JobType.ANALYTICSTABLE_UPDATE, currentUserService.getCurrentUser().getUid() );
         
         Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
         
@@ -116,7 +117,7 @@ public class ResourceTableController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void resourceTables( HttpServletResponse response, HttpServletRequest request )
     {
-        JobId jobId = new JobId( JobCategory.RESOURCE_TABLE, currentUserService.getCurrentUser().getUid() );
+        JobId jobId = new JobId( JobType.RESOURCE_TABLE, currentUserService.getCurrentUser().getUid() );
 
         scheduler.executeJob( () -> analyticsTableGenerator.generateResourceTables( jobId ) );
 
@@ -128,7 +129,7 @@ public class ResourceTableController
     public void monitoring( HttpServletResponse response, HttpServletRequest request )
     {
         // HH verify
-        JobConfiguration monitoringJob = new JobConfiguration( "monitoring from resource table controller", JobType.MONITORING, "", new MonitoringJobParameters(), true, false, new JobId( JobCategory.MONITORING, currentUserService.getCurrentUser().getUid() ) );
+        JobConfiguration monitoringJob = new JobConfiguration( "monitoring from resource table controller", JobType.MONITORING, "", new MonitoringJobParameters(), true, false, new JobId( JobType.MONITORING, currentUserService.getCurrentUser().getUid() ) );
 
         scheduler.executeJob( monitoringJob, new DefaultJobInstance());
 

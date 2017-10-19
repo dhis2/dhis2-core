@@ -35,8 +35,8 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.scheduling.JobCategory;
 import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.After;
@@ -124,7 +124,7 @@ public class GmlImportServiceTest
 
         user = createAndInjectAdminUser();
 
-        jobId = new JobId( JobCategory.METADATA_IMPORT, user.getUid() );
+        jobId = new JobId( JobType.METADATA_IMPORT, user.getUid() );
 
         importOptions = new ImportOptions().setImportStrategy( ImportStrategy.UPDATE );
         importOptions.setDryRun( false );
