@@ -58,15 +58,6 @@ public class PushAnalysisJob
     {
         PushAnalysisJobParameters parameters = (PushAnalysisJobParameters) jobConfiguration.getJobParameters();
 
-        try
-        {
-            Thread.sleep( 60000 );
-        }
-        catch ( InterruptedException e )
-        {
-            e.printStackTrace();
-        }
-
         pushAnalysisService.runPushAnalysis( parameters.getPushAnalysisId(), jobConfiguration.getJobId() );
     }
 }
