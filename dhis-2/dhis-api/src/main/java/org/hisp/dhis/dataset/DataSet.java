@@ -739,6 +739,16 @@ public class DataSet
 
     public void setWorkflow( DataApprovalWorkflow workflow )
     {
+        if ( this.workflow != null )
+        {
+            this.workflow.getDataSets().remove( this );
+        }
+
+        if ( workflow != null )
+        {
+            workflow.getDataSets().add( this );
+        }
+
         this.workflow = workflow;
     }
 
