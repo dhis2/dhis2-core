@@ -54,6 +54,7 @@ import org.hisp.dhis.system.filter.PastAndCurrentPeriodFilter;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.validation.ValidationAnalysisParams;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationService;
@@ -172,8 +173,10 @@ public class FormUtilsImpl
     @Override
     public List<String> getValidationRuleViolations( OrganisationUnit organisationUnit, DataSet dataSet, Period period )
     {
-        List<ValidationResult> validationRuleResults = new ArrayList<>( validationService.startInteractiveValidationAnalysis(
-            dataSet, period, organisationUnit, null ) );
+
+        ValidationAnalysisParams params = validationService.newParamsBuilder( dataSet, organisationUnit, period ).build();
+
+        List<ValidationResult> validationRuleResults = new ArrayList<>( validationService.validationAnalysis( params ) );
 
         List<String> validationRuleViolations = new ArrayList<>( validationRuleResults.size() );
 
