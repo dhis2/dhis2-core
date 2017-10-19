@@ -7,7 +7,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.annotation.Property;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.SimpleTriggerContext;
@@ -30,17 +29,25 @@ import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 @JsonDeserialize( using = JobConfigurationDeserializer.class )
 public class JobConfiguration
     extends BaseIdentifiableObject
-    implements IdentifiableObject, MetadataObject
 {
     private String cronExpression;
+
     private JobType jobType;
+
     private JobStatus jobStatus = JobStatus.SCHEDULED;
+
     private Date lastExecuted;
+
     private JobStatus lastExecutedStatus = JobStatus.SCHEDULED;
+
     private JobParameters jobParameters = null;
+
     private boolean enabled;
+
     private boolean continuousExecution;
+
     private Date nextExecutionTime;
+
     private JobId jobId;
 
     public JobConfiguration ()

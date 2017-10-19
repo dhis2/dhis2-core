@@ -1,10 +1,12 @@
 package org.hisp.dhis.scheduling;
 
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.schema.Property;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Simple service for {@link JobConfiguration} objects.
@@ -85,4 +87,11 @@ public interface JobConfigurationService
      * @return list of all job configurations in the system(sorted)
      */
     List<JobConfiguration> getAllJobConfigurationsSorted( );
+
+    /**
+     * Get a map of parameter classes with appropriate properties
+     *
+     * @return map with parameters classes
+     */
+    Map<String, Map<String, Property>> getJobParametersSchema();
 }
