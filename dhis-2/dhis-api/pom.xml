@@ -99,7 +99,13 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-commons</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>core-rules</artifactId>
+      <version>0.3.1-SNAPSHOT</version>
+    </dependency>
   </dependencies>
+
 
   <properties>
     <rootDir>../</rootDir>

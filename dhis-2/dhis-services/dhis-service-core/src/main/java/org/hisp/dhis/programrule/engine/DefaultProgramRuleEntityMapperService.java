@@ -32,10 +32,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleAction;
-import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.programrule.ProgramRuleService;
+import org.hisp.dhis.programrule.*;
 import org.hisp.dhis.rules.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -46,7 +43,7 @@ import java.util.stream.Collectors;
 /**
  * Created by zubair@dhis2.org on 19.10.17.
  */
-public class ProgramRuleEntityMapper
+public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityMapperService
 {
     private final ImmutableMap<ProgramRuleActionType, Function<ProgramRuleAction, RuleAction>> ACTION_MAPPER =
         new ImmutableMap.Builder<ProgramRuleActionType, Function<ProgramRuleAction, RuleAction>>()
@@ -63,6 +60,16 @@ public class ProgramRuleEntityMapper
         .put( ProgramRuleActionType.SETMANDATORYFIELD, pra -> RuleActionSetMandatoryField.create( pra.getLocation() ) )
         .put( ProgramRuleActionType.WARNINGONCOMPLETE, pra -> RuleActionWarningOnCompletion.create( pra.getContent(), pra.getData(), pra.getLocation() ) )
         .build();
+
+    private final ImmutableMap<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, RuleVariable>> VARIABLE_MAPPER_MAPPER =
+        new ImmutableMap.Builder<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, RuleVariable>>()
+        .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE, prv -> RuleVariableAttribute.create( prv.getName(), prv.getAttribute().getUid(), RuleValueType.TEXT ) )
+        .put( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, prv -> RuleVariableCurrentEvent.create( prv.getName(), prv.getDataElement().getUid(), RuleValueType.TEXT ) )
+        .put( ProgramRuleVariableSourceType.DATAELEMENT_PREVIOUS_EVENT, prv -> RuleVariablePreviousEvent.create( prv.getName(), prv.getDataElement().getUid(), RuleValueType.TEXT ) )
+        .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM, prv -> RuleVariableNewestEvent.create( prv.getName(), prv.getDataElement().getUid(), RuleValueType.TEXT ) )
+        .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE, prv -> RuleVariableNewestStageEvent.create( prv.getName(),
+            prv.getDataElement().getUid(), prv.getProgramStage().getUid() ,RuleValueType.TEXT ) )
+        .build();
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -70,7 +77,11 @@ public class ProgramRuleEntityMapper
     @Autowired
     private ProgramRuleService programRuleService;
 
+    @Autowired
+    private ProgramRuleVariableService programRuleVariableService;
 
+
+    @Override
     public List<Rule> getMappedProgramRules()
     {
         List<ProgramRule> programRules = programRuleService.getAllProgramRule();
@@ -78,6 +89,7 @@ public class ProgramRuleEntityMapper
         return getMappedProgramRules( programRules );
     }
 
+    @Override
     public List<Rule> getMappedProgramRules( Program program )
     {
         List<ProgramRule> programRules = programRuleService.getProgramRule( program );
@@ -85,18 +97,43 @@ public class ProgramRuleEntityMapper
         return getMappedProgramRules( programRules );
     }
 
+    @Override
     public List<Rule> getMappedProgramRules( List<ProgramRule> programRules )
     {
-        List<Rule> rules = programRules.stream().map( pRule -> toMappedRule( pRule ) ).collect( Collectors.toList() );
+        List<Rule> rules = programRules.stream().map( pRule -> toRule( pRule ) ).collect( Collectors.toList() );
 
         return rules;
+    }
+
+    @Override
+    public List<RuleVariable> getMappedProgramRuleVariables()
+    {
+        List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getAllProgramRuleVariable();
+
+        return getMappedProgramRuleVariables( programRuleVariables );
+    }
+
+    @Override
+    public List<RuleVariable> getMappedProgramRuleVariables( Program program )
+    {
+        List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( program );
+
+        return getMappedProgramRuleVariables( programRuleVariables );
+    }
+
+    @Override
+    public List<RuleVariable> getMappedProgramRuleVariables( List<ProgramRuleVariable> programRuleVariables )
+    {
+        List<RuleVariable> ruleVariables = programRuleVariables.stream().map( prv -> toRuleVariable( prv ) ).collect( Collectors.toList() );
+
+        return ruleVariables;
     }
 
     // ---------------------------------------------------------------------
     // Supportive Methods
     // ---------------------------------------------------------------------
 
-    private Rule toMappedRule( ProgramRule programRule )
+    private Rule toRule( ProgramRule programRule )
     {
         Set<ProgramRuleAction> programRuleActions = programRule.getProgramRuleActions();
 
@@ -113,5 +150,12 @@ public class ProgramRuleEntityMapper
             pra -> RuleActionAssign.create( pra.getContent(), pra.getData(), pra.getLocation() ) ).apply( programRuleAction );
 
         return ruleAction;
+    }
+
+    private RuleVariable toRuleVariable( ProgramRuleVariable programRuleVariable )
+    {
+        RuleVariable ruleVariable = VARIABLE_MAPPER_MAPPER.get( programRuleVariable.getSourceType() ).apply( programRuleVariable );
+
+        return ruleVariable;
     }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.program.engine;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,14 +28,9 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 /**
- * Created by zubair@dhis2.org on 11.10.17.
+ * Created by zubair@dhis2.org on 19.10.17.
  */
-public class ProgramRuleEngine
+public class ProgramRuleEngineTest
 {
-    @Autowired
-    private DefaultProgramRuleEntityMapperService defaultProgramRuleEntityMapperService;
-
 }

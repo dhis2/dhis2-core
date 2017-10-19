@@ -28,14 +28,29 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.rules.models.Rule;
+import org.hisp.dhis.rules.models.RuleVariable;
+
+import java.util.List;
 
 /**
- * Created by zubair@dhis2.org on 11.10.17.
+ * Created by zubair@dhis2.org on 19.10.17.
  */
-public class ProgramRuleEngine
+public interface ProgramRuleEntityMapperService
 {
-    @Autowired
-    private DefaultProgramRuleEntityMapperService defaultProgramRuleEntityMapperService;
+    List<Rule> getMappedProgramRules();
+
+    List<Rule> getMappedProgramRules( Program program );
+
+    List<Rule> getMappedProgramRules( List<ProgramRule> programRules);
+
+    List<RuleVariable> getMappedProgramRuleVariables( Program program );
+
+    List<RuleVariable> getMappedProgramRuleVariables();
+
+    List<RuleVariable> getMappedProgramRuleVariables( List<ProgramRuleVariable> programRuleVariables );
 
 }
