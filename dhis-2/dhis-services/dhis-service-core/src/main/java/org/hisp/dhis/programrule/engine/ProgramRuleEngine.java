@@ -28,12 +28,14 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.rules.RuleEngineContext;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by zubair@dhis2.org on 11.10.17.
  */
 public class ProgramRuleEngine
 {
+    @Autowired
+    private ProgramRuleEntityMapper programRuleEntityMapper;
 
 }

@@ -42,8 +42,6 @@ public class ProgramRuleExpressionEvaluator implements RuleExpressionEvaluator
     @Override
     public String evaluate( String expression )
     {
-        Object result = ExpressionUtils.evaluate( expression, new HashMap<>());
-
-        return result != null ? result.toString() : "";
+        return null;
     }
 }
