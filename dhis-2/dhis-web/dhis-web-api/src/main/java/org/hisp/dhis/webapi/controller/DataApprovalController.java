@@ -154,14 +154,15 @@ public class DataApprovalController
         @RequestParam( required = false ) String ds,
         @RequestParam( required = false ) String wf,
         @RequestParam String pe,
-        @RequestParam String ou, HttpServletResponse response )
+        @RequestParam String ou,
+        @RequestParam( required = false ) String aoc,
+        HttpServletResponse response )
         throws IOException, WebMessageException
     {
         DataApprovalWorkflow workflow = getAndValidateWorkflow( ds, wf );
         Period period = getAndValidatePeriod( pe );
         OrganisationUnit organisationUnit = getAndValidateOrgUnit( ou );
-
-        DataElementCategoryOptionCombo optionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        DataElementCategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
 
         DataApprovalStatus status = dataApprovalService
             .getDataApprovalStatusAndPermissions( workflow, period, organisationUnit, optionCombo );
@@ -174,7 +175,7 @@ public class DataApprovalController
     }
 
     // TODO Remove this entry point? Not documented, was implemented by a third party, is it still needed?
-    // Note that it does not accept workflow parameter input, because the response is specific to data sets.
+    // Note that it does not accept wf or aoc parameter input, because the response cannot include them.
     @RequestMapping( value = STATUS_PATH, method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
     public @ResponseBody RootNode getApproval(
         @RequestParam Set<String> ds,
@@ -272,9 +273,7 @@ public class DataApprovalController
         HttpServletResponse response ) throws IOException, WebMessageException
     {
         Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( ds, wf );
-
         Period period = getAndValidatePeriod( pe );
-
         OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ou );
 
         if ( orgUnit != null && orgUnit.isRoot() )
@@ -338,17 +337,20 @@ public class DataApprovalController
         @RequestParam( required = false ) String ds,
         @RequestParam( required = false ) String wf,
         @RequestParam String pe,
-        @RequestParam String ou, HttpServletResponse response ) throws WebMessageException
+        @RequestParam String ou,
+        @RequestParam( required = false ) String aoc,
+        HttpServletResponse response ) throws WebMessageException
     {
         DataApprovalWorkflow workflow = getAndValidateWorkflow( ds, wf );
         Period period = getAndValidatePeriod( pe );
         OrganisationUnit organisationUnit = getAndValidateOrgUnit( ou );
         DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel( organisationUnit );
+        DataElementCategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
 
         User user = currentUserService.getCurrentUser();
 
         List<DataApproval> dataApprovalList = getApprovalsAsList( dataApprovalLevel, workflow,
-            period, organisationUnit, false, new Date(), user ); //TODO fix category stuff
+            period, organisationUnit, optionCombo, false, new Date(), user );
 
         dataApprovalService.approveData( dataApprovalList );
     }
@@ -369,6 +371,7 @@ public class DataApprovalController
         dataApprovalService.unapproveData( getDataApprovalList( approvals ) );
     }
 
+    // TODO Remove this entry point? Not documented, was implemented by a third party, is it still needed?
     @PreAuthorize( "hasRole('ALL') or hasRole('F_APPROVE_DATA') or hasRole('F_APPROVE_DATA_LOWER_LEVELS')" )
     @RequestMapping( value = MULTIPLE_SAVE_RESOURCE_PATH, method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.NO_CONTENT )
@@ -376,6 +379,8 @@ public class DataApprovalController
         HttpServletResponse response ) throws WebMessageException
     {
         List<DataApproval> dataApprovalList = new ArrayList<>();
+
+        DataElementCategoryOptionCombo optionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
 
         for ( DataApprovalStateRequest approvalStateRequest : dataApprovalStateRequests )
         {
@@ -391,7 +396,7 @@ public class DataApprovalController
             Date approvalDate = approvalStateRequest.getAd() == null ? new Date() : approvalStateRequest.getAd();
 
             dataApprovalList.addAll( getApprovalsAsList( dataApprovalLevel, workflow,
-                period, organisationUnit, false, approvalDate, user ) );
+                period, organisationUnit, optionCombo, false, approvalDate, user ) );
         }
 
         dataApprovalService.approveData( dataApprovalList );
@@ -408,17 +413,20 @@ public class DataApprovalController
         @RequestParam( required = false ) String ds,
         @RequestParam( required = false ) String wf,
         @RequestParam String pe,
-        @RequestParam String ou, HttpServletResponse response ) throws WebMessageException
+        @RequestParam String ou,
+        @RequestParam( required = false ) String aoc,
+        HttpServletResponse response ) throws WebMessageException
     {
         DataApprovalWorkflow workflow = getAndValidateWorkflow( ds, wf );
         Period period = getAndValidatePeriod( pe );
         OrganisationUnit organisationUnit = getAndValidateOrgUnit( ou );
         DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel( organisationUnit );
+        DataElementCategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
 
         User user = currentUserService.getCurrentUser();
 
         List<DataApproval> dataApprovalList = getApprovalsAsList( dataApprovalLevel, workflow,
-            period, organisationUnit, false, new Date(), user );
+            period, organisationUnit, optionCombo, false, new Date(), user );
 
         dataApprovalService.acceptData( dataApprovalList );
     }
@@ -439,6 +447,7 @@ public class DataApprovalController
         dataApprovalService.unacceptData( getDataApprovalList( approvals ) );
     }
 
+    // TODO Remove this entry point? Not documented, was implemented by a third party, is it still needed?
     @PreAuthorize( "hasRole('ALL') or hasRole('F_ACCEPT_DATA_LOWER_LEVELS')" )
     @RequestMapping( value = MULTIPLE_ACCEPTANCES_RESOURCE_PATH, method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.NO_CONTENT )
@@ -446,6 +455,8 @@ public class DataApprovalController
         HttpServletResponse response ) throws WebMessageException
     {
         List<DataApproval> dataApprovalList = new ArrayList<>();
+
+        DataElementCategoryOptionCombo optionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
 
         for ( DataApprovalStateRequest approvalStateRequest : dataApprovalStateRequests )
         {
@@ -460,7 +471,7 @@ public class DataApprovalController
             Date approvalDate = (approvalStateRequest.getAd() == null) ? new Date() : approvalStateRequest.getAd();
 
             dataApprovalList.addAll( getApprovalsAsList( dataApprovalLevel, workflow,
-                period, organisationUnit, false, approvalDate, user ) );
+                period, organisationUnit, optionCombo, false, approvalDate, user ) );
         }
 
         dataApprovalService.acceptData( dataApprovalList );
@@ -477,13 +488,16 @@ public class DataApprovalController
         @RequestParam( required = false ) Set<String> ds,
         @RequestParam( required = false ) Set<String> wf,
         @RequestParam String pe,
-        @RequestParam String ou, HttpServletResponse response ) throws WebMessageException
+        @RequestParam String ou,
+        @RequestParam( required = false ) String aoc,
+        HttpServletResponse response ) throws WebMessageException
     {
         Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( ds, wf );
 
         Period period = getAndValidatePeriod( pe );
         OrganisationUnit organisationUnit = getAndValidateOrgUnit( ou );
         DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel( organisationUnit );
+        DataElementCategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
 
         User user = currentUserService.getCurrentUser();
 
@@ -492,7 +506,7 @@ public class DataApprovalController
         for ( DataApprovalWorkflow workflow : workflows )
         {
             dataApprovalList.addAll( getApprovalsAsList( dataApprovalLevel, workflow,
-                period, organisationUnit, false, new Date(), user ) );
+                period, organisationUnit, optionCombo, false, new Date(), user ) );
         }
 
         dataApprovalService.unapproveData( dataApprovalList );
@@ -505,17 +519,20 @@ public class DataApprovalController
         @RequestParam( required = false ) String ds,
         @RequestParam( required = false ) String wf,
         @RequestParam String pe,
-        @RequestParam String ou, HttpServletResponse response ) throws WebMessageException
+        @RequestParam String ou,
+        @RequestParam( required = false ) String aoc,
+        HttpServletResponse response ) throws WebMessageException
     {
         DataApprovalWorkflow workflow = getAndValidateWorkflow( ds, wf );
         Period period = getAndValidatePeriod( pe );
         OrganisationUnit organisationUnit = getAndValidateOrgUnit( ou );
         DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel( organisationUnit );
+        DataElementCategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
 
         User user = currentUserService.getCurrentUser();
 
         List<DataApproval> dataApprovalList = getApprovalsAsList( dataApprovalLevel, workflow,
-            period, organisationUnit, false, new Date(), user );
+            period, organisationUnit, optionCombo, false, new Date(), user );
 
         dataApprovalService.unacceptData( dataApprovalList );
     }
@@ -539,15 +556,16 @@ public class DataApprovalController
         return dataSets;
     }
 
-    private List<DataApproval> getApprovalsAsList( DataApprovalLevel dataApprovalLevel, DataApprovalWorkflow workflow,
-        Period period, OrganisationUnit organisationUnit, boolean accepted, Date created, User creator )
+    private List<DataApproval> getApprovalsAsList( DataApprovalLevel dataApprovalLevel,
+        DataApprovalWorkflow workflow, Period period, OrganisationUnit organisationUnit,
+        DataElementCategoryOptionCombo optionCombo, boolean accepted, Date created, User creator )
     {
         List<DataApproval> approvals = new ArrayList<>();
 
-        DataElementCategoryOptionCombo combo = categoryService.getDefaultDataElementCategoryOptionCombo();
         period = periodService.reloadPeriod( period );
 
-        approvals.add( new DataApproval( dataApprovalLevel, workflow, period, organisationUnit, combo, accepted, created, creator ) );
+        approvals.add( new DataApproval( dataApprovalLevel, workflow, period,
+            organisationUnit, optionCombo, accepted, created, creator ) );
 
         return approvals;
     }
@@ -711,5 +729,23 @@ public class DataApprovalController
         }
 
         return dataApprovalLevel;
+    }
+
+    private DataElementCategoryOptionCombo getAndValidateAttributeOptionCombo( String aoc )
+        throws WebMessageException
+    {
+        if ( aoc != null )
+        {
+            DataElementCategoryOptionCombo optionCombo = categoryService.getDataElementCategoryOptionCombo( aoc );
+
+            if ( optionCombo == null )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "Attribute option combo does not exist: " + aoc ) );
+            }
+
+            return optionCombo;
+        }
+
+        return categoryService.getDefaultDataElementCategoryOptionCombo();
     }
 }
