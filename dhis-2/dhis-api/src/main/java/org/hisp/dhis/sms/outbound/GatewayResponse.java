@@ -46,6 +46,7 @@ public enum GatewayResponse
     NO_DEFAULT_GATEWAY( "no gateway is set to default", "" ),
     AUTHENTICATION_FAILED( "authentication failed", "" ),
     NO_RECIPIENT( "no recipient", "No recipient found" ),
+    SMS_DISABLED( "sms notifications are disabled", "sms notifications are disabled" ),
     
     // -------------------------------------------------------------------------
     // BulkSms response codes
