@@ -33,6 +33,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Set;
+
 /**
  * @author Lars Helge Overland
  */
@@ -97,5 +99,20 @@ public class UserDeletionHandler
         }
 
         return null;
+    }
+
+    @Override
+    public String allowDeleteUser( User user )
+    {
+        Set listObjects = idObjectManager.listObjectCreatedByUser( user );
+
+        if ( !listObjects.isEmpty() )
+        {
+            return "User is referenced by other objects: " + String.join( ",", listObjects );
+        }
+        else
+        {
+            return null;
+        }
     }
 }

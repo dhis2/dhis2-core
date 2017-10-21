@@ -44,7 +44,11 @@ import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
+import org.hisp.dhis.user.User;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -542,5 +546,19 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         query.setParameter( "shortName", shortName );
 
         return ((Long) query.uniqueResult()).intValue();
+    }
+
+    @Override
+    public long countByUser( User user)
+    {
+        CriteriaBuilder builder = getSession().getCriteriaBuilder();
+        CriteriaQuery query = getSession().getCriteriaBuilder().createQuery();
+
+        Root root = query.from( clazz );
+        query.select( builder.count( root ) );
+
+        query.where( builder.equal( root.get( "user" ), user ) );
+
+        return (long) getSession().createQuery( query ).getSingleResult();
     }
 }

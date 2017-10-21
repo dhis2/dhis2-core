@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
  */
 
 import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.user.User;
 
 import java.util.Collection;
 import java.util.Date;
@@ -293,4 +294,11 @@ public interface GenericIdentifiableObjectStore<T>
      * @return the number of objects equal or newer than given date.
      */
     int getCountGeCreated( Date created );
+
+    /**
+     * Count all objects created by given User
+     * @param user
+     * @return number of objects created by given User
+     */
+    long countByUser( User user);
 }
