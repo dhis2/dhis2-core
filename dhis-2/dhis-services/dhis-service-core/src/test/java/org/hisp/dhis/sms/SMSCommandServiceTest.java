@@ -31,19 +31,15 @@ package org.hisp.dhis.sms;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.sms.command.CompletenessMethod;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
@@ -56,15 +52,10 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.Resource;
-
 import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
@@ -77,8 +68,6 @@ public class SMSCommandServiceTest extends DhisSpringTest
     public static final String WRONG_FORMAT_MESSAGE = "Wrong command format";
     public static final String MORE_THAN_ONE_ORGUNIT_MESSAGE = "Found more than one org unit for this number. Please specify one organisation unit";
     public static final String NO_USER_MESSAGE = "No user associated with this phone number. Please contact your supervisor.";
-    public static final String ALERT_FEEDBACK = "Your alert message sent";
-    public static final String PARAMETER_MISSING = "Mandatory parameter is missing";
     public static final String SUCCESS_MESSAGE = "Command has been processed successfully";
 
     private final ImmutableMap<String, Function<SMSCommand, String>> DEFAULT_MESSAGE_MAPPER = new ImmutableMap.Builder<String, Function<SMSCommand, String>>()
@@ -155,15 +144,11 @@ public class SMSCommandServiceTest extends DhisSpringTest
 
     private DataSet dataSetA;
 
-    private DataSet dataSetB;
-
     private User userA;
 
     private User userB;
 
     private UserGroup userGroupA;
-
-    private UserGroup userGroupB;
 
     private Program programA;
 
@@ -216,7 +201,7 @@ public class SMSCommandServiceTest extends DhisSpringTest
     }
 
     // -------------------------------------------------------------------------
-    // CRUD
+    // SAVE
     // -------------------------------------------------------------------------
 
     @Test
@@ -265,7 +250,7 @@ public class SMSCommandServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testUnregistrationParser()
+    public void testSaveUnregistrationParser()
     {
         smsCommandService.save( unregisteredParserCommand );
 
@@ -283,7 +268,7 @@ public class SMSCommandServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testEventRegistrationParser()
+    public void testSaveEventRegistrationParser()
     {
         smsCommandService.save( eventRegistrationCommand );
 
@@ -300,13 +285,9 @@ public class SMSCommandServiceTest extends DhisSpringTest
         assertFalse( dataElements.contains( dataElementC ) );
     }
 
-    @Test
-    public void TestFailToSaveDuplicateCommands()
-    {
-        smsCommandService.save( keyValueCommandA );
-
-        smsCommandService.save( keyValueCommandB );
-    }
+    // -------------------------------------------------------------------------
+    // UPDATE
+    // -------------------------------------------------------------------------
 
     @Test
     public void testAddSmsCodes()
@@ -339,6 +320,10 @@ public class SMSCommandServiceTest extends DhisSpringTest
 
         assertEquals( 2, updatedCommand.getSpecialCharacters().size() );
     }
+
+    // -------------------------------------------------------------------------
+    // DELETE
+    // -------------------------------------------------------------------------
 
     @Test
     public void testDelete()
