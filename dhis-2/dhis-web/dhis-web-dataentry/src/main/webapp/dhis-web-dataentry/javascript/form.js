@@ -119,6 +119,7 @@ dhis2.de.cst.colorWhite = '#fff';
 dhis2.de.cst.colorGrey = '#ccc';
 dhis2.de.cst.colorBorderActive = '#73ad72';
 dhis2.de.cst.colorBorder = '#aaa';
+dhis2.de.cst.colorLightGrey = '#dcdcdc';
 
 // Form types
 
@@ -1662,7 +1663,7 @@ function getAndInsertDataValues()
 
     $( '.entryfield' ).css( 'background-color', dhis2.de.cst.colorWhite ).css( 'border', '1px solid ' + dhis2.de.cst.colorBorder );
     $( '.entryselect' ).css( 'background-color', dhis2.de.cst.colorWhite ).css( 'border', '1px solid ' + dhis2.de.cst.colorBorder );
-    $( '.indicator' ).css( 'background-color', dhis2.de.cst.colorWhite ).css( 'border', '1px solid ' + dhis2.de.cst.colorBorder );
+    $( '.indicator' ).css( 'background-color', dhis2.de.cst.colorLightGrey  ).css( 'border', '1px solid ' + dhis2.de.cst.colorBorder );
     $( '.entrytrueonly' ).css( 'background-color', dhis2.de.cst.colorWhite );    
 
     clearFileEntryFields();
