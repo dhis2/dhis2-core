@@ -15,7 +15,7 @@ import java.util.List;
 public class MonitoringJobParameters
     implements JobParameters
 {
-    private static final long serialVersionUID = 5L;
+    private static final long serialVersionUID = -1683853240301569669L;
 
     @Property
     private List<Period> periods;

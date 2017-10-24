@@ -11,7 +11,7 @@ import org.hisp.dhis.schema.annotation.Property;
 public class TestJobParameters
     implements JobParameters
 {
-    private static final long serialVersionUID = 10L;
+    private static final long serialVersionUID = 3600315605964091689L;
 
     @Property
     private String message;

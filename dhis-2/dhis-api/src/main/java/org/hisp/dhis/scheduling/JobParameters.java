@@ -1,6 +1,5 @@
 package org.hisp.dhis.scheduling;
 
-
 import java.io.Serializable;
 
 /**

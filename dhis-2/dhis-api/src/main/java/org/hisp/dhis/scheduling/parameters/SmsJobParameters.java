@@ -12,7 +12,7 @@ import java.util.List;
 public class SmsJobParameters
     implements JobParameters
 {
-    private static final long serialVersionUID = 9L;
+    private static final long serialVersionUID = -6116489359345047961L;
 
     @Property
     private String smsSubject;

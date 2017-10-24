@@ -11,7 +11,7 @@ import java.util.Set;
 public class AnalyticsJobParameters
     implements JobParameters
 {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 4613054056442242637L;
 
     @Property
     private Integer lastYears;

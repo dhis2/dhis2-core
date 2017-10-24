@@ -8,7 +8,7 @@ import org.hisp.dhis.scheduling.JobParameters;
 public class PushAnalysisJobParameters
     implements JobParameters
 {
-    private static final long serialVersionUID = 7L;
+    private static final long serialVersionUID = -1848833906375595488L;
 
     private int pushAnalysisId;
 
