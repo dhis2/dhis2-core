@@ -81,9 +81,6 @@ public class DefaultPredictionService implements PredictionService
     private static final Log log = LogFactory.getLog( DefaultPredictionService.class );
 
     @Autowired
-    private PredictorStore predictorStore;
-
-    @Autowired
     private ConstantService constantService;
 
     @Autowired
