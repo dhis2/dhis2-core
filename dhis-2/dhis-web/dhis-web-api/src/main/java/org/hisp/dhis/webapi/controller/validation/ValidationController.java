@@ -43,6 +43,7 @@ import org.hisp.dhis.scheduling.TaskCategory;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.validation.ValidationAnalysisParams;
 import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.ValidationSummary;
 import org.hisp.dhis.validation.notification.ValidationResultNotificationTask;
@@ -125,7 +126,12 @@ public class ValidationController
 
         ValidationSummary summary = new ValidationSummary();
 
-        summary.setValidationRuleViolations( new ArrayList<>( validationService.startInteractiveValidationAnalysis( dataSet, period, orgUnit, attributeOptionCombo ) ) );
+
+        ValidationAnalysisParams params = validationService.newParamsBuilder( dataSet, orgUnit, period )
+            .withAttributeOptionCombo( attributeOptionCombo )
+            .build();
+
+        summary.setValidationRuleViolations( new ArrayList<>( validationService.validationAnalysis( params ) ) );
         summary.setCommentRequiredViolations( validationService.validateRequiredComments( dataSet, period, orgUnit, attributeOptionCombo ) );
 
         return summary;

@@ -46,7 +46,6 @@ import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.system.util.SmsUtils;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -66,8 +65,6 @@ public class SmsMessageSender
 
     private static final String NO_CONFIG = "No default gateway configured";
 
-    private static final String SMS_DISABLED = "sms notifications are disabled";
-
     private static final Pattern SUMMARY_PATTERN = Pattern.compile( "\\s*High\\s*[0-9]*\\s*,\\s*medium\\s*[0-9]*\\s*,\\s*low\\s*[0-9]*\\s*" );
 
     // -------------------------------------------------------------------------
@@ -81,9 +78,6 @@ public class SmsMessageSender
     private List<SmsGateway> smsGateways;
 
     @Autowired
-    private CurrentUserService currentUserService;
-
-    @Autowired
     private UserSettingService userSettingService;
 
     // -------------------------------------------------------------------------
@@ -94,18 +88,22 @@ public class SmsMessageSender
     public OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender, Set<User> users,
         boolean forceSend )
     {
+        if ( users.isEmpty() )
+        {
+            log.info( GatewayResponse.NO_RECIPIENT.getResponseMessage() );
+
+            return new OutboundMessageResponse( GatewayResponse.NO_RECIPIENT.getResponseMessage(), GatewayResponse.NO_RECIPIENT, false );
+        }
+
         Set<User> toSendList = new HashSet<>();
 
         toSendList = users.stream().filter( u -> forceSend || isQualifiedReceiver( u ) ).collect( Collectors.toSet() );
 
         if ( toSendList.isEmpty() )
         {
-            return new OutboundMessageResponse( SMS_DISABLED, GatewayResponse.FAILED, false );
-        }
+            log.info( GatewayResponse.SMS_DISABLED.getResponseMessage() );
 
-        if ( toSendList.isEmpty() )
-        {
-            return new OutboundMessageResponse( "No recipient found", GatewayResponse.NO_RECIPIENT, false );
+            return new OutboundMessageResponse( GatewayResponse.SMS_DISABLED.getResponseMessage(), GatewayResponse.SMS_DISABLED, false );
         }
 
         // Extract summary from text in case of COLLECTIVE_SUMMARY
