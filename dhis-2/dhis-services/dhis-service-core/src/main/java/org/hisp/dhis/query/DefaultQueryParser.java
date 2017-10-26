@@ -74,15 +74,36 @@ public class DefaultQueryParser implements QueryParser
             if ( split.length >= 3 )
             {
                 int index = split[0].length() + ":".length() + split[1].length() + ":".length();
-                junction.add( getRestriction( schema, split[0], split[1], filter.substring( index ) ) );
+
+                if ( split[0].equals( "identifiable" ) )
+                {
+                    junction.add( handleIdentifiablePath( schema, split[1], filter.substring( index ) ));
+                } else
+                {
+                    junction.add( getRestriction( schema, split[0], split[1], filter.substring( index ) ) );
+                }
             }
             else
             {
                 junction.add( getRestriction( schema, split[0], split[1], null ) );
             }
         }
+        System.out.println("junction: " + junction);
 
         return query;
+    }
+
+    private Junction handleIdentifiablePath( Schema schema, String operator, Object arg ) {
+        Restriction displayNameRestriction = getRestriction( schema,"name", operator, arg );
+        Restriction uidRestriction = getRestriction( schema,"id", operator, arg );
+        Restriction codeRestriction = getRestriction( schema,"code", operator, arg );
+
+        Junction identifiableJunction = new Disjunction( schema );
+        identifiableJunction.add( displayNameRestriction );
+        identifiableJunction.add( uidRestriction );
+        identifiableJunction.add( codeRestriction );
+
+        return identifiableJunction;
     }
 
     @Override
@@ -177,6 +198,10 @@ public class DefaultQueryParser implements QueryParser
             case "!$ilike":
             {
                 return Restrictions.notIlike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
+            }
+            case "token":
+            {
+                return Restrictions.token(path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START);
             }
             case "endsWith":
             case "ilike$":
