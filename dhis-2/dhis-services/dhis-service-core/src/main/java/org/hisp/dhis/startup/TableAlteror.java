@@ -1032,20 +1032,6 @@ public class TableAlteror
         executeSql( "update programindicator set analyticstype = programindicatoranalyticstype" );
         executeSql( "alter table programindicator drop programindicatoranalyticstype" );
 
-
-        // Removing invalid duplicates. The newest duplicates are invalid
-        executeSql( "DELETE FROM validationresult WHERE validationresultid IN (SELECT B.validationresultid as validationresultid\n" +
-            "FROM validationresult A\n" +
-            "  INNER JOIN validationresult B\n" +
-            "    ON  A.validationruleid = B.validationruleid\n" +
-            "    AND A.organisationunitid = B.organisationunitid\n" +
-            "    AND A.periodid = B.periodid\n" +
-            "    AND A.dayinperiod = B.dayinperiod\n" +
-            "    AND A.validationresultid != B.validationresultid\n" +
-            "    AND B.notificationsent = true)" );
-        // Property(notificationSent) was mistakenly put in UNIQUE group, causing problems
-        executeSql( "ALTER TABLE validationresult DROP CONSTRAINT uk_pkbdrcmw7glqcpn7m4fcyxxls;" );
-
         log.info( "Tables updated" );
     }
 
