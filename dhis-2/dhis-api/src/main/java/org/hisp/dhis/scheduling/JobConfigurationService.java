@@ -1,10 +1,11 @@
 package org.hisp.dhis.scheduling;
 
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.schema.Property;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -15,7 +16,7 @@ import java.util.Map;
  */
 public interface JobConfigurationService
 {
-    String ID = OrganisationUnitService.class.getName();
+    String ID = JobConfiguration.class.getName();
 
     /**
      * This method is called when the context is ready or updated. Since this can be called several times, the schedulingManager checks if the job is already scheduled.
@@ -45,9 +46,9 @@ public interface JobConfigurationService
     /**
      * Delete a job configuration
      *
-     * @param jobId the id of the job configuration to be deleted
+     * @param uid the id of the job configuration to be deleted
      */
-    void deleteJobConfiguration( int jobId );
+    void deleteJobConfiguration( String uid );
 
     /**
      * Get job configuration for given id
@@ -94,4 +95,8 @@ public interface JobConfigurationService
      * @return map with parameters classes
      */
     Map<String, Map<String, Property>> getJobParametersSchema();
+
+    JobConfiguration create( HashMap<String, String> requestJobConfiguration );
+
+    List<ErrorReport> validate( JobConfiguration jobConfiguration );
 }

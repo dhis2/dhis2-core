@@ -145,6 +145,7 @@ public class JobObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void preDelete( T persistedObject, ObjectBundle bundle )
     {
+        System.out.println("preDelete");
         if ( !JobConfiguration.class.isInstance( persistedObject ) )
         {
             return;

@@ -27,8 +27,7 @@ public class JobConfigurationDeserializer
         ObjectMapper mapper = (ObjectMapper) jsonParser.getCodec();
         ObjectNode root = mapper.readTree(jsonParser);
 
-        String jobTypeString = root.get( "jobType" ).toString();
-        JobType jobType = JobType.valueOf( jobTypeString.substring( 1, jobTypeString.length() - 1 ) );
+        JobType jobType = JobType.valueOf( root.get( "jobType" ).textValue() );
         assertNotNull(jobType, "jobType must not be null.");
 
         JobParameters jobParameters = null;
