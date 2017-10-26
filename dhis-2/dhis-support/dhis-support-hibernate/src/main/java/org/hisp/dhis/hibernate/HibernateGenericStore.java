@@ -364,7 +364,6 @@ public class HibernateGenericStore<T>
         }
 
         criteria.setCacheable( cacheable );
-
         return criteria;
     }
 

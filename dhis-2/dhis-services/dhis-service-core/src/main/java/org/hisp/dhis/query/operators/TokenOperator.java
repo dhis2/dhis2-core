@@ -6,6 +6,9 @@ import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Created by henninghakonsen on 24/10/2017.
  * Project: dhis-2.
@@ -30,7 +33,7 @@ public class TokenOperator extends Operator{
     }
 
     @Override
-    public Criterion getHibernateCriterion(QueryPath queryPath )
+    public Criterion getHibernateCriterion( QueryPath queryPath )
     {
         if ( caseSensitive )
         {
@@ -57,20 +60,40 @@ public class TokenOperator extends Operator{
             String s1 = caseSensitive ? getValue( String.class ) : getValue( String.class ).toLowerCase();
             String s2 = caseSensitive ? (String) value : ((String) value).toLowerCase();
 
-            switch ( matchMode )
+            List<String> s1_tokens = Arrays.asList( s1.replaceAll("[^a-zA-Z0-9]", " ").split("[\\s@&.?$+-]+") );
+            List<String> s2_tokens = Arrays.asList( s2.replaceAll("[^a-zA-Z0-9]", " ").split("[\\s@&.?$+-]+") );
+
+            if ( s1_tokens.size() == 1 )
             {
-                case EXACT:
-                    return s2.equals( s1 );
-                case START:
-                    return s2.startsWith( s1 );
-                case END:
-                    return s2.endsWith( s1 );
-                case ANYWHERE:
-                    return s2.contains( s1 );
+                return s2.contains( s1 );
+            } else {
+                for ( String s : s1_tokens )
+                {
+                    boolean found = false;
+                    for ( String s3 : s2_tokens )
+                    {
+                        switch ( matchMode )
+                        {
+                            case EXACT:
+                                found = s3.equals( s );
+                                break;
+                            case START:
+                                found = s3.startsWith( s );
+                                break;
+                            case END:
+                                found = s3.endsWith( s );
+                                break;
+                            case ANYWHERE:
+                                found = s3.contains( s );
+                        }
+                        if ( found ) break;
+                    }
+                    if ( !found ) return false;
+                }
             }
         }
 
-        return false;
+        return true;
     }
 
     private org.hibernate.criterion.MatchMode getMatchMode(org.hisp.dhis.query.operators.MatchMode matchMode )
