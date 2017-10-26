@@ -468,4 +468,28 @@ public class CriteriaQueryEngineTest
         assertEquals( 1, objects.size() );
         assertEquals( "abcdefghijB", objects.get( 0 ).getUid() );
     }
+
+    @Test
+    @Ignore
+    public void testIdentifiableSearch()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ) );
+
+        Junction junction = query.getRootJunction();
+
+        Restriction displayNameRestriction = Restrictions.eq( "name", "de" );
+        Restriction uidRestriction = Restrictions.eq( "id", "de" );
+        Restriction codeRestriction = Restrictions.eq( "code", "de" );
+
+        Junction identifiableJunction = new Disjunction( schemaService.getDynamicSchema( DataElementGroup.class ) );
+        identifiableJunction.add( displayNameRestriction );
+        identifiableJunction.add( uidRestriction );
+        identifiableJunction.add( codeRestriction );
+
+        junction.add( identifiableJunction );
+
+        List<? extends IdentifiableObject> objects = queryEngine.query( query );
+        assertEquals( 6, objects.size() );
+    }
+
 }
