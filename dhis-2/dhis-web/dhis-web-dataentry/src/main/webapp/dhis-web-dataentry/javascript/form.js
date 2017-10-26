@@ -1775,7 +1775,7 @@ function insertDataValues( json )
     		if ( dhis2.de.validateOrgUnitOpening( organisationUnits[dhis2.de.getCurrentOrganisationUnit()], period ) )
     		{
     			dhis2.de.lockForm();
-    	        setHeaderMessage( i18n_orgunit_is_closed );
+            setHeaderDelayMessage( i18n_orgunit_is_closed );
     	        return;
     		}
     	}
@@ -1798,14 +1798,11 @@ function insertDataValues( json )
     	if ( orgUnitClosed )
 		{
     		dhis2.de.lockForm();
-	        setHeaderMessage( i18n_orgunit_is_closed );
+	        setHeaderDelayMessage( i18n_orgunit_is_closed );
 	        return;
 		}
 
     }
-    
-    //Hide i18n_orgunit_is_closed message
-    hideHeaderMessage();
     
     $.safeEach( json.dataValues, function( i, value )
     {
