@@ -54,6 +54,8 @@ import org.springframework.security.access.method.P;
 
 import java.util.*;
 
+import static org.junit.Assert.*;
+
 /**
  * Created by zubair@dhis2.org on 11.10.17.
  */
@@ -178,7 +180,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         List<RuleEffect> ruleEffects = programRuleEngine.evaluateEnrollment( programStageInstance );
 
-        System.out.println("size" + ruleEffects.size());
+        assertEquals( 2, ruleEffects.size() );
     }
 
     @Test
