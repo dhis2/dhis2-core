@@ -28,14 +28,19 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.api.client.util.Sets;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.*;
 import org.hisp.dhis.rules.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -70,6 +75,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE, prv -> RuleVariableNewestStageEvent.create( prv.getName(),
             prv.getDataElement().getUid(), prv.getProgramStage().getUid() ,RuleValueType.TEXT ) )
         .build();
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -82,23 +88,23 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
 
     @Override
-    public List<Rule> getMappedProgramRules()
+    public List<Rule> toMappedProgramRules()
     {
         List<ProgramRule> programRules = programRuleService.getAllProgramRule();
 
-        return getMappedProgramRules( programRules );
+        return toMappedProgramRules( programRules );
     }
 
     @Override
-    public List<Rule> getMappedProgramRules( Program program )
+    public List<Rule> toMappedProgramRules( Program program )
     {
         List<ProgramRule> programRules = programRuleService.getProgramRule( program );
 
-        return getMappedProgramRules( programRules );
+        return toMappedProgramRules( programRules );
     }
 
     @Override
-    public List<Rule> getMappedProgramRules( List<ProgramRule> programRules )
+    public List<Rule> toMappedProgramRules( List<ProgramRule> programRules )
     {
         List<Rule> rules = programRules.stream().map( pRule -> toRule( pRule ) ).collect( Collectors.toList() );
 
@@ -106,27 +112,59 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     }
 
     @Override
-    public List<RuleVariable> getMappedProgramRuleVariables()
+    public List<RuleVariable> toMappedProgramRuleVariables()
     {
         List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getAllProgramRuleVariable();
 
-        return getMappedProgramRuleVariables( programRuleVariables );
+        return toMappedProgramRuleVariables( programRuleVariables );
     }
 
     @Override
-    public List<RuleVariable> getMappedProgramRuleVariables( Program program )
+    public List<RuleVariable> toMappedProgramRuleVariables( Program program )
     {
         List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( program );
 
-        return getMappedProgramRuleVariables( programRuleVariables );
+        return toMappedProgramRuleVariables( programRuleVariables );
     }
 
     @Override
-    public List<RuleVariable> getMappedProgramRuleVariables( List<ProgramRuleVariable> programRuleVariables )
+    public List<RuleVariable> toMappedProgramRuleVariables( List<ProgramRuleVariable> programRuleVariables )
     {
         List<RuleVariable> ruleVariables = programRuleVariables.stream().map( prv -> toRuleVariable( prv ) ).collect( Collectors.toList() );
 
         return ruleVariables;
+    }
+
+    @Override
+    public RuleEnrollment toMappedRuleEnrollment( ProgramInstance enrollment )
+    {
+        return RuleEnrollment.create( enrollment.getUid(), enrollment.getIncidentDate(),
+            enrollment.getEnrollmentDate(), RuleEnrollment.Status.valueOf( enrollment.getStatus().toString() ), enrollment.getAttributeValues().stream()
+            .map( attr -> RuleAttributeValue.create( attr.getAttribute().getUid(), attr.getValue() ) )
+            .collect( Collectors.toList() ) );
+    }
+
+    @Override
+    public List<RuleEvent> toMappedRuleEvents ( Set<ProgramStageInstance> programStageInstances, ProgramStageInstance psiToEvaluate )
+    {
+        List<RuleEvent> ruleEvents = programStageInstances.stream()
+            .filter( psi -> !psi.getUid().equals( psiToEvaluate.getUid() ) )
+            .map( ps -> RuleEvent.create( ps.getUid(), ps.getProgramStage().getUid(),
+             RuleEvent.Status.valueOf( ps.getStatus().toString() ), ps.getExecutionDate() != null ? ps.getExecutionDate() : new Date(), ps.getDueDate(), ps.getDataValues().stream()
+                .map(dv -> RuleDataValue.create( dv.getCreated(), dv.getProgramStageInstance().getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
+                .collect( Collectors.toList() ) ) )
+                .collect( Collectors.toList() );
+
+        return ruleEvents;
+    }
+
+    @Override
+    public RuleEvent toMappedRuleEvent( ProgramStageInstance psi )
+    {
+        return RuleEvent.create( psi.getProgramInstance().getUid(), psi.getUid(), RuleEvent.Status.valueOf( psi.getStatus().toString() ), psi.getExecutionDate(),
+         psi.getDueDate(), psi.getDataValues().stream()
+            .map(dv -> RuleDataValue.create( dv.getCreated(), psi.getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
+            .collect( Collectors.toList() ) );
     }
 
     // ---------------------------------------------------------------------

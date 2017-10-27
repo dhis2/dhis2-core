@@ -1,4 +1,4 @@
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.webapi.controller.event;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,17 +28,17 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.commons.util.ExpressionUtils;
-import org.hisp.dhis.rules.RuleExpressionEvaluator;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Created by zubair@dhis2.org on 11.10.17.
+ * Created by zubair@dhis2.org on 24.10.17.
  */
-public class ProgramRuleExpressionEvaluator implements RuleExpressionEvaluator
+@RestController
+@RequestMapping( value = "/programRuleEngine" )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+public class ProgramRuleEngineController
 {
-    @Override
-    public String evaluate( String expression )
-    {
-       return ExpressionUtils.evaluate( expression ).toString();
-    }
 }

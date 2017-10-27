@@ -28,17 +28,20 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.commons.util.ExpressionUtils;
-import org.hisp.dhis.rules.RuleExpressionEvaluator;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+
+import java.util.List;
 
 /**
- * Created by zubair@dhis2.org on 11.10.17.
+ * Created by zubair@dhis2.org on 23.10.17.
  */
-public class ProgramRuleExpressionEvaluator implements RuleExpressionEvaluator
+public interface ProgramRuleEngineService
 {
-    @Override
-    public String evaluate( String expression )
-    {
-       return ExpressionUtils.evaluate( expression ).toString();
-    }
+    List<RuleEffect> evaluate(ProgramInstance enrollment );
 }

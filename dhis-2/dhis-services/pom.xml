@@ -43,6 +43,10 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-test</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>core-rules</artifactId>
+    </dependency>
   </dependencies>
   <properties>
     <rootDir>../</rootDir>

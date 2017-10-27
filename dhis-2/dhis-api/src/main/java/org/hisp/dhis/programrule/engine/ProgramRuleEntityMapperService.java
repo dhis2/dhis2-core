@@ -29,28 +29,74 @@ package org.hisp.dhis.programrule.engine;
  */
 
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
-import org.hisp.dhis.rules.models.Rule;
-import org.hisp.dhis.rules.models.RuleVariable;
+import org.hisp.dhis.rules.models.*;
 
 import java.util.List;
+import java.util.Set;
 
 /**
+ * RuleEngine has its own domain model. This service is responsible for converting DHIS domain objects to
+ * RuleEngine domain objects and vice versa as well.
+ *
  * Created by zubair@dhis2.org on 19.10.17.
  */
 public interface ProgramRuleEntityMapperService
 {
-    List<Rule> getMappedProgramRules();
+    /***
+     * @return A list of mapped Rules for all programs
+     */
+    List<Rule> toMappedProgramRules();
 
-    List<Rule> getMappedProgramRules( Program program );
+    /**
+     *@param program The program which provides ProgramRule.
+     * @return A list of mapped Rules for a specific program.
+     */
+    List<Rule> toMappedProgramRules( Program program );
 
-    List<Rule> getMappedProgramRules( List<ProgramRule> programRules);
+    /**
+     * @param programRules The list of program rules to be mapped
+     * @return A list of mapped Rules for list of programs.
+     */
+    List<Rule> toMappedProgramRules( List<ProgramRule> programRules);
 
-    List<RuleVariable> getMappedProgramRuleVariables( Program program );
+    /**
+     * @param program The program which provides ProgramRuleVariable.
+     * @return A list of mapped RuleVariables for a specific program.
+     */
+    List<RuleVariable> toMappedProgramRuleVariables( Program program );
 
-    List<RuleVariable> getMappedProgramRuleVariables();
+    /***
+     * @return A list of mapped RuleVariables for all programs.
+     */
+    List<RuleVariable> toMappedProgramRuleVariables();
 
-    List<RuleVariable> getMappedProgramRuleVariables( List<ProgramRuleVariable> programRuleVariables );
+    /**
+     *@param programRuleVariables The list of ProgramRuleVariable to be mapped.
+     * @return A list of mapped RuleVariables for list of programs.
+     */
+    List<RuleVariable> toMappedProgramRuleVariables( List<ProgramRuleVariable> programRuleVariables );
 
+    /*
+     * @param programStageInstances list of events
+     * @param psiToEvaluate event to filter out from the resulting list.
+     *
+     * @return A list of mapped events for the list of DHIS events.
+     */
+    List<RuleEvent> toMappedRuleEvents( Set<ProgramStageInstance> programStageInstances, ProgramStageInstance psiToEvaluate );
+
+    /*
+     * @param psiToEvaluate event to converted.
+     * @return A mapped event for corresponding DHIS event.
+     */
+    RuleEvent toMappedRuleEvent( ProgramStageInstance psiToEvaluate );
+
+    /*
+     * @return A mapped RuleEnrollment for DHIS enrollment i.e ProgramInstance.
+     */
+    RuleEnrollment toMappedRuleEnrollment( ProgramInstance programInstance );
 }

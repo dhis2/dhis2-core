@@ -28,14 +28,78 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.programrule.*;
+import org.hisp.dhis.rules.RuleEngine;
+import org.hisp.dhis.rules.RuleEngineContext;
+import org.hisp.dhis.rules.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by zubair@dhis2.org on 11.10.17.
  */
 public class ProgramRuleEngine
 {
-    @Autowired
-    private DefaultProgramRuleEntityMapperService defaultProgramRuleEntityMapperService;
+    private static final Log log = LogFactory.getLog( ProgramRuleEngine.class );
 
+    @Autowired
+    private ProgramRuleEntityMapperService programRuleEntityMapperService;
+
+    @Autowired
+    private ProgramRuleExpressionEvaluator programRuleExpressionEvaluator;
+
+    @Autowired
+    private ProgramRuleService programRuleService;
+
+    @Autowired
+    private ProgramRuleVariableService programRuleVariableService;
+
+    public List<ProgramRuleAction> evaluateEvent( ProgramStageInstance event )
+    {
+        return null;
+    }
+
+    public List<RuleEffect> evaluateEnrollment( ProgramStageInstance programStageInstance ) throws Exception
+    {
+        if ( programStageInstance == null )
+        {
+            return new ArrayList<>();
+        }
+
+        ProgramInstance enrollment = programStageInstance.getProgramInstance();
+
+        List<ProgramRule> programRules = programRuleService.getProgramRule( enrollment.getProgram() );
+
+        List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( enrollment.getProgram() );
+
+        RuleEnrollment ruleEnrollment = programRuleEntityMapperService.toMappedRuleEnrollment( enrollment );
+
+        List<RuleEvent> ruleEvents = programRuleEntityMapperService.toMappedRuleEvents( enrollment.getProgramStageInstances(), programStageInstance );
+
+        RuleEngine ruleEngine = ruleEngineBuilder( programRules, programRuleVariables ).enrollment( ruleEnrollment ).events( ruleEvents ).build();
+
+        List<RuleEffect> ruleEffects = ruleEngine.evaluate( programRuleEntityMapperService.toMappedRuleEvent( programStageInstance )  ).call();
+
+        return ruleEffects;
+    }
+
+    private RuleEngine.Builder ruleEngineBuilder( List<ProgramRule> programRules, List<ProgramRuleVariable> programRuleVariables )
+    {
+        RuleEngine.Builder builder = RuleEngineContext
+            .builder( programRuleExpressionEvaluator )
+            .rules( programRuleEntityMapperService.toMappedProgramRules( programRules ) )
+            .ruleVariables( programRuleEntityMapperService.toMappedProgramRuleVariables( programRuleVariables ) )
+            .build().toEngineBuilder();
+
+        return builder;
+    }
 }

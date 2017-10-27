@@ -402,6 +402,11 @@
         <artifactId>dhis-support-external</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>core-rules</artifactId>
+        <version>0.3.1-SNAPSHOT</version>
+      </dependency>
 
       <!-- Spring -->
       <dependency>

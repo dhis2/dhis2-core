@@ -231,4 +231,9 @@ public class ExpressionUtils
         
         return expression;
     }
+
+    public static Object evaluate( String expression )
+    {
+        return evaluate( expression, null );
+    }
 }
