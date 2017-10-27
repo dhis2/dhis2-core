@@ -371,6 +371,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PATCH )
+    @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void partialUpdateObject(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
         HttpServletRequest request, HttpServletResponse response ) throws Exception
@@ -414,6 +415,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = { RequestMethod.PUT, RequestMethod.PATCH } )
+    @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void updateObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty, @RequestParam Map<String, String> rpParameters,
         HttpServletRequest request, HttpServletResponse response ) throws Exception
