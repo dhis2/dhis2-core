@@ -119,6 +119,7 @@ dhis2.de.cst.colorWhite = '#fff';
 dhis2.de.cst.colorGrey = '#ccc';
 dhis2.de.cst.colorBorderActive = '#73ad72';
 dhis2.de.cst.colorBorder = '#aaa';
+dhis2.de.cst.colorLightGrey = '#dcdcdc';
 
 // Form types
 
@@ -1662,7 +1663,7 @@ function getAndInsertDataValues()
 
     $( '.entryfield' ).css( 'background-color', dhis2.de.cst.colorWhite ).css( 'border', '1px solid ' + dhis2.de.cst.colorBorder );
     $( '.entryselect' ).css( 'background-color', dhis2.de.cst.colorWhite ).css( 'border', '1px solid ' + dhis2.de.cst.colorBorder );
-    $( '.indicator' ).css( 'background-color', dhis2.de.cst.colorWhite ).css( 'border', '1px solid ' + dhis2.de.cst.colorBorder );
+    $( '.indicator' ).css( 'background-color', dhis2.de.cst.colorLightGrey  ).css( 'border', '1px solid ' + dhis2.de.cst.colorBorder );
     $( '.entrytrueonly' ).css( 'background-color', dhis2.de.cst.colorWhite );    
 
     clearFileEntryFields();
@@ -1775,7 +1776,7 @@ function insertDataValues( json )
     		if ( dhis2.de.validateOrgUnitOpening( organisationUnits[dhis2.de.getCurrentOrganisationUnit()], period ) )
     		{
     			dhis2.de.lockForm();
-    	        setHeaderMessage( i18n_orgunit_is_closed );
+            setHeaderDelayMessage( i18n_orgunit_is_closed );
     	        return;
     		}
     	}
@@ -1798,14 +1799,11 @@ function insertDataValues( json )
     	if ( orgUnitClosed )
 		{
     		dhis2.de.lockForm();
-	        setHeaderMessage( i18n_orgunit_is_closed );
+	        setHeaderDelayMessage( i18n_orgunit_is_closed );
 	        return;
 		}
 
     }
-    
-    //Hide i18n_orgunit_is_closed message
-    hideHeaderMessage();
     
     $.safeEach( json.dataValues, function( i, value )
     {
