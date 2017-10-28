@@ -25,12 +25,14 @@
         var optionComboId = split.optionComboId;
         var orgUnitid = split.organisationUnitId;
         var periodId = $( '#selectedPeriodId' ).val();
+        var dataSetId = $( '#selectedDataSetId' ).val();
         var cc = dhis2.de.getCurrentCategoryCombo();
         var cp = dhis2.de.getCurrentCategoryOptionsQueryValue
 
         var formData = {
             'de': dataElementId,
             'co': optionComboId,
+            'ds': dataSetId,
             'ou': orgUnitid,
             'pe': periodId
         };

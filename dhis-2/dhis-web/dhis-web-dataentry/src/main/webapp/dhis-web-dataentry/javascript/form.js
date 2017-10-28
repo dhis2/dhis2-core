@@ -1850,7 +1850,8 @@ function insertDataValues( json )
                     'de': split.dataElementId,
                     'co': split.optionComboId,
                     'ou': split.organisationUnitId,
-                    'pe': $( '#selectedPeriodId' ).val()
+                    'pe': $( '#selectedPeriodId' ).val(),
+                    'ds': $( '#selectedDataSetId' ).val()
                 };
 
                 var cc = dhis2.de.getCurrentCategoryCombo();
