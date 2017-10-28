@@ -57,7 +57,7 @@ public class Http401LoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticat
     @Override
     public void commence( HttpServletRequest request, HttpServletResponse response, AuthenticationException authException ) throws IOException, ServletException
     {
-        if ( "XMLHttpRequest".equals( request.getHeader( "X-Requested-With" ) ) || isApiRequest( request ) )
+        if ( "XMLHttpRequest".equals( request.getHeader( "X-Requested-With" ) ) )
         {
             response.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
             response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
@@ -66,10 +66,5 @@ public class Http401LoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticat
         }
 
         super.commence( request, response, authException );
-    }
-
-    private boolean isApiRequest( HttpServletRequest request )
-    {
-        return request.getRequestURI().matches( ".*/api/.*" ) ?  true : false;
     }
 }

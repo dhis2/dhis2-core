@@ -1,0 +1,10 @@
+{
+  "secret": "ef7c4d3d4-731b-669b-c47c-74ed5e7e28e",
+  "name": "testOAuth2",
+  "cid": "testOauth2",
+  "grantTypes": [
+    "password",
+    "refresh_token",
+    "authorization_code"
+  ]
+}

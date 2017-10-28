@@ -2072,4 +2072,43 @@ public abstract class DhisConvenienceTest
         return new ProgramDataElementDimensionItem( pr, de );
     }
 
+    protected User createTestUser( String username, String password, String... authorities )
+    {
+        Assert.notNull( userService, "UserService must be injected in test" );
+
+
+        UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
+        userAuthorityGroup.setUid( CodeGenerator.generateUid()  );
+        userAuthorityGroup.setCode( "TestUser" );
+        userAuthorityGroup.setName( "TestUser" );
+        userAuthorityGroup.setDescription( "Test User" );
+        userAuthorityGroup.setAuthorities( Sets.newHashSet( authorities ) );
+
+        userService.addUserAuthorityGroup( userAuthorityGroup );
+
+        User user = new User();
+        user.setUid( CodeGenerator.generateUid()  );
+        user.setCode( username );
+        user.setFirstName( username );
+        user.setSurname( username );
+
+        userService.addUser( user );
+
+        UserCredentials userCredentials = new UserCredentials();
+        userCredentials.setUid( CodeGenerator.generateUid()  );
+        userCredentials.setCode( username );
+        userCredentials.setUser( user );
+        userCredentials.setUserInfo( user );
+        userCredentials.setUsername( username );
+        userCredentials.getUserAuthorityGroups().add( userAuthorityGroup );
+
+        userService.encodeAndSetPassword( userCredentials, password );
+        userService.addUserCredentials( userCredentials );
+
+        user.setUserCredentials( userCredentials );
+        userService.updateUser( user );
+
+        return user;
+    }
+
 }
