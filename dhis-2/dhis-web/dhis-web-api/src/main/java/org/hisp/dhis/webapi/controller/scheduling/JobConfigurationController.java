@@ -76,7 +76,6 @@ public class JobConfigurationController
         } else {
             webMessageService.send(  WebMessageUtils.objectReport( importReport ), response, request );
         }
-
     }
 
     // Supportive API endpoints

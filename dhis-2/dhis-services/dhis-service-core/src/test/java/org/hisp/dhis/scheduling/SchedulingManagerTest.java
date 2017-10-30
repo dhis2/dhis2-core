@@ -42,18 +42,8 @@ import static org.junit.Assert.assertEquals;
 public class SchedulingManagerTest
     extends DhisSpringTest
 {
-    String CRON_DAILY_11PM = "0 0 23 * * ?";
-    String CRON_DAILY_0AM = "0 0 0 * * ?";
-    String CRON_DAILY_2AM = "0 0 2 * * ?";
-    String CRON_DAILY_5AM = "0 0 5 * * ?";
-    String CRON_DAILY_6AM = "0 0 6 * * ?";
-    String CRON_DAILY_7AM = "0 0 7 * * ?";
-    String CRON_DAILY_8AM = "0 0 8 * * ?";
-
     String CRON_EVERY_MIN = "0 * * ? * *";
     String CRON_EVERY_SEC = "* * * ? * *";
-
-    String CRON_TEST = "0 * * * * ?";
 
     JobConfiguration jobA;
     JobConfiguration jobB;
@@ -84,8 +74,6 @@ public class SchedulingManagerTest
 
         jobConfigurationService.addJobConfiguration( jobA );
         jobConfigurationService.addJobConfiguration( jobB );
-
-        System.out.println(jobConfigurationService.getAllJobConfigurations());
 
         schedulingManager.scheduleJob( jobA );
         schedulingManager.scheduleJob( jobB );

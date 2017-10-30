@@ -19,6 +19,11 @@ public class TestJobParameters
     public TestJobParameters()
     {}
 
+    public TestJobParameters( String message )
+    {
+        this.message = message;
+    }
+
     @JacksonXmlProperty
     @JsonProperty
     public String getMessage()
