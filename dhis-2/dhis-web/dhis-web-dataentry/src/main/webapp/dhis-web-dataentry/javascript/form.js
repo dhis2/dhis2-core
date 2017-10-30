@@ -722,6 +722,7 @@ dhis2.de.loadForm = function()
 
 
                   dhis2.de.insertOptionSets();
+                  dhis2.de.enableDEDescriptionEvent();
 
 	            } );
 	        } 
@@ -743,6 +744,7 @@ dhis2.de.loadForm = function()
 
        	                loadDataValues();
        	                dhis2.de.insertOptionSets();
+                        dhis2.de.enableDEDescriptionEvent();
        	            } );
                 });
             }
@@ -774,6 +776,7 @@ dhis2.de.loadForm = function()
             }
 
             dhis2.de.insertOptionSets();
+
             loadDataValues();
         } );
     }
@@ -3276,6 +3279,26 @@ dhis2.de.loadOptionSets = function()
 
     deferred.resolve();
 };
+
+/**
+ * Enable event for showing DataElement description when click on
+ * a DataElement label
+ */
+dhis2.de.enableDEDescriptionEvent = function()
+{
+    $('.dataelement-label, .indicator-label').on({
+        "click": function () {
+            var description = $('#' + $(this).attr('id') + '-description' ).val();
+            $(this).tooltip({ items: '#' + $(this).attr('id'), content: description });
+            $(this).tooltip("open");
+        },
+        "mouseout" : function() {
+            if ( $(this).is(":ui-tooltip") ) {
+                $(this).tooltip("disable");
+            }
+        }
+    });
+}
 
 /**
  * Inserts option sets in the appropriate input fields.
