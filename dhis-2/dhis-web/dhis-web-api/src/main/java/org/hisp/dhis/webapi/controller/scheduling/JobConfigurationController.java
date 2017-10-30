@@ -5,17 +5,19 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.HashMap;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -32,20 +34,12 @@ public class JobConfigurationController
     @Autowired
     private JobConfigurationService jobConfigurationService;
 
-    @Autowired
-    private WebMessageService webMessageService;
-
     @Override
-    @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
-    public void postJsonObject(HttpServletRequest request, HttpServletResponse response )
-            throws Exception
-    {
-    }
-
-    @RequestMapping( value = "/post", method = RequestMethod.POST, produces = { "application/json", "application/javascript" } )
+    @RequestMapping( method = RequestMethod.POST, produces = { "application/json", "application/javascript" } )
     public @ResponseBody
-    void postJsonObject(@RequestBody HashMap<String, String> requestData, HttpServletRequest request, HttpServletResponse response) {
-        JobConfiguration jobConfiguration = jobConfigurationService.create( requestData );
+    void postJsonObject( HttpServletRequest request, HttpServletResponse response) throws IOException {
+        JobConfiguration jobConfiguration = renderService.fromJson( request.getInputStream(), getEntityClass() );
+        jobConfiguration.setJobId( new JobId( JobType.valueOf( jobConfiguration.getJobType().toString() ), currentUserService.getCurrentUser().getUid() ) );
 
         List<ErrorReport> errorReports = jobConfigurationService.validate( jobConfiguration );
 
@@ -58,13 +52,7 @@ public class JobConfigurationController
         }
     }
 
-    @RequestMapping( value = "/jobTypesExtended", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
-    public @ResponseBody
-    Map<String, Map<String, Property>> getJobTypesExtended()
-    {
-        return jobConfigurationService.getJobParametersSchema();
-    }
-
+    @Override
     @RequestMapping( value = "/{uid}", method = RequestMethod.DELETE )
     @ResponseStatus( HttpStatus.OK )
     public void deleteObject( @PathVariable( "uid" ) String uid, HttpServletRequest request, HttpServletResponse response ) throws Exception
@@ -73,12 +61,14 @@ public class JobConfigurationController
         webMessageService.send(  WebMessageUtils.objectReport( new ImportReport() ), response, request );
     }
 
-    @RequestMapping( value = "/put/{uid}", method = RequestMethod.PUT )
-    public void putObject( @RequestBody HashMap<String, String> requestData, @PathVariable( "uid" ) String puid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    @Override
+    @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
+    public void putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
-        JobConfiguration jobConfiguration = jobConfigurationService.create( requestData );
+        JobConfiguration jobConfiguration = renderService.fromJson( request.getInputStream(), getEntityClass() );
+        jobConfiguration.setJobId( new JobId( JobType.valueOf( jobConfiguration.getJobType().toString() ), currentUserService.getCurrentUser().getUid() ) );
 
-        List<ErrorReport> errorReports = jobConfigurationService.putJobConfiguration( jobConfiguration, puid );
+        List<ErrorReport> errorReports = jobConfigurationService.putJobConfiguration( jobConfiguration, pvUid );
 
         ImportReport importReport = new ImportReport();
         if ( errorReports.size() != 0 ) {
@@ -89,4 +79,11 @@ public class JobConfigurationController
 
     }
 
+    // Supportive API endpoints
+    @RequestMapping( value = "/jobTypesExtended", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
+    public @ResponseBody
+    Map<String, Map<String, Property>> getJobTypesExtended()
+    {
+        return jobConfigurationService.getJobParametersSchema();
+    }
 }

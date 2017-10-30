@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 
@@ -19,6 +21,9 @@ import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 public class JobConfigurationDeserializer
     extends JsonDeserializer<JobConfiguration>
 {
+    @Autowired
+    private CurrentUserService currentUserService;
+
     @Override
     public JobConfiguration deserialize( JsonParser jsonParser,
         DeserializationContext deserializationContext )

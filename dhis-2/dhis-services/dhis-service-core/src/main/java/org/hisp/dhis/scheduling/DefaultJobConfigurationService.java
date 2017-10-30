@@ -88,13 +88,12 @@ public class DefaultJobConfigurationService
         return jobConfiguration.getId();
     }
 
-    public List<ErrorReport> putJobConfiguration( JobConfiguration jobConfiguration, String puid ) {
-        System.out.println("put");
+    public List<ErrorReport> putJobConfiguration( JobConfiguration jobConfiguration, String pvUid ) {
         // Temporarily set same uid for validation purposes
-        jobConfiguration.setUid( puid );
+        jobConfiguration.setUid( pvUid );
         List<ErrorReport> errorReports = validate( jobConfiguration );
 
-        JobConfiguration oldJobConfiguration = getJobConfigurationWithUid( puid );
+        JobConfiguration oldJobConfiguration = getJobConfigurationWithUid( pvUid );
         if (oldJobConfiguration == null)
         {
             errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7002 ) );
@@ -112,7 +111,7 @@ public class DefaultJobConfigurationService
         oldJobConfiguration.setJobParameters( jobConfiguration.getJobParameters() );
         oldJobConfiguration.setEnabled( jobConfiguration.getEnabled() );
         oldJobConfiguration.setContinuousExecution( jobConfiguration.isContinuousExecution() );
-        oldJobConfiguration.setNextExecutionTime( jobConfiguration.getNextExecutionTime() );
+        oldJobConfiguration.setNextExecutionTime( null );
         oldJobConfiguration.setJobId( jobConfiguration.getJobId() );
 
         schedulingManager.refreshJob( oldJobConfiguration );
@@ -281,21 +280,6 @@ public class DefaultJobConfigurationService
         }
 
         return errorReports;
-    }
-
-    public JobConfiguration create( HashMap<String, String> requestJobConfiguration )
-    {
-        JobConfiguration jobConfiguration;
-        if ( requestJobConfiguration != null ) {
-            jobConfiguration = mapper.convertValue( requestJobConfiguration, JobConfiguration.class );
-        } else
-        {
-            return null;
-        }
-
-        jobConfiguration.setJobId( new JobId( JobType.valueOf( jobConfiguration.getJobType().toString() ), currentUserService.getCurrentUser().getUid() ) );
-
-        return jobConfiguration;
     }
 
     /*@Override
