@@ -88,6 +88,39 @@ public class DefaultJobConfigurationService
         return jobConfiguration.getId();
     }
 
+    public List<ErrorReport> putJobConfiguration( JobConfiguration jobConfiguration, String puid ) {
+        System.out.println("put");
+        // Temporarily set same uid for validation purposes
+        jobConfiguration.setUid( puid );
+        List<ErrorReport> errorReports = validate( jobConfiguration );
+
+        JobConfiguration oldJobConfiguration = getJobConfigurationWithUid( puid );
+        if (oldJobConfiguration == null)
+        {
+            errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7002 ) );
+        }
+
+        if( errorReports.size() > 0 )
+        {
+            return errorReports;
+        }
+
+        oldJobConfiguration.setName( jobConfiguration.getName() );
+        oldJobConfiguration.setCronExpression( jobConfiguration.getCronExpression() );
+        oldJobConfiguration.setJobType( jobConfiguration.getJobType() );
+        oldJobConfiguration.setJobStatus( JobStatus.SCHEDULED );
+        oldJobConfiguration.setJobParameters( jobConfiguration.getJobParameters() );
+        oldJobConfiguration.setEnabled( jobConfiguration.getEnabled() );
+        oldJobConfiguration.setContinuousExecution( jobConfiguration.isContinuousExecution() );
+        oldJobConfiguration.setNextExecutionTime( jobConfiguration.getNextExecutionTime() );
+        oldJobConfiguration.setJobId( jobConfiguration.getJobId() );
+
+        schedulingManager.refreshJob( oldJobConfiguration );
+        updateJobConfiguration( oldJobConfiguration );
+
+        return errorReports;
+    }
+
     @Override
     public void deleteJobConfiguration( String uid )
     {
@@ -211,11 +244,11 @@ public class DefaultJobConfigurationService
             {
                 if ( jobConfiguration.isContinuousExecution() ) {
                     if ( jobConfig.isContinuousExecution() ) {
-                        errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E4014 ) );
+                        errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7001 ) );
                     }
                 } else {
                     if ( jobConfig.getCronExpression().equals(jobConfiguration.getCronExpression() ) ) {
-                        errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E4013 ) );
+                        errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7000 ) );
                     }
                 }
             }
@@ -235,7 +268,7 @@ public class DefaultJobConfigurationService
 
         quartzCron.validate();
 
-        CronDescriptor cronDescriptor = CronDescriptor.instance( Locale.UK);
+        CronDescriptor cronDescriptor = CronDescriptor.instance( Locale.UK );
 
         // Validate cron expression with relation to all other jobs
         errorReports.addAll( validateCronForJobType( jobConfiguration ) );

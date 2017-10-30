@@ -33,6 +33,7 @@ package org.hisp.dhis.feedback;
  * E4000 - E4999: Metadata Validation Errors
  * E5000 - E5999: Preheat Errors
  * E6000 - E6999: Metadata Import Errors
+ * E7000 - E7099: Scheduling errors
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -64,8 +65,11 @@ public enum ErrorCode
     E4010( "Attribute `{0}` is not supported for type `{1}`." ),
     E4011( "Attribute `{0}` is required, but no value was found." ),
     E4012( "Attribute `{0}` contains elements of different period type than the data set it was added to" ),
-    E4013( "Failed to add new job configuration. Another job of the same job type is already scheduled with this cron expression" ),
-    E4014( "Failed to add new job configuration. Trying to add job with continuous exection while there already is a job with continuous exectution of the same job type." ),
+
+    /* Scheduling errors */
+    E7000( "Failed to add new job configuration. Another job of the same job type is already scheduled with this cron expression" ),
+    E7001( "Failed to add new job configuration. Trying to add job with continuous exection while there already is a job with continuous exectution of the same job type." ),
+    E7002( "Failed to update job configuration - uid does not exist" ),
 
     /* Preheat Errors */
     E5000( "Found matching object for given reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),

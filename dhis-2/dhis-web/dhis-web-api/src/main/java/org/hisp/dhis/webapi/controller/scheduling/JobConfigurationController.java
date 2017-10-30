@@ -44,8 +44,8 @@ public class JobConfigurationController
 
     @RequestMapping( value = "/post", method = RequestMethod.POST, produces = { "application/json", "application/javascript" } )
     public @ResponseBody
-    void postJsonObject(@RequestBody HashMap<String, HashMap<String, String>> requestData, HttpServletRequest request, HttpServletResponse response) {
-        JobConfiguration jobConfiguration = jobConfigurationService.create( requestData.get( "jobConfiguration" ) );
+    void postJsonObject(@RequestBody HashMap<String, String> requestData, HttpServletRequest request, HttpServletResponse response) {
+        JobConfiguration jobConfiguration = jobConfigurationService.create( requestData );
 
         List<ErrorReport> errorReports = jobConfigurationService.validate( jobConfiguration );
 
@@ -58,6 +58,13 @@ public class JobConfigurationController
         }
     }
 
+    @RequestMapping( value = "/jobTypesExtended", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
+    public @ResponseBody
+    Map<String, Map<String, Property>> getJobTypesExtended()
+    {
+        return jobConfigurationService.getJobParametersSchema();
+    }
+
     @RequestMapping( value = "/{uid}", method = RequestMethod.DELETE )
     @ResponseStatus( HttpStatus.OK )
     public void deleteObject( @PathVariable( "uid" ) String uid, HttpServletRequest request, HttpServletResponse response ) throws Exception
@@ -66,12 +73,20 @@ public class JobConfigurationController
         webMessageService.send(  WebMessageUtils.objectReport( new ImportReport() ), response, request );
     }
 
-    @RequestMapping( value = "/jobTypesExtended", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
-    public @ResponseBody
-    Map<String, Map<String, Property>> getJobTypesExtended()
+    @RequestMapping( value = "/put/{uid}", method = RequestMethod.PUT )
+    public void putObject( @RequestBody HashMap<String, String> requestData, @PathVariable( "uid" ) String puid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
-        return jobConfigurationService.getJobParametersSchema();
-    }
+        JobConfiguration jobConfiguration = jobConfigurationService.create( requestData );
 
+        List<ErrorReport> errorReports = jobConfigurationService.putJobConfiguration( jobConfiguration, puid );
+
+        ImportReport importReport = new ImportReport();
+        if ( errorReports.size() != 0 ) {
+            webMessageService.send(  WebMessageUtils.errorReports( errorReports ), response, request );
+        } else {
+            webMessageService.send(  WebMessageUtils.objectReport( importReport ), response, request );
+        }
+
+    }
 
 }

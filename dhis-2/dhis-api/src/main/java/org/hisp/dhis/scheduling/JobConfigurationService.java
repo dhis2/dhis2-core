@@ -44,6 +44,15 @@ public interface JobConfigurationService
     int updateJobConfiguration( JobConfiguration jobConfiguration );
 
     /**
+     * Acts as an update from an API request. The contents of jobConfiguration is merged into the existing object.
+     *
+     * @param jobConfiguration the job configuration to be added
+     * @param puid existing uid
+     * @return error reports if failed
+     */
+    List<ErrorReport> putJobConfiguration( JobConfiguration jobConfiguration, String puid );
+
+    /**
      * Delete a job configuration
      *
      * @param uid the id of the job configuration to be deleted
