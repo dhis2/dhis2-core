@@ -103,7 +103,7 @@ public class DefaultMetadataImportService implements MetadataImportService
         String message = "(" + params.getUsername() + ") Import:Start";
         log.info( message );
 
-        if ( params.hasTaskId() )
+        if ( params.hasJobId() )
         {
             notifier.notify( params.getJobId(), message );
         }
@@ -142,7 +142,7 @@ public class DefaultMetadataImportService implements MetadataImportService
 
         log.info( message );
 
-        if ( bundle.hasTaskId() )
+        if ( bundle.hasJobId() )
         {
             notifier.notify( bundle.getJobId(), NotificationLevel.INFO, message, true )
                 .addTaskSummary( bundle.getJobId(), importReport );

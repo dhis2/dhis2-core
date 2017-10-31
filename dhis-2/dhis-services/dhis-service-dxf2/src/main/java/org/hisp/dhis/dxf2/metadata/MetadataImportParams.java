@@ -307,7 +307,7 @@ public class MetadataImportParams
         return this;
     }
 
-    public boolean hasTaskId()
+    public boolean hasJobId()
     {
         return jobId != null;
     }

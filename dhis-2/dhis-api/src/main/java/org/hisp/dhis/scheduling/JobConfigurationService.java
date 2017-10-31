@@ -1,12 +1,12 @@
 package org.hisp.dhis.scheduling;
 
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.schema.Property;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ScheduledFuture;
 
 /**
  * Simple service for {@link JobConfiguration} objects.
@@ -43,20 +43,11 @@ public interface JobConfigurationService
     int updateJobConfiguration( JobConfiguration jobConfiguration );
 
     /**
-     * Acts as an update from an API request. The contents of jobConfiguration is merged into the existing object.
-     *
-     * @param jobConfiguration the job configuration to be added
-     * @param pvUid existing uid
-     * @return error reports if failed
-     */
-    List<ErrorReport> putJobConfiguration( JobConfiguration jobConfiguration, String pvUid );
-
-    /**
      * Delete a job configuration
      *
-     * @param uid the id of the job configuration to be deleted
+     * @param jobConfiguration the id of the job configuration to be deleted
      */
-    void deleteJobConfiguration( String uid );
+    void deleteJobConfiguration( JobConfiguration jobConfiguration );
 
     /**
      * Get job configuration for given id
@@ -75,19 +66,18 @@ public interface JobConfigurationService
     JobConfiguration getJobConfigurationWithUid( String uid );
 
     /**
-     * Get a list of job configurations with specific cron expression
-     *
-     * @param cron cron expression to search for
-     * @return list of job configuration
-     */
-    List<JobConfiguration> getJobConfigurationsForCron( String cron );
-
-    /**
      * Get all job configurations
      *
      * @return list of all job configurations in the system
      */
     List<JobConfiguration> getAllJobConfigurations( );
+
+    /**
+     * Get all job configurations which are actually scheduled
+     *
+     * @return list of all job configurations in the scheduler
+     */
+    Map<String, ScheduledFuture<?>> getAllJobConfigurationsFromScheduler( );
 
     /**
      * Get a sorted list of all job configurations based on cron expressions
@@ -99,10 +89,12 @@ public interface JobConfigurationService
 
     /**
      * Get a map of parameter classes with appropriate properties
+     * This can be used for a frontend app or for other appropriate applications which needs information about the jobs
+     * in the system.
+     *
+     * It uses {@link JobType}.
      *
      * @return map with parameters classes
      */
-    Map<String, Map<String, Property>> getJobParametersSchema();
-
-    List<ErrorReport> validate( JobConfiguration jobConfiguration );
+    Map<String, Map<String, Property>> getJobParametersSchema( );
 }

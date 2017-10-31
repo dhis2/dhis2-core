@@ -76,7 +76,7 @@ public class MetadataImportController
         MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
         params.setObjects( renderService.fromMetadata( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ), RenderFormat.JSON ) );
 
-        if ( params.hasTaskId() )
+        if ( params.hasJobId() )
         {
             startAsync( params );
             response.setStatus( HttpServletResponse.SC_NO_CONTENT );
@@ -95,7 +95,7 @@ public class MetadataImportController
         Metadata metadata = renderService.fromXml( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ), Metadata.class );
         params.addMetadata( schemaService.getMetadataSchemas(), metadata );
 
-        if ( params.hasTaskId() )
+        if ( params.hasJobId() )
         {
             startAsync( params );
             response.setStatus( HttpServletResponse.SC_NO_CONTENT );

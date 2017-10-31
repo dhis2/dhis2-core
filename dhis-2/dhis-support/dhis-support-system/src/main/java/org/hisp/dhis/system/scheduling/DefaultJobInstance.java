@@ -31,8 +31,6 @@ public class DefaultJobInstance implements JobInstance
     {
         final Clock clock = new Clock().startClock();
 
-        if(!jobConfiguration.getEnabled()) return;
-
         if(!schedulingManager.isJobConfigurationRunning( jobConfiguration ))
         {
             jobConfiguration.setJobStatus( JobStatus.RUNNING );
@@ -49,16 +47,17 @@ public class DefaultJobInstance implements JobInstance
             catch ( RuntimeException ex )
             {
                 messageService.sendSystemErrorNotification( "Job '" + jobConfiguration.getName() + "' failed", ex );
+                log.error( "Job '" + jobConfiguration.getName() + "' failed", ex );
+
                 jobConfiguration.setLastExecutedStatus( JobStatus.FAILED );
 
                 setFinishingStatus( schedulingManager, jobConfiguration );
-
                 throw ex;
             }
 
             jobConfiguration.setLastExecutedStatus( JobStatus.COMPLETED );
         } else {
-            log.info( "Job '" + jobConfiguration.getName() + "' failed, jobtype '" + jobConfiguration.getJobType() + "' is already running." );
+            log.error( "Job '" + jobConfiguration.getName() + "' failed, jobtype '" + jobConfiguration.getJobType() + "' is already running." );
 
             messageService.sendSystemErrorNotification( "Job '" + jobConfiguration.getName() + "' failed, jobtype '" + jobConfiguration.getJobType() + "' is already running [" + clock.time() + "]", new Exception( "Job '" + jobConfiguration.getName() + "' failed" ) );
             jobConfiguration.setLastExecutedStatus( JobStatus.FAILED );

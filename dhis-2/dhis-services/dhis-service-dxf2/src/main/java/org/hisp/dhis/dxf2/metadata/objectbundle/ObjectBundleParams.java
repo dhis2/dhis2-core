@@ -214,7 +214,7 @@ public class ObjectBundleParams
         return this;
     }
 
-    public boolean haveTaskId()
+    public boolean haveJobId()
     {
         return jobId != null;
     }

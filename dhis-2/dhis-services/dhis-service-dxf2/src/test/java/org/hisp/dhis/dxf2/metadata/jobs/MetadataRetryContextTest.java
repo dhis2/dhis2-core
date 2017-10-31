@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.metadata.tasks;
+package org.hisp.dhis.dxf2.metadata.jobs;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.feedback.Status;

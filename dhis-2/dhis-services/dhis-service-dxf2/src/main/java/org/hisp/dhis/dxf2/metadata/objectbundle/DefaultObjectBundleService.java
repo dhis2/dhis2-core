@@ -201,7 +201,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         log.info( message );
 
-        if ( bundle.hasTaskId() )
+        if ( bundle.hasJobId() )
         {
             notifier.notify( bundle.getJobId(), message );
         }
@@ -254,7 +254,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         log.info( message );
 
-        if ( bundle.hasTaskId() )
+        if ( bundle.hasJobId() )
         {
             notifier.notify( bundle.getJobId(), message );
         }
@@ -319,7 +319,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         log.info( message );
 
-        if ( bundle.hasTaskId() )
+        if ( bundle.hasJobId() )
         {
             notifier.notify( bundle.getJobId(), message );
         }

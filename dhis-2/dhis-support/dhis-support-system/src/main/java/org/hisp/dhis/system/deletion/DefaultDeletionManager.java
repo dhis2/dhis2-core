@@ -89,7 +89,9 @@ public class DefaultDeletionManager
 
         try
         {
-            Method allowMethod = DeletionHandler.class.getMethod( allowMethodName, new Class[]{ clazz } );
+            Method allowMethod = DeletionHandler.class.getMethod( allowMethodName, clazz);
+
+            System.out.println("allowMethodName: " + allowMethodName + ", method: " + allowMethod);
 
             for ( DeletionHandler handler : deletionHandlers )
             {

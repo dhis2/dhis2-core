@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.metadata.tasks;
+package org.hisp.dhis.dxf2.metadata.jobs;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo

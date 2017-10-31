@@ -64,7 +64,7 @@ public class JobConfigurationServiceTest
     @Test
     public void testDeleteJob()
     {
-        jobConfigurationService.deleteJobConfiguration( jobA.getUid() );
+        jobConfigurationService.deleteJobConfiguration( jobA );
 
         assertNull( jobConfigurationService.getJobConfigurationWithUid( jobA.getUid() ) );
     }
