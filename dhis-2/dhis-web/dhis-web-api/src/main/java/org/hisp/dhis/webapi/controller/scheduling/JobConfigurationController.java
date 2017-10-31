@@ -38,6 +38,7 @@ public class JobConfigurationController
     @RequestMapping( method = RequestMethod.POST, produces = { "application/json", "application/javascript" } )
     public @ResponseBody
     void postJsonObject( HttpServletRequest request, HttpServletResponse response) throws IOException {
+
         JobConfiguration jobConfiguration = renderService.fromJson( request.getInputStream(), getEntityClass() );
         jobConfiguration.setJobId( new JobId( JobType.valueOf( jobConfiguration.getJobType().toString() ), currentUserService.getCurrentUser().getUid() ) );
 
