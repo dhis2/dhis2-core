@@ -33,12 +33,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeAcceptedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeApprovedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeUnacceptedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeUnapprovedException;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -54,6 +56,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.hisp.dhis.dataapproval.DataApprovalAction.*;
 
@@ -176,6 +179,8 @@ public class DefaultDataApprovalService
     public void approveData( List<DataApproval> dataApprovalList )
     {
         log.debug( "approveData ( " + dataApprovalList.size() + " items )" );
+
+        validateAttributeOptionCombos( dataApprovalList );
 
         Map<String, DataApprovalStatus> statusMap = getStatusMap( dataApprovalList );
 
@@ -563,6 +568,42 @@ public class DefaultDataApprovalService
         }
         
         return level;
+    }
+
+    /**
+     * Makes sure that for any approval we enter into the database, the
+     * attributeOptionCombo appears in the set of optionCombos for at least
+     * one of the data sets in the workflow.
+     *
+     * @param dataApprovalList
+     */
+    private void validateAttributeOptionCombos( List<DataApproval> dataApprovalList )
+    {
+        SetMap<DataApprovalWorkflow, DataElementCategoryOptionCombo> validAttributeOptionCombos = new SetMap<>();
+
+        for ( DataApproval da : dataApprovalList )
+        {
+            Set<DataElementCategoryOptionCombo> validOptionCombos = validAttributeOptionCombos.get( da.getWorkflow() );
+
+            if ( validOptionCombos == null )
+            {
+                validOptionCombos = da.getWorkflow().getDataSets().stream()
+                    .map( DataSet::getCategoryCombo ).distinct()
+                    .map( DataElementCategoryCombo::getOptionCombos )
+                    .flatMap( Set::stream ).collect( Collectors.toSet() );
+
+                validAttributeOptionCombos.put( da.getWorkflow(), validOptionCombos );
+            }
+
+            if ( !validOptionCombos.contains( da.getAttributeOptionCombo() ) )
+            {
+                log.info( "validateAttributeOptionCombos: attribuetOptionCombo "
+                    + da.getAttributeOptionCombo().getUid() + " not valid for workflow "
+                    + da.getWorkflow().getUid() );
+
+                throw new DataMayNotBeApprovedException();
+            }
+        }
     }
 
     /**

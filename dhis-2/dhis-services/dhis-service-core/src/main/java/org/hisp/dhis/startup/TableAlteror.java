@@ -193,6 +193,9 @@ public class TableAlteror
 
         executeSql( "UPDATE incomingsms SET userid = 0 WHERE userid IS NULL" );
         executeSql( "ALTER TABLE smscommands ALTER COLUMN completenessmethod TYPE text" );
+        executeSql( "UPDATE smscommands SET completenessmethod='ALL_DATAVALUE' WHERE completenessmethod='1'" );
+        executeSql( "UPDATE smscommands SET completenessmethod='AT_LEAST_ONE_DATAVALUE' WHERE completenessmethod='2'" );
+        executeSql( "UPDATE smscommands SET completenessmethod='DO_NOT_MARK_COMPLETE' WHERE completenessmethod='3'" );
         executeSql( "ALTER TABLE smscommands ALTER COLUMN uid set NOT NULL" );
         executeSql( "ALTER TABLE smscommands ALTER COLUMN created set NOT NULL" );
         executeSql( "ALTER TABLE smscommands ALTER COLUMN lastUpdated set NOT NULL" );

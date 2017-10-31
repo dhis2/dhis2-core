@@ -28,10 +28,6 @@ package org.hisp.dhis.sms.task;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.HashSet;
-import java.util.stream.Collectors;
-
 import javax.annotation.Resource;
 
 import org.hisp.dhis.i18n.I18n;
@@ -62,19 +58,13 @@ public class SendSmsTask
     // Input & Output
     // -------------------------------------------------------------------------
 
-    private String smsSubject;
-
-    private String text;
-
     private User currentUser;
-
-    private List<User> recipientsList;
-
-    private String message;
 
     private OutboundMessageResponse status;
 
     private TaskId taskId;
+
+    private OutboundSms sms;
 
     // -------------------------------------------------------------------------
     // I18n
@@ -92,11 +82,7 @@ public class SendSmsTask
     {
         notifier.notify( taskId, "Sending SMS" );
 
-        status = smsSender.sendMessage( smsSubject, text, null, currentUser, new HashSet<>( recipientsList ), false );
-
-        OutboundSms sms = new OutboundSms();
-        sms.setMessage( text );
-        sms.setRecipients( recipientsList.stream().map( item -> item.getPhoneNumber() ).collect( Collectors.toSet() ) );
+        status = smsSender.sendMessage( "", sms.getMessage(), sms.getRecipients() );
 
         if ( status.isOk() )
         {
@@ -124,26 +110,6 @@ public class SendSmsTask
         this.status = status;
     }
 
-    public String getSmsSubject()
-    {
-        return smsSubject;
-    }
-
-    public void setSmsSubject( String smsSubject )
-    {
-        this.smsSubject = smsSubject;
-    }
-
-    public String getText()
-    {
-        return text;
-    }
-
-    public void setText( String text )
-    {
-        this.text = text;
-    }
-
     public User getCurrentUser()
     {
         return currentUser;
@@ -152,26 +118,6 @@ public class SendSmsTask
     public void setCurrentUser( User currentUser )
     {
         this.currentUser = currentUser;
-    }
-
-    public List<User> getRecipientsList()
-    {
-        return recipientsList;
-    }
-
-    public void setRecipientsList( List<User> recipientsList )
-    {
-        this.recipientsList = recipientsList;
-    }
-
-    public String getMessage()
-    {
-        return message;
-    }
-
-    public void setMessage( String message )
-    {
-        this.message = message;
     }
 
     public TaskId getTaskId()
@@ -187,5 +133,15 @@ public class SendSmsTask
     public I18n getI18n()
     {
         return i18n;
+    }
+
+    public OutboundSms getSms()
+    {
+        return sms;
+    }
+
+    public void setSms( OutboundSms sms )
+    {
+        this.sms = sms;
     }
 }
