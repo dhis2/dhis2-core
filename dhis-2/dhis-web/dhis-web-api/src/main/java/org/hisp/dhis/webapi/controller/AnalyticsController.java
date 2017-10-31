@@ -342,7 +342,7 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, null, null, null, startDate, endDate, true, false, false, false, false, 
+        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, null, null, null, startDate, endDate, true, false, false, false, false,
             false, false, false, false, false, null, null, null, false, null, null, null, false, apiVersion );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.jrxml", false, params.getLatestEndDate() );
@@ -402,6 +402,7 @@ public class AnalyticsController
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean hierarchyMeta,
         @RequestParam( required = false ) boolean showHierarchy,
+        @RequestParam( required = false ) boolean includeOrgUnitNames,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) IdScheme outputIdScheme,
         @RequestParam( required = false ) IdScheme inputIdScheme,
@@ -410,8 +411,10 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryParams params = dataQueryService.getFromUrl( dimension, null, null, null, null, startDate, endDate, skipMeta, skipData, false, false, hierarchyMeta,
+        DataQueryParams param = dataQueryService.getFromUrl( dimension, null, null, null, null, startDate, endDate, skipMeta, skipData, false, false, hierarchyMeta,
             false, false, false, showHierarchy, false, displayProperty, outputIdScheme, inputIdScheme, false, null, null, userOrgUnit, true, apiVersion );
+
+        DataQueryParams params = DataQueryParams.newBuilder(param).withIncludeOrgUnitNames( includeOrgUnitNames ).build();
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getRawDataValues( params );
@@ -426,6 +429,7 @@ public class AnalyticsController
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean hierarchyMeta,
         @RequestParam( required = false ) boolean showHierarchy,
+        @RequestParam( required = false ) boolean includeOrgUnitNames,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) IdScheme outputIdScheme,
         @RequestParam( required = false ) IdScheme inputIdScheme,
@@ -434,8 +438,10 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryParams params = dataQueryService.getFromUrl( dimension, null, null, null, null, startDate, endDate, skipMeta, skipData, false, false, hierarchyMeta,
+        DataQueryParams param = dataQueryService.getFromUrl( dimension, null, null, null, null, startDate, endDate, skipMeta, skipData, false, false, hierarchyMeta,
             false, false, false, showHierarchy, false, displayProperty, outputIdScheme, inputIdScheme, false, null, null, userOrgUnit, true, apiVersion );
+
+        DataQueryParams params = DataQueryParams.newBuilder(param).withIncludeOrgUnitNames( includeOrgUnitNames ).build();
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         Grid grid = analyticsService.getRawDataValues( params );

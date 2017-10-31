@@ -190,6 +190,11 @@ public class DataQueryParams
      * org unit names on rows.
      */
     protected boolean showHierarchy;
+
+    /**
+     * Indicates whether the org unit names included in the result should be in the result.
+     */
+    protected boolean includeOrgUnitNames;
     
     /**
      * Indicates whether to include the numerator, denominator and factor of 
@@ -377,6 +382,7 @@ public class DataQueryParams
         params.ignoreLimit = this.ignoreLimit;
         params.hideEmptyRows = this.hideEmptyRows;
         params.showHierarchy = this.showHierarchy;
+        params.includeOrgUnitNames = this.includeOrgUnitNames;
         params.includeNumDen = this.includeNumDen;
         params.displayProperty = this.displayProperty;
         params.outputIdScheme = this.outputIdScheme;
@@ -1653,6 +1659,11 @@ public class DataQueryParams
     {
         return showHierarchy;
     }
+
+    public boolean isIncludeOrgUnitNames()
+    {
+        return includeOrgUnitNames;
+    }
     
     public boolean isIncludeNumDen()
     {
@@ -2297,6 +2308,12 @@ public class DataQueryParams
         public Builder withShowHierarchy( boolean showHierarchy )
         {
             this.params.showHierarchy = showHierarchy;
+            return this;
+        }
+
+        public Builder withIncludeOrgUnitNames( boolean includeOrgUnitNames )
+        {
+            this.params.includeOrgUnitNames = includeOrgUnitNames;
             return this;
         }
         

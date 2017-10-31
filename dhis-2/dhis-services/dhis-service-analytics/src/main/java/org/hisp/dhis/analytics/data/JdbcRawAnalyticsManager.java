@@ -28,21 +28,12 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -50,10 +41,22 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+
+import javax.annotation.Resource;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 
 /**
  * Class responsible for retrieving raw data from the
@@ -74,6 +77,9 @@ public class JdbcRawAnalyticsManager
     @Autowired
     private StatementBuilder statementBuilder;
 
+    @Autowired
+    private OrganisationUnitService organisationUnitService;
+
     // -------------------------------------------------------------------------
     // RawAnalyticsManager implementation
     // -------------------------------------------------------------------------
@@ -84,11 +90,13 @@ public class JdbcRawAnalyticsManager
         List<DimensionalObject> dimensions = params.getDimensions();
         
         String sql = getStatement( params );
-        
+
         log.debug( "Get raw data SQL: " + sql );
-        
+
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
-        
+
+        Map<String, String> orgUnitNamesWithUid = new HashMap<String, String>();
+
         while ( rowSet.next() )
         {
             grid.addRow();
@@ -96,8 +104,22 @@ public class JdbcRawAnalyticsManager
             for ( DimensionalObject dim : dimensions )
             {
                 grid.addValue( rowSet.getString( dim.getDimensionName() ) );
+
+                if (dim.getDimensionType() == DimensionType.ORGANISATION_UNIT && params.isIncludeOrgUnitNames()) {
+                    String orgUnitUid = rowSet.getString(dim.getDimensionName());
+
+                    // Use hash map as a cache to speed up the fetching
+                    String name = orgUnitNamesWithUid.get(orgUnitUid);
+                    if (name == null) {
+                        name = organisationUnitService.getOrganisationUnit(orgUnitUid).getName();
+                        orgUnitNamesWithUid.put(orgUnitUid, name);
+                    }
+
+                    grid.addValue(name);
+                }
+
             }
-            
+
             grid.addValue( rowSet.getDouble( "value" ) );
         }
         
@@ -111,7 +133,7 @@ public class JdbcRawAnalyticsManager
     private String getStatement( DataQueryParams params )
     {
         String sql = StringUtils.EMPTY;
-        
+
         for ( String partition : params.getPartitions().getPartitions() )
         {
             sql += getStatement( params, partition ) + "union all ";
