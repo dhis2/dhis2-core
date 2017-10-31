@@ -39,6 +39,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.render.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.render.ParseDateStdDeserializer;
 import org.hisp.dhis.render.WriteDateStdSerializer;
@@ -260,6 +261,11 @@ public class JacksonEventService extends AbstractEventService
         else
         {
             clock.logTime( "Import done" );
+        }
+
+        if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
+        {
+            importSummaries.getImportSummaries().removeIf( is -> is.getConflicts().isEmpty() );
         }
 
         return importSummaries;

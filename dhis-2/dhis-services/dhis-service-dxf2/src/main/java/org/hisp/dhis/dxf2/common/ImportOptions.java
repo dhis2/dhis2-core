@@ -34,6 +34,7 @@ import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.system.notification.NotificationLevel;
 
@@ -60,6 +61,8 @@ public class ImportOptions
 
     private MergeMode mergeMode = MergeMode.REPLACE;
 
+    private ImportReportMode reportMode = ImportReportMode.FULL;
+
     private boolean skipExistingCheck;
 
     private boolean sharing;
@@ -83,7 +86,7 @@ public class ImportOptions
     private String filename;
 
     private NotificationLevel notificationLevel;
-    
+
     //--------------------------------------------------------------------------
     // Constructors
     //--------------------------------------------------------------------------
@@ -99,7 +102,7 @@ public class ImportOptions
     public ImportOptions instance()
     {
         ImportOptions options = new ImportOptions();
-        
+
         options.idSchemes = this.idSchemes;
         options.dryRun = this.dryRun;
         options.preheatCache = this.preheatCache;
@@ -118,10 +121,10 @@ public class ImportOptions
         options.requireAttributeOptionCombo = this.requireAttributeOptionCombo;
         options.filename = this.filename;
         options.notificationLevel = this.notificationLevel;
-        
+
         return options;
     }
-    
+
     public static ImportOptions getDefaultImportOptions()
     {
         return DEFAULT_OPTIONS;
@@ -142,11 +145,11 @@ public class ImportOptions
     {
         return preheatCache == null ? false : preheatCache;
     }
-    
+
     /**
      * Returns the notification level, or if not specified, returns the given
      * default notification level.
-     * 
+     *
      * @param defaultLevel the default notification level.
      * @return the nofication level.
      */
@@ -211,6 +214,18 @@ public class ImportOptions
     public void setMergeMode( MergeMode mergeMode )
     {
         this.mergeMode = mergeMode;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ImportReportMode getReportMode()
+    {
+        return reportMode;
+    }
+
+    public void setReportMode( ImportReportMode reportMode )
+    {
+        this.reportMode = reportMode;
     }
 
     @JsonProperty
