@@ -40,8 +40,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.oauth2.client.test.OAuth2ContextConfiguration;
+import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.test.context.ContextConfiguration;
@@ -79,8 +80,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 public class SpringSecurityTest extends DhisConvenienceTest
 {
-    private MockMvc mvc;
-
     @Autowired
     protected UserService _userService;
 
@@ -91,9 +90,6 @@ public class SpringSecurityTest extends DhisConvenienceTest
     private OAuth2ClientService oAuth2ClientService;
 
     @Autowired
-    private OAuthHelper oAuthHelper;
-
-    @Autowired
     private ClientDetailsService clientDetailsService;
 
     @Autowired
@@ -101,6 +97,10 @@ public class SpringSecurityTest extends DhisConvenienceTest
 
     @Autowired
     private UserDetailsService userDetailsService;
+
+    private OAuthHelper oAuthHelper;
+
+    private MockMvc mvc;
 
     @Before
     public void setup() throws Exception
@@ -110,12 +110,8 @@ public class SpringSecurityTest extends DhisConvenienceTest
             .build();
 
         executeStartupRoutines();
-
         userService = _userService;
-        oAuthHelper.setUserDetailsService( userDetailsService );
-        oAuthHelper.setClientDetailsService( clientDetailsService );
-        oAuthHelper.setTokenServices( tokenServices );
-
+        oAuthHelper = new OAuthHelper( tokenServices );
         setUpTest();
     }
 
@@ -126,7 +122,6 @@ public class SpringSecurityTest extends DhisConvenienceTest
             .with( httpBasic( "admin", "district" ) ) )
             .andExpect( authenticated() )
             .andExpect( status().isOk() ).andReturn();
-
     }
 
     @Test
@@ -163,25 +158,64 @@ public class SpringSecurityTest extends DhisConvenienceTest
             .andExpect( unauthenticated() );
     }
 
-
     @Test
-    @OAuth2ContextConfiguration
     public void testOAut2hOk() throws Exception
     {
         InputStream input = new ClassPathResource( "security/OAuth2Client.json" ).getInputStream();
 
+        String clientId = "testOauth2";
+        String userName = "admin";
+        String password = "district";
+
         mvc.perform( post( "/oAuth2Clients" )
-            .with( httpBasic( "admin", "district" ) )
+            .with( httpBasic( userName, password ) )
             .contentType( TestUtils.APPLICATION_JSON_UTF8 )
             .content( ByteStreams.toByteArray( input ) ) )
             .andReturn();
 
-        assertNotNull( oAuth2ClientService.getOAuth2ClientByClientId( "testOauth2" ) );
+        assertNotNull( oAuth2ClientService.getOAuth2ClientByClientId( clientId ) );
 
-        RequestPostProcessor bearerToken = oAuthHelper.bearerToken( "testOauth2" );
-        mvc.perform( get( "/dataElements.json" ).with( bearerToken ) )
+        ClientDetails client = clientDetailsService.loadClientByClientId( clientId );
+
+        assertNotNull( client );
+
+        UserDetails userPrincipal = userDetailsService.loadUserByUsername( userName );
+
+        assertNotNull( userPrincipal );
+
+        RequestPostProcessor bearerToken = oAuthHelper.bearerToken( client, userPrincipal, null );
+        mvc.perform( get( "/dataElements.json" )
+            .with( bearerToken ) )
             .andExpect( status().isOk() );
+    }
 
+    @Test
+    public void testFailOAut2h() throws Exception
+    {
+        InputStream input = new ClassPathResource( "security/OAuth2Client.json" ).getInputStream();
+
+        String clientId = "testOauth2";
+        String userName = "admin";
+        String password = "district";
+
+        mvc.perform( post( "/oAuth2Clients" )
+            .with( httpBasic( userName, password ) )
+            .contentType( TestUtils.APPLICATION_JSON_UTF8 )
+            .content( ByteStreams.toByteArray( input ) ) )
+            .andReturn();
+
+        ClientDetails client = clientDetailsService.loadClientByClientId( clientId );
+        assertNotNull( client );
+
+        UserDetails userPrincipal = userDetailsService.loadUserByUsername( userName );
+        assertNotNull( userPrincipal );
+
+        String invalidToken = "invalidToken";
+
+        RequestPostProcessor bearerToken = oAuthHelper.bearerToken( client, userPrincipal, invalidToken );
+        mvc.perform( get( "/dataElements.json" )
+            .with( bearerToken ) )
+            .andExpect( status().isUnauthorized() );
     }
 
     private void setUpTest()

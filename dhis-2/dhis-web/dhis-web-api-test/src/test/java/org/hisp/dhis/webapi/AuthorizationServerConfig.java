@@ -93,7 +93,8 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     {
         security.addObjectPostProcessor( new ObjectPostProcessor<Object>()
         {
-            public <T> T postProcess(T object) {
+            public <T> T postProcess(T object)
+            {
                 return (T) this;
             }
         } );
@@ -106,10 +107,8 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         return parameterContentNegotiationStrategy;
     }
 
-
     private void initOauth2()
     {
-        // OAuth2
         executeSql( "CREATE TABLE oauth_code (" +
             "  code VARCHAR(256), authentication " + statementBuilder.getLongVarBinaryType() +
             ")" );

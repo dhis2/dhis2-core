@@ -31,20 +31,15 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.ClientDetails;
-import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
-import org.springframework.stereotype.Component;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -52,34 +47,36 @@ import java.util.Set;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-
-@Component
 public class OAuthHelper
 {
-    private UserDetailsService userDetailsService;
-
-    private ClientDetailsService clientDetailsService;
-
     private AuthorizationServerTokenServices tokenServices;
 
-    public RequestPostProcessor bearerToken( final String clientid )
+    public OAuthHelper( AuthorizationServerTokenServices tokenServices )
+    {
+        this.tokenServices = tokenServices;
+    }
+
+    public RequestPostProcessor bearerToken( ClientDetails client, UserDetails userPrincipal, final String token )
     {
         return mockRequest ->
         {
-            OAuth2AccessToken token = createAccessToken( clientid );
-            System.out.println( "token.getValue() = " + token.getValue() );
-            mockRequest.addHeader( "Authorization", "Bearer " + token.getValue() );
+            OAuth2AccessToken auth2AccessToken = createAccessToken( client, userPrincipal );
+
+            mockRequest.addHeader( "Authorization", "Bearer " + ( token == null ? auth2AccessToken.getValue() : token ) );
+
             return mockRequest;
         };
     }
 
-    public OAuth2AccessToken createAccessToken( final String clientId )
+    public OAuth2AccessToken createAccessToken( ClientDetails client, UserDetails userPrincipal )
     {
-        // Look up authorities, resourceIds and scopes based on clientId
-        ClientDetails client = clientDetailsService.loadClientByClientId( clientId );
-        Collection<GrantedAuthority> authorities = client.getAuthorities();
-        Set<String> resourceIds = client.getResourceIds();
-        Set<String> scopes = client.getScope();
+        System.out.println( "OAuthHelper.createAccessToken" );
+        System.out.println( "client = " + client );
+        System.out.println( "userPrincipal = " + userPrincipal );
+        if ( client == null  || userPrincipal == null )
+        {
+            return null;
+        }
 
         // Default values for other parameters
         Map<String, String> requestParameters = Collections.emptyMap();
@@ -88,32 +85,17 @@ public class OAuthHelper
         Set<String> responseTypes = Collections.emptySet();
         Map<String, Serializable> extensionProperties = Collections.emptyMap();
 
-        // Create request
-        OAuth2Request oAuth2Request = new OAuth2Request( requestParameters, clientId, authorities, approved, scopes,
-            resourceIds, redirectUrl, responseTypes, extensionProperties );
+        OAuth2Request oAuth2Request = new OAuth2Request( requestParameters, client.getClientId(), client.getAuthorities(), approved, client
+            .getScope(),
+            client.getResourceIds(), redirectUrl, responseTypes, extensionProperties );
 
-        // Create OAuth2AccessToken
-        UserDetails userPrincipal = userDetailsService.loadUserByUsername( "admin" );
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+            userPrincipal,
+            userPrincipal.getPassword(),
+            userPrincipal.getAuthorities() );
 
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken( userPrincipal, null, authorities );
-        OAuth2Authentication auth = new OAuth2Authentication( oAuth2Request, authenticationToken );
+        OAuth2Authentication oAuth2Authentication = new OAuth2Authentication( oAuth2Request, authenticationToken );
 
-        return tokenServices.createAccessToken( auth );
-    }
-
-
-    public void setClientDetailsService( ClientDetailsService clientDetailsService )
-    {
-        this.clientDetailsService = clientDetailsService;
-    }
-
-    public void setUserDetailsService( UserDetailsService userDetailsService )
-    {
-        this.userDetailsService = userDetailsService;
-    }
-
-    public void setTokenServices( AuthorizationServerTokenServices tokenServices )
-    {
-        this.tokenServices = tokenServices;
+        return tokenServices.createAccessToken( oAuth2Authentication );
     }
 }
