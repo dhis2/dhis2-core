@@ -347,11 +347,11 @@ public class DefaultValidationNotificationService
 
     private void sendNotification( Set<User> users, NotificationMessage notificationMessage )
     {
-        messageService.sendValidationResultMessage(
+        messageService.sendMessage( messageService.createValidationResultMessage(
+            users,
             notificationMessage.getSubject(),
-            notificationMessage.getMessage(),
-            users
-        );
+            notificationMessage.getMessage()
+        ).build() );
     }
 
     // -------------------------------------------------------------------------

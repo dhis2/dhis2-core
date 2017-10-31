@@ -63,10 +63,10 @@ import static org.mockito.Mockito.*;
 
 /**
  * Tests for the business logic implemented in ValidationNotificationService.
- *
+ * <p>
  * The actual rendering of the messages is not tested here, only the logic
  * responsible for generating and sending the messages/summaries for each recipient.
- *
+ * <p>
  * See {@link org.hisp.dhis.notification.BaseNotificationMessageRendererTest}.
  *
  * @author Halvdan Hoem Grelland
@@ -80,6 +80,7 @@ public class ValidationNotificationServiceTest
     // -------------------------------------------------------------------------
 
     private static final String STATIC_MOCK_SUBJECT = "Subject goes here";
+
     private static final String STATIC_MOCK_MESSAGE = "Message goes here";
 
     @Mock
@@ -107,13 +108,10 @@ public class ValidationNotificationServiceTest
 
         // Stub MessageService.sendMessage(..) so that it appends any outgoing messages to our List
         when(
-            messageService.sendValidationResultMessage(
-                anyString(),
-                anyString(),
-                anySetOf( User.class )
-            )
+            messageService.sendMessage( any() )
         ).then(
-            invocation -> {
+            invocation ->
+            {
                 sentMessages.add( new MockMessage( invocation.getArguments() ) );
                 return 42;
             }
@@ -132,8 +130,11 @@ public class ValidationNotificationServiceTest
     // -------------------------------------------------------------------------
 
     private OrganisationUnit orgUnitA;
+
     private DataElementCategoryOptionCombo catOptCombo = createCategoryOptionCombo( 'A', 'r', 'i', 'b', 'a' );
+
     private ValidationRule valRuleA;
+
     private UserGroup userGroupA;
 
     int idCounter = 0;
@@ -206,7 +207,8 @@ public class ValidationNotificationServiceTest
      *               / \
      *  lvlTwoLeftLeft  lvlTwoLeftRight
      */
-    private static void configureHierarchy( OrganisationUnit root, OrganisationUnit lvlOneLeft, OrganisationUnit lvlOneRight,
+    private static void configureHierarchy( OrganisationUnit root, OrganisationUnit lvlOneLeft,
+        OrganisationUnit lvlOneRight,
         OrganisationUnit lvlTwoLeftLeft, OrganisationUnit lvlTwoLeftRight )
     {
         root.getChildren().addAll( Sets.newHashSet( lvlOneLeft, lvlOneRight ) );
@@ -277,9 +279,10 @@ public class ValidationNotificationServiceTest
         assertEquals( "The validation results should form a single summarized message", 1, sentMessages.size() );
 
         String text = sentMessages.iterator().next().text;
-        
+
         assertEquals(
-            "Wrong number of messages in the summarized message", 10, StringUtils.countMatches( text, STATIC_MOCK_SUBJECT ) );
+            "Wrong number of messages in the summarized message", 10,
+            StringUtils.countMatches( text, STATIC_MOCK_SUBJECT ) );
     }
 
     @Test
@@ -289,22 +292,22 @@ public class ValidationNotificationServiceTest
         // Complicated fixtures. Sorry to whomever has to read this...
 
         // Org units
-        OrganisationUnit root            = createOrganisationUnit( 'R' ),
-                         lvlOneLeft      = createOrganisationUnit( '1' ),
-                         lvlOneRight     = createOrganisationUnit( '2' ),
-                         lvlTwoLeftLeft  = createOrganisationUnit( '3' ),
-                         lvlTwoLeftRight = createOrganisationUnit( '4' );
+        OrganisationUnit root = createOrganisationUnit( 'R' ),
+            lvlOneLeft = createOrganisationUnit( '1' ),
+            lvlOneRight = createOrganisationUnit( '2' ),
+            lvlTwoLeftLeft = createOrganisationUnit( '3' ),
+            lvlTwoLeftRight = createOrganisationUnit( '4' );
 
         configureHierarchy( root, lvlOneLeft, lvlOneRight, lvlTwoLeftLeft, lvlTwoLeftRight );
 
         // Users
         User uA = createUser( 'A' ),
-             uB = createUser( 'B' ),
-             uC = createUser( 'C' ),
-             uD = createUser( 'D' ),
-             uE = createUser( 'E' ),
-             uF = createUser( 'F' ),
-             uG = createUser( 'G' );
+            uB = createUser( 'B' ),
+            uC = createUser( 'C' ),
+            uD = createUser( 'D' ),
+            uE = createUser( 'E' ),
+            uF = createUser( 'F' ),
+            uG = createUser( 'G' );
 
         root.addUser( uA );
 
@@ -404,8 +407,11 @@ public class ValidationNotificationServiceTest
     static class MockMessage
     {
         final String subject, text, metaData;
+
         final Set<User> users;
+
         final User sender;
+
         final boolean includeFeedbackRecipients, forceNotifications;
 
         /**
