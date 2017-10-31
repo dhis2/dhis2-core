@@ -126,7 +126,10 @@ public final class Restrictions
         return new Restriction( path, new NotNullOperator() );
     }
 
-    public static Restriction isEmpty( String path ) { return new Restriction( path, new EmptyOperator() ); }
+    public static Restriction isEmpty( String path )
+    {
+        return new Restriction( path, new EmptyOperator() );
+    }
 
     private Restrictions()
     {

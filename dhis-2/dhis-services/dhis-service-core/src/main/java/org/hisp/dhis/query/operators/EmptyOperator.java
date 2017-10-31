@@ -32,6 +32,7 @@ package org.hisp.dhis.query.operators;
 
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
 
@@ -50,7 +51,6 @@ public class EmptyOperator extends Operator
     @Override
     public Criterion getHibernateCriterion( QueryPath queryPath )
     {
-
         return Restrictions.sizeEq( queryPath.getPath(),0 );
     }
 
@@ -61,8 +61,15 @@ public class EmptyOperator extends Operator
         {
             return false;
         }
-        Collection<?> collection = (Collection<?>) value;
 
-        return collection.isEmpty();
+        Type type = new Type( value );
+
+        if ( type.isCollection() )
+        {
+            Collection<?> collection = ( Collection<?> ) value;
+            return collection.isEmpty();
+        }
+
+        return false;
     }
 }
