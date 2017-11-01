@@ -34,7 +34,9 @@ import org.apache.commons.lang3.RandomUtils;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.expression.Operator;
+import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.ValidationNotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -59,7 +61,8 @@ import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for the business logic implemented in ValidationNotificationService.
@@ -97,6 +100,8 @@ public class ValidationNotificationServiceTest
 
     private List<MockMessage> sentMessages;
 
+    private MessageConversationParams.Builder builder;
+
     /**
      * We mock the sending of messages to write to a local List (which we can inspect).
      * Also, the renderer is replaced with a mock which returns a static subject/message-pair.
@@ -116,6 +121,19 @@ public class ValidationNotificationServiceTest
                 return 42;
             }
         );
+
+        when(
+            messageService
+                .createValidationResultMessage( any( Collection.class ), any( String.class ), any( String.class ) )
+        )
+            .then( invocation ->
+                {
+                    builder = new MessageConversationParams.Builder( invocation.getArgumentAt( 0, Collection.class ), null,
+                        invocation.getArgumentAt( 1, String.class ), invocation.getArgumentAt( 2, String.class ),
+                        MessageType.VALIDATION_RESULT );
+                    return builder;
+                }
+            );
 
         // Stub renderer
         when(
@@ -420,13 +438,15 @@ public class ValidationNotificationServiceTest
         @SuppressWarnings( "unchecked" )
         MockMessage( Object[] args )
         {
-            this.subject = (String) args[0];
-            this.text = (String) args[1];
-            this.metaData = null;
-            this.users = (Set<User>) args[2];
-            this.sender = null;
+            MessageConversationParams params = (MessageConversationParams) args[0];
+            this.subject = params.getSubject();
+            this.text = params.getText();
+            this.metaData = params.getMetadata();
+            ;
+            this.users = params.getRecipients();
+            this.sender = params.getSender();
             this.includeFeedbackRecipients = false;
-            this.forceNotifications = false;
+            this.forceNotifications = params.isForceNotification();
         }
     }
 }

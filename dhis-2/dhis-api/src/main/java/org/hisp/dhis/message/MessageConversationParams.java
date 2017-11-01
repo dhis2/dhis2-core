@@ -75,10 +75,13 @@ public class MessageConversationParams
         this.text = text;
         this.messageType = messageType;
 
+        this.priority = MessageConversationPriority.NONE;
+        this.status = MessageConversationStatus.NONE;
+
         this.forceNotification = false;
     }
 
-    public ImmutableSet<User> getReceivers()
+    public ImmutableSet<User> getRecipients()
     {
         return recipients;
     }

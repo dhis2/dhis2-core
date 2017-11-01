@@ -183,16 +183,21 @@ public class DefaultMessageService
         conversation.addMessage( new Message( params.getText(), params.getMetadata(), params.getSender() ) );
 
         // Add UserMessages
-        params.getReceivers()
+        params.getRecipients()
             .forEach( ( recipient ) -> conversation.addUserMessage( new UserMessage( recipient, false ) ) );
+
+        if ( params.getSender() != null )
+        {
+            conversation.addUserMessage( new UserMessage( params.getSender(), true ) );
+        }
 
         // Get footer for other messageSenders
         String footer = getMessageFooter( conversation );
 
         // Send messages to users using the messageSenders
-        params.getReceivers().forEach(
+        params.getRecipients().forEach(
             ( recipient ) -> invokeMessageSenders( params.getSubject(), params.getText(), footer, params.getSender(),
-                params.getReceivers(), params.isForceNotification() ) );
+                params.getRecipients(), params.isForceNotification() ) );
 
         return saveMessageConversation( conversation );
     }
