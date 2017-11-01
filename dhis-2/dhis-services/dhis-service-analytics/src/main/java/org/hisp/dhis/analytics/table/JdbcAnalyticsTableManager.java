@@ -132,18 +132,17 @@ public class JdbcAnalyticsTableManager
             resourceTableService.generateDataApprovalMinLevelTable();
         }
     }
-
-    @Override
-    public void createTable( AnalyticsTable table )
+    
+    public void createSuperTable( AnalyticsTable table )
     {
-        final String tableName = table.getTempTableName();
+        final String tableName = table.getSuperTempTableName();
 
         final String dbl = statementBuilder.getDoubleColumnType();
 
         final String sqlDrop = "drop table " + tableName;
 
         executeSilently( sqlDrop );
-
+        
         String sqlCreate = "create table " + tableName + " (";
 
         List<AnalyticsTableColumn> columns = getDimensionColumns( table );
@@ -157,7 +156,26 @@ public class JdbcAnalyticsTableManager
 
         sqlCreate += "daysxvalue " + dbl + ", daysno integer not null, value " + dbl + ", textvalue text)";
 
-        log.info( String.format( "Creating table: %s, columns: %d", tableName, columns.size() ) );
+        log.info( String.format( "Creating super table: %s, columns: %d", tableName, columns.size() ) );
+
+        log.debug( "Create SQL: " + sqlCreate );
+
+        jdbcTemplate.execute( sqlCreate );
+    }
+
+    public void createPartitionTable( AnalyticsTable table )
+    {
+        final String tableName = table.getTempTableName();
+        
+        final String sqlCheck = "check (date >= '" + table.getYear() + "-01-01' and date < '" + ( table.getYear() + 1 ) + "-01-01)) inherits " + table.getSuperTableName();
+
+        final String sqlDrop = "drop table " + tableName;
+
+        executeSilently( sqlDrop );
+
+        String sqlCreate = "create table " + tableName + " (check";
+
+        log.info( String.format( "Creating partition table: %s", tableName ) );
 
         log.debug( "Create SQL: " + sqlCreate );
 

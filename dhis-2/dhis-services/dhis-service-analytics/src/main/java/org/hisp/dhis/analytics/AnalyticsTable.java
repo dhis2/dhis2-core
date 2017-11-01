@@ -100,6 +100,18 @@ public class AnalyticsTable
         return name;
     }
 
+    public String getSuperTableName()
+    {
+        String name = baseName;
+
+        if ( program != null )
+        {
+            name += PartitionUtils.SEP + program.getUid().toLowerCase();
+        }
+
+        return name;
+    }
+    
     public String getTempTableName()
     {
         String name = baseName + AnalyticsTableManager.TABLE_TEMP_SUFFIX;
@@ -117,6 +129,23 @@ public class AnalyticsTable
         return name;
     }
 
+    public String getSuperTempTableName()
+    {
+        String name = baseName + AnalyticsTableManager.TABLE_TEMP_SUFFIX;
+
+        if ( program != null )
+        {
+            name += PartitionUtils.SEP + program.getUid().toLowerCase();
+        }
+
+        return name;
+    }
+    
+    public int getYear()
+    {
+        return PeriodType.getCalendar().fromIso( period.getStartDate() ).getYear();
+    }
+    
     public boolean hasPeriod()
     {
         return period != null;
