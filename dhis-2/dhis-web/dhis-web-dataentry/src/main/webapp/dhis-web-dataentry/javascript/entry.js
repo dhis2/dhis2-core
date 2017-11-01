@@ -190,6 +190,8 @@ function saveVal( dataElementId, optionComboId, fieldId, feedbackId )
 
     var periodId = $( '#selectedPeriodId' ).val();
 
+    var dataSetId = $( '#selectedDataSetId' ).val();
+
     var warning = undefined;
 
     var existing = !!( dhis2.de.currentExistingValue && dhis2.de.currentExistingValue != '' );
@@ -275,7 +277,7 @@ function saveVal( dataElementId, optionComboId, fieldId, feedbackId )
     
     var color = warning ? dhis2.de.cst.colorOrange : dhis2.de.cst.colorGreen;
     
-    var valueSaver = new ValueSaver( dataElementId,	periodId, optionComboId, value, feedbackId, color );
+    var valueSaver = new ValueSaver( dataElementId, periodId, optionComboId, dataSetId, value, feedbackId, color );
     valueSaver.save();
 
     dhis2.de.populateRowTotals();
@@ -304,7 +306,9 @@ function saveBoolean( dataElementId, optionComboId, _fieldId )
 
     var periodId = $( '#selectedPeriodId' ).val();
 
-    var valueSaver = new ValueSaver( dataElementId, periodId, optionComboId, value, fieldId, dhis2.de.cst.colorGreen );
+    var dataSetId = $( '#selectedDataSetId' ).val();
+
+    var valueSaver = new ValueSaver( dataElementId, periodId, optionComboId, dataSetId, value, fieldId, dhis2.de.cst.colorGreen );
     valueSaver.save();
 }
 
@@ -320,7 +324,9 @@ function saveTrueOnly( dataElementId, optionComboId, fieldId )
 
     var periodId = $( '#selectedPeriodId' ).val();
 
-    var valueSaver = new ValueSaver( dataElementId, periodId, optionComboId, value, fieldId, dhis2.de.cst.colorGreen );
+    var dataSetId = $( '#selectedDataSetId' ).val();
+
+    var valueSaver = new ValueSaver( dataElementId, periodId, optionComboId, dataSetId, value, fieldId, dhis2.de.cst.colorGreen );
     valueSaver.save();
 }
 
@@ -330,7 +336,9 @@ function saveFileResource( dataElementId, optionComboId, fieldId, fileResource, 
 
     var periodId = $( '#selectedPeriodId' ).val();
 
-    var valueSaver = new FileResourceValueSaver( dataElementId, periodId, optionComboId, fileResource, fieldId, dhis2.de.cst.colorGreen, onSuccessCallback );
+    var dataSetId = $( '#selectedDataSetId' ).val();
+
+    var valueSaver = new FileResourceValueSaver( dataElementId, periodId, optionComboId, dataSetId, fileResource, fieldId, dhis2.de.cst.colorGreen, onSuccessCallback );
     valueSaver.save();
 }
 
@@ -360,17 +368,19 @@ dhis2.de.alertField = function( fieldId, alertMessage )
  * @param de data element identifier.
  * @param pe iso period.
  * @param co category option combo.
+ * @param ds data set identifier.
  * @param value value.
  * @param fieldId identifier of data input field.
  * @param resultColor the color code to set on input field for success.
  */
-function ValueSaver( de, pe, co, value, fieldId, resultColor )
+function ValueSaver( de, pe, co, ds, value, fieldId, resultColor )
 {
 	var ou = dhis2.de.getCurrentOrganisationUnit();
 	
     var dataValue = {
         'de' : de,
         'co' : co,
+        'ds' : ds,
         'ou' : ou,
         'pe' : pe,
         'value' : value
@@ -434,9 +444,9 @@ function ValueSaver( de, pe, co, value, fieldId, resultColor )
     }
 }
 
-function FileResourceValueSaver( de, pe, co, fileResource, fieldId, resultColor, onSuccessCallback )
+function FileResourceValueSaver( de, pe, co, ds, fileResource, fieldId, resultColor, onSuccessCallback )
 {
-    var valueSaver = new ValueSaver( de, pe, co, fileResource.id, fieldId, resultColor );
+    var valueSaver = new ValueSaver( de, pe, co, ds, fileResource.id, fieldId, resultColor );
 
     valueSaver.setAfterHandleSuccess( onSuccessCallback );
 
