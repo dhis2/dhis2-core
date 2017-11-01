@@ -176,6 +176,25 @@ public class ProgramRuleAction
     }
 
     // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    public boolean hasDataElement()
+    {
+        return this.dataElement != null;
+    }
+
+    public boolean hasTrackedEntityAttribute()
+    {
+        return this.attribute != null;
+    }
+
+    public boolean hasContent()
+    {
+        return this.content != null && !this.content.isEmpty();
+    }
+
+    // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
 
