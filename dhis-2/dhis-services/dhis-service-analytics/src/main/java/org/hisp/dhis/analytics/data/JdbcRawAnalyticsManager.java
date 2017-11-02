@@ -40,7 +40,6 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -100,7 +99,7 @@ public class JdbcRawAnalyticsManager
 
             if ( params.isIncludeOrgUnitNames() )
             {
-                grid.addValue( rowSet.getString( "orgunitname" ) );
+                grid.addValue( rowSet.getString( "ouname" ) );
             }
 
             grid.addValue( rowSet.getDouble( "value" ) );
@@ -133,7 +132,7 @@ public class JdbcRawAnalyticsManager
 
         if ( params.isIncludeOrgUnitNames() )
         {
-            dimensionColumns.add( statementBuilder.columnQuote( "orgunitname" ) );
+            dimensionColumns.add( statementBuilder.columnQuote( "ouname" ) );
         }
         
         setOrgUnitSelect( params, dimensionColumns );
