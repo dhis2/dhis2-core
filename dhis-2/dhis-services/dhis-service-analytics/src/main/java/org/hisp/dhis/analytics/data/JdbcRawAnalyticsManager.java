@@ -33,7 +33,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
-import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -49,9 +48,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import javax.annotation.Resource;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
@@ -77,9 +74,6 @@ public class JdbcRawAnalyticsManager
     @Autowired
     private StatementBuilder statementBuilder;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
-
     // -------------------------------------------------------------------------
     // RawAnalyticsManager implementation
     // -------------------------------------------------------------------------
@@ -88,36 +82,25 @@ public class JdbcRawAnalyticsManager
     public Grid getRawDataValues( DataQueryParams params, Grid grid )
     {        
         List<DimensionalObject> dimensions = params.getDimensions();
-        
+
         String sql = getStatement( params );
 
         log.debug( "Get raw data SQL: " + sql );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
-        Map<String, String> orgUnitNamesWithUid = new HashMap<String, String>();
-
         while ( rowSet.next() )
         {
             grid.addRow();
-            
+
             for ( DimensionalObject dim : dimensions )
             {
                 grid.addValue( rowSet.getString( dim.getDimensionName() ) );
+            }
 
-                if (dim.getDimensionType() == DimensionType.ORGANISATION_UNIT && params.isIncludeOrgUnitNames()) {
-                    String orgUnitUid = rowSet.getString(dim.getDimensionName());
-
-                    // Use hash map as a cache to speed up the fetching
-                    String name = orgUnitNamesWithUid.get(orgUnitUid);
-                    if (name == null) {
-                        name = organisationUnitService.getOrganisationUnit(orgUnitUid).getName();
-                        orgUnitNamesWithUid.put(orgUnitUid, name);
-                    }
-
-                    grid.addValue(name);
-                }
-
+            if ( params.isIncludeOrgUnitNames() )
+            {
+                grid.addValue( rowSet.getString( "orgunitname" ) );
             }
 
             grid.addValue( rowSet.getDouble( "value" ) );
@@ -147,6 +130,11 @@ public class JdbcRawAnalyticsManager
         List<String> dimensionColumns = params.getDimensions()            
             .stream().map( d -> statementBuilder.columnQuote( d.getDimensionName() ) )
             .collect( Collectors.toList() );
+
+        if ( params.isIncludeOrgUnitNames() )
+        {
+            dimensionColumns.add( statementBuilder.columnQuote( "orgunitname" ) );
+        }
         
         setOrgUnitSelect( params, dimensionColumns );
         

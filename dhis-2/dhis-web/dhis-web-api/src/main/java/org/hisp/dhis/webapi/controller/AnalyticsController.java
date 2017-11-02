@@ -441,7 +441,7 @@ public class AnalyticsController
         DataQueryParams param = dataQueryService.getFromUrl( dimension, null, null, null, null, startDate, endDate, skipMeta, skipData, false, false, hierarchyMeta,
             false, false, false, showHierarchy, false, displayProperty, outputIdScheme, inputIdScheme, false, null, null, userOrgUnit, true, apiVersion );
 
-        DataQueryParams params = DataQueryParams.newBuilder(param).withIncludeOrgUnitNames( includeOrgUnitNames ).build();
+        DataQueryParams params = DataQueryParams.newBuilder( param ).withIncludeOrgUnitNames( includeOrgUnitNames ).build();
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         Grid grid = analyticsService.getRawDataValues( params );

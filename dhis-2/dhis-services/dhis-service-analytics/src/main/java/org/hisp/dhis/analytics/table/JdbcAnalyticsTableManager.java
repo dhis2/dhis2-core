@@ -372,9 +372,10 @@ public class JdbcAnalyticsTableManager
         AnalyticsTableColumn endDate = new AnalyticsTableColumn( quote( "peenddate" ),"timestamp", "pe.enddate" );
         AnalyticsTableColumn pe = new AnalyticsTableColumn( quote( "pe" ), "character varying(15) not null", "ps.iso" );
         AnalyticsTableColumn ou = new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" );
+        AnalyticsTableColumn orgUnitName = new AnalyticsTableColumn( quote( "ouname" ), "text", "ou.name" );
         AnalyticsTableColumn level = new AnalyticsTableColumn( quote( "level" ), "integer", "ous.level" );
 
-        columns.addAll( Lists.newArrayList( de, co, ao, startDate, endDate, pe, ou, level ) );
+        columns.addAll( Lists.newArrayList( de, co, ao, startDate, endDate, pe, ou, orgUnitName, level ) );
 
         if ( isApprovalEnabled( table ) )
         {

@@ -1152,6 +1152,7 @@ public class DataQueryParams
         
         return this;
     }
+
     
     /**
      * Adds the given dimension to the dimensions of this query. The dimensions will 
