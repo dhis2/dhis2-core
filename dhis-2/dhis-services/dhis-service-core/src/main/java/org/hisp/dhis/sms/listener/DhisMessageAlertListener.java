@@ -29,6 +29,7 @@ package org.hisp.dhis.sms.listener;
  */
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
@@ -115,7 +116,7 @@ public class DhisMessageAlertListener
                 User sender = users.iterator().next();
 
                 Set<User> receivers = new HashSet<>( userGroup.getMembers() );
-                messageService.sendMessage( smsCommand.getName(), message, null, receivers, sender, MessageType.SYSTEM, false );
+                messageService.sendMessage( new MessageConversationParams.Builder( receivers, sender, smsCommand.getName(), message, MessageType.SYSTEM ).build() );
 
                 Set<User> feedbackList = new HashSet<>();
                 feedbackList.add( sender );
