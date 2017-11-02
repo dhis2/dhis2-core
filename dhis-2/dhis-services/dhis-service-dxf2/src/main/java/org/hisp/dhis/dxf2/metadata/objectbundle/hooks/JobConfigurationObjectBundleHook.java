@@ -29,9 +29,6 @@ public class JobConfigurationObjectBundleHook
     @Autowired
     private JobConfigurationService jobConfigurationService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
-
     private SchedulingManager schedulingManager;
 
     public void setSchedulingManager( SchedulingManager schedulingManager )
@@ -111,12 +108,6 @@ public class JobConfigurationObjectBundleHook
         }
 
         return errorReports;
-    }
-
-    @Override
-    public void preCreate( IdentifiableObject object, ObjectBundle bundle )
-    {
-
     }
 
     @Override

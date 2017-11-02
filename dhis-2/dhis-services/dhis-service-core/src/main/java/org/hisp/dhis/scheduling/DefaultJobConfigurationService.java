@@ -92,35 +92,36 @@ public class DefaultJobConfigurationService
         }
 
         // Potential old configurable jobs
-        JobConfiguration resourceTable = new JobConfiguration("resourceTable", RESOURCE_TABLE, null, null, true, false ) ;
-        JobConfiguration analytics = new JobConfiguration("analytics", ANALYTICS_TABLE, null, new AnalyticsJobParameters(null, Sets.newHashSet(), false), true, false );
-        JobConfiguration monitoring = new JobConfiguration("monitoring", MONITORING, null, null, true, false );
-        JobConfiguration dataSynch = new JobConfiguration("dataSynch", DATA_SYNC, null, null, true, false );
-        JobConfiguration metadataSync = new JobConfiguration("metadataSync", META_DATA_SYNC, null, null, true, false );
-        JobConfiguration sendScheduledMessage = new JobConfiguration("sendScheduledMessage", SEND_SCHEDULED_MESSAGE, null, null, true, false );
-        JobConfiguration scheduledProgramNotifications = new JobConfiguration("scheduledProgramNotifications", PROGRAM_NOTIFICATIONS, null, null, true, false );
-
-
-        HashMap<String, JobConfiguration> standardJobs = new HashMap<String, JobConfiguration>() {{
-            put("resourceTable", resourceTable);
-            put("analytics", analytics);
-            put("monitoring", monitoring);
-            put("dataSynch", dataSynch);
-            put("metadataSync", metadataSync);
-            put("sendScheduledMessage", sendScheduledMessage);
-            put("scheduledProgramNotifications", scheduledProgramNotifications);
-        }};
-
         if (scheduledSystemSettings != null) {
-            scheduledSystemSettings.forEach((cron, type) -> type.forEach(t -> {
+            JobConfiguration resourceTable = new JobConfiguration("resourceTable", RESOURCE_TABLE, null, null, true, false ) ;
+            JobConfiguration analytics = new JobConfiguration("analytics", ANALYTICS_TABLE, null, new AnalyticsJobParameters(null, Sets.newHashSet(), false), true, false );
+            JobConfiguration monitoring = new JobConfiguration("monitoring", MONITORING, null, null, true, false );
+            JobConfiguration dataSynch = new JobConfiguration("dataSynch", DATA_SYNC, null, null, true, false );
+            JobConfiguration metadataSync = new JobConfiguration("metadataSync", META_DATA_SYNC, null, null, true, false );
+            JobConfiguration sendScheduledMessage = new JobConfiguration("sendScheduledMessage", SEND_SCHEDULED_MESSAGE, null, null, true, false );
+            JobConfiguration scheduledProgramNotifications = new JobConfiguration("scheduledProgramNotifications", PROGRAM_NOTIFICATIONS, null, null, true, false );
+
+
+            HashMap<String, JobConfiguration> standardJobs = new HashMap<String, JobConfiguration>() {{
+                put("resourceTable", resourceTable);
+                put("analytics", analytics);
+                put("monitoring", monitoring);
+                put("dataSynch", dataSynch);
+                put("metadataSync", metadataSync);
+                put("sendScheduledMessage", sendScheduledMessage);
+                put("scheduledProgramNotifications", scheduledProgramNotifications);
+            }};
+
+            scheduledSystemSettings.forEach((cron, jobType) -> jobType.forEach(type -> {
                 for ( Map.Entry<String, JobConfiguration> e : standardJobs.entrySet() ) {
-                    if ( t.startsWith( e.getKey() ) ) {
+                    if ( type.startsWith( e.getKey() ) ) {
                         JobConfiguration jobConfiguration = e.getValue();
 
                         if (jobConfiguration != null) {
                             jobConfiguration.setCronExpression( cron );
                             jobConfiguration.setNextExecutionTime( null );
                             addJobConfiguration( jobConfiguration );
+
                             schedulingManager.scheduleJob( jobConfiguration );
                         }
                         break;
@@ -209,7 +210,7 @@ public class DefaultJobConfigurationService
     {
         Map<String, Map<String, Property>> propertyMap = Maps.newHashMap();
 
-        for ( JobType jobType : JobType.values() )
+        for ( JobType jobType : values() )
         {
             Map<String, Property> jobParameters = Maps.newHashMap();
 

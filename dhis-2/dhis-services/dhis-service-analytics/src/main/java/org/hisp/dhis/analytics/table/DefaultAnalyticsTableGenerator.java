@@ -38,7 +38,6 @@ import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.DateUtils;
@@ -150,11 +149,11 @@ public class DefaultAnalyticsTableGenerator
         {
             generateResourceTables();
 
-            notifier.notify( jobId, NotificationLevel.INFO, "Resource tables generated: " + clock.time(), true );
+            notifier.notify( jobId, INFO, "Resource tables generated: " + clock.time(), true );
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( jobId, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
+            notifier.notify( jobId, ERROR, "Process failed: " + ex.getMessage(), true );
 
             messageService.sendSystemErrorNotification( "Resource table process failed", ex );
 

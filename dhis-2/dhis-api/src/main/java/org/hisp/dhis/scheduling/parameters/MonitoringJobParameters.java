@@ -2,7 +2,6 @@ package org.hisp.dhis.scheduling.parameters;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.validation.ValidationRuleGroup;

@@ -42,11 +42,11 @@ import static org.junit.Assert.assertEquals;
 public class SchedulingManagerTest
     extends DhisSpringTest
 {
-    String CRON_EVERY_MIN = "0 * * ? * *";
-    String CRON_EVERY_SEC = "* * * ? * *";
+    private String CRON_EVERY_MIN = "0 * * ? * *";
+    private String CRON_EVERY_SEC = "* * * ? * *";
 
-    JobConfiguration jobA;
-    JobConfiguration jobB;
+    private JobConfiguration jobA;
+    private JobConfiguration jobB;
 
     @Autowired
     private SchedulingManager schedulingManager;

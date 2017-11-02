@@ -37,11 +37,13 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
-import org.hisp.dhis.scheduling.*;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
-import org.hisp.dhis.sms.job.SendSmsJob;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -79,9 +81,6 @@ public class ProcessingSendSMSAction
 
     @Autowired
     private Notifier notifier;
-
-    @Autowired
-    private SendSmsJob sendSmsJob;
 
     // -------------------------------------------------------------------------
     // Input & Output

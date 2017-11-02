@@ -21,9 +21,6 @@ import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 public class JobConfigurationDeserializer
     extends JsonDeserializer<JobConfiguration>
 {
-    @Autowired
-    private CurrentUserService currentUserService;
-
     @Override
     public JobConfiguration deserialize( JsonParser jsonParser,
         DeserializationContext deserializationContext )

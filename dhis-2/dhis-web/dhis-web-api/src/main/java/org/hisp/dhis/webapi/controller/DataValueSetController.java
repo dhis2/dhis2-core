@@ -43,7 +43,6 @@ import org.hisp.dhis.dxf2.datavalueset.tasks.ImportDataValueTask;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobId;
-import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -61,6 +60,7 @@ import java.io.*;
 import java.util.Date;
 import java.util.Set;
 
+import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
 import static org.hisp.dhis.webapi.utils.ContextUtils.*;
 
 /**
@@ -305,11 +305,11 @@ public class DataValueSetController
     {
         InputStream inputStream = saveTmp( request.getInputStream() );
 
-        JobId jobId = new JobId( JobType.DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid() );
+        JobId jobId = new JobId( DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid() );
         scheduler.executeJob( new ImportDataValueTask( dataValueSetService, adxDataService, sessionFactory, inputStream, importOptions,
             jobId, format ) );
 
-        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.DATAVALUE_IMPORT );
+        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + DATAVALUE_IMPORT );
         response.setStatus( HttpServletResponse.SC_ACCEPTED );
     }
 

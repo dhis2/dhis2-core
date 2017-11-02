@@ -26,6 +26,8 @@ public class SmsJobParameters
     @Property
     private String message;
 
+    private I18n i18n;
+
     public SmsJobParameters()
     {}
 
@@ -37,8 +39,6 @@ public class SmsJobParameters
         this.recipientsList = recipientsList;
         this.message = message;
     }
-
-    private I18n i18n;
 
     public void setI18n( I18n i18n )
     {

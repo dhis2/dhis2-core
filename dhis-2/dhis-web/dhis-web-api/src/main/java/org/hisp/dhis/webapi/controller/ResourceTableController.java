@@ -75,9 +75,6 @@ public class ResourceTableController
     @Autowired
     private WebMessageService webMessageService;
 
-    @Autowired
-    private MonitoringJob monitoringJob;
-
     @RequestMapping( value = "/analytics", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATA_MART_ADMIN')" )
     public void analytics(

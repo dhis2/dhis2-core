@@ -79,13 +79,7 @@ public class ValidationController
     private DataElementCategoryService categoryService;
 
     @Autowired
-    private ValidationResultNotificationJob validationResultNotificationJob;
-
-    @Autowired
     private Scheduler scheduler;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     @Autowired
     private WebMessageService webMessageService;

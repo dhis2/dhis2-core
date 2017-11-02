@@ -12,8 +12,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 /**
- * Created by henninghakonsen on 30/10/2017.
- * Project: dhis-2.
+ * @author Henning Håkonsen
  */
 public class JobConfigurationServiceTest
         extends DhisSpringTest
@@ -21,10 +20,10 @@ public class JobConfigurationServiceTest
     @Autowired
     private JobConfigurationService jobConfigurationService;
 
-    String CRON_EVERY_MIN = "0 * * ? * *";
+    private String CRON_EVERY_MIN = "0 * * ? * *";
 
-    JobConfiguration jobA;
-    JobConfiguration jobB;
+    private JobConfiguration jobA;
+    private JobConfiguration jobB;
 
     @Override
     protected void setUpTest() throws Exception {
