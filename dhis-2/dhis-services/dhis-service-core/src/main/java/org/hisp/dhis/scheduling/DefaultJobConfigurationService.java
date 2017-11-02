@@ -93,13 +93,13 @@ public class DefaultJobConfigurationService
 
         // Potential old configurable jobs
         if (scheduledSystemSettings != null) {
-            JobConfiguration resourceTable = new JobConfiguration("resourceTable", RESOURCE_TABLE, null, null, true, false ) ;
-            JobConfiguration analytics = new JobConfiguration("analytics", ANALYTICS_TABLE, null, new AnalyticsJobParameters(null, Sets.newHashSet(), false), true, false );
-            JobConfiguration monitoring = new JobConfiguration("monitoring", MONITORING, null, null, true, false );
-            JobConfiguration dataSynch = new JobConfiguration("dataSynch", DATA_SYNC, null, null, true, false );
-            JobConfiguration metadataSync = new JobConfiguration("metadataSync", META_DATA_SYNC, null, null, true, false );
-            JobConfiguration sendScheduledMessage = new JobConfiguration("sendScheduledMessage", SEND_SCHEDULED_MESSAGE, null, null, true, false );
-            JobConfiguration scheduledProgramNotifications = new JobConfiguration("scheduledProgramNotifications", PROGRAM_NOTIFICATIONS, null, null, true, false );
+            JobConfiguration resourceTable = new JobConfiguration("Resource table", RESOURCE_TABLE, null, null, true, false ) ;
+            JobConfiguration analytics = new JobConfiguration("Analytics", ANALYTICS_TABLE, null, new AnalyticsJobParameters(null, Sets.newHashSet(), false), true, false );
+            JobConfiguration monitoring = new JobConfiguration("Monitoring", MONITORING, null, null, true, false );
+            JobConfiguration dataSynch = new JobConfiguration("Data synchronization", DATA_SYNC, null, null, true, false );
+            JobConfiguration metadataSync = new JobConfiguration("Metadata sync", META_DATA_SYNC, null, null, true, false );
+            JobConfiguration sendScheduledMessage = new JobConfiguration("Send scheduled messages", SEND_SCHEDULED_MESSAGE, null, null, true, false );
+            JobConfiguration scheduledProgramNotifications = new JobConfiguration("Scheduled program notifications", PROGRAM_NOTIFICATIONS, null, null, true, false );
 
 
             HashMap<String, JobConfiguration> standardJobs = new HashMap<String, JobConfiguration>() {{
@@ -134,10 +134,10 @@ public class DefaultJobConfigurationService
         String CRON_DAILY_7AM = "0 0 7 * * ?";
 
         // Default jobs
-        JobConfiguration fileResourceCleanUp = new JobConfiguration("default_fileResourceCleanUp", FILE_RESOURCE_CLEANUP, CRON_DAILY_2AM, null, true, false );
-        JobConfiguration dataStatistics = new JobConfiguration("default_dataStatistics", DATA_STATISTICS, CRON_DAILY_2AM, null, true, false );
-        JobConfiguration validationResultNotification = new JobConfiguration("default_validationResultNotification", VALIDATION_RESULTS_NOTIFICATION, CRON_DAILY_7AM, null, true, false );
-        JobConfiguration credentialsExpiryAlert = new JobConfiguration("default_credentialsExpiryAlertTask", CREDENTIALS_EXPIRY_ALERT, CRON_DAILY_2AM, null, true, false );
+        JobConfiguration fileResourceCleanUp = new JobConfiguration("File resource clean up", FILE_RESOURCE_CLEANUP, CRON_DAILY_2AM, null, true, false );
+        JobConfiguration dataStatistics = new JobConfiguration("Data statistics", DATA_STATISTICS, CRON_DAILY_2AM, null, true, false );
+        JobConfiguration validationResultNotification = new JobConfiguration("Validation result notification", VALIDATION_RESULTS_NOTIFICATION, CRON_DAILY_7AM, null, true, false );
+        JobConfiguration credentialsExpiryAlert = new JobConfiguration("Credentials expiry alert", CREDENTIALS_EXPIRY_ALERT, CRON_DAILY_2AM, null, true, false );
         // Dataset notification HH
 
         List<JobConfiguration> defaultJobs = Lists.newArrayList( fileResourceCleanUp, dataStatistics, validationResultNotification, credentialsExpiryAlert );
@@ -236,6 +236,7 @@ public class DefaultJobConfigurationService
                     {
                         property = new NodePropertyIntrospectorService().setPropertyIfCollection( property, field, clazz );
                     }
+
 
                     jobParameters.put( property.getName(), property );
                 }
