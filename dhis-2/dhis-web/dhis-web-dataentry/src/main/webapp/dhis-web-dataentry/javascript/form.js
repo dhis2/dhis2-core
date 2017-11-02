@@ -504,7 +504,7 @@ dhis2.de.uploadLocalData = function()
 
 dhis2.de.addEventListeners = function()
 {
-    $( '.entryfield, .entrytime' ).each( function( i )
+    $( '.entryfield, .entrytime, .entryfileresource' ).each( function( i )
     {
         var id = $( this ).attr( 'id' );
         var isTimeField = $( this ).hasClass('entrytime');

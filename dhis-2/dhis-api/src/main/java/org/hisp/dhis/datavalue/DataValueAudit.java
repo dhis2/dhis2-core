@@ -47,6 +47,7 @@ import java.util.Objects;
  * @author Halvdan Hoem Grelland
  */
 public class DataValueAudit
+    implements Value
 {
     private int id;
 

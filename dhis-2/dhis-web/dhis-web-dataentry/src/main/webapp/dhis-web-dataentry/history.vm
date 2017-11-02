@@ -118,7 +118,10 @@ $( document ).ready( function() {
                                         #end
                                     </td>
                                     <td>
-                                        #if( $dataValueAudit.value )
+                                        #if( $dataValueAudit.value && "FILE_RESOURCE" == $dataValueAudit.dataElement.valueType )
+                                           #* <a href="../api/dataValues/files?de=${dataValueAudit.dataElement.uid}&co=${dataValueAudit.categoryOptionCombo.uid}&ou=${dataValueAudit.organisationUnit.uid}&pe=${periodId}&audit=${dataValueAudit.id}", target="_blank">$dataValueAudit.id $fileResourceService.getFileResource( $dataValueAudit.value ).getName() </a>*#
+                                            <a href="../api/audits/files/${dataValueAudit.value}", target="_blank">$dataValueAudit.id $fileResourceService.getFileResource( $dataValueAudit.value ).getName() </a>
+                                        #elseif( $dataValueAudit.value )
                                             $dataValueAudit.value
                                         #else
                                             $encoder.htmlEncode( $i18n.getString( "no_value" ) )

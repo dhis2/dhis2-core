@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.google.common.collect.Lists;
+import com.google.common.io.ByteSource;
+import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -44,10 +46,16 @@ import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditService;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.CollectionNode;
@@ -66,12 +74,14 @@ import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -108,6 +118,100 @@ public class AuditController
 
     @Autowired
     private ContextService contextService;
+
+    @Autowired
+    private FileResourceService fileResourceService;
+
+    /**
+     * Returns a file associated with the externalFileResource resolved from the accessToken.
+     * <p>
+     * Only files contained in externalFileResources with a valid accessToken, expiration date null or in the future
+     * are files allowed to be served trough this endpoint.
+     *
+     * @param uid the unique id of the file resource
+     * @param response
+     * @throws WebMessageException
+     */
+    @RequestMapping( value = "/files/{uid}", method = RequestMethod.GET )
+    public void getExternalFileResource( @PathVariable String uid,
+                                         HttpServletResponse response )
+            throws WebMessageException
+    {
+        FileResource fileResource = fileResourceService.getFileResource( uid );
+
+        if ( fileResource == null || fileResource.getDomain() != FileResourceDomain.DATA_VALUE )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "No file found with uid '" + uid + "'" ) );
+        }
+
+        FileResourceStorageStatus storageStatus = fileResource.getStorageStatus();
+
+        if ( storageStatus != FileResourceStorageStatus.STORED )
+        {
+            // Special case:
+            //  The FileResource exists and has been tied to this DataValue, however, the underlying file
+            //  content is still not stored to the (most likely external) file store provider.
+
+            // HTTP 409, for lack of a more suitable status code
+            WebMessage webMessage = WebMessageUtils.conflict( "The content is being processed and is not available yet. Try again later.",
+                    "The content requested is in transit to the file store and will be available at a later time." );
+            webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );
+
+            throw new WebMessageException( webMessage );
+        }
+
+        ByteSource content = fileResourceService.getFileResourceContent( fileResource );
+
+        if ( content == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "The referenced file could not be found" ) );
+        }
+
+        // ---------------------------------------------------------------------
+        // Attempt to build signed URL request for content and redirect
+        // ---------------------------------------------------------------------
+
+        URI signedGetUri = fileResourceService.getSignedGetFileResourceContentUri( uid );
+
+        if ( signedGetUri != null )
+        {
+            response.setStatus( HttpServletResponse.SC_TEMPORARY_REDIRECT );
+            response.setHeader( HttpHeaders.LOCATION, signedGetUri.toASCIIString() );
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------
+        // Build response and return
+        // ---------------------------------------------------------------------
+
+        response.setContentType( fileResource.getContentType() );
+        response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
+        response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
+
+        // ---------------------------------------------------------------------
+        // Request signing is not available, stream content back to client
+        // ---------------------------------------------------------------------
+
+        InputStream inputStream = null;
+
+        try
+        {
+            inputStream = content.openStream();
+            IOUtils.copy( inputStream, response.getOutputStream() );
+        }
+        catch ( IOException e )
+        {
+            throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
+                    "There was an exception when trying to fetch the file from the storage backend. " +
+                            "Depending on the provider the root cause could be network or file system related." ) );
+        }
+        finally
+        {
+            IOUtils.closeQuietly( inputStream );
+        }
+
+    }
 
     @RequestMapping( value = "dataValue", method = RequestMethod.GET )
     public @ResponseBody RootNode getAggregateDataValueAudit(

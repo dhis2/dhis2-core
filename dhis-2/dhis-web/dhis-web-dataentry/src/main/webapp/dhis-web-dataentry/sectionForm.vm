@@ -150,6 +150,7 @@
                                             <div class="upload-button-group">
                                                 <button class="upload-button"></button>
                                             </div>
+                                            <img class="commentlink" id="${commentId}">
                                             <input type="file" style="display: none;">
                                         </div>
                                     </td>

@@ -41,6 +41,7 @@ import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.utils.InputUtils;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -51,6 +52,8 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.stream.Collectors;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -112,6 +115,14 @@ public class GetHistoryAction
     public void setUserService( UserService userService )
     {
         this.userService = userService;
+    }
+
+    @Autowired
+    private FileResourceService fileResourceService;
+
+    public void setFileResourceService( FileResourceService fileResourceService )
+    {
+        this.fileResourceService = fileResourceService;
     }
 
     @Autowired
@@ -229,6 +240,15 @@ public class GetHistoryAction
     public OptionSet getCommentOptionSet()
     {
         return commentOptionSet;
+    }
+
+    public String getFileName( String uid )
+    {
+        return fileResourceService.getFileResource( uid ).getName();
+    }
+
+    public FileResourceService getFileResourceService() {
+        return fileResourceService;
     }
 
     // -------------------------------------------------------------------------
