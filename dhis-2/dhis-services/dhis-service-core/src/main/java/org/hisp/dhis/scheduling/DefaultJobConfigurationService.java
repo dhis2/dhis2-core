@@ -1,18 +1,27 @@
 package org.hisp.dhis.scheduling;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.primitives.Primitives;
 import org.hisp.dhis.common.GenericNameableObjectStore;
+import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.schema.NodePropertyIntrospectorService;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
+
+import static org.hisp.dhis.scheduling.JobType.*;
 
 /**
  * @author Henning Håkonsen
@@ -21,8 +30,6 @@ import java.util.stream.Collectors;
 public class DefaultJobConfigurationService
     implements JobConfigurationService
 {
-    private GenericNameableObjectStore<JobConfiguration> jobConfigurationStore;
-
     private SchedulingManager schedulingManager;
 
     public void setSchedulingManager( SchedulingManager schedulingManager )
@@ -30,37 +37,137 @@ public class DefaultJobConfigurationService
         this.schedulingManager = schedulingManager;
     }
 
+    private GenericNameableObjectStore<JobConfiguration> jobConfigurationStore;
+
     public void setJobConfigurationStore( GenericNameableObjectStore<JobConfiguration> jobConfigurationStore )
     {
         this.jobConfigurationStore = jobConfigurationStore;
     }
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
+    @Autowired
+    private SystemSettingManager systemSettingManager;
+
+    private boolean scheduledBoot = true;
+
+    /**
+     * Reschedule old jobs.
+     *
+     * Port jobs from the old scheduler if the startup involves server upgrade
+     *
+     * @param contextRefreshedEvent context event
+     */
     @EventListener
     public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )
     {
-        Date now = new Date();
-        getAllJobConfigurations().forEach( (jobConfiguration -> {
-            if( !jobConfiguration.isContinuousExecution() && jobConfiguration.getNextExecutionTime().compareTo( now ) < 0 ) {
-                jobConfiguration.setNextExecutionTime( null );
-                updateJobConfiguration( jobConfiguration );
-                schedulingManager.executeJob( jobConfiguration );
-            }
-            schedulingManager.scheduleJob( jobConfiguration );
-        }) );
+        if ( scheduledBoot && systemSettingManager != null && currentUserService != null) {
+            Date now = new Date();
+            getAllJobConfigurations().forEach( (jobConfig -> {
+                if( !jobConfig.isContinuousExecution() && jobConfig.getNextExecutionTime().compareTo( now ) < 0 ) {
+                    jobConfig.setNextExecutionTime( null );
+                    updateJobConfiguration( jobConfig );
+                    schedulingManager.executeJob( jobConfig );
+                }
+                schedulingManager.scheduleJob( jobConfig );
+            }) );
+
+            ListMap<String, String> scheduledSystemSettings = (ListMap<String, String>) systemSettingManager.getSystemSetting( SettingKey.SCHEDULED_TASKS, new ListMap<String, String>());
+            handleServerUpgrade( scheduledSystemSettings );
+
+            scheduledBoot = false;
+        }
+    }
+
+    /**
+     * Method which ports the jobs in the system from the old scheduler to the new.
+     * Collects all old jobs and adds them. Also adds default jobs.
+     */
+    private void handleServerUpgrade ( ListMap<String, String> scheduledSystemSettings )
+    {
+        if ( scheduledSystemSettings != null && scheduledSystemSettings.containsKey( "ported" ) ) {
+            // System is ported
+            return;
+        }
+
+        // Potential old configurable jobs
+        JobConfiguration resourceTable = new JobConfiguration("resourceTable", RESOURCE_TABLE, null, null, true, false ) ;
+        JobConfiguration analytics = new JobConfiguration("analytics", ANALYTICS_TABLE, null, new AnalyticsJobParameters(null, Sets.newHashSet(), false), true, false );
+        JobConfiguration monitoring = new JobConfiguration("monitoring", MONITORING, null, null, true, false );
+        JobConfiguration dataSynch = new JobConfiguration("dataSynch", DATA_SYNC, null, null, true, false );
+        JobConfiguration metadataSync = new JobConfiguration("metadataSync", META_DATA_SYNC, null, null, true, false );
+        JobConfiguration sendScheduledMessage = new JobConfiguration("sendScheduledMessage", SEND_SCHEDULED_MESSAGE, null, null, true, false );
+        JobConfiguration scheduledProgramNotifications = new JobConfiguration("scheduledProgramNotifications", PROGRAM_NOTIFICATIONS, null, null, true, false );
+
+
+        HashMap<String, JobConfiguration> standardJobs = new HashMap<String, JobConfiguration>() {{
+            put("resourceTable", resourceTable);
+            put("analytics", analytics);
+            put("monitoring", monitoring);
+            put("dataSynch", dataSynch);
+            put("metadataSync", metadataSync);
+            put("sendScheduledMessage", sendScheduledMessage);
+            put("scheduledProgramNotifications", scheduledProgramNotifications);
+        }};
+
+        if (scheduledSystemSettings != null) {
+            scheduledSystemSettings.forEach((cron, type) -> type.forEach(t -> {
+                for ( Map.Entry<String, JobConfiguration> e : standardJobs.entrySet() ) {
+                    if ( t.startsWith( e.getKey() ) ) {
+                        JobConfiguration jobConfiguration = e.getValue();
+
+                        if (jobConfiguration != null) {
+                            jobConfiguration.setCronExpression( cron );
+                            jobConfiguration.setNextExecutionTime( null );
+                            addJobConfiguration( jobConfiguration );
+                            schedulingManager.scheduleJob( jobConfiguration );
+                        }
+                        break;
+                    }
+                }
+            }));
+        }
+
+        String CRON_DAILY_2AM = "0 0 2 * * ?";
+        String CRON_DAILY_7AM = "0 0 7 * * ?";
+
+        // Default jobs
+        JobConfiguration fileResourceCleanUp = new JobConfiguration("default_fileResourceCleanUp", FILE_RESOURCE_CLEANUP, CRON_DAILY_2AM, null, true, false );
+        JobConfiguration dataStatistics = new JobConfiguration("default_dataStatistics", DATA_STATISTICS, CRON_DAILY_2AM, null, true, false );
+        JobConfiguration validationResultNotification = new JobConfiguration("default_validationResultNotification", VALIDATION_RESULTS_NOTIFICATION, CRON_DAILY_7AM, null, true, false );
+        JobConfiguration credentialsExpiryAlert = new JobConfiguration("default_credentialsExpiryAlertTask", CREDENTIALS_EXPIRY_ALERT, CRON_DAILY_2AM, null, true, false );
+        // Dataset notification HH
+
+        List<JobConfiguration> defaultJobs = Lists.newArrayList( fileResourceCleanUp, dataStatistics, validationResultNotification, credentialsExpiryAlert );
+        addJobConfigurations( defaultJobs );
+        schedulingManager.scheduleJobs( defaultJobs );
+
+        // Save old systemsetting to a recognizable not null value
+        ListMap<String, String> emptySystemSetting = new ListMap<>();
+        emptySystemSetting.putValue("ported", "");
+
+        systemSettingManager.saveSystemSetting(SettingKey.SCHEDULED_TASKS, emptySystemSetting);
     }
 
     @Override
     public int addJobConfiguration( JobConfiguration jobConfiguration )
     {
         jobConfigurationStore.save( jobConfiguration );
-        return jobConfiguration.getId();
+        return jobConfiguration.getId( );
+    }
+
+    @Override
+    public void addJobConfigurations( List<JobConfiguration> jobConfigurations )
+    {
+        jobConfigurations.forEach( jobConfiguration -> jobConfigurationStore.save( jobConfiguration ));
     }
 
     @Override
     public int updateJobConfiguration( JobConfiguration jobConfiguration )
     {
         jobConfigurationStore.update( jobConfiguration );
-        return jobConfiguration.getId();
+        return jobConfiguration.getId( );
     }
 
     @Override
@@ -85,12 +192,6 @@ public class DefaultJobConfigurationService
     public List<JobConfiguration> getAllJobConfigurations()
     {
         return jobConfigurationStore.getAll();
-    }
-
-    @Override
-    public Map<String, ScheduledFuture<?>> getAllJobConfigurationsFromScheduler()
-    {
-        return schedulingManager.getAllFutureJobs();
     }
 
     @Override

@@ -34,12 +34,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.common.SetMap;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -59,7 +54,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
-import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -196,9 +190,6 @@ public class DefaultValidationService
 
         Clock clock = new Clock( log ).startClock().logTime( "Starting scheduled validation run, orgUnits: "
             + orgUnits.size() + ", periods: " + periods.size() + ", rules:" + rules.size() );
-
-        // TODO: We are not actively using LAST_MONITORING_RUN anymore, remove when sure we don't need it.
-        systemSettingManager.saveSystemSetting( SettingKey.LAST_MONITORING_RUN, new Date() );
 
         ValidationRunContext context = getValidationContext( orgUnits, periods, rules )
             .withPersistResults( true )

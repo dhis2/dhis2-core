@@ -51,6 +51,6 @@ public class JobConfigurationDeserializer
             cronExpression =  "0 * * ? * *";
         }
 
-        return new JobConfiguration( root.get( "name" ).textValue(), jobType, cronExpression, jobParameters, enabled, continuousExecution, null );
+        return new JobConfiguration( root.get( "name" ).textValue(), jobType, cronExpression, jobParameters, enabled, continuousExecution );
     }
 }

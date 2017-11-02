@@ -254,7 +254,7 @@ public class ProcessingSendSMSAction
 
         SmsJobParameters jobParameters = new SmsJobParameters(smsSubject, text, recipientsList.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toList()), text );
 
-        JobConfiguration processingSendSmsJobConfiguration = new JobConfiguration( "processingSendSmsAction", JobType.SMS_SEND, null, jobParameters, true, false, jobId );
+        JobConfiguration processingSendSmsJobConfiguration = new JobConfiguration( "processingSendSmsAction", JobType.SMS_SEND, null, jobParameters, true, false );
         
         schedulingManager.executeJob( processingSendSmsJobConfiguration );
 

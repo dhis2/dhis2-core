@@ -28,6 +28,7 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 
@@ -51,7 +52,7 @@ public interface SchedulingManager
 {
     boolean isJobConfigurationRunning( JobConfiguration jobConfiguration );
 
-    void runJobConfiguration( JobConfiguration jobConfiguration );
+    void jobConfigurationStarted(JobConfiguration jobConfiguration );
 
     void jobConfigurationFinished( JobConfiguration jobConfiguration );
 
@@ -63,6 +64,12 @@ public interface SchedulingManager
      * @param jobConfiguration the job to schedule.
      */
     void scheduleJob( JobConfiguration jobConfiguration );
+
+    /**
+     * Schedule a collection of jobs
+     * @param jobConfigurations the jobs to schedule
+     */
+    void scheduleJobs( List<JobConfiguration> jobConfigurations );
 
     /**
      * Schedules a job with the given job configuration with a fixed delay
@@ -94,6 +101,13 @@ public interface SchedulingManager
     void executeJob( JobConfiguration jobConfiguration );
 
     /**
+     * Execute an actual job without validation
+     *
+     * @param job The job to be executed
+     */
+    void executeJob( Runnable job );
+
+    /**
      * Resolve the cron expression mapped for the given task key, or null if none.
      *
      * @param jobKey the key of the job, not null.
@@ -116,7 +130,7 @@ public interface SchedulingManager
      *
      * Returns the status of the currently executing job.
      */
-    boolean isJobInProgress(String jobKey);
+    boolean isJobInProgress( String jobKey );
 
 
 }

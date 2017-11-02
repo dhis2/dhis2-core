@@ -28,8 +28,8 @@ public class JobConfigurationServiceTest
 
     @Override
     protected void setUpTest() throws Exception {
-        jobA = new JobConfiguration( "jobA", JobType.TEST, CRON_EVERY_MIN, new TestJobParameters( "test" ), true, false, null );
-        jobB = new JobConfiguration( "jobB", JobType.DATA_INTEGRITY, CRON_EVERY_MIN, null, true, false, null );
+        jobA = new JobConfiguration( "jobA", JobType.TEST, CRON_EVERY_MIN, new TestJobParameters( "test" ), true, false );
+        jobB = new JobConfiguration( "jobB", JobType.DATA_INTEGRITY, CRON_EVERY_MIN, null, true, false );
 
         jobConfigurationService.addJobConfiguration( jobA );
         jobConfigurationService.addJobConfiguration( jobB );

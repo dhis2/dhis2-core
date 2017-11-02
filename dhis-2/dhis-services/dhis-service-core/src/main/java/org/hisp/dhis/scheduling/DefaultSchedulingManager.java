@@ -30,7 +30,6 @@ package org.hisp.dhis.scheduling;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.system.scheduling.DefaultJobInstance;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.system.scheduling.SpringScheduler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,10 +92,9 @@ public class DefaultSchedulingManager
 
     public boolean isJobConfigurationRunning( JobConfiguration jobConfiguration ) {
         return !jobConfiguration.isContinuousExecution() && runningJobConfigurations.stream().anyMatch(jobConfig -> jobConfig.getJobType().equals(jobConfiguration.getJobType()) && !jobConfig.isContinuousExecution());
-
     }
 
-    public void runJobConfiguration( JobConfiguration jobConfiguration )
+    public void jobConfigurationStarted( JobConfiguration jobConfiguration )
     {
         runningJobConfigurations.add( jobConfiguration );
         jobConfigurationService.updateJobConfiguration( jobConfiguration );
@@ -122,6 +120,13 @@ public class DefaultSchedulingManager
     }
 
     @Override
+    public void scheduleJobs( List<JobConfiguration> jobConfigurations )
+    {
+        jobConfigurations.forEach(this::scheduleJob);
+    }
+
+
+        @Override
     public void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration )
     {
         if(!scheduler.isJobInSystem( jobConfiguration.getUid() ))
@@ -143,7 +148,6 @@ public class DefaultSchedulingManager
     public void stopAllJobs()
     {
         scheduler.stopAllJobs();
-
     }
 
     @Override
@@ -158,8 +162,14 @@ public class DefaultSchedulingManager
     {
         if ( jobConfiguration != null && !isJobInProgress( jobConfiguration.getUid() ) )
         {
-            scheduler.executeJob( jobConfiguration, new DefaultJobInstance());
+            scheduler.executeJob( jobConfiguration );
         }
+    }
+
+    @Override
+    public void executeJob( Runnable job )
+    {
+        scheduler.executeJob( job );
     }
 
     @Override

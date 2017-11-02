@@ -6,7 +6,6 @@ import org.springframework.context.event.EventListener;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ScheduledFuture;
 
 /**
  * Simple service for {@link JobConfiguration} objects.
@@ -33,6 +32,12 @@ public interface JobConfigurationService
      * @return id
      */
     int addJobConfiguration( JobConfiguration jobConfiguration );
+
+    /**
+     * Add a collection of job configurations
+     * @param jobConfigurations the job configurations to add
+     */
+    void addJobConfigurations( List<JobConfiguration> jobConfigurations );
 
     /**
      * Update an existing job configuration
@@ -71,13 +76,6 @@ public interface JobConfigurationService
      * @return list of all job configurations in the system
      */
     List<JobConfiguration> getAllJobConfigurations( );
-
-    /**
-     * Get all job configurations which are actually scheduled
-     *
-     * @return list of all job configurations in the scheduler
-     */
-    Map<String, ScheduledFuture<?>> getAllJobConfigurationsFromScheduler( );
 
     /**
      * Get a sorted list of all job configurations based on cron expressions

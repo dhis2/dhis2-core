@@ -36,7 +36,7 @@ import java.util.Objects;
  */
 public class JobId implements Serializable
 {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -1578879078661100062L;
 
     private static final String SEPARATOR = "-";
     

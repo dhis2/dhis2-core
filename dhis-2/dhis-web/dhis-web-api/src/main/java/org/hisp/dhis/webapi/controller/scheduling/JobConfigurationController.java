@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
-import java.util.concurrent.ScheduledFuture;
 
 /**
  * Simple controller for API endpoints
@@ -32,12 +31,5 @@ public class JobConfigurationController
     Map<String, Map<String, Property>> getJobTypesExtended()
     {
         return jobConfigurationService.getJobParametersSchema();
-    }
-
-    @RequestMapping( value = "/scheduled", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
-    public @ResponseBody
-    Map<String, ScheduledFuture<?>> getJobsFromScheduler()
-    {
-        return jobConfigurationService.getAllJobConfigurationsFromScheduler();
     }
 }

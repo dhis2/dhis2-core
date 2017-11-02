@@ -27,14 +27,15 @@ public class DefaultJobInstance implements JobInstance
         schedulingManager.jobConfigurationFinished( jobConfiguration );
     }
 
-    public void execute( JobConfiguration jobConfiguration, SchedulingManager schedulingManager, MessageService messageService )
+
+    public void execute(JobConfiguration jobConfiguration, SchedulingManager schedulingManager, MessageService messageService )
     {
         final Clock clock = new Clock().startClock();
 
         if(!schedulingManager.isJobConfigurationRunning( jobConfiguration ))
         {
             jobConfiguration.setJobStatus( JobStatus.RUNNING );
-            schedulingManager.runJobConfiguration( jobConfiguration );
+            schedulingManager.jobConfigurationStarted( jobConfiguration );
 
             try
             {

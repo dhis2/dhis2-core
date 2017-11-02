@@ -100,8 +100,9 @@ public class SpringScheduler
     }
 
     @Override
-    public void executeJob( JobConfiguration jobConfiguration, JobInstance jobInstance )
+    public void executeJob( JobConfiguration jobConfiguration )
     {
+        DefaultJobInstance jobInstance = new DefaultJobInstance();
         ListenableFuture<?> future = jobExecutor.submitListenable( () -> jobInstance.execute( jobConfiguration, schedulingManager, messageService ) );
         currentTasks.put( jobConfiguration.getUid(), future );
     }
@@ -137,7 +138,7 @@ public class SpringScheduler
         DefaultJobInstance jobInstance = new DefaultJobInstance();
         if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) ) {
             ScheduledFuture<?> future = jobScheduler
-                    .schedule(() -> jobInstance.execute(jobConfiguration, schedulingManager, messageService), new CronTrigger(jobConfiguration.getCronExpression()));
+                    .schedule(() -> jobInstance.execute(jobConfiguration, schedulingManager, messageService), new CronTrigger( jobConfiguration.getCronExpression() ));
 
             futures.put(jobConfiguration.getUid(), future);
 
@@ -153,7 +154,7 @@ public class SpringScheduler
     public void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration )
     {
         DefaultJobInstance jobInstance = new DefaultJobInstance();
-        ScheduledFuture<?> future = jobScheduler.scheduleWithFixedDelay( () -> jobInstance.execute( jobConfiguration, schedulingManager, messageService ), 10 );
+        ScheduledFuture<?> future = jobScheduler.scheduleWithFixedDelay( () -> jobInstance.execute( jobConfiguration, schedulingManager, messageService ), 60000 );
 
         futures.put( jobConfiguration.getUid(), future );
 

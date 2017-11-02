@@ -50,13 +50,11 @@ public class JobConfiguration
 
     private Date nextExecutionTime;
 
-    private JobId jobId;
-
     public JobConfiguration ()
     {
     }
 
-    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters, boolean enabled, boolean continuousExecution, JobId jobId )
+    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters, boolean enabled, boolean continuousExecution )
     {
         this.name = name;
         this.cronExpression = cronExpression;
@@ -64,7 +62,6 @@ public class JobConfiguration
         this.jobParameters = jobParameters;
         this.enabled = enabled;
         this.continuousExecution = continuousExecution;
-        this.jobId = jobId;
         setNextExecutionTime( null );
     }
 
@@ -107,12 +104,8 @@ public class JobConfiguration
     {
         if( nextExecutionTime != null) this.nextExecutionTime = nextExecutionTime;
         else {
-            if( !isContinuousExecution() && !cronExpression.equals( "" ) ) this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext(  ) );
+            if( !isContinuousExecution() && cronExpression != null && !cronExpression.equals( "" ) ) this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext(  ) );
         }
-    }
-
-    public void setJobId(JobId jobId) {
-        this.jobId = jobId;
     }
 
     public void setContinuousExecution(boolean continuousExecution) {
@@ -182,16 +175,15 @@ public class JobConfiguration
         return continuousExecution;
     }
 
+    public JobId getJobId()
+    {
+        return new JobId( jobType, getLastUpdatedBy().getUid() );
+    }
+
     @Override
     public int compareTo( IdentifiableObject jobConfiguration  )
     {
         return nextExecutionTime.compareTo( ((JobConfiguration) jobConfiguration).getNextExecutionTime() );
-    }
-
-    @JacksonXmlProperty
-    @JsonProperty
-    public JobId getJobId() {
-        return jobId;
     }
 
     @Override

@@ -116,14 +116,7 @@ public class JobConfigurationObjectBundleHook
     @Override
     public void preCreate( IdentifiableObject object, ObjectBundle bundle )
     {
-        if ( !JobConfiguration.class.isInstance( object ) )
-        {
-            return;
-        }
 
-        JobConfiguration jobConfiguration = (JobConfiguration) object;
-
-        jobConfiguration.setJobId( new JobId( JobType.valueOf( jobConfiguration.getJobType().toString() ), currentUserService.getCurrentUser().getUid() ) );
     }
 
     @Override
@@ -133,10 +126,6 @@ public class JobConfigurationObjectBundleHook
         {
             return;
         }
-
-        JobConfiguration jobConfiguration = (JobConfiguration) object;
-
-        jobConfiguration.setJobId( new JobId( JobType.valueOf( jobConfiguration.getJobType().toString() ), currentUserService.getCurrentUser().getUid() ) );
 
         schedulingManager.stopJob( (JobConfiguration) persistedObject );
         sessionFactory.getCurrentSession().update( persistedObject );
