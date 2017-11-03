@@ -34,6 +34,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.notification.NotificationMessage;
@@ -427,8 +428,11 @@ public class DefaultProgramNotificationService
     private void sendDhisMessages( Set<DhisMessage> messages )
     {
         messages.forEach( m ->
-            messageService.sendMessage( m.message.getSubject(), m.message.getMessage(), null, m.recipients, null,
-                MessageType.SYSTEM, true )
+            messageService.sendMessage(
+                new MessageConversationParams.Builder(m.recipients, null, m.message.getSubject(), m.message.getMessage(), MessageType.SYSTEM )
+                    .withForceNotification( true )
+                    .build()
+            )
         );
     }
 
