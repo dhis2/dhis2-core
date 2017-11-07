@@ -88,7 +88,6 @@ public class DefaultQueryParser implements QueryParser
                 junction.add( getRestriction( schema, split[0], split[1], null ) );
             }
         }
-        System.out.println("junction: " + junction);
 
         return query;
     }
