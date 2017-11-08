@@ -33,7 +33,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -47,7 +46,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "organisationUnitGroup", namespace = DxfNamespaces.DXF_2_0 )
 public class OrganisationUnitGroup
-    extends BaseDimensionalItemObject implements MetadataObject
+    extends CoordinateBaseDimensionalItemObject implements MetadataObject
 {
     private String symbol;
 
@@ -59,13 +58,11 @@ public class OrganisationUnitGroup
     // Constructors
     // -------------------------------------------------------------------------
 
-    public OrganisationUnitGroup()
-    {
+    public OrganisationUnitGroup() {
 
     }
 
-    public OrganisationUnitGroup( String name )
-    {
+    public OrganisationUnitGroup(String name) {
         this.name = name;
     }
 
@@ -73,46 +70,37 @@ public class OrganisationUnitGroup
     // Logic
     // -------------------------------------------------------------------------
 
-    public boolean addOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        members.add( organisationUnit );
-        return organisationUnit.getGroups().add( this );
+    public boolean addOrganisationUnit(OrganisationUnit organisationUnit) {
+        members.add(organisationUnit);
+        return organisationUnit.getGroups().add(this);
     }
 
-    public boolean removeOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        members.remove( organisationUnit );
-        return organisationUnit.getGroups().remove( this );
+    public boolean removeOrganisationUnit(OrganisationUnit organisationUnit) {
+        members.remove(organisationUnit);
+        return organisationUnit.getGroups().remove(this);
     }
 
-    public void removeAllOrganisationUnits()
-    {
-        for ( OrganisationUnit organisationUnit : members )
-        {
-            organisationUnit.getGroups().remove( this );
+    public void removeAllOrganisationUnits() {
+        for (OrganisationUnit organisationUnit : members) {
+            organisationUnit.getGroups().remove(this);
         }
 
         members.clear();
     }
 
-    public void updateOrganisationUnits( Set<OrganisationUnit> updates )
-    {
-        for ( OrganisationUnit unit : new HashSet<>( members ) )
-        {
-            if ( !updates.contains( unit ) )
-            {
-                removeOrganisationUnit( unit );
+    public void updateOrganisationUnits(Set<OrganisationUnit> updates) {
+        for (OrganisationUnit unit : new HashSet<>(members)) {
+            if (!updates.contains(unit)) {
+                removeOrganisationUnit(unit);
             }
         }
 
-        for ( OrganisationUnit unit : updates )
-        {
-            addOrganisationUnit( unit );
+        for (OrganisationUnit unit : updates) {
+            addOrganisationUnit(unit);
         }
     }
 
-    public boolean hasSymbol()
-    {
+    public boolean hasSymbol() {
         return symbol != null && !symbol.trim().isEmpty();
     }
 
@@ -121,8 +109,7 @@ public class OrganisationUnitGroup
     // -------------------------------------------------------------------------
 
     @Override
-    public DimensionItemType getDimensionItemType()
-    {
+    public DimensionItemType getDimensionItemType() {
         return DimensionItemType.ORGANISATION_UNIT_GROUP;
     }
 
@@ -131,42 +118,42 @@ public class OrganisationUnitGroup
     // -------------------------------------------------------------------------
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getSymbol()
-    {
+    @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+    public String getSymbol() {
         return symbol;
     }
 
-    public void setSymbol( String symbol )
-    {
+    public void setSymbol(String symbol) {
         this.symbol = symbol;
     }
 
-    @JsonProperty( "organisationUnits" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "organisationUnits", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<OrganisationUnit> getMembers()
-    {
+    @JsonProperty("organisationUnits")
+    @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+    @JacksonXmlElementWrapper(localName = "organisationUnits", namespace = DxfNamespaces.DXF_2_0)
+    @JacksonXmlProperty(localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0)
+    public Set<OrganisationUnit> getMembers() {
         return members;
     }
 
-    public void setMembers( Set<OrganisationUnit> members )
-    {
+    public void setMembers(Set<OrganisationUnit> members) {
         this.members = members;
     }
 
     @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "groupSets", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "groupSet", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<OrganisationUnitGroupSet> getGroupSets()
-    {
+    @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+    @JacksonXmlElementWrapper(localName = "groupSets", namespace = DxfNamespaces.DXF_2_0)
+    @JacksonXmlProperty(localName = "groupSet", namespace = DxfNamespaces.DXF_2_0)
+    public Set<OrganisationUnitGroupSet> getGroupSets() {
         return groupSets;
     }
 
-    public void setGroupSets( Set<OrganisationUnitGroupSet> groupSets )
-    {
+    public void setGroupSets(Set<OrganisationUnitGroupSet> groupSets) {
         this.groupSets = groupSets;
+    }
+
+    @Override
+    public boolean hasDescendantsWithCoordinates()
+    {
+        return members.stream().anyMatch( OrganisationUnit::hasCoordinates );
     }
 }
