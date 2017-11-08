@@ -17,10 +17,12 @@ import java.util.regex.Pattern;
  * @author Henning Håkonsen
  */
 public class CoordinateBaseDimensionalItemObject
-        extends BaseDimensionalItemObject
+    extends BaseDimensionalItemObject
 {
     private static final Pattern JSON_POINT_PATTERN = Pattern.compile( "(\\[.*?])" );
+
     private static final Pattern JSON_COORDINATE_PATTERN = Pattern.compile( "(\\[{3}.*?]{3})" );
+
     private static final Pattern COORDINATE_PATTERN = Pattern.compile( "([\\-0-9.]+,[\\-0-9.]+)" );
 
     private FeatureType featureType = FeatureType.NONE;
@@ -59,7 +61,7 @@ public class CoordinateBaseDimensionalItemObject
         if ( coordinates != null && !coordinates.trim().isEmpty() )
         {
             Matcher jsonMatcher = isPoint() ?
-                    JSON_POINT_PATTERN.matcher( coordinates ) : JSON_COORDINATE_PATTERN.matcher( coordinates );
+                JSON_POINT_PATTERN.matcher( coordinates ) : JSON_COORDINATE_PATTERN.matcher( coordinates );
 
             while ( jsonMatcher.find() )
             {
@@ -79,7 +81,7 @@ public class CoordinateBaseDimensionalItemObject
         return list;
     }
 
-    void setMultiPolygonCoordinatesFromList(List<CoordinatesTuple> list)
+    void setMultiPolygonCoordinatesFromList( List<CoordinatesTuple> list )
     {
         StringBuilder builder = new StringBuilder();
 
@@ -110,7 +112,7 @@ public class CoordinateBaseDimensionalItemObject
         this.coordinates = StringUtils.trimToNull( builder.toString() );
     }
 
-    void setPointCoordinatesFromList(List<CoordinatesTuple> list)
+    void setPointCoordinatesFromList( List<CoordinatesTuple> list )
     {
         StringBuilder builder = new StringBuilder();
 

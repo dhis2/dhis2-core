@@ -167,27 +167,33 @@ public class GeoFeatureController
      * @return a list of geo features or null.
      */
     private List<GeoFeature> getGeoFeatures( String dimension, DisplayProperty displayProperty, Date relativePeriodDate,
-        String userOrgUnit, HttpServletRequest request, HttpServletResponse response, boolean includeGroupSets, DhisApiVersion apiVersion )
+        String userOrgUnit, HttpServletRequest request, HttpServletResponse response, boolean includeGroupSets,
+        DhisApiVersion apiVersion )
     {
         Set<String> set = new HashSet<>();
         set.add( dimension );
 
-        DataQueryParams params = dataQueryService.getFromUrl( set, null, AggregationType.SUM, null, null, null, null, false, false,
-            false, false, false, false, false, false, false, false, displayProperty, null, null, false, null, relativePeriodDate, userOrgUnit, false, apiVersion );
+        DataQueryParams params = dataQueryService
+            .getFromUrl( set, null, AggregationType.SUM, null, null, null, null, false, false,
+                false, false, false, false, false, false, false, false, displayProperty, null, null, false, null,
+                relativePeriodDate, userOrgUnit, false, apiVersion );
 
         boolean useOrgUnitGroup = dimension.startsWith( "oug" );
-        DimensionalObject dimensionalObject = params.getDimension( useOrgUnitGroup ? ORGUNIT_GROUP_DIM_ID : ORGUNIT_DIM_ID );
+        DimensionalObject dimensionalObject = params
+            .getDimension( useOrgUnitGroup ? ORGUNIT_GROUP_DIM_ID : ORGUNIT_DIM_ID );
 
         if ( dimensionalObject == null )
         {
-            throw new IllegalArgumentException( "No dimensional objects found" );
+            throw new IllegalArgumentException( "Dimension is present in query without any valid dimension options" );
         }
 
-        List<CoordinateBaseDimensionalItemObject> coordinateBaseDimensionalItemObjects = DimensionalObjectUtils.asTypedList( dimensionalObject.getItems() );
+        List<CoordinateBaseDimensionalItemObject> coordinateBaseDimensionalItemObjects = DimensionalObjectUtils
+            .asTypedList( dimensionalObject.getItems() );
 
-        coordinateBaseDimensionalItemObjects = coordinateBaseDimensionalItemObjects.stream().filter(object ->
-                object != null && object.getFeatureType() != null && object.hasCoordinates() &&
-                        (object.getFeatureType() != FeatureType.POINT || ValidationUtils.coordinateIsValid(object.getCoordinates()))).collect(Collectors.toList());
+        coordinateBaseDimensionalItemObjects = coordinateBaseDimensionalItemObjects.stream().filter( object ->
+            object != null && object.getFeatureType() != null && object.hasCoordinates() &&
+                (object.getFeatureType() != FeatureType.POINT ||
+                    ValidationUtils.coordinateIsValid( object.getCoordinates() )) ).collect( Collectors.toList() );
 
         boolean modified = !ContextUtils.clearIfNotModified( request, response, coordinateBaseDimensionalItemObjects );
 
@@ -196,28 +202,32 @@ public class GeoFeatureController
             return null;
         }
 
-        List<OrganisationUnitGroupSet> groupSets = includeGroupSets ? organisationUnitGroupService.getAllOrganisationUnitGroupSets() : null;
+        List<OrganisationUnitGroupSet> groupSets = includeGroupSets ?
+            organisationUnitGroupService.getAllOrganisationUnitGroupSets() :
+            null;
 
         List<GeoFeature> features = new ArrayList<>();
 
         Set<OrganisationUnit> roots = currentUserService.getCurrentUser().getDataViewOrganisationUnitsWithFallback();
 
-        for ( CoordinateBaseDimensionalItemObject unit : coordinateBaseDimensionalItemObjects ) {
+        for ( CoordinateBaseDimensionalItemObject unit : coordinateBaseDimensionalItemObjects )
+        {
             GeoFeature feature = new GeoFeature();
 
             Integer ty = unit.getFeatureType() != null ? FEATURE_TYPE_MAP.get( unit.getFeatureType() ) : null;
 
-            feature.setId(unit.getUid());
-            feature.setCode(unit.getCode());
-            feature.setHcd(unit.hasDescendantsWithCoordinates());
+            feature.setId( unit.getUid() );
+            feature.setCode( unit.getCode() );
+            feature.setHcd( unit.hasDescendantsWithCoordinates() );
 
-            if (!useOrgUnitGroup) {
-                OrganisationUnit castUnit = ( OrganisationUnit ) unit;
-                feature.setHcu(castUnit.hasCoordinatesUp());
-                feature.setLe(castUnit.getLevel());
-                feature.setPg(castUnit.getParentGraph(roots));
-                feature.setPi(castUnit.getParent() != null ? castUnit.getParent().getUid() : null);
-                feature.setPn(castUnit.getParent() != null ? castUnit.getParent().getDisplayName() : null);
+            if ( !useOrgUnitGroup )
+            {
+                OrganisationUnit castUnit = (OrganisationUnit) unit;
+                feature.setHcu( castUnit.hasCoordinatesUp() );
+                feature.setLe( castUnit.getLevel() );
+                feature.setPg( castUnit.getParentGraph( roots ) );
+                feature.setPi( castUnit.getParent() != null ? castUnit.getParent().getUid() : null );
+                feature.setPn( castUnit.getParent() != null ? castUnit.getParent().getDisplayName() : null );
 
                 if ( includeGroupSets )
                 {
@@ -240,7 +250,7 @@ public class GeoFeatureController
             features.add( feature );
         }
 
-        features.sort( Comparator.comparing( o -> ( o.getTy() ) ) );
+        features.sort( Comparator.comparing( o -> (o.getTy()) ) );
 
         return features;
     }

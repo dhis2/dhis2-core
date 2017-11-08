@@ -68,14 +68,19 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0 )
 public class OrganisationUnit
-    extends CoordinateBaseDimensionalItemObject implements MetadataObject
+    extends CoordinateBaseDimensionalItemObject
+    implements MetadataObject
 {
     private static final String PATH_SEP = "/";
 
     public static final String KEY_USER_ORGUNIT = "USER_ORGUNIT";
+
     public static final String KEY_USER_ORGUNIT_CHILDREN = "USER_ORGUNIT_CHILDREN";
+
     public static final String KEY_USER_ORGUNIT_GRANDCHILDREN = "USER_ORGUNIT_GRANDCHILDREN";
+
     public static final String KEY_LEVEL = "LEVEL-";
+
     public static final String KEY_ORGUNIT_GROUP = "OU_GROUP-";
 
     private static final String NAME_SEPARATOR = " / ";
@@ -491,7 +496,8 @@ public class OrganisationUnit
         {
             if ( !visitedUnits.add( unit ) )
             {
-                throw new IllegalStateException( "Organisation unit '" + this.toString() + "' has circular parent relationships: '" + unit + "'" );
+                throw new IllegalStateException(
+                    "Organisation unit '" + this.toString() + "' has circular parent relationships: '" + unit + "'" );
             }
 
             units.add( unit );
@@ -697,7 +703,8 @@ public class OrganisationUnit
      * Returns a mapping between the uid and the uid parent graph of the given
      * organisation units.
      */
-    public static Map<String, String> getParentGraphMap( List<OrganisationUnit> organisationUnits, Collection<OrganisationUnit> roots )
+    public static Map<String, String> getParentGraphMap( List<OrganisationUnit> organisationUnits,
+        Collection<OrganisationUnit> roots )
     {
         Map<String, String> map = new HashMap<>();
 
