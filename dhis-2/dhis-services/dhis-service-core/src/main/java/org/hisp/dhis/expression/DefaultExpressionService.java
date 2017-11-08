@@ -347,10 +347,10 @@ public class DefaultExpressionService
 
     @Override
     @Transactional
-    public Set<String> getAggregatesInExpression( String expression )
+    public void getAggregatesAndNonAggregatesInExpression( String expression,
+        Set<String> aggregates, Set<String> nonAggregates )
     {
         Pattern prefix = CustomFunctions.AGGREGATE_PATTERN_PREFIX;
-        Set<String> aggregates = new HashSet<>();
 
         if ( expression != null )
         {
@@ -370,6 +370,7 @@ public class DefaultExpressionService
                 }
                 else if ( end > 0 )
                 {
+                    nonAggregates.add( expression.substring( scan, matcher.start() ) );
                     aggregates.add( expression.substring( start, end ) );
                     scan = end + 1;
                 }
@@ -378,9 +379,12 @@ public class DefaultExpressionService
                     scan = start + 1;
                 }
             }
-        }
 
-        return aggregates;
+            if ( scan < len )
+            {
+                nonAggregates.add( expression.substring( scan, len ) );
+            }
+        }
     }
 
     @Override

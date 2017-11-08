@@ -29,6 +29,7 @@ package org.hisp.dhis.predictor;
  */
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsService;
@@ -125,12 +126,16 @@ public class DefaultPredictionService implements PredictionService
         Expression skipTest = predictor.getSampleSkipTest();
         DataElement outputDataElement = predictor.getOutput();
 
-        Set<String> aggregates = expressionService.getAggregatesInExpression( generator.getExpression() );
+        Set<String> aggregates = new HashSet<>();
+        Set<String> nonAggregates = new HashSet<>();
+        expressionService.getAggregatesAndNonAggregatesInExpression( generator.getExpression(), aggregates, nonAggregates );
         Map<String, Double> constantMap = constantService.getConstantMap();
         List<Period> outputPeriods = getPeriodsBetweenDates( predictor.getPeriodType(), startDate, endDate );
+        Set<Period> existingOutputPeriods = getExistingPeriods( outputPeriods );
         ListMap<Period, Period> samplePeriodsMap = getSamplePeriodsMap( outputPeriods, predictor );
         Set<Period> allSamplePeriods = samplePeriodsMap.uniqueValues();
-        Set<DimensionalItemObject> dimensionItems = getdimensionItems( aggregates, skipTest );
+        Set<DimensionalItemObject> aggregateDimensionItems = getDimensionItems( aggregates, skipTest );
+        Set<DimensionalItemObject> nonAggregateDimensionItems = getDimensionItems( nonAggregates, null );
         User currentUser = currentUserService.getCurrentUser();
 
         DataElementCategoryOptionCombo outputOptionCombo = predictor.getOutputCombo() == null ?
@@ -143,21 +148,35 @@ public class DefaultPredictionService implements PredictionService
 
         for ( OrganisationUnit orgUnit : orgUnits )
         {
-            MapMapMap<Period, String, DimensionalItemObject, Double> dataMap = dimensionItems.isEmpty() ? null :
-                getDataValues( dimensionItems, allSamplePeriods, orgUnit );
+            MapMapMap<Period, String, DimensionalItemObject, Double> aggregateDataMap = aggregateDimensionItems.isEmpty() ?
+                null : getDataValues( aggregateDimensionItems, allSamplePeriods, orgUnit );
 
-            applySkipTest( dataMap, skipTest, constantMap );
+            MapMapMap<Period, String, DimensionalItemObject, Double> nonAggregateDataMap = nonAggregateDimensionItems.isEmpty() ?
+                new MapMapMap<>() : getDataValues( nonAggregateDimensionItems, existingOutputPeriods, orgUnit );
+
+            applySkipTest( aggregateDataMap, skipTest, constantMap );
 
             for ( Period period : outputPeriods )
             {
-                ListMapMap<String, String, Double> aggregateSampleMap = getAggregateSamples( dataMap,
+                ListMapMap<String, String, Double> aggregateSampleMap = getAggregateSamples( aggregateDataMap,
                     aggregates, samplePeriodsMap.get( period ), constantMap );
 
-                for ( String aoc : aggregateSampleMap.keySet() )
-                {
-                    ListMap<String, Double> aggregateValueMap = aggregateSampleMap.get( aoc );
+                MapMap<String, ? extends DimensionalItemObject, Double> nonAggregateSampleMap = firstNonNull(
+                    nonAggregateDataMap.get( period ), new MapMap<>() );
 
-                    Double value = expressionService.getExpressionValue( generator, new HashMap<>(),
+                Set<String> attributeOptionCombos = Sets.union( aggregateSampleMap.keySet(), nonAggregateSampleMap.keySet() );
+
+                if ( attributeOptionCombos.isEmpty() ) {
+                    attributeOptionCombos = Sets.newHashSet( categoryService.getDefaultDataElementCategoryOptionCombo().getUid() );
+                }
+
+                for ( String aoc : attributeOptionCombos )
+                {
+                    ListMap<String, Double> aggregateValueMap = firstNonNull( aggregateSampleMap.get( aoc ), new ListMap<>() );
+                    Map<? extends DimensionalItemObject, Double> nonAggregateValueMap =
+                        firstNonNull( nonAggregateSampleMap.get( aoc ), new HashMap<>() );
+
+                    Double value = expressionService.getExpressionValue( generator, nonAggregateValueMap,
                         constantMap,null, period.getDaysInPeriod(), aggregateValueMap );
 
                     if ( value != null && !value.isNaN() && !value.isInfinite() )
@@ -183,22 +202,19 @@ public class DefaultPredictionService implements PredictionService
     }
 
     /**
-     * Gets all DimensionalItemObjects from the aggregate expressions and skip test.
+     * Gets all DimensionalItemObjects from the expressions and skip test.
      *
-     * @param aggregates set of aggregate expressions. These are subexpressions
-     *                   which are passed to aggregate functions (such as AVG,
-     *                   STDDEV, etc.) which generate vectors of sample values
-     *                   rather than a simple, scalar value.
-     * @param skipTest the skip test expression.
-     * @return set of all DataElementOperands found in all expressions.
+     * @param expressions set of expressions.
+     * @param skipTest the skip test expression (if any).
+     * @return set of all dimensional item objects found in all expressions.
      */
-    private Set<DimensionalItemObject> getdimensionItems( Set<String> aggregates, Expression skipTest )
+    private Set<DimensionalItemObject> getDimensionItems( Set<String> expressions, Expression skipTest )
     {
         Set<DimensionalItemObject> operands = new HashSet<>();
 
-        for ( String aggregate : aggregates )
+        for ( String expression : expressions )
         {
-            operands.addAll( expressionService.getDimensionalItemObjectsInExpression( aggregate ) );
+            operands.addAll( expressionService.getDimensionalItemObjectsInExpression( expression ) );
         }
 
         if ( skipTest != null )
@@ -214,10 +230,6 @@ public class DefaultPredictionService implements PredictionService
      * attribute option combo and aggregate expression a list of values for
      * the various sample periods.
      *
-     * If there are no aggregate expressions, then the prediction is a constant.
-     * If this is the case, then return the default attribute option combo
-     * into which any constant prediction value will be written.
-     *
      * @param dataMap data to be used in evaluating expressions.
      * @param aggregates the aggregate expressions.
      * @param samplePeriods the periods to sample from.
@@ -231,11 +243,7 @@ public class DefaultPredictionService implements PredictionService
     {
         ListMapMap<String, String, Double> result = new ListMapMap<>();
 
-        if ( aggregates.isEmpty() )
-        {
-            result.put( categoryService.getDefaultDataElementCategoryOptionCombo().getUid(), new ListMap<>() );
-        }
-        else if ( dataMap != null )
+        if ( dataMap != null )
         {
             for ( String aggregate : aggregates )
             {
@@ -402,6 +410,34 @@ public class DefaultPredictionService implements PredictionService
         {
             samplePeriodsMap.putValue( outputPeriod, foundPeriod );
         }
+    }
+
+    /**
+     * Finds the set of periods that exist, from a list of periods.
+     *
+     * Only adds the period if it is found in the database, because:
+     * (a) We will need the period id, and
+     * (b) If the period does not exist in the database, then
+     *     there is no data in the database to look for.
+     *
+     * @param periods the periods to look for
+     * @return the set of periods that exist, with ids.
+     */
+    private Set<Period> getExistingPeriods( List<Period> periods )
+    {
+        Set<Period> existingPeriods = new HashSet<>();
+
+        for ( Period period : periods )
+        {
+            Period existingPeriod = period.getId() != 0 ? period :
+                periodService.getPeriod( period.getStartDate(), period.getEndDate(), period.getPeriodType() );
+
+            if ( existingPeriod != null )
+            {
+                existingPeriods.add( existingPeriod );
+            }
+        }
+        return existingPeriods;
     }
 
     /**
