@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
@@ -139,11 +140,11 @@ public class EnrollmentController
 
         List<Enrollment> enrollments;
 
-        if ( enrollment == null )
-        {
-            ProgramInstanceQueryParams params = programInstanceService.getFromUrl( orgUnits, ouMode, lastUpdated, program, programStatus, programStartDate,
+        ProgramInstanceQueryParams params = programInstanceService.getFromUrl( orgUnits, ouMode, lastUpdated, program, programStatus, programStartDate,
                 programEndDate, trackedEntity, trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging );
 
+        if ( enrollment == null )
+        {
             enrollments = new ArrayList<>( enrollmentService.getEnrollments(
                 programInstanceService.getProgramInstances( params ) ) );
         }
@@ -154,6 +155,14 @@ public class EnrollmentController
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
+
+        if ( params.isPaging() && params.isTotalPages() )
+        {
+            int count = programInstanceService.countProgramInstances( params );
+            Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+            rootNode.addChild( NodeUtils.createPager( pager ) );
+        }
+
         rootNode.addChild( fieldFilterService.filter( Enrollment.class, enrollments, fields ) );
 
         return rootNode;
