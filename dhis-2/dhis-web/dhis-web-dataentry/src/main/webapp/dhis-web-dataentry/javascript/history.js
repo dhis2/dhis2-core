@@ -20,12 +20,14 @@ function saveComment()
 
 function CommentSaver( de, co, comment )
 {
-	var pe = $( '#selectedPeriodId' ).val();
+    var pe = $( '#selectedPeriodId' ).val();
+    var ds = $( '#selectedDataSetId' ).val();
 	var ou = dhis2.de.currentOrganisationUnitId;
 	
 	var dataValue = {
 	    'de' : de,
 	    'co' : co,
+	    'ds' : ds,
 	    'ou' : ou,
 	    'pe' : pe,
 	    'comment' : comment
@@ -177,7 +179,7 @@ function saveMinMaxLimit()
 function refreshChart()
 {	
     var periodId = $( '#selectedPeriodId' ).val();
-    
+
     var source = '../api/charts/history/data.png?de=' + currentDataElementId + '&co='
     	+ currentOptionComboId + '&pe=' + periodId + 
     	'&ou=' + dhis2.de.currentOrganisationUnitId + '&r=' + Math.random();
@@ -188,12 +190,15 @@ function refreshChart()
 function markValueForFollowup()
 {
 	var periodId = $( '#selectedPeriodId' ).val();
-	
+
+	var dataSetId = $( '#selectedDataSetId' ).val();
+
 	var dataValue = {
 	    'de' : currentDataElementId,
 	    'co' : currentOptionComboId,
 	    'ou' : dhis2.de.currentOrganisationUnitId,
 	    'pe' : periodId,
+	    'ds' : dataSetId,
 	    'followUp' : true
 	};
 

@@ -28,12 +28,15 @@ package org.hisp.dhis.validation.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.*;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
@@ -347,11 +350,13 @@ public class DefaultValidationNotificationService
 
     private void sendNotification( Set<User> users, NotificationMessage notificationMessage )
     {
-        messageService.sendValidationResultMessage(
+        MessageConversationParams.Builder builder = messageService.createValidationResultMessage(
+            users,
             notificationMessage.getSubject(),
-            notificationMessage.getMessage(),
-            users
+            notificationMessage.getMessage()
         );
+
+        messageService.sendMessage( builder.build() );
     }
 
     // -------------------------------------------------------------------------
