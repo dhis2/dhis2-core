@@ -28,9 +28,7 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.dataelement.DataElement;
@@ -41,10 +39,12 @@ import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.junit.Test;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Map;
 
-import static org.junit.Assert.*;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.SEPARATOR_JOIN;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author Lars Helge Overland
@@ -161,23 +161,23 @@ public class IdentifiableObjectUtilsTest
         assertEquals( PeriodType.getPeriodFromIsoString( "201702" ),
             IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017ThuW8" ), monthly, calendar ) );
         assertEquals( PeriodType.getPeriodFromIsoString( "201703" ),
-            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017ThuW9" ), monthly, calendar ) );
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017ThuW10" ), monthly, calendar ) );
 
         assertEquals( PeriodType.getPeriodFromIsoString( "201702" ),
             IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017SatW7" ), monthly, calendar ) );
         assertEquals( PeriodType.getPeriodFromIsoString( "201703" ),
-            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017SatW8" ), monthly, calendar ) );        
-        
-        assertEquals( PeriodType.getPeriodFromIsoString( "201702" ),
-            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017SunW7" ), monthly, calendar ) );
-        assertEquals( PeriodType.getPeriodFromIsoString( "201703" ),
-            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017SunW8" ), monthly, calendar ) );
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017SatW10" ), monthly, calendar ) );
 
         assertEquals( PeriodType.getPeriodFromIsoString( "201702" ),
             IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017SunW7" ), monthly, calendar ) );
         assertEquals( PeriodType.getPeriodFromIsoString( "201703" ),
-            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017SunW8" ), monthly, calendar ) );
-        
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017SunW9" ), monthly, calendar ) );
+
+        assertEquals( PeriodType.getPeriodFromIsoString( "201702" ),
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017SunW7" ), monthly, calendar ) );
+        assertEquals( PeriodType.getPeriodFromIsoString( "201703" ),
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017SunW9" ), monthly, calendar ) );
+
         assertEquals( PeriodType.getPeriodFromIsoString( "2017Q1" ),
             IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "201703" ), quarterly, calendar ) );
         assertEquals( PeriodType.getPeriodFromIsoString( "2017Q2" ),
