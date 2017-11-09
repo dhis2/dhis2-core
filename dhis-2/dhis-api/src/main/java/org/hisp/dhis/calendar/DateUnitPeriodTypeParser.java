@@ -143,7 +143,7 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser
                     .with( weekFields.weekOfWeekBasedYear(), week )
                     .with( weekFields.dayOfWeek(), 1 );
 
-                start = new DateTimeUnit( date.getYear(), date.getMonthValue(), date.getDayOfMonth() );
+                start = new DateTimeUnit( date.getYear(), date.getMonthValue(), date.getDayOfMonth(), calendar.isIso8601() );
             }
             else
             {
