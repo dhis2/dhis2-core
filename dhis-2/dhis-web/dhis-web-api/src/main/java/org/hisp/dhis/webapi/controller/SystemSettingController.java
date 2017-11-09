@@ -108,7 +108,7 @@ public class SystemSettingController
 
     @RequestMapping( method = RequestMethod.POST, consumes = { ContextUtils.CONTENT_TYPE_JSON } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @ApiVersion( include = DhisApiVersion.ALL, exclude = DhisApiVersion.V29 )
+    @ApiVersion( include = DhisApiVersion.ALL, exclude = { DhisApiVersion.V29, DhisApiVersion.DEFAULT } )
     public void setSystemSetting( @RequestBody Map<String, Object> settings, HttpServletResponse response,
         HttpServletRequest request )
         throws WebMessageException
