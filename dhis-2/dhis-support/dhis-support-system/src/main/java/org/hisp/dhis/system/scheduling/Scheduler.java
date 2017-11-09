@@ -34,30 +34,18 @@ import org.hisp.dhis.scheduling.JobInstance;
 import org.hisp.dhis.scheduling.JobStatus;
 import org.springframework.util.concurrent.ListenableFuture;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
 
 /**
- * Scheduler for managing the scheduling and execution of tasks.
+ * Scheduler for scheduling and execution of tasks.
  *
  * @author Lars Helge Overland
  */
 public interface Scheduler
 {
-    String CRON_DAILY_11PM = "0 0 23 * * ?";
-    String CRON_DAILY_0AM = "0 0 0 * * ?";
-    String CRON_DAILY_2AM = "0 0 2 * * ?";
-    String CRON_DAILY_5AM = "0 0 5 * * ?";
-    String CRON_DAILY_6AM = "0 0 6 * * ?";
-    String CRON_DAILY_7AM = "0 0 7 * * ?";
-    String CRON_DAILY_8AM = "0 0 8 * * ?";
-
-    String CRON_EVERY_MIN = "0 0/1 * * * ?";
-    String CRON_EVERY_15MIN = "0 0/15 * * * ?";
-
-    String CRON_TEST = "0 * * * * ?";
-
     /**
      * Execute the given job immediately.
      *
@@ -117,8 +105,10 @@ public interface Scheduler
      * Schedule the given job for continuous execution
      *
      * @param jobConfiguration the job to schedule
+     * @param delay The time which the job should start
+     * @param interval At which interval the job should run
      */
-    void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration );
+    void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration, Date delay, int interval );
 
     /**
      * Deactivates scheduling of the job with the given key.

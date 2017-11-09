@@ -108,7 +108,7 @@ public class JobConfiguration
         }
     }
 
-    public void setContinuousExecution(boolean continuousExecution) {
+    public void setContinuousExecution( boolean continuousExecution ) {
         this.continuousExecution = continuousExecution;
     }
 
@@ -177,7 +177,8 @@ public class JobConfiguration
 
     public JobId getJobId()
     {
-        return new JobId( jobType, getLastUpdatedBy().getUid() );
+        String user = getLastUpdatedBy() != null ? getLastUpdatedBy().getUid() : "system";
+        return new JobId( jobType, user );
     }
 
     @Override

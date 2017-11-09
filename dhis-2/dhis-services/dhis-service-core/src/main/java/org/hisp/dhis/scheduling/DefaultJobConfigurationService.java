@@ -62,10 +62,12 @@ public class DefaultJobConfigurationService
     @EventListener
     public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )
     {
-        if ( scheduledBoot && systemSettingManager != null && currentUserService != null) {
+        if ( scheduledBoot && systemSettingManager != null && currentUserService != null )
+        {
             Date now = new Date();
             getAllJobConfigurations().forEach( (jobConfig -> {
-                if( !jobConfig.isContinuousExecution() && jobConfig.getNextExecutionTime().compareTo( now ) < 0 ) {
+                if ( !jobConfig.isContinuousExecution() && jobConfig.getNextExecutionTime().compareTo( now ) < 0 )
+                {
                     jobConfig.setNextExecutionTime( null );
                     updateJobConfiguration( jobConfig );
                     schedulingManager.executeJob( jobConfig );
@@ -73,7 +75,7 @@ public class DefaultJobConfigurationService
                 schedulingManager.scheduleJob( jobConfig );
             }) );
 
-            ListMap<String, String> scheduledSystemSettings = (ListMap<String, String>) systemSettingManager.getSystemSetting( SettingKey.SCHEDULED_TASKS, new ListMap<String, String>());
+            ListMap<String, String> scheduledSystemSettings = (ListMap<String, String>) systemSettingManager.getSystemSetting( SettingKey.SCHEDULED_TASKS, new ListMap<String, String>() );
             handleServerUpgrade( scheduledSystemSettings );
 
             scheduledBoot = false;
@@ -93,31 +95,46 @@ public class DefaultJobConfigurationService
 
         // Potential old configurable jobs
         if (scheduledSystemSettings != null) {
-            JobConfiguration resourceTable = new JobConfiguration("Resource table", RESOURCE_TABLE, null, null, true, false ) ;
+            JobConfiguration resourceTable = new JobConfiguration("Resource table", RESOURCE_TABLE, null, null, true, false );
+            resourceTable.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulResourceTablesUpdate" ) );
+
             JobConfiguration analytics = new JobConfiguration("Analytics", ANALYTICS_TABLE, null, new AnalyticsJobParameters(null, Sets.newHashSet(), false), true, false );
+            analytics.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulAnalyticsTablesUpdate" ) );
+
             JobConfiguration monitoring = new JobConfiguration("Monitoring", MONITORING, null, null, true, false );
+            monitoring.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulMonitoring" ) );
+
             JobConfiguration dataSynch = new JobConfiguration("Data synchronization", DATA_SYNC, null, null, true, false );
+            dataSynch.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulDataSynch" ) );
+
             JobConfiguration metadataSync = new JobConfiguration("Metadata sync", META_DATA_SYNC, null, null, true, false );
+            metadataSync.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastMetaDataSyncSuccess" ) );
+
             JobConfiguration sendScheduledMessage = new JobConfiguration("Send scheduled messages", SEND_SCHEDULED_MESSAGE, null, null, true, false );
+
             JobConfiguration scheduledProgramNotifications = new JobConfiguration("Scheduled program notifications", PROGRAM_NOTIFICATIONS, null, null, true, false );
+            scheduledProgramNotifications.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulScheduledProgramNotifications" ) );
 
-
-            HashMap<String, JobConfiguration> standardJobs = new HashMap<String, JobConfiguration>() {{
-                put("resourceTable", resourceTable);
-                put("analytics", analytics);
-                put("monitoring", monitoring);
-                put("dataSynch", dataSynch);
-                put("metadataSync", metadataSync);
-                put("sendScheduledMessage", sendScheduledMessage);
-                put("scheduledProgramNotifications", scheduledProgramNotifications);
+            HashMap<String, JobConfiguration> standardJobs = new HashMap<String, JobConfiguration>()
+            {{
+                put( "resourceTable", resourceTable );
+                put( "analytics", analytics );
+                put( "monitoring", monitoring );
+                put( "dataSynch", dataSynch );
+                put( "metadataSync", metadataSync );
+                put( "sendScheduledMessage", sendScheduledMessage );
+                put( "scheduledProgramNotifications", scheduledProgramNotifications );
             }};
 
-            scheduledSystemSettings.forEach((cron, jobType) -> jobType.forEach(type -> {
-                for ( Map.Entry<String, JobConfiguration> e : standardJobs.entrySet() ) {
-                    if ( type.startsWith( e.getKey() ) ) {
+            scheduledSystemSettings.forEach( ( cron, jobType ) -> jobType.forEach( type -> {
+                for ( Map.Entry<String, JobConfiguration> e : standardJobs.entrySet() )
+                {
+                    if ( type.startsWith( e.getKey() ) )
+                    {
                         JobConfiguration jobConfiguration = e.getValue();
 
-                        if (jobConfiguration != null) {
+                        if ( jobConfiguration != null )
+                        {
                             jobConfiguration.setCronExpression( cron );
                             jobConfiguration.setNextExecutionTime( null );
                             addJobConfiguration( jobConfiguration );
@@ -127,7 +144,7 @@ public class DefaultJobConfigurationService
                         break;
                     }
                 }
-            }));
+            } ) );
         }
 
         String CRON_DAILY_2AM = "0 0 2 * * ?";
@@ -135,7 +152,10 @@ public class DefaultJobConfigurationService
 
         // Default jobs
         JobConfiguration fileResourceCleanUp = new JobConfiguration("File resource clean up", FILE_RESOURCE_CLEANUP, CRON_DAILY_2AM, null, true, false );
+
         JobConfiguration dataStatistics = new JobConfiguration("Data statistics", DATA_STATISTICS, CRON_DAILY_2AM, null, true, false );
+        dataStatistics.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "lastSuccessfulDataStatistics" ) );
+
         JobConfiguration validationResultNotification = new JobConfiguration("Validation result notification", VALIDATION_RESULTS_NOTIFICATION, CRON_DAILY_7AM, null, true, false );
         JobConfiguration credentialsExpiryAlert = new JobConfiguration("Credentials expiry alert", CREDENTIALS_EXPIRY_ALERT, CRON_DAILY_2AM, null, true, false );
         // Dataset notification HH
@@ -168,7 +188,7 @@ public class DefaultJobConfigurationService
     public int updateJobConfiguration( JobConfiguration jobConfiguration )
     {
         jobConfigurationStore.update( jobConfiguration );
-        return jobConfiguration.getId( );
+        return jobConfiguration.getId();
     }
 
     @Override
@@ -223,20 +243,22 @@ public class DefaultJobConfigurationService
 
             for ( Field field : clazz.getDeclaredFields() )
             {
-                if( Arrays.stream( field.getAnnotations() ).anyMatch(f -> f.annotationType().getSimpleName().equals( "Property" ) ) )
+                if ( Arrays.stream( field.getAnnotations() )
+                    .anyMatch( f -> f.annotationType().getSimpleName().equals( "Property" ) ) )
                 {
                     Property property = new Property( Primitives.wrap( field.getType() ), null, null );
                     property.setName( field.getName() );
                     property.setFieldName( prettyPrint( field.getName() ) );
 
-                    String relativeApiElements = jobType.getRelativeApiElements() != null ? jobType.getRelativeApiElements().get( field.getName() ) : "";
-                    if( relativeApiElements != null && !relativeApiElements.equals( "" ) ) property.setRelativeApiEndpoint( relativeApiElements );
+                    String relativeApiElements = jobType.getRelativeApiElements() != null ?
+                        jobType.getRelativeApiElements().get( field.getName() ) : "";
+                    if ( relativeApiElements != null && !relativeApiElements.equals( "" ) )
+                        property.setRelativeApiEndpoint( relativeApiElements );
 
                     if ( Collection.class.isAssignableFrom( field.getType() ) )
                     {
                         property = new NodePropertyIntrospectorService().setPropertyIfCollection( property, field, clazz );
                     }
-
 
                     jobParameters.put( property.getName(), property );
                 }
@@ -249,10 +271,12 @@ public class DefaultJobConfigurationService
 
     private String prettyPrint( String field )
     {
-        List<String> fieldStrings = Arrays.stream(field.split("(?=[A-Z])")).map(String::toLowerCase).collect(Collectors.toList());
+        List<String> fieldStrings = Arrays.stream( field.split( "(?=[A-Z])" ) ).map( String::toLowerCase )
+            .collect( Collectors.toList() );
 
-        fieldStrings.set(0, fieldStrings.get(0).substring(0, 1).toUpperCase() + fieldStrings.get(0).substring(1));
+        fieldStrings
+            .set( 0, fieldStrings.get( 0 ).substring( 0, 1 ).toUpperCase() + fieldStrings.get( 0 ).substring( 1 ) );
 
-        return String.join(" ", fieldStrings);
+        return String.join( " ", fieldStrings );
     }
 }

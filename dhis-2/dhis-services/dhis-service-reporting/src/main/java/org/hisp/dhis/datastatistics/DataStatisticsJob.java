@@ -71,8 +71,6 @@ public class DataStatisticsJob
 
         if ( id > 0 )
         {
-            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_DATA_STATISTIC, new Date() );
-            
             log.info( "Saved data statistics snapshot" );
         }
     }

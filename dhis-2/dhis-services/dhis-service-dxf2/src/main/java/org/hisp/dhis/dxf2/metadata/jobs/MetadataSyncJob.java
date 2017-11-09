@@ -160,7 +160,6 @@ public class MetadataSyncJob
                     break;
                 }
 
-                systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_METADATA_SYNC, dataVersion.getImportDate() );
                 clearFailedVersionSettings();
             }
         }

@@ -31,13 +31,17 @@ package org.hisp.dhis.system.scheduling;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.scheduling.*;
+import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobStatus;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.util.concurrent.ListenableFuture;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -151,10 +155,10 @@ public class SpringScheduler
     }
 
     @Override
-    public void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration )
+    public void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration, Date delay, int interval )
     {
         DefaultJobInstance jobInstance = new DefaultJobInstance();
-        ScheduledFuture<?> future = jobScheduler.scheduleWithFixedDelay( () -> jobInstance.execute( jobConfiguration, schedulingManager, messageService ), 60000 );
+        ScheduledFuture<?> future = jobScheduler.scheduleWithFixedDelay( () -> jobInstance.execute( jobConfiguration, schedulingManager, messageService ), delay,60000 );
 
         futures.put( jobConfiguration.getUid(), future );
 

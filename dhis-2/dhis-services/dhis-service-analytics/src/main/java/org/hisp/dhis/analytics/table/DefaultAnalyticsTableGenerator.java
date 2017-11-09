@@ -40,7 +40,6 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
-import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
@@ -81,7 +80,6 @@ public class DefaultAnalyticsTableGenerator
     @Override
     public void generateTables( Integer lastYears, JobId jobId, Set<AnalyticsTableType> skipTableTypes, boolean skipResourceTables )
     {
-        final Date startTime = new Date();
         final Clock clock = new Clock( log ).startClock();
         final Set<AnalyticsTableType> skipTypes = CollectionUtils.emptyIfNull( skipTableTypes );
         final Set<AnalyticsTableType> availableTypes = analyticsTableServices.
@@ -124,9 +122,6 @@ public class DefaultAnalyticsTableGenerator
 
             throw ex;
         }
-
-        systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, startTime );
-        systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME, DateUtils.getPrettyInterval( clock.getSplitTime() ) );
     }
 
     @Override

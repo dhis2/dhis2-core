@@ -32,15 +32,12 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Calendar;
-import java.util.Date;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -50,9 +47,6 @@ public class ProgramNotificationJob
 {
     @Autowired
     private ProgramNotificationService programNotificationService;
-
-    @Autowired
-    private SystemSettingManager systemSettingManager;
 
     @Autowired
     private MessageService messageService;
@@ -91,8 +85,6 @@ public class ProgramNotificationJob
 
             throw ex;
         }
-
-        systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS, new Date( clock.getStartTime() ) );
     }
 
     private void runInternal()

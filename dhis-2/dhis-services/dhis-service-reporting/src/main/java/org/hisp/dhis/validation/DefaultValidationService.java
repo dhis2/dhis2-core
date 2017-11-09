@@ -54,7 +54,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.CurrentUserService;
@@ -107,9 +106,6 @@ public class DefaultValidationService
 
     @Autowired
     private ValidationNotificationService notificationService;
-
-    @Autowired
-    private SystemSettingManager systemSettingManager;
 
     @Autowired
     private ValidationRuleService validationRuleService;

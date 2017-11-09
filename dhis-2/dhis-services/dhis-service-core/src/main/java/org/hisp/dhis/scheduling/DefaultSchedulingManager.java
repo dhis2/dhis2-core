@@ -35,10 +35,7 @@ import org.hisp.dhis.system.scheduling.SpringScheduler;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 
 /**
@@ -125,13 +122,12 @@ public class DefaultSchedulingManager
         jobConfigurations.forEach(this::scheduleJob);
     }
 
-
-        @Override
-    public void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration )
+    @Override
+    public void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration, Date delay, int interval )
     {
         if(!scheduler.isJobInSystem( jobConfiguration.getUid() ))
         {
-            scheduler.scheduleJobWithFixedDelay( jobConfiguration );
+            scheduler.scheduleJobWithFixedDelay( jobConfiguration, delay, interval );
         }
     }
 

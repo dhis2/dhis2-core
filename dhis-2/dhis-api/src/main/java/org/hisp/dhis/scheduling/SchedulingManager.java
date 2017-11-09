@@ -28,6 +28,7 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
@@ -76,7 +77,7 @@ public interface SchedulingManager
      *
      * @param jobConfiguration the job to schedule.
      */
-    void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration );
+    void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration, Date delay, int interval );
 
     /**
      * Stops one job.
