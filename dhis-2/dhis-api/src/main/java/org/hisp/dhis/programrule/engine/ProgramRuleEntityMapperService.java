@@ -41,7 +41,7 @@ import java.util.Set;
 
 /**
  * RuleEngine has its own domain model. This service is responsible for converting DHIS domain objects to
- * RuleEngine domain objects and vice versa as well.
+ * RuleEngine domain objects and vice versa.
  *
  * Created by zubair@dhis2.org on 19.10.17.
  */

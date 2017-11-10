@@ -29,9 +29,24 @@ package org.hisp.dhis.webapi.controller.event;
  */
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.program.*;
+import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
+import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * Created by zubair@dhis2.org on 24.10.17.
@@ -41,4 +56,41 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class ProgramRuleEngineController
 {
+    @Autowired
+    private ProgramRuleEngineService programRuleEngineService;
+
+    @Autowired
+    private ProgramInstanceService programInstanceService;
+
+    @Autowired
+    private ProgramStageInstanceService programStageInstanceService;
+
+    @Autowired
+    private RenderService renderService;
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_RULE_MANAGEMENT')" )
+    @RequestMapping( value = "/enrollment/{programInstanceId}", method = RequestMethod.GET, produces = "application/json" )
+    public void evaluateEnrollment( @PathVariable String programInstanceId, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        ProgramInstance programInstance = programInstanceService.getProgramInstance( programInstanceId );
+
+        List<RuleEffect> ruleEffects = programRuleEngineService.evaluate( programInstance );
+
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+
+        renderService.toJson( response.getOutputStream(), ruleEffects );
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_RULE_MANAGEMENT')" )
+    @RequestMapping( value = "/event/{programStageInstanceId}", method = RequestMethod.GET, produces = "application/json" )
+    public void evaluateEvent( @PathVariable String programStageInstanceId, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( programStageInstanceId );
+
+        List<RuleEffect> ruleEffects = programRuleEngineService.evaluate( programStageInstance );
+
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+
+        renderService.toJson( response.getOutputStream(), ruleEffects );
+    }
 }

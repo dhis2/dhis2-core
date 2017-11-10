@@ -29,6 +29,8 @@ package org.hisp.dhis.programrule.engine;
  */
 
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -44,8 +46,14 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     private ProgramRuleEngine programRuleEngine;
 
     @Override
-    public List<RuleEffect> evaluate( ProgramInstance enrollment )
+    public List<RuleEffect> evaluate( ProgramInstance enrollment ) throws Exception
     {
-        return null;
+        return programRuleEngine.evaluateEnrollment( enrollment );
+    }
+
+    @Override
+    public List<RuleEffect> evaluate( ProgramStageInstance event ) throws Exception
+    {
+        return programRuleEngine.evaluateEvent( event );
     }
 }
