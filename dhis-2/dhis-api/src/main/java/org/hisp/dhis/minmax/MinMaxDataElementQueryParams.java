@@ -112,7 +112,7 @@ public class MinMaxDataElementQueryParams
 
     public Pager getPager()
     {
-        return skipPaging || paging ? null : new Pager( page, total, pageSize );
+        return PagerUtils.isSkipPaging( skipPaging, paging ) ? null : new Pager( page, total, pageSize );
     }
 
     public List<String> getFilters()
