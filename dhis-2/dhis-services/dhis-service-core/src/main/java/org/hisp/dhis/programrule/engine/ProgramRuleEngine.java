@@ -63,12 +63,29 @@ public class ProgramRuleEngine
     @Autowired
     private ProgramRuleVariableService programRuleVariableService;
 
-    public List<ProgramRuleAction> evaluateEvent( ProgramStageInstance event )
+    public List<RuleEffect> evaluateEnrollment( ProgramInstance enrollment ) throws Exception
     {
-        return null;
+        if ( enrollment == null )
+        {
+            return new ArrayList<>();
+        }
+
+        List<ProgramRule> programRules = programRuleService.getProgramRule( enrollment.getProgram() );
+
+        List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( enrollment.getProgram() );
+
+        RuleEnrollment ruleEnrollment = programRuleEntityMapperService.toMappedRuleEnrollment( enrollment );
+
+        List<RuleEvent> ruleEvents = programRuleEntityMapperService.toMappedRuleEvents( enrollment.getProgramStageInstances() );
+
+        RuleEngine ruleEngine = ruleEngineBuilder( programRules, programRuleVariables ).events( ruleEvents ).build();
+
+        List<RuleEffect> ruleEffects = ruleEngine.evaluate( ruleEnrollment  ).call();
+
+        return ruleEffects;
     }
 
-    public List<RuleEffect> evaluateEnrollment( ProgramStageInstance programStageInstance ) throws Exception
+    public List<RuleEffect> evaluateEvent( ProgramStageInstance programStageInstance ) throws Exception
     {
         if ( programStageInstance == null )
         {

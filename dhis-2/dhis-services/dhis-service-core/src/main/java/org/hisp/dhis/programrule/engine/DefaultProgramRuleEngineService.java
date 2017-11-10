@@ -44,7 +44,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     private ProgramRuleEngine programRuleEngine;
 
     @Override
-    public List<RuleEffect> evaluate(ProgramInstance enrollment )
+    public List<RuleEffect> evaluate( ProgramInstance enrollment )
     {
         return null;
     }

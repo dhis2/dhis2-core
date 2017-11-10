@@ -90,6 +90,12 @@ public interface ProgramRuleEntityMapperService
     List<RuleEvent> toMappedRuleEvents( Set<ProgramStageInstance> programStageInstances, ProgramStageInstance psiToEvaluate );
 
     /*
+     * @param programStageInstances list of events
+     * @return A list of mapped events for the list of DHIS events.
+     */
+    List<RuleEvent> toMappedRuleEvents( Set<ProgramStageInstance> programStageInstances );
+
+    /*
      * @param psiToEvaluate event to converted.
      * @return A mapped event for corresponding DHIS event.
      */

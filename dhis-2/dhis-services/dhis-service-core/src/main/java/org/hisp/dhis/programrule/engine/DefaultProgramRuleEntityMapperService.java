@@ -154,7 +154,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     public RuleEnrollment toMappedRuleEnrollment( ProgramInstance enrollment )
     {
         return RuleEnrollment.create( enrollment.getUid(), enrollment.getIncidentDate(),
-            enrollment.getEnrollmentDate(), RuleEnrollment.Status.valueOf( enrollment.getStatus().toString() ), enrollment.getAttributeValues().stream()
+            enrollment.getEnrollmentDate(), RuleEnrollment.Status.valueOf( enrollment.getStatus().toString() ), enrollment.getEntityInstance().getTrackedEntityAttributeValues().stream()
             .map( attr -> RuleAttributeValue.create( attr.getAttribute().getUid(), attr.getValue() ) )
             .collect( Collectors.toList() ) );
     }
@@ -178,6 +178,17 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
          psi.getDueDate(), psi.getDataValues().stream()
             .map(dv -> RuleDataValue.create( dv.getCreated(), psi.getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
             .collect( Collectors.toList() ) );
+    }
+
+    @Override
+    public List<RuleEvent> toMappedRuleEvents( Set<ProgramStageInstance> programStageInstances )
+    {
+        return programStageInstances.stream()
+            .map( ps -> RuleEvent.create( ps.getUid(), ps.getProgramStage().getUid(),
+            RuleEvent.Status.valueOf( ps.getStatus().toString() ), ps.getExecutionDate() != null ? ps.getExecutionDate() : new Date(), ps.getDueDate(), ps.getDataValues().stream()
+                .map(dv -> RuleDataValue.create( dv.getCreated(), dv.getProgramStageInstance().getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
+                .collect( Collectors.toList() ) ) )
+                .collect( Collectors.toList() );
     }
 
     // ---------------------------------------------------------------------
