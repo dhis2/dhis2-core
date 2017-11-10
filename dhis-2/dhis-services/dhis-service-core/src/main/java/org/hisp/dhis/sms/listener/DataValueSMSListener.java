@@ -59,14 +59,9 @@ import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
@@ -126,7 +121,7 @@ public class DataValueSMSListener
         SMSCommand smsCommand = smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
             ParserType.KEY_VALUE_PARSER );
 
-        Map<String, String> parsedMessage = this.parseMessageInput( sms, smsCommand );
+        Map<String, String> parsedMessage = this.parse( sms.getText(), smsCommand );
 
         Date date = SmsUtils.lookForDate( message );
         String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
@@ -554,5 +549,32 @@ public class DataValueSMSListener
         {
             registrationService.deleteCompleteDataSetRegistration( registration );
         }
+    }
+
+    private Map<String, String> parse( String sms, SMSCommand smsCommand )
+    {
+        HashMap<String, String> output = new HashMap<>();
+        Pattern pattern = Pattern.compile( DEFAULTPATTERN );
+
+        if ( !StringUtils.isBlank( smsCommand.getSeparator() ) )
+        {
+            String x = "([^\\s|" + smsCommand.getSeparator().trim() + "]+)\\s*\\" + smsCommand.getSeparator().trim()
+                    + "\\s*([-\\w\\s ]+)\\s*(\\" + smsCommand.getSeparator().trim() + "|$)*\\s*";
+            pattern = Pattern.compile( x );
+        }
+
+        Matcher matcher = pattern.matcher( sms );
+        while ( matcher.find() )
+        {
+            String key = matcher.group( 1 ).trim();
+            String value = matcher.group( 2 ).trim();
+
+            if ( !StringUtils.isEmpty( key ) && !StringUtils.isEmpty( value ) )
+            {
+                output.put( key, value );
+            }
+        }
+
+        return output;
     }
 }
