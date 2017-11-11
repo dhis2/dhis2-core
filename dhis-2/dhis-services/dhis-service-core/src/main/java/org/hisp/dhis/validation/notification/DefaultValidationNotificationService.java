@@ -37,6 +37,8 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageConversationParams;
+import org.hisp.dhis.message.MessageConversationPriority;
+import org.hisp.dhis.message.MessageConversationStatus;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
@@ -57,6 +59,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.commons.util.TextUtils.LN;
+import static org.hisp.dhis.validation.Importance.HIGH;
+import static org.hisp.dhis.validation.Importance.LOW;
+import static org.hisp.dhis.validation.Importance.MEDIUM;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -126,13 +131,16 @@ public class DefaultValidationNotificationService
 
         Map<SendStrategy, Map<Set<User>, NotificationMessage>> notficationCollections = new HashMap<>();
 
-        notficationCollections.put( SendStrategy.SINGLE_NOTIFICATION , createSingleNotifications( segregatedMap.getOrDefault( SendStrategy.SINGLE_NOTIFICATION, new TreeSet<>() ) ) );
+        notficationCollections.put( SendStrategy.SINGLE_NOTIFICATION, createSingleNotifications(
+            segregatedMap.getOrDefault( SendStrategy.SINGLE_NOTIFICATION, new TreeSet<>() ) ) );
 
-        notficationCollections.put( SendStrategy.COLLECTIVE_SUMMARY, createSummaryNotifications( segregatedMap.getOrDefault( SendStrategy.COLLECTIVE_SUMMARY, new TreeSet<>() ) ) );
+        notficationCollections.put( SendStrategy.COLLECTIVE_SUMMARY, createSummaryNotifications(
+            segregatedMap.getOrDefault( SendStrategy.COLLECTIVE_SUMMARY, new TreeSet<>() ) ) );
 
-        for (Map.Entry<SendStrategy, Map<Set<User>, NotificationMessage>> entry : notficationCollections.entrySet() )
+        for ( Map.Entry<SendStrategy, Map<Set<User>, NotificationMessage>> entry : notficationCollections.entrySet() )
         {
-            clock.logTime( String.format( "Sending %d %s notification(s)", entry.getValue().size(), entry.getKey().getDescription() ) );
+            clock.logTime( String
+                .format( "Sending %d %s notification(s)", entry.getValue().size(), entry.getKey().getDescription() ) );
 
             entry.getValue().forEach( this::sendNotification );
         }
@@ -156,7 +164,8 @@ public class DefaultValidationNotificationService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private Map<SendStrategy, SortedSet<MessagePair>> segregateMessagePairBasedOnStrategy( SortedSet<MessagePair> messagePairs )
+    private Map<SendStrategy, SortedSet<MessagePair>> segregateMessagePairBasedOnStrategy(
+        SortedSet<MessagePair> messagePairs )
     {
         Map<SendStrategy, SortedSet<MessagePair>> segregatedMap = new HashMap<>();
 
@@ -164,11 +173,13 @@ public class DefaultValidationNotificationService
         {
             if ( SendStrategy.SINGLE_NOTIFICATION.equals( messagePair.template.getSendStrategy() ) )
             {
-                segregatedMap.computeIfAbsent( SendStrategy.SINGLE_NOTIFICATION, k -> new TreeSet<>() ).add( messagePair );
+                segregatedMap.computeIfAbsent( SendStrategy.SINGLE_NOTIFICATION, k -> new TreeSet<>() )
+                    .add( messagePair );
             }
             else
             {
-                segregatedMap.computeIfAbsent( SendStrategy.COLLECTIVE_SUMMARY, k -> new TreeSet<>() ).add( messagePair );
+                segregatedMap.computeIfAbsent( SendStrategy.COLLECTIVE_SUMMARY, k -> new TreeSet<>() )
+                    .add( messagePair );
             }
         }
 
@@ -181,11 +192,15 @@ public class DefaultValidationNotificationService
 
         for ( MessagePair messagePair : messagePairs )
         {
-            NotificationMessage notificationMessage = notificationMessageRenderer.render( messagePair.result, messagePair.template );
+            NotificationMessage notificationMessage = notificationMessageRenderer
+                .render( messagePair.result, messagePair.template );
+
+            notificationMessage.setPriority( getPriority( messagePair.result.getValidationRule().getImportance() ) );
 
             singleNotificationCollection.put( new HashSet<>(), notificationMessage );
 
-            resolveRecipients( messagePair ).forEach( user -> singleNotificationCollection.inverse().get( notificationMessage ).add( user ) );
+            resolveRecipients( messagePair )
+                .forEach( user -> singleNotificationCollection.inverse().get( notificationMessage ).add( user ) );
         }
 
         return singleNotificationCollection;
@@ -194,10 +209,12 @@ public class DefaultValidationNotificationService
     private Map<Set<User>, NotificationMessage> createSummaryNotifications( SortedSet<MessagePair> messagePairs )
     {
         // Group the set of MessagePair into divisions representing a single summarized message and its recipients
-        Map<Set<User>, SortedSet<MessagePair>> groupedByRecipientsForSummary = createRecipientsToMessagePairsMap( messagePairs );
+        Map<Set<User>, SortedSet<MessagePair>> groupedByRecipientsForSummary = createRecipientsToMessagePairsMap(
+            messagePairs );
 
         // Flatten the grouped and sorted MessagePairs into single NotificationMessages
-        Map<Set<User>, NotificationMessage> summaryMessages = createSummaryNotificationMessages( groupedByRecipientsForSummary, new Date() );
+        Map<Set<User>, NotificationMessage> summaryMessages = createSummaryNotificationMessages(
+            groupedByRecipientsForSummary, new Date() );
 
         return summaryMessages;
     }
@@ -238,10 +255,10 @@ public class DefaultValidationNotificationService
         );
 
         String message = String.format(
-                "Violations: High %d, medium %d, low %d",
-                counts.getOrDefault( Importance.HIGH, 0L ),
-                counts.getOrDefault( Importance.MEDIUM, 0L ),
-                counts.getOrDefault( Importance.LOW, 0L ) );
+            "Violations: High %d, medium %d, low %d",
+            counts.getOrDefault( HIGH, 0L ),
+            counts.getOrDefault( Importance.MEDIUM, 0L ),
+            counts.getOrDefault( LOW, 0L ) );
 
         // Concatenate the notifications in sorted order, divide by double linebreak
 
@@ -250,7 +267,28 @@ public class DefaultValidationNotificationService
             .map( n -> String.format( "%s%s%s", n.getSubject(), LN, n.getMessage() ) )
             .reduce( "", ( initStr, newStr ) -> String.format( "%s%s%s", initStr, LN + LN, newStr ) );
 
-        return new NotificationMessage( subject, message );
+        NotificationMessage notificationMessage = new NotificationMessage( subject, message );
+        notificationMessage.setPriority( getPriority( counts.getOrDefault( HIGH, 0L ) > 0 ? HIGH : counts.getOrDefault( MEDIUM, 0L ) > 0 ? MEDIUM : LOW ) );
+
+        return notificationMessage;
+    }
+
+    private static MessageConversationPriority getPriority( Importance importance )
+    {
+        if ( importance.equals( HIGH ) )
+        {
+            return MessageConversationPriority.HIGH;
+        }
+        else if ( importance.equals( MEDIUM ) )
+        {
+            return MessageConversationPriority.MEDIUM;
+        }
+        else if ( importance.equals( LOW ) )
+        {
+            return MessageConversationPriority.LOW;
+        }
+
+        return MessageConversationPriority.NONE;
     }
 
     private static SortedSet<MessagePair> createMessagePairs( SortedSet<ValidationResult> results )
@@ -354,67 +392,69 @@ public class DefaultValidationNotificationService
             users,
             notificationMessage.getSubject(),
             notificationMessage.getMessage()
-        );
+        )
+            .withStatus( MessageConversationStatus.OPEN )
+            .withPriority( notificationMessage.getPriority() );
 
         messageService.sendMessage( builder.build() );
     }
 
-    // -------------------------------------------------------------------------
-    // Internal classes
-    // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
+// Internal classes
+// -------------------------------------------------------------------------
 
-    /**
-     * Wrapper for a distinct pair of ValidationResult and template which
-     * correspond to one single (rendered) message.
-     * <p>
-     * The natural order reflects the ordering of the contained ValidationResult.
-     */
-    private static class MessagePair
-        implements Comparable<MessagePair>
+/**
+ * Wrapper for a distinct pair of ValidationResult and template which
+ * correspond to one single (rendered) message.
+ * <p>
+ * The natural order reflects the ordering of the contained ValidationResult.
+ */
+private static class MessagePair
+    implements Comparable<MessagePair>
+{
+    final ValidationResult result;
+
+    final ValidationNotificationTemplate template;
+
+    private MessagePair( ValidationResult result, ValidationNotificationTemplate template )
     {
-        final ValidationResult result;
-
-        final ValidationNotificationTemplate template;
-
-        private MessagePair( ValidationResult result, ValidationNotificationTemplate template )
-        {
-            this.result = result;
-            this.template = template;
-        }
-
-        @Override
-        public boolean equals( Object other )
-        {
-            if ( this == other )
-                return true;
-
-            if ( !(other instanceof MessagePair) )
-                return false;
-
-            MessagePair that = (MessagePair) other;
-
-            return new EqualsBuilder()
-                .append( result, that.result )
-                .append( template, that.template )
-                .isEquals();
-        }
-
-        @Override
-        public int hashCode()
-        {
-            return new HashCodeBuilder( 17, 37 )
-                .append( result )
-                .append( template )
-                .toHashCode();
-        }
-
-        @Override
-        public int compareTo( @NotNull MessagePair other )
-        {
-            return new CompareToBuilder()
-                .append( this.result, other.result )
-                .append( this.template, other.template )
-                .build();
-        }
+        this.result = result;
+        this.template = template;
     }
+
+    @Override
+    public boolean equals( Object other )
+    {
+        if ( this == other )
+            return true;
+
+        if ( !(other instanceof MessagePair) )
+            return false;
+
+        MessagePair that = (MessagePair) other;
+
+        return new EqualsBuilder()
+            .append( result, that.result )
+            .append( template, that.template )
+            .isEquals();
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return new HashCodeBuilder( 17, 37 )
+            .append( result )
+            .append( template )
+            .toHashCode();
+    }
+
+    @Override
+    public int compareTo( @NotNull MessagePair other )
+    {
+        return new CompareToBuilder()
+            .append( this.result, other.result )
+            .append( this.template, other.template )
+            .build();
+    }
+}
 }

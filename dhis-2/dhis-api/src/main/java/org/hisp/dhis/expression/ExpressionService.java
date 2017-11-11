@@ -291,15 +291,17 @@ public interface ExpressionService
     Set<DataElementOperand> getOperandsInExpression( String expression );
 
     /**
-     * Returns all aggregates included in an expression string. An aggregate has
+     * Parse an expression into a set of aggregate expression strings and a set
+     * of non-aggregate expression strings. An aggregate expression string has
      * the AGGREGATE_FUNCTION(expr) where expr is a well-formed sub-expression.
-     * This returns the empty set if the given expression is null or there are
-     * no aggregates.
+     * The method adds to two sets which must be allocated by the caller.
      *
      * @param expression The expression string.
-     * @return A Set of Expression strings.
+     * @param aggregates A set of aggregate expressin strings to fill.
+     * @param nonAggregates A set of non-aggregate expression strings to fill.
      */
-    Set<String> getAggregatesInExpression( String expression );
+    void getAggregatesAndNonAggregatesInExpression( String expression,
+        Set<String> aggregates, Set<String> nonAggregates );
 
     /**
      * Returns identifiers of all data elements which are present in the expression.
