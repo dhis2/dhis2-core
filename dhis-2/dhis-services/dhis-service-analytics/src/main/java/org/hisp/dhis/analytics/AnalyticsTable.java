@@ -128,7 +128,7 @@ public class AnalyticsTable
     }
 
     // -------------------------------------------------------------------------
-    // Getters and setters
+    // Getters
     // -------------------------------------------------------------------------
 
     public String getBaseName()
@@ -136,19 +136,9 @@ public class AnalyticsTable
         return baseName;
     }
 
-    public void setBaseName( String baseName )
-    {
-        this.baseName = baseName;
-    }
-
     public List<AnalyticsTableColumn> getDimensionColumns()
     {
         return dimensionColumns;
-    }
-
-    public void setDimensionColumns( List<AnalyticsTableColumn> dimensionColumns )
-    {
-        this.dimensionColumns = dimensionColumns;
     }
 
     public Period getPeriod()
@@ -156,24 +146,23 @@ public class AnalyticsTable
         return period;
     }
 
-    public void setPeriod( Period period )
-    {
-        this.period = period;
-    }
-
     public Program getProgram()
     {
         return program;
     }
 
-    public void setProgram( Program program )
-    {
-        this.program = program;
-    }
-
     public Date getCreated()
     {
         return created;
+    }
+
+    // -------------------------------------------------------------------------
+    // Setters
+    // -------------------------------------------------------------------------
+
+    public void setDimensionColumns( List<AnalyticsTableColumn> dimensionColumns )
+    {
+        this.dimensionColumns = dimensionColumns;
     }
 
     // -------------------------------------------------------------------------
