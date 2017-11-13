@@ -128,20 +128,7 @@ public class JdbcValidationResultTableManager
     }
 
     @Override
-    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTable> tables,
-        Collection<String> dataElements, int aggregationLevel )
-    {
-        return null;
-    }
-
-    @Override
-    public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
-    {
-        return null;
-    }
-
-    @Override
-    protected List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTable table )
+    protected List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTablePartition partition )
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
@@ -178,11 +165,23 @@ public class JdbcValidationResultTableManager
             columns.add( new AnalyticsTableColumn( column, "character varying(15)", "ps." + column ) );
         }
 
-        AnalyticsTableColumn vr = new AnalyticsTableColumn( quote( "dx" ), "character(11) not null",
-            "vr.uid" );
+        AnalyticsTableColumn vr = new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "vr.uid" );
 
         columns.add( vr );
 
         return filterDimensionColumns( columns );
+    }
+
+    @Override
+    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions,
+        Collection<String> dataElements, int aggregationLevel )
+    {
+        return null; // Not relevant
+    }
+
+    @Override
+    public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
+    {
+        return null; // Not relevant
     }
 }

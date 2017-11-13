@@ -115,7 +115,7 @@ public abstract class AbstractJdbcTableManager
     /**
      * Returns a list of analytics table columns. Column names are quoted.
      */
-    protected abstract List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTable table );
+    protected abstract List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTablePartition partition );
 
     // -------------------------------------------------------------------------
     // Implementation

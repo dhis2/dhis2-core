@@ -143,7 +143,7 @@ public interface AnalyticsTableManager
      * @param aggregationLevel the aggregation level.
      * @return a future representing the asynchronous task.
      */
-    Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> tablePartitions, Collection<String> dataElements, int aggregationLevel );
+    Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions, Collection<String> dataElements, int aggregationLevel );
     
     /**
      * Performs vacuum or optimization of the given table. The type of operation

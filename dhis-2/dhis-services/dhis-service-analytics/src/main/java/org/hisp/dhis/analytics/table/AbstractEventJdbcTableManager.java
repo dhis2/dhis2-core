@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.table;
 
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.common.ValueType;
 import org.springframework.scheduling.annotation.Async;
 
@@ -55,7 +56,7 @@ public abstract class AbstractEventJdbcTableManager
     
     @Override
     @Async
-    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTable> tables,
+    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions,
         Collection<String> dataElements, int aggregationLevel )
     {
         return null; // Not relevant

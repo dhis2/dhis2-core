@@ -180,7 +180,7 @@ public class JdbcCompletenessTargetTableManager
     
     @Override
     @Async
-    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTable> tables, Collection<String> dataElements, int aggregationLevel )
+    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions, Collection<String> dataElements, int aggregationLevel )
     {
         return null; // Not relevant
     }

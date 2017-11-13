@@ -278,7 +278,7 @@ public class JdbcAnalyticsTableManager
     }
 
     @Override
-    public List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTable table )
+    public List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTablePartition partition )
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
@@ -358,7 +358,7 @@ public class JdbcAnalyticsTableManager
 
         columns.addAll( Lists.newArrayList( de, co, ao, startDate, endDate, pe, ou, level ) );
 
-        if ( isApprovalEnabled( table ) )
+        if ( isApprovalEnabled( partition ) )
         {
             String col = "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, " + APPROVAL_LEVEL_UNAPPROVED + ") as approvallevel ";
 
@@ -392,19 +392,19 @@ public class JdbcAnalyticsTableManager
 
     @Override
     @Async
-    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTable> tables, Collection<String> dataElements, int aggregationLevel )
+    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions, Collection<String> dataElements, int aggregationLevel )
     {
         taskLoop:
         while ( true )
         {
-            AnalyticsTable table = tables.poll();
+            AnalyticsTablePartition partition = partitions.poll();
 
-            if ( table == null )
+            if ( partition == null )
             {
                 break taskLoop;
             }
 
-            StringBuilder sql = new StringBuilder( "update " + table.getTempTableName() + " set " );
+            StringBuilder sql = new StringBuilder( "update " + partition.getTempTableName() + " set " );
 
             for ( int i = 0; i < aggregationLevel; i++ )
             {
@@ -466,7 +466,7 @@ public class JdbcAnalyticsTableManager
         
         if ( partition != null )
         {
-            boolean periodOverMaxYears = AnalyticsUtils.periodIsOutsideApprovalMaxYears( partition.getPeriod(), maxYears );
+            boolean periodOverMaxYears = AnalyticsUtils.periodIsOutsideApprovalMaxYears( partition.getYear(), maxYears );
             
             return setting && levels && !periodOverMaxYears;
         }
