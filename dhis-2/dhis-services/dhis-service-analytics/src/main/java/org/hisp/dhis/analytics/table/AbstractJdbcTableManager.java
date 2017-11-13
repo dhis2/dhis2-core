@@ -43,6 +43,7 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -218,7 +219,7 @@ public abstract class AbstractJdbcTableManager
     }
     
     // -------------------------------------------------------------------------
-    // Supportive methods
+    // Supportive protected methods
     // -------------------------------------------------------------------------
   
     /**
@@ -296,6 +297,37 @@ public abstract class AbstractJdbcTableManager
         {
             log.debug( ex.getMessage() );
         }
+    }
+    
+    /**
+     * Drops and creates the given analytics table.
+     * 
+     * @param table the {@link AnalyticsTable}.
+     */
+    protected void dropAndCreateTempTable( AnalyticsTable table )
+    {
+        validateDimensionColumns( table.getDimensionColumns() );
+        
+        final String tableName = table.getTempTableName();        
+
+        final String sqlDrop = "drop table " + tableName;
+
+        executeSilently( sqlDrop );
+
+        String sqlCreate = "create table " + tableName + " (";
+
+        for ( AnalyticsTableColumn col : table.getDimensionColumns() )
+        {
+            sqlCreate += col.getName() + " " + col.getDataType() + ",";
+        }
+        
+        sqlCreate = TextUtils.removeLast( sqlCreate, "," ) + ")";
+                
+        log.info( String.format( "Creating table: %s, columns: %d", tableName, table.getDimensionColumns().size() ) );
+
+        log.debug( "Create SQL: " + sqlCreate );
+
+        jdbcTemplate.execute( sqlCreate );
     }
     
     /**
