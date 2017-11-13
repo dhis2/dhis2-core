@@ -2,7 +2,6 @@ package org.hisp.dhis.scheduling;
 
 import org.hisp.dhis.schema.Property;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 
 import java.util.List;
 import java.util.Map;
@@ -22,7 +21,6 @@ public interface JobConfigurationService
      *
      * @param event the new context
      */
-    @EventListener
     void handleContextRefresh( ContextRefreshedEvent event );
 
     /**
@@ -69,7 +67,7 @@ public interface JobConfigurationService
      * @param uid uid to search for
      * @return job configuration
      */
-    JobConfiguration getJobConfigurationWithUid( String uid );
+    JobConfiguration getJobConfigurationByUid( String uid );
 
     /**
      * Get all job configurations

@@ -166,6 +166,29 @@ public class DefaultPredictorService
     // Predictor run
     // -------------------------------------------------------------------------
 
+    public int predictPredictors( List<String> predictors, Date startDate, Date endDate )
+    {
+        int totalCount = 0;
+
+        try
+        {
+            for ( String uid : predictors) {
+                Predictor predictor = getPredictor( uid );
+
+                int count = predict( predictor, startDate, endDate );
+
+                log.info( "Generated " + count + " predictions" );
+                totalCount += count;
+            }
+        }
+        catch ( Exception ex )
+        {
+            log.error( "Unable to predict.", ex);
+        }
+
+        return totalCount;
+    }
+
     @Override
     public int predict( Predictor predictor, Date startDate, Date endDate )
     {

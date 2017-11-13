@@ -13,5 +13,6 @@ public interface Job
 {
     JobType getJobType();
 
-    void execute( JobConfiguration jobConfiguration );
+    void execute( JobConfiguration jobConfiguration )
+        throws Exception;
 }

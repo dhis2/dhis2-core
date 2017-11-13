@@ -26,7 +26,7 @@ import static com.cronutils.model.CronType.QUARTZ;
  * @author Henning Håkonsen
  */
 public class JobConfigurationObjectBundleHook
-        extends AbstractObjectBundleHook
+    extends AbstractObjectBundleHook
 {
     @Autowired
     private JobConfigurationService jobConfigurationService;
@@ -42,21 +42,23 @@ public class JobConfigurationObjectBundleHook
 
     private List<ErrorReport> validateCronForJobType( JobConfiguration jobConfiguration )
     {
-        List<ErrorReport> errorReports = new ArrayList<>(  );
+        List<ErrorReport> errorReports = new ArrayList<>();
 
         // Make list of all jobs for each job type
-        Map<JobType, List<JobConfiguration>> jobConfigurationForJobTypes = new HashMap<>(  );
+        Map<JobType, List<JobConfiguration>> jobConfigurationForJobTypes = new HashMap<>();
 
         jobConfigurationService.getAllJobConfigurations().stream()
-                .filter( configuration -> !Objects.equals( configuration.getUid(), jobConfiguration.getUid() ) )
-                .forEach( configuration -> {
-                    List<JobConfiguration> jobConfigurationList = new ArrayList<>();
-                    List<JobConfiguration> oldList = jobConfigurationForJobTypes.get( configuration.getJobType() );
-                    if ( oldList != null )
-                        jobConfigurationList.addAll( oldList );
-                    jobConfigurationList.add( configuration );
-                    jobConfigurationForJobTypes.put( configuration.getJobType(), jobConfigurationList );
-                } );
+            .filter( configuration -> !Objects.equals( configuration.getUid(), jobConfiguration.getUid() ) )
+            .forEach( configuration -> {
+                List<JobConfiguration> jobConfigurationList = new ArrayList<>();
+                List<JobConfiguration> oldList = jobConfigurationForJobTypes.get( configuration.getJobType() );
+                if ( oldList != null )
+                {
+                    jobConfigurationList.addAll( oldList );
+                }
+                jobConfigurationList.add( configuration );
+                jobConfigurationForJobTypes.put( configuration.getJobType(), jobConfigurationList );
+            } );
 
         /*
          *  Validate that there are no other jobs of the same job type which are scheduled with the same cron.
@@ -69,12 +71,17 @@ public class JobConfigurationObjectBundleHook
         {
             for ( JobConfiguration jobConfig : listForJobType )
             {
-                if ( jobConfiguration.isContinuousExecution() ) {
-                    if ( jobConfig.isContinuousExecution() ) {
+                if ( jobConfiguration.isContinuousExecution() )
+                {
+                    if ( jobConfig.isContinuousExecution() )
+                    {
                         errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7001 ) );
                     }
-                } else {
-                    if ( jobConfig.getCronExpression().equals(jobConfiguration.getCronExpression() ) ) {
+                }
+                else
+                {
+                    if ( jobConfig.getCronExpression().equals( jobConfiguration.getCronExpression() ) )
+                    {
                         errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7000 ) );
                     }
                 }
@@ -92,24 +99,26 @@ public class JobConfigurationObjectBundleHook
             return new ArrayList<>();
         }
 
-        List<ErrorReport> errorReports = new ArrayList<>(  );
+        List<ErrorReport> errorReports = new ArrayList<>();
         JobConfiguration jobConfiguration = (JobConfiguration) object;
 
         // validate the cron expression
-        CronDefinition cronDefinition = CronDefinitionBuilder.instanceDefinitionFor(QUARTZ);
+        CronDefinition cronDefinition = CronDefinitionBuilder.instanceDefinitionFor( QUARTZ );
         CronParser parser = new CronParser( cronDefinition );
         Cron quartzCron = parser.parse( jobConfiguration.getCronExpression() );
 
         quartzCron.validate();
 
-        CronDescriptor cronDescriptor = CronDescriptor.instance( Locale.UK);
+        CronDescriptor cronDescriptor = CronDescriptor.instance( Locale.UK );
 
         // Validate cron expression with relation to all other jobs
         errorReports.addAll( validateCronForJobType( jobConfiguration ) );
-        if( errorReports.size() == 0 )
+        if ( errorReports.size() == 0 )
         {
-            log.info( "Validation of '" + jobConfiguration.getName() + "' succeeded with cron description '" + cronDescriptor.describe( quartzCron ) + "'" );
-        } else
+            log.info( "Validation of '" + jobConfiguration.getName() + "' succeeded with cron description '" +
+                cronDescriptor.describe( quartzCron ) + "'" );
+        }
+        else
         {
             log.info( "Validation of '" + jobConfiguration.getName() + "' failed." );
         }

@@ -81,10 +81,12 @@ public class DataIntegrityJob
 
         timer.stop();
 
-        if (jobConfiguration.getJobId() != null) {
+        if ( jobConfiguration.getJobId() != null )
+        {
             notifier.notify(
-                    jobConfiguration.getJobId(), NotificationLevel.INFO, "Data integrity checks completed in " + timer.toString() + ".", true)
-                    .addTaskSummary(jobConfiguration.getJobId(), report);
+                jobConfiguration.getJobId(), NotificationLevel.INFO,
+                "Data integrity checks completed in " + timer.toString() + ".", true )
+                .addTaskSummary( jobConfiguration.getJobId(), report );
         }
     }
 }

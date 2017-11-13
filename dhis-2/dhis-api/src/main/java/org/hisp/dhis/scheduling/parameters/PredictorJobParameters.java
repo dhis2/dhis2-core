@@ -21,17 +21,17 @@ public class PredictorJobParameters
     private Date endDate;
 
     @Property
-    private List<String> predictorUids;
+    private List<String> predictors;
 
-    PredictorJobParameters()
+    public PredictorJobParameters()
     {
     }
 
-    PredictorJobParameters( Date startDate, Date endDate, List<String> predictorUids )
+    public PredictorJobParameters( Date startDate, Date endDate, List<String> predictors )
     {
         this.startDate = startDate;
         this.endDate = endDate;
-        this.predictorUids = predictorUids;
+        this.predictors = predictors;
     }
 
     public Date getStartDate()
@@ -54,13 +54,13 @@ public class PredictorJobParameters
         this.endDate = endDate;
     }
 
-    public List<String> getPredictorUids()
+    public List<String> getPredictors()
     {
-        return predictorUids;
+        return predictors;
     }
 
-    public void setPredictorUids( List<String> predictorUids )
+    public void setPredictors( List<String> predictors )
     {
-        this.predictorUids = predictorUids;
+        this.predictors = predictors;
     }
 }

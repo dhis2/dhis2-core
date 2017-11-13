@@ -40,7 +40,7 @@ import java.util.concurrent.ScheduledFuture;
 /**
  * Cron refers to the cron expression used for scheduling. Key refers to the key
  * identifying the scheduled jobs.
- * 
+ *
  * @author Henning Håkonsen
  */
 public class DefaultSchedulingManager
@@ -115,7 +115,7 @@ public class DefaultSchedulingManager
     @Override
     public void scheduleJob( JobConfiguration jobConfiguration )
     {
-        if(!scheduler.isJobInSystem( jobConfiguration.getUid() ))
+        if ( !scheduler.isJobInSystem( jobConfiguration.getUid() ) )
         {
             scheduler.scheduleJob( jobConfiguration );
         }
@@ -124,13 +124,13 @@ public class DefaultSchedulingManager
     @Override
     public void scheduleJobs( List<JobConfiguration> jobConfigurations )
     {
-        jobConfigurations.forEach(this::scheduleJob);
+        jobConfigurations.forEach( this::scheduleJob );
     }
 
     @Override
     public void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration, Date delay, int interval )
     {
-        if(!scheduler.isJobInSystem( jobConfiguration.getUid() ))
+        if ( !scheduler.isJobInSystem( jobConfiguration.getUid() ) )
         {
             scheduler.scheduleJobWithFixedDelay( jobConfiguration, delay, interval );
         }
@@ -195,7 +195,7 @@ public class DefaultSchedulingManager
     // -------------------------------------------------------------------------
 
     @Override
-    public boolean isJobInProgress(String jobKey)
+    public boolean isJobInProgress( String jobKey )
     {
         return JobStatus.RUNNING == scheduler.getCurrentJobStatus( jobKey );
     }

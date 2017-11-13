@@ -12,19 +12,19 @@ public class PushAnalysisJobParameters
     private static final long serialVersionUID = -1848833906375595488L;
 
     @Property
-    private int pushAnalysisId;
+    private String pushAnalysis;
 
     public PushAnalysisJobParameters()
     {
     }
 
-    public PushAnalysisJobParameters( int pushAnalysisId )
+    public PushAnalysisJobParameters( String pushAnalysis )
     {
-        this.pushAnalysisId = pushAnalysisId;
+        this.pushAnalysis = pushAnalysis;
     }
 
-    public int getPushAnalysisId()
+    public String getPushAnalysis()
     {
-        return pushAnalysisId;
+        return pushAnalysis;
     }
 }

@@ -32,15 +32,12 @@ public enum JobType
     {{
         put( "organisationUnits", "/api/organisationUnits" );
         put( "validationRuleGroups", "/api/validationRuleGroups" );
+        put( "validationRuleGroupUids", "/api/validationRuleGroups" );
+        put( "parentOrgUnitUid", "/api/organisationUnits" );
     }} ),
     PUSH_ANALYSIS( "pushAnalysis", PushAnalysisJobParameters.class, new HashMap<String, String>()
     {{
         put( "pushAnalysisId", "/api/pushAnalysis" );
-    }} ),
-    DATA_VALIDATION( "dataValidation", DataValidationJobParameters.class, new HashMap<String, String>()
-    {{
-        put( "validationRuleGroupUids", "/api/validationRuleGroups" );
-        put( "parentOrgUnitUid", "/api/organisationUnits" );
     }} ),
     PREDICTOR( "predictor", PredictorJobParameters.class, new HashMap<String, String>()
     {{

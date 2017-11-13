@@ -1,7 +1,5 @@
 package org.hisp.dhis.predictor;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
@@ -20,8 +18,6 @@ public class PredictorJob
     @Autowired
     private PredictorService predictorService;
 
-    private static final Log log = LogFactory.getLog( PredictorJob.class );
-
     @Override
     public JobType getJobType()
     {
@@ -30,31 +26,19 @@ public class PredictorJob
 
     @Override
     public void execute( JobConfiguration jobConfiguration )
+        throws Exception
     {
         PredictorJobParameters predictorJobParameters = ( PredictorJobParameters ) jobConfiguration.getJobParameters();
 
-        try
+        if ( predictorJobParameters == null )
         {
-            if ( predictorJobParameters == null )
-            {
-                throw new Exception( "No job parameters present in predictor job" );
-            }
-
-            List<String> predictorUids = predictorJobParameters.getPredictorUids();
-            Date startDate = predictorJobParameters.getStartDate();
-            Date endDate = predictorJobParameters.getEndDate();
-
-            predictorUids.forEach( uid -> {
-                Predictor predictor = predictorService.getPredictor( uid );
-
-                int count = predictorService.predict( predictor, startDate, endDate );
-
-                log.info( "Generated " + count + " predictions" );
-            } );
+            throw new Exception( "No job parameters present in predictor job" );
         }
-        catch ( Exception ex )
-        {
-            log.error( "Unable to predict.", ex);
-        }
+
+        List<String> predictors = predictorJobParameters.getPredictors();
+        Date startDate = predictorJobParameters.getStartDate();
+        Date endDate = predictorJobParameters.getEndDate();
+
+        predictorService.predictPredictors( predictors, startDate, endDate );
     }
 }

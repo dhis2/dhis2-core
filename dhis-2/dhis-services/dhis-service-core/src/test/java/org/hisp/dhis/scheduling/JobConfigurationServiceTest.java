@@ -40,24 +40,24 @@ public class JobConfigurationServiceTest
         List<JobConfiguration> jobConfigurationList = jobConfigurationService.getAllJobConfigurations();
         assertEquals(  "The number of job configurations does not match",6, jobConfigurationList.size() );
 
-        assertEquals( JobType.TEST, jobConfigurationService.getJobConfigurationWithUid( jobA.getUid() ).getJobType() );
-        TestJobParameters jobParameters = (TestJobParameters) jobConfigurationService.getJobConfigurationWithUid( jobA.getUid() ).getJobParameters();
+        assertEquals( JobType.TEST, jobConfigurationService.getJobConfigurationByUid( jobA.getUid() ).getJobType() );
+        TestJobParameters jobParameters = (TestJobParameters) jobConfigurationService.getJobConfigurationByUid( jobA.getUid() ).getJobParameters();
 
         assertNotNull( jobParameters );
         assertEquals( "test", jobParameters.getMessage() );
 
-        assertEquals( JobType.DATA_INTEGRITY, jobConfigurationService.getJobConfigurationWithUid( jobB.getUid() ).getJobType() );
-        assertNull( jobConfigurationService.getJobConfigurationWithUid( jobB.getUid() ).getJobParameters() );
+        assertEquals( JobType.DATA_INTEGRITY, jobConfigurationService.getJobConfigurationByUid( jobB.getUid() ).getJobType() );
+        assertNull( jobConfigurationService.getJobConfigurationByUid( jobB.getUid() ).getJobParameters() );
     }
 
     @Test
     public void testUpdateJob()
     {
-        JobConfiguration test = jobConfigurationService.getJobConfigurationWithUid( jobA.getUid() );
+        JobConfiguration test = jobConfigurationService.getJobConfigurationByUid( jobA.getUid() );
         test.setName( "testUpdate" );
         jobConfigurationService.updateJobConfiguration( test );
 
-        assertEquals( "testUpdate", jobConfigurationService.getJobConfigurationWithUid( jobA.getUid() ).getName() );
+        assertEquals( "testUpdate", jobConfigurationService.getJobConfigurationByUid( jobA.getUid() ).getName() );
     }
 
     @Test
@@ -65,7 +65,7 @@ public class JobConfigurationServiceTest
     {
         jobConfigurationService.deleteJobConfiguration( jobA );
 
-        assertNull( jobConfigurationService.getJobConfigurationWithUid( jobA.getUid() ) );
+        assertNull( jobConfigurationService.getJobConfigurationByUid( jobA.getUid() ) );
     }
 
 }

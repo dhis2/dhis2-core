@@ -45,6 +45,7 @@ import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.system.util.DateUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -124,15 +125,22 @@ public class DefaultSystemService
         {
             return null;
         }
-        
+
+        Date lastAnalyticsTableSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
+        String lastAnalyticsTableRuntime = (String) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME );
         String systemName = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
 
         Configuration config = configurationService.getConfiguration();
 
+        Date now = new Date();
+
         info.setCalendar( calendarService.getSystemCalendar().name() );
         info.setDateFormat( calendarService.getSystemDateFormat().getJs() );
         info.setServerDate( new Date() );
+        info.setLastAnalyticsTableSuccess( lastAnalyticsTableSuccess );
+        info.setIntervalSinceLastAnalyticsTableSuccess( DateUtils.getPrettyInterval( lastAnalyticsTableSuccess, now ) );
         info.setSystemId( config.getSystemId() );
+        info.setLastAnalyticsTableRuntime( lastAnalyticsTableRuntime );
         info.setSystemName( systemName );
 
         setSystemMetadataVersionInfo( info );
@@ -242,8 +250,14 @@ public class DefaultSystemService
     private void setSystemMetadataVersionInfo( SystemInfo info )
     {
         Boolean isMetadataVersionEnabled = (boolean) systemSettingManager.getSystemSetting( SettingKey.METADATAVERSION_ENABLED );
+        Date lastSuccessfulMetadataSync = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_METADATA_SYNC );
+        Date metadataLastFailedTime = (Date) systemSettingManager.getSystemSetting( SettingKey.METADATA_LAST_FAILED_TIME );
+        String systemMetadataVersion = (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_METADATA_VERSION );
+        Date lastMetadataVersionSyncAttempt = getLastMetadataVersionSyncAttempt( lastSuccessfulMetadataSync, metadataLastFailedTime );
 
         info.setIsMetadataVersionEnabled( isMetadataVersionEnabled );
+        info.setSystemMetadataVersion( systemMetadataVersion );
+        info.setLastMetadataVersionSyncAttempt( lastMetadataVersionSyncAttempt );
     }
 
     private Date getLastMetadataVersionSyncAttempt( Date lastSuccessfulMetadataSyncTime, Date lastFailedMetadataSyncTime )

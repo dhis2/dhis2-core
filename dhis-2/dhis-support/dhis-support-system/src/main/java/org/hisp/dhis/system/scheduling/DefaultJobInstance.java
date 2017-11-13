@@ -18,32 +18,32 @@ public class DefaultJobInstance implements JobInstance
 {
     private static final Log log = LogFactory.getLog( SpringScheduler.class );
 
-    private void setFinishingStatus(SchedulingManager schedulingManager, JobConfiguration jobConfiguration )
+    private void setFinishingStatus( SchedulingManager schedulingManager, JobConfiguration jobConfiguration )
     {
         jobConfiguration.setJobStatus( JobStatus.SCHEDULED );
         jobConfiguration.setNextExecutionTime( null );
-        jobConfiguration.setLastExecuted( new Date( ) );
+        jobConfiguration.setLastExecuted( new Date() );
 
         schedulingManager.jobConfigurationFinished( jobConfiguration );
     }
 
-
-    public void execute(JobConfiguration jobConfiguration, SchedulingManager schedulingManager, MessageService messageService )
+    public void execute( JobConfiguration jobConfiguration, SchedulingManager schedulingManager,
+        MessageService messageService )
     {
         final Clock clock = new Clock().startClock();
 
-        if(!schedulingManager.isJobConfigurationRunning( jobConfiguration ))
+        if ( !schedulingManager.isJobConfigurationRunning( jobConfiguration ) )
         {
             jobConfiguration.setJobStatus( JobStatus.RUNNING );
             schedulingManager.jobConfigurationStarted( jobConfiguration );
 
             try
             {
-                log.info( "Job '" + jobConfiguration.getName() + "' started");
+                log.info( "Job '" + jobConfiguration.getName() + "' started" );
 
                 schedulingManager.getJob( jobConfiguration.getJobType() ).execute( jobConfiguration );
 
-                log.info( "Job '" + jobConfiguration.getName() + "' executed successfully");
+                log.info( "Job '" + jobConfiguration.getName() + "' executed successfully" );
             }
             catch ( RuntimeException ex )
             {
@@ -57,10 +57,16 @@ public class DefaultJobInstance implements JobInstance
             }
 
             jobConfiguration.setLastExecutedStatus( JobStatus.COMPLETED );
-        } else {
-            log.error( "Job '" + jobConfiguration.getName() + "' failed, jobtype '" + jobConfiguration.getJobType() + "' is already running." );
+        }
+        else
+        {
+            log.error( "Job '" + jobConfiguration.getName() + "' failed, jobtype '" + jobConfiguration.getJobType() +
+                "' is already running." );
 
-            messageService.sendSystemErrorNotification( "Job '" + jobConfiguration.getName() + "' failed, jobtype '" + jobConfiguration.getJobType() + "' is already running [" + clock.time() + "]", new Exception( "Job '" + jobConfiguration.getName() + "' failed" ) );
+            messageService.sendSystemErrorNotification(
+                "Job '" + jobConfiguration.getName() + "' failed, jobtype '" + jobConfiguration.getJobType() +
+                    "' is already running [" + clock.time() + "]",
+                new Exception( "Job '" + jobConfiguration.getName() + "' failed" ) );
             jobConfiguration.setLastExecutedStatus( JobStatus.FAILED );
 
             schedulingManager.executeJob( jobConfiguration );

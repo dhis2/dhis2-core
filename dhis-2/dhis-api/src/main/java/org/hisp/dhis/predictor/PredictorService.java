@@ -57,5 +57,7 @@ public interface PredictorService
 
     int getPredictorCount();
 
+    int predictPredictors( List<String> predictors, Date startDate, Date endDate );
+
     int predict( Predictor predictor, Date startDate, Date endDate );
 }
