@@ -158,8 +158,9 @@ public class JdbcEventAnalyticsTableManager
     }
 
     @Override
-    public List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTable table )
+    public List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTablePartition partition )
     {
+        final Program program = partition.getMasterTable().getProgram();
         final String dbl = statementBuilder.getDoubleColumnType();
         final String numericClause = " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
         final String dateClause = " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
@@ -225,7 +226,7 @@ public class JdbcEventAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ), dataType, sql, skipIndex ) );
         }
 
-        for ( DataElement dataElement : table.getProgram().getDataElementsWithLegendSet() )
+        for ( DataElement dataElement : program.getDataElementsWithLegendSet() )
         {
             for ( LegendSet legendSet : dataElement.getLegendSets() )
             {
@@ -245,7 +246,7 @@ public class JdbcEventAnalyticsTableManager
             }
         }
 
-        for ( TrackedEntityAttribute attribute : table.getProgram().getNonConfidentialTrackedEntityAttributes() )
+        for ( TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes() )
         {
             String dataType = getColumnType( attribute.getValueType() );
             String dataClause = attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
@@ -258,7 +259,7 @@ public class JdbcEventAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql, skipIndex ) );
         }
         
-        for ( TrackedEntityAttribute attribute : table.getProgram().getNonConfidentialTrackedEntityAttributesWithLegendSet() )
+        for ( TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributesWithLegendSet() )
         {
             for ( LegendSet legendSet : attribute.getLegendSets() )
             {
@@ -302,7 +303,7 @@ public class JdbcEventAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( quote( "geom" ), "geometry(Point, 4326)", alias, false, "gist" ) );
         }
         
-        if ( table.hasProgram() && table.getProgram().isRegistration() )
+        if ( program.isRegistration() )
         {
             columns.add( new AnalyticsTableColumn( quote( "tei" ), "character(11)", "tei.uid" ) );
         }

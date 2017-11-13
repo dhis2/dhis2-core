@@ -144,7 +144,7 @@ public class JdbcCompletenessTableManager
     }
     
     @Override
-    public List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTable table )
+    public List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTablePartition partition )
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
@@ -217,7 +217,7 @@ public class JdbcCompletenessTableManager
     
     @Override
     @Async
-    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTable> tables, Collection<String> dataElements, int aggregationLevel )
+    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions, Collection<String> dataElements, int aggregationLevel )
     {
         return null; // Not relevant
     }

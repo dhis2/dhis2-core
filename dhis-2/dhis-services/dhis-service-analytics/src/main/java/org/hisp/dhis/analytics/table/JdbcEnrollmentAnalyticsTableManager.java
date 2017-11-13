@@ -140,7 +140,7 @@ public class JdbcEnrollmentAnalyticsTableManager
     }
 
     @Override
-    protected List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTable table )
+    protected List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTablePartition partition )
     {
         final String dbl = statementBuilder.getDoubleColumnType();
         final String numericClause = " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
@@ -171,7 +171,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( column, "character varying(15)", "dps." + column ) );
         }
 
-        for ( ProgramStage programStage : table.getProgram().getProgramStages() )
+        for ( ProgramStage programStage : partition.getMasterTable().getProgram().getProgramStages() )
         {
             for( ProgramStageDataElement programStageDataElement : 
                 programStage.getProgramStageDataElements() )
@@ -198,7 +198,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             }
         }
 
-        for ( TrackedEntityAttribute attribute : table.getProgram().getNonConfidentialTrackedEntityAttributes() )
+        for ( TrackedEntityAttribute attribute : partition.getMasterTable().getProgram().getNonConfidentialTrackedEntityAttributes() )
         {
             String dataType = getColumnType( attribute.getValueType() );
             String dataClause = attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
@@ -248,7 +248,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( quote( "geom" ), "geometry(Point, 4326)", alias, false, "gist" ) );
         }
         
-        if ( table.hasProgram() && table.getProgram().isRegistration() )
+        if ( partition.getMasterTable().getProgram().isRegistration() )
         {
             columns.add( new AnalyticsTableColumn( quote( "tei" ), "character(11)", "tei.uid" ) );
         }

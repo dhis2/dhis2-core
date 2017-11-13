@@ -129,7 +129,7 @@ public class JdbcCompletenessTargetTableManager
     }
     
     @Override
-    public List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTable table )
+    public List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTablePartition partition )
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
