@@ -29,10 +29,11 @@ public class SmsJobParameters
     private I18n i18n;
 
     public SmsJobParameters()
-    {}
+    {
+    }
 
-    public SmsJobParameters(String smsSubject, String text, List<String> recipientsList,
-                            String message)
+    public SmsJobParameters( String smsSubject, String text, List<String> recipientsList,
+        String message )
     {
         this.smsSubject = smsSubject;
         this.text = text;

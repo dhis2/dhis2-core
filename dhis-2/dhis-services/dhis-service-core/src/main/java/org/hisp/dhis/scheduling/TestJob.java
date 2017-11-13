@@ -5,7 +5,8 @@ import org.hisp.dhis.scheduling.parameters.TestJobParameters;
 /**
  * @author Henning Håkonsen
  */
-public class TestJob implements Job
+public class TestJob
+    implements Job
 {
     @Override
     public JobType getJobType()
@@ -18,7 +19,7 @@ public class TestJob implements Job
     {
         TestJobParameters parameters = (TestJobParameters) jobConfiguration.getJobParameters();
 
-        System.out.println( "job configuration message: " + parameters.getMessage() + ", sleep for 60 seconds");
+        System.out.println( "job configuration message: " + parameters.getMessage() + ", sleep for 60 seconds" );
         try
         {
             Thread.sleep( 60000 );
@@ -28,6 +29,6 @@ public class TestJob implements Job
             e.printStackTrace();
         }
 
-        System.out.println("Slept like a child - " + parameters.getMessage());
+        System.out.println( "Slept like a child - " + parameters.getMessage() );
     }
 }

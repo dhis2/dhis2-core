@@ -26,7 +26,7 @@ public class AnalyticsJobParameters
     {
     }
 
-    public AnalyticsJobParameters(Integer lastYears, Set<String> skipTableTypes, boolean skipResourceTables)
+    public AnalyticsJobParameters( Integer lastYears, Set<String> skipTableTypes, boolean skipResourceTables )
     {
         this.lastYears = lastYears;
         this.skipTableTypes = skipTableTypes;

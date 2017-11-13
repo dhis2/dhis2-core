@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 
@@ -27,27 +25,33 @@ public class JobConfigurationDeserializer
         throws IOException
     {
         ObjectMapper mapper = (ObjectMapper) jsonParser.getCodec();
-        ObjectNode root = mapper.readTree(jsonParser);
+        ObjectNode root = mapper.readTree( jsonParser );
 
         JobType jobType = JobType.valueOf( root.get( "jobType" ).textValue() );
-        assertNotNull(jobType, "jobType must not be null.");
+        assertNotNull( jobType, "jobType must not be null." );
 
         JobParameters jobParameters = null;
-        if ( root.get( "jobParameters" ) != null && jobType.getClazz() != null ) {
+        if ( root.get( "jobParameters" ) != null && jobType.getClazz() != null )
+        {
             jobParameters = mapper.convertValue( root.get( "jobParameters" ), jobType.getClazz() );
         }
 
         boolean enabled = root.get( "enabled" ) == null || root.get( "enabled" ).booleanValue();
 
-        boolean continuousExecution = root.get("continuousExecution") != null && root.get("continuousExecution").asBoolean();
+        boolean continuousExecution =
+            root.get( "continuousExecution" ) != null && root.get( "continuousExecution" ).asBoolean();
 
         String cronExpression = mapper.convertValue( root.get( "cronExpression" ), String.class );
-        if ( !continuousExecution ){
-            assertNotNull(cronExpression, "cronExpression must not be null.");
-        } else {
-            cronExpression =  "0 * * ? * *";
+        if ( !continuousExecution )
+        {
+            assertNotNull( cronExpression, "cronExpression must not be null." );
+        }
+        else
+        {
+            cronExpression = "0 * * ? * *";
         }
 
-        return new JobConfiguration( root.get( "name" ).textValue(), jobType, cronExpression, jobParameters, enabled, continuousExecution );
+        return new JobConfiguration( root.get( "name" ).textValue(), jobType, cronExpression, jobParameters, enabled,
+            continuousExecution );
     }
 }

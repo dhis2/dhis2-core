@@ -12,11 +12,11 @@ public class DataValidationJobParameters
 
     private String organisationUnitUid;
 
-    DataValidationJobParameters ()
+    DataValidationJobParameters()
     {
     }
 
-    DataValidationJobParameters ( String organisationUnitUid )
+    DataValidationJobParameters( String organisationUnitUid )
     {
         this.organisationUnitUid = organisationUnitUid;
     }

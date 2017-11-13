@@ -11,7 +11,8 @@ import java.util.Optional;
  *
  * @author Henning Håkonsen
  */
-public enum JobType {
+public enum JobType
+{
     DATA_STATISTICS( "dataStatisticsJob", null, null ),
     DATA_INTEGRITY( "dataIntegrity", null, null ),
     RESOURCE_TABLE( "resourceTableJob", null, null ),
@@ -60,37 +61,45 @@ public enum JobType {
 
     HashMap<String, String> relativeApiElements;
 
-    JobType(String key, Class<?> clazz, HashMap<String, String> relativeApiElements) {
+    JobType( String key, Class<?> clazz, HashMap<String, String> relativeApiElements )
+    {
         this.key = key;
         this.clazz = clazz;
         this.relativeApiElements = relativeApiElements;
     }
 
-    public String getKey() {
+    public String getKey()
+    {
         return key;
     }
 
-    public Class<JobParameters> getClazz() {
+    public Class<JobParameters> getClazz()
+    {
         return (Class<JobParameters>) clazz;
     }
 
-    public static Optional<JobType> getByJobType(String jobType) {
-        for (JobType jobType1 : JobType.values()) {
-            if (jobType1.getKey().equals(jobType)) {
-                return Optional.of(jobType1);
+    public static Optional<JobType> getByJobType( String jobType )
+    {
+        for ( JobType jobType1 : JobType.values() )
+        {
+            if ( jobType1.getKey().equals( jobType ) )
+            {
+                return Optional.of( jobType1 );
             }
         }
 
         return Optional.empty();
     }
 
-    public static Class<JobParameters> getClazz(String jobType) {
-        Optional<JobType> getJobType = getByJobType(jobType);
+    public static Class<JobParameters> getClazz( String jobType )
+    {
+        Optional<JobType> getJobType = getByJobType( jobType );
 
         return getJobType.get().getClazz();
     }
 
-    public HashMap<String, String> getRelativeApiElements() {
+    public HashMap<String, String> getRelativeApiElements()
+    {
         return relativeApiElements;
     }
 }

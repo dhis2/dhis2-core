@@ -31,7 +31,6 @@ package org.hisp.dhis.scheduling;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.system.scheduling.Scheduler;
-import org.hisp.dhis.system.scheduling.SpringScheduler;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
@@ -55,7 +54,7 @@ public class DefaultSchedulingManager
 
     private Map<JobType, Job> jobMap = new HashMap<>();
 
-    private static final Log log = LogFactory.getLog( SpringScheduler.class );
+    private static final Log log = LogFactory.getLog( DefaultSchedulingManager.class );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -70,25 +69,31 @@ public class DefaultSchedulingManager
     }
 
     @PostConstruct
-    public void init( )
+    public void init()
     {
         jobs.forEach( job -> {
-            if ( job == null ) {
-                log.fatal("Scheduling manager tried to add job, but it was null");
-            } else {
-                jobMap.put(job.getJobType(), job);
+            if ( job == null )
+            {
+                log.fatal( "Scheduling manager tried to add job, but it was null" );
             }
-        });
+            else
+            {
+                jobMap.put( job.getJobType(), job );
+            }
+        } );
     }
 
     // -------------------------------------------------------------------------
     // Queue
     // -------------------------------------------------------------------------
 
-    private List<JobConfiguration> runningJobConfigurations = new ArrayList<>(  );
+    private List<JobConfiguration> runningJobConfigurations = new ArrayList<>();
 
-    public boolean isJobConfigurationRunning( JobConfiguration jobConfiguration ) {
-        return !jobConfiguration.isContinuousExecution() && runningJobConfigurations.stream().anyMatch(jobConfig -> jobConfig.getJobType().equals(jobConfiguration.getJobType()) && !jobConfig.isContinuousExecution());
+    public boolean isJobConfigurationRunning( JobConfiguration jobConfiguration )
+    {
+        return !jobConfiguration.isContinuousExecution() && runningJobConfigurations.stream().anyMatch(
+            jobConfig -> jobConfig.getJobType().equals( jobConfiguration.getJobType() ) &&
+                !jobConfig.isContinuousExecution() );
     }
 
     public void jobConfigurationStarted( JobConfiguration jobConfiguration )

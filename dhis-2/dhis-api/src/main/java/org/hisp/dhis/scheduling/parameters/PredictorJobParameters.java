@@ -19,11 +19,11 @@ public class PredictorJobParameters
 
     private List<String> predictorUids;
 
-    PredictorJobParameters ()
+    PredictorJobParameters()
     {
     }
 
-    PredictorJobParameters ( Date startDate, Date endDate, List<String> predictorUids )
+    PredictorJobParameters( Date startDate, Date endDate, List<String> predictorUids )
     {
         this.startDate = startDate;
         this.endDate = endDate;

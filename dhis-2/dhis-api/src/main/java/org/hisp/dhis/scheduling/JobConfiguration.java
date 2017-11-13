@@ -19,18 +19,18 @@ import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 /**
  * This class defines configuration for a job in the system. The job is defined with general identifiers, as well as job
  * specific, such as jobType {@link JobType}.
- *
+ * <p>
  * All system jobs should be included in JobType enum and can be scheduled/executed with {@link SchedulingManager}.
- *
+ * <p>
  * The class uses a custom deserializer to handle several potential {@link JobParameters}.
- * 
+ *
  * @author Henning Håkonsen
  */
 @JacksonXmlRootElement( localName = "jobConfiguration", namespace = DxfNamespaces.DXF_2_0 )
 @JsonDeserialize( using = JobConfigurationDeserializer.class )
 public class JobConfiguration
-        extends BaseIdentifiableObject
-        implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     private String cronExpression;
 
@@ -50,11 +50,12 @@ public class JobConfiguration
 
     private Date nextExecutionTime;
 
-    public JobConfiguration ()
+    public JobConfiguration()
     {
     }
 
-    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters, boolean enabled, boolean continuousExecution )
+    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
+        boolean enabled, boolean continuousExecution )
     {
         this.name = name;
         this.cronExpression = cronExpression;
@@ -102,13 +103,19 @@ public class JobConfiguration
 
     public void setNextExecutionTime( Date nextExecutionTime )
     {
-        if( nextExecutionTime != null) this.nextExecutionTime = nextExecutionTime;
-        else {
-            if( !isContinuousExecution() && cronExpression != null && !cronExpression.equals( "" ) ) this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext(  ) );
+        if ( nextExecutionTime != null )
+            this.nextExecutionTime = nextExecutionTime;
+        else
+        {
+            if ( !isContinuousExecution() && cronExpression != null && !cronExpression.equals( "" ) )
+            {
+                this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext() );
+            }
         }
     }
 
-    public void setContinuousExecution( boolean continuousExecution ) {
+    public void setContinuousExecution( boolean continuousExecution )
+    {
         this.continuousExecution = continuousExecution;
     }
 
@@ -128,7 +135,7 @@ public class JobConfiguration
 
     @JacksonXmlProperty
     @JsonProperty
-    public JobStatus getJobStatus( )
+    public JobStatus getJobStatus()
     {
         return jobStatus;
     }
@@ -171,7 +178,8 @@ public class JobConfiguration
 
     @JacksonXmlProperty
     @JsonProperty
-    public boolean isContinuousExecution() {
+    public boolean isContinuousExecution()
+    {
         return continuousExecution;
     }
 
@@ -182,17 +190,18 @@ public class JobConfiguration
     }
 
     @Override
-    public int compareTo( IdentifiableObject jobConfiguration  )
+    public int compareTo( IdentifiableObject jobConfiguration )
     {
         return nextExecutionTime.compareTo( ((JobConfiguration) jobConfiguration).getNextExecutionTime() );
     }
 
     @Override
-    public String toString() {
+    public String toString()
+    {
         return "Name: " + name +
-                "\nType: " + jobType +
-                "\nEnabled: " + enabled +
-                "\nCron expression: " + cronExpression +
-                "\nNext execution time: " + nextExecutionTime;
+            "\nType: " + jobType +
+            "\nEnabled: " + enabled +
+            "\nCron expression: " + cronExpression +
+            "\nNext execution time: " + nextExecutionTime;
     }
 }

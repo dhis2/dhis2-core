@@ -13,7 +13,8 @@ public class PushAnalysisJobParameters
     private int pushAnalysisId;
 
     public PushAnalysisJobParameters()
-    {}
+    {
+    }
 
     public PushAnalysisJobParameters( int pushAnalysisId )
     {

@@ -35,7 +35,7 @@ import java.util.concurrent.ScheduledFuture;
 
 /**
  * Interface for scheduling jobs.
- *
+ * <p>
  * <p>
  * The main steps of the scheduling:
  * <p>
@@ -53,7 +53,7 @@ public interface SchedulingManager
 {
     boolean isJobConfigurationRunning( JobConfiguration jobConfiguration );
 
-    void jobConfigurationStarted(JobConfiguration jobConfiguration );
+    void jobConfigurationStarted( JobConfiguration jobConfiguration );
 
     void jobConfigurationFinished( JobConfiguration jobConfiguration );
 
@@ -68,6 +68,7 @@ public interface SchedulingManager
 
     /**
      * Schedule a collection of jobs
+     *
      * @param jobConfigurations the jobs to schedule
      */
     void scheduleJobs( List<JobConfiguration> jobConfigurations );
@@ -87,7 +88,7 @@ public interface SchedulingManager
     /**
      * Stops all jobs.
      */
-    void stopAllJobs( );
+    void stopAllJobs();
 
     /**
      * Refreshes the given job
@@ -118,20 +119,19 @@ public interface SchedulingManager
 
     /**
      * Returns a list of all scheduled jobs sorted based on cron expression and the current time.
+     *
      * @return list of jobs
      */
     Map<String, ScheduledFuture<?>> getAllFutureJobs();
-    
+
     /**
      * Gets the job status.
      */
     JobStatus getJobStatus( String jobKey );
 
     /**
-     *
      * Returns the status of the currently executing job.
      */
     boolean isJobInProgress( String jobKey );
-
 
 }

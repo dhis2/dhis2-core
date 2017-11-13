@@ -34,26 +34,27 @@ import java.util.Objects;
 /**
  * @author Lars Helge Overland
  */
-public class JobId implements Serializable
+public class JobId
+    implements Serializable
 {
     private static final long serialVersionUID = -1578879078661100062L;
 
     private static final String SEPARATOR = "-";
-    
+
     private JobType category;
-    
+
     private String userUid;
-    
+
     protected JobId()
     {
     }
-    
-    public JobId(JobType category, String userUid )
+
+    public JobId( JobType category, String userUid )
     {
         this.category = category;
         this.userUid = userUid;
     }
-    
+
     public String getId()
     {
         String id = category.toString();
@@ -64,7 +65,7 @@ public class JobId implements Serializable
         {
             id += SEPARATOR + user.getUserCredentials().getUsername();
         }*/
-        
+
         return id;
     }
 
@@ -91,19 +92,19 @@ public class JobId implements Serializable
         {
             return true;
         }
-        
+
         if ( obj == null )
         {
             return false;
         }
-        
+
         if ( getClass() != obj.getClass() )
         {
             return false;
         }
-        
+
         JobId other = (JobId) obj;
-        
+
         return getId().equals( other.getId() );
     }
 

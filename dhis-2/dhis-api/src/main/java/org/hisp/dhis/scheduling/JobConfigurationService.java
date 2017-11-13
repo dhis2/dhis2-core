@@ -23,7 +23,7 @@ public interface JobConfigurationService
      * @param event the new context
      */
     @EventListener
-    void handleContextRefresh( ContextRefreshedEvent event);
+    void handleContextRefresh( ContextRefreshedEvent event );
 
     /**
      * Add a job configuration
@@ -35,6 +35,7 @@ public interface JobConfigurationService
 
     /**
      * Add a collection of job configurations
+     *
      * @param jobConfigurations the job configurations to add
      */
     void addJobConfigurations( List<JobConfiguration> jobConfigurations );
@@ -75,7 +76,7 @@ public interface JobConfigurationService
      *
      * @return list of all job configurations in the system
      */
-    List<JobConfiguration> getAllJobConfigurations( );
+    List<JobConfiguration> getAllJobConfigurations();
 
     /**
      * Get a sorted list of all job configurations based on cron expressions
@@ -83,16 +84,16 @@ public interface JobConfigurationService
      *
      * @return list of all job configurations in the system(sorted)
      */
-    List<JobConfiguration> getAllJobConfigurationsSorted( );
+    List<JobConfiguration> getAllJobConfigurationsSorted();
 
     /**
      * Get a map of parameter classes with appropriate properties
      * This can be used for a frontend app or for other appropriate applications which needs information about the jobs
      * in the system.
-     *
+     * <p>
      * It uses {@link JobType}.
      *
      * @return map with parameters classes
      */
-    Map<String, Map<String, Property>> getJobParametersSchema( );
+    Map<String, Map<String, Property>> getJobParametersSchema();
 }

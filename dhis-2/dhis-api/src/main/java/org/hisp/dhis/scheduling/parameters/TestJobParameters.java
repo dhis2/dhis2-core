@@ -17,7 +17,8 @@ public class TestJobParameters
     private String message;
 
     public TestJobParameters()
-    {}
+    {
+    }
 
     public TestJobParameters( String message )
     {

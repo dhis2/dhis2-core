@@ -33,9 +33,11 @@ public class MonitoringJobParameters
     private boolean persistResults;
 
     public MonitoringJobParameters()
-    {}
+    {
+    }
 
-    public MonitoringJobParameters( List<Period> periods, List<OrganisationUnit> organisationUnits, List<ValidationRuleGroup> validationRuleGroups, boolean sendNotifications, boolean persistResults )
+    public MonitoringJobParameters( List<Period> periods, List<OrganisationUnit> organisationUnits,
+        List<ValidationRuleGroup> validationRuleGroups, boolean sendNotifications, boolean persistResults )
     {
         this.periods = periods;
         this.organisationUnits = organisationUnits;

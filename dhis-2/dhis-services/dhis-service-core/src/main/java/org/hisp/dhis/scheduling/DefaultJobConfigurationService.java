@@ -4,12 +4,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Primitives;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.GenericNameableObjectStore;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.schema.NodePropertyIntrospectorService;
 import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +51,8 @@ public class DefaultJobConfigurationService
     @Autowired
     private SystemSettingManager systemSettingManager;
 
+    private static final Log log = LogFactory.getLog( DefaultJobConfigurationService.class );
+
     private boolean scheduledBoot = true;
 
     /**
@@ -75,7 +78,7 @@ public class DefaultJobConfigurationService
                 schedulingManager.scheduleJob( jobConfig );
             }) );
 
-            ListMap<String, String> scheduledSystemSettings = (ListMap<String, String>) systemSettingManager.getSystemSetting( SettingKey.SCHEDULED_TASKS, new ListMap<String, String>() );
+            ListMap<String, String> scheduledSystemSettings = (ListMap<String, String>) systemSettingManager.getSystemSetting( "keySchedTasks" );
             handleServerUpgrade( scheduledSystemSettings );
 
             scheduledBoot = false;
@@ -89,12 +92,12 @@ public class DefaultJobConfigurationService
     private void handleServerUpgrade ( ListMap<String, String> scheduledSystemSettings )
     {
         if ( scheduledSystemSettings != null && scheduledSystemSettings.containsKey( "ported" ) ) {
-            // System is ported
+            log.info( "Scheduler ported" );
             return;
         }
 
-        // Potential old configurable jobs
         if (scheduledSystemSettings != null) {
+            log.info( "Porting old jobs" );
             JobConfiguration resourceTable = new JobConfiguration("Resource table", RESOURCE_TABLE, null, null, true, false );
             resourceTable.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulResourceTablesUpdate" ) );
 
@@ -104,8 +107,8 @@ public class DefaultJobConfigurationService
             JobConfiguration monitoring = new JobConfiguration("Monitoring", MONITORING, null, null, true, false );
             monitoring.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulMonitoring" ) );
 
-            JobConfiguration dataSynch = new JobConfiguration("Data synchronization", DATA_SYNC, null, null, true, false );
-            dataSynch.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulDataSynch" ) );
+            JobConfiguration dataSync = new JobConfiguration("Data synchronization", DATA_SYNC, null, null, true, false );
+            dataSync.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulDataSynch" ) );
 
             JobConfiguration metadataSync = new JobConfiguration("Metadata sync", META_DATA_SYNC, null, null, true, false );
             metadataSync.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastMetaDataSyncSuccess" ) );
@@ -120,7 +123,7 @@ public class DefaultJobConfigurationService
                 put( "resourceTable", resourceTable );
                 put( "analytics", analytics );
                 put( "monitoring", monitoring );
-                put( "dataSynch", dataSynch );
+                put( "dataSynch", dataSync );
                 put( "metadataSync", metadataSync );
                 put( "sendScheduledMessage", sendScheduledMessage );
                 put( "scheduledProgramNotifications", scheduledProgramNotifications );
@@ -143,6 +146,8 @@ public class DefaultJobConfigurationService
                         }
                         break;
                     }
+
+                    log.error( "Could not map job type '" + jobType + "' with cron '" + cron + "'" );
                 }
             } ) );
         }
@@ -150,7 +155,7 @@ public class DefaultJobConfigurationService
         String CRON_DAILY_2AM = "0 0 2 * * ?";
         String CRON_DAILY_7AM = "0 0 7 * * ?";
 
-        // Default jobs
+        log.info( "Setting up default jobs." );
         JobConfiguration fileResourceCleanUp = new JobConfiguration("File resource clean up", FILE_RESOURCE_CLEANUP, CRON_DAILY_2AM, null, true, false );
 
         JobConfiguration dataStatistics = new JobConfiguration("Data statistics", DATA_STATISTICS, CRON_DAILY_2AM, null, true, false );
@@ -164,11 +169,11 @@ public class DefaultJobConfigurationService
         addJobConfigurations( defaultJobs );
         schedulingManager.scheduleJobs( defaultJobs );
 
-        // Save old systemsetting to a recognizable not null value
         ListMap<String, String> emptySystemSetting = new ListMap<>();
         emptySystemSetting.putValue("ported", "");
 
-        systemSettingManager.saveSystemSetting(SettingKey.SCHEDULED_TASKS, emptySystemSetting);
+        log.info( "Porting to new scheduler finished. Setting system settings key 'keySchedTasks' to 'ported'.");
+        systemSettingManager.saveSystemSetting( "keySchedTasks", emptySystemSetting);
     }
 
     @Override
