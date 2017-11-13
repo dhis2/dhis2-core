@@ -800,7 +800,7 @@
 
   <bean id="org.hisp.dhis.fileresource.FileResourceUploadCallback" class="org.hisp.dhis.fileresource.FileResourceUploadCallback" />
 
-  <bean id="org.hisp.dhis.fileresource.FileResourceCleanUpTask"
+  <bean id="fileResourceCleanUpJob"
     class="org.hisp.dhis.fileresource.FileResourceCleanUpJob"
     scope="prototype" />
 
@@ -1058,7 +1058,16 @@
 
   <bean id="org.hisp.dhis.scheduling.JobInstance" class="org.hisp.dhis.system.scheduling.DefaultJobInstance" />
 
-  <bean id="org.hisp.dhis.scheduling.SchedulingManager" class="org.hisp.dhis.scheduling.DefaultSchedulingManager">
+  <bean id="taskScheduler" class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler">
+    <property name="poolSize" value="25" />
+  </bean>
+
+  <bean id="scheduler" class="org.hisp.dhis.system.scheduling.SpringScheduler">
+    <property name="taskScheduler" ref="taskScheduler" />
+    <property name="taskExecutor" ref="taskScheduler" />
+  </bean>
+
+  <bean id="org.hisp.dhis.scheduling.SchedulingManager" class="org.hisp.dhis.scheduling.DefaultSchedulingManager" name="schedulingManager" >
     <property name="scheduler" ref="scheduler" />
   </bean>
 
@@ -1068,6 +1077,8 @@
     <property name="jobConfigurationStore" ref="org.hisp.dhis.scheduling.JobConfigurationStore" />
     <property name="schedulingManager" ref="org.hisp.dhis.scheduling.SchedulingManager" />
   </bean>
+
+  <bean id="predicatorJob" class="org.hisp.dhis.predictor.PredictorJob" />
 
   <bean id="testJob" class="org.hisp.dhis.scheduling.TestJob" />
 
@@ -1319,7 +1330,7 @@
 
   <bean id="smsMessageSender" class="org.hisp.dhis.sms.config.SmsMessageSender" />
 
-  <bean id="org.hisp.dhis.sms.task.SendSmsJob" class="org.hisp.dhis.sms.job.SendSmsJob" scope="prototype" />
+  <bean id="sendSmsJob" class="org.hisp.dhis.sms.job.SendSmsJob" scope="prototype" />
 
   <bean id="org.hisp.dhis.program.message.SmsDeliveryChannelStrategy" class="org.hisp.dhis.program.message.SmsDeliveryChannelStrategy" />
 

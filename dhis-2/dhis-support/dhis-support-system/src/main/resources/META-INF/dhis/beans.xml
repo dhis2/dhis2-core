@@ -19,15 +19,6 @@
     <property name="databaseInfoProvider" ref="databaseInfoProvider" />
   </bean>
 
-  <bean id="taskScheduler" class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler">
-    <property name="poolSize" value="25" />
-  </bean>
-
-  <bean id="scheduler" class="org.hisp.dhis.system.scheduling.SpringScheduler">
-    <property name="taskScheduler" ref="taskScheduler" />
-    <property name="taskExecutor" ref="taskScheduler" />
-  </bean>
-
   <bean id="restTemplate" class="org.springframework.web.client.RestTemplate"/>
   
   <bean id="uriBuilder" class="org.springframework.web.util.UriComponentsBuilder"/>

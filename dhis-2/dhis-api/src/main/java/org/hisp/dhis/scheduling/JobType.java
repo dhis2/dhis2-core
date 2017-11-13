@@ -12,36 +12,47 @@ import java.util.Optional;
  * @author Henning Håkonsen
  */
 public enum JobType {
-    DATA_STATISTICS("dataStatisticsJob", null, null),
-    DATA_INTEGRITY("dataIntegrity", null, null),
-    RESOURCE_TABLE("resourceTableJob", null, null),
-    ANALYTICS_TABLE("analyticsTableJob", AnalyticsJobParameters.class, new HashMap<String, String>() {{
-        put("skipTableTypes", "/api/analytics/tableTypes");
-    }}),
-    DATA_SYNC("dataSyncJob", null, null),
-    FILE_RESOURCE_CLEANUP("fileResourceCleanUp", null, null),
-    META_DATA_SYNC("metaDataSyncJob", null, null),
-    SMS_SEND("smsSendJob", SmsJobParameters.class, null),
-    SEND_SCHEDULED_MESSAGE("sendScheduledMessageJob", null, null),
-    PROGRAM_NOTIFICATIONS("programNotificationsJob", null, null),
-    VALIDATION_RESULTS_NOTIFICATION("validationResultNotificationJob", null, null),
-    CREDENTIALS_EXPIRY_ALERT("credentialsExpiryAlertJob", null, null),
-    MONITORING("monitoringJob", MonitoringJobParameters.class, new HashMap<String, String>() {{
-        put("organisationUnits", "/api/organisationUnits");
-        put("validationRuleGroups", "/api/validationRuleGroups");
-    }}),
-    PUSH_ANALYSIS("pushAnalysis", PushAnalysisJobParameters.class, new HashMap<String, String>() {{
-        put("pushAnalysisId", "/api/pushAnalysis");
-    }}),
-    TEST("test", TestJobParameters.class, null),
+    DATA_STATISTICS( "dataStatisticsJob", null, null ),
+    DATA_INTEGRITY( "dataIntegrity", null, null ),
+    RESOURCE_TABLE( "resourceTableJob", null, null ),
+    ANALYTICS_TABLE( "analyticsTableJob", AnalyticsJobParameters.class, new HashMap<String, String>()
+    {{
+        put( "skipTableTypes", "/api/analytics/tableTypes" );
+    }} ),
+    DATA_SYNC( "dataSyncJob", null, null ),
+    FILE_RESOURCE_CLEANUP( "fileResourceCleanUp", null, null ),
+    META_DATA_SYNC( "metaDataSyncJob", null, null ),
+    SMS_SEND( "smsSendJob", SmsJobParameters.class, null ),
+    SEND_SCHEDULED_MESSAGE( "sendScheduledMessageJob", null, null ),
+    PROGRAM_NOTIFICATIONS( "programNotificationsJob", null, null ),
+    VALIDATION_RESULTS_NOTIFICATION( "validationResultNotificationJob", null, null ),
+    CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob", null, null ),
+    MONITORING( "monitoringJob", MonitoringJobParameters.class, new HashMap<String, String>()
+    {{
+        put( "organisationUnits", "/api/organisationUnits" );
+        put( "validationRuleGroups", "/api/validationRuleGroups" );
+    }} ),
+    PUSH_ANALYSIS( "pushAnalysis", PushAnalysisJobParameters.class, new HashMap<String, String>()
+    {{
+        put( "pushAnalysisId", "/api/pushAnalysis" );
+    }} ),
+    DATA_VALIDATION( "dataValidation", DataValidationJobParameters.class, new HashMap<String, String>()
+    {{
+        put( "organisationUnits", "/api/organisationUnits" );
+    }} ),
+    PREDICTOR( "predictor", PredictorJobParameters.class, new HashMap<String, String>()
+    {{
+        put( "predictor", "/api/predictors" );
+    }} ),
+    TEST( "test", TestJobParameters.class, null ),
 
     // To satifisfy code that used the old enum TaskCategory
-    DATAVALUE_IMPORT(null, null, null),
-    ANALYTICSTABLE_UPDATE(null, null, null),
-    METADATA_IMPORT(null, null, null),
-    DATAVALUE_IMPORT_INTERNAL(null, null, null),
-    EVENT_IMPORT(null, null, null),
-    COMPLETE_DATA_SET_REGISTRATION_IMPORT(null, null, null);
+    DATAVALUE_IMPORT( null, null, null ),
+    ANALYTICSTABLE_UPDATE( null, null, null ),
+    METADATA_IMPORT( null, null, null ),
+    DATAVALUE_IMPORT_INTERNAL( null, null, null ),
+    EVENT_IMPORT( null, null, null ),
+    COMPLETE_DATA_SET_REGISTRATION_IMPORT( null, null, null );
 
     private final String key;
 

@@ -11,9 +11,11 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.*;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.system.scheduling.SpringScheduler;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
@@ -85,6 +87,11 @@ public class JobConfigurationObjectBundleHook
     @Override
     public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
     {
+        if ( !JobConfiguration.class.isInstance( object ) )
+        {
+            return new ArrayList<>();
+        }
+
         List<ErrorReport> errorReports = new ArrayList<>(  );
         JobConfiguration jobConfiguration = (JobConfiguration) object;
 
@@ -125,7 +132,6 @@ public class JobConfigurationObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void preDelete( T persistedObject, ObjectBundle bundle )
     {
-        System.out.println("preDelete");
         if ( !JobConfiguration.class.isInstance( persistedObject ) )
         {
             return;

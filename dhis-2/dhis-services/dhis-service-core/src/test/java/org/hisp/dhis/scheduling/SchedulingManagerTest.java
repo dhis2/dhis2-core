@@ -84,6 +84,7 @@ public class SchedulingManagerTest
      * jobB should fire every second. (Unless sleep in actual job - or the job uses longer time than the expected delay to next execution time)
      */
     @Test
+    @Ignore
     public void testScheduleJobs()
     {
         createAndSchedule();
@@ -116,7 +117,6 @@ public class SchedulingManagerTest
             e.printStackTrace();
         }
 
-        System.out.println( "Test stop jobB" );
         schedulingManager.stopJob( jobB );
 
         verifyScheduledJobs( 1 );
@@ -163,7 +163,5 @@ public class SchedulingManagerTest
         {
             e.printStackTrace();
         }
-
-
     }
 }

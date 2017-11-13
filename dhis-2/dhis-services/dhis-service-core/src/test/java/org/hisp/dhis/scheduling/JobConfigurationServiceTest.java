@@ -38,7 +38,7 @@ public class JobConfigurationServiceTest
     public void testGetJob()
     {
         List<JobConfiguration> jobConfigurationList = jobConfigurationService.getAllJobConfigurations();
-        assertEquals(  "The number of job configurations does not match",2, jobConfigurationList.size() );
+        assertEquals(  "The number of job configurations does not match",6, jobConfigurationList.size() );
 
         assertEquals( JobType.TEST, jobConfigurationService.getJobConfigurationWithUid( jobA.getUid() ).getJobType() );
         TestJobParameters jobParameters = (TestJobParameters) jobConfigurationService.getJobConfigurationWithUid( jobA.getUid() ).getJobParameters();

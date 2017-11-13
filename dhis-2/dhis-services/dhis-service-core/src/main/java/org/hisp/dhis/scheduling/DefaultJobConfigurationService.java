@@ -127,11 +127,11 @@ public class DefaultJobConfigurationService
             }};
 
             scheduledSystemSettings.forEach( ( cron, jobType ) -> jobType.forEach( type -> {
-                for ( Map.Entry<String, JobConfiguration> e : standardJobs.entrySet() )
+                for ( Map.Entry<String, JobConfiguration> entry : standardJobs.entrySet() )
                 {
-                    if ( type.startsWith( e.getKey() ) )
+                    if ( type.startsWith( entry.getKey() ) )
                     {
-                        JobConfiguration jobConfiguration = e.getValue();
+                        JobConfiguration jobConfiguration = entry.getValue();
 
                         if ( jobConfiguration != null )
                         {

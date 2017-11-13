@@ -156,10 +156,9 @@
 
   <bean id="org.hisp.dhis.validation.ValidationRunContext" class="org.hisp.dhis.validation.ValidationRunContext" scope="prototype" />
 
-  <bean id="validationTask" class="org.hisp.dhis.validation.DataValidationTask" scope="prototype" />
-
   <!-- Scheduling -->
 
+  <bean id="validationTask" class="org.hisp.dhis.validation.DataValidationTask" scope="prototype" name="dataValidationTask" />
   <bean id="dataStatisticsJob" class="org.hisp.dhis.datastatistics.DataStatisticsJob" />
   <bean id="credentialsExpiryAlertJob" class="org.hisp.dhis.credentials.CredentialsExpiryAlertJob" />
   <bean id="monitoringJob" class="org.hisp.dhis.validation.scheduling.MonitoringJob" />
