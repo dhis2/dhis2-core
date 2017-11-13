@@ -64,9 +64,7 @@ public class JdbcCompletenessTargetTableManager
     @Transactional
     public AnalyticsTable getAnalyticsTable( Date earliest )
     {
-        List<AnalyticsTable> tables = new ArrayList<>();
-        tables.add( new AnalyticsTable( getTableName(), getDimensionColumns( null ) ) );
-        return tables;
+        return new AnalyticsTable( getTableName(), getDimensionColumns( null ) );
     }
 
     @Override
@@ -82,7 +80,7 @@ public class JdbcCompletenessTargetTableManager
     }    
     
     @Override
-    public void createTable( AnalyticsTable table )
+    protected void createMasterTable( AnalyticsTable table )
     {
         final String dbl = statementBuilder.getDoubleColumnType();
 
@@ -90,7 +88,7 @@ public class JdbcCompletenessTargetTableManager
         
         columns.add( new AnalyticsTableColumn( quote( "value" ), dbl, "value" ) );
         
-        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns, table.getPeriod(), table.getProgram() ) );
+        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns ) );
     }
 
     @Override

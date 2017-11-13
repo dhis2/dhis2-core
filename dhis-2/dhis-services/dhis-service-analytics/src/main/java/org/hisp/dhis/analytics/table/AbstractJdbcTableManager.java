@@ -206,6 +206,13 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
+     * Creates the master analytics table.
+     * 
+     * @param table the analytics table to create.
+     */
+    protected abstract void createMasterTable( AnalyticsTable table );
+    
+    /**
      * Populates the given analytics table.
      * 
      * @param table the analytics table to populate.
@@ -298,6 +305,17 @@ public abstract class AbstractJdbcTableManager
             log.debug( ex.getMessage() );
         }
     }
+
+    @Override
+    public void createTable( AnalyticsTable table, boolean skipMasterTable )
+    {
+        if ( !skipMasterTable )
+        {
+            createMasterTable( table );
+        }
+        
+        dropAndCreateTempTablePartitions( table );
+    }
     
     /**
      * Drops and creates the given analytics table.
@@ -328,6 +346,31 @@ public abstract class AbstractJdbcTableManager
         log.debug( "Create SQL: " + sqlCreate );
 
         jdbcTemplate.execute( sqlCreate );
+    }
+    
+    /**
+     * Drops and creates the table partitions for the given analytics table.
+     * 
+     * @param table the {@link AnalyticsTable}.
+     */
+    protected void dropAndCreateTempTablePartitions( AnalyticsTable table )
+    {
+        for ( AnalyticsTablePartition partition : table.getPartitionTables() )
+        {         
+            final String tableName = partition.getTempTableName();
+   
+            final String sqlDrop = "drop table " + tableName;
+
+            executeSilently( sqlDrop );
+            
+            String sqlCreate = "create table " + tableName + " (check yearly = '" + partition.getYear() + "') inherits " + table.getTempTableName();
+            
+            log.info( String.format( "Creating partition table: %s", tableName ) );
+
+            log.debug( "Create SQL: " + sqlCreate );
+
+            jdbcTemplate.execute( sqlCreate );
+        }
     }
     
     /**

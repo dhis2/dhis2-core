@@ -20,13 +20,27 @@ public class JdbcValidationResultTableManager
     extends AbstractJdbcTableManager
 {
     @Override
-    public void createTable( AnalyticsTable table )
+    public AnalyticsTableType getAnalyticsTableType()
+    {
+        return AnalyticsTableType.VALIDATION_RESULT;
+    }
+
+    @Override
+    public AnalyticsTable getAnalyticsTable( Date earliest )
+    {
+        log.info( "Get tables using earliest: " + earliest );
+
+        return getAnalyticsTable( getDataYears( earliest ) );
+    }
+
+    @Override
+    public void createMasterTable( AnalyticsTable table )
     {
         List<AnalyticsTableColumn> columns = getDimensionColumns( table );
 
         columns.add( new AnalyticsTableColumn( quote( "value" ), "date", "value" ) );
         
-        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns, table.getPeriod(), table.getProgram() ) );
+        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns, table.getProgram() ) );
     }
 
     @Override
@@ -74,20 +88,6 @@ public class JdbcValidationResultTableManager
         final String sql = insert + select;
 
         populateAndLog( sql, tableName );
-    }
-
-    @Override
-    public AnalyticsTableType getAnalyticsTableType()
-    {
-        return AnalyticsTableType.VALIDATION_RESULT;
-    }
-
-    @Override
-    public List<AnalyticsTable> getTables( Date earliest )
-    {
-        log.info( "Get tables using earliest: " + earliest );
-
-        return getTables( getDataYears( earliest ) );
     }
 
     @Override

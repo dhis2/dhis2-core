@@ -46,11 +46,11 @@ public abstract class AbstractEventJdbcTableManager
     extends AbstractJdbcTableManager
 {
     @Override
-    public void createTable( AnalyticsTable table )
+    public void createMasterTable( AnalyticsTable table )
     {
         List<AnalyticsTableColumn> columns = getDimensionColumns( table );
         
-        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns, table.getPeriod(), table.getProgram() ) );
+        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns, table.getProgram() ) );
     }
     
     @Override

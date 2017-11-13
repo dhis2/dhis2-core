@@ -87,43 +87,13 @@ public class JdbcCompletenessTableManager
     }
     
     @Override
-    public void createTable( AnalyticsTable table, boolean skipMasterTable )
-    {
-        if ( !skipMasterTable )
-        {
-            createMasterTable( table );
-        }
-        
-        createPartitionTables( table );
-    }
-    
-    private void createMasterTable( AnalyticsTable table )
+    protected void createMasterTable( AnalyticsTable table )
     {
         List<AnalyticsTableColumn> columns = getDimensionColumns( table );
         
         columns.add( new AnalyticsTableColumn( quote( "value" ), "date", "value" ) );
 
         dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns, table.getPeriod(), table.getProgram() ) );
-    }
-
-    private void createPartitionTables( AnalyticsTable table )
-    {
-        for ( AnalyticsTablePartition partition : table.getPartitionTables() )
-        {         
-            final String tableName = partition.getTempTableName();
-   
-            final String sqlDrop = "drop table " + tableName;
-
-            executeSilently( sqlDrop );
-            
-            String sqlCreate = "create table " + tableName + " (check yearly = '" + partition.getYear() + "') inherits " + table.getTempTableName();
-            
-            log.info( String.format( "Creating partition table: %s", tableName ) );
-
-            log.debug( "Create SQL: " + sqlCreate );
-
-            jdbcTemplate.execute( sqlCreate );
-        }
     }
 
     @Override
