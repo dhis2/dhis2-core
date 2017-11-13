@@ -239,6 +239,9 @@ public class DefaultJobConfigurationService
         {
             Map<String, Property> jobParameters = Maps.newHashMap();
 
+            if ( jobType.getKey() == null )
+                continue;
+
             Class clazz = jobType.getClazz();
             if ( clazz == null )
             {

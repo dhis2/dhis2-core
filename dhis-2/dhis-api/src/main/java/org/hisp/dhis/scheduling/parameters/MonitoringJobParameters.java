@@ -8,6 +8,8 @@ import org.hisp.dhis.validation.ValidationRuleGroup;
 
 import java.util.List;
 
+import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
+
 /**
  * @author Henning Håkonsen
  */
@@ -26,10 +28,10 @@ public class MonitoringJobParameters
     private List<ValidationRuleGroup> validationRuleGroups;
 
     // Optional parameters
-    @Property
+    @Property ( required = FALSE)
     private boolean sendNotifications;
 
-    @Property
+    @Property ( required = FALSE)
     private boolean persistResults;
 
     public MonitoringJobParameters()

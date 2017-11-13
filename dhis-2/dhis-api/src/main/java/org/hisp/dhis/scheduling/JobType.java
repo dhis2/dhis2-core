@@ -39,7 +39,8 @@ public enum JobType
     }} ),
     DATA_VALIDATION( "dataValidation", DataValidationJobParameters.class, new HashMap<String, String>()
     {{
-        put( "organisationUnits", "/api/organisationUnits" );
+        put( "validationRuleGroupUids", "/api/validationRuleGroups" );
+        put( "parentOrgUnitUid", "/api/organisationUnits" );
     }} ),
     PREDICTOR( "predictor", PredictorJobParameters.class, new HashMap<String, String>()
     {{
