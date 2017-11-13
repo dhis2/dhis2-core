@@ -36,8 +36,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.CategoryDimension;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.preheat.Preheat;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
