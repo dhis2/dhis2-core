@@ -99,30 +99,11 @@ public class JdbcCompletenessTableManager
     
     private void createMasterTable( AnalyticsTable table )
     {
-        final String tableName = table.getTempTableName();
-        
-        final String sqlDrop = "drop table " + tableName;
-        
-        executeSilently( sqlDrop );
-
-        String sqlCreate = "create table " + tableName + " (";
-
         List<AnalyticsTableColumn> columns = getDimensionColumns( table );
         
-        validateDimensionColumns( columns );
+        columns.add( new AnalyticsTableColumn( quote( "value" ), "date", "value" ) );
 
-        for ( AnalyticsTableColumn col : columns )
-        {
-            sqlCreate += col.getName() + " " + col.getDataType() + ",";
-        }
-        
-        sqlCreate += "value date)";
-        
-        log.info( "Creating table: " + tableName + ", columns: " + columns.size() );
-        
-        log.debug( "Create SQL: " + sqlCreate );
-        
-        jdbcTemplate.execute( sqlCreate );
+        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns, table.getPeriod(), table.getProgram() ) );
     }
 
     private void createPartitionTables( AnalyticsTable table )

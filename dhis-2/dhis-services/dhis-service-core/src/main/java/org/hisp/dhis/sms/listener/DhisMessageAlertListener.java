@@ -54,11 +54,6 @@ import java.util.*;
 public class DhisMessageAlertListener
     extends BaseSMSListener
 {
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     @Autowired
     private SMSCommandService smsCommandService;
 
@@ -87,7 +82,6 @@ public class DhisMessageAlertListener
         SMSCommand smsCommand = smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
             ParserType.ALERT_PARSER );
         UserGroup userGroup = smsCommand.getUserGroup();
-        String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
 
         if ( userGroup != null )
         {
@@ -96,10 +90,12 @@ public class DhisMessageAlertListener
             if ( users != null && users.size() > 1 )
             {
                 String messageMoreThanOneUser = smsCommand.getMoreThanOneOrgUnitMessage();
-                if ( messageMoreThanOneUser.trim().equals( "" ) )
+                
+                if ( messageMoreThanOneUser.trim().isEmpty() )
                 {
                     messageMoreThanOneUser = SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE;
                 }
+                
                 for ( Iterator<User> i = users.iterator(); i.hasNext(); )
                 {
                     User user = i.next();
@@ -109,6 +105,7 @@ public class DhisMessageAlertListener
                         messageMoreThanOneUser += ",";
                     }
                 }
+                
                 throw new SMSParserException( messageMoreThanOneUser );
             }
             else if ( users != null && users.size() == 1 )

@@ -36,7 +36,6 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.springframework.http.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;

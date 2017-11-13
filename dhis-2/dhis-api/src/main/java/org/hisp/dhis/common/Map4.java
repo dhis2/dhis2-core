@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,34 +28,55 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
-import org.hisp.dhis.sms.command.SMSCommand;
+import java.util.HashMap;
 
 /**
- * Created by zubair@dhis2.org on 18.08.17.
+ * @author Jim Grace
  */
-public class SmsCommandSchemaDescriptor implements SchemaDescriptor
+public class Map4<R, S, T, U, V>
+    extends HashMap<R, MapMapMap<S, T, U, V>>
 {
-    public static final String SINGULAR = "smsCommand";
+    private static final long serialVersionUID = -2806972962597162013L;
 
-    public static final String PLURAL = "smsCommands";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
+    public MapMapMap<S, T, U, V> putEntry( R key1, S key2, T key3, U key4, V value )
     {
-        Schema schema = new Schema( SMSCommand.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1509 );
+        MapMapMap<S, T, U, V> map = this.get( key1 );
+        map = map == null ? new MapMapMap<>() : map;
+        map.putEntry( key2, key3, key4, value );
+        return this.put( key1, map );
+    }
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_MOBILE_SENDSMS" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_MOBILE_SENDSMS" ) ) );
+    public void putEntries( R key1, MapMapMap<S, T, U, V> m )
+    {
+        MapMapMap<S, T, U, V> map = this.get( key1 );
+        map = map == null ? new MapMapMap<>() : map;
+        map.putAll( m );
+        this.put( key1, map );
+    }
 
-        return schema;
+    public void putMap( Map4<R, S, T, U, V> map )
+    {
+        for ( Entry<R, MapMapMap<S, T, U, V>> entry : map.entrySet() )
+        {
+            this.putEntries( entry.getKey(), entry.getValue() );
+        }
+    }
+
+    public V getValue( R key1, S key2, T key3, U key4 )
+    {
+        return this.get( key1 ) == null ? null : this.get( key1 ).getValue( key2, key3, key4 );
+    }
+
+    @SafeVarargs
+    public static <R, S, T, U, V> Map4<R, S, T, U, V> asMap4( final SimpleEntry<R, MapMapMap<S, T, U, V>>... entries )
+    {
+        Map4<R, S, T, U, V> map = new Map4<>();
+
+        for ( SimpleEntry<R, MapMapMap<S, T, U, V>> entry : entries )
+        {
+            map.put( entry.getKey(), entry.getValue() );
+        }
+
+        return map;
     }
 }
