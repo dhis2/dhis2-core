@@ -20,6 +20,16 @@ public class JdbcValidationResultTableManager
     extends AbstractJdbcTableManager
 {
     @Override
+    public void createTable( AnalyticsTable table )
+    {
+        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
+
+        columns.add( new AnalyticsTableColumn( quote( "value" ), "date", "value" ) );
+        
+        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns, table.getPeriod(), table.getProgram() ) );
+    }
+
+    @Override
     protected void populateTable( AnalyticsTable table )
     {
         final String start = DateUtils.getMediumDateString( table.getPeriod().getStartDate() );
@@ -98,35 +108,6 @@ public class JdbcValidationResultTableManager
         }
 
         return null;
-    }
-
-    @Override
-    public void createTable( AnalyticsTable table )
-    {
-        final String tableName = table.getTempTableName();
-
-        final String sqlDrop = "drop table " + tableName;
-
-        executeSilently( sqlDrop );
-
-        String sqlCreate = "create table " + tableName + " (";
-
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
-
-        validateDimensionColumns( columns );
-
-        for ( AnalyticsTableColumn col : columns )
-        {
-            sqlCreate += col.getName() + " " + col.getDataType() + ",";
-        }
-
-        sqlCreate += "value date)";
-
-        log.info( "Creating table: " + tableName + ", columns: " + columns.size() );
-
-        log.debug( "Create SQL: " + sqlCreate );
-
-        jdbcTemplate.execute( sqlCreate );
     }
 
     private List<Integer> getDataYears( Date earliest )
