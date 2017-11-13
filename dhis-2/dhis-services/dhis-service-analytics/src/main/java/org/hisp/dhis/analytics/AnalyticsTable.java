@@ -32,29 +32,30 @@ import java.util.List;
 import java.util.Date;
 
 import org.hisp.dhis.analytics.table.PartitionUtils;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.program.Program;
+import org.springframework.util.Assert;
 
 /**
  * @author Lars Helge Overland
  */
 public class AnalyticsTable
 {
-    private String baseName;
+    protected String baseName;
 
-    private List<AnalyticsTableColumn> dimensionColumns;
+    protected List<AnalyticsTableColumn> dimensionColumns;
 
-    private Period period;
-
-    private Program program;
+    protected Program program;
     
-    private Date created;
+    protected Date created;
+    
+    private List<AnalyticsTablePartition> partitionTables = new UniqueArrayList<>();
 
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
 
+    @Deprecated
     public AnalyticsTable()
     {
         this.created = new Date();
@@ -62,20 +63,14 @@ public class AnalyticsTable
 
     public AnalyticsTable( String baseName, List<AnalyticsTableColumn> dimensionColumns )
     {
+        this.created = new Date();
         this.baseName = baseName;
         this.dimensionColumns = dimensionColumns;
-        this.created = new Date();
     }
 
-    public AnalyticsTable( String baseName, List<AnalyticsTableColumn> dimensionColumns, Period period )
+    public AnalyticsTable( String baseName, List<AnalyticsTableColumn> dimensionColumns, Program program )
     {
         this( baseName, dimensionColumns );
-        this.period = period;
-    }
-
-    public AnalyticsTable( String baseName, List<AnalyticsTableColumn> dimensionColumns, Period period, Program program )
-    {
-        this( baseName, dimensionColumns, period );
         this.program = program;
     }
 
@@ -83,14 +78,25 @@ public class AnalyticsTable
     // Logic
     // -------------------------------------------------------------------------
 
+    /**
+     * Adds a analytics partition table to this master table.
+     * 
+     * @param period the partition period, must be of yearly period type.
+     * @return an analytics table.
+     */
+    public AnalyticsTable addPartitionTable( Integer year )
+    {
+        Assert.notNull( year, "Year must be specified" );
+        
+        AnalyticsTablePartition partitionTable = new AnalyticsTablePartition( this, year, false ); //TODO approval
+        
+        this.partitionTables.add( partitionTable );
+        return this;
+    }
+    
     public String getTableName()
     {
         String name = baseName;
-
-        if ( period != null )
-        {
-            name += PartitionUtils.SEP + PeriodType.getCalendar().fromIso( period.getStartDate() ).getYear();
-        }
 
         if ( program != null )
         {
@@ -104,22 +110,12 @@ public class AnalyticsTable
     {
         String name = baseName + AnalyticsTableManager.TABLE_TEMP_SUFFIX;
 
-        if ( period != null )
-        {
-            name += PartitionUtils.SEP + PeriodType.getCalendar().fromIso( period.getStartDate() ).getYear();
-        }
-
         if ( program != null )
         {
             name += PartitionUtils.SEP + program.getUid().toLowerCase();
         }
 
         return name;
-    }
-
-    public boolean hasPeriod()
-    {
-        return period != null;
     }
 
     public boolean hasProgram()
@@ -141,11 +137,6 @@ public class AnalyticsTable
         return dimensionColumns;
     }
 
-    public Period getPeriod()
-    {
-        return period;
-    }
-
     public Program getProgram()
     {
         return program;
@@ -156,10 +147,16 @@ public class AnalyticsTable
         return created;
     }
 
+    public List<AnalyticsTablePartition> getPartitionTables()
+    {
+        return partitionTables;
+    }
+
     // -------------------------------------------------------------------------
     // Setters
     // -------------------------------------------------------------------------
 
+    @Deprecated
     public void setDimensionColumns( List<AnalyticsTableColumn> dimensionColumns )
     {
         this.dimensionColumns = dimensionColumns;
@@ -175,7 +172,6 @@ public class AnalyticsTable
         final int prime = 31;
         int result = 1;
         result = prime * result + ( ( baseName == null ) ? 0 : baseName.hashCode() );
-        result = prime * result + ( ( period == null ) ? 0 : period.hashCode() );
         result = prime * result + ( ( program == null ) ? 0 : program.hashCode() );
         return result;
     }
@@ -211,19 +207,7 @@ public class AnalyticsTable
         {
             return false;
         }
-        
-        if ( period == null )
-        {
-            if ( other.period != null )
-            {
-                return false;
-            }
-        }
-        else if ( !period.equals( other.period ) )
-        {
-            return false;
-        }
-        
+                
         if ( program == null )
         {
             if ( other.program != null )
@@ -242,6 +226,6 @@ public class AnalyticsTable
     @Override
     public String toString()
     {
-        return getTableName();
+        return "[Table name: " + getTableName() + ", partitions: " + partitionTables + "]";
     }
 }

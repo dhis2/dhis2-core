@@ -69,7 +69,7 @@ public class JdbcEventAnalyticsTableManager
     
     @Override
     @Transactional
-    public List<AnalyticsTable> getTables( Date earliest )
+    public AnalyticsTable getAnalyticsTable( Date earliest )
     {
         log.info( String.format( "Get tables using earliest: %s, spatial support: %b", earliest, databaseInfo.isSpatialSupport() ) );
 

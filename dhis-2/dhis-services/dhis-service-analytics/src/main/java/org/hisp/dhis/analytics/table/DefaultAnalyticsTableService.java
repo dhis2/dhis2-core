@@ -93,30 +93,32 @@ public class DefaultAnalyticsTableService
     }
     
     @Override
-    public void update( Integer lastYears, TaskId taskId )
+    public void update( AnalyticsTableUpdateParams params )
     {
+        TaskId taskId = params.getTaskId();
+        
         int processNo = getProcessNo();
         int orgUnitLevelNo = organisationUnitService.getNumberOfOrganisationalLevels();
         
         String tableName = tableManager.getAnalyticsTableType().getTableName();
 
-        Date earliest = PartitionUtils.getEarliestDate( lastYears );
+        Date earliest = PartitionUtils.getEarliestDate( params.getLastYears() );
         
         Clock clock = new Clock( log )
             .startClock()
             .logTime( String.format( "Starting update: %s, processes: %d, org unit levels: %d", tableName, processNo, orgUnitLevelNo ) );
         
         String validState = tableManager.validState();
-
+        
         if ( validState != null )
         {
             notifier.notify( taskId, validState );
             return;
         }
-                
-        final List<AnalyticsTable> tables = tableManager.getTables( earliest );
+        
+        AnalyticsTable analyticsTable = tableManager.getAnalyticsTable( earliest );
 
-        clock.logTime( "Table update start: " + tableName + ", partitions: " + tables + ", last years: " + lastYears + ", earliest: " + earliest );
+        clock.logTime( "Table update start: " + tableName + ", earliest: " + earliest + ", parameters: " + params.toString() );
         notifier.notify( taskId, "Performing pre-create table work, org unit levels: " + orgUnitLevelNo );
         
         tableManager.preCreateTables();
@@ -184,12 +186,11 @@ public class DefaultAnalyticsTableService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private void createTables( List<AnalyticsTable> tables )
+    private void createTable( AnalyticsTable table )
     {
-        for ( AnalyticsTable table : tables )
-        {
-            tableManager.createTable( table );
-        }
+        tableManager.createAnalyticsTable( table );
+        
+        
     }
     
     private void populateTables( List<AnalyticsTable> tables )

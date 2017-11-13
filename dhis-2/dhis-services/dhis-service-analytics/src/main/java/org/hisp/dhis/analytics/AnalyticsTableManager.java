@@ -54,12 +54,12 @@ public interface AnalyticsTableManager
     AnalyticsTableType getAnalyticsTableType();
     
     /**
-     * Returns a list of generated {@link AnalyticsTable} for yearly partitions.
+     * Returns a {@link AnalyticsTable} with a list of yearly {@link AnalyticsTablePartition}.
      * 
      * @param earliest the start date for the first year to generate table partitions.
-     * @return list of analytics tables.
+     * @return the analytics table with partitions.
      */
-    List<AnalyticsTable> getTables( Date earliest );
+    AnalyticsTable getAnalyticsTable( Date earliest );
     
     /**
      * Returns a list of existing analytics database table names.
@@ -85,7 +85,7 @@ public interface AnalyticsTableManager
      * 
      * @param table the table name.
      */
-    void createTable( AnalyticsTable table );
+    void createTable( AnalyticsTable table, boolean skipMasterTable );
     
     /**
      * Creates single indexes on the given columns of the analytics table with

@@ -32,6 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -80,11 +81,12 @@ public class DefaultAnalyticsTableGenerator
     // -------------------------------------------------------------------------
 
     @Override
-    public void generateTables( Integer lastYears, TaskId taskId, Set<AnalyticsTableType> skipTableTypes, boolean skipResourceTables )
+    public void generateTables( AnalyticsTableUpdateParams params )
     {
         final Date startTime = new Date();
         final Clock clock = new Clock( log ).startClock();
-        final Set<AnalyticsTableType> skipTypes = CollectionUtils.emptyIfNull( skipTableTypes );
+        final TaskId taskId = params.getTaskId();
+        final Set<AnalyticsTableType> skipTypes = CollectionUtils.emptyIfNull( params.getSkipTableTypes() );
         final Set<AnalyticsTableType> availableTypes = analyticsTableServices.
             stream().map( AnalyticsTableService::getAnalyticsTableType ).collect( Collectors.toSet() );
 
@@ -95,7 +97,7 @@ public class DefaultAnalyticsTableGenerator
         {
             notifier.clear( taskId ).notify( taskId, "Analytics table update process started" );
 
-            if ( !skipResourceTables )
+            if ( !params.isSkipResourceTables() )
             {
                 notifier.notify( taskId, "Updating resource tables" );
                 generateResourceTables();
@@ -109,7 +111,7 @@ public class DefaultAnalyticsTableGenerator
                 {
                     notifier.notify( taskId, "Updating tables: " + tableType );
 
-                    service.update( lastYears, taskId );
+                    service.update( params );
                 }
             }
 

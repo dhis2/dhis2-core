@@ -91,11 +91,11 @@ public class JdbcAnalyticsTableManager
 
     @Override
     @Transactional
-    public List<AnalyticsTable> getTables( Date earliest )
+    public AnalyticsTable getAnalyticsTable( Date earliest )
     {
         log.info( "Get tables using earliest: " + earliest );
 
-        return getTables( getDataYears( earliest ) );
+        return getAnalyticsTable( getDataYears( earliest ) );
     }
     
     @Override
@@ -134,7 +134,17 @@ public class JdbcAnalyticsTableManager
     }
 
     @Override
-    public void createTable( AnalyticsTable table )
+    public void createTable( AnalyticsTable table, boolean skipMasterTable )
+    {
+        if ( !skipMasterTable )
+        {
+            createMasterTable( table );
+        }
+        
+        createPartitionTables( table );
+    }
+    
+    private void createMasterTable( AnalyticsTable table )
     {
         final String tableName = table.getTempTableName();
 
@@ -157,11 +167,31 @@ public class JdbcAnalyticsTableManager
 
         sqlCreate += "daysxvalue " + dbl + ", daysno integer not null, value " + dbl + ", textvalue text)";
 
-        log.info( String.format( "Creating table: %s, columns: %d", tableName, columns.size() ) );
+        log.info( String.format( "Creating master table: %s, columns: %d", tableName, columns.size() ) );
 
         log.debug( "Create SQL: " + sqlCreate );
 
         jdbcTemplate.execute( sqlCreate );
+    }
+    
+    private void createPartitionTables( AnalyticsTable table )
+    {
+        for ( AnalyticsTablePartition partition : table.getPartitionTables() )
+        {         
+            final String tableName = partition.getTempTableName();
+   
+            final String sqlDrop = "drop table " + tableName;
+
+            executeSilently( sqlDrop );
+            
+            String sqlCreate = "create table " + tableName + " (check yearly = '" + partition.getYear() + "') inherits " + table.getTempTableName();
+            
+            log.info( String.format( "Creating partition table: %s", tableName ) );
+
+            log.debug( "Create SQL: " + sqlCreate );
+
+            jdbcTemplate.execute( sqlCreate );
+        }
     }
 
     @Override

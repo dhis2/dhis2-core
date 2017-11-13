@@ -66,7 +66,7 @@ public class JdbcEnrollmentAnalyticsTableManager
     
     @Override
     @Transactional
-    public List<AnalyticsTable> getTables( Date earliest )
+    public AnalyticsTable getAnalyticsTable( Date earliest )
     {
         return getTables();
     }

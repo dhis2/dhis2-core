@@ -28,23 +28,77 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.analytics.table.PartitionUtils;
 
 /**
  * @author Lars Helge Overland
  */
 public class AnalyticsTablePartition
-	extends AnalyticsTable
 {
-    private Period period;
+    private AnalyticsTable masterTable;
+    
+    private Integer year;
+    
+    private boolean dataApproval;
 
-    public boolean hasPeriod()
+    public AnalyticsTablePartition( AnalyticsTable masterTable, Integer year, boolean dataApproval )
     {
-        return period != null;
+        this.masterTable = masterTable;
+        this.year = year;
+        this.dataApproval = dataApproval;
     }
 
-    public Period getPeriod()
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    public String getTableName()
     {
-        return period;
+        String name = masterTable.getBaseName();
+
+        if ( year != null )
+        {
+            name += PartitionUtils.SEP + year;
+        }
+
+        if ( masterTable.getProgram() != null )
+        {
+            name += PartitionUtils.SEP + masterTable.getProgram().getUid().toLowerCase();
+        }
+
+        return name;
+    }
+    
+    public String getTempTableName()
+    {
+        String name = masterTable.getBaseName() + AnalyticsTableManager.TABLE_TEMP_SUFFIX;
+
+        if ( year != null )
+        {
+            name += PartitionUtils.SEP + year;
+        }
+
+        if ( masterTable.getProgram() != null )
+        {
+            name += PartitionUtils.SEP + masterTable.getProgram().getUid().toLowerCase();
+        }
+
+        return name;
+    }
+    
+    public Integer getYear()
+    {
+        return year;
+    }
+
+    public boolean isDataApproval()
+    {
+        return dataApproval;
+    }
+    
+    @Override
+    public String toString()
+    {
+        return getTableName();
     }
 }

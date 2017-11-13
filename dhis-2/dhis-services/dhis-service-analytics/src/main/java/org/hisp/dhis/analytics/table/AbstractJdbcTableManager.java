@@ -35,12 +35,12 @@ import org.hisp.dhis.analytics.AnalyticsIndex;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
+import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.ListUtils;
-import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -299,30 +299,29 @@ public abstract class AbstractJdbcTableManager
     }
     
     /**
-     * Generates a list of {@link AnalyticsTable} based on a list of years with data.
+     * Generates a {@link AnalyticsTable} with a list of {@link AnalyticsTablePartition} 
+     * based on a list of years with data.
      * 
-     * @param dataYears the list of years of data.
+     * @param dataYears the list of years with data.
      */
-    protected List<AnalyticsTable> getTables( List<Integer> dataYears )
-    {
-        List<AnalyticsTable> tables = new UniqueArrayList<>();
-        
+    protected AnalyticsTable getAnalyticsTable( List<Integer> dataYears )
+    {        
         Calendar calendar = PeriodType.getCalendar();
 
         Collections.sort( dataYears );
         
         String baseName = getAnalyticsTableType().getTableName();
         
+        AnalyticsTable table = new AnalyticsTable( baseName, getDimensionColumns( null ) );
+        
         for ( Integer year : dataYears )
         {
             Period period = PartitionUtils.getPeriod( calendar, year );
             
-            AnalyticsTable table = new AnalyticsTable( baseName, getDimensionColumns( null ), period );
-            
-            tables.add( table );
+            table.addPartitionTable( period );
         }
 
-        return tables;
+        return table;
     }
     
     /**
