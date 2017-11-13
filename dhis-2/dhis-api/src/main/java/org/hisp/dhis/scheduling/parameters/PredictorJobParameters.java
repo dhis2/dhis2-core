@@ -1,6 +1,7 @@
 package org.hisp.dhis.scheduling.parameters;
 
 import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.schema.annotation.Property;
 
 import java.util.Date;
 import java.util.List;
@@ -13,10 +14,13 @@ public class PredictorJobParameters
 {
     private static final long serialVersionUID = 5526554074518768146L;
 
+    @Property
     private Date startDate;
 
+    @Property
     private Date endDate;
 
+    @Property
     private List<String> predictorUids;
 
     PredictorJobParameters()
