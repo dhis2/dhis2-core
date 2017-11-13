@@ -84,9 +84,6 @@ public class DefaultPredictionService implements PredictionService
     private static final Log log = LogFactory.getLog( DefaultPredictionService.class );
 
     @Autowired
-    private PredictorStore predictorStore;
-
-    @Autowired
     private ConstantService constantService;
 
     @Autowired
@@ -536,7 +533,7 @@ public class DefaultPredictionService implements PredictionService
         Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> eventDataValues = new Map4<>();
 
         DataQueryParams params = DataQueryParams.newBuilder()
-            .withPeriods( new ArrayList( periods ) )
+            .withPeriods( new ArrayList<Period>( periods ) )
             .withDataDimensionItems( Lists.newArrayList( dimensionItems ) )
             .withAttributeOptionCombos( Lists.newArrayList() )
             .withFilterOrganisationUnits( orgUnits )

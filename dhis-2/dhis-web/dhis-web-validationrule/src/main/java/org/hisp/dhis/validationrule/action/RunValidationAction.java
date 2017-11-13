@@ -208,7 +208,7 @@ public class RunValidationAction
             .withAttributeOptionCombo( attributeOptionCombo )
             .withPersistResults( persistResults )
             .withSendNotifications( sendNotifications )
-            .withMaxResults( validationService.MAX_INTERACTIVE_ALERTS )
+            .withMaxResults( ValidationService.MAX_INTERACTIVE_ALERTS )
             .build();
 
         validationResults = new ArrayList<>( validationService.validationAnalysis( params ));
