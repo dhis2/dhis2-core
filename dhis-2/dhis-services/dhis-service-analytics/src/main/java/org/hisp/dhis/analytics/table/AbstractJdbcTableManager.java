@@ -48,7 +48,6 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SettingKey;
@@ -128,6 +127,17 @@ public abstract class AbstractJdbcTableManager
     public void preCreateTables()
     {
     }
+
+    @Override
+    public void createTable( AnalyticsTable table, boolean skipMasterTable )
+    {
+        if ( !skipMasterTable )
+        {
+            createMasterTable( table );
+        }
+        
+        dropAndCreateTempTablePartitions( table );
+    }
     
     @Override
     @Async
@@ -158,7 +168,7 @@ public abstract class AbstractJdbcTableManager
     }
     
     @Override
-    public void swapTable( AnalyticsTable table )
+    public void swapTable( AnalyticsTable table, boolean skipMasterTable )
     {
         final String tempTable = table.getTempTableName();
         final String realTable = table.getTableName();
@@ -177,7 +187,7 @@ public abstract class AbstractJdbcTableManager
     {        
         executeSilently( "drop table " + tableName );
     }
-    
+
     @Override
     public void analyzeTable( String tableName )
     {
@@ -188,18 +198,18 @@ public abstract class AbstractJdbcTableManager
 
     @Override
     @Async
-    public Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
+    public Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions )
     {
         taskLoop: while ( true )
         {
-            AnalyticsTable table = tables.poll();
+            AnalyticsTablePartition partition = partitions.poll();
 
-            if ( table == null )
+            if ( partition == null )
             {
                 break taskLoop;
             }
 
-            populateTable( table );
+            populateTable( partition );
         }
 
         return null;
@@ -217,12 +227,12 @@ public abstract class AbstractJdbcTableManager
      * 
      * @param table the analytics table to populate.
      */
-    protected abstract void populateTable( AnalyticsTable table );
+    protected abstract void populateTable( AnalyticsTablePartition partition );
 
     @Override
-    public void analyzeTables( List<AnalyticsTable> tables )
+    public void analyzeTable( AnalyticsTable table )
     {
-        tables.forEach( table -> analyzeTable( table.getTempTableName() ) );
+        table.getPartitionTables().forEach( partition -> analyzeTable( partition.getTempTableName() ) );
     }
     
     // -------------------------------------------------------------------------
@@ -306,17 +316,6 @@ public abstract class AbstractJdbcTableManager
         }
     }
 
-    @Override
-    public void createTable( AnalyticsTable table, boolean skipMasterTable )
-    {
-        if ( !skipMasterTable )
-        {
-            createMasterTable( table );
-        }
-        
-        dropAndCreateTempTablePartitions( table );
-    }
-    
     /**
      * Drops and creates the given analytics table.
      * 
@@ -390,9 +389,7 @@ public abstract class AbstractJdbcTableManager
         
         for ( Integer year : dataYears )
         {
-            Period period = PartitionUtils.getPeriod( calendar, year );
-            
-            table.addPartitionTable( period );
+            table.addPartitionTable( PartitionUtils.getYear( calendar, year ) );
         }
 
         return table;
@@ -400,6 +397,7 @@ public abstract class AbstractJdbcTableManager
     
     /**
      * Checks whether the given list of columns are valid.
+     * 
      * @throws IllegalStateException if not valid.
      */
     protected void validateDimensionColumns( List<AnalyticsTableColumn> columns )
@@ -442,6 +440,9 @@ public abstract class AbstractJdbcTableManager
 
     /**
      * Executes the given table population SQL statement, log and times the operation.
+     * 
+     * @param sql the SQL statement.
+     * @param tableName the table name.
      */
     protected void populateAndLog( String sql, String tableName )
     {

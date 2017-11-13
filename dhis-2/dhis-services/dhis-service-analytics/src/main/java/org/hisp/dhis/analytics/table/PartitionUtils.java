@@ -64,6 +64,13 @@ public class PartitionUtils
 
         return PERIODTYPE.createPeriod( time.toDate(), calendar );
     }
+    
+    public static Integer getYear( Calendar calendar, Integer year )
+    {
+        DateTimeUnit startOfYear = calendar.isoStartOfYear( year );
+        DateTime time = new DateTime( year, startOfYear.getMonth(), startOfYear.getDay(), 1, 1 );
+        return time.getYear();
+    }
 
     public static Date getEarliestDate( Integer lastYears )
     {

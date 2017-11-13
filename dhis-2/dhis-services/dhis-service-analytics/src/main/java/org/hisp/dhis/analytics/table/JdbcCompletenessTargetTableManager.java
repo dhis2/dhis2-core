@@ -64,7 +64,7 @@ public class JdbcCompletenessTargetTableManager
     @Transactional
     public AnalyticsTable getAnalyticsTable( Date earliest )
     {
-        return new AnalyticsTable( getTableName(), getDimensionColumns( null ) );
+        return new AnalyticsTable( getTableName(), getDimensionColumns( null ) ).addPartitionTable();
     }
 
     @Override
@@ -96,7 +96,7 @@ public class JdbcCompletenessTargetTableManager
     {
         final String tableName = table.getTempTableName();
 
-        String sql = "insert into " + table.getTempTableName() + " (";
+        String sql = "insert into " + tableName + " (";
 
         List<AnalyticsTableColumn> columns = getDimensionColumns( table );
         

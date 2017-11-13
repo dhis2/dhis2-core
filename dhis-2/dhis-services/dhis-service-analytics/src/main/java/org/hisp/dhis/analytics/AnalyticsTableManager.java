@@ -32,7 +32,6 @@ import org.hisp.dhis.analytics.table.AnalyticsTableType;
 
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
@@ -83,7 +82,7 @@ public interface AnalyticsTableManager
     /**
      * Attempts to drop and then create analytics table.
      * 
-     * @param table the table name.
+     * @param table the analytics table.
      */
     void createTable( AnalyticsTable table, boolean skipMasterTable );
     
@@ -102,23 +101,23 @@ public interface AnalyticsTableManager
      * 
      * @param table the analytics table.
      */
-    void swapTable( AnalyticsTable table );
+    void swapTable( AnalyticsTable table, boolean skipMasterTable );
     
     /**
      * Copies and denormalizes rows from data value table into analytics table.
      * The data range is based on the start date of the data value row.
      * 
-     * @param tables the analytics tables.
+     * @param tablePartitions the analytics table partitions.
      * @return a future representing the asynchronous task.
      */
-    Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables );
+    Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> tablePartitions );
     
     /**
      * Performs analyze operations on analytics tables.
      * 
-     * @param tables the analytics tables.
+     * @param table the {@link AnalyticsTable}.
      */
-    void analyzeTables( List<AnalyticsTable> tables );
+    void analyzeTable( AnalyticsTable table );
 
     /**
      * Drops the given table.
@@ -139,12 +138,12 @@ public interface AnalyticsTableManager
      * organisation unit level column values to null for the levels above the
      * given aggregation level.
      * 
-     * @param tables the analytics tables.
-     * @param dataElements the data element uids to apply aggregation levels for.
+     * @param tablePartitions the analytics table partitions.
+     * @param dataElements the data element identifiers to apply aggregation levels for.
      * @param aggregationLevel the aggregation level.
      * @return a future representing the asynchronous task.
      */
-    Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTable> tables, Collection<String> dataElements, int aggregationLevel );
+    Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> tablePartitions, Collection<String> dataElements, int aggregationLevel );
     
     /**
      * Performs vacuum or optimization of the given table. The type of operation

@@ -59,9 +59,7 @@ import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL
 
 /**
  * This class manages the analytics tables. The analytics table is a denormalized
- * table designed for analysis which contains raw data values. It has columns for
- * each organisation unit group set and organisation unit level. Also, columns
- * for dataelementid, periodid, organisationunitid, categoryoptioncomboid, value.
+ * table designed for analysis which contains raw data values.
  * <p>
  * The analytics table is horizontally partitioned. The partition key is the start
  * date of the  period of the data record. The table is partitioned according to
@@ -149,7 +147,7 @@ public class JdbcAnalyticsTableManager
     }
     
     @Override
-    protected void populateTable( AnalyticsTable table )
+    protected void populateTable( AnalyticsTablePartition partition )
     {
         final String dbl = statementBuilder.getDoubleColumnType();
         final boolean skipDataTypeValidation = (Boolean) systemSettingManager.getSystemSetting( SettingKey.SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT );
@@ -161,13 +159,13 @@ public class JdbcAnalyticsTableManager
             "( dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + ',' + AggregationType.AVERAGE_SUM_ORG_UNIT + "') or de.zeroissignificant = true ) " +
             numericClause;
 
-        populateTable( table, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause, approvalClause );
+        populateTable( partition, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause, approvalClause );
 
-        populateTable( table, "1", "null", Sets.newHashSet( ValueType.BOOLEAN, ValueType.TRUE_ONLY ), "dv.value = 'true'", approvalClause );
+        populateTable( partition, "1", "null", Sets.newHashSet( ValueType.BOOLEAN, ValueType.TRUE_ONLY ), "dv.value = 'true'", approvalClause );
 
-        populateTable( table, "0", "null", Sets.newHashSet( ValueType.BOOLEAN ), "dv.value = 'false'", approvalClause );
+        populateTable( partition, "0", "null", Sets.newHashSet( ValueType.BOOLEAN ), "dv.value = 'false'", approvalClause );
 
-        populateTable( table, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null, approvalClause );
+        populateTable( partition, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null, approvalClause );
     }
 
     /**
@@ -179,18 +177,18 @@ public class JdbcAnalyticsTableManager
      * @param valueTypes          data element value types to include data for.
      * @param whereClause         where clause to constrain data query.
      */
-    private void populateTable( AnalyticsTable table, String valueExpression,
+    private void populateTable( AnalyticsTablePartition partition, String valueExpression,
         String textValueExpression, Set<ValueType> valueTypes, String whereClause, String approvalClause )
     {
-        final String start = DateUtils.getMediumDateString( table.getPeriod().getStartDate() );
-        final String end = DateUtils.getMediumDateString( table.getPeriod().getEndDate() );
-        final String tableName = table.getTempTableName();
+        final String start = DateUtils.getMediumDateString( partition.getPeriod().getStartDate() );
+        final String end = DateUtils.getMediumDateString( partition.getPeriod().getEndDate() );
+        final String tableName = partition.getTempTableName();
         final String valTypes = TextUtils.getQuotedCommaDelimitedString( ObjectUtils.asStringList( valueTypes ) );
         final boolean respectStartEndDates = (Boolean) systemSettingManager.getSystemSetting( SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT );
 
-        String sql = "insert into " + table.getTempTableName() + " (";
+        String sql = "insert into " + partition.getTempTableName() + " (";
 
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
+        List<AnalyticsTableColumn> columns = getDimensionColumns( partition );
 
         validateDimensionColumns( columns );
         
@@ -257,9 +255,9 @@ public class JdbcAnalyticsTableManager
      * data element resource table which will indicate level 0 (highest) if approval
      * is not required. Then looks for highest level in dataapproval table.
      */
-    private String getApprovalJoinClause( AnalyticsTable table )
+    private String getApprovalJoinClause( AnalyticsTablePartition partition )
     {
-        if ( isApprovalEnabled( table ) )
+        if ( isApprovalEnabled( partition ) )
         {
             String sql =
                 "left join _dataapprovalminlevel da " +
@@ -458,7 +456,7 @@ public class JdbcAnalyticsTableManager
      * Indicates whether the system should ignore data which has not been approved
      * in analytics tables.
      */
-    private boolean isApprovalEnabled( AnalyticsTable table )
+    private boolean isApprovalEnabled( AnalyticsTablePartition partition )
     {
         boolean setting = systemSettingManager.hideUnapprovedDataInAnalytics();
         boolean levels = !dataApprovalLevelService.getAllDataApprovalLevels().isEmpty();
@@ -466,9 +464,9 @@ public class JdbcAnalyticsTableManager
         
         log.debug( String.format( "Hide approval setting: %b, approval levels exists: %b, max years threshold: %d", setting, levels, maxYears ) );
         
-        if ( table != null )
+        if ( partition != null )
         {
-            boolean periodOverMaxYears = AnalyticsUtils.periodIsOutsideApprovalMaxYears( table.getPeriod(), maxYears );
+            boolean periodOverMaxYears = AnalyticsUtils.periodIsOutsideApprovalMaxYears( partition.getPeriod(), maxYears );
             
             return setting && levels && !periodOverMaxYears;
         }

@@ -60,7 +60,7 @@ public class JdbcOrgUnitTargetTableManager
     @Transactional
     public AnalyticsTable getAnalyticsTable( Date earliest )
     {
-        return new AnalyticsTable( getTableName(), getDimensionColumns( null ) );
+        return new AnalyticsTable( getTableName(), getDimensionColumns( null ) ).addPartitionTable();
     }
 
     @Override

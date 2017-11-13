@@ -55,8 +55,7 @@ public class AnalyticsTable
     // Constructors
     // -------------------------------------------------------------------------
 
-    @Deprecated
-    public AnalyticsTable()
+    protected AnalyticsTable()
     {
         this.created = new Date();
     }
@@ -79,17 +78,28 @@ public class AnalyticsTable
     // -------------------------------------------------------------------------
 
     /**
-     * Adds a analytics partition table to this master table.
+     * Adds an analytics partition table to this master table.
      * 
      * @param period the partition period, must be of yearly period type.
-     * @return an analytics table.
+     * @return this analytics table.
      */
     public AnalyticsTable addPartitionTable( Integer year )
     {
         Assert.notNull( year, "Year must be specified" );
         
-        AnalyticsTablePartition partitionTable = new AnalyticsTablePartition( this, year, false ); //TODO approval
-        
+        AnalyticsTablePartition partitionTable = new AnalyticsTablePartition( this, year, false ); //TODO approval        
+        this.partitionTables.add( partitionTable );
+        return this;
+    }
+    
+    /**
+     * Adds an analytics partition table to this master table without a year.
+     * 
+     * @return this analytics table.
+     */
+    public AnalyticsTable addPartitionTable()
+    {
+        AnalyticsTablePartition partitionTable = new AnalyticsTablePartition( this, null, false ); //TODO approval        
         this.partitionTables.add( partitionTable );
         return this;
     }
