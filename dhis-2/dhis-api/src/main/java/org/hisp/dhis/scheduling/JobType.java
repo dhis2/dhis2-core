@@ -7,7 +7,7 @@ import java.util.Optional;
 
 /**
  * Enum describing the different jobs in the system.
- * Each job has a name, class and an identifier describing the minimum interval time between executions.
+ * Each job has a name, class and possibly a map containing relative endpoints for possible parameters.
  *
  * @author Henning Håkonsen
  */

@@ -51,12 +51,32 @@ import java.util.concurrent.ScheduledFuture;
  */
 public interface SchedulingManager
 {
+    /**
+     * Check if this jobconfiguration is currently running
+     *
+     * @param jobConfiguration the job to check
+     * @return true/false
+     */
     boolean isJobConfigurationRunning( JobConfiguration jobConfiguration );
 
+    /**
+     * Set up default behavior for a started job.
+     * @param jobConfiguration the job which started
+     */
     void jobConfigurationStarted( JobConfiguration jobConfiguration );
 
+    /**
+     * Set up default behavior for a finished job.
+     * @param jobConfiguration the job which started
+     */
     void jobConfigurationFinished( JobConfiguration jobConfiguration );
 
+    /**
+     * Get a job based on the job type.
+     *
+     * @param jobType the job type for the job we want to collect
+     * @return the job
+     */
     Job getJob( JobType jobType );
 
     /**
