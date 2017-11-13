@@ -1,5 +1,7 @@
 package org.hisp.dhis.analytics;
 
+import java.util.Date;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -39,12 +41,18 @@ public class AnalyticsTablePartition
     
     private Integer year;
     
+    private Date startDate;
+    
+    private Date endDate;
+    
     private boolean dataApproval;
 
-    public AnalyticsTablePartition( AnalyticsTable masterTable, Integer year, boolean dataApproval )
+    public AnalyticsTablePartition( AnalyticsTable masterTable, Integer year, Date startDate, Date endDate, boolean dataApproval )
     {
         this.masterTable = masterTable;
         this.year = year;
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.dataApproval = dataApproval;
     }
 
@@ -86,9 +94,24 @@ public class AnalyticsTablePartition
         return name;
     }
     
+    public AnalyticsTable getMasterTable()
+    {
+        return masterTable;
+    }
+    
     public Integer getYear()
     {
         return year;
+    }
+
+    public Date getStartDate()
+    {
+        return startDate;
+    }
+
+    public Date getEndDate()
+    {
+        return endDate;
     }
 
     public boolean isDataApproval()

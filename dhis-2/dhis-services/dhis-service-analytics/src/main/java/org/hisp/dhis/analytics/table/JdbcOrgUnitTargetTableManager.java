@@ -38,6 +38,7 @@ import java.util.concurrent.Future;
 
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
@@ -88,13 +89,13 @@ public class JdbcOrgUnitTargetTableManager
     }
 
     @Override
-    protected void populateTable( AnalyticsTable table )
+    protected void populateTable( AnalyticsTablePartition partition )
     {
-        final String tableName = table.getTempTableName();
+        final String tableName = partition.getTempTableName();
 
-        String sql = "insert into " + table.getTempTableName() + " (";
+        String sql = "insert into " + partition.getTempTableName() + " (";
 
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
+        List<AnalyticsTableColumn> columns = getDimensionColumns( partition );
         
         validateDimensionColumns( columns );
         

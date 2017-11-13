@@ -180,8 +180,8 @@ public class JdbcAnalyticsTableManager
     private void populateTable( AnalyticsTablePartition partition, String valueExpression,
         String textValueExpression, Set<ValueType> valueTypes, String whereClause, String approvalClause )
     {
-        final String start = DateUtils.getMediumDateString( partition.getPeriod().getStartDate() );
-        final String end = DateUtils.getMediumDateString( partition.getPeriod().getEndDate() );
+        final String start = DateUtils.getMediumDateString( partition.getStartDate() );
+        final String end = DateUtils.getMediumDateString( partition.getEndDate() );
         final String tableName = partition.getTempTableName();
         final String valTypes = TextUtils.getQuotedCommaDelimitedString( ObjectUtils.asStringList( valueTypes ) );
         final boolean respectStartEndDates = (Boolean) systemSettingManager.getSystemSetting( SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT );

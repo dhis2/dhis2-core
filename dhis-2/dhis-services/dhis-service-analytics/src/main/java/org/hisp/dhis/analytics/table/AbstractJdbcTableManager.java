@@ -48,6 +48,7 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SettingKey;
@@ -389,7 +390,9 @@ public abstract class AbstractJdbcTableManager
         
         for ( Integer year : dataYears )
         {
-            table.addPartitionTable( PartitionUtils.getYear( calendar, year ) );
+            Period period = PartitionUtils.getPeriod( calendar, year );
+            
+            table.addPartitionTable( year, period.getStartDate(), period.getEndDate() );
         }
 
         return table;

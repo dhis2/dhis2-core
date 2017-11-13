@@ -32,6 +32,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
@@ -107,16 +108,17 @@ public class JdbcEventAnalyticsTableManager
     }
     
     @Override
-    protected void populateTable( AnalyticsTable table )
+    protected void populateTable( AnalyticsTablePartition partition )
     {
-        final String start = DateUtils.getMediumDateString( table.getPeriod().getStartDate() );
-        final String end = DateUtils.getMediumDateString( table.getPeriod().getEndDate() );
-        final String tableName = table.getTempTableName();
+        final Program program = partition.getMasterTable().getProgram();
+        final String start = DateUtils.getMediumDateString( partition.getStartDate() );
+        final String end = DateUtils.getMediumDateString( partition.getEndDate() );
+        final String tableName = partition.getTempTableName();
         final String psiExecutionDate = statementBuilder.getCastToDate( "psi.executiondate" );
 
-        String sql = "insert into " + table.getTempTableName() + " (";
+        String sql = "insert into " + partition.getTempTableName() + " (";
 
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
+        List<AnalyticsTableColumn> columns = getDimensionColumns( partition );
         
         validateDimensionColumns( columns );
 
@@ -147,7 +149,7 @@ public class JdbcEventAnalyticsTableManager
             "left join _dateperiodstructure dps on " + psiExecutionDate + "=dps.dateperiod " +
             "where psi.executiondate >= '" + start + "' " + 
             "and psi.executiondate <= '" + end + "' " +
-            "and pr.programid=" + table.getProgram().getId() + " " + 
+            "and pr.programid=" + program.getId() + " " + 
             "and psi.organisationunitid is not null " +
             "and psi.executiondate is not null " +
             "and psi.deleted is false ";

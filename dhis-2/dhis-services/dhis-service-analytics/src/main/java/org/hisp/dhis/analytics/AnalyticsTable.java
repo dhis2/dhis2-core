@@ -80,14 +80,16 @@ public class AnalyticsTable
     /**
      * Adds an analytics partition table to this master table.
      * 
-     * @param period the partition period, must be of yearly period type.
+     * @param year the year.s
+     * @param startDate the start date.
+     * @param endDate the end date.
      * @return this analytics table.
      */
-    public AnalyticsTable addPartitionTable( Integer year )
+    public AnalyticsTable addPartitionTable( Integer year, Date startDate, Date endDate )
     {
         Assert.notNull( year, "Year must be specified" );
         
-        AnalyticsTablePartition partitionTable = new AnalyticsTablePartition( this, year, false ); //TODO approval        
+        AnalyticsTablePartition partitionTable = new AnalyticsTablePartition( this, year, startDate, endDate, false ); //TODO approval        
         this.partitionTables.add( partitionTable );
         return this;
     }
@@ -99,7 +101,7 @@ public class AnalyticsTable
      */
     public AnalyticsTable addPartitionTable()
     {
-        AnalyticsTablePartition partitionTable = new AnalyticsTablePartition( this, null, false ); //TODO approval        
+        AnalyticsTablePartition partitionTable = new AnalyticsTablePartition( this, null, null, null, false ); //TODO approval        
         this.partitionTables.add( partitionTable );
         return this;
     }

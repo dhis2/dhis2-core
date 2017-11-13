@@ -100,12 +100,13 @@ public class JdbcEnrollmentAnalyticsTableManager
     @Override
     protected void populateTable( AnalyticsTablePartition partition )
     {
-        final String tableName = table.getTempTableName();
+        final Program program = partition.getMasterTable().getProgram();
+        final String tableName = partition.getTempTableName();
         final String piEnrollmentDate = statementBuilder.getCastToDate( "pi.enrollmentdate" );
 
-        String sql = "insert into " + table.getTempTableName() + " (";
+        String sql = "insert into " + partition.getTempTableName() + " (";
 
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
+        List<AnalyticsTableColumn> columns = getDimensionColumns( partition );
         
         validateDimensionColumns( columns );
 
@@ -130,7 +131,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             "left join _orgunitstructure ous on pi.organisationunitid=ous.organisationunitid " +
             "left join _organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid " +
             "left join _dateperiodstructure dps on " + piEnrollmentDate + "=dps.dateperiod " +
-            "where pr.programid=" + table.getProgram().getId() + " " + 
+            "where pr.programid=" + program.getId() + " " + 
             "and pi.organisationunitid is not null " +
             "and pi.incidentdate is not null " +
             "and pi.deleted is false ";
