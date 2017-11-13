@@ -1,4 +1,4 @@
-package org.hisp.dhis.notification;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,52 +28,55 @@ package org.hisp.dhis.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.message.MessageConversationPriority;
-import org.hisp.dhis.message.MessageConversationStatus;
+import java.util.HashMap;
 
 /**
- * @author Halvdan Hoem Grelland
+ * @author Jim Grace
  */
-public class NotificationMessage
+public class Map4<R, S, T, U, V>
+    extends HashMap<R, MapMapMap<S, T, U, V>>
 {
-    private String subject = "";
-    private String message = "";
-    private MessageConversationPriority priority = MessageConversationPriority.NONE;
-    private MessageConversationStatus status = MessageConversationStatus.NONE;
+    private static final long serialVersionUID = -2806972962597162013L;
 
-    public NotificationMessage( String subject, String message )
+    public MapMapMap<S, T, U, V> putEntry( R key1, S key2, T key3, U key4, V value )
     {
-        this.subject = subject;
-        this.message = message;
+        MapMapMap<S, T, U, V> map = this.get( key1 );
+        map = map == null ? new MapMapMap<>() : map;
+        map.putEntry( key2, key3, key4, value );
+        return this.put( key1, map );
     }
 
-    public String getSubject()
+    public void putEntries( R key1, MapMapMap<S, T, U, V> m )
     {
-        return subject;
+        MapMapMap<S, T, U, V> map = this.get( key1 );
+        map = map == null ? new MapMapMap<>() : map;
+        map.putAll( m );
+        this.put( key1, map );
     }
 
-    public String getMessage()
+    public void putMap( Map4<R, S, T, U, V> map )
     {
-        return message;
+        for ( Entry<R, MapMapMap<S, T, U, V>> entry : map.entrySet() )
+        {
+            this.putEntries( entry.getKey(), entry.getValue() );
+        }
     }
 
-    public MessageConversationPriority getPriority()
+    public V getValue( R key1, S key2, T key3, U key4 )
     {
-        return priority;
+        return this.get( key1 ) == null ? null : this.get( key1 ).getValue( key2, key3, key4 );
     }
 
-    public void setPriority( MessageConversationPriority priority )
+    @SafeVarargs
+    public static <R, S, T, U, V> Map4<R, S, T, U, V> asMap4( final SimpleEntry<R, MapMapMap<S, T, U, V>>... entries )
     {
-        this.priority = priority;
-    }
+        Map4<R, S, T, U, V> map = new Map4<>();
 
-    public MessageConversationStatus getStatus()
-    {
-        return status;
-    }
+        for ( SimpleEntry<R, MapMapMap<S, T, U, V>> entry : entries )
+        {
+            map.put( entry.getKey(), entry.getValue() );
+        }
 
-    public void setStatus( MessageConversationStatus status )
-    {
-        this.status = status;
+        return map;
     }
 }
