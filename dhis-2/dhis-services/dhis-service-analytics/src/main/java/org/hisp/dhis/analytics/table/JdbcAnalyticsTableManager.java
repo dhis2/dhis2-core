@@ -136,32 +136,16 @@ public class JdbcAnalyticsTableManager
     @Override
     public void createTable( AnalyticsTable table )
     {
-        final String tableName = table.getTempTableName();
-
         final String dbl = statementBuilder.getDoubleColumnType();
-
-        final String sqlDrop = "drop table " + tableName;
-
-        executeSilently( sqlDrop );
-
-        String sqlCreate = "create table " + tableName + " (";
 
         List<AnalyticsTableColumn> columns = getDimensionColumns( table );
 
-        validateDimensionColumns( columns );
-
-        for ( AnalyticsTableColumn col : columns )
-        {
-            sqlCreate += col.getName() + " " + col.getDataType() + ",";
-        }
-
-        sqlCreate += "daysxvalue " + dbl + ", daysno integer not null, value " + dbl + ", textvalue text)";
-
-        log.info( String.format( "Creating table: %s, columns: %d", tableName, columns.size() ) );
-
-        log.debug( "Create SQL: " + sqlCreate );
-
-        jdbcTemplate.execute( sqlCreate );
+        columns.add( new AnalyticsTableColumn( quote( "daysxvalue" ), dbl, "daysxvalue" ) );
+        columns.add( new AnalyticsTableColumn( quote( "daysno" ), "integer not null", "daysno" ) );
+        columns.add( new AnalyticsTableColumn( quote( "value" ), dbl, "value" ) );
+        columns.add( new AnalyticsTableColumn( quote( "textvalue" ), "text", "textvalue" ) );
+        
+        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns, table.getPeriod(), table.getProgram() ) );
     }
 
     @Override
