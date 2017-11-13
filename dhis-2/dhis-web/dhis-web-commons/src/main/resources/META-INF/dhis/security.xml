@@ -201,6 +201,19 @@
 
   <!-- Security : AccessDecision/Voter -->
 
+  <bean id="accessDecisionManager" class="org.hisp.dhis.security.vote.LogicalOrAccessDecisionManager">
+    <property name="accessDecisionManagers">
+      <list>
+        <ref bean="adminAccessDecisionVoting" />
+        <ref bean="regularAccessDecisionVoting" />
+        <ref bean="webAccessDecisionVoting" />
+        <ref bean="externalAccessDecisionVoting" />
+        <ref bean="authenticatedVoting" />
+        <ref bean="regularAccessDecisionVoting" />
+      </list>
+    </property>
+  </bean>
+
   <bean id="authenticatedVoter" class="org.springframework.security.access.vote.AuthenticatedVoter" />
 
   <bean id="authenticatedVoting" class="org.springframework.security.access.vote.UnanimousBased">
@@ -225,17 +238,13 @@
 
   <bean id="externalAccessVoter" class="org.hisp.dhis.security.vote.ExternalAccessVoter" />
 
-  <bean id="accessDecisionManager" class="org.hisp.dhis.security.vote.LogicalOrAccessDecisionManager">
-    <property name="accessDecisionManagers">
+  <bean id="regularAccessDecisionVoting" class="org.springframework.security.access.vote.UnanimousBased">
+    <constructor-arg name="decisionVoters">
       <list>
-        <ref bean="authenticatedVoting" />
-        <ref bean="adminAccessDecisionVoting" />
-        <ref bean="webAccessDecisionVoting" />
-        <ref bean="externalAccessDecisionVoting" />
-        <ref bean="actionAccessVoting" />
-        <ref bean="moduleAccessVoting" />
+        <ref bean="actionAccessVoter" />
+        <ref bean="moduleAccessVoter" />
       </list>
-    </property>
+    </constructor-arg>
   </bean>
 
   <bean id="adminAccessDecisionVoting" class="org.springframework.security.access.vote.UnanimousBased">
@@ -266,23 +275,6 @@
     </constructor-arg>
   </bean>
 
-
-  <bean id="actionAccessVoting" class="org.springframework.security.access.vote.UnanimousBased">
-    <constructor-arg name="decisionVoters">
-      <list>
-        <ref bean="actionAccessVoter" />
-      </list>
-    </constructor-arg>
-  </bean>
-
-  <bean id="moduleAccessVoting" class="org.springframework.security.access.vote.UnanimousBased">
-    <constructor-arg name="decisionVoters">
-      <list>
-        <ref bean="moduleAccessVoter" />
-      </list>
-    </constructor-arg>
-  </bean>
-
   <bean id="actionAccessVoter" class="org.hisp.dhis.security.vote.ActionAccessVoter">
     <property name="attributePrefix" value="F_" />
     <property name="requiredAuthoritiesKey" value="requiredAuthorities" />
@@ -307,6 +299,7 @@
         <value>dhis-web-apps</value>
         <value>dhis-web-api-mobile</value>
         <value>dhis-web-portal</value>
+        <value>dhis-web-uaa</value>
       </set>
     </property>
   </bean>
