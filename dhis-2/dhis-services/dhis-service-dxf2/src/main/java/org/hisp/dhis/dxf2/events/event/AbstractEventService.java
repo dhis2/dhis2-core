@@ -88,7 +88,11 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.Order;
+import org.hisp.dhis.query.Query;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
@@ -197,6 +201,12 @@ public abstract class AbstractEventService
     @Autowired
     protected FileResourceService fileResourceService;
 
+    @Autowired
+    protected SchemaService schemaService;
+
+    @Autowired
+    protected QueryService queryService;
+
     protected static final int FLUSH_FREQUENCY = 500;
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -219,6 +229,8 @@ public abstract class AbstractEventService
 
     private CachingMap<String, DataElementCategoryOptionCombo> attributeOptionComboCache = new CachingMap<>();
 
+    private CachingMap<String, List<ProgramInstance>> activeProgramInstanceCache = new CachingMap<>();
+
     private Set<Program> accessibleProgramsCache = new HashSet<>();
 
     private Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = new HashMap<>();
@@ -234,23 +246,44 @@ public abstract class AbstractEventService
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions )
     {
         ImportSummaries importSummaries = new ImportSummaries();
-        int counter = 0;
-
         User user = currentUserService.getCurrentUser();
 
-        for ( Event event : events )
-        {
-            importSummaries.addImportSummary( addEvent( event, user, importOptions ) );
+        List<List<Event>> partitions = Lists.partition( events, FLUSH_FREQUENCY );
 
-            if ( counter % FLUSH_FREQUENCY == 0 )
+        for ( List<Event> _events : partitions )
+        {
+            // prepare caches
+            Collection<String> orgUnits = _events.stream().map( Event::getOrgUnit ).collect( Collectors.toSet() );
+
+            if ( !orgUnits.isEmpty() )
             {
-                clearSession();
+                Query query = Query.from( schemaService.getDynamicSchema( OrganisationUnit.class ) );
+                query.setUser( user );
+                query.add( Restrictions.in( "id", orgUnits ) );
+                queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
             }
 
-            counter++;
+            Collection<String> dataElements = new HashSet<>();
+            events.forEach( e -> e.getDataValues().forEach( v -> dataElements.add( v.getDataElement() ) ) );
+
+            if ( !dataElements.isEmpty() )
+            {
+                Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
+                query.setUser( user );
+                query.add( Restrictions.in( "id", dataElements ) );
+                queryService.query( query ).forEach( de -> dataElementCache.put( de.getUid(), (DataElement) de ) );
+            }
+
+            for ( Event event : _events )
+            {
+                importSummaries.addImportSummary( addEvent( event, user, importOptions ) );
+            }
+
+            clearSession();
         }
 
         return importSummaries;
@@ -391,10 +424,10 @@ public abstract class AbstractEventService
         }
         else
         {
-            List<ProgramInstance> programInstances = new ArrayList<>(
-                programInstanceService.getProgramInstances( program, ProgramStatus.ACTIVE ) );
+            String cacheKey = program.getUid() + "-" + ProgramStatus.ACTIVE;
+            List<ProgramInstance> programInstances = getActiveProgramInstances( cacheKey, program );
 
-            if ( programInstances.isEmpty() )
+            if ( programInstances == null || programInstances.isEmpty() )
             {
                 // Create PI if it doesn't exist (should only be one)
                 ProgramInstance pi = new ProgramInstance();
@@ -926,7 +959,7 @@ public abstract class AbstractEventService
         programStageInstance.setDeleted( event.isDeleted() );
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
-        updateTrackedEntityInstance( programStageInstance );
+        updateTrackedEntityInstance( programStageInstance, user );
 
         saveTrackedEntityComment( programStageInstance, event, storedBy );
 
@@ -1338,7 +1371,7 @@ public abstract class AbstractEventService
                     importOptions );
             }
 
-            updateTrackedEntityInstance( programStageInstance );
+            updateTrackedEntityInstance( programStageInstance, user );
             saveTrackedEntityComment( programStageInstance, event, storedBy );
 
             importSummary.setReference( programStageInstance.getUid() );
@@ -1619,6 +1652,14 @@ public abstract class AbstractEventService
         return categoryOptionComboCache.get( key, () -> categoryService.getDataElementCategoryOptionCombo( categoryCombo, categoryOptions ) );
     }
 
+    private List<ProgramInstance> getActiveProgramInstances( String key, Program program )
+    {
+        return activeProgramInstanceCache.get( key, () -> {
+            List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( program, ProgramStatus.ACTIVE );
+            return programInstances.isEmpty() ? null : programInstances;
+        } );
+    }
+
     @Override
     public void validate( EventSearchParams params )
         throws IllegalQueryException
@@ -1771,6 +1812,7 @@ public abstract class AbstractEventService
         categoryOptionCache.clear();
         categoryOptionCache.clear();
         attributeOptionComboCache.clear();
+        activeProgramInstanceCache.clear();
         accessibleProgramsCache.clear();
 
         dbmsManager.clearSession();
@@ -1795,12 +1837,12 @@ public abstract class AbstractEventService
         }
     }
 
-    private void updateTrackedEntityInstance( ProgramStageInstance programStageInstance )
+    private void updateTrackedEntityInstance( ProgramStageInstance programStageInstance, User user )
     {
-        updateTrackedEntityInstance( Lists.newArrayList( programStageInstance ) );
+        updateTrackedEntityInstance( Lists.newArrayList( programStageInstance ), user );
     }
 
-    private void updateTrackedEntityInstance( List<ProgramStageInstance> programStageInstances )
+    private void updateTrackedEntityInstance( List<ProgramStageInstance> programStageInstances, User user )
     {
         Set<ProgramInstance> programInstances = new HashSet<>();
         Set<TrackedEntityInstance> trackedEntityInstances = new HashSet<>();
@@ -1818,8 +1860,8 @@ public abstract class AbstractEventService
             }
         }
 
-        programInstances.forEach( manager::update );
-        trackedEntityInstances.forEach( manager::update );
+        programInstances.forEach( pi -> manager.update( pi, user ) );
+        trackedEntityInstances.forEach( tei -> manager.update( tei, user ) );
     }
 
     private DataElementCategoryOptionCombo getAttributeOptionCombo( DataElementCategoryCombo categoryCombo, String cp,
