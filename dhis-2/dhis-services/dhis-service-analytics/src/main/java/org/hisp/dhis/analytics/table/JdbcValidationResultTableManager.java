@@ -190,9 +190,7 @@ public class JdbcValidationResultTableManager
             columns.add( new AnalyticsTableColumn( column, "character varying(15)", "ps." + column ) );
         }
 
-        AnalyticsTableColumn vr = new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "vr.uid" );
-
-        columns.add( vr );
+        columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "vr.uid" ) );
 
         return filterDimensionColumns( columns );
     }

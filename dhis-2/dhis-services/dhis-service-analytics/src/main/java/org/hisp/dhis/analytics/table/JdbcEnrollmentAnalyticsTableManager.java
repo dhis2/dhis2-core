@@ -212,9 +212,9 @@ public class JdbcEnrollmentAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql, skipIndex ) );
         }
         
-        AnalyticsTableColumn pi = new AnalyticsTableColumn( quote( "pi" ), "character(11) not null", "pi.uid" );
-        AnalyticsTableColumn erd = new AnalyticsTableColumn( quote( "enrollmentdate" ), "timestamp", "pi.enrollmentdate" );
-        AnalyticsTableColumn id = new AnalyticsTableColumn( quote( "incidentdate" ), "timestamp", "pi.incidentdate" );
+        columns.add( new AnalyticsTableColumn( quote( "pi" ), "character(11) not null", "pi.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "enrollmentdate" ), "timestamp", "pi.enrollmentdate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "incidentdate" ), "timestamp", "pi.incidentdate" ) );
         
         final String executionDateSql = "(select psi.executionDate from programstageinstance psi " +
             "where psi.programinstanceid=pi.programinstanceid " + 
@@ -222,7 +222,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             "and psi.deleted is false " +
             "order by psi.executiondate desc " +
             "limit 1) as " + quote( "executiondate" );        
-        AnalyticsTableColumn ed = new AnalyticsTableColumn( quote( "executiondate" ), "timestamp", executionDateSql );
+        columns.add( new AnalyticsTableColumn( quote( "executiondate" ), "timestamp", executionDateSql ) );
         
         final String dueDateSql = "(select psi.duedate from programstageinstance psi " + 
             "where psi.programinstanceid = pi.programinstanceid " + 
@@ -230,17 +230,15 @@ public class JdbcEnrollmentAnalyticsTableManager
             "and psi.deleted is false " +
             "order by psi.duedate desc " +
             "limit 1) as " + quote( "duedate" );        
-        AnalyticsTableColumn dd = new AnalyticsTableColumn( quote( "duedate" ), "timestamp", dueDateSql );
+        columns.add( new AnalyticsTableColumn( quote( "duedate" ), "timestamp", dueDateSql ) );
         
-        AnalyticsTableColumn cd = new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "case status when 'COMPLETED' then enddate end" );
-        AnalyticsTableColumn es = new AnalyticsTableColumn( quote( "enrollmentstatus" ), "character(50)", "pi.status" );
-        AnalyticsTableColumn longitude = new AnalyticsTableColumn( quote( "longitude" ), dbl, "pi.longitude" );
-        AnalyticsTableColumn latitude = new AnalyticsTableColumn( quote( "latitude" ), dbl, "pi.latitude" );
-        AnalyticsTableColumn ou = new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" );
-        AnalyticsTableColumn oun = new AnalyticsTableColumn( quote( "ouname" ), "character varying(230) not null", "ou.name" );
-        AnalyticsTableColumn ouc = new AnalyticsTableColumn( quote( "oucode" ), "character varying(50)", "ou.code" );
-
-        columns.addAll( Lists.newArrayList( pi, erd, id, ed, es, dd, cd, longitude, latitude, ou, oun, ouc ) );
+        columns.add( new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "case status when 'COMPLETED' then enddate end" ) );
+        columns.add( new AnalyticsTableColumn( quote( "enrollmentstatus" ), "character(50)", "pi.status" ) );
+        columns.add( new AnalyticsTableColumn( quote( "longitude" ), dbl, "pi.longitude" ) );
+        columns.add( new AnalyticsTableColumn( quote( "latitude" ), dbl, "pi.latitude" ) );
+        columns.add( new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "ouname" ), "character varying(230) not null", "ou.name" ) );
+        columns.add( new AnalyticsTableColumn( quote( "oucode" ), "character varying(50)", "ou.code" ) );
 
         if ( databaseInfo.isSpatialSupport() )
         {

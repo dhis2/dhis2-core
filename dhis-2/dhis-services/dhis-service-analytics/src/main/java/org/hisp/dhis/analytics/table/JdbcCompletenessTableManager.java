@@ -186,11 +186,8 @@ public class JdbcCompletenessTableManager
         String timelyDateDiff = statementBuilder.getDaysBetweenDates( "pe.enddate", statementBuilder.getCastToDate( "cdr.date" ) );        
         String timelyAlias = "(select (" + timelyDateDiff + ") <= ds.timelydays) as timely";
         
-        AnalyticsTableColumn tm = new AnalyticsTableColumn( quote( "timely" ), "boolean", timelyAlias );
-
-        AnalyticsTableColumn ds = new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "ds.uid" );
-        
-        columns.addAll( Lists.newArrayList( ds, tm ) );
+        columns.add( new AnalyticsTableColumn( quote( "timely" ), "boolean", timelyAlias ) );
+        columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "ds.uid" ) );
         
         return filterDimensionColumns( columns );
     }

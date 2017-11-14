@@ -132,9 +132,7 @@ public class JdbcOrgUnitTargetTableManager
             columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column, level.getCreated() ) );
         }
 
-        AnalyticsTableColumn ds = new AnalyticsTableColumn( quote( "oug" ), "character(11) not null", "oug.uid" );
-        
-        columns.add( ds );
+        columns.add( new AnalyticsTableColumn( quote( "oug" ), "character(11) not null", "oug.uid" ) );
         
         return filterDimensionColumns( columns );
     }

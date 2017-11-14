@@ -162,15 +162,13 @@ public class JdbcCompletenessTargetTableManager
             columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "acs." + quote( category.getUid() ), category.getCreated() ) );
         }
 
-        AnalyticsTableColumn ouOpening = new AnalyticsTableColumn( quote( "ouopeningdate"), "date", "ou.openingdate" );
-        AnalyticsTableColumn ouClosed = new AnalyticsTableColumn( quote( "oucloseddate"), "date", "ou.closeddate" );
-        AnalyticsTableColumn coStart = new AnalyticsTableColumn( quote( "costartdate" ), "date", "doc.costartdate" );
-        AnalyticsTableColumn coEnd = new AnalyticsTableColumn( quote( "coenddate" ), "date", "doc.coenddate" );
-        AnalyticsTableColumn ds = new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "ds.uid" );
-        AnalyticsTableColumn ao = new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" );
-        
-        columns.addAll( Lists.newArrayList( ouOpening, ouClosed, coStart, coEnd, ds, ao ) );
-        
+        columns.add( new AnalyticsTableColumn( quote( "ouopeningdate"), "date", "ou.openingdate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "oucloseddate"), "date", "ou.closeddate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "costartdate" ), "date", "doc.costartdate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "coenddate" ), "date", "doc.coenddate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "ds.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" ) );
+                
         return filterDimensionColumns( columns );
     }
     
