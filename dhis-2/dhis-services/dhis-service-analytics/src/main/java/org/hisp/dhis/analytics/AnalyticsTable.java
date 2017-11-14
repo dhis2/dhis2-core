@@ -41,15 +41,15 @@ import org.springframework.util.Assert;
  */
 public class AnalyticsTable
 {
-    protected String baseName;
+    private String baseName;
 
-    protected List<AnalyticsTableColumn> dimensionColumns;
+    private List<AnalyticsTableColumn> dimensionColumns;
     
-    protected List<AnalyticsTableColumn> valueColumns;
+    private List<AnalyticsTableColumn> valueColumns;
 
-    protected Program program;
+    private Program program;
     
-    protected Date created;
+    private Date created;
     
     private List<AnalyticsTablePartition> partitionTables = new UniqueArrayList<>();
 
