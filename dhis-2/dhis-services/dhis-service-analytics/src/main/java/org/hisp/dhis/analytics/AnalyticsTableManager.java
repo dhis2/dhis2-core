@@ -114,13 +114,6 @@ public interface AnalyticsTableManager
     Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> tablePartitions );
     
     /**
-     * Performs analyze operations on analytics tables.
-     * 
-     * @param table the {@link AnalyticsTable}.
-     */
-    void analyzeTable( AnalyticsTable table );
-
-    /**
      * Drops the given table.
      * 
      * @param tableName the table name.
@@ -128,7 +121,7 @@ public interface AnalyticsTableManager
     void dropTable( String tableName );
     
     /**
-     * Performs an analyze operation on the given table.
+     * Performs an analyze operation on the given table name.
      * 
      * @param tableName the table name.
      */

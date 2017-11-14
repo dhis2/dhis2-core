@@ -125,6 +125,11 @@ public class AnalyticsTable
     {
         return program != null;
     }
+    
+    public boolean hasPartitionTables()
+    {
+        return !partitionTables.isEmpty();
+    }
 
     // -------------------------------------------------------------------------
     // Getters

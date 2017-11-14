@@ -102,13 +102,13 @@ public class DefaultAnalyticsTableService
         int processNo = getProcessNo();
         int orgUnitLevelNo = organisationUnitService.getNumberOfOrganisationalLevels();
         
-        String tableName = tableManager.getAnalyticsTableType().getTableName();
+        String tableType = tableManager.getAnalyticsTableType().getTableName();
 
         Date earliest = PartitionUtils.getEarliestDate( params.getLastYears() );
         
         Clock clock = new Clock( log )
             .startClock()
-            .logTime( String.format( "Starting update: %s, processes: %d, org unit levels: %d", tableName, processNo, orgUnitLevelNo ) );
+            .logTime( String.format( "Starting update: %s, processes: %d, org unit levels: %d", tableType, processNo, orgUnitLevelNo ) );
         
         String validState = tableManager.validState();
         
@@ -120,7 +120,7 @@ public class DefaultAnalyticsTableService
         
         final List<AnalyticsTable> tables = tableManager.getAnalyticsTables( earliest );
 
-        clock.logTime( "Table update start: " + tableName + ", earliest: " + earliest + ", parameters: " + params.toString() );
+        clock.logTime( "Table update start: " + tableType + ", earliest: " + earliest + ", parameters: " + params.toString() );
         notifier.notify( taskId, "Performing pre-create table work, org unit levels: " + orgUnitLevelNo );
         
         tableManager.preCreateTables();
@@ -160,7 +160,7 @@ public class DefaultAnalyticsTableService
 
         partitionManager.clearCaches();
 
-        clock.logTime( "Table update done: " + tableName );
+        clock.logTime( "Table update done: " + tableType );
         notifier.notify( taskId, "Table update done" );
     }
 
@@ -276,20 +276,19 @@ public class DefaultAnalyticsTableService
     
     private void createIndexes( List<AnalyticsTable> tables )
     {
+        List<AnalyticsTablePartition> partitions = getTablePartitions( tables );
+        
         ConcurrentLinkedQueue<AnalyticsIndex> indexes = new ConcurrentLinkedQueue<>();
         
-        for ( AnalyticsTable table : tables )
+        for ( AnalyticsTablePartition partition : partitions )
         {
-            List<AnalyticsTableColumn> columns = table.getDimensionColumns();
-            
-            for ( AnalyticsTablePartition partition : table.getPartitionTables() )
-            {   
-                for ( AnalyticsTableColumn col : columns )
+            List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
+               
+            for ( AnalyticsTableColumn col : columns )
+            {
+                if ( !col.isSkipIndex() )
                 {
-                    if ( !col.isSkipIndex() )
-                    {
-                        indexes.add( new AnalyticsIndex( partition.getTempTableName(), col.getName(), col.getIndexType() ) );
-                    }
+                    indexes.add( new AnalyticsIndex( partition.getTempTableName(), col.getName(), col.getIndexType() ) );
                 }
             }
         }
@@ -308,7 +307,9 @@ public class DefaultAnalyticsTableService
     
     private void analyzeTables( List<AnalyticsTable> tables )
     {
-        tables.stream().forEach( table -> tableManager.analyzeTable( table ) );
+        List<AnalyticsTablePartition> partitions = getTablePartitions( tables );
+        
+        partitions.stream().forEach( table -> tableManager.analyzeTable( table.getTempTableName() ) );
     }
 
     private void swapTables( List<AnalyticsTable> tables, boolean skipMasterTable )
@@ -335,10 +336,32 @@ public class DefaultAnalyticsTableService
         return cores > 2 ? ( cores - 1 ) : cores;
     }
     
+    /**
+     * Returns a list of table partitions based on the given analytics tables. For
+     * master tables with no partitions, a fake partition representing the master
+     * table is used.
+     * 
+     * @param tables the list of {@link AnalyticsTable}.
+     * @return a list of {@link AnalyticsTablePartition}.
+     */
     private List<AnalyticsTablePartition> getTablePartitions( List<AnalyticsTable> tables )
     {
         final List<AnalyticsTablePartition> partitions = Lists.newArrayList();
-        tables.stream().forEach( p -> partitions.addAll( p.getPartitionTables() ) );
+        
+        for ( AnalyticsTable table : tables )
+        {
+            if ( table.hasPartitionTables() )
+            {
+                partitions.addAll( table.getPartitionTables() );
+            }
+            else 
+            {
+                // Fake partition representing the master table
+                
+                partitions.add( new AnalyticsTablePartition( table, null, null, null, false ) );
+            }
+        }
+        
         return partitions;
     }
 }

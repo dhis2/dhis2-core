@@ -231,12 +231,6 @@ public abstract class AbstractJdbcTableManager
      */
     protected abstract void populateTable( AnalyticsTablePartition partition );
 
-    @Override
-    public void analyzeTable( AnalyticsTable table )
-    {
-        table.getPartitionTables().forEach( partition -> analyzeTable( partition.getTempTableName() ) );
-    }
-    
     // -------------------------------------------------------------------------
     // Supportive protected methods
     // -------------------------------------------------------------------------
