@@ -207,7 +207,7 @@ public abstract class AbstractEventService
     @Autowired
     protected QueryService queryService;
 
-    protected static final int FLUSH_FREQUENCY = 500;
+    protected static final int FLUSH_FREQUENCY = 100;
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -1810,7 +1810,7 @@ public abstract class AbstractEventService
         programStageCache.clear();
         dataElementCache.clear();
         categoryOptionCache.clear();
-        categoryOptionCache.clear();
+        categoryOptionComboCache.clear();
         attributeOptionComboCache.clear();
         activeProgramInstanceCache.clear();
         accessibleProgramsCache.clear();
