@@ -67,7 +67,7 @@ public class JdbcCompletenessTargetTableManager
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( Date earliest )
     {
-        return Lists.newArrayList( new AnalyticsTable( getTableName(), getDimensionColumns(), getValueColumns() ) ); //TODO data partition?
+        return Lists.newArrayList( new AnalyticsTable( getTableName(), getDimensionColumns(), getValueColumns() ) );
     }
 
     @Override
@@ -85,7 +85,7 @@ public class JdbcCompletenessTargetTableManager
     @Override
     protected void createMasterTable( AnalyticsTable table )
     {
-        createTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns(), getValueColumns() ) );
+        createTempTable( table );
     }
 
     @Override

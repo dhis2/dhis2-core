@@ -82,6 +82,9 @@ public class AnalyticsTableTest
         
         assertEquals( "analytics_event_2014_uida", partitionA.getTableName() );
         assertEquals( "analytics_event_2015_uida", partitionB.getTableName() );
+
+        assertEquals( "analytics_event_temp_2014_uida", partitionA.getTempTableName() );
+        assertEquals( "analytics_event_temp_2015_uida", partitionB.getTempTableName() );
     }
     
     @Test

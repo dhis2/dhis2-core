@@ -66,7 +66,7 @@ public class JdbcValidationResultTableManager
     @Override
     public void createMasterTable( AnalyticsTable table )
     {
-        createTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns(), getValueColumns(), table.getProgram() ) );
+        createTempTable( table );
     }
 
     @Override
@@ -101,16 +101,16 @@ public class JdbcValidationResultTableManager
 
         select +=
             "cdr.created as value " +
-                "from validationresult cdr " +
-                "inner join validationrule vr on vr.validationruleid=cdr.validationruleid " +
-                "inner join _organisationunitgroupsetstructure ougs on cdr.organisationunitid=ougs.organisationunitid " +
-                "left join _orgunitstructure ous on cdr.organisationunitid=ous.organisationunitid " +
-                "inner join _categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid " +
-                "inner join period pe on cdr.periodid=pe.periodid " +
-                "inner join _periodstructure ps on cdr.periodid=ps.periodid " +
-                "where pe.startdate >= '" + start + "' " +
-                "and pe.startdate <= '" + end + "' " +
-                "and cdr.created is not null";
+            "from validationresult cdr " +
+            "inner join validationrule vr on vr.validationruleid=cdr.validationruleid " +
+            "inner join _organisationunitgroupsetstructure ougs on cdr.organisationunitid=ougs.organisationunitid " +
+            "left join _orgunitstructure ous on cdr.organisationunitid=ous.organisationunitid " +
+            "inner join _categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid " +
+            "inner join period pe on cdr.periodid=pe.periodid " +
+            "inner join _periodstructure ps on cdr.periodid=ps.periodid " +
+            "where pe.startdate >= '" + start + "' " +
+            "and pe.startdate <= '" + end + "' " +
+            "and cdr.created is not null";
 
         final String sql = insert + select;
 
@@ -126,8 +126,7 @@ public class JdbcValidationResultTableManager
     @Override
     public String validState()
     {
-        boolean hasData = jdbcTemplate.queryForRowSet( "select validationresultid from validationresult limit 1" )
-            .next();
+        boolean hasData = jdbcTemplate.queryForRowSet( "select validationresultid from validationresult limit 1" ).next();
 
         if ( !hasData )
         {
@@ -141,9 +140,9 @@ public class JdbcValidationResultTableManager
     {
         String sql =
             "select distinct(extract(year from pe.startdate)) " +
-                "from validationresult cdr " +
-                "inner join period pe on cdr.periodid=pe.periodid " +
-                "where pe.startdate is not null ";
+            "from validationresult cdr " +
+            "inner join period pe on cdr.periodid=pe.periodid " +
+            "where pe.startdate is not null ";
 
         if ( earliest != null )
         {

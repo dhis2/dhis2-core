@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.AnalyticsTable;
+import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
@@ -45,6 +47,8 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.joda.time.DateTime;
+
+import com.google.common.collect.Lists;
 
 /**
  * Utilities for analytics table partition handling.
@@ -166,5 +170,34 @@ public class PartitionUtils
         }
 
         return map;
+    }
+
+    /**
+     * Returns a list of table partitions based on the given analytics tables. For
+     * master tables with no partitions, a fake partition representing the master
+     * table is used.
+     * 
+     * @param tables the list of {@link AnalyticsTable}.
+     * @return a list of {@link AnalyticsTablePartition}.
+     */
+    public static List<AnalyticsTablePartition> getTablePartitions( List<AnalyticsTable> tables )
+    {
+        final List<AnalyticsTablePartition> partitions = Lists.newArrayList();
+        
+        for ( AnalyticsTable table : tables )
+        {
+            if ( table.hasPartitionTables() )
+            {
+                partitions.addAll( table.getPartitionTables() );
+            }
+            else
+            {
+                // Fake partition representing the master table
+                
+                partitions.add( new AnalyticsTablePartition( table, null, null, null, false ) );
+            }
+        }
+        
+        return partitions;
     }
 }

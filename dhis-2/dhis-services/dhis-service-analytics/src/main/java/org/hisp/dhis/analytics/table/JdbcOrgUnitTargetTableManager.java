@@ -82,7 +82,7 @@ public class JdbcOrgUnitTargetTableManager
     @Override
     protected void createMasterTable( AnalyticsTable table )
     {
-        createTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns(), getValueColumns(), table.getProgram() ) );
+        createTempTable( table );
     }
 
     @Override

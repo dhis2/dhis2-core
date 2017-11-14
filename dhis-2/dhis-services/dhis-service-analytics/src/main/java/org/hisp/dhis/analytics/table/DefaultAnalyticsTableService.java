@@ -45,8 +45,6 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
@@ -221,7 +219,7 @@ public class DefaultAnalyticsTableService
      */
     private void populateTables( List<AnalyticsTable> tables )
     {
-        List<AnalyticsTablePartition> partitions = getTablePartitions( tables );
+        List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions( tables );
         
         int taskNo = Math.min( getProcessNo(), partitions.size() );
         
@@ -246,7 +244,7 @@ public class DefaultAnalyticsTableService
      */
     private void applyAggregationLevels( List<AnalyticsTable> tables )
     {
-        List<AnalyticsTablePartition> partitions = getTablePartitions( tables );
+        List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions( tables );
         
         int maxLevels = organisationUnitService.getNumberOfOrganisationalLevels();
         
@@ -293,7 +291,7 @@ public class DefaultAnalyticsTableService
      */
     private void vacuumTables( List<AnalyticsTable> tables )
     {
-        List<AnalyticsTablePartition> partitions = getTablePartitions( tables );
+        List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions( tables );
         
         ConcurrentLinkedQueue<AnalyticsTablePartition> partitionQ = new ConcurrentLinkedQueue<>( partitions );
         
@@ -314,7 +312,7 @@ public class DefaultAnalyticsTableService
      */
     private void createIndexes( List<AnalyticsTable> tables )
     {
-        List<AnalyticsTablePartition> partitions = getTablePartitions( tables );
+        List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions( tables );
         
         ConcurrentLinkedQueue<AnalyticsIndex> indexes = new ConcurrentLinkedQueue<>();
         
@@ -350,7 +348,7 @@ public class DefaultAnalyticsTableService
      */
     private void analyzeTables( List<AnalyticsTable> tables )
     {
-        List<AnalyticsTablePartition> partitions = getTablePartitions( tables );
+        List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions( tables );
         
         partitions.stream().forEach( table -> tableManager.analyzeTable( table.getTempTableName() ) );
     }
@@ -383,34 +381,5 @@ public class DefaultAnalyticsTableService
         cores = ( cores == null || cores == 0 ) ? SystemUtils.getCpuCores() : cores;
                         
         return cores > 2 ? ( cores - 1 ) : cores;
-    }
-    
-    /**
-     * Returns a list of table partitions based on the given analytics tables. For
-     * master tables with no partitions, a fake partition representing the master
-     * table is used.
-     * 
-     * @param tables the list of {@link AnalyticsTable}.
-     * @return a list of {@link AnalyticsTablePartition}.
-     */
-    private List<AnalyticsTablePartition> getTablePartitions( List<AnalyticsTable> tables )
-    {
-        final List<AnalyticsTablePartition> partitions = Lists.newArrayList();
-        
-        for ( AnalyticsTable table : tables )
-        {
-            if ( table.hasPartitionTables() )
-            {
-                partitions.addAll( table.getPartitionTables() );
-            }
-            else
-            {
-                // Fake partition representing the master table
-                
-                partitions.add( new AnalyticsTablePartition( table, null, null, null, false ) );
-            }
-        }
-        
-        return partitions;
     }
 }
