@@ -193,16 +193,32 @@ public class DefaultAnalyticsTableService
     // Supportive methods
     // -------------------------------------------------------------------------
     
+    /**
+     * Drops the given temporary analytics tables.
+     * 
+     * @param tables the list of {@link AnalyticsTable}.
+     */
     private void dropTempTables( List<AnalyticsTable> tables )
     {
         tables.forEach( table -> tableManager.dropTempTable( table ) );
     }
     
+    /**
+     * Creates the given analytics tables.
+     * 
+     * @param tables the list of {@link AnalyticsTable}.
+     * @param skipMasterTable whether to skip creating the master analytics table.
+     */
     private void createTables( List<AnalyticsTable> tables, boolean skipMasterTable )
     {
         tables.forEach( table -> tableManager.createTable( table, skipMasterTable ) );
     }
     
+    /**
+     * Populates the given analytics tables.
+     * 
+     * @param tables the list of {@link AnalyticsTable}.
+     */
     private void populateTables( List<AnalyticsTable> tables )
     {
         List<AnalyticsTablePartition> partitions = getTablePartitions( tables );
@@ -223,6 +239,11 @@ public class DefaultAnalyticsTableService
         ConcurrentUtils.waitForCompletion( futures );
     }
     
+    /**
+     * Applies aggregation levels to the given analytics tables.
+     * 
+     * @param tables the list of {@link AnalyticsTable}.
+     */
     private void applyAggregationLevels( List<AnalyticsTable> tables )
     {
         List<AnalyticsTablePartition> partitions = getTablePartitions( tables );
@@ -265,6 +286,11 @@ public class DefaultAnalyticsTableService
         }
     }
 
+    /**
+     * Vacuums the given analytics tables.
+     * 
+     * @param tables the list of {@link AnalyticsTable}.
+     */
     private void vacuumTables( List<AnalyticsTable> tables )
     {
         List<AnalyticsTablePartition> partitions = getTablePartitions( tables );
@@ -281,6 +307,11 @@ public class DefaultAnalyticsTableService
         ConcurrentUtils.waitForCompletion( futures );        
     }
     
+    /**
+     * Creates indexes on the given analytics tables.
+     * 
+     * @param tables the list of {@link AnalyticsTable}.
+     */
     private void createIndexes( List<AnalyticsTable> tables )
     {
         List<AnalyticsTablePartition> partitions = getTablePartitions( tables );
@@ -312,6 +343,11 @@ public class DefaultAnalyticsTableService
         ConcurrentUtils.waitForCompletion( futures );
     }
     
+    /**
+     * Analyzes the given analytics tables.
+     * 
+     * @param tables the list of {@link AnalyticsTable}.
+     */
     private void analyzeTables( List<AnalyticsTable> tables )
     {
         List<AnalyticsTablePartition> partitions = getTablePartitions( tables );
@@ -319,6 +355,12 @@ public class DefaultAnalyticsTableService
         partitions.stream().forEach( table -> tableManager.analyzeTable( table.getTempTableName() ) );
     }
 
+    /**
+     * Swaps the given analytics tables.
+     * 
+     * @param tables the list of {@link AnalyticsTable}.
+     * @param skipMasterTable whether to skip swapping the master analtyics table.
+     */
     private void swapTables( List<AnalyticsTable> tables, boolean skipMasterTable )
     {
         resourceTableService.dropAllSqlViews();

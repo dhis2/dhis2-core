@@ -61,6 +61,8 @@ public abstract class AbstractEventJdbcTableManager
     /**
      * Returns the database column type based on the given value type. For boolean
      * values, 1 means true, 0 means false and null means no value.
+     * 
+     * @param valueType the value type to represent as database column type.
      */
     protected String getColumnType( ValueType valueType )
     {
@@ -93,6 +95,8 @@ public abstract class AbstractEventJdbcTableManager
     /**
      * Returns the select clause, potentially with a cast statement, based on the
      * given value type.
+     * 
+     * @param valueType the value type to represent as database column type.
      */
     protected String getSelectClause( ValueType valueType )
     {

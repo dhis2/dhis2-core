@@ -37,6 +37,8 @@ import org.hisp.dhis.program.Program;
 import org.springframework.util.Assert;
 
 /**
+ * Class representing an analytics database table.
+ * 
  * @author Lars Helge Overland
  */
 public class AnalyticsTable

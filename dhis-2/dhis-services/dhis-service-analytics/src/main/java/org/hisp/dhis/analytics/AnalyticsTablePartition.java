@@ -33,6 +33,8 @@ import java.util.Date;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 
 /**
+ * Class representing an analytics database table partition.
+ * 
  * @author Lars Helge Overland
  */
 public class AnalyticsTablePartition

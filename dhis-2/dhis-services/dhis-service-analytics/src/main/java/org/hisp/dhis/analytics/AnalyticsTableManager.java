@@ -84,6 +84,7 @@ public interface AnalyticsTableManager
      * Attempts to drop and then create analytics table.
      * 
      * @param table the analytics table.
+     * @param skipMasterTable whether to skip creating the master analytics table.
      */
     void createTable( AnalyticsTable table, boolean skipMasterTable );
     

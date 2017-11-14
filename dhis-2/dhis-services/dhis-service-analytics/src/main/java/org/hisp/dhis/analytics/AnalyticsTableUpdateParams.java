@@ -36,6 +36,8 @@ import org.hisp.dhis.scheduling.TaskId;
 import com.google.common.base.MoreObjects;
 
 /**
+ * Class representing parameters for the analytics table generation process.
+ * 
  * @author Lars Helge Overland
  */
 public class AnalyticsTableUpdateParams

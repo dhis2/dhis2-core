@@ -173,17 +173,7 @@ public abstract class AbstractJdbcTableManager
         }
     }
     
-    private void swapTable( String tempTableName, String realTableName )
-    {        
-        final String sqlDrop = "drop table " + realTableName;
-        
-        executeSilently( sqlDrop );
-        
-        final String sqlAlter = "alter table " + tempTableName + " rename to " + realTableName;
-        
-        executeSilently( sqlAlter );
-    }
-
+    @Override
     public void dropTempTable( AnalyticsTable table )
     {
         table.getPartitionTables().stream().forEach( p -> dropTable( p.getTempTableName() ) );
@@ -239,7 +229,7 @@ public abstract class AbstractJdbcTableManager
     protected abstract void populateTable( AnalyticsTablePartition partition );
 
     // -------------------------------------------------------------------------
-    // Supportive protected methods
+    // Protected supportive methods
     // -------------------------------------------------------------------------
   
     /**
@@ -252,6 +242,8 @@ public abstract class AbstractJdbcTableManager
     
     /**
      * Quotes the given column name.
+     * 
+     * @param column the column name.
      */
     protected String quote( String column )
     {
@@ -260,6 +252,8 @@ public abstract class AbstractJdbcTableManager
     
     /**
      * Remove quotes from the given column name.
+     * 
+     * @param column the column name.
      */
     private String removeQuote( String column )
     {
@@ -268,6 +262,8 @@ public abstract class AbstractJdbcTableManager
     
     /**
      * Shortens the given table name.
+     * 
+     * @param table the table name.
      */
     private String shortenTableName( String table )
     {
@@ -280,6 +276,8 @@ public abstract class AbstractJdbcTableManager
     /**
      * Returns index name for column. Purpose of code suffix is to avoid uniqueness
      * collision between indexes for temporary and real tables.
+     * 
+     * @param inx the {@link AnalyticsIndex}.
      */
     protected String getIndexName( AnalyticsIndex inx )
     {
@@ -288,6 +286,8 @@ public abstract class AbstractJdbcTableManager
     
     /**
      * Indicates whether the given table exists and has at least one row.
+     * 
+     * @param tableName the table name.
      */
     protected boolean hasRows( String tableName )
     {
@@ -306,6 +306,8 @@ public abstract class AbstractJdbcTableManager
     /**
      * Executes a SQL statement. Ignores existing tables/indexes when attempting
      * to create new.
+     * 
+     * @param sql the SQL statement.
      */
     protected void executeSilently( String sql )
     {
@@ -371,7 +373,8 @@ public abstract class AbstractJdbcTableManager
      * Generates a list of {@link AnalyticsTable} based on a list of years with data.
      * 
      * @param dataYears the list of years with data.
-     * @param dimensionColumns the list of {@link AnalyticsTableColumn}.
+     * @param dimensionColumns the list of dimension {@link AnalyticsTableColumn}.
+     * @param valueColumns the list of value {@link AnalyticsTableColumn}.
      */
     protected AnalyticsTable getAnalyticsTable( List<Integer> dataYears, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
     {        
@@ -396,6 +399,7 @@ public abstract class AbstractJdbcTableManager
     /**
      * Checks whether the given list of columns are valid.
      * 
+     * @param columns the list of {@link AnalyticsTableColumn}.
      * @throws IllegalStateException if not valid.
      */
     protected void validateDimensionColumns( List<AnalyticsTableColumn> columns )
@@ -420,7 +424,7 @@ public abstract class AbstractJdbcTableManager
      * after the time of the last successful resource table update.
      * 
      * @param columns the analytics table columns.
-     * @return
+     * @return a list of {@link AnalyticsTableColumn}.
      */
     protected List<AnalyticsTableColumn> filterDimensionColumns( List<AnalyticsTableColumn> columns )
     {
@@ -451,5 +455,27 @@ public abstract class AbstractJdbcTableManager
         jdbcTemplate.execute( sql );
         
         log.info( String.format( "Populated table in %s: %s", timer.stop().toString(), tableName ) );
+    }
+
+    // -------------------------------------------------------------------------
+    // Private supportive methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Swaps a database table, meaning drops the real table and renames the
+     * temporary table to become the real table.
+     * 
+     * @param tempTableName the temporary table name.
+     * @param realTableName the real table name.
+     */
+    private void swapTable( String tempTableName, String realTableName )
+    {        
+        final String sqlDrop = "drop table " + realTableName;
+        
+        executeSilently( sqlDrop );
+        
+        final String sqlAlter = "alter table " + tempTableName + " rename to " + realTableName;
+        
+        executeSilently( sqlAlter );
     }
 }
