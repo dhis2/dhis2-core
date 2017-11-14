@@ -197,32 +197,32 @@ public class JdbcAnalyticsTableManager
 
         sql +=
             valueExpression + " * ps.daysno as daysxvalue, " +
-                "ps.daysno as daysno, " +
-                valueExpression + " as value, " +
-                textValueExpression + " as textvalue " +
-                "from datavalue dv " +
-                "inner join _dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid " +
-                "inner join _organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid " +
-                "inner join _categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid " +
-                "inner join _categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid " +
-                "left join _orgunitstructure ous on dv.sourceid=ous.organisationunitid " +
-                "inner join _dataelementstructure des on dv.dataelementid = des.dataelementid " +
-                "inner join dataelement de on dv.dataelementid=de.dataelementid " +
-                "inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid " +
-                "inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid " +
-                "inner join period pe on dv.periodid=pe.periodid " +
-                "inner join _periodstructure ps on dv.periodid=ps.periodid " +
-                "inner join organisationunit ou on dv.sourceid=ou.organisationunitid " +
-                "inner join _categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid " +
-                "inner join _categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid " +
+            "ps.daysno as daysno, " +
+            valueExpression + " as value, " +
+            textValueExpression + " as textvalue " +
+            "from datavalue dv " +
+            "inner join _dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid " +
+            "inner join _organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid " +
+            "inner join _categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid " +
+            "inner join _categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid " +
+            "left join _orgunitstructure ous on dv.sourceid=ous.organisationunitid " +
+            "inner join _dataelementstructure des on dv.dataelementid = des.dataelementid " +
+            "inner join dataelement de on dv.dataelementid=de.dataelementid " +
+            "inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid " +
+            "inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid " +
+            "inner join period pe on dv.periodid=pe.periodid " +
+            "inner join _periodstructure ps on dv.periodid=ps.periodid " +
+            "inner join organisationunit ou on dv.sourceid=ou.organisationunitid " +
+            "inner join _categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid " +
+            "inner join _categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid " +
 
-                approvalClause +
-                "where de.valuetype in (" + valTypes + ") " +
-                "and de.domaintype = 'AGGREGATE' " +
-                "and pe.startdate >= '" + start + "' " +
-                "and pe.startdate <= '" + end + "' " +
-                "and dv.value is not null " +
-                "and dv.deleted is false ";
+            approvalClause +
+            "where de.valuetype in (" + valTypes + ") " +
+            "and de.domaintype = 'AGGREGATE' " +
+            "and pe.startdate >= '" + start + "' " +
+            "and pe.startdate <= '" + end + "' " +
+            "and dv.value is not null " +
+            "and dv.deleted is false ";
 
         if ( respectStartEndDates )
         {
