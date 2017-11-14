@@ -102,6 +102,8 @@ public interface SchedulingManager
      */
     void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration, Date delay, int interval );
 
+    void scheduleJobAtFixedRate( JobConfiguration jobConfiguration, int interval );
+
     /**
      * Stops one job.
      */

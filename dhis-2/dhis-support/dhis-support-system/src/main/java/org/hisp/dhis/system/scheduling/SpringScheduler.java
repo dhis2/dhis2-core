@@ -223,11 +223,31 @@ public class SpringScheduler
             {
                 e.printStackTrace();
             }
-        }, delay,60000 );
+        }, delay,interval );
 
         futures.put( jobConfiguration.getUid(), future );
 
         log.info( "Scheduled job with uid: " + jobConfiguration.getUid() + " and first execution time: " + delay );
+    }
+
+    @Override
+    public void scheduleJobAtFixedRate( JobConfiguration jobConfiguration, int interval )
+    {
+        DefaultJobInstance jobInstance = new DefaultJobInstance();
+        ScheduledFuture<?> future = jobScheduler.scheduleAtFixedRate( () -> {
+            try
+            {
+                jobInstance.execute( jobConfiguration, schedulingManager, messageService );
+            }
+            catch ( Exception e )
+            {
+                e.printStackTrace();
+            }
+        }, interval );
+
+        futures.put( jobConfiguration.getUid(), future );
+
+        log.info( "Scheduled job with uid: " + jobConfiguration.getUid() + " and fixed rate: " + interval );
     }
 
     @Override

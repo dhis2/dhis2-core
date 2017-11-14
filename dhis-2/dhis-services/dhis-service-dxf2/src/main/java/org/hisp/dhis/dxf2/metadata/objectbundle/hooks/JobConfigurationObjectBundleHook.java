@@ -162,7 +162,7 @@ public class JobConfigurationObjectBundleHook
 
         if ( jobConfiguration.getJobStatus() != DISABLED )
         {
-            schedulingManager.scheduleJob( (JobConfiguration) persistedObject );
+            schedulingManager.scheduleJob( jobConfiguration );
         }
     }
 
@@ -176,9 +176,9 @@ public class JobConfigurationObjectBundleHook
 
         JobConfiguration jobConfiguration = (JobConfiguration) persistedObject;
 
-        if ( jobConfiguration.getJobStatus() != DISABLED  )
+        if ( jobConfiguration.getJobStatus() != DISABLED )
         {
-            schedulingManager.scheduleJob( (JobConfiguration) persistedObject );
+            schedulingManager.scheduleJob( jobConfiguration );
         }
     }
 }

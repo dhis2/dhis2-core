@@ -146,6 +146,15 @@ public class DefaultSchedulingManager
     }
 
     @Override
+    public void scheduleJobAtFixedRate( JobConfiguration jobConfiguration, int interval )
+    {
+        if ( !scheduler.isJobInSystem( jobConfiguration.getUid() ) )
+        {
+            scheduler.scheduleJobAtFixedRate( jobConfiguration, interval );
+        }
+    }
+
+    @Override
     public void stopJob( JobConfiguration jobConfiguration )
     {
         jobConfiguration.setLastExecutedStatus( JobStatus.STOPPED );

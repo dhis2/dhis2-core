@@ -112,6 +112,8 @@ public interface Scheduler
      */
     void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration, Date delay, int interval );
 
+    void scheduleJobAtFixedRate( JobConfiguration jobConfiguration, int interval );
+
     /**
      * Deactivates scheduling of the job with the given key.
      *

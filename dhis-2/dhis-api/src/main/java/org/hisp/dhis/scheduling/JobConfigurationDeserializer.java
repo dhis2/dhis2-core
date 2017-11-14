@@ -43,15 +43,6 @@ public class JobConfigurationDeserializer
         boolean continuousExecution =
             root.get( "continuousExecution" ) != null && root.get( "continuousExecution" ).asBoolean();
 
-        JobStatus jobStatus = root.get( "jobStatus" ) == null ?
-            SCHEDULED :
-            JobStatus.valueOf( root.get( "jobStatus" ).asText( "SCHEDULED" ) );
-
-        if ( jobStatus != SCHEDULED && jobStatus != DISABLED )
-        {
-            throw new IOException( "Given jobStatus '" + jobStatus + "' is not allowed to set by users. Only allowed value is 'DISABLED'." );
-        }
-
         String cronExpression = mapper.convertValue( root.get( "cronExpression" ), String.class );
         if ( !continuousExecution )
         {
@@ -65,7 +56,7 @@ public class JobConfigurationDeserializer
         JobConfiguration jobConfiguration = new JobConfiguration( root.get( "name" ).textValue(), jobType,
             cronExpression, jobParameters,
             continuousExecution );
-        jobConfiguration.setJobStatus( jobStatus );
+        jobConfiguration.setJobStatus( enabled ? SCHEDULED : DISABLED );
 
         return jobConfiguration;
     }

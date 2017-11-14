@@ -41,7 +41,7 @@ public enum JobType
     }} ),
     PREDICTOR( "predictor", PredictorJobParameters.class, new HashMap<String, String>()
     {{
-        put( "predictor", "/api/predictors" );
+        put( "predictors", "/api/predictors" );
     }} ),
     DATASET_NOTIFICATION( "dataSetNotification", null, null ),
     TEST( "test", TestJobParameters.class, null ),
