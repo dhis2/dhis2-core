@@ -31,13 +31,13 @@ public class JdbcValidationResultTableManager
     {
         log.info( "Get tables using earliest: " + earliest );
 
-        return getAnalyticsTable( getDataYears( earliest ) );
+        return getAnalyticsTable( getDataYears( earliest ), getDimensionColumns() );
     }
 
     @Override
     public void createMasterTable( AnalyticsTable table )
     {
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
+        List<AnalyticsTableColumn> columns = getDimensionColumns();
 
         columns.add( new AnalyticsTableColumn( quote( "value" ), "date", "value" ) );
         
@@ -53,7 +53,7 @@ public class JdbcValidationResultTableManager
 
         String insert = "insert into " + partition.getTempTableName() + " (";
 
-        List<AnalyticsTableColumn> columns = getDimensionColumns( partition );
+        List<AnalyticsTableColumn> columns = getDimensionColumns();
 
         validateDimensionColumns( columns );
 
@@ -127,8 +127,7 @@ public class JdbcValidationResultTableManager
         return jdbcTemplate.queryForList( sql, Integer.class );
     }
 
-    @Override
-    protected List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTablePartition partition )
+    private List<AnalyticsTableColumn> getDimensionColumns()
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 

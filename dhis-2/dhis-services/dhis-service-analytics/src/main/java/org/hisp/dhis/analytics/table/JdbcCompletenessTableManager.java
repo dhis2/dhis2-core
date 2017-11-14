@@ -89,11 +89,11 @@ public class JdbcCompletenessTableManager
     @Override
     protected void createMasterTable( AnalyticsTable table )
     {
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
+        List<AnalyticsTableColumn> columns = getDimensionColumns();
         
         columns.add( new AnalyticsTableColumn( quote( "value" ), "date", "value" ) );
 
-        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns, table.getPeriod(), table.getProgram() ) );
+        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns, table.getProgram() ) );
     }
 
     @Override
@@ -105,7 +105,7 @@ public class JdbcCompletenessTableManager
 
         String insert = "insert into " + partition.getTempTableName() + " (";
 
-        List<AnalyticsTableColumn> columns = getDimensionColumns( partition );
+        List<AnalyticsTableColumn> columns = getDimensionColumns();
         
         validateDimensionColumns( columns );
         
@@ -143,8 +143,7 @@ public class JdbcCompletenessTableManager
         populateAndLog( sql, tableName );
     }
     
-    @Override
-    public List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTablePartition partition )
+    private List<AnalyticsTableColumn> getDimensionColumns()
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 

@@ -246,13 +246,13 @@ public class DefaultAnalyticsTableService
 
     private void vacuumTables( AnalyticsTable table )
     {
-        ConcurrentLinkedQueue<AnalyticsTable> tableQ = new ConcurrentLinkedQueue<>( tables );
+        ConcurrentLinkedQueue<AnalyticsTablePartition> partitionQ = new ConcurrentLinkedQueue<>( table.getPartitionTables() );
         
         List<Future<?>> futures = new ArrayList<>();
         
         for ( int i = 0; i < getProcessNo(); i++ )
         {
-            tableManager.vacuumTablesAsync( tableQ );
+            tableManager.vacuumTablesAsync( partitionQ );
         }
         
         ConcurrentUtils.waitForCompletion( futures );        
@@ -262,15 +262,15 @@ public class DefaultAnalyticsTableService
     {
         ConcurrentLinkedQueue<AnalyticsIndex> indexes = new ConcurrentLinkedQueue<>();
         
-        for ( AnalyticsTable table : tables )
-        {
-            List<AnalyticsTableColumn> columns = table.getDimensionColumns();
-            
+        List<AnalyticsTableColumn> columns = table.getDimensionColumns();
+        
+        for ( AnalyticsTablePartition partition : table.getPartitionTables() )
+        {   
             for ( AnalyticsTableColumn col : columns )
             {
                 if ( !col.isSkipIndex() )
                 {
-                    indexes.add( new AnalyticsIndex( table.getTempTableName(), col.getName(), col.getIndexType() ) );
+                    indexes.add( new AnalyticsIndex( partition.getTempTableName(), col.getName(), col.getIndexType() ) );
                 }
             }
         }

@@ -106,7 +106,7 @@ public class JdbcEnrollmentAnalyticsTableManager
 
         String sql = "insert into " + partition.getTempTableName() + " (";
 
-        List<AnalyticsTableColumn> columns = getDimensionColumns( partition );
+        List<AnalyticsTableColumn> columns = getDimensionColumns( program );
         
         validateDimensionColumns( columns );
 
@@ -139,8 +139,7 @@ public class JdbcEnrollmentAnalyticsTableManager
         populateAndLog( sql, tableName );
     }
 
-    @Override
-    protected List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTablePartition partition )
+    private List<AnalyticsTableColumn> getDimensionColumns( Program program )
     {
         final String dbl = statementBuilder.getDoubleColumnType();
         final String numericClause = " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
@@ -171,7 +170,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( column, "character varying(15)", "dps." + column ) );
         }
 
-        for ( ProgramStage programStage : partition.getMasterTable().getProgram().getProgramStages() )
+        for ( ProgramStage programStage : program.getProgramStages() )
         {
             for( ProgramStageDataElement programStageDataElement : 
                 programStage.getProgramStageDataElements() )
@@ -198,7 +197,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             }
         }
 
-        for ( TrackedEntityAttribute attribute : partition.getMasterTable().getProgram().getNonConfidentialTrackedEntityAttributes() )
+        for ( TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes() )
         {
             String dataType = getColumnType( attribute.getValueType() );
             String dataClause = attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
@@ -248,7 +247,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( quote( "geom" ), "geometry(Point, 4326)", alias, false, "gist" ) );
         }
         
-        if ( partition.getMasterTable().getProgram().isRegistration() )
+        if ( program.isRegistration() )
         {
             columns.add( new AnalyticsTableColumn( quote( "tei" ), "character(11)", "tei.uid" ) );
         }

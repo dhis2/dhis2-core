@@ -74,10 +74,11 @@ public class JdbcEventAnalyticsTableManager
     {
         log.info( String.format( "Get tables using earliest: %s, spatial support: %b", earliest, databaseInfo.isSpatialSupport() ) );
 
-        List<AnalyticsTable> tables = new UniqueArrayList<>();
         Calendar calendar = PeriodType.getCalendar();
         
         String baseName = getTableName();
+
+        AnalyticsTable table = new AnalyticsTable( baseName, dimensionColumns );
         
         List<Program> programs = idObjectManager.getAllNoAcl( Program.class );
         
@@ -118,7 +119,7 @@ public class JdbcEventAnalyticsTableManager
 
         String sql = "insert into " + partition.getTempTableName() + " (";
 
-        List<AnalyticsTableColumn> columns = getDimensionColumns( partition );
+        List<AnalyticsTableColumn> columns = getDimensionColumns( program );
         
         validateDimensionColumns( columns );
 
@@ -157,10 +158,8 @@ public class JdbcEventAnalyticsTableManager
         populateAndLog( sql, tableName );
     }
 
-    @Override
-    public List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTablePartition partition )
+    private List<AnalyticsTableColumn> getDimensionColumns( Program program )
     {
-        final Program program = partition.getMasterTable().getProgram();
         final String dbl = statementBuilder.getDoubleColumnType();
         final String numericClause = " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
         final String dateClause = " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
@@ -169,9 +168,9 @@ public class JdbcEventAnalyticsTableManager
 
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-        if ( table.getProgram().hasCategoryCombo() )
+        if ( program.hasCategoryCombo() )
         {
-            List<DataElementCategory> categories = table.getProgram().getCategoryCombo().getCategories();
+            List<DataElementCategory> categories = program.getCategoryCombo().getCategories();
             
             for ( DataElementCategory category : categories )
             {
@@ -213,7 +212,7 @@ public class JdbcEventAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( column, "character varying(15)", "dps." + column ) );
         }
 
-        for ( DataElement dataElement : table.getProgram().getDataElements() )
+        for ( DataElement dataElement : program.getDataElements() )
         {
             String dataType = getColumnType( dataElement.getValueType() );
             String dataClause = dataElement.isNumericType() ? numericClause : dataElement.getValueType().isDate() ? dateClause : "";

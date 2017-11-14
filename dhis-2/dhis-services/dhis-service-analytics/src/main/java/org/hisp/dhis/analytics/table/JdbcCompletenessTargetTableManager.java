@@ -99,7 +99,7 @@ public class JdbcCompletenessTargetTableManager
 
         String sql = "insert into " + tableName + " (";
 
-        List<AnalyticsTableColumn> columns = getDimensionColumns( partition );
+        List<AnalyticsTableColumn> columns = getDimensionColumns( partition.getMasterTable() );
         
         validateDimensionColumns( columns );
 
@@ -128,8 +128,7 @@ public class JdbcCompletenessTargetTableManager
         populateAndLog( sql, tableName );
     }
     
-    @Override
-    public List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTablePartition partition )
+    private List<AnalyticsTableColumn> getDimensionColumns()
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 

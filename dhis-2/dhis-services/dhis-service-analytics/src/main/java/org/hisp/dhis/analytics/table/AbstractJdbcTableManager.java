@@ -109,15 +109,6 @@ public abstract class AbstractJdbcTableManager
     protected JdbcTemplate jdbcTemplate;
 
     // -------------------------------------------------------------------------
-    // Abstract methods
-    // -------------------------------------------------------------------------
-
-    /**
-     * Returns a list of analytics table columns. Column names are quoted.
-     */
-    protected abstract List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTablePartition partition );
-
-    // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
 
@@ -377,8 +368,9 @@ public abstract class AbstractJdbcTableManager
      * Generates a list of {@link AnalyticsTable} based on a list of years with data.
      * 
      * @param dataYears the list of years with data.
+     * @param dimensionColumns the list of {@link AnalyticsTableColumn}.
      */
-    protected AnalyticsTable getAnalyticsTable( List<Integer> dataYears )
+    protected AnalyticsTable getAnalyticsTable( List<Integer> dataYears, List<AnalyticsTableColumn> dimensionColumns )
     {        
         Calendar calendar = PeriodType.getCalendar();
 
@@ -386,7 +378,7 @@ public abstract class AbstractJdbcTableManager
         
         String baseName = getAnalyticsTableType().getTableName();
         
-        AnalyticsTable table = new AnalyticsTable( baseName, getDimensionColumns( null ) );
+        AnalyticsTable table = new AnalyticsTable( baseName, dimensionColumns );
         
         for ( Integer year : dataYears )
         {

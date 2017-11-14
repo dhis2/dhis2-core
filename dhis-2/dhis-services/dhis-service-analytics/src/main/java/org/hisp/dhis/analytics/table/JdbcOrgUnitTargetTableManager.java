@@ -95,7 +95,7 @@ public class JdbcOrgUnitTargetTableManager
 
         String sql = "insert into " + partition.getTempTableName() + " (";
 
-        List<AnalyticsTableColumn> columns = getDimensionColumns( partition );
+        List<AnalyticsTableColumn> columns = getDimensionColumns( partition.getMasterTable() );
         
         validateDimensionColumns( columns );
         
@@ -121,8 +121,7 @@ public class JdbcOrgUnitTargetTableManager
         populateAndLog( sql, tableName );
     }
 
-    @Override
-    public List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTablePartition partition )
+    private List<AnalyticsTableColumn> getDimensionColumns()
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
