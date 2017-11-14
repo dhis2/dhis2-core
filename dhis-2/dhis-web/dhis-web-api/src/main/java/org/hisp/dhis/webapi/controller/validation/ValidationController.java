@@ -136,7 +136,7 @@ public class ValidationController
     {
         // HH validate
         JobConfiguration validationResultNotification = new JobConfiguration("validation result notification from validation controller", JobType.VALIDATION_RESULTS_NOTIFICATION, "", null,
-            false );
+            false, true );
 
         scheduler.executeJob( validationResultNotification );
 

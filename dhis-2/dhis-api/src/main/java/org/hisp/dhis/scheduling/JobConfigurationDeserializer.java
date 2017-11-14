@@ -9,8 +9,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
-import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
-import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
 
 /**
  * Custom deserializer for {@link JobConfiguration} objects. This is due to different objects
@@ -53,11 +51,8 @@ public class JobConfigurationDeserializer
             cronExpression = "0 * * ? * *";
         }
 
-        JobConfiguration jobConfiguration = new JobConfiguration( root.get( "name" ).textValue(), jobType,
+        return new JobConfiguration( root.get( "name" ).textValue(), jobType,
             cronExpression, jobParameters,
-            continuousExecution );
-        jobConfiguration.setJobStatus( enabled ? SCHEDULED : DISABLED );
-
-        return jobConfiguration;
+            continuousExecution, enabled );
     }
 }

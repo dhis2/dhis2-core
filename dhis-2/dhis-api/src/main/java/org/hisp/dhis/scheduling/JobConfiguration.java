@@ -14,6 +14,8 @@ import org.springframework.scheduling.support.SimpleTriggerContext;
 
 import java.util.Date;
 
+import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
+import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
 import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 
 /**
@@ -36,7 +38,7 @@ public class JobConfiguration
 
     private JobType jobType;
 
-    private JobStatus jobStatus = JobStatus.SCHEDULED;
+    private JobStatus jobStatus;
 
     private Date lastExecuted;
 
@@ -48,6 +50,8 @@ public class JobConfiguration
 
     private boolean configurable = true;
 
+    private boolean enabled = true;
+
     private Date nextExecutionTime;
 
     public JobConfiguration()
@@ -55,13 +59,15 @@ public class JobConfiguration
     }
 
     public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
-        boolean continuousExecution )
+        boolean continuousExecution, boolean enabled )
     {
         this.name = name;
         this.cronExpression = cronExpression;
         this.jobType = jobType;
         this.jobParameters = jobParameters;
         this.continuousExecution = continuousExecution;
+        this.enabled = enabled;
+        setJobStatus( enabled ? SCHEDULED : DISABLED );
         setNextExecutionTime( null );
     }
 
@@ -116,6 +122,11 @@ public class JobConfiguration
     public void setConfigurable( boolean configurable )
     {
         this.configurable = configurable;
+    }
+
+    public void setEnabled( boolean enabled )
+    {
+        this.enabled = enabled;
     }
 
     @JacksonXmlProperty
@@ -180,6 +191,13 @@ public class JobConfiguration
     public boolean isConfigurable()
     {
         return configurable;
+    }
+
+    @JacksonXmlProperty
+    @JsonProperty
+    public boolean isEnabled()
+    {
+        return enabled;
     }
 
     public JobId getJobId()

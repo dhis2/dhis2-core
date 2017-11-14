@@ -29,8 +29,9 @@ public class JobConfigurationServiceTest
         throws Exception
     {
         String CRON_EVERY_MIN = "0 * * ? * *";
-        jobA = new JobConfiguration( "jobA", JobType.TEST, CRON_EVERY_MIN, new TestJobParameters( "test" ), false );
-        jobB = new JobConfiguration( "jobB", JobType.DATA_INTEGRITY, CRON_EVERY_MIN, null, false );
+        jobA = new JobConfiguration( "jobA", JobType.TEST, CRON_EVERY_MIN, new TestJobParameters( "test" ), false,
+            true );
+        jobB = new JobConfiguration( "jobB", JobType.DATA_INTEGRITY, CRON_EVERY_MIN, null, false, true );
 
         jobConfigurationService.addJobConfiguration( jobA );
         jobConfigurationService.addJobConfiguration( jobB );

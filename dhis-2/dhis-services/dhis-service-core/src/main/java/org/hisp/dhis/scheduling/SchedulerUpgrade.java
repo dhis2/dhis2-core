@@ -1,6 +1,5 @@
 package org.hisp.dhis.scheduling;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -15,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.hisp.dhis.scheduling.JobType.*;
-import static org.hisp.dhis.scheduling.JobType.CREDENTIALS_EXPIRY_ALERT;
 
 /**
  * Handles porting from the old scheduler to the new.
@@ -43,14 +41,68 @@ public class SchedulerUpgrade
     @Autowired
     private SystemSettingManager systemSettingManager;
 
+    boolean addDefaultJob ( String name, List<JobConfiguration> jobConfigurations )
+    {
+        return jobConfigurations.stream().noneMatch( jobConfiguration -> jobConfiguration.getName().equals( name ) );
+    }
+
     /**
      * Method which ports the jobs in the system from the old scheduler to the new.
      * Collects all old jobs and adds them. Also adds default jobs.
      */
     void handleServerUpgrade()
     {
-        ListMap<String, String> scheduledSystemSettings = (ListMap<String, String>) systemSettingManager.getSystemSetting( "keySchedTasks" );
+        List<JobConfiguration> jobConfigurations = jobConfigurationService.getAllJobConfigurations();
 
+        String CRON_DAILY_2AM = "0 0 2 * * ?";
+        String CRON_DAILY_7AM = "0 0 7 * * ?";
+
+        log.info( "Setting up default jobs." );
+        if ( jobConfigurations.isEmpty() || addDefaultJob( "File resource clean up", jobConfigurations ) )
+        {
+            JobConfiguration fileResourceCleanUp = new JobConfiguration( "File resource clean up",
+                FILE_RESOURCE_CLEANUP, CRON_DAILY_2AM, null,
+                false, true );
+            fileResourceCleanUp.setConfigurable( false );
+            jobConfigurationService.addJobConfiguration( fileResourceCleanUp );
+            schedulingManager.scheduleJob( fileResourceCleanUp );
+        }
+
+        if ( jobConfigurations.isEmpty() ||  addDefaultJob( "Data statistics", jobConfigurations ) )
+        {
+            JobConfiguration dataStatistics = new JobConfiguration( "Data statistics", DATA_STATISTICS, CRON_DAILY_2AM,
+                null,
+                false, true );
+            dataStatistics
+                .setLastExecuted( (Date) systemSettingManager.getSystemSetting( "lastSuccessfulDataStatistics" ) );
+            dataStatistics.setConfigurable( false );
+        }
+
+        if ( jobConfigurations.isEmpty() ||  addDefaultJob( "Validation result notification", jobConfigurations ) )
+        {
+            JobConfiguration validationResultNotification = new JobConfiguration( "Validation result notification",
+                VALIDATION_RESULTS_NOTIFICATION, CRON_DAILY_7AM, null,
+                false, true );
+            validationResultNotification.setConfigurable( false );
+        }
+
+        if ( jobConfigurations.isEmpty() ||  addDefaultJob( "Credentials expiry alert", jobConfigurations ) )
+        {
+            JobConfiguration credentialsExpiryAlert = new JobConfiguration( "Credentials expiry alert",
+                CREDENTIALS_EXPIRY_ALERT, CRON_DAILY_2AM, null,
+                false, true );
+            credentialsExpiryAlert.setConfigurable( false );
+        }
+
+        if ( jobConfigurations.isEmpty() ||  addDefaultJob( "Dataset notification", jobConfigurations ) )
+        {
+            JobConfiguration dataSetNotification = new JobConfiguration( "Dataset notification",
+                DATASET_NOTIFICATION, CRON_DAILY_2AM, null,
+                false, true );
+            dataSetNotification.setConfigurable( false );
+        }
+
+        ListMap<String, String> scheduledSystemSettings = (ListMap<String, String>) systemSettingManager.getSystemSetting( "keySchedTasks" );
         if ( scheduledSystemSettings != null && scheduledSystemSettings.containsKey( "ported" ) )
         {
             log.info( "Scheduler ported" );
@@ -59,27 +111,30 @@ public class SchedulerUpgrade
 
         if (scheduledSystemSettings != null) {
             log.info( "Porting old jobs" );
-            JobConfiguration resourceTable = new JobConfiguration("Resource table", RESOURCE_TABLE, null, null, false );
+            JobConfiguration resourceTable = new JobConfiguration("Resource table", RESOURCE_TABLE, null, null, false,
+                true );
             resourceTable.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulResourceTablesUpdate" ) );
 
             JobConfiguration analytics = new JobConfiguration("Analytics", ANALYTICS_TABLE, null, new AnalyticsJobParameters(null, Sets
-                .newHashSet(), false), false );
+                .newHashSet(), false), false, true );
             analytics.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulAnalyticsTablesUpdate" ) );
 
-            JobConfiguration monitoring = new JobConfiguration("Monitoring", MONITORING, null, null, false );
+            JobConfiguration monitoring = new JobConfiguration("Monitoring", MONITORING, null, null, false, true );
             monitoring.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulMonitoring" ) );
 
-            JobConfiguration dataSync = new JobConfiguration("Data synchronization", DATA_SYNC, null, null, false );
+            JobConfiguration dataSync = new JobConfiguration("Data synchronization", DATA_SYNC, null, null, false,
+                true );
             dataSync.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulDataSynch" ) );
 
-            JobConfiguration metadataSync = new JobConfiguration("Metadata sync", META_DATA_SYNC, null, null, false );
+            JobConfiguration metadataSync = new JobConfiguration("Metadata sync", META_DATA_SYNC, null, null, false,
+                true );
             metadataSync.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastMetaDataSyncSuccess" ) );
 
             JobConfiguration sendScheduledMessage = new JobConfiguration("Send scheduled messages", SEND_SCHEDULED_MESSAGE, null, null,
-                false );
+                false, true );
 
             JobConfiguration scheduledProgramNotifications = new JobConfiguration("Scheduled program notifications", PROGRAM_NOTIFICATIONS, null, null,
-                false );
+                false, true );
             scheduledProgramNotifications.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulScheduledProgramNotifications" ) );
 
             HashMap<String, JobConfiguration> standardJobs = new HashMap<String, JobConfiguration>()
@@ -115,36 +170,6 @@ public class SchedulerUpgrade
                 }
             } ) );
         }
-
-        String CRON_DAILY_2AM = "0 0 2 * * ?";
-        String CRON_DAILY_7AM = "0 0 7 * * ?";
-
-        log.info( "Setting up default jobs." );
-        JobConfiguration fileResourceCleanUp = new JobConfiguration("File resource clean up", FILE_RESOURCE_CLEANUP, CRON_DAILY_2AM, null,
-            false );
-        fileResourceCleanUp.setConfigurable( false );
-
-        JobConfiguration dataStatistics = new JobConfiguration("Data statistics", DATA_STATISTICS, CRON_DAILY_2AM, null,
-            false );
-        dataStatistics.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "lastSuccessfulDataStatistics" ) );
-        dataStatistics.setConfigurable( false );
-
-        JobConfiguration validationResultNotification = new JobConfiguration("Validation result notification", VALIDATION_RESULTS_NOTIFICATION, CRON_DAILY_7AM, null,
-            false );
-        validationResultNotification.setConfigurable( false );
-
-        JobConfiguration credentialsExpiryAlert = new JobConfiguration("Credentials expiry alert", CREDENTIALS_EXPIRY_ALERT, CRON_DAILY_2AM, null,
-            false );
-        credentialsExpiryAlert.setConfigurable( false );
-
-        JobConfiguration dataSetNotification = new JobConfiguration("Dataset notification", DATASET_NOTIFICATION, CRON_DAILY_2AM, null,
-            false );
-        dataSetNotification.setConfigurable( false );
-
-        List<JobConfiguration> defaultJobs = Lists
-            .newArrayList( fileResourceCleanUp, dataStatistics, validationResultNotification, credentialsExpiryAlert, dataSetNotification );
-        jobConfigurationService.addJobConfigurations( defaultJobs );
-        schedulingManager.scheduleJobs( defaultJobs );
 
         ListMap<String, String> emptySystemSetting = new ListMap<>();
         emptySystemSetting.putValue("ported", "");

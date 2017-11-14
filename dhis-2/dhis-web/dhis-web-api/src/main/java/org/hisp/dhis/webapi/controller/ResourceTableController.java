@@ -127,7 +127,7 @@ public class ResourceTableController
     {
         // HH verify
         JobConfiguration monitoringJob = new JobConfiguration( "monitoring from resource table controller", JobType.MONITORING, "", new MonitoringJobParameters(),
-            false );
+            false, true );
 
         scheduler.executeJob( monitoringJob );
 
