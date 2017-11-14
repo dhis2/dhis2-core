@@ -118,7 +118,7 @@ public class DefaultAnalyticsTableService
             return;
         }
         
-        List<AnalyticsTable> tables = tableManager.getAnalyticsTables( earliest );
+        final List<AnalyticsTable> tables = tableManager.getAnalyticsTables( earliest );
 
         clock.logTime( "Table update start: " + tableName + ", earliest: " + earliest + ", parameters: " + params.toString() );
         notifier.notify( taskId, "Performing pre-create table work, org unit levels: " + orgUnitLevelNo );
@@ -308,21 +308,15 @@ public class DefaultAnalyticsTableService
     
     private void analyzeTables( List<AnalyticsTable> tables )
     {
-        for ( AnalyticsTable table : tables )
-        {
-            tableManager.analyzeTable( table );
-        }
+        tables.stream().forEach( table -> tableManager.analyzeTable( table ) );
     }
 
     private void swapTables( List<AnalyticsTable> tables, boolean skipMasterTable )
     {
         resourceTableService.dropAllSqlViews();
         
-        for ( AnalyticsTable table : tables )
-        {
-            tableManager.swapTable( table, skipMasterTable );
-        }
-
+        tables.stream().forEach( table -> tableManager.swapTable( table, skipMasterTable ) );
+        
         resourceTableService.createAllSqlViews();
     }
     
