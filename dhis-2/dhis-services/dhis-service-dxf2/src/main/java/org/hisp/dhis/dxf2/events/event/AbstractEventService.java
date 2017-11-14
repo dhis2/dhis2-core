@@ -1810,7 +1810,7 @@ public abstract class AbstractEventService
         programStageCache.clear();
         dataElementCache.clear();
         categoryOptionCache.clear();
-        categoryOptionCache.clear();
+        categoryOptionComboCache.clear();
         attributeOptionComboCache.clear();
         activeProgramInstanceCache.clear();
         accessibleProgramsCache.clear();
