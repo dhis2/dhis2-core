@@ -118,7 +118,7 @@ public class DefaultAnalyticsTableService
             return;
         }
         
-        List<AnalyticsTable> analyticsTables = tableManager.getAnalyticsTables( earliest );
+        List<AnalyticsTable> tables = tableManager.getAnalyticsTables( earliest );
 
         clock.logTime( "Table update start: " + tableName + ", earliest: " + earliest + ", parameters: " + params.toString() );
         notifier.notify( taskId, "Performing pre-create table work, org unit levels: " + orgUnitLevelNo );
@@ -128,32 +128,32 @@ public class DefaultAnalyticsTableService
         clock.logTime( "Performed pre-create table work" );
         notifier.notify( taskId, "Creating analytics tables" );
 
-        createTables( analyticsTables, params.isSkipMasterTable() );
+        createTables( tables, params.isSkipMasterTable() );
         
         clock.logTime( "Created analytics tables" );
         notifier.notify( taskId, "Populating analytics tables" );
         
-        populateTables( analyticsTables );
+        populateTables( tables );
         
         clock.logTime( "Populated analytics tables" );
         notifier.notify( taskId, "Applying aggregation levels" );
         
-        applyAggregationLevels( analyticsTables );
+        applyAggregationLevels( tables );
         
         clock.logTime( "Applied aggregation levels" );
         notifier.notify( taskId, "Creating indexes" );
         
-        createIndexes( analyticsTables );
+        createIndexes( tables );
         
         clock.logTime( "Created indexes" );
         notifier.notify( taskId, "Analyzing analytics tables" );
         
-        analyzeTables( analyticsTables );
+        analyzeTables( tables );
         
         clock.logTime( "Analyzed tables" );
         notifier.notify( taskId, "Swapping analytics tables" );
         
-        swapTables( analyticsTables, params.isSkipMasterTable() );
+        swapTables( tables, params.isSkipMasterTable() );
         
         clock.logTime( "Swapped tables" );
         notifier.notify( taskId, "Clearing caches" );
