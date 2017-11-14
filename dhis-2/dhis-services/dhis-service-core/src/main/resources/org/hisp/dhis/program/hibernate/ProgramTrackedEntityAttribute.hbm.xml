@@ -28,6 +28,8 @@
     <property name="allowFutureDate" column="allowFutureDate" />
     
     <property name="renderOptionsAsRadio" column="renderoptionsasradio" />
+    
+    <property name="searchable" column="searchable" />
 
     <set name="groups" table="programtrackedentityattributegroupmembers" >
       <cache usage="read-write" />

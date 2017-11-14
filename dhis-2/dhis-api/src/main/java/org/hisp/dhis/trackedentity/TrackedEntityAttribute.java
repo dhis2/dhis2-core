@@ -82,9 +82,7 @@ public class TrackedEntityAttribute
 
     private Boolean orgunitScope = false;
 
-    private Boolean programScope = false;
-    
-    private Boolean searchable = false;
+    private Boolean programScope = false;    
 
     // -------------------------------------------------------------------------
     // Constructors

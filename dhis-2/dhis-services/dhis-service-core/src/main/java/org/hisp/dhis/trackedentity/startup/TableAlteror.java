@@ -253,6 +253,8 @@ public class TableAlteror
         executeSql( "ALTER TABLE programstageinstance DROP COLUMN completed" );
 
         executeSql( "update program_attributes set mandatory = false where mandatory is null" );
+        executeSql( "ALTER TABLE program_attributes DROP COLUMN searchscope" );
+        executeSql( "update program_attributes set searchable = false where searchable is null" );
 
         executeSql( "update trackedentityattribute set confidential = false where confidential is null;" );
 
