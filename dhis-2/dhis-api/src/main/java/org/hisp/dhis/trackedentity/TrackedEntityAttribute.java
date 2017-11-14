@@ -83,8 +83,8 @@ public class TrackedEntityAttribute
     private Boolean orgunitScope = false;
 
     private Boolean programScope = false;
-
-    private TrackedEntityAttributeSearchScope searchScope;
+    
+    private Boolean searchable = false;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -389,17 +389,5 @@ public class TrackedEntityAttribute
     public void setConfidential( Boolean confidential )
     {
         this.confidential = confidential;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntityAttributeSearchScope getSearchScope()
-    {
-        return searchScope;
-    }
-
-    public void setSearchScope( TrackedEntityAttributeSearchScope searchScope )
-    {
-        this.searchScope = searchScope;
-    }
+    }    
 }
