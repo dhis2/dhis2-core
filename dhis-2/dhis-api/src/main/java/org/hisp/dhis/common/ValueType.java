@@ -83,7 +83,7 @@ public enum ValueType
         TEXT, LONG_TEXT, LETTER, COORDINATE, TIME, USERNAME, EMAIL, PHONE_NUMBER ).build();
 
     public static final Set<ValueType> DATE_TYPES = ImmutableSet.<ValueType>builder().add(
-        DATE, DATETIME ).build();
+        DATE, DATETIME, AGE ).build();
 
     private final Class<?> javaClass;
 
