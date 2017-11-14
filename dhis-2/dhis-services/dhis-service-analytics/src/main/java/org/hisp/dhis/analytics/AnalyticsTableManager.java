@@ -149,8 +149,8 @@ public interface AnalyticsTableManager
      * Performs vacuum or optimization of the given table. The type of operation
      * performed is dependent on the underlying DBMS.
      * 
-     * @param tables the analytics tables.
+     * @param partitions the analytics table partitions.
      * @return a future representing the asynchronous task.
      */
-    Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables );
+    Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions );
 }

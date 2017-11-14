@@ -190,7 +190,7 @@ public class JdbcCompletenessTargetTableManager
 
     @Override
     @Async
-    public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
+    public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions )
     {
         return null; // Not needed
     }

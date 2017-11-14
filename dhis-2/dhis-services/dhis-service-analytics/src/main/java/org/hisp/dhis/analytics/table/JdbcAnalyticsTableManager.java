@@ -424,19 +424,19 @@ public class JdbcAnalyticsTableManager
 
     @Override
     @Async
-    public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
+    public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions )
     {
         taskLoop:
         while ( true )
         {
-            AnalyticsTable table = tables.poll();
+            AnalyticsTablePartition partition = partitions.poll();
 
-            if ( table == null )
+            if ( partition == null )
             {
                 break taskLoop;
             }
 
-            final String sql = statementBuilder.getVacuum( table.getTempTableName() );
+            final String sql = statementBuilder.getVacuum( partition.getTempTableName() );
 
             log.debug( "Vacuum SQL: " + sql );
 
