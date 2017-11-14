@@ -44,6 +44,8 @@ public class AnalyticsTable
     protected String baseName;
 
     protected List<AnalyticsTableColumn> dimensionColumns;
+    
+    protected List<AnalyticsTableColumn> valueColumns;
 
     protected Program program;
     
@@ -60,16 +62,17 @@ public class AnalyticsTable
         this.created = new Date();
     }
 
-    public AnalyticsTable( String baseName, List<AnalyticsTableColumn> dimensionColumns )
+    public AnalyticsTable( String baseName, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
     {
         this.created = new Date();
         this.baseName = baseName;
         this.dimensionColumns = dimensionColumns;
+        this.valueColumns = valueColumns;
     }
 
-    public AnalyticsTable( String baseName, List<AnalyticsTableColumn> dimensionColumns, Program program )
+    public AnalyticsTable( String baseName, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns, Program program )
     {
-        this( baseName, dimensionColumns );
+        this( baseName, dimensionColumns, valueColumns );
         this.program = program;
     }
 
@@ -147,6 +150,11 @@ public class AnalyticsTable
     public List<AnalyticsTableColumn> getDimensionColumns()
     {
         return dimensionColumns;
+    }
+
+    public List<AnalyticsTableColumn> getValueColumns()
+    {
+        return valueColumns;
     }
 
     public Program getProgram()

@@ -39,6 +39,8 @@ import java.util.concurrent.Future;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -65,7 +67,7 @@ public class JdbcCompletenessTargetTableManager
     @Transactional
     public AnalyticsTable getAnalyticsTable( Date earliest )
     {
-        return new AnalyticsTable( getTableName(), getDimensionColumns( null ) ).addPartitionTable();
+        return new AnalyticsTable( getTableName(), getDimensionColumns(), getValueColumns() ); //TODO data partition?
     }
 
     @Override
@@ -83,13 +85,7 @@ public class JdbcCompletenessTargetTableManager
     @Override
     protected void createMasterTable( AnalyticsTable table )
     {
-        final String dbl = statementBuilder.getDoubleColumnType();
-
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
-        
-        columns.add( new AnalyticsTableColumn( quote( "value" ), dbl, "value" ) );
-        
-        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns ) );
+        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns(), getValueColumns() ) );
     }
 
     @Override
@@ -99,16 +95,17 @@ public class JdbcCompletenessTargetTableManager
 
         String sql = "insert into " + tableName + " (";
 
-        List<AnalyticsTableColumn> columns = getDimensionColumns( partition.getMasterTable() );
+        List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
+        List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
         
         validateDimensionColumns( columns );
 
-        for ( AnalyticsTableColumn col : columns )
+        for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
         {
             sql += col.getName() + ",";
         }
 
-        sql += "value) select ";
+        sql += TextUtils.removeLast( sql, "," ) + ") select ";
 
         for ( AnalyticsTableColumn col : columns )
         {
@@ -175,6 +172,13 @@ public class JdbcCompletenessTargetTableManager
         columns.addAll( Lists.newArrayList( ouOpening, ouClosed, coStart, coEnd, ds, ao ) );
         
         return filterDimensionColumns( columns );
+    }
+    
+    private List<AnalyticsTableColumn> getValueColumns()
+    {
+        final String dbl = statementBuilder.getDoubleColumnType();
+
+        return Lists.newArrayList( new AnalyticsTableColumn( quote( "value" ), dbl, "value" ) );
     }
     
     @Override

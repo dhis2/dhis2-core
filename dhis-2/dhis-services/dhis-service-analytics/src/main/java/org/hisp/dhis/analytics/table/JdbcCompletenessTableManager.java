@@ -33,6 +33,8 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -62,9 +64,7 @@ public class JdbcCompletenessTableManager
     @Transactional
     public AnalyticsTable getAnalyticsTable( Date earliest )
     {
-        log.info( "Get tables using earliest: " + earliest );
-
-        return getAnalyticsTable( getDataYears( earliest ) );
+        return getAnalyticsTable( getDataYears( earliest ), getDimensionColumns(), getValueColumns() );
     }
     
     @Override
@@ -89,11 +89,7 @@ public class JdbcCompletenessTableManager
     @Override
     protected void createMasterTable( AnalyticsTable table )
     {
-        List<AnalyticsTableColumn> columns = getDimensionColumns();
-        
-        columns.add( new AnalyticsTableColumn( quote( "value" ), "date", "value" ) );
-
-        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns, table.getProgram() ) );
+        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns(), getValueColumns(), table.getProgram() ) );
     }
 
     @Override
@@ -105,16 +101,17 @@ public class JdbcCompletenessTableManager
 
         String insert = "insert into " + partition.getTempTableName() + " (";
 
-        List<AnalyticsTableColumn> columns = getDimensionColumns();
+        List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
+        List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
         
         validateDimensionColumns( columns );
         
-        for ( AnalyticsTableColumn col : columns )
+        for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
         {
             insert += col.getName() + ",";
         }
         
-        insert += "value) ";
+        insert += TextUtils.removeLast( insert, "," ) + ") ";
 
         String select = "select ";
         
@@ -196,6 +193,11 @@ public class JdbcCompletenessTableManager
         columns.addAll( Lists.newArrayList( ds, tm ) );
         
         return filterDimensionColumns( columns );
+    }
+    
+    private List<AnalyticsTableColumn> getValueColumns()
+    {
+        return Lists.newArrayList( new AnalyticsTableColumn( quote( "value" ), "date", "value" ) );
     }
 
     private List<Integer> getDataYears( Date earliest )

@@ -33,6 +33,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
@@ -91,9 +92,7 @@ public class JdbcAnalyticsTableManager
     @Transactional
     public AnalyticsTable getAnalyticsTable( Date earliest )
     {
-        log.info( "Get tables using earliest: " + earliest );
-
-        return getAnalyticsTable( getDataYears( earliest ), getDimensionColumns( null ) );
+        return getAnalyticsTable( getDataYears( earliest ), getDimensionColumns( null ), getValueColumns() );
     }
     
     @Override
@@ -134,16 +133,7 @@ public class JdbcAnalyticsTableManager
     @Override
     protected void createMasterTable( AnalyticsTable table )
     {
-        final String dbl = statementBuilder.getDoubleColumnType();
-
-        List<AnalyticsTableColumn> columns = getDimensionColumns( null );
-
-        columns.add( new AnalyticsTableColumn( quote( "daysxvalue" ), dbl, "daysxvalue" ) );
-        columns.add( new AnalyticsTableColumn( quote( "daysno" ), "integer not null", "daysno" ) );
-        columns.add( new AnalyticsTableColumn( quote( "value" ), dbl, "value" ) );
-        columns.add( new AnalyticsTableColumn( quote( "textvalue" ), "text", "textvalue" ) );
-        
-        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns ) );
+        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns( null ), getValueColumns() ) );
     }
     
     @Override
@@ -189,15 +179,16 @@ public class JdbcAnalyticsTableManager
         String sql = "insert into " + partition.getTempTableName() + " (";
 
         List<AnalyticsTableColumn> columns = getDimensionColumns( partition.getYear() );
+        List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
 
         validateDimensionColumns( columns );
         
-        for ( AnalyticsTableColumn col : columns )
+        for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
         {
             sql += col.getName() + ",";
         }
-
-        sql += "daysxvalue, daysno, value, textvalue) select ";
+        
+        sql += TextUtils.removeLast( sql, "," ) + ") select ";
 
         for ( AnalyticsTableColumn col : columns )
         {
@@ -276,7 +267,7 @@ public class JdbcAnalyticsTableManager
 
         return StringUtils.EMPTY;
     }
-
+    
     private List<AnalyticsTableColumn> getDimensionColumns( Integer year )
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
@@ -363,6 +354,18 @@ public class JdbcAnalyticsTableManager
         columns.addAll( Lists.newArrayList( de, co, ao, startDate, endDate, pe, ou, level, approval ) );
 
         return filterDimensionColumns( columns );
+    }
+
+    private List<AnalyticsTableColumn> getValueColumns()
+    {
+        final String dbl = statementBuilder.getDoubleColumnType();
+
+        List<AnalyticsTableColumn> columns = new ArrayList<>();
+        columns.add( new AnalyticsTableColumn( quote( "daysxvalue" ), dbl, "daysxvalue" ) );
+        columns.add( new AnalyticsTableColumn( quote( "daysno" ), "integer not null", "daysno" ) );
+        columns.add( new AnalyticsTableColumn( quote( "value" ), dbl, "value" ) );
+        columns.add( new AnalyticsTableColumn( quote( "textvalue" ), "text", "textvalue" ) );
+        return columns;        
     }
 
     private List<Integer> getDataYears( Date earliest )

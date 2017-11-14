@@ -370,7 +370,7 @@ public abstract class AbstractJdbcTableManager
      * @param dataYears the list of years with data.
      * @param dimensionColumns the list of {@link AnalyticsTableColumn}.
      */
-    protected AnalyticsTable getAnalyticsTable( List<Integer> dataYears, List<AnalyticsTableColumn> dimensionColumns )
+    protected AnalyticsTable getAnalyticsTable( List<Integer> dataYears, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
     {        
         Calendar calendar = PeriodType.getCalendar();
 
@@ -378,7 +378,7 @@ public abstract class AbstractJdbcTableManager
         
         String baseName = getAnalyticsTableType().getTableName();
         
-        AnalyticsTable table = new AnalyticsTable( baseName, dimensionColumns );
+        AnalyticsTable table = new AnalyticsTable( baseName, dimensionColumns, valueColumns );
         
         for ( Integer year : dataYears )
         {

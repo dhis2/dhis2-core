@@ -39,10 +39,13 @@ import java.util.concurrent.Future;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -61,7 +64,7 @@ public class JdbcOrgUnitTargetTableManager
     @Transactional
     public AnalyticsTable getAnalyticsTable( Date earliest )
     {
-        return new AnalyticsTable( getTableName(), getDimensionColumns( null ) ).addPartitionTable();
+        return new AnalyticsTable( getTableName(), getDimensionColumns(), getValueColumns() );
     }
 
     @Override
@@ -79,13 +82,7 @@ public class JdbcOrgUnitTargetTableManager
     @Override
     protected void createMasterTable( AnalyticsTable table )
     {
-        final String dbl = statementBuilder.getDoubleColumnType();
-        
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
-        
-        columns.add( new AnalyticsTableColumn( quote( "value" ), dbl, "value" ) );
-        
-        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns, table.getProgram() ) );
+        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns(), getValueColumns(), table.getProgram() ) );
     }
 
     @Override
@@ -95,16 +92,17 @@ public class JdbcOrgUnitTargetTableManager
 
         String sql = "insert into " + partition.getTempTableName() + " (";
 
-        List<AnalyticsTableColumn> columns = getDimensionColumns( partition.getMasterTable() );
+        List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
+        List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
         
         validateDimensionColumns( columns );
         
-        for ( AnalyticsTableColumn col : columns )
+        for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
         {
             sql += col.getName() + ",";
         }
 
-        sql += "value) select ";
+        sql += TextUtils.removeLast( sql, "," ) + ") select ";
 
         for ( AnalyticsTableColumn col : columns )
         {
@@ -139,6 +137,13 @@ public class JdbcOrgUnitTargetTableManager
         columns.add( ds );
         
         return filterDimensionColumns( columns );
+    }
+    
+    private List<AnalyticsTableColumn> getValueColumns()
+    {
+        final String dbl = statementBuilder.getDoubleColumnType();
+        
+        return Lists.newArrayList( new AnalyticsTableColumn( quote( "value" ), dbl, "value" ) );
     }
     
     @Override
