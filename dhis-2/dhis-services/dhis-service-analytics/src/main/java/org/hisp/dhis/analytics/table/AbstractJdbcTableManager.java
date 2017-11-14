@@ -338,7 +338,7 @@ public abstract class AbstractJdbcTableManager
         }
                 
         sqlCreate = TextUtils.removeLastComma( sqlCreate ) + ")";
-                
+        
         log.info( String.format( "Creating table: %s, columns: %d", tableName, table.getDimensionColumns().size() ) );
 
         log.debug( "Create SQL: " + sqlCreate );
