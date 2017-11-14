@@ -3,6 +3,7 @@ package org.hisp.dhis.analytics.table;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -19,16 +20,6 @@ import java.util.concurrent.Future;
 public class JdbcValidationResultTableManager
     extends AbstractJdbcTableManager
 {
-    @Override
-    public void createTable( AnalyticsTable table )
-    {
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
-
-        columns.add( new AnalyticsTableColumn( quote( "value" ), "date", "value" ) );
-        
-        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns, table.getPeriod(), table.getProgram() ) );
-    }
-
     @Override
     protected void populateTable( AnalyticsTable table )
     {
@@ -47,7 +38,7 @@ public class JdbcValidationResultTableManager
             insert += col.getName() + ",";
         }
 
-        insert += "value) ";
+        insert += TextUtils.removeLast( insert, "," ) + ") ";
 
         String select = "select ";
 
@@ -177,11 +168,9 @@ public class JdbcValidationResultTableManager
             columns.add( new AnalyticsTableColumn( column, "character varying(15)", "ps." + column ) );
         }
 
-        AnalyticsTableColumn vr = new AnalyticsTableColumn( quote( "dx" ), "character(11) not null",
-            "vr.uid" );
-
-        columns.add( vr );
-
+        columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "vr.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "value" ), "date", "value" ) );
+        
         return filterDimensionColumns( columns );
     }
 }

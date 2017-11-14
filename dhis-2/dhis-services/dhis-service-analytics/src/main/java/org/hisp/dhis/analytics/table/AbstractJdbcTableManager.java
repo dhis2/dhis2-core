@@ -128,7 +128,15 @@ public abstract class AbstractJdbcTableManager
     public void preCreateTables()
     {
     }
-    
+
+    @Override
+    public void createTable( AnalyticsTable table )
+    {
+        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
+
+        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns, table.getPeriod(), table.getProgram() ) );
+    }
+
     @Override
     @Async
     public Future<?> createIndexesAsync( ConcurrentLinkedQueue<AnalyticsIndex> indexes )
