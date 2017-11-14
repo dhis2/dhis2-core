@@ -65,9 +65,9 @@ public class JdbcCompletenessTargetTableManager
     
     @Override
     @Transactional
-    public AnalyticsTable getAnalyticsTable( Date earliest )
+    public List<AnalyticsTable> getAnalyticsTables( Date earliest )
     {
-        return new AnalyticsTable( getTableName(), getDimensionColumns(), getValueColumns() ); //TODO data partition?
+        return Lists.newArrayList( new AnalyticsTable( getTableName(), getDimensionColumns(), getValueColumns() ) ); //TODO data partition?
     }
 
     @Override

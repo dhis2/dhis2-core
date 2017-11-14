@@ -28,9 +28,8 @@ package org.hisp.dhis.analytics.table.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashSet;
-
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.security.NoSecurityContextRunnable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +64,11 @@ public class AnalyticsTableTask
     @Override
     public void call()
     {
-        analyticsTableGenerator.generateTables( lastYears, taskId, new HashSet<>(), false );
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
+            .withLastYears( lastYears )
+            .withTaskId( taskId )
+            .build();
+        
+        analyticsTableGenerator.generateTables( params );
     }
 }

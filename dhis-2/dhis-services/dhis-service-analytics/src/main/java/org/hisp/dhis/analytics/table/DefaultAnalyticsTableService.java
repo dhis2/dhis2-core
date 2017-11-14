@@ -45,6 +45,8 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.collect.Lists;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
@@ -116,7 +118,7 @@ public class DefaultAnalyticsTableService
             return;
         }
         
-        AnalyticsTable analyticsTable = tableManager.getAnalyticsTable( earliest );
+        List<AnalyticsTable> analyticsTables = tableManager.getAnalyticsTables( earliest );
 
         clock.logTime( "Table update start: " + tableName + ", earliest: " + earliest + ", parameters: " + params.toString() );
         notifier.notify( taskId, "Performing pre-create table work, org unit levels: " + orgUnitLevelNo );
@@ -126,32 +128,32 @@ public class DefaultAnalyticsTableService
         clock.logTime( "Performed pre-create table work" );
         notifier.notify( taskId, "Creating analytics tables" );
 
-        tableManager.createTable( analyticsTable, params.isSkipMasterTable() );
+        createTables( analyticsTables, params.isSkipMasterTable() );
         
         clock.logTime( "Created analytics tables" );
         notifier.notify( taskId, "Populating analytics tables" );
         
-        populateTables( analyticsTable );
+        populateTables( analyticsTables );
         
         clock.logTime( "Populated analytics tables" );
         notifier.notify( taskId, "Applying aggregation levels" );
         
-        applyAggregationLevels( analyticsTable );
+        applyAggregationLevels( analyticsTables );
         
         clock.logTime( "Applied aggregation levels" );
         notifier.notify( taskId, "Creating indexes" );
         
-        createIndexes( analyticsTable );
+        createIndexes( analyticsTables );
         
         clock.logTime( "Created indexes" );
         notifier.notify( taskId, "Analyzing analytics tables" );
         
-        tableManager.analyzeTable( analyticsTable );
+        analyzeTables( analyticsTables );
         
         clock.logTime( "Analyzed tables" );
         notifier.notify( taskId, "Swapping analytics tables" );
         
-        swapTable( analyticsTable, params.isSkipMasterTable() );
+        swapTables( analyticsTables, params.isSkipMasterTable() );
         
         clock.logTime( "Swapped tables" );
         notifier.notify( taskId, "Clearing caches" );
@@ -186,13 +188,23 @@ public class DefaultAnalyticsTableService
     // Supportive methods
     // -------------------------------------------------------------------------
     
-    private void populateTables( AnalyticsTable table )
+    private void createTables( List<AnalyticsTable> tables, boolean skipMasterTable )
     {
-        int taskNo = Math.min( getProcessNo(), table.getPartitionTables().size() );
+        for ( AnalyticsTable table : tables )
+        {
+            tableManager.createTable( table, skipMasterTable );
+        }
+    }
+    
+    private void populateTables( List<AnalyticsTable> tables )
+    {
+        List<AnalyticsTablePartition> partitions = getTablePartitions( tables );
+        
+        int taskNo = Math.min( getProcessNo(), partitions.size() );
         
         log.info( "Populate table task number: " + taskNo );
         
-        ConcurrentLinkedQueue<AnalyticsTablePartition> partitionQ = new ConcurrentLinkedQueue<>( table.getPartitionTables() );
+        ConcurrentLinkedQueue<AnalyticsTablePartition> partitionQ = new ConcurrentLinkedQueue<>( partitions );
         
         List<Future<?>> futures = new ArrayList<>();
         
@@ -204,8 +216,10 @@ public class DefaultAnalyticsTableService
         ConcurrentUtils.waitForCompletion( futures );
     }
     
-    private void applyAggregationLevels( AnalyticsTable table )
+    private void applyAggregationLevels( List<AnalyticsTable> tables )
     {
+        List<AnalyticsTablePartition> partitions = getTablePartitions( tables );
+        
         int maxLevels = organisationUnitService.getNumberOfOrganisationalLevels();
         
         boolean hasAggLevels = false;
@@ -224,7 +238,7 @@ public class DefaultAnalyticsTableService
 
             hasAggLevels = true;
             
-            ConcurrentLinkedQueue<AnalyticsTablePartition> partitionQ = new ConcurrentLinkedQueue<>( table.getPartitionTables() );
+            ConcurrentLinkedQueue<AnalyticsTablePartition> partitionQ = new ConcurrentLinkedQueue<>( partitions );
 
             List<Future<?>> futures = new ArrayList<>();
             
@@ -238,15 +252,17 @@ public class DefaultAnalyticsTableService
         
         if ( hasAggLevels )
         {
-            vacuumTables( table );
+            vacuumTables( tables );
 
             log.info( "Vacuumed tables" );
         }
     }
 
-    private void vacuumTables( AnalyticsTable table )
+    private void vacuumTables( List<AnalyticsTable> tables )
     {
-        ConcurrentLinkedQueue<AnalyticsTablePartition> partitionQ = new ConcurrentLinkedQueue<>( table.getPartitionTables() );
+        List<AnalyticsTablePartition> partitions = getTablePartitions( tables );
+        
+        ConcurrentLinkedQueue<AnalyticsTablePartition> partitionQ = new ConcurrentLinkedQueue<>( partitions );
         
         List<Future<?>> futures = new ArrayList<>();
         
@@ -258,19 +274,22 @@ public class DefaultAnalyticsTableService
         ConcurrentUtils.waitForCompletion( futures );        
     }
     
-    private void createIndexes( AnalyticsTable table )
+    private void createIndexes( List<AnalyticsTable> tables )
     {
         ConcurrentLinkedQueue<AnalyticsIndex> indexes = new ConcurrentLinkedQueue<>();
         
-        List<AnalyticsTableColumn> columns = table.getDimensionColumns();
-        
-        for ( AnalyticsTablePartition partition : table.getPartitionTables() )
-        {   
-            for ( AnalyticsTableColumn col : columns )
-            {
-                if ( !col.isSkipIndex() )
+        for ( AnalyticsTable table : tables )
+        {
+            List<AnalyticsTableColumn> columns = table.getDimensionColumns();
+            
+            for ( AnalyticsTablePartition partition : table.getPartitionTables() )
+            {   
+                for ( AnalyticsTableColumn col : columns )
                 {
-                    indexes.add( new AnalyticsIndex( partition.getTempTableName(), col.getName(), col.getIndexType() ) );
+                    if ( !col.isSkipIndex() )
+                    {
+                        indexes.add( new AnalyticsIndex( partition.getTempTableName(), col.getName(), col.getIndexType() ) );
+                    }
                 }
             }
         }
@@ -286,12 +305,23 @@ public class DefaultAnalyticsTableService
 
         ConcurrentUtils.waitForCompletion( futures );
     }
+    
+    private void analyzeTables( List<AnalyticsTable> tables )
+    {
+        for ( AnalyticsTable table : tables )
+        {
+            tableManager.analyzeTable( table );
+        }
+    }
 
-    private void swapTable( AnalyticsTable table, boolean skipMasterTable )
+    private void swapTables( List<AnalyticsTable> tables, boolean skipMasterTable )
     {
         resourceTableService.dropAllSqlViews();
         
-        tableManager.swapTable( table, skipMasterTable );
+        for ( AnalyticsTable table : tables )
+        {
+            tableManager.swapTable( table, skipMasterTable );
+        }
 
         resourceTableService.createAllSqlViews();
     }
@@ -309,5 +339,12 @@ public class DefaultAnalyticsTableService
         cores = ( cores == null || cores == 0 ) ? SystemUtils.getCpuCores() : cores;
                         
         return cores > 2 ? ( cores - 1 ) : cores;
+    }
+    
+    private List<AnalyticsTablePartition> getTablePartitions( List<AnalyticsTable> tables )
+    {
+        final List<AnalyticsTablePartition> partitions = Lists.newArrayList();
+        tables.stream().forEach( p -> partitions.addAll( p.getPartitionTables() ) );
+        return partitions;
     }
 }

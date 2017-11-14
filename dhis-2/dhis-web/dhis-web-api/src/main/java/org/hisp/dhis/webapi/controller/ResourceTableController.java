@@ -45,6 +45,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.table.AnalyticsTableType;
 
 import java.util.HashSet;
@@ -109,7 +110,14 @@ public class ResourceTableController
             skipTableTypes.add( AnalyticsTableType.ENROLLMENT );
         }
         
-        scheduler.executeTask( () -> analyticsTableGenerator.generateTables( lastYears, taskId, skipTableTypes, skipResourceTables ) );
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
+            .withLastYears( lastYears )
+            .withTaskId( taskId )
+            .withSkipTableTypes( skipTableTypes )
+            .withSkipResourceTables( skipResourceTables )
+            .build();
+        
+        scheduler.executeTask( () -> analyticsTableGenerator.generateTables( params ) );
         
         webMessageService.send( WebMessageUtils.ok( "Initiated analytics table update" ), response, request );
     }

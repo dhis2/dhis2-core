@@ -83,7 +83,7 @@ public class AnalyticsTable
     /**
      * Adds an analytics partition table to this master table.
      * 
-     * @param year the year.s
+     * @param year the year.
      * @param startDate the start date.
      * @param endDate the end date.
      * @return this analytics table.
@@ -96,19 +96,7 @@ public class AnalyticsTable
         this.partitionTables.add( partitionTable );
         return this;
     }
-    
-    /**
-     * Adds an analytics partition table to this master table without a year.
-     * 
-     * @return this analytics table.
-     */
-    public AnalyticsTable addPartitionTable()
-    {
-        AnalyticsTablePartition partitionTable = new AnalyticsTablePartition( this, null, null, null, false ); //TODO approval        
-        this.partitionTables.add( partitionTable );
-        return this;
-    }
-    
+        
     public String getTableName()
     {
         String name = baseName;

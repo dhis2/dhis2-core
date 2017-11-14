@@ -90,9 +90,9 @@ public class JdbcAnalyticsTableManager
 
     @Override
     @Transactional
-    public AnalyticsTable getAnalyticsTable( Date earliest )
+    public List<AnalyticsTable> getAnalyticsTables( Date earliest )
     {
-        return getAnalyticsTable( getDataYears( earliest ), getDimensionColumns( null ), getValueColumns() );
+        return Lists.newArrayList( getAnalyticsTable( getDataYears( earliest ), getDimensionColumns( null ), getValueColumns() ) );
     }
     
     @Override

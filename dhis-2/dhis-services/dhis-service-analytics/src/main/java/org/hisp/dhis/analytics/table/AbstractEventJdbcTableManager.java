@@ -28,15 +28,12 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.common.ValueType;
 import org.springframework.scheduling.annotation.Async;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
@@ -46,14 +43,6 @@ import java.util.concurrent.Future;
 public abstract class AbstractEventJdbcTableManager
     extends AbstractJdbcTableManager
 {
-    @Override
-    public void createMasterTable( AnalyticsTable table )
-    {
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
-        
-        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns, table.getProgram() ) );
-    }
-    
     @Override
     @Async
     public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions,

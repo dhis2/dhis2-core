@@ -32,6 +32,7 @@ import org.hisp.dhis.analytics.table.AnalyticsTableType;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
@@ -58,7 +59,7 @@ public interface AnalyticsTableManager
      * @param earliest the start date for the first year to generate table partitions.
      * @return the analytics table with partitions.
      */
-    AnalyticsTable getAnalyticsTable( Date earliest );
+    List<AnalyticsTable> getAnalyticsTables( Date earliest );
     
     /**
      * Returns a list of existing analytics database table names.

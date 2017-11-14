@@ -62,9 +62,9 @@ public class JdbcOrgUnitTargetTableManager
     
     @Override
     @Transactional
-    public AnalyticsTable getAnalyticsTable( Date earliest )
+    public List<AnalyticsTable> getAnalyticsTables( Date earliest )
     {
-        return new AnalyticsTable( getTableName(), getDimensionColumns(), getValueColumns() );
+        return Lists.newArrayList( new AnalyticsTable( getTableName(), getDimensionColumns(), getValueColumns() ) );
     }
 
     @Override

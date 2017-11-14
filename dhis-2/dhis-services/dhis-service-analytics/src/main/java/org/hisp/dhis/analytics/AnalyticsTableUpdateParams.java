@@ -8,9 +8,7 @@ import org.hisp.dhis.scheduling.TaskId;
 import com.google.common.base.MoreObjects;
 
 public class AnalyticsTableUpdateParams
-{
-    private AnalyticsTable analyticsTable;
-    
+{    
     private Integer lastYears;
     
     private boolean skipMasterTable;
@@ -24,11 +22,6 @@ public class AnalyticsTableUpdateParams
     // -------------------------------------------------------------------------
     // Get methods
     // -------------------------------------------------------------------------
-
-    public AnalyticsTable getAnalyticsTable()
-    {
-        return analyticsTable;
-    }
 
     public Integer getLastYears()
     {
@@ -63,7 +56,6 @@ public class AnalyticsTableUpdateParams
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-            .add( "analytics table", analyticsTable )
             .add( "last years", lastYears )
             .add( "skip master table", skipMasterTable )
             .add( "skip resource tables", skipResourceTables )
@@ -75,6 +67,11 @@ public class AnalyticsTableUpdateParams
     // Builder of immutable instances
     // -------------------------------------------------------------------------
 
+    public static Builder newBuilder()
+    {
+        return new AnalyticsTableUpdateParams.Builder();
+    }
+    
     /**
      * Builder for {@link DataQueryParams} instances.
      */
@@ -86,13 +83,7 @@ public class AnalyticsTableUpdateParams
         {
             this.params = new AnalyticsTableUpdateParams();
         }
-        
-        public Builder withAnalyticsTable( AnalyticsTable analyticsTable )
-        {
-            this.params.analyticsTable = analyticsTable;
-            return this;
-        }
-        
+                
         public Builder withLastYears( Integer lastYears )
         {
             this.params.lastYears = lastYears;

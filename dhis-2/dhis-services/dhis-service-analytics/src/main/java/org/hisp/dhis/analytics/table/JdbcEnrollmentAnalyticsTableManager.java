@@ -64,22 +64,17 @@ public class JdbcEnrollmentAnalyticsTableManager
     {
         return AnalyticsTableType.ENROLLMENT;
     }
+
+    @Override
+    public void createMasterTable( AnalyticsTable table )
+    {        
+        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns( table.getProgram() ), Lists.newArrayList(), table.getProgram() ) );
+    }
     
     @Override
     @Transactional
-    public AnalyticsTable getAnalyticsTable( Date earliest )
-    {
-        return getTables();
-    }
-    
-    @Override
-    public Set<String> getExistingDatabaseTables()
-    {
-        return new HashSet<>();
-    }
-    
-    private List<AnalyticsTable> getTables() 
-    {
+    public List<AnalyticsTable> getAnalyticsTables( Date earliest )
+    {        
         List<AnalyticsTable> tables = new UniqueArrayList<>();
         List<Program> programs = idObjectManager.getAllNoAcl( Program.class );
 
@@ -87,16 +82,22 @@ public class JdbcEnrollmentAnalyticsTableManager
         
         for ( Program program : programs )
         {
-            AnalyticsTable table = new AnalyticsTable( baseName, null, null, program );
-            List<AnalyticsTableColumn> dimensionColumns = getDimensionColumns( table );
-            table.setDimensionColumns( dimensionColumns );
+            List<AnalyticsTableColumn> dimensionColumns = getDimensionColumns( program );
             
+            AnalyticsTable table = new AnalyticsTable( baseName, dimensionColumns, Lists.newArrayList(), program );
+                        
             tables.add( table );
         }
         
         return tables;
     }
     
+    @Override
+    public Set<String> getExistingDatabaseTables()
+    {
+        return new HashSet<>();
+    }
+        
     @Override
     protected void populateTable( AnalyticsTablePartition partition )
     {

@@ -35,7 +35,6 @@ import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategory;
@@ -67,18 +66,24 @@ public class JdbcEventAnalyticsTableManager
     {
         return AnalyticsTableType.EVENT;
     }
+
+    @Override
+    public void createMasterTable( AnalyticsTable table )
+    {        
+        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns( table.getProgram() ), Lists.newArrayList(), table.getProgram() ) );
+    }
     
     @Override
     @Transactional
-    public AnalyticsTable getAnalyticsTable( Date earliest )
+    public List<AnalyticsTable> getAnalyticsTables( Date earliest )
     {
         log.info( String.format( "Get tables using earliest: %s, spatial support: %b", earliest, databaseInfo.isSpatialSupport() ) );
 
+        List<AnalyticsTable> tables = new ArrayList<>();
+        
         Calendar calendar = PeriodType.getCalendar();
         
         String baseName = getTableName();
-
-        AnalyticsTable table = new AnalyticsTable( baseName, dimensionColumns );
         
         List<Program> programs = idObjectManager.getAllNoAcl( Program.class );
         
@@ -87,16 +92,19 @@ public class JdbcEventAnalyticsTableManager
             List<Integer> dataYears = getDataYears( program, earliest );
 
             Collections.sort( dataYears );
+
+            List<AnalyticsTableColumn> dimensionColumns = getDimensionColumns( program );
+
+            AnalyticsTable table = new AnalyticsTable( baseName, dimensionColumns, Lists.newArrayList(), program );
             
             for ( Integer year : dataYears )
             {
                 Period period = PartitionUtils.getPeriod( calendar, year );
                 
-                AnalyticsTable table = new AnalyticsTable( baseName, null, period, program );
-                List<AnalyticsTableColumn> dimensionColumns = getDimensionColumns( table );
-                table.setDimensionColumns( dimensionColumns );
-                tables.add( table );
+                table.addPartitionTable( year, period.getStartDate(), period.getEndDate() );
             }
+            
+            tables.add( table );
         }
 
         return tables;
