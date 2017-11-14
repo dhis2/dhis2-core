@@ -18,5 +18,6 @@ public interface JobInstance
      * @param jobConfiguration  the configuration of the job
      * @param schedulingManager manager of scheduling
      */
-    void execute( JobConfiguration jobConfiguration, SchedulingManager schedulingManager, MessageService messageService );
+    void execute( JobConfiguration jobConfiguration, SchedulingManager schedulingManager, MessageService messageService )
+        throws Exception;
 }

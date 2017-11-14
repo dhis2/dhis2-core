@@ -142,7 +142,7 @@ public class CompleteDataSetRegistrationController
     // GET
     // -------------------------------------------------------------------------
 
-    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 } )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
     @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_XML )
     public void getCompleteRegistrationsXml(
         @RequestParam Set<String> dataSet,
@@ -169,7 +169,7 @@ public class CompleteDataSetRegistrationController
         registrationExchangeService.writeCompleteDataSetRegistrationsXml( params, response.getOutputStream() );
     }
 
-    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 } )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
     @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_JSON )
     public void getCompleteRegistrationsJson(
         @RequestParam Set<String> dataSet,
@@ -236,7 +236,7 @@ public class CompleteDataSetRegistrationController
     // POST
     // -------------------------------------------------------------------------
 
-    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 } )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
     @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_XML )
     public void postCompleteRegistrationsXml(
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response
@@ -256,7 +256,7 @@ public class CompleteDataSetRegistrationController
         }
     }
 
-    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 } )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
     @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_JSON )
     public void postCompleteRegistrationsJson(
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response
@@ -280,6 +280,7 @@ public class CompleteDataSetRegistrationController
 
     @ApiVersion( { DhisApiVersion.V23, DhisApiVersion.V24, DhisApiVersion.V25, } )
     @RequestMapping( method = RequestMethod.POST, produces = "text/plain" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void saveCompleteDataSetRegistration(
         @RequestParam String ds,
         @RequestParam String pe,

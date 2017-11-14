@@ -51,7 +51,8 @@ public class IdentityPopulator
         "dataelementcategoryoption", "categoryoptionid",
         "dataelementcategory", "categoryid",
         "program_attributes", "programtrackedentityattributeid",
-        "users", "userid"
+        "users", "userid",
+        "smscommands","smscommandid"
     );
 
     private List<String> tables = new ArrayList<>();

@@ -22,7 +22,7 @@ public class TestJob
         System.out.println( "job configuration message: " + parameters.getMessage() + ", sleep for 60 seconds" );
         try
         {
-            Thread.sleep( 60000 );
+            Thread.sleep( 10000 );
         }
         catch ( InterruptedException e )
         {

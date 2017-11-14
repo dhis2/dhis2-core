@@ -28,15 +28,14 @@ package org.hisp.dhis.system;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.springframework.beans.BeanUtils;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
 
 /**
  * @author Lars Helge Overland
@@ -87,7 +86,7 @@ public class SystemInfo
     private String cacheProvider;
 
     private String readOnlyMode;
-    
+
     private String nodeId;
 
     private String javaVersion;
@@ -113,9 +112,9 @@ public class SystemInfo
     private Integer cpuCores;
 
     private boolean encryption;
-    
+
     private String systemId;
-    
+
     private String systemName;
 
     private String systemMetadataVersion;
@@ -125,6 +124,10 @@ public class SystemInfo
     private Date lastMetadataVersionSyncAttempt;
 
     private boolean isMetadataSyncEnabled;
+
+    private MetadataAudit metadataAudit;
+
+    private RabbitMQ rabbitMQ;
 
     public SystemInfo instance()
     {
@@ -154,6 +157,7 @@ public class SystemInfo
         this.readReplicaCount = null;
         this.memoryInfo = null;
         this.cpuCores = null;
+        this.metadataAudit = null;
 
         if ( this.databaseInfo != null )
         {
@@ -583,5 +587,29 @@ public class SystemInfo
     public boolean getIsMetadataSyncEnabled()
     {
         return isMetadataSyncEnabled;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public MetadataAudit getMetadataAudit()
+    {
+        return metadataAudit;
+    }
+
+    public void setMetadataAudit( MetadataAudit metadataAudit )
+    {
+        this.metadataAudit = metadataAudit;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public RabbitMQ getRabbitMQ()
+    {
+        return rabbitMQ;
+    }
+
+    public void setRabbitMQ( RabbitMQ rabbitMQ )
+    {
+        this.rabbitMQ = rabbitMQ;
     }
 }

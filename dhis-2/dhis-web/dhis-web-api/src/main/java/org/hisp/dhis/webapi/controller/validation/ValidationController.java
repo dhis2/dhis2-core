@@ -42,10 +42,9 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.scheduling.Scheduler;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.validation.ValidationAnalysisParams;
 import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.ValidationSummary;
-import org.hisp.dhis.validation.notification.ValidationResultNotificationJob;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -119,7 +118,12 @@ public class ValidationController
 
         ValidationSummary summary = new ValidationSummary();
 
-        summary.setValidationRuleViolations( new ArrayList<>( validationService.startInteractiveValidationAnalysis( dataSet, period, orgUnit, attributeOptionCombo ) ) );
+
+        ValidationAnalysisParams params = validationService.newParamsBuilder( dataSet, orgUnit, period )
+            .withAttributeOptionCombo( attributeOptionCombo )
+            .build();
+
+        summary.setValidationRuleViolations( new ArrayList<>( validationService.validationAnalysis( params ) ) );
         summary.setCommentRequiredViolations( validationService.validateRequiredComments( dataSet, period, orgUnit, attributeOptionCombo ) );
 
         return summary;
@@ -131,7 +135,8 @@ public class ValidationController
     public void runValidationNotificationsTask( HttpServletResponse response, HttpServletRequest request )
     {
         // HH validate
-        JobConfiguration validationResultNotification = new JobConfiguration("validation result notification from validation controller", JobType.VALIDATION_RESULTS_NOTIFICATION, "", null, true, false );
+        JobConfiguration validationResultNotification = new JobConfiguration("validation result notification from validation controller", JobType.VALIDATION_RESULTS_NOTIFICATION, "", null,
+            false );
 
         scheduler.executeJob( validationResultNotification );
 

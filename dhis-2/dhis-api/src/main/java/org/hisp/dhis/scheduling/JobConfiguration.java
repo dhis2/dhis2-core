@@ -40,13 +40,13 @@ public class JobConfiguration
 
     private Date lastExecuted;
 
-    private JobStatus lastExecutedStatus = JobStatus.SCHEDULED;
+    private JobStatus lastExecutedStatus;
 
-    private JobParameters jobParameters = null;
-
-    private boolean enabled;
+    private JobParameters jobParameters;
 
     private boolean continuousExecution;
+
+    private boolean configurable = true;
 
     private Date nextExecutionTime;
 
@@ -55,13 +55,12 @@ public class JobConfiguration
     }
 
     public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
-        boolean enabled, boolean continuousExecution )
+        boolean continuousExecution )
     {
         this.name = name;
         this.cronExpression = cronExpression;
         this.jobType = jobType;
         this.jobParameters = jobParameters;
-        this.enabled = enabled;
         this.continuousExecution = continuousExecution;
         setNextExecutionTime( null );
     }
@@ -96,11 +95,6 @@ public class JobConfiguration
         this.jobParameters = jobParameters;
     }
 
-    public void setEnabled( boolean enabled )
-    {
-        this.enabled = enabled;
-    }
-
     public void setNextExecutionTime( Date nextExecutionTime )
     {
         if ( nextExecutionTime != null )
@@ -117,6 +111,11 @@ public class JobConfiguration
     public void setContinuousExecution( boolean continuousExecution )
     {
         this.continuousExecution = continuousExecution;
+    }
+
+    public void setConfigurable( boolean configurable )
+    {
+        this.configurable = configurable;
     }
 
     @JacksonXmlProperty
@@ -164,13 +163,6 @@ public class JobConfiguration
 
     @JacksonXmlProperty
     @JsonProperty
-    public boolean getEnabled()
-    {
-        return enabled;
-    }
-
-    @JacksonXmlProperty
-    @JsonProperty
     public Date getNextExecutionTime()
     {
         return nextExecutionTime;
@@ -181,6 +173,13 @@ public class JobConfiguration
     public boolean isContinuousExecution()
     {
         return continuousExecution;
+    }
+
+    @JacksonXmlProperty
+    @JsonProperty
+    public boolean isConfigurable()
+    {
+        return configurable;
     }
 
     public JobId getJobId()
@@ -200,7 +199,8 @@ public class JobConfiguration
     {
         return "Name: " + name +
             "\nType: " + jobType +
-            "\nEnabled: " + enabled +
+            "\nStatus: " + jobStatus +
+            "\nConfigurable: " + configurable +
             "\nCron expression: " + cronExpression +
             "\nNext execution time: " + nextExecutionTime;
     }

@@ -38,7 +38,6 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.validation.scheduling.MonitoringJob;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -127,7 +126,8 @@ public class ResourceTableController
     public void monitoring( HttpServletResponse response, HttpServletRequest request )
     {
         // HH verify
-        JobConfiguration monitoringJob = new JobConfiguration( "monitoring from resource table controller", JobType.MONITORING, "", new MonitoringJobParameters(), true, false );
+        JobConfiguration monitoringJob = new JobConfiguration( "monitoring from resource table controller", JobType.MONITORING, "", new MonitoringJobParameters(),
+            false );
 
         scheduler.executeJob( monitoringJob );
 

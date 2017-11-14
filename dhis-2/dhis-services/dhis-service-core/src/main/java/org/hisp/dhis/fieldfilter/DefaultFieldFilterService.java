@@ -179,6 +179,12 @@ public class DefaultFieldFilterService implements FieldFilterService
         return buildNode( fieldMap, klass, object, schema.getName(), defaults );
     }
 
+    private boolean shouldExclude( Object object, Defaults defaults )
+    {
+        return Defaults.EXCLUDE == defaults && IdentifiableObject.class.isInstance( object ) &&
+            Preheat.isDefaultClass( (IdentifiableObject) object ) && "default".equals( ((IdentifiableObject) object).getName() );
+    }
+
     private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object, String nodeName, Defaults defaults )
     {
         Schema schema = schemaService.getDynamicSchema( klass );
@@ -191,9 +197,10 @@ public class DefaultFieldFilterService implements FieldFilterService
             return new SimpleNode( schema.getName(), null );
         }
 
-        if ( Defaults.EXCLUDE == defaults && IdentifiableObject.class.isInstance( object )
-            && Preheat.isDefaultClass( (IdentifiableObject) object ) )
+
+        if ( shouldExclude( object, defaults ) )
         {
+            System.err.println( "Exclude: " + object );
             return null;
         }
 
@@ -245,8 +252,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                     {
                         for ( Object collectionObject : collection )
                         {
-                            if ( !(Defaults.EXCLUDE == defaults && IdentifiableObject.class.isInstance( collectionObject )
-                                && Preheat.isDefaultClass( (IdentifiableObject) collectionObject )) )
+                            if ( !shouldExclude( collectionObject, defaults ) )
                             {
                                 child.addChild( getProperties( property, collectionObject, fields ) );
                             }
@@ -260,7 +266,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                         {
                             Node node = buildNode( map, property.getItemKlass(), collectionObject, defaults );
 
-                            if ( !node.getChildren().isEmpty() )
+                            if ( node != null && !node.getChildren().isEmpty() )
                             {
                                 child.addChild( node );
                             }
@@ -280,8 +286,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                 }
                 else if ( property.isIdentifiableObject() && isProperIdObject( property.getKlass() ) )
                 {
-                    if ( !(Defaults.EXCLUDE == defaults && IdentifiableObject.class.isInstance( returnValue )
-                        && Preheat.isDefaultClass( (IdentifiableObject) returnValue )) )
+                    if ( !shouldExclude( returnValue, defaults ) )
                     {
                         child = getProperties( property, returnValue, fields );
                     }

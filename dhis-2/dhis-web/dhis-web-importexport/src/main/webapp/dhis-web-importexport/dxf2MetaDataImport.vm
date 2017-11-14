@@ -22,17 +22,13 @@
 </tr>
 <tr id="csvImportTr" style="display:none">
 	<td>$i18n.getString( "object_type" )</td>
-	<td><select id="classKey" name="classKey" style="width:190px">
-        <option value="dataelement">$i18n.getString( "data_element" )</option>
-        <option value="dataelementgroup">$i18n.getString( "data_element_group" )</option>
-        <option value="categoryoption">$i18n.getString( "category_option" )</option>
-        <option value="categoryoptiongroup">$i18n.getString( "category_option_group" )</option>
-        <option value="organisationunit">$i18n.getString( "organisation_unit" )</option>
-        <option value="organisationunitgroup">$i18n.getString( "organisation_unit_group" )</option>
-        <option value="validationrule">$i18n.getString( "validation_rule" )</option>
-        <option value="optionset">$i18n.getString( "option_set" )</option>
-        <option value="translation">$i18n.getString( "translation" )</option>
-    </select></td>
+	<td>
+        <select id="classKey" name="classKey" style="width:190px">
+            #foreach( $clazz in $csvImportClasses) )
+                <option value="$clazz">$i18n.getString( $clazz.getName() )</option>
+            #end
+        </select>
+    </td>
 </tr>
 <tr>
 	<td>$i18n.getString( "dry_run" )</td>

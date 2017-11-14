@@ -73,7 +73,8 @@ public class DataIntegrityController
         JobId jobId = new JobId( JobType.DATA_INTEGRITY, currentUserService.getCurrentUser().getUid() );
         notifier.clear( jobId );
 
-        JobConfiguration jobConfiguration = new JobConfiguration( "runAsyncDataIntegrity", JobType.DATA_INTEGRITY, null, null, true, false );
+        JobConfiguration jobConfiguration = new JobConfiguration( "runAsyncDataIntegrity", JobType.DATA_INTEGRITY, null, null,
+            false );
         schedulingManager.executeJob( jobConfiguration );
 
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.DATA_INTEGRITY );

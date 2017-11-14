@@ -107,7 +107,16 @@ public class SpringScheduler
     public void executeJob( JobConfiguration jobConfiguration )
     {
         DefaultJobInstance jobInstance = new DefaultJobInstance();
-        ListenableFuture<?> future = jobExecutor.submitListenable( () -> jobInstance.execute( jobConfiguration, schedulingManager, messageService ) );
+        ListenableFuture<?> future = jobExecutor.submitListenable( () -> {
+            try
+            {
+                jobInstance.execute( jobConfiguration, schedulingManager, messageService );
+            }
+            catch ( Exception e )
+            {
+                e.printStackTrace();
+            }
+        } );
         currentTasks.put( jobConfiguration.getUid(), future );
     }
 
@@ -123,8 +132,17 @@ public class SpringScheduler
         if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) )
         {
             ScheduledFuture<?> future = jobScheduler
-                .schedule( () -> job.execute( jobConfiguration ) , new CronTrigger( jobConfiguration
-                .getCronExpression() ) );
+                .schedule( () -> {
+                    try
+                    {
+                        job.execute( jobConfiguration );
+                    }
+                    catch ( Exception e )
+                    {
+                        e.printStackTrace();
+                    }
+                }, new CronTrigger( jobConfiguration
+                    .getCronExpression() ) );
 
             futures.put( jobConfiguration.getUid(), future );
 
@@ -142,7 +160,16 @@ public class SpringScheduler
         DefaultJobInstance jobInstance = new DefaultJobInstance();
         if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) ) {
             ScheduledFuture<?> future = jobScheduler
-                    .schedule(() -> jobInstance.execute(jobConfiguration, schedulingManager, messageService), new CronTrigger( jobConfiguration.getCronExpression() ));
+                    .schedule( () -> {
+                        try
+                        {
+                            jobInstance.execute( jobConfiguration, schedulingManager, messageService );
+                        }
+                        catch ( Exception e )
+                        {
+                            e.printStackTrace();
+                        }
+                    }, new CronTrigger( jobConfiguration.getCronExpression() ));
 
             futures.put(jobConfiguration.getUid(), future);
 
@@ -158,7 +185,16 @@ public class SpringScheduler
     public void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration, Date delay, int interval )
     {
         DefaultJobInstance jobInstance = new DefaultJobInstance();
-        ScheduledFuture<?> future = jobScheduler.scheduleWithFixedDelay( () -> jobInstance.execute( jobConfiguration, schedulingManager, messageService ), delay,60000 );
+        ScheduledFuture<?> future = jobScheduler.scheduleWithFixedDelay( () -> {
+            try
+            {
+                jobInstance.execute( jobConfiguration, schedulingManager, messageService );
+            }
+            catch ( Exception e )
+            {
+                e.printStackTrace();
+            }
+        }, delay,60000 );
 
         futures.put( jobConfiguration.getUid(), future );
 

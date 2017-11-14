@@ -29,12 +29,14 @@ public class DefaultJobInstance implements JobInstance
 
     public void execute( JobConfiguration jobConfiguration, SchedulingManager schedulingManager,
         MessageService messageService )
+        throws Exception
     {
         final Clock clock = new Clock().startClock();
 
         if ( !schedulingManager.isJobConfigurationRunning( jobConfiguration ) )
         {
             jobConfiguration.setJobStatus( JobStatus.RUNNING );
+            jobConfiguration.setNextExecutionTime( null );
             schedulingManager.jobConfigurationStarted( jobConfiguration );
 
             try

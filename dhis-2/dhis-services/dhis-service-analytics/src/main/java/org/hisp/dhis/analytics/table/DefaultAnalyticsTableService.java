@@ -115,7 +115,7 @@ public class DefaultAnalyticsTableService
         }
                 
         final List<AnalyticsTable> tables = tableManager.getTables( earliest );
-                
+
         clock.logTime( "Table update start: " + tableName + ", partitions: " + tables + ", last years: " + lastYears + ", earliest: " + earliest );
         notifier.notify( jobId, "Performing pre-create table work, org unit levels: " + orgUnitLevelNo );
         
@@ -123,7 +123,6 @@ public class DefaultAnalyticsTableService
         
         clock.logTime( "Performed pre-create table work" );
         notifier.notify( jobId, "Creating analytics tables" );
-        
         createTables( tables );
         
         clock.logTime( "Created analytics tables" );
@@ -164,7 +163,7 @@ public class DefaultAnalyticsTableService
     public void dropTables()
     {
         Set<String> tables = tableManager.getExistingDatabaseTables();
-        
+
         tables.forEach( table -> tableManager.dropTable( table ) );
         
         log.info( "Analytics tables dropped" );

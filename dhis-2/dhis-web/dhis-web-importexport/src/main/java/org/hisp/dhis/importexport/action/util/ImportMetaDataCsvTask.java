@@ -30,7 +30,7 @@ package org.hisp.dhis.importexport.action.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.csv.CsvImportClass;
 import org.hisp.dhis.dxf2.csv.CsvImportService;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -59,10 +59,10 @@ public class ImportMetaDataCsvTask
 
     private final InputStream inputStream;
 
-    private final Class<? extends IdentifiableObject> clazz;
+    private final CsvImportClass importClass;
 
     public ImportMetaDataCsvTask( MetadataImportService importService, CsvImportService csvImportService, SchemaService schemaService,
-        MetadataImportParams importParams, InputStream inputStream, Class<? extends IdentifiableObject> clazz )
+        MetadataImportParams importParams, InputStream inputStream, CsvImportClass importClass )
     {
         super();
         this.importService = importService;
@@ -70,7 +70,7 @@ public class ImportMetaDataCsvTask
         this.schemaService = schemaService;
         this.importParams = importParams;
         this.inputStream = inputStream;
-        this.clazz = clazz;
+        this.importClass = importClass;
     }
 
     // -------------------------------------------------------------------------
@@ -84,7 +84,7 @@ public class ImportMetaDataCsvTask
 
         try
         {
-            metadata = csvImportService.fromCsv( inputStream, clazz );
+            metadata = csvImportService.fromCsv( inputStream, importClass );
             importParams.addMetadata( schemaService.getMetadataSchemas(), metadata );
 
             log.info( "Read CSV file. Importing metadata." );

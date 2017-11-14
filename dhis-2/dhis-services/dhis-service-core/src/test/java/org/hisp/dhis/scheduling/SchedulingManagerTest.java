@@ -43,9 +43,11 @@ public class SchedulingManagerTest
     extends DhisSpringTest
 {
     private String CRON_EVERY_MIN = "0 * * ? * *";
+
     private String CRON_EVERY_SEC = "* * * ? * *";
 
     private JobConfiguration jobA;
+
     private JobConfiguration jobB;
 
     @Autowired
@@ -56,7 +58,7 @@ public class SchedulingManagerTest
 
     private void verifyScheduledJobs( int expectedFutureJobs )
     {
-        assertEquals(expectedFutureJobs, schedulingManager.getAllFutureJobs().size());
+        assertEquals( expectedFutureJobs, schedulingManager.getAllFutureJobs().size() );
     }
 
     private void createAndSchedule()
@@ -64,13 +66,12 @@ public class SchedulingManagerTest
         TestJobParameters jobConfigurationParametersA = new TestJobParameters();
         jobConfigurationParametersA.setMessage( "parameters A" );
 
-        jobA = new JobConfiguration( "jobA", JobType.TEST, CRON_EVERY_MIN, jobConfigurationParametersA, true, false );
-
+        jobA = new JobConfiguration( "jobA", JobType.TEST, CRON_EVERY_MIN, jobConfigurationParametersA, false );
 
         TestJobParameters jobConfigurationParametersB = new TestJobParameters();
         jobConfigurationParametersB.setMessage( "parameters B" );
 
-        jobB = new JobConfiguration( "jobB", JobType.TEST, CRON_EVERY_SEC, jobConfigurationParametersB, true, false );
+        jobB = new JobConfiguration( "jobB", JobType.TEST, CRON_EVERY_SEC, jobConfigurationParametersB, false );
 
         jobConfigurationService.addJobConfiguration( jobA );
         jobConfigurationService.addJobConfiguration( jobB );
@@ -150,7 +151,7 @@ public class SchedulingManagerTest
             e.printStackTrace();
         }
 
-        JobConfiguration jobC = new JobConfiguration( "jobC", JobType.TEST, "", new TestJobParameters(), true, false );
+        JobConfiguration jobC = new JobConfiguration( "jobC", JobType.TEST, "", new TestJobParameters(), false );
         schedulingManager.executeJob( jobC );
 
         verifyScheduledJobs( 2 );

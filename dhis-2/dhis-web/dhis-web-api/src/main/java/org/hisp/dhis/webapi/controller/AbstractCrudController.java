@@ -28,9 +28,6 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Enums;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
@@ -60,6 +57,7 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
@@ -85,6 +83,9 @@ import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.schema.patch.Patch;
+import org.hisp.dhis.schema.patch.PatchParams;
+import org.hisp.dhis.schema.patch.PatchService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.translation.ObjectTranslation;
 import org.hisp.dhis.user.CurrentUserService;
@@ -101,7 +102,6 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -115,13 +115,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -130,6 +128,8 @@ import java.util.stream.Collectors;
 public abstract class AbstractCrudController<T extends IdentifiableObject>
 {
     protected static final WebOptions NO_WEB_OPTIONS = new WebOptions( new HashMap<>() );
+
+    protected static final String DEFAULTS = "INCLUDE";
 
     //--------------------------------------------------------------------------
     // Dependencies
@@ -183,6 +183,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     @Autowired
     protected MergeService mergeService;
 
+    @Autowired
+    protected PatchService patchService;
+
     //--------------------------------------------------------------------------
     // GET
     //--------------------------------------------------------------------------
@@ -233,7 +236,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
 
-        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( entities, fields ) ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(),
+            new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) ) ) );
 
         return rootNode;
     }
@@ -367,6 +371,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PATCH )
+    @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void partialUpdateObject(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
         HttpServletRequest request, HttpServletResponse response ) throws Exception
@@ -388,70 +393,29 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
-        String payload = StreamUtils.copyToString( request.getInputStream(), Charset.forName( "UTF-8" ) );
-        List<String> properties = new ArrayList<>();
-        T object = null;
+        Patch patch = null;
 
         if ( isJson( request ) )
         {
-            properties = getJsonProperties( payload );
-            object = renderService.fromJson( payload, getEntityClass() );
+            patch = patchService.diff(
+                new PatchParams( DefaultRenderService.getJsonMapper().readTree( request.getInputStream() ) )
+            );
         }
         else if ( isXml( request ) )
         {
-            properties = getXmlProperties( payload );
-            object = renderService.fromXml( payload, getEntityClass() );
+            patch = patchService.diff(
+                new PatchParams( DefaultRenderService.getXmlMapper().readTree( request.getInputStream() ) )
+            );
         }
 
-        prePatchEntity( persistedObject, object );
-
-        properties = getPersistedProperties( properties );
-
-        if ( properties.isEmpty() || object == null )
-        {
-            response.setStatus( HttpServletResponse.SC_NO_CONTENT );
-            return;
-        }
-
-        Schema schema = getSchema();
-
-        for ( String keyProperty : properties )
-        {
-            Property property = schema.getProperty( keyProperty );
-
-            Object value = property.getGetterMethod().invoke( object );
-            property.getSetterMethod().invoke( persistedObject, value );
-        }
-
+        prePatchEntity( persistedObject );
+        patchService.apply( patch, persistedObject );
         manager.update( persistedObject );
         postPatchEntity( persistedObject );
     }
 
-    private List<String> getJsonProperties( String payload ) throws IOException
-    {
-        ObjectMapper mapper = DefaultRenderService.getJsonMapper();
-        JsonNode root = mapper.readTree( payload );
-
-        return Lists.newArrayList( root.fieldNames() );
-    }
-
-    private List<String> getXmlProperties( String payload ) throws IOException
-    {
-        XmlMapper mapper = DefaultRenderService.getXmlMapper();
-        JsonNode root = mapper.readTree( payload );
-
-        return Lists.newArrayList( root.fieldNames() );
-    }
-
-    private List<String> getPersistedProperties( List<String> properties )
-    {
-        List<String> persistedProperties = new ArrayList<>();
-        persistedProperties.addAll( properties.stream().filter( getSchema()::havePersistedProperty ).collect( Collectors.toList() ) );
-
-        return persistedProperties;
-    }
-
     @RequestMapping( value = "/{uid}/{property}", method = { RequestMethod.PUT, RequestMethod.PATCH } )
+    @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void updateObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty, @RequestParam Map<String, String> rpParameters,
         HttpServletRequest request, HttpServletResponse response ) throws Exception
@@ -523,7 +487,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             postProcessEntity( entity, options, parameters );
         }
 
-        CollectionNode collectionNode = fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( entities, fields ) );
+        CollectionNode collectionNode = fieldFilterService.toCollectionNode( getEntityClass(),
+            new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) ) );
 
         if ( options.isTrue( "useWrapper" ) || entities.size() > 1 )
         {
@@ -1010,7 +975,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     {
     }
 
-    protected void prePatchEntity( T entity, T newEntity ) throws Exception
+    protected void prePatchEntity( T entity ) throws Exception
     {
     }
 
@@ -1047,6 +1012,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         List<T> entityList;
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
         query.setDefaultOrder();
+        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
         if ( options.getOptions().containsKey( "query" ) )
         {

@@ -33,12 +33,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
-import org.hisp.dhis.system.jep.ArithmeticMean;
 import org.nfunk.jep.JEP;
 import org.nfunk.jep.ParseException;
 import org.nfunk.jep.function.PostfixMathCommandI;
 
 import com.google.common.collect.ImmutableMap;
+
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 /**
  * @author Kenneth Haase
@@ -52,7 +53,7 @@ public class CustomFunctions
         put( "MIN", new MinValue() ).put( "COUNT", new Count() ).
         put( "SUM", new VectorSum() ).build();
     
-    public static final Pattern AGGREGATE_PATTERN_PREFIX = Pattern.compile( "(AVG|STDDEV|MEDIAN|MAX|MIN|COUNT|SUM)\\s*\\(" );
+    public static final Pattern AGGREGATE_PATTERN_PREFIX = Pattern.compile( "(AVG|STDDEV|MEDIAN|MAX|MIN|COUNT|SUM)\\s*\\(", CASE_INSENSITIVE );
 
     public static void addFunctions( JEP parser )
     {        

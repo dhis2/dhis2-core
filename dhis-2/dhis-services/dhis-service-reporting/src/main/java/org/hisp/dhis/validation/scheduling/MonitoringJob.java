@@ -28,13 +28,22 @@ package org.hisp.dhis.validation.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.api.client.util.Sets;
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.validation.ValidationAnalysisParams;
+import org.hisp.dhis.validation.ValidationRule;
+import org.hisp.dhis.validation.ValidationRuleService;
 import org.hisp.dhis.validation.ValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Collection;
 
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
@@ -48,6 +57,12 @@ public class MonitoringJob
 {
     @Autowired
     private ValidationService validationService;
+
+    @Autowired
+    private ValidationRuleService validationRuleService;
+
+    @Autowired
+    private OrganisationUnitService organisationUnitService;
 
     @Autowired
     private Notifier notifier;
@@ -72,16 +87,31 @@ public class MonitoringJob
         
         try
         {
-            validationService.startScheduledValidationAnalysis();
-            
+            Collection<ValidationRule> validationRules = validationRuleService.getValidationRulesWithNotificationTemplates();
+            Collection<OrganisationUnit> organisationUnits = organisationUnitService.getAllOrganisationUnits();
+            Collection<Period> periods = Sets.newHashSet();
+
+            validationRules.stream().map( ValidationRule::getPeriodType ).distinct().forEach( (pt) -> {
+                periods.add( pt.createPeriod() );
+                periods.add( pt.getPreviousPeriod( pt.createPeriod() ));
+            } );
+
+            ValidationAnalysisParams parameters = validationService.newParamsBuilder( validationRules, organisationUnits, periods )
+                .withMaxResults( ValidationService.MAX_SCHEDULED_ALERTS )
+                .withSendNotifications( false )
+                .withPersistResults( true )
+                .build();
+
+            validationService.validationAnalysis( parameters );
+
             notifier.notify( jobConfiguration.getJobId(), INFO, "Monitoring process done", true );
         }
         catch ( RuntimeException ex )
         {
             notifier.notify( jobConfiguration.getJobId(), ERROR, "Process failed: " + ex.getMessage(), true );
-            
+
             messageService.sendSystemErrorNotification( "Monitoring process failed", ex );
-            
+
             throw ex;
         }
     }

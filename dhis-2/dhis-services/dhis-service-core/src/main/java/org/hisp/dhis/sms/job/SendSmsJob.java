@@ -38,15 +38,9 @@ import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class SendSmsJob
     implements Job
@@ -60,9 +54,6 @@ public class SendSmsJob
 
     @Autowired
     private OutboundSmsService outboundSmsService;
-
-    @Autowired
-    private UserService userService;
 
     // -------------------------------------------------------------------------
     // I18n
@@ -78,23 +69,11 @@ public class SendSmsJob
     public void execute( JobConfiguration jobConfiguration )
     {
         SmsJobParameters parameters = (SmsJobParameters) jobConfiguration.getJobParameters();
+        OutboundSms sms = new OutboundSms( parameters.getSmsSubject(), parameters.getMessage(), parameters.getRecipientsList().toString() );
 
         notifier.notify( jobConfiguration.getJobId(), "Sending SMS" );
 
-        List<User> userList = new ArrayList<>();
-        parameters.getRecipientsList().forEach( userUid -> {
-            if ( userUid != null )
-            {
-                userList.add( userService.getUser( userUid ) );
-            }
-        } );
-
-        OutboundMessageResponse status = smsSender.sendMessage( parameters.getSmsSubject(), parameters.getText(), null, null, new HashSet<>( userList ), false );
-
-        OutboundSms sms = new OutboundSms();
-        sms.setMessage( parameters.getText() );
-
-        sms.setRecipients( userList.stream().map( User::getPhoneNumber ).collect( Collectors.toSet() ) );
+        OutboundMessageResponse status = smsSender.sendMessage( sms.getSubject(), sms.getMessage(), sms.getRecipients() );
 
         if ( status.isOk() )
         {

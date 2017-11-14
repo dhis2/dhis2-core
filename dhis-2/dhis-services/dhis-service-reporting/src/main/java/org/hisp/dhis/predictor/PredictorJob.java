@@ -16,7 +16,7 @@ public class PredictorJob
     implements Job
 {
     @Autowired
-    private PredictorService predictorService;
+    private PredictionService predictionService;
 
     @Override
     public JobType getJobType()
@@ -39,6 +39,6 @@ public class PredictorJob
         Date startDate = predictorJobParameters.getStartDate();
         Date endDate = predictorJobParameters.getEndDate();
 
-        predictorService.predictPredictors( predictors, startDate, endDate );
+        predictionService.predictPredictors( predictors, startDate, endDate );
     }
 }

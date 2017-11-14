@@ -30,8 +30,10 @@ package org.hisp.dhis.deletedobject;
  */
 
 import com.google.common.base.MoreObjects;
+import org.apache.commons.lang.BooleanUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.PagerUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -55,7 +57,9 @@ public class DeletedObjectQuery
 
     private Date deletedAt;
 
-    private boolean skipPaging;
+    private Boolean skipPaging;
+
+    private Boolean paging;
 
     private int page = 1;
 
@@ -122,12 +126,22 @@ public class DeletedObjectQuery
 
     public boolean isSkipPaging()
     {
-        return skipPaging;
+        return PagerUtils.isSkipPaging( skipPaging, paging );
     }
 
-    public void setSkipPaging( boolean skipPaging )
+    public void setSkipPaging( Boolean skipPaging )
     {
         this.skipPaging = skipPaging;
+    }
+
+    public boolean isPaging()
+    {
+        return BooleanUtils.toBoolean( paging );
+    }
+
+    public void setPaging( Boolean paging )
+    {
+        this.paging = paging;
     }
 
     public int getPage()
@@ -162,7 +176,7 @@ public class DeletedObjectQuery
 
     public Pager getPager()
     {
-        return skipPaging ? null : new Pager( page, total, pageSize );
+        return  PagerUtils.isSkipPaging( skipPaging, paging ) ?  null : new Pager( page, total, pageSize );
     }
 
     @Override

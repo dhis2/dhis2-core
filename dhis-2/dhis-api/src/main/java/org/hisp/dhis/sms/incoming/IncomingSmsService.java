@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Date;
 
 import org.hisp.dhis.sms.MessageQueue;
+import org.hisp.dhis.user.User;
 
 /**
  * Service providing support for retrieving incoming SMSes.
@@ -53,7 +54,7 @@ public interface IncomingSmsService
 
     int save( IncomingSms sms );
 
-    int save( String message, String originator, String gateway, Date receivedTime );
+    int save( String message, String originator, String gateway, Date receivedTime, User user );
 
     void setIncomingSmsQueue( MessageQueue incomingSmsQueue );
 

@@ -1,10 +1,11 @@
 function submitMessage()
 {
     userCount().done(function(o) {
-        if( o.userCount > 200 ) {
-            setHeaderDelayMessage(i18n_selected_more_than_200_user.replace("{userCount}", o.userCount))
-        } else {
+        if( o.userCount > 0 ) {
             $( "#messageForm" ).submit();
+        }
+        else{
+            setHeaderMessage( i18n_select_one_or_more_recipients );
         }
     });
 }

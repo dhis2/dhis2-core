@@ -15,20 +15,22 @@ import static org.junit.Assert.assertNull;
  * @author Henning Håkonsen
  */
 public class JobConfigurationServiceTest
-        extends DhisSpringTest
+    extends DhisSpringTest
 {
     @Autowired
     private JobConfigurationService jobConfigurationService;
 
-    private String CRON_EVERY_MIN = "0 * * ? * *";
-
     private JobConfiguration jobA;
+
     private JobConfiguration jobB;
 
     @Override
-    protected void setUpTest() throws Exception {
-        jobA = new JobConfiguration( "jobA", JobType.TEST, CRON_EVERY_MIN, new TestJobParameters( "test" ), true, false );
-        jobB = new JobConfiguration( "jobB", JobType.DATA_INTEGRITY, CRON_EVERY_MIN, null, true, false );
+    protected void setUpTest()
+        throws Exception
+    {
+        String CRON_EVERY_MIN = "0 * * ? * *";
+        jobA = new JobConfiguration( "jobA", JobType.TEST, CRON_EVERY_MIN, new TestJobParameters( "test" ), false );
+        jobB = new JobConfiguration( "jobB", JobType.DATA_INTEGRITY, CRON_EVERY_MIN, null, false );
 
         jobConfigurationService.addJobConfiguration( jobA );
         jobConfigurationService.addJobConfiguration( jobB );
@@ -38,15 +40,17 @@ public class JobConfigurationServiceTest
     public void testGetJob()
     {
         List<JobConfiguration> jobConfigurationList = jobConfigurationService.getAllJobConfigurations();
-        assertEquals(  "The number of job configurations does not match",6, jobConfigurationList.size() );
+        assertEquals( "The number of job configurations does not match", 7, jobConfigurationList.size() );
 
         assertEquals( JobType.TEST, jobConfigurationService.getJobConfigurationByUid( jobA.getUid() ).getJobType() );
-        TestJobParameters jobParameters = (TestJobParameters) jobConfigurationService.getJobConfigurationByUid( jobA.getUid() ).getJobParameters();
+        TestJobParameters jobParameters = (TestJobParameters) jobConfigurationService
+            .getJobConfigurationByUid( jobA.getUid() ).getJobParameters();
 
         assertNotNull( jobParameters );
         assertEquals( "test", jobParameters.getMessage() );
 
-        assertEquals( JobType.DATA_INTEGRITY, jobConfigurationService.getJobConfigurationByUid( jobB.getUid() ).getJobType() );
+        assertEquals( JobType.DATA_INTEGRITY,
+            jobConfigurationService.getJobConfigurationByUid( jobB.getUid() ).getJobType() );
         assertNull( jobConfigurationService.getJobConfigurationByUid( jobB.getUid() ).getJobParameters() );
     }
 

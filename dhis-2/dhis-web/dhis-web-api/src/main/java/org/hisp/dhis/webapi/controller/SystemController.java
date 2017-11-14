@@ -59,6 +59,8 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -113,7 +115,7 @@ public class SystemController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = { "/uid", "/id" }, method = RequestMethod.GET, produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
-    public @ResponseBody RootNode getUid( @RequestParam( required = false, defaultValue = "1" ) Integer limit )
+    public @ResponseBody RootNode getUid( @RequestParam( required = false, defaultValue = "1" ) Integer limit, HttpServletResponse response )
         throws IOException, InvalidTypeException
     {
         limit = Math.min( limit, 10000 );
@@ -126,6 +128,8 @@ public class SystemController
         {
             collectionNode.addChild( new SimpleNode( "code", CodeGenerator.generateUid() ) );
         }
+
+        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
 
         return rootNode;
     }
@@ -155,7 +159,7 @@ public class SystemController
     }
 
     @RequestMapping( value = "/uuid", method = RequestMethod.GET, produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
-    public @ResponseBody RootNode getUuid( @RequestParam( required = false, defaultValue = "1" ) Integer limit )
+    public @ResponseBody RootNode getUuid( @RequestParam( required = false, defaultValue = "1" ) Integer limit, HttpServletResponse response )
         throws IOException, InvalidTypeException
     {
         limit = Math.min( limit, 10000 );
@@ -168,6 +172,8 @@ public class SystemController
         {
             collectionNode.addChild( new SimpleNode( "code", UUID.randomUUID().toString() ) );
         }
+
+        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
 
         return rootNode;
     }
@@ -187,18 +193,20 @@ public class SystemController
             notifications = notifier.getNotifications( jobId, lastId );
         }
 
+        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+
         renderService.toJson( response.getOutputStream(), notifications );
     }
 
     @RequestMapping( value = "/taskSummaries/{category}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    public void getTaskSummaryJson( HttpServletResponse response, @PathVariable( "category" ) String category ) throws IOException
+    public void getTaskSummaryJson( @PathVariable( "category" ) String category, HttpServletResponse response ) throws IOException
     {
         if ( category != null )
         {
             JobType jobType = JobType.valueOf( category.toUpperCase() );
 
             JobId jobId = new JobId(jobType, currentUserService.getCurrentUser().getUid() );
-            
+
             Object summary = notifier.getTaskSummary( jobId );
 
             if ( summary != null && summary.getClass().isAssignableFrom( ImportSummary.class ) ) //TODO improve this
@@ -214,11 +222,13 @@ public class SystemController
             }
         }
 
+        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+
         renderService.toJson( response.getOutputStream(), new ImportSummary() );
     }
 
     @RequestMapping( value = "/info", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
-    public @ResponseBody SystemInfo getSystemInfo( Model model, HttpServletRequest request )
+    public @ResponseBody SystemInfo getSystemInfo( Model model, HttpServletRequest request, HttpServletResponse response )
     {
         SystemInfo info = systemService.getSystemInfo();
 
@@ -229,6 +239,8 @@ public class SystemController
         {
             info.clearSensitiveInfo();
         }
+
+        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
 
         return info;
     }
@@ -248,7 +260,7 @@ public class SystemController
     }
 
     @RequestMapping( value = "/ping", method = RequestMethod.GET, produces = "text/plain" )
-    @ApiVersion( exclude = { DhisApiVersion.V24, DhisApiVersion.V25, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 } )
+    @ApiVersion( exclude = { DhisApiVersion.V24, DhisApiVersion.V25, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
     public @ResponseBody String pingLegacy()
     {
         return "pong";

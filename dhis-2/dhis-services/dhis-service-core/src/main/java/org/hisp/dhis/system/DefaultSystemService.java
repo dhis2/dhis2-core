@@ -59,6 +59,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -68,7 +69,7 @@ public class DefaultSystemService
     implements SystemService
 {
     private static final Log log = LogFactory.getLog( DefaultSystemService.class );
-    
+
     @Autowired
     private LocationManager locationManager;
 
@@ -77,7 +78,7 @@ public class DefaultSystemService
 
     @Autowired
     private ConfigurationService configurationService;
-    
+
     @Autowired
     private DhisConfigurationProvider dhisConfig;
 
@@ -99,7 +100,7 @@ public class DefaultSystemService
     public void initFixedInfo( ContextRefreshedEvent event )
     {
         systemInfo = getFixedSystemInfo();
-        
+
         List<String> info = ImmutableList.<String>builder()
             .add( "Version: " + systemInfo.getVersion() )
             .add( "revision: " + systemInfo.getRevision() )
@@ -108,7 +109,7 @@ public class DefaultSystemService
             .add( "database type: " + systemInfo.getDatabaseInfo().getType() )
             .add( "Java version: " + systemInfo.getJavaVersion() )
             .build();
-        
+
         log.info( StringUtils.join( info, ", " ) );
     }
 
@@ -120,7 +121,7 @@ public class DefaultSystemService
     public SystemInfo getSystemInfo()
     {
         SystemInfo info = systemInfo.instance();
-        
+
         if ( info == null )
         {
             return null;
@@ -220,6 +221,36 @@ public class DefaultSystemService
         info.setReadReplicaCount( dataSourceManager.getReadReplicaCount() );
 
         // ---------------------------------------------------------------------
+        // Metadata Audit
+        // ---------------------------------------------------------------------
+
+        info.setMetadataAudit( new MetadataAudit(
+            Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_PERSIST ), "on" ),
+            Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_LOG ), "on" )
+        ) );
+
+        // ---------------------------------------------------------------------
+        // RabbitMQ
+        // ---------------------------------------------------------------------
+
+        RabbitMQ rabbitMQ = new RabbitMQ(
+            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_HOST ),
+            Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PORT ) ),
+            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_USERNAME ),
+            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PASSWORD )
+        );
+
+        rabbitMQ.setExchange( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_EXCHANGE ) );
+        rabbitMQ.setAddresses( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_ADDRESSES ) );
+        rabbitMQ.setVirtualHost( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_VIRTUAL_HOST ) );
+        rabbitMQ.setConnectionTimeout( Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_CONNECTION_TIMEOUT ) ) );
+
+        if ( rabbitMQ.isValid() )
+        {
+            info.setRabbitMQ( rabbitMQ );
+        }
+
+        // ---------------------------------------------------------------------
         // System env variables and properties
         // ---------------------------------------------------------------------
 
@@ -271,6 +302,6 @@ public class DefaultSystemService
             return (lastFailedMetadataSyncTime != null ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime);
         }
 
-        return ( lastSuccessfulMetadataSyncTime.compareTo( lastFailedMetadataSyncTime ) < 0 ) ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime;
+        return (lastSuccessfulMetadataSyncTime.compareTo( lastFailedMetadataSyncTime ) < 0) ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime;
     }
 }

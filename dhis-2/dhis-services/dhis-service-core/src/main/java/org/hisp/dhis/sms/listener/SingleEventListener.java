@@ -52,6 +52,8 @@ import java.util.Set;
 /**
  * Zubair <rajazubair.asghar@gmail.com>
  */
+
+@Transactional
 public class SingleEventListener
     extends BaseSMSListener
 {
@@ -124,27 +126,5 @@ public class SingleEventListener
             programInstanceService.getProgramInstances( smsCommand.getProgram(), ProgramStatus.ACTIVE ) );
 
         register( programInstances, commandValuePairs, smsCommand, sms, ous );
-    }
-
-    private Map<String, String> parseMessageInput( IncomingSms sms, SMSCommand smsCommand )
-    {
-        HashMap<String, String> output = new HashMap<>();
-
-        String message = sms.getText().substring( SmsUtils.getCommandString( sms ).length() ).trim();
-
-        String[] messageParts = StringUtils.split( message, "," );
-
-        for ( String string : messageParts )
-        {
-            String key = StringUtils.split( string,
-                smsCommand.getCodeSeparator() != null ? smsCommand.getCodeSeparator() : "=" )[0].trim();
-            
-            String value = StringUtils.split( string,
-                smsCommand.getCodeSeparator() != null ? smsCommand.getCodeSeparator() : "=" )[1].trim();
-            
-            output.put( key, value );
-        }
-
-        return output;
     }
 }

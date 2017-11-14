@@ -40,7 +40,6 @@ import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.system.util.SmsUtils;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -78,9 +77,6 @@ public class SmsMessageSender
     private List<SmsGateway> smsGateways;
 
     @Autowired
-    private CurrentUserService currentUserService;
-
-    @Autowired
     private UserSettingService userSettingService;
 
     // -------------------------------------------------------------------------
@@ -91,31 +87,22 @@ public class SmsMessageSender
     public OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender, Set<User> users,
         boolean forceSend )
     {
+        if ( users.isEmpty() )
+        {
+            log.info( GatewayResponse.NO_RECIPIENT.getResponseMessage() );
+
+            return new OutboundMessageResponse( GatewayResponse.NO_RECIPIENT.getResponseMessage(), GatewayResponse.NO_RECIPIENT, false );
+        }
+
         Set<User> toSendList = new HashSet<>();
 
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( !forceSend )
-        {
-            for ( User user : users )
-            {
-                if ( currentUser == null || !currentUser.equals( user ) )
-                {
-                    if ( isQualifiedReceiver( user ) )
-                    {
-                        toSendList.add( user );
-                    }
-                }
-            }
-        }
-        else
-        {
-            toSendList.addAll( users );
-        }
+        toSendList = users.stream().filter( u -> forceSend || isQualifiedReceiver( u ) ).collect( Collectors.toSet() );
 
         if ( toSendList.isEmpty() )
         {
-            return new OutboundMessageResponse( "No recipient found", GatewayResponse.NO_RECIPIENT, false );
+            log.info( GatewayResponse.SMS_DISABLED.getResponseMessage() );
+
+            return new OutboundMessageResponse( GatewayResponse.SMS_DISABLED.getResponseMessage(), GatewayResponse.SMS_DISABLED, false );
         }
 
         // Extract summary from text in case of COLLECTIVE_SUMMARY
@@ -133,6 +120,8 @@ public class SmsMessageSender
         return sendMessage( subject, text, recipients );
     }
 
+
+
     @Override
     public OutboundMessageResponse sendMessage( String subject, String text, Set<String> recipients )
     {
@@ -140,6 +129,8 @@ public class SmsMessageSender
 
         if ( defaultGateway == null )
         {
+            log.info( "Gateway configuration does not exist" );
+
             return new OutboundMessageResponse( NO_CONFIG, GatewayResponse.NO_GATEWAY_CONFIGURATION, false );
         }
 
@@ -183,17 +174,10 @@ public class SmsMessageSender
 
     private boolean isQualifiedReceiver( User user )
     {
-        if ( user.getFirstName() == null )
-        {
-            return true;
-        }
-        else
-        {
-            Serializable userSetting = userSettingService.getUserSetting( UserSettingKey.MESSAGE_SMS_NOTIFICATION,
-                user );
+        Serializable userSetting = userSettingService.getUserSetting( UserSettingKey.MESSAGE_SMS_NOTIFICATION,
+            user );
 
             return userSetting != null ? (Boolean) userSetting : false;
-        }
     }
 
     private OutboundMessageResponse sendMessage( String subject, String text, Set<String> recipients,

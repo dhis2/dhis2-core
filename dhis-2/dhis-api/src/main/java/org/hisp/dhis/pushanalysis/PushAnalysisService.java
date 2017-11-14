@@ -69,10 +69,10 @@ public interface PushAnalysisService
     /**
      * Used to Generate and send reports to all UserGroups assigned to the PushAnalysis,
      * using generateHtmlReport to generate the reports for each individual user in the UserGroups.
-     * @param id of the PushAnalysis
+     * @param uid of the PushAnalysis
      * @param jobId to track process
      */
-    void runPushAnalysis( int id, JobId jobId );
+    void runPushAnalysis( String uid, JobId jobId );
 
     /**
      * Refreshes the scheduling of pushAnalysis if pushAnalysis is eligible to be scheduled

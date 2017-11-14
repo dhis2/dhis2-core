@@ -36,6 +36,7 @@ import org.hisp.dhis.message.MessageConversationStatus;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
 
 import java.util.List;
 import java.util.Set;
@@ -136,8 +137,13 @@ public class ReadMessageAction
         if ( showTicketTools )
         {
             messages = conversation.getMessages();
-            feedbackRecipientGroupUsers = configurationService.getConfiguration().getFeedbackRecipients().getMembers();
 
+            UserGroup feedbackUserGroup = configurationService.getConfiguration().getFeedbackRecipients();
+
+            if ( feedbackUserGroup != null )
+            {
+                feedbackRecipientGroupUsers = configurationService.getConfiguration().getFeedbackRecipients().getMembers();
+            }
         }
         else
         {

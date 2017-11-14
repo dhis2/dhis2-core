@@ -223,6 +223,7 @@ public class JCloudsAppStorageService
 
                 app.setAppStorageSource( AppStorageSource.JCLOUDS );
                 app.setFolderName( resource.getName() );
+
                 appList.add( app );
             }
             catch ( IOException e )
@@ -266,7 +267,6 @@ public class JCloudsAppStorageService
         return reservedNamespaces;
     }
 
-    @SuppressWarnings( "Duplicates" )
     @Override
     public AppStatus installApp( File file, String filename )
     {
@@ -284,6 +284,8 @@ public class JCloudsAppStorageService
             if ( entry == null )
             {
                 log.error( "Failed to install app: Missing manifest.webapp in zip" );
+                
+                zip.close();
                 return AppStatus.MISSING_MANIFEST;
             }
 
@@ -315,7 +317,7 @@ public class JCloudsAppStorageService
 
             if ( apps.containsKey( app.getName() ) )
             {
-                deleteApp( app );
+                deleteApp( apps.get( app.getName() ) );
             }
 
             // -----------------------------------------------------------------
@@ -393,7 +395,15 @@ public class JCloudsAppStorageService
     public boolean deleteApp( App app )
     {
 
-        blobStore.deleteDirectory( config.container, app.getFolderName() );
+        log.info( "Deleting app " + app.getName() );
+
+        // Delete all files related to app
+        for ( StorageMetadata resource : blobStore.list( config.container, inDirectory( app.getFolderName() ) ) )
+        {
+            log.info( "Deleting app file: " + resource.getName() );
+
+            blobStore.removeBlob( config.container, resource.getName() );
+        }
 
         log.info( "Deleted app " + app.getName() );
 

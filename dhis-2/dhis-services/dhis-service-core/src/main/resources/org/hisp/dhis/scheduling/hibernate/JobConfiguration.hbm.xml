@@ -28,9 +28,9 @@
 
         <property name="nextExecutionTime" type="timestamp"/>
 
-        <property name="enabled" not-null="true" type="boolean"/>
-
         <property name="continuousExecution" not-null="true" type="boolean"/>
+
+        <property name="configurable" not-null="true" type="boolean" />
 
         <property name="jobParameters" not-null="false" type="serializable" length="65535" />
     </class>

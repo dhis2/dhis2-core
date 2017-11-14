@@ -28,16 +28,15 @@ package org.hisp.dhis.result;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.PrintWriter;
-
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.struts2.StrutsStatics;
 import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.Result;
-import com.opensymphony.xwork2.util.ValueStack;
 import com.opensymphony.xwork2.util.TextParseUtil;
+import com.opensymphony.xwork2.util.ValueStack;
+import org.apache.struts2.StrutsStatics;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.PrintWriter;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -87,6 +86,8 @@ public class PlainTextErrorResult
         ValueStack stack = ActionContext.getContext().getValueStack();
         String finalMessage = parse ? TextParseUtil.translateVariables( message, stack ) : message;
 
+        finalMessage = formatFinalMessage( finalMessage );
+
         // ---------------------------------------------------------------------
         // Write final message
         // ---------------------------------------------------------------------
@@ -106,5 +107,20 @@ public class PlainTextErrorResult
                 writer.close();
             }
         }
+    }
+
+    /**
+     * Remove the first colon character ( : ) if the class name does not present in the message
+     * @param message with format ${exception.class.name}: ${exception.message}
+     * @return formated message
+     */
+    private String formatFinalMessage( String message )
+    {
+        if ( message.startsWith( ":" ) )
+        {
+            return message.substring( 1, message.length() );
+        }
+
+        return message;
     }
 }

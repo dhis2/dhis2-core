@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
+import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
+import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
 
 /**
  * Custom deserializer for {@link JobConfiguration} objects. This is due to different objects
@@ -41,6 +43,15 @@ public class JobConfigurationDeserializer
         boolean continuousExecution =
             root.get( "continuousExecution" ) != null && root.get( "continuousExecution" ).asBoolean();
 
+        JobStatus jobStatus = root.get( "jobStatus" ) == null ?
+            SCHEDULED :
+            JobStatus.valueOf( root.get( "jobStatus" ).asText( "SCHEDULED" ) );
+
+        if ( jobStatus != SCHEDULED && jobStatus != DISABLED )
+        {
+            throw new IOException( "Given jobStatus '" + jobStatus + "' is not allowed to set by users. Only allowed value is 'DISABLED'." );
+        }
+
         String cronExpression = mapper.convertValue( root.get( "cronExpression" ), String.class );
         if ( !continuousExecution )
         {
@@ -51,7 +62,11 @@ public class JobConfigurationDeserializer
             cronExpression = "0 * * ? * *";
         }
 
-        return new JobConfiguration( root.get( "name" ).textValue(), jobType, cronExpression, jobParameters, enabled,
+        JobConfiguration jobConfiguration = new JobConfiguration( root.get( "name" ).textValue(), jobType,
+            cronExpression, jobParameters,
             continuousExecution );
+        jobConfiguration.setJobStatus( jobStatus );
+
+        return jobConfiguration;
     }
 }

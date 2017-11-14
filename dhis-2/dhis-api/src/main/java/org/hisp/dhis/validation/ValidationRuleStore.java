@@ -28,11 +28,9 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
 import java.util.List;
 
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.hisp.dhis.dataelement.DataElement;
 
 /**
  * @author Chau Thu Tran
@@ -44,13 +42,10 @@ public interface ValidationRuleStore
     String ID = ValidationRuleStore.class.getName();
 
     /**
-     * Returns all ValidationRules which are associated through their left or
-     * right side Expression with the given collection of DataElements.
-     * 
-     * @param dataElements the collection of DataElements.
-     * @return a collection of ValidationRules.
+     * Returns all ValidationRules that should be used for form validation.
+     * @return
      */
-    List<ValidationRule> getValidationRulesByDataElements( Collection<DataElement> dataElements );
+    List<ValidationRule> getAllFormValidationRules();
 
     /**
      * Returns all ValidationRules which have associated ValidationNotificationTemplates.

@@ -39,6 +39,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.render.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.render.ParseDateStdDeserializer;
@@ -58,7 +59,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Implementation of EventService that uses Jackson for serialization and 
+ * Implementation of EventService that uses Jackson for serialization and
  * deserialization. This class has the prototype scope and can hence have
  * class scoped variables such as caches.
  *
@@ -265,6 +266,11 @@ public class JacksonEventService extends AbstractEventService
         else
         {
             clock.logTime( "Import done" );
+        }
+
+        if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
+        {
+            importSummaries.getImportSummaries().removeIf( is -> is.getConflicts().isEmpty() );
         }
 
         return importSummaries;

@@ -228,10 +228,16 @@ public class HibernateDbmsManager
         emptyTable( "programstageinstance" );
         emptyTable( "programinstance" );
         emptyTable( "programstage_dataelements" );
+        emptyTable( "programstagedataelement" );
         emptyTable( "programstage" );
         emptyTable( "program_organisationunits" );
         emptyTable( "programusergroupaccesses" );
+        emptyTable( "program_attributes" );
+        emptyTable( "programindicator" );
         emptyTable( "program" );
+
+        emptyTable( "trackedentityattributevalue" );
+        emptyTable( "trackedentityattribute" );
         emptyTable( "trackedentityinstance" );
 
         emptyTable( "minmaxdataelement" );

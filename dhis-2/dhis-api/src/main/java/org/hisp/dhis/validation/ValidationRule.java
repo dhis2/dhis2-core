@@ -34,9 +34,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.expression.Expression;
@@ -51,11 +49,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * HH extends OK?
  * @author Kristian Nordal
  */
 @JacksonXmlRootElement( localName = "validationRule", namespace = DxfNamespaces.DXF_2_0 )
 public class ValidationRule
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseDataDimensionalItemObject implements MetadataObject
 {
     /**
      * A description of the ValidationRule.
@@ -94,6 +93,16 @@ public class ValidationRule
     private Expression rightSide;
 
     /**
+     * Skip this rule when validating forms.
+     */
+    private boolean skipFormValidation;
+
+    /**
+     * Validation Rule will only be run for organisation units at these levels (or all levels if set is empty)
+     */
+    private Set<Integer> organisationUnitLevels = new HashSet<>(  );
+
+    /**
      * The set of ValidationRuleGroups to which this ValidationRule belongs.
      */
     private Set<ValidationRuleGroup> groups = new HashSet<>();
@@ -113,23 +122,14 @@ public class ValidationRule
     }
 
     public ValidationRule( String name, String description, Operator operator, Expression leftSide,
-        Expression rightSide )
+        Expression rightSide, boolean skipFormValidation )
     {
         this.name = name;
         this.description = description;
         this.operator = operator;
         this.leftSide = leftSide;
         this.rightSide = rightSide;
-    }
-
-    public ValidationRule( String name, String description, Operator operator, Expression leftSide,
-        Expression rightSide, Expression skipTest )
-    {
-        this.name = name;
-        this.description = description;
-        this.operator = operator;
-        this.leftSide = leftSide;
-        this.rightSide = rightSide;
+        this.skipFormValidation = skipFormValidation;
     }
 
     // -------------------------------------------------------------------------
@@ -294,6 +294,18 @@ public class ValidationRule
         this.rightSide = rightSide;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSkipFormValidation()
+    {
+        return skipFormValidation;
+    }
+
+    public void setSkipFormValidation( boolean skipFormValidation )
+    {
+        this.skipFormValidation = skipFormValidation;
+    }
+
     @JsonProperty( "validationRuleGroups" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "validationRuleGroups", namespace = DxfNamespaces.DXF_2_0 )
@@ -319,5 +331,20 @@ public class ValidationRule
     public void setNotificationTemplates( Set<ValidationNotificationTemplate> notificationTemplates )
     {
         this.notificationTemplates = notificationTemplates;
+    }
+
+    @JsonProperty
+    @JsonSerialize( contentAs = IdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "organisationUnitLevels", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<Integer> getOrganisationUnitLevels()
+    {
+        return organisationUnitLevels;
+    }
+
+    public void setOrganisationUnitLevels(
+        Set<Integer> organisationUnitLevels )
+    {
+        this.organisationUnitLevels = organisationUnitLevels;
     }
 }

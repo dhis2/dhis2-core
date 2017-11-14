@@ -108,7 +108,7 @@ public class ObjectBundle
     private final boolean skipValidation;
 
     /**
-     * Task id to use for threaded imports.
+     * Job id to use for threaded imports.
      */
     private JobId jobId;
 

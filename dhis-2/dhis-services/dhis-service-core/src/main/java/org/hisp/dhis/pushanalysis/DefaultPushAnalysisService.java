@@ -182,13 +182,13 @@ public class DefaultPushAnalysisService
     }
 
     @Override
-    public void runPushAnalysis( int id, JobId jobId )
+    public void runPushAnalysis( String uid, JobId jobId )
     {
         //----------------------------------------------------------------------
         // Set up
         //----------------------------------------------------------------------
 
-        PushAnalysis pushAnalysis = pushAnalysisStore.get( id );
+        PushAnalysis pushAnalysis = pushAnalysisStore.getByUid( uid );
         Set<User> receivingUsers = new HashSet<>();
         notifier.clear( jobId );
 
@@ -201,28 +201,28 @@ public class DefaultPushAnalysisService
         if ( !setPushAnalysisIsRunningFlag( pushAnalysis, true ) )
         {
             log( jobId, NotificationLevel.ERROR,
-                "PushAnalysis with id '" + id + "' is already running. Terminating new PushAnalysis job.", true, null );
+                "PushAnalysis with uid '" + uid + "' is already running. Terminating new PushAnalysis job.", true, null );
             return;
         }
 
         if ( pushAnalysis == null )
         {
             log( jobId, NotificationLevel.ERROR,
-                "PushAnalysis with id '" + id + "' was not found. Terminating PushAnalysis", true, null );
+                "PushAnalysis with uid '" + uid + "' was not found. Terminating PushAnalysis", true, null );
             return;
         }
 
         if ( pushAnalysis.getRecipientUserGroups().size() == 0 )
         {
             log( jobId, NotificationLevel.ERROR,
-                "PushAnalysis with id '" + id + "' has no userGroups assigned. Terminating PushAnalysis.", true, null );
+                "PushAnalysis with uid '" + uid + "' has no userGroups assigned. Terminating PushAnalysis.", true, null );
             return;
         }
 
         if ( pushAnalysis.getDashboard() == null )
         {
             log( jobId, NotificationLevel.ERROR,
-                "PushAnalysis with id '" + id + "' has no dashboard assigned. Terminating PushAnalysis.", true, null );
+                "PushAnalysis with uid '" + uid + "' has no dashboard assigned. Terminating PushAnalysis.", true, null );
             return;
         }
 

@@ -28,15 +28,15 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+
+import java.util.List;
 
 /**
  * @author Halvdan Hoem Grelland
  */
 public interface FollowupAnalysisService
 {
-    List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, int limit );
+    List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, String dataSetId, int limit );
 }

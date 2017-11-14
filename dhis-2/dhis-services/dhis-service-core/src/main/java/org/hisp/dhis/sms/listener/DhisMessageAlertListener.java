@@ -29,13 +29,13 @@ package org.hisp.dhis.sms.listener;
  */
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.ParserType;
@@ -43,17 +43,14 @@ import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserService;
 import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
+@Transactional
 public class DhisMessageAlertListener
     extends BaseSMSListener
 {
@@ -64,9 +61,6 @@ public class DhisMessageAlertListener
 
     @Autowired
     private SMSCommandService smsCommandService;
-
-    @Autowired
-    private UserService userService;
 
     @Autowired
     private MessageService messageService;
@@ -97,7 +91,7 @@ public class DhisMessageAlertListener
 
         if ( userGroup != null )
         {
-            Collection<User> users = userService.getUsersByPhoneNumber( senderPhoneNumber );
+            Collection<User> users = Collections.singleton( sms.getUser() );
 
             if ( users != null && users.size() > 1 )
             {
@@ -122,7 +116,7 @@ public class DhisMessageAlertListener
                 User sender = users.iterator().next();
 
                 Set<User> receivers = new HashSet<>( userGroup.getMembers() );
-                messageService.sendMessage( smsCommand.getName(), message, null, receivers, sender, MessageType.SYSTEM, false );
+                messageService.sendMessage( new MessageConversationParams.Builder( receivers, sender, smsCommand.getName(), message, MessageType.SYSTEM ).build() );
 
                 Set<User> feedbackList = new HashSet<>();
                 feedbackList.add( sender );

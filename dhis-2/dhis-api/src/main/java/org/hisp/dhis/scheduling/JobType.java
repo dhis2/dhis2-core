@@ -43,6 +43,7 @@ public enum JobType
     {{
         put( "predictor", "/api/predictors" );
     }} ),
+    DATASET_NOTIFICATION( "dataSetNotification", null, null ),
     TEST( "test", TestJobParameters.class, null ),
 
     // To satifisfy code that used the old enum TaskCategory

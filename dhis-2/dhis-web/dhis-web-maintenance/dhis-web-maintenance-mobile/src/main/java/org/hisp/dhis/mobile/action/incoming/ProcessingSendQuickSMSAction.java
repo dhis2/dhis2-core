@@ -33,11 +33,13 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opensymphony.xwork2.Action;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
-import org.hisp.dhis.scheduling.*;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
 import org.hisp.dhis.system.notification.Notifier;
@@ -256,9 +258,10 @@ public class ProcessingSendQuickSMSAction
         JobId jobId = new JobId( JobType.SMS_SEND, currentUser.getUid() );
         notifier.clear( jobId );
 
-        SmsJobParameters jobParameters = new SmsJobParameters(smsSubject, text, recipientsList.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toList()), text );
+        SmsJobParameters jobParameters = new SmsJobParameters( "", text, recipientsList.stream().map( User::getPhoneNumber ).collect( Collectors.toList() ) );
 
-        JobConfiguration processingSendSmsJobConfiguration = new JobConfiguration( "processingSendSmsAction", JobType.SMS_SEND, null, jobParameters, true, false );
+        JobConfiguration processingSendSmsJobConfiguration = new JobConfiguration( "processingSendQuickSmsAction", JobType.SMS_SEND, null, jobParameters,
+            false );
 
         schedulingManager.executeJob( processingSendSmsJobConfiguration );
 

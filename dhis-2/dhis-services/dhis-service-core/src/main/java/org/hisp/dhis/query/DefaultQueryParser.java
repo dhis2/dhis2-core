@@ -145,19 +145,19 @@ public class DefaultQueryParser implements QueryParser
             {
                 return Restrictions.notLike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.ANYWHERE );
             }
-            case "^like":
+            case "$like":
             {
                 return Restrictions.like( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
             }
-            case "!^like":
+            case "!$like":
             {
                 return Restrictions.notLike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
             }
-            case "$like":
+            case "like$":
             {
                 return Restrictions.like( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.END );
             }
-            case "!$like":
+            case "!like$":
             {
                 return Restrictions.notLike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.END );
             }
@@ -170,20 +170,20 @@ public class DefaultQueryParser implements QueryParser
                 return Restrictions.notIlike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.ANYWHERE );
             }
             case "startsWith":
-            case "^ilike":
+            case "$ilike":
             {
                 return Restrictions.ilike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
             }
-            case "!^ilike":
+            case "!$ilike":
             {
                 return Restrictions.notIlike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
             }
             case "endsWith":
-            case "$ilike":
+            case "ilike$":
             {
                 return Restrictions.ilike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.END );
             }
-            case "!$ilike":
+            case "!ilike$":
             {
                 return Restrictions.notIlike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.END );
             }

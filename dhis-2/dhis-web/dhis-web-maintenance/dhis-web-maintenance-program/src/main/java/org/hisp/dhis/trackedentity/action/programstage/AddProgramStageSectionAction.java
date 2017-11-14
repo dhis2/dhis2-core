@@ -97,6 +97,13 @@ public class AddProgramStageSectionAction
     {
         this.name = name;
     }
+    
+    private String description;
+
+    public void setDescription( String description )
+    {
+        this.description = description;
+    }
 
     private List<Integer> dataElementIds;
 
@@ -135,9 +142,8 @@ public class AddProgramStageSectionAction
         
         ProgramStageSection programStageSection = new ProgramStageSection( StringUtils.trimToNull( name ), 
             dataElements, programStage.getProgramStageSections().size() );
+        programStageSection.setDescription( StringUtils.trimToNull( description ) );
         programStageSection.setAutoFields();
-
-
 
         // ---------------------------------------------------------------------
         // Program indicators
