@@ -162,14 +162,24 @@ public abstract class AbstractJdbcTableManager
     @Override
     public void swapTable( AnalyticsTable table, boolean skipMasterTable )
     {
-        final String tempTable = table.getTempTableName();
-        final String realTable = table.getTableName();
+        for ( AnalyticsTablePartition partition : table.getPartitionTables() )
+        {
+            swapTable( partition.getTempTableName(), partition.getTableName() );
+        }
         
-        final String sqlDrop = "drop table " + realTable;
+        if ( !skipMasterTable )
+        {
+            swapTable( table.getTempTableName(), table.getTableName() );
+        }
+    }
+    
+    private void swapTable( String tempTableName, String realTableName )
+    {        
+        final String sqlDrop = "drop table " + realTableName;
         
         executeSilently( sqlDrop );
         
-        final String sqlAlter = "alter table " + tempTable + " rename to " + realTable;
+        final String sqlAlter = "alter table " + tempTableName + " rename to " + realTableName;
         
         executeSilently( sqlAlter );
     }
