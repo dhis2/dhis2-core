@@ -11,6 +11,7 @@
 
         var programAttributeContainer=qs('#programAttributeContainer');
         var programAttribute = qs('#programAttribute');
+        var programrulecontainer = qs('#programrulecontainer');
 
         var notificationTrigger = qs( '#notificationTrigger' );
         var daysContainer = qs( '#daysContainer' );
@@ -73,7 +74,17 @@
         notificationTrigger.addEventListener( "change", function( e ) {
             if ( notificationTrigger.value === 'ENROLLMENT' || notificationTrigger.value == 'COMPLETION' ) {
                 daysContainer.style.display = 'none';
-            } else {
+                programrulecontainer.style.display = 'none';
+                qs( '#programrule' ).clean();
+
+            } else if ( notificationTrigger.value === 'PROGRAM_RULE' )
+            {
+                daysContainer.style.display = 'none';
+                programrulecontainer.style.display = 'table-row';
+            }
+            else {
+                programrulecontainer.style.display = 'none';
+                qs( '#programrule' ).clean();
                 daysContainer.style.display = 'table-row';
                 days.value = undefined;
             }
@@ -123,6 +134,11 @@
             var uid = qs( '#userGroup' ).value || undefined;
             return ( uid === undefined ) ? undefined : { 'id' : uid };
         }
+
+        function getProgramRule() {
+            var uid = qs( '#programrule' ).value || undefined;
+            return ( uid === undefined ) ? undefined : { 'id' : uid };
+        }
         
         function getProgramAttribute() {
             var uid = qs( '#programAttribute' ).value || undefined;
@@ -138,6 +154,7 @@
             return {
                 name : qs( '#name' ).value || '',
                 notificationTrigger : qs( '#notificationTrigger' ).value,
+                programRule:getProgramRule(),
                 relativeScheduledDays : getScheduledDays(),
                 notificationRecipient : qs( '#notificationRecipient' ).value,
                 recipientUserGroup : getUserGroup(),

@@ -34,6 +34,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
@@ -59,6 +61,13 @@ public class ShowUpdateProgramNotificationAction
     public void setUserGroupService( UserGroupService userGroupService )
     {
         this.userGroupService = userGroupService;
+    }
+
+    private ProgramRuleService programRuleService;
+
+    public void setProgramRuleService( ProgramRuleService programRuleService )
+    {
+        this.programRuleService = programRuleService;
     }
 
     // -------------------------------------------------------------------------
@@ -121,6 +130,13 @@ public class ShowUpdateProgramNotificationAction
         return emails;
     }
 
+    private ProgramRule programRule;
+
+    public ProgramRule getProgramRule()
+    {
+        return programRule;
+    }
+
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -129,6 +145,7 @@ public class ShowUpdateProgramNotificationAction
     public String execute() throws Exception
     {
         template = manager.get( ProgramNotificationTemplate.class, templateUid );
+        programRule = template.getProgramRule();
         userGroups = userGroupService.getAllUserGroups();
 
         program = manager.get( Program.class, programUid );

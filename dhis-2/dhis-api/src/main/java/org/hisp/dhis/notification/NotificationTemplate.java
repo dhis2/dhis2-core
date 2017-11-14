@@ -29,6 +29,7 @@ package org.hisp.dhis.notification;
  */
 
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.programrule.ProgramRule;
 
 import java.util.Set;
 
@@ -42,4 +43,6 @@ public interface NotificationTemplate
     String getMessageTemplate();
 
     Set<DeliveryChannel> getDeliveryChannels();
+
+    ProgramRule getProgramRule();
 }

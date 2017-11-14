@@ -34,6 +34,8 @@
                         <option value="COMPLETION">$i18n.getString( "program_completion" )</option>
                         <option value="SCHEDULED_DAYS_INCIDENT_DATE">$i18n.getString( "days_scheduled_incident_date" )</option>
                         <option value="SCHEDULED_DAYS_ENROLLMENT_DATE">$i18n.getString( "days_scheduled_enrollment_date" )</option>
+                        <option value="PROGRAM_RULE">$i18n.getString( "program_rule" )</option>
+
                     </select>
                 </td>
             </tr>
@@ -52,6 +54,21 @@
                     <input type="hidden" id="relativeScheduledDays" name="relativeScheduledDays" />
                 </td>
             </tr>
+
+            <tr id="programrulecontainer" style="display: none;">
+                <td>
+                    <label for="programrule">$i18n.getString( "program_rule" )</label>
+                </td>
+                <td>
+                    <select type="text" id="programrule" name="programrule" class="programrule">
+                        <option value="">[$i18n.getString("please_select")]</option>
+                        #foreach( $pr in $!programRules )
+                            <option value="$pr.uid">$i18n.getString( $pr.displayName )</option>
+                        #end
+                    </select>
+                </td>
+            </tr>
+
             <tr>
                 <td>
                     <label for="notificationRecipient">$i18n.getString( "recipients" )</label>

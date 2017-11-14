@@ -42,6 +42,7 @@ import org.hisp.dhis.notification.NotificationRecipient;
 import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.notification.SendStrategy;
 import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -74,6 +75,8 @@ public class DataSetNotificationTemplate
     private UserGroup recipientUserGroup;
 
     private SendStrategy sendStrategy = SendStrategy.SINGLE_NOTIFICATION;
+
+    private ProgramRule programRule;
 
     public DataSetNotificationTemplate()
     {
@@ -135,6 +138,19 @@ public class DataSetNotificationTemplate
     public void setMessageTemplate( String messageTemplate )
     {
         this.messageTemplate = messageTemplate;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramRule getProgramRule()
+    {
+        return programRule;
+    }
+
+    public void setProgramRule( ProgramRule programRule )
+    {
+        this.programRule = programRule;
     }
 
     @Override

@@ -38,6 +38,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.notification.NotificationTemplate;
+import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -74,6 +75,8 @@ public class ProgramNotificationTemplate
     private TrackedEntityAttribute recipientProgramAttribute = null;
 
     private DataElement recipientDataElement = null;
+
+    private ProgramRule programRule;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -125,6 +128,19 @@ public class ProgramNotificationTemplate
     public void setMessageTemplate( String messageTemplate )
     {
         this.messageTemplate = messageTemplate;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramRule getProgramRule()
+    {
+        return programRule;
+    }
+
+    public void setProgramRule( ProgramRule programRule )
+    {
+        this.programRule = programRule;
     }
 
     @JsonProperty

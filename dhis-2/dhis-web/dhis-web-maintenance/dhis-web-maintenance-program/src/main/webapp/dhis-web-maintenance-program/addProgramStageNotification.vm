@@ -32,6 +32,7 @@
                 <select type="text" id="notificationTrigger" name="notificationTrigger">
                     <option value="COMPLETION">$i18n.getString( "program_stage_completion" )</option>
                     <option value="SCHEDULED_DAYS_DUE_DATE">$i18n.getString( "days_scheduled_due_date" )</option>
+                    <option value="PROGRAM_RULE">$i18n.getString( "program_rule" )</option>
                 </select>
             </td>
         </tr>
@@ -48,6 +49,19 @@
                 </select>
                 $i18n.getString( "scheduled_date" )
                 <input type="hidden" id="relativeScheduledDays" name="relativeScheduledDays" />
+            </td>
+        </tr>
+        <tr id="programrulecontainer" style="display: none;">
+            <td>
+                <label for="programrule">$i18n.getString( "program_rule" )</label>
+            </td>
+            <td>
+                <select type="text" id="programrule" name="programrule" class="programrule">
+                    <option value="">[$i18n.getString("please_select")]</option>
+                    #foreach( $pr in $!programRules )
+                        <option value="$pr.uid">$i18n.getString( $pr.displayName )</option>
+                    #end
+                </select>
             </td>
         </tr>
         <tr>

@@ -37,6 +37,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.notification.SendStrategy;
+import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.validation.ValidationRule;
@@ -68,6 +69,8 @@ public class ValidationNotificationTemplate
     private Set<UserGroup> recipientUserGroups = new HashSet<>();
 
     private SendStrategy sendStrategy = SendStrategy.COLLECTIVE_SUMMARY;
+
+    private ProgramRule programRule;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -122,6 +125,19 @@ public class ValidationNotificationTemplate
     public void setMessageTemplate( String messageTemplate )
     {
         this.messageTemplate = messageTemplate;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramRule getProgramRule()
+    {
+        return programRule;
+    }
+
+    public void setProgramRule( ProgramRule programRule )
+    {
+        this.programRule = programRule;
     }
 
     @JsonProperty

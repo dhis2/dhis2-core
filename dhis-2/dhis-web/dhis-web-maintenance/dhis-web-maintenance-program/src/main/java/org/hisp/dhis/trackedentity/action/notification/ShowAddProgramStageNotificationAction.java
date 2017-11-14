@@ -34,6 +34,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
@@ -59,6 +61,13 @@ public class ShowAddProgramStageNotificationAction
     public void setUserGroupService( UserGroupService userGroupService )
     {
         this.userGroupService = userGroupService;
+    }
+
+    private ProgramRuleService programRuleService;
+
+    public void setProgramRuleService( ProgramRuleService programRuleService )
+    {
+        this.programRuleService = programRuleService;
     }
 
     // -------------------------------------------------------------------------
@@ -128,6 +137,13 @@ public class ShowAddProgramStageNotificationAction
         return emailDataElements;
     }
 
+    private List<ProgramRule> programRules;
+
+    public List<ProgramRule> getProgramRules()
+    {
+        return programRules;
+    }
+
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -136,6 +152,7 @@ public class ShowAddProgramStageNotificationAction
     public String execute() throws Exception
     {
         programStage = programStageService.getProgramStage( id );
+        programRules = programRuleService.getProgramRule( programStage.getProgram() );
         userGroups = userGroupService.getAllUserGroups();
         attributes = programStage.getProgram().getTrackedEntityAttributes();
         dataElements = programStage.getProgramStageDataElements().stream()
