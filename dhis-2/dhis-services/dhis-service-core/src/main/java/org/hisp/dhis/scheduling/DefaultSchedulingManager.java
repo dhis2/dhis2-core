@@ -122,6 +122,15 @@ public class DefaultSchedulingManager
     }
 
     @Override
+    public void scheduleJob( Date date, JobConfiguration jobConfiguration )
+    {
+        if ( !scheduler.isJobInSystem( jobConfiguration.getUid() ) )
+        {
+            scheduler.scheduleJob( date, jobConfiguration );
+        }
+    }
+
+    @Override
     public void scheduleJobs( List<JobConfiguration> jobConfigurations )
     {
         jobConfigurations.forEach( this::scheduleJob );

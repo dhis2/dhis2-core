@@ -133,6 +133,7 @@ public class JobConfigurationObjectBundleHook
         }
 
         ((JobConfiguration) object).setLastExecuted( ((JobConfiguration) persistedObject).getLastExecuted() );
+        ((JobConfiguration) object).setLastExecutedStatus( ((JobConfiguration) persistedObject).getLastExecutedStatus() );
 
         schedulingManager.stopJob( (JobConfiguration) persistedObject );
     }

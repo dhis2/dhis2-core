@@ -182,6 +182,35 @@ public class SpringScheduler
     }
 
     @Override
+    public boolean scheduleJob( Date date, JobConfiguration jobConfiguration )
+    {
+        DefaultJobInstance jobInstance = new DefaultJobInstance();
+        if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) && date != null &&
+            date.getTime() > new Date().getTime() )
+        {
+            ScheduledFuture<?> future = jobScheduler
+                .schedule( () -> {
+                    try
+                    {
+                        jobInstance.execute( jobConfiguration, schedulingManager, messageService );
+                    }
+                    catch ( Exception e )
+                    {
+                        e.printStackTrace();
+                    }
+                }, date );
+
+            futures.put( jobConfiguration.getUid(), future );
+
+            log.info( "Scheduled job with uid: " + jobConfiguration.getUid() + " and execution time: " + date );
+
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
     public void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration, Date delay, int interval )
     {
         DefaultJobInstance jobInstance = new DefaultJobInstance();
@@ -198,21 +227,21 @@ public class SpringScheduler
 
         futures.put( jobConfiguration.getUid(), future );
 
-        log.info( "Scheduled job with uid: " + jobConfiguration.getUid() + " and fixed delay" );
+        log.info( "Scheduled job with uid: " + jobConfiguration.getUid() + " and first execution time: " + delay );
     }
 
     @Override
-    public boolean stopJob( String key )
+    public boolean stopJob( String uid )
     {
-        if ( key != null )
+        if ( uid != null )
         {
-            ScheduledFuture<?> future = futures.get( key );
+            ScheduledFuture<?> future = futures.get( uid );
 
             boolean result = future != null && future.cancel( true );
 
-            futures.remove( key );
+            futures.remove( uid );
 
-            log.info( "Stopped job with key: " + key + " successfully: " + result );
+            log.info( "Stopped job with key: " + uid + " successfully: " + result );
 
             return result;
         }

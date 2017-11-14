@@ -101,6 +101,8 @@ public interface Scheduler
      */
     boolean scheduleJob( JobConfiguration jobConfiguration );
 
+    boolean scheduleJob( Date date, JobConfiguration jobConfiguration );
+
     /**
      * Schedule the given job for continuous execution
      *
@@ -113,11 +115,11 @@ public interface Scheduler
     /**
      * Deactivates scheduling of the job with the given key.
      *
-     * @param key the job key.
+     * @param uid the job uid.
      * @return true if the job was deactivated as a result of this operation,
      *         false if not.
      */
-    boolean stopJob ( String key );
+    boolean stopJob ( String uid );
 
     /**
      * Stops and starts a job with the given key. If no key exists, still start a new job

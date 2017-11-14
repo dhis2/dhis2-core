@@ -86,6 +86,8 @@ public interface SchedulingManager
      */
     void scheduleJob( JobConfiguration jobConfiguration );
 
+    void scheduleJob( Date date, JobConfiguration jobConfiguration );
+
     /**
      * Schedule a collection of jobs
      *

@@ -15,6 +15,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.scheduling.JobStatus.FAILED;
 import static org.hisp.dhis.scheduling.JobType.values;
 
 /**
@@ -46,6 +47,8 @@ public class DefaultJobConfigurationService
 
     private boolean scheduledBoot = true;
 
+    private int STARTUP_DELAY = 120 * 1000;
+
     /**
      * Reschedule old jobs.
      *
@@ -60,11 +63,13 @@ public class DefaultJobConfigurationService
         {
             Date now = new Date();
             getAllJobConfigurations().forEach( (jobConfig -> {
-                if ( !jobConfig.isContinuousExecution() && jobConfig.getNextExecutionTime().compareTo( now ) < 0 )
+                jobConfig.setNextExecutionTime( null );
+                updateJobConfiguration( jobConfig );
+
+                if ( jobConfig.getLastExecutedStatus() == FAILED ||
+                    !jobConfig.isContinuousExecution() && jobConfig.getNextExecutionTime().compareTo( now ) < 0 )
                 {
-                    jobConfig.setNextExecutionTime( null );
-                    updateJobConfiguration( jobConfig );
-                    schedulingManager.executeJob( jobConfig );
+                    schedulingManager.scheduleJob( new Date( now.getTime() + STARTUP_DELAY ), jobConfig );
                 }
                 schedulingManager.scheduleJob( jobConfig );
             }) );
