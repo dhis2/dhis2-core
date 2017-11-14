@@ -151,7 +151,7 @@ public class DefaultAnalyticsTableService
         clock.logTime( "Analyzed tables" );
         notifier.notify( taskId, "Swapping analytics tables" );
         
-        swapTables( analyticsTable, clock, taskId );
+        swapTable( analyticsTable, params.isSkipMasterTable() );
         
         clock.logTime( "Swapped tables" );
         notifier.notify( taskId, "Clearing caches" );
@@ -287,21 +287,12 @@ public class DefaultAnalyticsTableService
         ConcurrentUtils.waitForCompletion( futures );
     }
 
-    private void swapTables( AnalyticsTable table, Clock clock, TaskId taskId )
+    private void swapTable( AnalyticsTable table, boolean skipMasterTable )
     {
         resourceTableService.dropAllSqlViews();
         
-        clock.logTime( "Dropped SQL views"  );
-        notifier.notify( taskId, "Swapping tables" );
-        
-        for ( AnalyticsTable table : tables )
-        {
-            tableManager.swapTable( table );
-        }
+        tableManager.swapTable( table, skipMasterTable );
 
-        clock.logTime( "Swapped tables"  );
-        notifier.notify( taskId, "Creating SQL views" );
-        
         resourceTableService.createAllSqlViews();
     }
     

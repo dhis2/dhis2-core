@@ -64,7 +64,7 @@ public abstract class AbstractEventJdbcTableManager
 
     @Override
     @Async
-    public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
+    public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> tables )
     {
         return null; // Not needed
     }
