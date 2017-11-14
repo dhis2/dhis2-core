@@ -358,7 +358,7 @@ public abstract class AbstractJdbcTableManager
 
             executeSilently( sqlDrop );
             
-            String sqlCreate = "create table " + tableName + " (check yearly = '" + partition.getYear() + "') inherits " + table.getTempTableName();
+            String sqlCreate = "create table " + tableName + " (check (yearly = '" + partition.getYear() + "')) inherits (" + table.getTempTableName() + ")";
             
             log.info( String.format( "Creating partition table: %s", tableName ) );
 

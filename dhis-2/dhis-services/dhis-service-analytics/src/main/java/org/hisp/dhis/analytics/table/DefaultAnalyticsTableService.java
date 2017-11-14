@@ -354,7 +354,7 @@ public class DefaultAnalyticsTableService
             {
                 partitions.addAll( table.getPartitionTables() );
             }
-            else 
+            else
             {
                 // Fake partition representing the master table
                 
