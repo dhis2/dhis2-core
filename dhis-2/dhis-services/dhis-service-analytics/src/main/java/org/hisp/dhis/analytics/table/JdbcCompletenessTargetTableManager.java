@@ -84,30 +84,13 @@ public class JdbcCompletenessTargetTableManager
     @Override
     public void createTable( AnalyticsTable table )
     {
-        final String tableName = table.getTempTableName();
-        
-        final String sqlDrop = "drop table " + tableName;
-        
-        executeSilently( sqlDrop );
-
-        String sqlCreate = "create table " + tableName + " (";
+        final String dbl = statementBuilder.getDoubleColumnType();
 
         List<AnalyticsTableColumn> columns = getDimensionColumns( table );
         
-        validateDimensionColumns( columns );
+        columns.add( new AnalyticsTableColumn( quote( "value" ), dbl, "value" ) );
         
-        for ( AnalyticsTableColumn col : columns )
-        {
-            sqlCreate += col.getName() + " " + col.getDataType() + ",";
-        }
-        
-        sqlCreate += "value double precision)";
-        
-        log.info( "Creating table: " + tableName + ", columns: " + columns.size() );
-        
-        log.debug( "Create SQL: " + sqlCreate );
-        
-        jdbcTemplate.execute( sqlCreate );
+        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns, table.getPeriod(), table.getProgram() ) );
     }
 
     @Override
