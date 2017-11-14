@@ -35,6 +35,7 @@ import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -47,7 +48,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
-import static org.hisp.dhis.commons.util.TextUtils.removeLast;
 import static org.hisp.dhis.program.ProgramIndicator.DB_SEPARATOR_ID;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
@@ -68,7 +68,7 @@ public class JdbcEnrollmentAnalyticsTableManager
     @Override
     public void createMasterTable( AnalyticsTable table )
     {        
-        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns( table.getProgram() ), Lists.newArrayList(), table.getProgram() ) );
+        createTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns( table.getProgram() ), Lists.newArrayList(), table.getProgram() ) );
     }
     
     @Override
@@ -116,14 +116,14 @@ public class JdbcEnrollmentAnalyticsTableManager
             sql += col.getName() + ",";
         }
 
-        sql = removeLast( sql, 1 ) + ") select ";
+        sql = TextUtils.removeLastComma( sql ) + ") select ";
 
         for ( AnalyticsTableColumn col : columns )
         {
             sql += col.getAlias() + ",";
         }
 
-        sql = removeLast( sql, 1 ) + " ";
+        sql = TextUtils.removeLastComma( sql ) + " ";
 
         sql += "from programinstance pi " +
             "inner join program pr on pi.programid=pr.programid " +

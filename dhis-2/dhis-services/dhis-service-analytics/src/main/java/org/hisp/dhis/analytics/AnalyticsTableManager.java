@@ -114,6 +114,13 @@ public interface AnalyticsTableManager
     Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> tablePartitions );
     
     /**
+     * Drops the given {@link AnalyticsTable}.
+     * 
+     * @param table the analytics table.
+     */
+    void dropTempTable( AnalyticsTable table );
+    
+    /**
      * Drops the given table.
      * 
      * @param tableName the table name.

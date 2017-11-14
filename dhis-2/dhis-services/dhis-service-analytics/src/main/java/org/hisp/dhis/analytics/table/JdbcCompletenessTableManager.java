@@ -89,7 +89,7 @@ public class JdbcCompletenessTableManager
     @Override
     protected void createMasterTable( AnalyticsTable table )
     {
-        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns(), getValueColumns(), table.getProgram() ) );
+        createTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns(), getValueColumns(), table.getProgram() ) );
     }
 
     @Override
@@ -111,7 +111,7 @@ public class JdbcCompletenessTableManager
             insert += col.getName() + ",";
         }
         
-        insert += TextUtils.removeLast( insert, "," ) + ") ";
+        insert = TextUtils.removeLastComma( insert ) + ") ";
 
         String select = "select ";
         

@@ -28,13 +28,20 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategory;
@@ -48,10 +55,8 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-
-import static org.hisp.dhis.commons.util.TextUtils.removeLast;
-import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -70,7 +75,7 @@ public class JdbcEventAnalyticsTableManager
     @Override
     public void createMasterTable( AnalyticsTable table )
     {        
-        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns( table.getProgram() ), Lists.newArrayList(), table.getProgram() ) );
+        createTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns( table.getProgram() ), Lists.newArrayList(), table.getProgram() ) );
     }
     
     @Override
@@ -136,14 +141,14 @@ public class JdbcEventAnalyticsTableManager
             sql += col.getName() + ",";
         }
 
-        sql = removeLast( sql, 1 ) + ") select ";
+        sql = TextUtils.removeLastComma( sql ) + ") select ";
 
         for ( AnalyticsTableColumn col : columns )
         {
             sql += col.getAlias() + ",";
         }
 
-        sql = removeLast( sql, 1 ) + " ";
+        sql = TextUtils.removeLastComma( sql ) + " ";
 
         sql += "from programstageinstance psi " +
             "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +

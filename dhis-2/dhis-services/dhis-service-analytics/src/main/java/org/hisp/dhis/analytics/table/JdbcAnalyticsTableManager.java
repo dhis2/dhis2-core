@@ -133,7 +133,7 @@ public class JdbcAnalyticsTableManager
     @Override
     protected void createMasterTable( AnalyticsTable table )
     {
-        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns( null ), getValueColumns() ) );
+        createTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns( null ), getValueColumns() ) );
     }
     
     @Override
@@ -188,7 +188,7 @@ public class JdbcAnalyticsTableManager
             sql += col.getName() + ",";
         }
         
-        sql += TextUtils.removeLast( sql, "," ) + ") select ";
+        sql = TextUtils.removeLastComma( sql ) + ") select ";
 
         for ( AnalyticsTableColumn col : columns )
         {

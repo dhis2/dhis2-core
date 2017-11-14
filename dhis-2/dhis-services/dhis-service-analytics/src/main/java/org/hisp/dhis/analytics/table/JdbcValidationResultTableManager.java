@@ -66,7 +66,7 @@ public class JdbcValidationResultTableManager
     @Override
     public void createMasterTable( AnalyticsTable table )
     {
-        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns(), getValueColumns(), table.getProgram() ) );
+        createTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns(), getValueColumns(), table.getProgram() ) );
     }
 
     @Override
@@ -88,7 +88,7 @@ public class JdbcValidationResultTableManager
             insert += col.getName() + ",";
         }
 
-        insert += TextUtils.removeLast( insert, "," ) + ") ";
+        insert = TextUtils.removeLastComma( insert ) + ") ";
 
         String select = "select ";
 
@@ -97,7 +97,7 @@ public class JdbcValidationResultTableManager
             select += col.getAlias() + ",";
         }
 
-        select = select.replace( "organisationunitid", "sourceid" ); // HH still? -> Legacy fix
+        select = select.replace( "organisationunitid", "sourceid" ); // Legacy fix
 
         select +=
             "cdr.created as value " +

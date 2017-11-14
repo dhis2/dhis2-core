@@ -128,7 +128,7 @@ public abstract class AbstractJdbcTableManager
             createMasterTable( table );
         }
         
-        dropAndCreateTempTablePartitions( table );
+        createTempTablePartitions( table );
     }
     
     @Override
@@ -184,6 +184,13 @@ public abstract class AbstractJdbcTableManager
         executeSilently( sqlAlter );
     }
 
+    public void dropTempTable( AnalyticsTable table )
+    {
+        table.getPartitionTables().stream().forEach( p -> dropTable( p.getTempTableName() ) );
+        
+        dropTable( table.getTempTableName() );
+    }
+    
     @Override
     public void dropTable( String tableName )
     {        
@@ -317,24 +324,20 @@ public abstract class AbstractJdbcTableManager
      * 
      * @param table the {@link AnalyticsTable}.
      */
-    protected void dropAndCreateTempTable( AnalyticsTable table )
+    protected void createTempTable( AnalyticsTable table )
     {
         validateDimensionColumns( table.getDimensionColumns() );
         
         final String tableName = table.getTempTableName();        
 
-        final String sqlDrop = "drop table " + tableName;
-
-        executeSilently( sqlDrop );
-
         String sqlCreate = "create table " + tableName + " (";
 
-        for ( AnalyticsTableColumn col : table.getDimensionColumns() )
+        for ( AnalyticsTableColumn col : ListUtils.union( table.getDimensionColumns(), table.getValueColumns() ) )
         {
             sqlCreate += col.getName() + " " + col.getDataType() + ",";
         }
-        
-        sqlCreate = TextUtils.removeLast( sqlCreate, "," ) + ")";
+                
+        sqlCreate = TextUtils.removeLastComma( sqlCreate ) + ")";
                 
         log.info( String.format( "Creating table: %s, columns: %d", tableName, table.getDimensionColumns().size() ) );
 
@@ -348,16 +351,12 @@ public abstract class AbstractJdbcTableManager
      * 
      * @param table the {@link AnalyticsTable}.
      */
-    protected void dropAndCreateTempTablePartitions( AnalyticsTable table )
+    protected void createTempTablePartitions( AnalyticsTable table )
     {
         for ( AnalyticsTablePartition partition : table.getPartitionTables() )
         {         
             final String tableName = partition.getTempTableName();
    
-            final String sqlDrop = "drop table " + tableName;
-
-            executeSilently( sqlDrop );
-            
             String sqlCreate = "create table " + tableName + " (check (yearly = '" + partition.getYear() + "')) inherits (" + table.getTempTableName() + ")";
             
             log.info( String.format( "Creating partition table: %s", tableName ) );

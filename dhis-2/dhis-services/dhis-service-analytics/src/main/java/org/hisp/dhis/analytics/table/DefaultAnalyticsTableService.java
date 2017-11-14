@@ -126,6 +126,11 @@ public class DefaultAnalyticsTableService
         tableManager.preCreateTables();
         
         clock.logTime( "Performed pre-create table work" );
+        notifier.notify( taskId, "Dropping temp tables" );
+        
+        dropTempTables( tables );
+        
+        clock.logTime( "Dropped temp tables" );
         notifier.notify( taskId, "Creating analytics tables" );
 
         createTables( tables, params.isSkipMasterTable() );
@@ -188,12 +193,14 @@ public class DefaultAnalyticsTableService
     // Supportive methods
     // -------------------------------------------------------------------------
     
+    private void dropTempTables( List<AnalyticsTable> tables )
+    {
+        tables.forEach( table -> tableManager.dropTempTable( table ) );
+    }
+    
     private void createTables( List<AnalyticsTable> tables, boolean skipMasterTable )
     {
-        for ( AnalyticsTable table : tables )
-        {
-            tableManager.createTable( table, skipMasterTable );
-        }
+        tables.forEach( table -> tableManager.createTable( table, skipMasterTable ) );
     }
     
     private void populateTables( List<AnalyticsTable> tables )

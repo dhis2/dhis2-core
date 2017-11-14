@@ -85,7 +85,7 @@ public class JdbcCompletenessTargetTableManager
     @Override
     protected void createMasterTable( AnalyticsTable table )
     {
-        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns(), getValueColumns() ) );
+        createTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns(), getValueColumns() ) );
     }
 
     @Override
@@ -105,7 +105,7 @@ public class JdbcCompletenessTargetTableManager
             sql += col.getName() + ",";
         }
 
-        sql += TextUtils.removeLast( sql, "," ) + ") select ";
+        sql = TextUtils.removeLastComma( sql ) + ") select ";
 
         for ( AnalyticsTableColumn col : columns )
         {

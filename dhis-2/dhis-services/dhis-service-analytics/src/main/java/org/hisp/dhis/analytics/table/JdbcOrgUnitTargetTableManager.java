@@ -82,7 +82,7 @@ public class JdbcOrgUnitTargetTableManager
     @Override
     protected void createMasterTable( AnalyticsTable table )
     {
-        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns(), getValueColumns(), table.getProgram() ) );
+        createTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns(), getValueColumns(), table.getProgram() ) );
     }
 
     @Override
@@ -102,7 +102,7 @@ public class JdbcOrgUnitTargetTableManager
             sql += col.getName() + ",";
         }
 
-        sql += TextUtils.removeLast( sql, "," ) + ") select ";
+        sql = TextUtils.removeLastComma( sql ) + ") select ";
 
         for ( AnalyticsTableColumn col : columns )
         {
