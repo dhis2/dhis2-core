@@ -78,18 +78,6 @@ public class JdbcOrgUnitTargetTableManager
     }    
     
     @Override
-    public void createTable( AnalyticsTable table )
-    {
-        final String dbl = statementBuilder.getDoubleColumnType();
-        
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
-        
-        columns.add( new AnalyticsTableColumn( quote( "value" ), dbl, "value" ) );
-        
-        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns, table.getPeriod(), table.getProgram() ) );
-    }
-
-    @Override
     protected void populateTable( AnalyticsTable table )
     {
         final String tableName = table.getTempTableName();
@@ -125,6 +113,8 @@ public class JdbcOrgUnitTargetTableManager
     @Override
     public List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTable table )
     {
+        final String dbl = statementBuilder.getDoubleColumnType();
+        
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
         List<OrganisationUnitLevel> levels =
@@ -135,10 +125,9 @@ public class JdbcOrgUnitTargetTableManager
             String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
             columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column, level.getCreated() ) );
         }
-
-        AnalyticsTableColumn ds = new AnalyticsTableColumn( quote( "oug" ), "character(11) not null", "oug.uid" );
         
-        columns.add( ds );
+        columns.add( new AnalyticsTableColumn( quote( "oug" ), "character(11) not null", "oug.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "value" ), dbl, "value" ) );
         
         return filterDimensionColumns( columns );
     }

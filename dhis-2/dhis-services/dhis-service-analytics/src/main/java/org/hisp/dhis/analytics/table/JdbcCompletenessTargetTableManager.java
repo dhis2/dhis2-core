@@ -38,6 +38,7 @@ import java.util.concurrent.Future;
 
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -45,7 +46,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -82,18 +82,6 @@ public class JdbcCompletenessTargetTableManager
     }    
     
     @Override
-    public void createTable( AnalyticsTable table )
-    {
-        final String dbl = statementBuilder.getDoubleColumnType();
-
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
-        
-        columns.add( new AnalyticsTableColumn( quote( "value" ), dbl, "value" ) );
-        
-        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns, table.getPeriod(), table.getProgram() ) );
-    }
-
-    @Override
     protected void populateTable( AnalyticsTable table )
     {
         final String tableName = table.getTempTableName();
@@ -109,7 +97,7 @@ public class JdbcCompletenessTargetTableManager
             sql += col.getName() + ",";
         }
 
-        sql += "value) select ";
+        sql += TextUtils.removeLast( sql, "," ) + ") select ";
 
         for ( AnalyticsTableColumn col : columns )
         {
@@ -132,6 +120,8 @@ public class JdbcCompletenessTargetTableManager
     @Override
     public List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTable table )
     {
+        final String dbl = statementBuilder.getDoubleColumnType();
+
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
         List<OrganisationUnitGroupSet> orgUnitGroupSets = 
@@ -167,14 +157,13 @@ public class JdbcCompletenessTargetTableManager
             columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "acs." + quote( category.getUid() ), category.getCreated() ) );
         }
 
-        AnalyticsTableColumn ouOpening = new AnalyticsTableColumn( quote( "ouopeningdate"), "date", "ou.openingdate" );
-        AnalyticsTableColumn ouClosed = new AnalyticsTableColumn( quote( "oucloseddate"), "date", "ou.closeddate" );
-        AnalyticsTableColumn coStart = new AnalyticsTableColumn( quote( "costartdate" ), "date", "doc.costartdate" );
-        AnalyticsTableColumn coEnd = new AnalyticsTableColumn( quote( "coenddate" ), "date", "doc.coenddate" );
-        AnalyticsTableColumn ds = new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "ds.uid" );
-        AnalyticsTableColumn ao = new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" );
-        
-        columns.addAll( Lists.newArrayList( ouOpening, ouClosed, coStart, coEnd, ds, ao ) );
+        columns.add( new AnalyticsTableColumn( quote( "ouopeningdate"), "date", "ou.openingdate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "oucloseddate"), "date", "ou.closeddate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "costartdate" ), "date", "doc.costartdate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "coenddate" ), "date", "doc.coenddate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "ds.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" ) );        
+        columns.add( new AnalyticsTableColumn( quote( "value" ), dbl, "value" ) );
         
         return filterDimensionColumns( columns );
     }

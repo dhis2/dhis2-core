@@ -28,7 +28,6 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.*;
@@ -134,21 +133,6 @@ public class JdbcAnalyticsTableManager
     }
 
     @Override
-    public void createTable( AnalyticsTable table )
-    {
-        final String dbl = statementBuilder.getDoubleColumnType();
-
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
-
-        columns.add( new AnalyticsTableColumn( quote( "daysxvalue" ), dbl, "daysxvalue" ) );
-        columns.add( new AnalyticsTableColumn( quote( "daysno" ), "integer not null", "daysno" ) );
-        columns.add( new AnalyticsTableColumn( quote( "value" ), dbl, "value" ) );
-        columns.add( new AnalyticsTableColumn( quote( "textvalue" ), "text", "textvalue" ) );
-        
-        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns, table.getPeriod(), table.getProgram() ) );
-    }
-
-    @Override
     protected void populateTable( AnalyticsTable table )
     {
         final String dbl = statementBuilder.getDoubleColumnType();
@@ -199,7 +183,7 @@ public class JdbcAnalyticsTableManager
             sql += col.getName() + ",";
         }
 
-        sql += "daysxvalue, daysno, value, textvalue) select ";
+        sql = TextUtils.removeLast( sql, "," ) + ") select ";
 
         for ( AnalyticsTableColumn col : columns )
         {
@@ -282,6 +266,8 @@ public class JdbcAnalyticsTableManager
     @Override
     public List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTable table )
     {
+        final String dbl = statementBuilder.getDoubleColumnType();
+
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
         List<DataElementGroupSet> dataElementGroupSets =
@@ -349,16 +335,14 @@ public class JdbcAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( column, "character varying(15)", "ps." + column ) );
         }
 
-        AnalyticsTableColumn de = new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "de.uid" );
-        AnalyticsTableColumn co = new AnalyticsTableColumn( quote( "co" ), "character(11) not null", "co.uid" );
-        AnalyticsTableColumn ao = new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" );
-        AnalyticsTableColumn startDate = new AnalyticsTableColumn( quote( "pestartdate" ), "timestamp", "pe.startdate" );
-        AnalyticsTableColumn endDate = new AnalyticsTableColumn( quote( "peenddate" ),"timestamp", "pe.enddate" );
-        AnalyticsTableColumn pe = new AnalyticsTableColumn( quote( "pe" ), "character varying(15) not null", "ps.iso" );
-        AnalyticsTableColumn ou = new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" );
-        AnalyticsTableColumn level = new AnalyticsTableColumn( quote( "level" ), "integer", "ous.level" );
-
-        columns.addAll( Lists.newArrayList( de, co, ao, startDate, endDate, pe, ou, level ) );
+        columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "de.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "co" ), "character(11) not null", "co.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "pestartdate" ), "timestamp", "pe.startdate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "peenddate" ),"timestamp", "pe.enddate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "pe" ), "character varying(15) not null", "ps.iso" ) );
+        columns.add( new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "level" ), "integer", "ous.level" ) );
 
         if ( isApprovalEnabled( table ) )
         {
@@ -373,6 +357,11 @@ public class JdbcAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( quote( "approvallevel" ), "integer", col ) );
         }
 
+        columns.add( new AnalyticsTableColumn( quote( "daysxvalue" ), dbl, "daysxvalue" ) );
+        columns.add( new AnalyticsTableColumn( quote( "daysno" ), "integer not null", "daysno" ) );
+        columns.add( new AnalyticsTableColumn( quote( "value" ), dbl, "value" ) );
+        columns.add( new AnalyticsTableColumn( quote( "textvalue" ), "text", "textvalue" ) );
+        
         return filterDimensionColumns( columns );
     }
 

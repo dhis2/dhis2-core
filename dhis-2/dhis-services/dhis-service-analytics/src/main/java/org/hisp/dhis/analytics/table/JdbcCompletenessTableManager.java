@@ -28,10 +28,10 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -84,16 +84,6 @@ public class JdbcCompletenessTableManager
         
         return null;
     }
-        
-    @Override
-    public void createTable( AnalyticsTable table )
-    {
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
-        
-        columns.add( new AnalyticsTableColumn( quote( "value" ), "date", "value" ) );
-
-        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns, table.getPeriod(), table.getProgram() ) );
-    }
     
     @Override
     protected void populateTable( AnalyticsTable table )
@@ -113,8 +103,8 @@ public class JdbcCompletenessTableManager
             insert += col.getName() + ",";
         }
         
-        insert += "value) ";
-
+        insert = TextUtils.removeLast( insert, "," ) + ") ";
+        
         String select = "select ";
         
         for ( AnalyticsTableColumn col : columns )
@@ -189,12 +179,10 @@ public class JdbcCompletenessTableManager
         String timelyDateDiff = statementBuilder.getDaysBetweenDates( "pe.enddate", statementBuilder.getCastToDate( "cdr.date" ) );        
         String timelyAlias = "(select (" + timelyDateDiff + ") <= ds.timelydays) as timely";
         
-        AnalyticsTableColumn tm = new AnalyticsTableColumn( quote( "timely" ), "boolean", timelyAlias );
+        columns.add( new AnalyticsTableColumn( quote( "timely" ), "boolean", timelyAlias ) );
+        columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "ds.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "value" ), "date", "value" ) );
 
-        AnalyticsTableColumn ds = new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "ds.uid" );
-        
-        columns.addAll( Lists.newArrayList( ds, tm ) );
-        
         return filterDimensionColumns( columns );
     }
 
