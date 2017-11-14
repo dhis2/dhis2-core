@@ -58,7 +58,7 @@ public class SchedulerUpgrade
         String CRON_DAILY_7AM = "0 0 7 * * ?";
 
         log.info( "Setting up default jobs." );
-        if ( jobConfigurations.isEmpty() || addDefaultJob( "File resource clean up", jobConfigurations ) )
+        if ( addDefaultJob( "File resource clean up", jobConfigurations ) )
         {
             JobConfiguration fileResourceCleanUp = new JobConfiguration( "File resource clean up",
                 FILE_RESOURCE_CLEANUP, CRON_DAILY_2AM, null,
@@ -68,7 +68,7 @@ public class SchedulerUpgrade
             schedulingManager.scheduleJob( fileResourceCleanUp );
         }
 
-        if ( jobConfigurations.isEmpty() ||  addDefaultJob( "Data statistics", jobConfigurations ) )
+        if ( addDefaultJob( "Data statistics", jobConfigurations ) )
         {
             JobConfiguration dataStatistics = new JobConfiguration( "Data statistics", DATA_STATISTICS, CRON_DAILY_2AM,
                 null,
@@ -76,30 +76,38 @@ public class SchedulerUpgrade
             dataStatistics
                 .setLastExecuted( (Date) systemSettingManager.getSystemSetting( "lastSuccessfulDataStatistics" ) );
             dataStatistics.setConfigurable( false );
+            jobConfigurationService.addJobConfiguration( dataStatistics );
+            schedulingManager.scheduleJob( dataStatistics );
         }
 
-        if ( jobConfigurations.isEmpty() ||  addDefaultJob( "Validation result notification", jobConfigurations ) )
+        if ( addDefaultJob( "Validation result notification", jobConfigurations ) )
         {
             JobConfiguration validationResultNotification = new JobConfiguration( "Validation result notification",
                 VALIDATION_RESULTS_NOTIFICATION, CRON_DAILY_7AM, null,
                 false, true );
             validationResultNotification.setConfigurable( false );
+            jobConfigurationService.addJobConfiguration( validationResultNotification );
+            schedulingManager.scheduleJob( validationResultNotification );
         }
 
-        if ( jobConfigurations.isEmpty() ||  addDefaultJob( "Credentials expiry alert", jobConfigurations ) )
+        if ( addDefaultJob( "Credentials expiry alert", jobConfigurations ) )
         {
             JobConfiguration credentialsExpiryAlert = new JobConfiguration( "Credentials expiry alert",
                 CREDENTIALS_EXPIRY_ALERT, CRON_DAILY_2AM, null,
                 false, true );
             credentialsExpiryAlert.setConfigurable( false );
+            jobConfigurationService.addJobConfiguration( credentialsExpiryAlert );
+            schedulingManager.scheduleJob( credentialsExpiryAlert );
         }
 
-        if ( jobConfigurations.isEmpty() ||  addDefaultJob( "Dataset notification", jobConfigurations ) )
+        if ( addDefaultJob( "Dataset notification", jobConfigurations ) )
         {
             JobConfiguration dataSetNotification = new JobConfiguration( "Dataset notification",
                 DATASET_NOTIFICATION, CRON_DAILY_2AM, null,
                 false, true );
             dataSetNotification.setConfigurable( false );
+            jobConfigurationService.addJobConfiguration( dataSetNotification );
+            schedulingManager.scheduleJob( dataSetNotification );
         }
 
         ListMap<String, String> scheduledSystemSettings = (ListMap<String, String>) systemSettingManager.getSystemSetting( "keySchedTasks" );
