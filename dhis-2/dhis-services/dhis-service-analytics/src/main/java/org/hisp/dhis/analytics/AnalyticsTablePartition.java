@@ -1,7 +1,5 @@
 package org.hisp.dhis.analytics;
 
-import java.util.Date;
-
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -29,6 +27,8 @@ import java.util.Date;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import java.util.Date;
 
 import org.hisp.dhis.analytics.table.PartitionUtils;
 
