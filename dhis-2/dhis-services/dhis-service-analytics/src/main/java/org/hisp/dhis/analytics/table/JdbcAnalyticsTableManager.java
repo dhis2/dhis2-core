@@ -161,11 +161,11 @@ public class JdbcAnalyticsTableManager
     /**
      * Populates the given analytics table.
      *
-     * @param table               analytics table to populate.
-     * @param valueExpression     numeric value expression.
+     * @param table analytics table to populate.
+     * @param valueExpression numeric value expression.
      * @param textValueExpression textual value expression.
-     * @param valueTypes          data element value types to include data for.
-     * @param whereClause         where clause to constrain data query.
+     * @param valueTypes data element value types to include data for.
+     * @param whereClause where clause to constrain data query.
      */
     private void populateTable( AnalyticsTablePartition partition, String valueExpression,
         String textValueExpression, Set<ValueType> valueTypes, String whereClause, String approvalClause )
@@ -245,6 +245,8 @@ public class JdbcAnalyticsTableManager
      * Returns sub-query for approval level. First looks for approval level in
      * data element resource table which will indicate level 0 (highest) if approval
      * is not required. Then looks for highest level in dataapproval table.
+     * 
+     * @param year the data year.
      */
     private String getApprovalJoinClause( Integer year )
     {
