@@ -299,7 +299,6 @@
       "userGroupAccesses": [ ],
       "attributeValues": [ ],
       "created": "2016-03-11T06:59:40.865+0000",
-      "searchScope": "SEARCH_ORG_UNITS",
       "orgunitScope": false,
       "programScope": false,
       "valueType": "TEXT",
@@ -307,7 +306,6 @@
     },
     {
       "orgunitScope": false,
-      "searchScope": "SEARCH_ORG_UNITS",
       "programScope": false,
       "valueType": "TEXT",
       "aggregationType": "NONE",
