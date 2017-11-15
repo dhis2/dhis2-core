@@ -73,6 +73,14 @@ public interface ProgramRuleService
     /**
      * Returns a {@link ProgramRule}.
      *
+     * @param uid the uid of the ProgramRule to return.
+     * @return the ProgramRule with the given uid
+     */
+    ProgramRule getProgramRule( String uid );
+
+    /**
+     * Returns a {@link ProgramRule}.
+     *
      * @param name the name of the ProgramRule to return.
      * @param program {@link Program}.
      * @return the ProgramRule with the given name

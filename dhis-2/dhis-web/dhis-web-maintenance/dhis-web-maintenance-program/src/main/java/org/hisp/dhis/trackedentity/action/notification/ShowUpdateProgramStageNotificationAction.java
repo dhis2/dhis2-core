@@ -29,6 +29,7 @@ package org.hisp.dhis.trackedentity.action.notification;
  */
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -169,10 +170,11 @@ public class ShowUpdateProgramStageNotificationAction
     public String execute() throws Exception
     {
         template = manager.get( ProgramNotificationTemplate.class, templateUid );
-        programRules = template.getProgramRules();
         userGroups = userGroupService.getAllUserGroups();
 
         programStage = manager.get( ProgramStage.class, programStageUid );
+        programRules = Sets.newHashSet( programRuleService.getProgramRule( programStage.getProgram() ) );
+
 
         if ( programStage != null )
         {

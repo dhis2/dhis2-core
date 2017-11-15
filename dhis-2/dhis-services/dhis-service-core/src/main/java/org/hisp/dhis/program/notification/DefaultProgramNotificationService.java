@@ -169,6 +169,20 @@ public class DefaultProgramNotificationService
         sendProgramInstanceNotifications( programInstance, NotificationTrigger.ENROLLMENT );
     }
 
+    @Transactional
+    @Override
+    public void sendProgramRuleTriggeredNotifications( ProgramInstance programInstance )
+    {
+
+    }
+
+    @Transactional
+    @Override
+    public void sendProgramRuleTriggeredNotifications( ProgramStageInstance programStageInstance )
+    {
+        Set<ProgramNotificationTemplate> programStageNotifications = resolveTemplates( programStageInstance, NotificationTrigger.PROGRAM_RULE );
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------

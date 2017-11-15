@@ -27,7 +27,7 @@
                  column="dataelementid" foreign-key="fk_programstagenotification_dataelementid" not-null="false" />
 
     <set name="programRules">
-      <key column="programruleid" />
+      <key column="programnotificationtemplateid" />
       <one-to-many class="org.hisp.dhis.programrule.ProgramRule" />
     </set>
 

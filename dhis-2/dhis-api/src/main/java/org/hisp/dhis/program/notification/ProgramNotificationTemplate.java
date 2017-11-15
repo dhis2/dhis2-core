@@ -29,6 +29,8 @@ package org.hisp.dhis.program.notification;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Sets;
@@ -45,6 +47,7 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.UserGroup;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -77,7 +80,7 @@ public class ProgramNotificationTemplate
 
     private DataElement recipientDataElement = null;
 
-    private Set<ProgramRule> programRules;
+    private Set<ProgramRule> programRules = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -131,15 +134,16 @@ public class ProgramNotificationTemplate
         this.messageTemplate = messageTemplate;
     }
 
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JsonProperty( "programRules" )
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "programRules", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "programRule", namespace = DxfNamespaces.DXF_2_0 )
     public Set<ProgramRule> getProgramRules()
     {
         return programRules;
     }
 
-    public void setProgramRule( Set<ProgramRule> programRules )
+    public void setProgramRules( Set<ProgramRule> programRules )
     {
         this.programRules = programRules;
     }
@@ -223,5 +227,10 @@ public class ProgramNotificationTemplate
     public DataElement getRecipientDataElement()
     {
         return recipientDataElement;
+    }
+
+    public void setRecipientDataElement( DataElement dataElement )
+    {
+        this.recipientDataElement = dataElement;
     }
 }

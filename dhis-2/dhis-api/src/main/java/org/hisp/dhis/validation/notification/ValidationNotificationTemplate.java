@@ -29,6 +29,8 @@ package org.hisp.dhis.validation.notification;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -70,7 +72,7 @@ public class ValidationNotificationTemplate
 
     private SendStrategy sendStrategy = SendStrategy.COLLECTIVE_SUMMARY;
 
-    private Set<ProgramRule> programRules;
+    private Set<ProgramRule> programRules = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -127,15 +129,16 @@ public class ValidationNotificationTemplate
         this.messageTemplate = messageTemplate;
     }
 
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JsonProperty( "programRules" )
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "programRules", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "programRule", namespace = DxfNamespaces.DXF_2_0 )
     public Set<ProgramRule> getProgramRules()
     {
         return programRules;
     }
 
-    public void setProgramRule( Set<ProgramRule> programRules )
+    public void setProgramRules( Set<ProgramRule> programRules )
     {
         this.programRules = programRules;
     }

@@ -18,6 +18,8 @@
         var notificationTrigger = qs( '#notificationTrigger' );
         var daysContainer = qs( '#daysContainer' );
         var programrulecontainer = qs('#programrulecontainer');
+        var programRuleList = qs( '#programrule' );
+
         var days = qs( '#days' );
         var deliveryChannelsContainer = qs( '#deliveryChannelsContainer' );
         var subjectTemplateTextArea = qs( '#subjectTemplate' );
@@ -87,7 +89,6 @@
             if ( notificationTrigger.value === 'ENROLLMENT' || notificationTrigger.value == 'COMPLETION' ) {
                 daysContainer.style.display = 'none';
                 programrulecontainer.style.display = 'none';
-                qs( '#programrule' ).clean();
 
             }
             else if ( notificationTrigger.value === 'PROGRAM_RULE' )
@@ -97,7 +98,6 @@
             }
             else {
                 programrulecontainer.style.display = 'none';
-                qs( '#programrule' ).clean();
                 daysContainer.style.display = 'table-row';
                 days.value = undefined;
             }
@@ -154,8 +154,16 @@
         }
 
         function getProgramRule() {
-            var uid = qs( '#programrule' ).value || undefined;
-            return ( uid === undefined ) ? undefined : { 'id' : uid };
+            var fld = programRuleList;
+            var values = [];
+           for (var i = 0; i < fld.options.length; i++) {
+                   if (fld.options[i].selected) {
+
+                               values.push( { 'id' : fld.options[i].value } );
+                        }
+                }
+
+               return values;
         }
         
         function getDataElement() {
@@ -171,7 +179,7 @@
             return {
                 name : qs( '#name' ).value || '',
                 notificationTrigger : qs( '#notificationTrigger' ).value,
-                programRule:getProgramRule(),
+                programRules:getProgramRule(),
                 relativeScheduledDays : getScheduledDays(),
                 notificationRecipient : qs( '#notificationRecipient' ).value,
                 recipientUserGroup : getUserGroup(),

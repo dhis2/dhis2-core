@@ -57,8 +57,7 @@
                 <label for="programrule">$i18n.getString( "program_rule" )</label>
             </td>
             <td>
-                <select type="text" id="programrule" name="programrule" class="programrule" multiple>
-                    <option value="">[$i18n.getString("please_select")]</option>
+                <select type="text" id="programrule" name="programrule" class="programrule" multiple="multiple">
                     #foreach( $pr in $!programRules )
                         <option value="$pr.uid">$i18n.getString( $pr.displayName )</option>
                     #end

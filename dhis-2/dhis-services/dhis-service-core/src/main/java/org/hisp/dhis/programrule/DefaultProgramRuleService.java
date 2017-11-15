@@ -79,7 +79,13 @@ public class DefaultProgramRuleService
     {
         return programRuleStore.get( id );
     }
-    
+
+    @Override
+    public ProgramRule getProgramRule( String uid )
+    {
+        return programRuleStore.getByUid( uid );
+    }
+
     @Override
     public ProgramRule getProgramRuleByName( String name, Program program )
     {

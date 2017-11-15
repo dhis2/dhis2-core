@@ -197,6 +197,8 @@ public class DefaultProgramStageInstanceService
         if ( !skipNotifications )
         {
             programNotificationService.sendCompletionNotifications( programStageInstance );
+
+            programNotificationService.sendProgramRuleTriggeredNotifications( programStageInstance );
         }
 
         // ---------------------------------------------------------------------
