@@ -30,14 +30,9 @@ package org.hisp.dhis.analytics.table;
 
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.scheduling.annotation.Async;
-
-import com.google.common.collect.Lists;
-
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
@@ -62,15 +57,6 @@ public abstract class AbstractEventJdbcTableManager
         return null; // Not needed
     }
 
-    @Override
-    protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
-    {
-        return Lists.newArrayList(
-            "yearly = '" + partition.getYear() + "'",
-            "executiondate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'",
-            "executiondate <= '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
-    }
-    
     /**
      * Returns the database column type based on the given value type. For boolean
      * values, 1 means true, 0 means false and null means no value.

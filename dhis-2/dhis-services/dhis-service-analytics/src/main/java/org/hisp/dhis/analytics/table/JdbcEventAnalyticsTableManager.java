@@ -114,6 +114,14 @@ public class JdbcEventAnalyticsTableManager
     }
 
     @Override
+    protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
+    {
+        return Lists.newArrayList(
+            "yearly = '" + partition.getYear() + "'",
+            "executiondate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'" ); ///TODO end date + 1 day
+    }
+    
+    @Override
     protected void populateTable( AnalyticsTablePartition partition )
     {
         final Program program = partition.getMasterTable().getProgram();

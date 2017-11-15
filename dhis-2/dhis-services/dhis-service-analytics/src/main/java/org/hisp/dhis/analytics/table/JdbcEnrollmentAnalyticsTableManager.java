@@ -91,6 +91,12 @@ public class JdbcEnrollmentAnalyticsTableManager
     }
 
     @Override
+    protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
+    {
+        return Lists.newArrayList();
+    }
+    
+    @Override
     protected void populateTable( AnalyticsTablePartition partition )
     {
         final Program program = partition.getMasterTable().getProgram();
