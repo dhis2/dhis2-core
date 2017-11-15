@@ -1,8 +1,40 @@
 package org.hisp.dhis.analytics.table;
 
+/*
+ * Copyright (c) 2004-2017, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -20,34 +52,43 @@ public class JdbcValidationResultTableManager
     extends AbstractJdbcTableManager
 {
     @Override
-    public void createTable( AnalyticsTable table )
+    public AnalyticsTableType getAnalyticsTableType()
     {
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
-
-        columns.add( new AnalyticsTableColumn( quote( "value" ), "date", "value" ) );
-        
-        dropAndCreateTempTable( new AnalyticsTable( table.getBaseName(), columns, table.getPeriod(), table.getProgram() ) );
+        return AnalyticsTableType.VALIDATION_RESULT;
     }
 
     @Override
-    protected void populateTable( AnalyticsTable table )
+    public List<AnalyticsTable> getAnalyticsTables( Date earliest )
     {
-        final String start = DateUtils.getMediumDateString( table.getPeriod().getStartDate() );
-        final String end = DateUtils.getMediumDateString( table.getPeriod().getEndDate() );
-        final String tableName = table.getTempTableName();
+        return Lists.newArrayList( getAnalyticsTable( getDataYears( earliest ), getDimensionColumns(), getValueColumns() ) );
+    }
 
-        String insert = "insert into " + table.getTempTableName() + " (";
+    @Override
+    public void createMasterTable( AnalyticsTable table )
+    {
+        createTempTable( table );
+    }
 
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
+    @Override
+    protected void populateTable( AnalyticsTablePartition partition )
+    {
+        final String start = DateUtils.getMediumDateString( partition.getStartDate() );
+        final String end = DateUtils.getMediumDateString( partition.getEndDate() );
+        final String tableName = partition.getTempTableName();
+
+        String insert = "insert into " + partition.getTempTableName() + " (";
+
+        List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
+        List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
 
         validateDimensionColumns( columns );
 
-        for ( AnalyticsTableColumn col : columns )
+        for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
         {
             insert += col.getName() + ",";
         }
 
-        insert += "value) ";
+        insert = TextUtils.removeLastComma( insert ) + ") ";
 
         String select = "select ";
 
@@ -56,38 +97,24 @@ public class JdbcValidationResultTableManager
             select += col.getAlias() + ",";
         }
 
-        select = select.replace( "organisationunitid", "sourceid" ); // HH still? -> Legacy fix
+        select = select.replace( "organisationunitid", "sourceid" ); // Legacy fix
 
         select +=
             "cdr.created as value " +
-                "from validationresult cdr " +
-                "inner join validationrule vr on vr.validationruleid=cdr.validationruleid " +
-                "inner join _organisationunitgroupsetstructure ougs on cdr.organisationunitid=ougs.organisationunitid " +
-                "left join _orgunitstructure ous on cdr.organisationunitid=ous.organisationunitid " +
-                "inner join _categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid " +
-                "inner join period pe on cdr.periodid=pe.periodid " +
-                "inner join _periodstructure ps on cdr.periodid=ps.periodid " +
-                "where pe.startdate >= '" + start + "' " +
-                "and pe.startdate <= '" + end + "' " +
-                "and cdr.created is not null";
+            "from validationresult cdr " +
+            "inner join validationrule vr on vr.validationruleid=cdr.validationruleid " +
+            "inner join _organisationunitgroupsetstructure ougs on cdr.organisationunitid=ougs.organisationunitid " +
+            "left join _orgunitstructure ous on cdr.organisationunitid=ous.organisationunitid " +
+            "inner join _categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid " +
+            "inner join period pe on cdr.periodid=pe.periodid " +
+            "inner join _periodstructure ps on cdr.periodid=ps.periodid " +
+            "where pe.startdate >= '" + start + "' " +
+            "and pe.startdate <= '" + end + "' " +
+            "and cdr.created is not null";
 
         final String sql = insert + select;
 
         populateAndLog( sql, tableName );
-    }
-
-    @Override
-    public AnalyticsTableType getAnalyticsTableType()
-    {
-        return AnalyticsTableType.VALIDATION_RESULT;
-    }
-
-    @Override
-    public List<AnalyticsTable> getTables( Date earliest )
-    {
-        log.info( "Get tables using earliest: " + earliest );
-
-        return getTables( getDataYears( earliest ) );
     }
 
     @Override
@@ -99,8 +126,7 @@ public class JdbcValidationResultTableManager
     @Override
     public String validState()
     {
-        boolean hasData = jdbcTemplate.queryForRowSet( "select validationresultid from validationresult limit 1" )
-            .next();
+        boolean hasData = jdbcTemplate.queryForRowSet( "select validationresultid from validationresult limit 1" ).next();
 
         if ( !hasData )
         {
@@ -114,9 +140,9 @@ public class JdbcValidationResultTableManager
     {
         String sql =
             "select distinct(extract(year from pe.startdate)) " +
-                "from validationresult cdr " +
-                "inner join period pe on cdr.periodid=pe.periodid " +
-                "where pe.startdate is not null ";
+            "from validationresult cdr " +
+            "inner join period pe on cdr.periodid=pe.periodid " +
+            "where pe.startdate is not null ";
 
         if ( earliest != null )
         {
@@ -126,21 +152,7 @@ public class JdbcValidationResultTableManager
         return jdbcTemplate.queryForList( sql, Integer.class );
     }
 
-    @Override
-    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTable> tables,
-        Collection<String> dataElements, int aggregationLevel )
-    {
-        return null;
-    }
-
-    @Override
-    public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
-    {
-        return null;
-    }
-
-    @Override
-    protected List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTable table )
+    private List<AnalyticsTableColumn> getDimensionColumns()
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
@@ -177,11 +189,26 @@ public class JdbcValidationResultTableManager
             columns.add( new AnalyticsTableColumn( column, "character varying(15)", "ps." + column ) );
         }
 
-        AnalyticsTableColumn vr = new AnalyticsTableColumn( quote( "dx" ), "character(11) not null",
-            "vr.uid" );
-
-        columns.add( vr );
+        columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "vr.uid" ) );
 
         return filterDimensionColumns( columns );
+    }
+    
+    private List<AnalyticsTableColumn> getValueColumns()
+    {
+        return Lists.newArrayList( new AnalyticsTableColumn( quote( "value" ), "date", "value" ) );
+    }
+
+    @Override
+    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions,
+        Collection<String> dataElements, int aggregationLevel )
+    {
+        return null; // Not relevant
+    }
+
+    @Override
+    public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions )
+    {
+        return null; // Not relevant
     }
 }
