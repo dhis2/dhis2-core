@@ -33,6 +33,7 @@ import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -266,7 +267,7 @@ public class EventValidationServiceTest
         trackedEntityDataValueService.saveTrackedEntityDataValue( dataValueB );
 
         // Generate analytics tables:
-        analyticsTableGenerator.generateTables( 2, null, null, false );
+        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).build() );
     }
 
     @Override
