@@ -167,7 +167,9 @@ public class DefaultJobConfigurationService
                     String relativeApiElements = jobType.getRelativeApiElements() != null ?
                         jobType.getRelativeApiElements().get( field.getName() ) : "";
                     if ( relativeApiElements != null && !relativeApiElements.equals( "" ) )
+                    {
                         property.setRelativeApiEndpoint( relativeApiElements );
+                    }
 
                     if ( Collection.class.isAssignableFrom( field.getType() ) )
                     {
