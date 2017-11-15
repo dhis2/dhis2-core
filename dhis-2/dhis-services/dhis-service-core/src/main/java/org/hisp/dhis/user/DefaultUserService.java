@@ -33,6 +33,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.AuditLogUtil;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -53,6 +55,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Chau Thu Tran
@@ -120,6 +123,9 @@ public class DefaultUserService
 
     @Autowired
     private DeletionManager deletionManager;
+
+    @Autowired
+    private IdentifiableObjectManager identifiableObjectManager;
 
     // -------------------------------------------------------------------------
     // UserService implementation
@@ -210,6 +216,7 @@ public class DefaultUserService
     public int getManagedUserCount( User user )
     {
         UserQueryParams params = new UserQueryParams( user );
+        handleUserQueryParams( params );
         params.setCanManage( true );
         params.setAuthSubset( true );
 

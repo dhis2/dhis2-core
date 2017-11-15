@@ -46,6 +46,8 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.user.User;
 
+import javax.persistence.FlushModeType;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -560,5 +562,23 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         query.where( builder.equal( root.get( "user" ), user ) );
 
         return (long) getSession().createQuery( query ).getSingleResult();
+    }
+
+    @Override
+    public List<T> getAllByUser( User user )
+    {
+        return getSharingCriteria()
+            .add( Restrictions.eq( "user", user ) )
+            .list();
+    }
+
+    @Override
+    public void updateObjectsOwner( User source, User target )
+    {
+        String jpql = "Update " + clazz.getName() + " set user.id = :targetId"  + " where user.id= :sourceId";
+        TypedQuery jpaQuery = getJpaQuery( jpql );
+        jpaQuery.setParameter( "targetId", target.getId() );
+        jpaQuery.setParameter( "sourceId", source.getId() );
+        jpaQuery.executeUpdate();
     }
 }

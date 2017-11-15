@@ -28,12 +28,15 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
@@ -104,11 +107,13 @@ public class UserDeletionHandler
     @Override
     public String allowDeleteUser( User user )
     {
-        Set listObjects = idObjectManager.listObjectCreatedByUser( user );
+        Set<Class<? extends IdentifiableObject>> classes = idObjectManager.listObjectCreatedByUser( user );
 
-        if ( !listObjects.isEmpty() )
+        List<String> classNames = classes.stream().map( clazz -> clazz.getSimpleName() ).collect( Collectors.toList() );
+
+        if ( !classNames.isEmpty() )
         {
-            return "User is referenced by other objects: " + String.join( ",", listObjects );
+            return "User is referenced by other objects: " + String.join( ",", classNames );
         }
         else
         {

@@ -19,6 +19,7 @@
 </script>
 
 #set( $canReplicate = $currentUser.getUserCredentials().isAuthorized( 'F_REPLICATE_USER' ) )
+#set( $canTransferMetadata = $currentUser.getUserCredentials().isAuthorized( 'F_TRANSFER_METADATA' ) )
 
 <h3>$i18n.getString( "user_management" ) #openHelp( "user_management" )</h3>
 
@@ -30,6 +31,7 @@
     <li data-enabled="canDelete"><a data-target-fn="removeUser"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
     <li data-enabled="canReplicate"><a data-target-fn="showReplicateUserDialog"><i class="fa fa-copy"></i>&nbsp;&nbsp;$i18n.getString( "replicate" )</a></li>
     <li data-enabled="canReinvite"><a data-target-fn="resendInvitation"><i class="fa fa-repeat"></i>&nbsp;&nbsp;$i18n.getString( "resend_invitation" )</a></li>
+    <li data-enabled="canTransfer"><a data-target-fn="showTransferMetadataDialog"><i class="fa fa-repeat"></i>&nbsp;&nbsp;$i18n.getString( "transfer_metadata" )</a></li>
     <li><a data-target-fn="showUserDetails"><i class="fa fa-info-circle"></i>&nbsp;&nbsp;$i18n.getString( "show_details" )</a></li>
     <li data-enabled="userEnabled"><a data-target-fn="disableUser"><i class="fa fa-ban"></i>&nbsp;&nbsp;$i18n.getString( "disable")</a></li>
     <li data-enabled="userDisabled"><a data-target-fn="enableUser"><i class="fa fa-ban"></i>&nbsp;&nbsp;$i18n.getString( "enable" )</a></li>
@@ -84,6 +86,7 @@
 				    data-can-manage="$security.canManage( $user.userCredentials )"
 				    data-can-update="$security.canUpdate( $user.userCredentials )"
 				    data-can-delete="$security.canDelete( $user.userCredentials )"
+            data-can-transfer="$canTransferMetadata"
 				    data-can-reinvite="#if( $user.userCredentials.isInvitation() && $security.canUpdate( $user.userCredentials ) )true#{else}false#end"
 				    data-can-replicate="$canReplicate"
                     data-user-enabled="#if( !$user.userCredentials.disabled )true#{else}false#end"
@@ -128,6 +131,22 @@
 		</td>
 	</tr>
 </table>
+
+<div id="transferMetadataForm" class="inputForm" style="display: none;">
+  <table>
+    <tr>
+      <td><label>$i18n.getString("transfer_from_user"):<span id="fromUser"></span></label>
+      <input type="hidden" id="fromUserId" val=""/></td>
+    </tr>
+    <tr>
+      <td><label>$i18n.getString("select_target_user")</label></td>
+    </tr>
+    <tr>
+      <td><div id="userListContainer"></div></td>
+    </tr>
+  </table>
+
+</div>
 
 <div id="replicateUserForm" class="inputForm" style="display:none">
 	<table>

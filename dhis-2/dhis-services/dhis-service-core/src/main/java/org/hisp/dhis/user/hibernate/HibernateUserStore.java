@@ -205,7 +205,7 @@ public class HibernateUserStore
         if ( params.isAuthSubset() && params.getUser() != null )
         {
             Set<String> auths = params.getUser().getUserCredentials().getAllAuthorities();
-            
+
             query.setParameterList( "auths", auths );
         }
         

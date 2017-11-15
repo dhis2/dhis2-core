@@ -208,5 +208,10 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<T> get( Class<T> clazz, Collection<String> uids );
 
-    Set<String> listObjectCreatedByUser( User user );
+    Set<Class<? extends IdentifiableObject>> listObjectCreatedByUser( User user );
+
+    <T extends IdentifiableObject> List<T> getAllByUser( Class<T> clazz, User user );
+
+    void updateObjectsOwner( User source, User target);
+
 }

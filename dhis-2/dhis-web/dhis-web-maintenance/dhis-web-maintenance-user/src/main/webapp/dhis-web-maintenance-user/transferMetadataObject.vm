@@ -1,0 +1,5 @@
+<select id="selectTargetUser"  style="height: 200px; width: 100%;overflow: auto" size="5">
+  #foreach ( $user in $users )
+  <option value="$user.uid">$encoder.htmlEncode( $user.name)</option>
+  #end
+</select>

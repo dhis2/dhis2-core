@@ -301,4 +301,18 @@ public interface GenericIdentifiableObjectStore<T>
      * @return number of objects created by given User
      */
     long countByUser( User user);
+
+    /**
+     * Get all objects created by given User
+     * @param user
+     * @return all objects created by given User
+     */
+    List<T> getAllByUser( User user );
+
+    /**
+     * Update the owner of all objects from source User to target User
+     * @param source User to be updated
+     * @param target new owner of all objects
+     */
+    void updateObjectsOwner( User source, User target );
 }

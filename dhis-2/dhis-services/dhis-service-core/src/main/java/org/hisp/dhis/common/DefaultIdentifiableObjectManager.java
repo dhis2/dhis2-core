@@ -98,7 +98,7 @@ public class DefaultIdentifiableObjectManager
 
     private Map<Class<? extends DimensionalObject>, GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStoreMap;
 
-    private Map<Class<? extends IdentifiableObject>, GenericIdentifiableObjectStore<? extends IdentifiableObject>> classWithUserPropertyMap;
+    private Map<Class<? extends IdentifiableObject>, GenericIdentifiableObjectStore<? extends IdentifiableObject>> mapClassHasUserProperty;
 
     //--------------------------------------------------------------------------
     // IdentifiableObjectManager implementation
@@ -1259,15 +1259,15 @@ public class DefaultIdentifiableObjectManager
         }
 
         identifiableObjectStoreMap = new HashMap<>();
-        classWithUserPropertyMap = new HashMap<>();
+        mapClassHasUserProperty = new HashMap<>();
 
         for ( GenericIdentifiableObjectStore<? extends IdentifiableObject> store : identifiableObjectStores )
         {
             identifiableObjectStoreMap.put( store.getClazz(), store );
 
-            if (  classHasProperty( store.getClazz(), "user" )  )
+            if (  hasProperty( store.getClazz(), "user" )  )
             {
-                classWithUserPropertyMap.put( store.getClazz(), store );
+                mapClassHasUserProperty.put( store.getClazz(), store );
             }
         }
 
@@ -1277,9 +1277,9 @@ public class DefaultIdentifiableObjectManager
         {
             nameableObjectStoreMap.put( store.getClazz(), store );
 
-            if (  classHasProperty( store.getClazz(), "user" )  )
+            if (  hasProperty( store.getClazz(), "user" )  )
             {
-                classWithUserPropertyMap.put( store.getClazz(), store );
+                mapClassHasUserProperty.put( store.getClazz(), store );
             }
         }
 
@@ -1289,28 +1289,64 @@ public class DefaultIdentifiableObjectManager
         {
             dimensionalObjectStoreMap.put( store.getClazz(), store );
 
-            if (  classHasProperty( store.getClazz(), "user" )  )
+            if (  hasProperty( store.getClazz(), "user" )  )
             {
-                classWithUserPropertyMap.put( store.getClazz(), store );
+                mapClassHasUserProperty.put( store.getClazz(), store );
             }
         }
     }
 
-    public Set<String> listObjectCreatedByUser( User user )
+    @Override
+    public Set<Class<? extends IdentifiableObject>> listObjectCreatedByUser( User user )
     {
-        Set<String> returnList = new HashSet<>();
+        initMaps();
 
-        classWithUserPropertyMap.forEach( ( clazz, store ) -> {
+        Set<Class<? extends IdentifiableObject>> returnList = new HashSet<>();
+
+        mapClassHasUserProperty.forEach( ( clazz, store ) -> {
             if ( store.countByUser( user ) > 0 )
             {
-                returnList.add( clazz.getSimpleName() );
+                returnList.add( clazz );
             }
         } );
 
         return returnList;
     }
 
-    private boolean classHasProperty( Class clazz, String property )
+    @Override
+    public void updateObjectsOwner( User source, User target )
+    {
+        Set<Class<? extends IdentifiableObject>> classes = listObjectCreatedByUser( source );
+
+        if ( classes.isEmpty() )
+        {
+            return;
+        }
+
+        classes.forEach( clazz -> {
+            GenericIdentifiableObjectStore<? extends IdentifiableObject> store = mapClassHasUserProperty.get( clazz );
+            store.updateObjectsOwner( source, target );
+        } );
+
+        Session session = sessionFactory.getCurrentSession();
+        session.clear();
+        session.flush();
+    }
+
+    @Override
+    public <T extends IdentifiableObject> List<T> getAllByUser( Class<T> clazz, User user )
+    {
+        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return (List<T>) store.getAllByUser( user );
+    }
+
+    private boolean hasProperty( Class clazz, String property )
     {
         Schema schema = schemaService.getDynamicSchema( clazz );
 

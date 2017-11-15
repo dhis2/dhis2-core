@@ -90,6 +90,10 @@
       <param name="onExceptionReturn">plainTextError</param>
     </action>
 
+    <action name="getUserForTransferMetadata" class="org.hisp.dhis.user.action.TransferMetadataObjectAction">
+      <result name="success" type="velocity">/dhis-web-maintenance-user/transferMetadataObject.vm</result>
+    </action>
+
     <!-- Role -->
 
     <action name="allRole" class="org.hisp.dhis.user.action.GetRoleListAction">
