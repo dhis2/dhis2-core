@@ -188,6 +188,12 @@ public abstract class AbstractJdbcTableManager
     }
 
     @Override
+    public void dropTableCascade( String tableName )
+    {        
+        executeSilently( "drop table " + tableName + " cascade" );
+    }
+
+    @Override
     public void analyzeTable( String tableName )
     {
         String sql = StringUtils.trimToEmpty( statementBuilder.getAnalyze( tableName ) );

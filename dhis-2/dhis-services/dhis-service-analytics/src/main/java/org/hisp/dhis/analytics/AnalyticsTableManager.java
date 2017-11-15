@@ -129,6 +129,13 @@ public interface AnalyticsTableManager
     void dropTable( String tableName );
     
     /**
+     * Drops the given table and all potential partitions.
+     * 
+     * @param tableName the table name.
+     */
+    void dropTableCascade( String tableName );
+    
+    /**
      * Performs an analyze operation on the given table name.
      * 
      * @param tableName the table name.
