@@ -89,7 +89,7 @@ public class JdbcCompletenessTableManager
     @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
-        return Lists.newArrayList( "year = '" + partition.getYear() + "'" );
+        return Lists.newArrayList( "yearly = '" + partition.getYear() + "'" );
     }
     
     @Override

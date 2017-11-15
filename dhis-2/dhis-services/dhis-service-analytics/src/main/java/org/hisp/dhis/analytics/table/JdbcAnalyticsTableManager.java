@@ -134,9 +134,8 @@ public class JdbcAnalyticsTableManager
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
         return Lists.newArrayList(
-            "year = '" + partition.getYear() + "'",
-            "pestartdate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'",
-            "peenddate <= '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
+            "yearly = '" + partition.getYear() + "'",
+            "pestartdate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'" );
     }
     
     @Override

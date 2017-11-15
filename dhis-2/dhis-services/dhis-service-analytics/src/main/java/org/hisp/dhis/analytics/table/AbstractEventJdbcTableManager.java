@@ -66,7 +66,7 @@ public abstract class AbstractEventJdbcTableManager
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
         return Lists.newArrayList(
-            "year = '" + partition.getYear() + "'",
+            "yearly = '" + partition.getYear() + "'",
             "executiondate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'",
             "executiondate <= '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
     }
