@@ -71,12 +71,6 @@ public class JdbcEventAnalyticsTableManager
     {
         return AnalyticsTableType.EVENT;
     }
-
-    @Override
-    public void createMasterTable( AnalyticsTable table )
-    {        
-        createTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns( table.getProgram() ), Lists.newArrayList(), table.getProgram() ) );
-    }
     
     @Override
     @Transactional
@@ -98,9 +92,7 @@ public class JdbcEventAnalyticsTableManager
 
             Collections.sort( dataYears );
 
-            List<AnalyticsTableColumn> dimensionColumns = getDimensionColumns( program );
-
-            AnalyticsTable table = new AnalyticsTable( baseName, dimensionColumns, Lists.newArrayList(), program );
+            AnalyticsTable table = new AnalyticsTable( baseName, getDimensionColumns( program ), Lists.newArrayList(), program );
             
             for ( Integer year : dataYears )
             {
