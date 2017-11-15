@@ -1,7 +1,10 @@
 package org.hisp.dhis.scheduling.parameters;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.schema.annotation.Property;
+
+import java.io.IOException;
 
 /**
  * @author Henning Håkonsen
@@ -26,5 +29,12 @@ public class PushAnalysisJobParameters
     public String getPushAnalysis()
     {
         return pushAnalysis;
+    }
+
+    @Override
+    public JobParameters mapParameters( JsonNode parameters )
+        throws IOException
+    {
+        return null;
     }
 }

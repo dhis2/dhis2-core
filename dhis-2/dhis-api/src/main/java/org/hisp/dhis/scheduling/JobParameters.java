@@ -1,5 +1,8 @@
 package org.hisp.dhis.scheduling;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
+import java.io.IOException;
 import java.io.Serializable;
 
 /**
@@ -10,4 +13,6 @@ import java.io.Serializable;
 public interface JobParameters
     extends Serializable
 {
+    JobParameters mapParameters( JsonNode parameters )
+        throws IOException;
 }

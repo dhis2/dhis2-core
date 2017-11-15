@@ -1,9 +1,12 @@
 package org.hisp.dhis.scheduling.parameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.schema.annotation.Property;
+
+import java.io.IOException;
 
 /**
  * @author Henning Håkonsen
@@ -35,5 +38,12 @@ public class TestJobParameters
     public void setMessage( String message )
     {
         this.message = message;
+    }
+
+    @Override
+    public JobParameters mapParameters( JsonNode parameters )
+        throws IOException
+    {
+        return null;
     }
 }

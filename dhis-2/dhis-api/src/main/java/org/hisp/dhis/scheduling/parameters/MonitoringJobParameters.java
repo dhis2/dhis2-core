@@ -1,11 +1,13 @@
 package org.hisp.dhis.scheduling.parameters;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 
+import java.io.IOException;
 import java.util.List;
 
 import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
@@ -96,5 +98,12 @@ public class MonitoringJobParameters
     public void setPersistResults( boolean persistResults )
     {
         this.persistResults = persistResults;
+    }
+
+    @Override
+    public JobParameters mapParameters( JsonNode parameters )
+        throws IOException
+    {
+        return null;
     }
 }

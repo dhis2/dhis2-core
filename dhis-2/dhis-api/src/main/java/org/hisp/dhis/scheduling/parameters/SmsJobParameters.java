@@ -1,8 +1,10 @@
 package org.hisp.dhis.scheduling.parameters;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.schema.annotation.Property;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -61,5 +63,12 @@ public class SmsJobParameters
     public void setMessage( String message )
     {
         this.message = message;
+    }
+
+    @Override
+    public JobParameters mapParameters( JsonNode parameters )
+        throws IOException
+    {
+        return null;
     }
 }
