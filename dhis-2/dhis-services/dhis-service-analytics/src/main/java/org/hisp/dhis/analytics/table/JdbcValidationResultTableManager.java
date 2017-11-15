@@ -64,6 +64,31 @@ public class JdbcValidationResultTableManager
     }
 
     @Override
+    public Set<String> getExistingDatabaseTables()
+    {
+        return Sets.newHashSet( getTableName() );
+    }
+
+    @Override
+    public String validState()
+    {
+        boolean hasData = jdbcTemplate.queryForRowSet( "select validationresultid from validationresult limit 1" ).next();
+
+        if ( !hasData )
+        {
+            return "No validation results exist, not updating validation result analytics tables";
+        }
+
+        return null;
+    }
+
+    @Override
+    protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
+    {
+        return Lists.newArrayList( "yearly = '" + partition.getYear() + "'" );
+    }
+    
+    @Override
     protected void populateTable( AnalyticsTablePartition partition )
     {
         final String start = DateUtils.getMediumDateString( partition.getStartDate() );
@@ -109,25 +134,6 @@ public class JdbcValidationResultTableManager
         final String sql = insert + select;
 
         populateAndLog( sql, tableName );
-    }
-
-    @Override
-    public Set<String> getExistingDatabaseTables()
-    {
-        return Sets.newHashSet( getTableName() );
-    }
-
-    @Override
-    public String validState()
-    {
-        boolean hasData = jdbcTemplate.queryForRowSet( "select validationresultid from validationresult limit 1" ).next();
-
-        if ( !hasData )
-        {
-            return "No validation results exist, not updating validation result analytics tables";
-        }
-
-        return null;
     }
 
     private List<Integer> getDataYears( Date earliest )

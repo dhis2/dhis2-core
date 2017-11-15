@@ -129,6 +129,14 @@ public class JdbcAnalyticsTableManager
             resourceTableService.generateDataApprovalMinLevelTable();
         }
     }
+
+    @Override
+    protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
+    {
+        return Lists.newArrayList(
+            "yearly = '" + partition.getYear() + "'",
+            "pestartdate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'" );
+    }
     
     @Override
     protected void populateTable( AnalyticsTablePartition partition )
