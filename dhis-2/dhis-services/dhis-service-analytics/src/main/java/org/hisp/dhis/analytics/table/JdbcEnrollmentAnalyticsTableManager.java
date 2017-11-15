@@ -89,7 +89,13 @@ public class JdbcEnrollmentAnalyticsTableManager
     {
         return new HashSet<>();
     }
-        
+
+    @Override
+    protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
+    {
+        return Lists.newArrayList();
+    }
+    
     @Override
     protected void populateTable( AnalyticsTablePartition partition )
     {
