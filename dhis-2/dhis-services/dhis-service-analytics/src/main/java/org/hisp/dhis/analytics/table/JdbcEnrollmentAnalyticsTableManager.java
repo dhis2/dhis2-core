@@ -89,7 +89,7 @@ public class JdbcEnrollmentAnalyticsTableManager
     {
         return new HashSet<>();
     }
-        
+
     @Override
     protected void populateTable( AnalyticsTablePartition partition )
     {

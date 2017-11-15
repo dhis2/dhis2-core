@@ -112,7 +112,7 @@ public class JdbcEventAnalyticsTableManager
     {
         return partitionManager.getEventAnalyticsPartitions();
     }
-    
+
     @Override
     protected void populateTable( AnalyticsTablePartition partition )
     {
