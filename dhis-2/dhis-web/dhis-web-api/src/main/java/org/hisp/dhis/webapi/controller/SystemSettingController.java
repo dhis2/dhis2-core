@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import org.apache.commons.lang.StringUtils;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.render.RenderService;
@@ -36,7 +37,6 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,21 +44,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
@@ -77,8 +73,10 @@ public class SystemSettingController
     @Autowired
     private WebMessageService webMessageService;
 
-    @RequestMapping( value = "/{key}", method = RequestMethod.POST, consumes = { ContextUtils.CONTENT_TYPE_TEXT, ContextUtils.CONTENT_TYPE_HTML } )
+    @RequestMapping( value = "/{key}", method = RequestMethod.POST, consumes = { ContextUtils.CONTENT_TYPE_TEXT,
+        ContextUtils.CONTENT_TYPE_HTML } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
+    @ApiVersion( include = { DhisApiVersion.V23, DhisApiVersion.V24, DhisApiVersion.V25, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 }, exclude = { DhisApiVersion.V29, DhisApiVersion.DEFAULT }  )
     public void setSystemSetting(
         @PathVariable( value = "key" ) String key,
         @RequestParam( value = "value", required = false ) String value,
@@ -103,13 +101,17 @@ public class SystemSettingController
 
         systemSettingManager.saveSystemSetting( key, valueObject );
 
-        webMessageService.send( WebMessageUtils.ok( "System setting " + key + " set to value '" + valueObject + "'." ), response, request );
+        webMessageService
+            .send( WebMessageUtils.ok( "System setting " + key + " set to value '" + valueObject + "'." ), response,
+                request );
     }
 
     @RequestMapping( method = RequestMethod.POST, consumes = { ContextUtils.CONTENT_TYPE_JSON } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
+    @ApiVersion( include = { DhisApiVersion.V23, DhisApiVersion.V24, DhisApiVersion.V25, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 }, exclude = { DhisApiVersion.V29, DhisApiVersion.DEFAULT } )
     public void setSystemSetting( @RequestBody Map<String, Object> settings, HttpServletResponse response,
         HttpServletRequest request )
+        throws WebMessageException
     {
         for ( String key : settings.keySet() )
         {
@@ -119,8 +121,74 @@ public class SystemSettingController
         webMessageService.send( WebMessageUtils.ok( "System settings imported" ), response, request );
     }
 
+
+
+    @RequestMapping( value = "/{key}", method = RequestMethod.POST, consumes = { ContextUtils.CONTENT_TYPE_TEXT,
+        ContextUtils.CONTENT_TYPE_HTML } )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
+    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.V29 }, exclude = { DhisApiVersion.V23, DhisApiVersion.V24, DhisApiVersion.V25, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 })
+    public void setSystemSettingV29(
+        @PathVariable( value = "key" ) String key,
+        @RequestParam( value = "value", required = false ) String value,
+        @RequestBody( required = false ) String valuePayload,
+        HttpServletResponse response, HttpServletRequest request )
+        throws WebMessageException
+    {
+        if ( key == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Key must be specified" ) );
+        }
+
+        if ( value == null && valuePayload == null )
+        {
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Value must be specified as query param or as payload" ) );
+        }
+
+        value = ObjectUtils.firstNonNull( value, valuePayload );
+
+        if ( !SettingKey.getByName( key ).isPresent() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Key is not supported: " + key ) );
+        }
+
+        Serializable valueObject = SettingKey.getAsRealClass( key, value );
+
+        systemSettingManager.saveSystemSetting( key, valueObject );
+
+        webMessageService
+            .send( WebMessageUtils.ok( "System setting " + key + " set to value '" + valueObject + "'." ), response,
+                request );
+    }
+
+    @RequestMapping( method = RequestMethod.POST, consumes = { ContextUtils.CONTENT_TYPE_JSON } )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
+    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.V29 }, exclude = { DhisApiVersion.V23, DhisApiVersion.V24, DhisApiVersion.V25, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 })
+    public void setSystemSettingV29( @RequestBody Map<String, Object> settings, HttpServletResponse response,
+        HttpServletRequest request )
+        throws WebMessageException
+    {
+        List<String> invalidKeys = settings.keySet().stream()
+            .filter( ( key ) -> !SettingKey.getByName( key ).isPresent() ).collect(
+                Collectors.toList() );
+
+        if ( invalidKeys.size() > 0 )
+        {
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Key(s) is not supported: " + StringUtils.join( invalidKeys, ", " ) ) );
+        }
+
+        for ( String key : settings.keySet() )
+        {
+            systemSettingManager.saveSystemSetting( key, (Serializable) settings.get( key ) );
+        }
+
+        webMessageService.send( WebMessageUtils.ok( "System settings imported" ), response, request );
+    }
+
     @RequestMapping( value = "/{key}", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_TEXT )
-    public @ResponseBody String getSystemSettingAsText( @PathVariable( "key" ) String key )
+    public @ResponseBody
+    String getSystemSettingAsText( @PathVariable( "key" ) String key )
     {
         if ( systemSettingManager.isConfidential( key ) )
         {
@@ -145,7 +213,8 @@ public class SystemSettingController
         }
     }
 
-    @RequestMapping( method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_HTML } )
+    @RequestMapping( method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON,
+        ContextUtils.CONTENT_TYPE_HTML } )
     public void getSystemSettingsJson( @RequestParam( value = "key", required = false ) Set<String> key,
         HttpServletResponse response )
         throws IOException
