@@ -87,12 +87,6 @@ public class JdbcCompletenessTableManager
     }
     
     @Override
-    protected void createMasterTable( AnalyticsTable table )
-    {
-        createTempTable( table );
-    }
-
-    @Override
     protected void populateTable( AnalyticsTablePartition partition )
     {
         final String start = DateUtils.getMediumDateString( partition.getStartDate() );

@@ -125,7 +125,7 @@ public abstract class AbstractJdbcTableManager
     {
         if ( !skipMasterTable )
         {
-            createMasterTable( table );
+            createTempTable( table );
         }
         
         createTempTablePartitions( table );
@@ -220,13 +220,6 @@ public abstract class AbstractJdbcTableManager
         return null;
     }
 
-    /**
-     * Creates the master analytics table.
-     * 
-     * @param table the analytics table to create.
-     */
-    protected abstract void createMasterTable( AnalyticsTable table );
-    
     /**
      * Populates the given analytics table.
      * 
