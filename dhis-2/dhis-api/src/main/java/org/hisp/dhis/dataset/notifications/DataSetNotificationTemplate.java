@@ -76,7 +76,7 @@ public class DataSetNotificationTemplate
 
     private SendStrategy sendStrategy = SendStrategy.SINGLE_NOTIFICATION;
 
-    private ProgramRule programRule;
+    private Set<ProgramRule> programRules;
 
     public DataSetNotificationTemplate()
     {
@@ -143,14 +143,14 @@ public class DataSetNotificationTemplate
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramRule getProgramRule()
+    public Set<ProgramRule> getProgramRules()
     {
-        return programRule;
+        return programRules;
     }
 
-    public void setProgramRule( ProgramRule programRule )
+    public void setProgramRule( Set<ProgramRule> programRules )
     {
-        this.programRule = programRule;
+        this.programRules = programRules;
     }
 
     @Override

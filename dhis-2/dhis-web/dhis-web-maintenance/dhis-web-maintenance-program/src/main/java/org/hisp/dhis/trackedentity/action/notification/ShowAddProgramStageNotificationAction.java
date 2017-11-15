@@ -28,6 +28,7 @@ package org.hisp.dhis.trackedentity.action.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -41,6 +42,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -137,9 +139,9 @@ public class ShowAddProgramStageNotificationAction
         return emailDataElements;
     }
 
-    private List<ProgramRule> programRules;
+    private Set<ProgramRule> programRules;
 
-    public List<ProgramRule> getProgramRules()
+    public Set<ProgramRule> getProgramRules()
     {
         return programRules;
     }
@@ -152,7 +154,7 @@ public class ShowAddProgramStageNotificationAction
     public String execute() throws Exception
     {
         programStage = programStageService.getProgramStage( id );
-        programRules = programRuleService.getProgramRule( programStage.getProgram() );
+        programRules = Sets.newHashSet( programRuleService.getProgramRule( programStage.getProgram() ) );
         userGroups = userGroupService.getAllUserGroups();
         attributes = programStage.getProgram().getTrackedEntityAttributes();
         dataElements = programStage.getProgramStageDataElements().stream()

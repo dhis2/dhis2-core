@@ -31,6 +31,7 @@ package org.hisp.dhis.notification;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.programrule.ProgramRule;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -44,5 +45,5 @@ public interface NotificationTemplate
 
     Set<DeliveryChannel> getDeliveryChannels();
 
-    ProgramRule getProgramRule();
+    Set<ProgramRule> getProgramRules();
 }

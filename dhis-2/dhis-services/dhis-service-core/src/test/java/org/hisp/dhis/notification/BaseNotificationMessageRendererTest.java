@@ -361,7 +361,7 @@ public class BaseNotificationMessageRendererTest
         }
 
         @Override
-        public ProgramRule getProgramRule()
+        public Set<ProgramRule> getProgramRules()
         {
             return null;
         }

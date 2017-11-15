@@ -43,6 +43,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -153,11 +154,11 @@ public class ShowUpdateProgramStageNotificationAction
         return emailDataElements;
     }
 
-    private ProgramRule programRule;
+    private Set<ProgramRule> programRules;
 
-    public ProgramRule getProgramRule()
+    public Set<ProgramRule> getProgramRules()
     {
-        return programRule;
+        return programRules;
     }
 
     // -------------------------------------------------------------------------
@@ -168,7 +169,7 @@ public class ShowUpdateProgramStageNotificationAction
     public String execute() throws Exception
     {
         template = manager.get( ProgramNotificationTemplate.class, templateUid );
-        programRule = template.getProgramRule();
+        programRules = template.getProgramRules();
         userGroups = userGroupService.getAllUserGroups();
 
         programStage = manager.get( ProgramStage.class, programStageUid );

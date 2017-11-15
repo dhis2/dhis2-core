@@ -28,6 +28,7 @@ package org.hisp.dhis.trackedentity.action.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.Program;
@@ -39,6 +40,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -114,9 +116,9 @@ public class ShowAddProgramNotificationAction
         return emails;
     }
 
-    private List<ProgramRule> programRules;
+    private Set<ProgramRule> programRules;
 
-    public List<ProgramRule> getProgramRules()
+    public Set<ProgramRule> getProgramRules()
     {
         return programRules;
     }
@@ -129,7 +131,7 @@ public class ShowAddProgramNotificationAction
     public String execute() throws Exception
     {
         program = programService.getProgram( id );
-        programRules = programRuleService.getProgramRule( program );
+        programRules = Sets.newHashSet( programRuleService.getProgramRule( program ) );
         userGroups = userGroupService.getAllUserGroups();
         attributes = program.getTrackedEntityAttributes();
         phoneNumbers = getAttributeBasedOnValueType( attributes, ValueType.PHONE_NUMBER );

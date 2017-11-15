@@ -34,9 +34,27 @@
                 <select type="text" id="notificationTrigger" name="notificationTrigger">
                     <option value="COMPLETION" #if ( $trigger == "COMPLETION" ) selected #end>$i18n.getString( "program_stage_completion" )</option>
                     <option value="SCHEDULED_DAYS_DUE_DATE" #if ( $trigger == "SCHEDULED_DAYS_DUE_DATE" ) selected #end>$i18n.getString( "days_scheduled_due_date" )</option>
+                    <option value="PROGRAM_RULE" #if ( $trigger == "PROGRAM_RULE" ) selected #end>$i18n.getString( "program_rule" )</option>
                 </select>
             </td>
         </tr>
+
+        <tr id="programrulecontainer" style="display: none;">
+            <td>
+                <label for="programrule">$i18n.getString( "program_rule" )</label>
+            </td>
+            <td>
+                #set( $prs = $template.programRules )
+                <select type="text" id="programrule" name="programrule" class="programrule" multiple>
+                    <option value="">[$i18n.getString("please_select")]</option>
+                    #foreach( $pr in $!programRules )
+                        <option value="$pr.uid" #if ( $prs && $prs.contains( $pr ) ) selected #end>$pr.displayName</option>
+                    #end
+                </select>
+            </td>
+        </tr>
+
+
         <tr id="daysContainer" #if ( $template.notificationTrigger.isImmediate() ) style="display: none;" #end>
             <td>
                 <label for="relativeScheduledDays">$i18n.getString( "send_notification" )</label>

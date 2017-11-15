@@ -70,7 +70,7 @@ public class ValidationNotificationTemplate
 
     private SendStrategy sendStrategy = SendStrategy.COLLECTIVE_SUMMARY;
 
-    private ProgramRule programRule;
+    private Set<ProgramRule> programRules;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -130,14 +130,14 @@ public class ValidationNotificationTemplate
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramRule getProgramRule()
+    public Set<ProgramRule> getProgramRules()
     {
-        return programRule;
+        return programRules;
     }
 
-    public void setProgramRule( ProgramRule programRule )
+    public void setProgramRule( Set<ProgramRule> programRules )
     {
-        this.programRule = programRule;
+        this.programRules = programRules;
     }
 
     @JsonProperty

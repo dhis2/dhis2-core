@@ -45,6 +45,7 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.UserGroup;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -76,7 +77,7 @@ public class ProgramNotificationTemplate
 
     private DataElement recipientDataElement = null;
 
-    private ProgramRule programRule;
+    private Set<ProgramRule> programRules;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -133,14 +134,14 @@ public class ProgramNotificationTemplate
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramRule getProgramRule()
+    public Set<ProgramRule> getProgramRules()
     {
-        return programRule;
+        return programRules;
     }
 
-    public void setProgramRule( ProgramRule programRule )
+    public void setProgramRule( Set<ProgramRule> programRules )
     {
-        this.programRule = programRule;
+        this.programRules = programRules;
     }
 
     @JsonProperty
@@ -222,10 +223,5 @@ public class ProgramNotificationTemplate
     public DataElement getRecipientDataElement()
     {
         return recipientDataElement;
-    }
-
-    public void setRecipientDataElement( DataElement recipientDataElement )
-    {
-        this.recipientDataElement = recipientDataElement;
     }
 }
