@@ -80,12 +80,6 @@ public class JdbcOrgUnitTargetTableManager
     }    
     
     @Override
-    protected void createMasterTable( AnalyticsTable table )
-    {
-        createTempTable( table );
-    }
-
-    @Override
     protected void populateTable( AnalyticsTablePartition partition )
     {
         final String tableName = partition.getTempTableName();

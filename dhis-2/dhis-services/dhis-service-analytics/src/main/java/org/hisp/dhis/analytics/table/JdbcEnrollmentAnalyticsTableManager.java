@@ -64,12 +64,6 @@ public class JdbcEnrollmentAnalyticsTableManager
     {
         return AnalyticsTableType.ENROLLMENT;
     }
-
-    @Override
-    public void createMasterTable( AnalyticsTable table )
-    {        
-        createTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns( table.getProgram() ), Lists.newArrayList(), table.getProgram() ) );
-    }
     
     @Override
     @Transactional
@@ -81,10 +75,8 @@ public class JdbcEnrollmentAnalyticsTableManager
         String baseName = getTableName();
         
         for ( Program program : programs )
-        {
-            List<AnalyticsTableColumn> dimensionColumns = getDimensionColumns( program );
-            
-            AnalyticsTable table = new AnalyticsTable( baseName, dimensionColumns, Lists.newArrayList(), program );
+        {            
+            AnalyticsTable table = new AnalyticsTable( baseName, getDimensionColumns( program ), Lists.newArrayList(), program );
                         
             tables.add( table );
         }

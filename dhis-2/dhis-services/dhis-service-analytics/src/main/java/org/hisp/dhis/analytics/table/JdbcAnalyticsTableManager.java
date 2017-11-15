@@ -129,12 +129,6 @@ public class JdbcAnalyticsTableManager
             resourceTableService.generateDataApprovalMinLevelTable();
         }
     }
-
-    @Override
-    protected void createMasterTable( AnalyticsTable table )
-    {
-        createTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns( null ), getValueColumns() ) );
-    }
     
     @Override
     protected void populateTable( AnalyticsTablePartition partition )
