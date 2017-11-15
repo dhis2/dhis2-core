@@ -29,8 +29,6 @@ package org.hisp.dhis.sms.listener;
  */
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
@@ -59,8 +57,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class TrackedEntityRegistrationSMSListener
     extends BaseSMSListener
 {
-    private static final String defaultPattern = "([a-zA-Z]+)\\s*(\\d+)";
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

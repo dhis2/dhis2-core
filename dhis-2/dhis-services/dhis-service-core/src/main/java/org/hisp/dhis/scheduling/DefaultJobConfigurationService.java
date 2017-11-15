@@ -143,7 +143,7 @@ public class DefaultJobConfigurationService
         {
             Map<String, Property> jobParameters = Maps.newHashMap();
 
-            if ( jobType.getKey() == null )
+            if ( !jobType.isConfigurable() )
             {
                 continue;
             }

@@ -19,7 +19,7 @@ public class TestJob
     {
         TestJobParameters parameters = (TestJobParameters) jobConfiguration.getJobParameters();
 
-        System.out.println( "job configuration message: " + parameters.getMessage() + ", sleep for 60 seconds" );
+        System.out.println( "job configuration message: " + parameters.getMessage() + ", sleep for 10 seconds" );
         try
         {
             Thread.sleep( 10000 );

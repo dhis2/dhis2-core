@@ -24,11 +24,13 @@
 
         <property name="lastExecutedStatus" />
 
-        <property name="lastExecuted" type="timestamp"/>
+        <property name="lastExecuted" type="timestamp" />
 
-        <property name="nextExecutionTime" type="timestamp"/>
+        <property name="lastRuntimeExecution" type="text" />
 
-        <property name="continuousExecution" not-null="true" type="boolean"/>
+        <property name="nextExecutionTime" type="timestamp" />
+
+        <property name="continuousExecution" not-null="true" type="boolean" />
 
         <property name="configurable" not-null="true" type="boolean" />
 

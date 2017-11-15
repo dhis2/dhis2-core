@@ -31,10 +31,10 @@ package org.hisp.dhis.webapi.controller;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -561,7 +561,7 @@ public class CompleteDataSetRegistrationController
     private Pair<InputStream, Path> saveTmpFile( InputStream in )
         throws IOException
     {
-        String filename = RandomStringUtils.randomAlphanumeric( 6 );
+        String filename = CodeGenerator.generateCode( 6 );
 
         File tmpFile = File.createTempFile( filename, null );
         tmpFile.deleteOnExit();
