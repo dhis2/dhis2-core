@@ -103,55 +103,6 @@
       <param name="hideMenu">true</param>
     </action>
 
-    <!-- ReportTable -->
-
-    <action name="displayManageTableForm" class="org.hisp.dhis.reporting.tablecreator.action.GetAllTablesAction">
-      <result name="success" type="velocity">/main.vm</result>
-      <param name="page">/dhis-web-reporting/viewTableForm.vm</param>
-      <param name="menu">/dhis-web-reporting/menu.vm</param>
-      <param name="javascripts">javascript/table.js</param>
-    </action>
-
-    <action name="getReportTables" class="org.hisp.dhis.reporting.tablecreator.action.GetAllTablesAction">
-      <result name="success" type="velocity-json">/dhis-web-reporting/jsonReportTables.vm</result>
-      <param name="onExceptionReturn">plainTextError</param>
-    </action>
-
-    <action name="removeTable" class="org.hisp.dhis.reporting.tablecreator.action.RemoveTableAction">
-      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
-      <param name="onExceptionReturn">plainTextError</param>
-    </action>
-
-    <action name="getReportParams" class="org.hisp.dhis.reporting.tablecreator.action.GetReportParamsAction">
-      <result name="success" type="velocity">/main.vm</result>
-      <param name="page">/dhis-web-reporting/inputReportParamsForm.vm</param>
-      <param name="menu">/dhis-web-reporting/menu.vm</param>
-      <param name="javascripts">../dhis-web-commons/oust/oust.js,javascript/generateReport.js</param>
-    </action>
-
-    <action name="getTable" class="org.hisp.dhis.reporting.tablecreator.action.GetTableAction">
-      <result name="success" type="velocity-json">/dhis-web-reporting/jsonTable.vm</result>
-      <param name="onExceptionReturn">plainTextError</param>
-    </action>
-
-    <action name="addReportTableToDashboard" class="org.hisp.dhis.reporting.tablecreator.action.AddReportTableToDashboardAction">
-      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
-      <param name="onExceptionReturn">plainTextError</param>
-    </action>
-
-    <action name="exportTable" class="org.hisp.dhis.reporting.tablecreator.action.ExportTableAction">
-      <result name="csv" type="gridCsvResult" />
-      <result name="xls" type="gridXlsResult" />
-      <result name="pdf" type="gridPdfResult" />
-      <result name="jasper" type="gridJasperResult" />
-      <result name="jrxml" type="gridJrxmlResult" />
-      <result name="html" type="velocity">/main.vm</result>
-      <param name="page">/dhis-web-reporting/reportTableGrid.vm</param>
-      <param name="hideMenu">true</param>
-      <param name="javascripts">javascript/generateReport.js</param>
-      <param name="stylesheets">style/dhis-web-reporting.css</param>
-    </action>
-
     <!-- Data Completeness -->
 
     <action name="displayViewDataCompletenessForm" class="org.hisp.dhis.reporting.completeness.action.GetDataCompletenessOptionsAction">
