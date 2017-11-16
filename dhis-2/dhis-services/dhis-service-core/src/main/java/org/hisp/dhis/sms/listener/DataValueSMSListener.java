@@ -74,10 +74,6 @@ import javax.annotation.Resource;
 public class DataValueSMSListener
     extends BaseSMSListener
 {
-    private static final String DEFAULTPATTERN = "([a-zA-Z]+)\\s*(\\d+)";
-
-    private static final String SEPARATOR = "=";
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

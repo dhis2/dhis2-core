@@ -40,9 +40,13 @@ public class JobConfiguration
 
     private JobStatus jobStatus;
 
-    private Date lastExecuted;
+    private Date nextExecutionTime;
 
     private JobStatus lastExecutedStatus;
+
+    private Date lastExecuted;
+
+    private String lastRuntimeExecution;
 
     private JobParameters jobParameters;
 
@@ -51,8 +55,6 @@ public class JobConfiguration
     private boolean configurable = true;
 
     private boolean enabled = true;
-
-    private Date nextExecutionTime;
 
     public JobConfiguration()
     {
@@ -94,6 +96,11 @@ public class JobConfiguration
     public void setLastExecutedStatus( JobStatus lastExecutedStatus )
     {
         this.lastExecutedStatus = lastExecutedStatus;
+    }
+
+    public void setLastRuntimeExecution( String lastRuntimeExecution )
+    {
+        this.lastRuntimeExecution = lastRuntimeExecution;
     }
 
     public void setJobParameters( JobParameters jobParameters )
@@ -162,6 +169,13 @@ public class JobConfiguration
     public JobStatus getLastExecutedStatus()
     {
         return lastExecutedStatus;
+    }
+
+    @JacksonXmlProperty
+    @JsonProperty
+    public String getLastRuntimeExecution()
+    {
+        return lastRuntimeExecution;
     }
 
     @JacksonXmlProperty

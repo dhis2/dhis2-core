@@ -35,14 +35,15 @@ import org.hisp.dhis.analytics.AnalyticsIndex;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
+import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.ListUtils;
-import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -108,15 +109,6 @@ public abstract class AbstractJdbcTableManager
     protected JdbcTemplate jdbcTemplate;
 
     // -------------------------------------------------------------------------
-    // Abstract methods
-    // -------------------------------------------------------------------------
-
-    /**
-     * Returns a list of analytics table columns. Column names are quoted.
-     */
-    protected abstract List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTable table );
-
-    // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
 
@@ -126,6 +118,17 @@ public abstract class AbstractJdbcTableManager
     @Override
     public void preCreateTables()
     {
+    }
+
+    @Override
+    public void createTable( AnalyticsTable table, boolean skipMasterTable )
+    {
+        if ( !skipMasterTable )
+        {
+            createMasterTable( table );
+        }
+        
+        createTempTablePartitions( table );
     }
     
     @Override
@@ -157,26 +160,39 @@ public abstract class AbstractJdbcTableManager
     }
     
     @Override
-    public void swapTable( AnalyticsTable table )
+    public void swapTable( AnalyticsTable table, boolean skipMasterTable )
     {
-        final String tempTable = table.getTempTableName();
-        final String realTable = table.getTableName();
+        for ( AnalyticsTablePartition partition : table.getPartitionTables() )
+        {
+            swapTable( partition.getTempTableName(), partition.getTableName() );
+        }
         
-        final String sqlDrop = "drop table " + realTable;
-        
-        executeSilently( sqlDrop );
-        
-        final String sqlAlter = "alter table " + tempTable + " rename to " + realTable;
-        
-        executeSilently( sqlAlter );
+        if ( !skipMasterTable )
+        {
+            swapTable( table.getTempTableName(), table.getTableName() );
+        }
     }
-
+    
+    @Override
+    public void dropTempTable( AnalyticsTable table )
+    {
+        table.getPartitionTables().stream().forEach( p -> dropTable( p.getTempTableName() ) );
+        
+        dropTable( table.getTempTableName() );
+    }
+    
     @Override
     public void dropTable( String tableName )
     {        
         executeSilently( "drop table " + tableName );
     }
-    
+
+    @Override
+    public void dropTableCascade( String tableName )
+    {        
+        executeSilently( "drop table " + tableName + " cascade" );
+    }
+
     @Override
     public void analyzeTable( String tableName )
     {
@@ -187,38 +203,39 @@ public abstract class AbstractJdbcTableManager
 
     @Override
     @Async
-    public Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
+    public Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions )
     {
         taskLoop: while ( true )
         {
-            AnalyticsTable table = tables.poll();
+            AnalyticsTablePartition partition = partitions.poll();
 
-            if ( table == null )
+            if ( partition == null )
             {
                 break taskLoop;
             }
 
-            populateTable( table );
+            populateTable( partition );
         }
 
         return null;
     }
 
     /**
+     * Creates the master analytics table.
+     * 
+     * @param table the analytics table to create.
+     */
+    protected abstract void createMasterTable( AnalyticsTable table );
+    
+    /**
      * Populates the given analytics table.
      * 
      * @param table the analytics table to populate.
      */
-    protected abstract void populateTable( AnalyticsTable table );
+    protected abstract void populateTable( AnalyticsTablePartition partition );
 
-    @Override
-    public void analyzeTables( List<AnalyticsTable> tables )
-    {
-        tables.forEach( table -> analyzeTable( table.getTempTableName() ) );
-    }
-    
     // -------------------------------------------------------------------------
-    // Supportive methods
+    // Protected supportive methods
     // -------------------------------------------------------------------------
   
     /**
@@ -231,6 +248,8 @@ public abstract class AbstractJdbcTableManager
     
     /**
      * Quotes the given column name.
+     * 
+     * @param column the column name.
      */
     protected String quote( String column )
     {
@@ -239,6 +258,8 @@ public abstract class AbstractJdbcTableManager
     
     /**
      * Remove quotes from the given column name.
+     * 
+     * @param column the column name.
      */
     private String removeQuote( String column )
     {
@@ -247,6 +268,8 @@ public abstract class AbstractJdbcTableManager
     
     /**
      * Shortens the given table name.
+     * 
+     * @param table the table name.
      */
     private String shortenTableName( String table )
     {
@@ -259,6 +282,8 @@ public abstract class AbstractJdbcTableManager
     /**
      * Returns index name for column. Purpose of code suffix is to avoid uniqueness
      * collision between indexes for temporary and real tables.
+     * 
+     * @param inx the {@link AnalyticsIndex}.
      */
     protected String getIndexName( AnalyticsIndex inx )
     {
@@ -267,6 +292,8 @@ public abstract class AbstractJdbcTableManager
     
     /**
      * Indicates whether the given table exists and has at least one row.
+     * 
+     * @param tableName the table name.
      */
     protected boolean hasRows( String tableName )
     {
@@ -285,6 +312,8 @@ public abstract class AbstractJdbcTableManager
     /**
      * Executes a SQL statement. Ignores existing tables/indexes when attempting
      * to create new.
+     * 
+     * @param sql the SQL statement.
      */
     protected void executeSilently( String sql )
     {
@@ -297,36 +326,86 @@ public abstract class AbstractJdbcTableManager
             log.debug( ex.getMessage() );
         }
     }
+
+    /**
+     * Drops and creates the given analytics table.
+     * 
+     * @param table the {@link AnalyticsTable}.
+     */
+    protected void createTempTable( AnalyticsTable table )
+    {
+        validateDimensionColumns( table.getDimensionColumns() );
+        
+        final String tableName = table.getTempTableName();        
+
+        String sqlCreate = "create table " + tableName + " (";
+
+        for ( AnalyticsTableColumn col : ListUtils.union( table.getDimensionColumns(), table.getValueColumns() ) )
+        {
+            sqlCreate += col.getName() + " " + col.getDataType() + ",";
+        }
+                
+        sqlCreate = TextUtils.removeLastComma( sqlCreate ) + ")";
+        
+        log.info( String.format( "Creating table: %s, columns: %d", tableName, table.getDimensionColumns().size() ) );
+
+        log.debug( "Create SQL: " + sqlCreate );
+
+        jdbcTemplate.execute( sqlCreate );
+    }
+    
+    /**
+     * Drops and creates the table partitions for the given analytics table.
+     * 
+     * @param table the {@link AnalyticsTable}.
+     */
+    protected void createTempTablePartitions( AnalyticsTable table )
+    {
+        for ( AnalyticsTablePartition partition : table.getPartitionTables() )
+        {         
+            final String tableName = partition.getTempTableName();
+   
+            String sqlCreate = "create table " + tableName + " (check (yearly = '" + partition.getYear() + "')) inherits (" + table.getTempTableName() + ")";
+            
+            log.info( String.format( "Creating partition table: %s", tableName ) );
+
+            log.debug( "Create SQL: " + sqlCreate );
+
+            jdbcTemplate.execute( sqlCreate );
+        }
+    }
     
     /**
      * Generates a list of {@link AnalyticsTable} based on a list of years with data.
      * 
-     * @param dataYears the list of years of data.
+     * @param dataYears the list of years with data.
+     * @param dimensionColumns the list of dimension {@link AnalyticsTableColumn}.
+     * @param valueColumns the list of value {@link AnalyticsTableColumn}.
      */
-    protected List<AnalyticsTable> getTables( List<Integer> dataYears )
-    {
-        List<AnalyticsTable> tables = new UniqueArrayList<>();
-        
+    protected AnalyticsTable getAnalyticsTable( List<Integer> dataYears, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
+    {        
         Calendar calendar = PeriodType.getCalendar();
 
         Collections.sort( dataYears );
         
         String baseName = getAnalyticsTableType().getTableName();
         
+        AnalyticsTable table = new AnalyticsTable( baseName, dimensionColumns, valueColumns );
+        
         for ( Integer year : dataYears )
         {
             Period period = PartitionUtils.getPeriod( calendar, year );
             
-            AnalyticsTable table = new AnalyticsTable( baseName, getDimensionColumns( null ), period );
-            
-            tables.add( table );
+            table.addPartitionTable( year, period.getStartDate(), period.getEndDate() );
         }
 
-        return tables;
+        return table;
     }
     
     /**
      * Checks whether the given list of columns are valid.
+     * 
+     * @param columns the list of {@link AnalyticsTableColumn}.
      * @throws IllegalStateException if not valid.
      */
     protected void validateDimensionColumns( List<AnalyticsTableColumn> columns )
@@ -351,7 +430,7 @@ public abstract class AbstractJdbcTableManager
      * after the time of the last successful resource table update.
      * 
      * @param columns the analytics table columns.
-     * @return
+     * @return a list of {@link AnalyticsTableColumn}.
      */
     protected List<AnalyticsTableColumn> filterDimensionColumns( List<AnalyticsTableColumn> columns )
     {
@@ -369,6 +448,9 @@ public abstract class AbstractJdbcTableManager
 
     /**
      * Executes the given table population SQL statement, log and times the operation.
+     * 
+     * @param sql the SQL statement.
+     * @param tableName the table name.
      */
     protected void populateAndLog( String sql, String tableName )
     {
@@ -379,5 +461,27 @@ public abstract class AbstractJdbcTableManager
         jdbcTemplate.execute( sql );
         
         log.info( String.format( "Populated table in %s: %s", timer.stop().toString(), tableName ) );
+    }
+
+    // -------------------------------------------------------------------------
+    // Private supportive methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Swaps a database table, meaning drops the real table and renames the
+     * temporary table to become the real table.
+     * 
+     * @param tempTableName the temporary table name.
+     * @param realTableName the real table name.
+     */
+    private void swapTable( String tempTableName, String realTableName )
+    {        
+        final String sqlDrop = "drop table " + realTableName;
+        
+        executeSilently( sqlDrop );
+        
+        final String sqlAlter = "alter table " + tempTableName + " rename to " + realTableName;
+        
+        executeSilently( sqlAlter );
     }
 }

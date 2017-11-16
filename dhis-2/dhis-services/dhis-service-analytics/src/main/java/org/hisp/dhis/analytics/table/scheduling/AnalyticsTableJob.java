@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table.scheduling;
  */
 
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.table.AnalyticsTableType;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -67,6 +68,13 @@ public class AnalyticsTableJob
 
         parameters.getSkipTableTypes().forEach( (s) -> skipTableTypes.add( AnalyticsTableType.valueOf( s ) ) );
 
-        analyticsTableGenerator.generateTables( parameters.getLastYears(), jobConfiguration.getJobId(), skipTableTypes, parameters.isSkipResourceTables() );
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
+            .withLastYears( parameters.getLastYears() )
+            .withTaskId( jobConfiguration.getJobId() )
+            .withSkipTableTypes( skipTableTypes )
+            .withSkipResourceTables( parameters.isSkipResourceTables() )
+            .build();
+
+        analyticsTableGenerator.generateTables( params );
     }
 }

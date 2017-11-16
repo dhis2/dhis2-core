@@ -33,7 +33,19 @@ public class JobConfigurationDeserializer
         JobParameters jobParameters = null;
         if ( root.get( "jobParameters" ) != null && jobType.getClazz() != null )
         {
-            jobParameters = mapper.convertValue( root.get( "jobParameters" ), jobType.getClazz() );
+            Class<JobParameters> validate = jobType.getClazz();
+            try
+            {
+                jobParameters = validate.newInstance().mapParameters( root.get( "jobParameters" ) );
+                if ( jobParameters == null )
+                {
+                    jobParameters = mapper.convertValue( root.get( "jobParameters" ), jobType.getClazz() );
+                }
+            }
+            catch ( InstantiationException | IllegalAccessException e )
+            {
+                throw new IOException( e );
+            }
         }
 
         boolean enabled = root.get( "enabled" ) == null || root.get( "enabled" ).booleanValue();

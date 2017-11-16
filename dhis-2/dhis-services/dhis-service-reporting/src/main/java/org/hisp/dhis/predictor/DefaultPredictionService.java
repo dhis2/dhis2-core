@@ -78,13 +78,13 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * @author Ken Haase
  * @author Jim Grace
  */
-
-public class DefaultPredictionService implements PredictionService
+public class DefaultPredictionService
+    implements PredictionService
 {
     private static final Log log = LogFactory.getLog( DefaultPredictionService.class );
 
     @Autowired
-    private PredictorStore predictorStore;
+    private PredictorService predictorService;
 
     @Autowired
     private ConstantService constantService;
@@ -126,7 +126,7 @@ public class DefaultPredictionService implements PredictionService
         try
         {
             for ( String uid : predictors) {
-                Predictor predictor = predictorStore.getByUid( uid );
+                Predictor predictor = predictorService.getPredictor( uid );
 
                 int count = predict( predictor, startDate, endDate );
 
@@ -559,7 +559,7 @@ public class DefaultPredictionService implements PredictionService
         Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> eventDataValues = new Map4<>();
 
         DataQueryParams params = DataQueryParams.newBuilder()
-            .withPeriods( new ArrayList( periods ) )
+            .withPeriods( new ArrayList<Period>( periods ) )
             .withDataDimensionItems( Lists.newArrayList( dimensionItems ) )
             .withAttributeOptionCombos( Lists.newArrayList() )
             .withFilterOrganisationUnits( orgUnits )

@@ -18,11 +18,12 @@ public class DefaultJobInstance implements JobInstance
 {
     private static final Log log = LogFactory.getLog( SpringScheduler.class );
 
-    private void setFinishingStatus( SchedulingManager schedulingManager, JobConfiguration jobConfiguration )
+    private void setFinishingStatus( Clock clock, SchedulingManager schedulingManager, JobConfiguration jobConfiguration )
     {
         jobConfiguration.setJobStatus( JobStatus.SCHEDULED );
         jobConfiguration.setNextExecutionTime( null );
         jobConfiguration.setLastExecuted( new Date() );
+        jobConfiguration.setLastRuntimeExecution( clock.time() );
 
         schedulingManager.jobConfigurationFinished( jobConfiguration );
     }
@@ -54,7 +55,7 @@ public class DefaultJobInstance implements JobInstance
 
                 jobConfiguration.setLastExecutedStatus( JobStatus.FAILED );
 
-                setFinishingStatus( schedulingManager, jobConfiguration );
+                setFinishingStatus( clock, schedulingManager, jobConfiguration );
                 throw ex;
             }
 
@@ -74,6 +75,6 @@ public class DefaultJobInstance implements JobInstance
             schedulingManager.executeJob( jobConfiguration );
         }
 
-        setFinishingStatus( schedulingManager, jobConfiguration );
+        setFinishingStatus( clock, schedulingManager, jobConfiguration );
     }
 }

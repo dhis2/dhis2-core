@@ -1,7 +1,5 @@
 package org.hisp.dhis.analytics;
 
-import org.hisp.dhis.analytics.table.AnalyticsTableType;
-
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -30,7 +28,7 @@ import org.hisp.dhis.analytics.table.AnalyticsTableType;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.analytics.table.AnalyticsTableType;
 
 /**
  * Service for analytics table generation and analysis.
@@ -49,10 +47,9 @@ public interface AnalyticsTableService
     /**
      * Rebuilds the analytics tables.
      * 
-     * @param lastYears the number of last years of data to include, null if all.
-     * @param jobId the {@link JobId}.
+     * @param params the {@link AnalyticsTableUpdateParams}.
      */
-    void update( Integer lastYears, JobId jobId );
+    void update( AnalyticsTableUpdateParams params );
     
     /**
      * Drops main and temporary analytics tables.

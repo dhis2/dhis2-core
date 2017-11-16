@@ -88,13 +88,6 @@ public class ProcessingSendQuickSMSAction
         this.gatewayId = gatewayId;
     }
 
-    private String smsSubject;
-
-    public void setSmsSubject( String smsSubject )
-    {
-        this.smsSubject = smsSubject;
-    }
-
     private String text;
 
     public void setText( String text )

@@ -13,57 +13,62 @@ import java.util.Optional;
  */
 public enum JobType
 {
-    DATA_STATISTICS( "dataStatisticsJob", null, null ),
-    DATA_INTEGRITY( "dataIntegrity", null, null ),
-    RESOURCE_TABLE( "resourceTableJob", null, null ),
-    ANALYTICS_TABLE( "analyticsTableJob", AnalyticsJobParameters.class, new HashMap<String, String>()
+    DATA_STATISTICS( "dataStatisticsJob", true, null, null ),
+    DATA_INTEGRITY( "dataIntegrity", true, null, null ),
+    RESOURCE_TABLE( "resourceTableJob", true, null, null ),
+    ANALYTICS_TABLE( "analyticsTableJob", true, AnalyticsJobParameters.class, new HashMap<String, String>()
     {{
         put( "skipTableTypes", "/api/analytics/tableTypes" );
     }} ),
-    DATA_SYNC( "dataSyncJob", null, null ),
-    FILE_RESOURCE_CLEANUP( "fileResourceCleanUp", null, null ),
-    META_DATA_SYNC( "metaDataSyncJob", null, null ),
-    SMS_SEND( "smsSendJob", SmsJobParameters.class, null ),
-    SEND_SCHEDULED_MESSAGE( "sendScheduledMessageJob", null, null ),
-    PROGRAM_NOTIFICATIONS( "programNotificationsJob", null, null ),
-    VALIDATION_RESULTS_NOTIFICATION( "validationResultNotificationJob", null, null ),
-    CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob", null, null ),
-    MONITORING( "monitoringJob", MonitoringJobParameters.class, new HashMap<String, String>()
+    DATA_SYNC( "dataSyncJob", true, null, null ),
+    FILE_RESOURCE_CLEANUP( "fileResourceCleanUp", true, null, null ),
+    META_DATA_SYNC( "metaDataSyncJob", true, null, null ),
+    SMS_SEND( "smsSendJob", true, SmsJobParameters.class, null ),
+    SEND_SCHEDULED_MESSAGE( "sendScheduledMessageJob", true, null, null ),
+    PROGRAM_NOTIFICATIONS( "programNotificationsJob",true,  null, null ),
+    VALIDATION_RESULTS_NOTIFICATION( "validationResultNotificationJob", true, null, null ),
+    CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob", true, null, null ),
+    MONITORING( "monitoringJob", true, MonitoringJobParameters.class, new HashMap<String, String>()
     {{
         put( "organisationUnits", "/api/organisationUnits" );
         put( "validationRuleGroups", "/api/validationRuleGroups" );
         put( "validationRuleGroupUids", "/api/validationRuleGroups" );
         put( "parentOrgUnitUid", "/api/organisationUnits" );
     }} ),
-    PUSH_ANALYSIS( "pushAnalysis", PushAnalysisJobParameters.class, new HashMap<String, String>()
+    PUSH_ANALYSIS( "pushAnalysis", true, PushAnalysisJobParameters.class, new HashMap<String, String>()
     {{
         put( "pushAnalysisId", "/api/pushAnalysis" );
     }} ),
-    PREDICTOR( "predictor", PredictorJobParameters.class, new HashMap<String, String>()
+    PREDICTOR( "predictor", true, PredictorJobParameters.class, new HashMap<String, String>()
     {{
         put( "predictors", "/api/predictors" );
     }} ),
-    DATASET_NOTIFICATION( "dataSetNotification", null, null ),
-    TEST( "test", TestJobParameters.class, null ),
+    DATASET_NOTIFICATION( "dataSetNotification", true, null, null ),
+
+    // For tests
+    TEST( "test", false, TestJobParameters.class, null ),
 
     // To satifisfy code that used the old enum TaskCategory
-    DATAVALUE_IMPORT( null, null, null ),
-    ANALYTICSTABLE_UPDATE( null, null, null ),
-    METADATA_IMPORT( null, null, null ),
-    DATAVALUE_IMPORT_INTERNAL( null, null, null ),
-    EVENT_IMPORT( null, null, null ),
-    COMPLETE_DATA_SET_REGISTRATION_IMPORT( null, null, null );
+    DATAVALUE_IMPORT( null, false, null, null ),
+    ANALYTICSTABLE_UPDATE( null, false, null, null ),
+    METADATA_IMPORT( null, false, null, null ),
+    DATAVALUE_IMPORT_INTERNAL( null, false, null, null ),
+    EVENT_IMPORT( null, false, null, null ),
+    COMPLETE_DATA_SET_REGISTRATION_IMPORT( null, false, null, null );
 
     private final String key;
 
     private final Class<?> clazz;
 
+    private final boolean configurable;
+
     HashMap<String, String> relativeApiElements;
 
-    JobType( String key, Class<?> clazz, HashMap<String, String> relativeApiElements )
+    JobType( String key, boolean configurable, Class<?> clazz, HashMap<String, String> relativeApiElements )
     {
         this.key = key;
         this.clazz = clazz;
+        this.configurable = configurable;
         this.relativeApiElements = relativeApiElements;
     }
 
@@ -88,6 +93,11 @@ public enum JobType
         }
 
         return Optional.empty();
+    }
+
+    public boolean isConfigurable()
+    {
+        return configurable;
     }
 
     public static Class<JobParameters> getClazz( String jobType )
