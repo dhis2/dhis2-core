@@ -1,4 +1,4 @@
-package org.hisp.dhis.programrule;
+package org.hisp.dhis.program.notification;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,45 +28,21 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateService;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramNotificationTemplateDeletionHandler;
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.programrule.ProgramRule;
+
+import java.util.List;
 
 /**
- * @author markusbekken
+ * Created by zubair@dhis2.org on 16.11.17.
  */
-public class ProgramRuleDeletionHandler
-    extends DeletionHandler 
+public class DefaultProgramNotificationTemplateStore extends HibernateIdentifiableObjectStore<ProgramNotificationTemplate>
+    implements ProgramNotificationTemplateStore
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private ProgramRuleService programRuleService;
-
-    public void setProgramRuleService( ProgramRuleService programRuleService )
-    {
-        this.programRuleService = programRuleService;
-    }
-
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
-    
     @Override
-    protected String getClassName()
+    public List<ProgramNotificationTemplate> getProgramNotificationTemplate( ProgramRule programRule )
     {
-        return ProgramRule.class.getSimpleName();
-    }
-    
-    @Override
-    public void deleteProgram( Program program )
-    {
-        for ( ProgramRule programRule : programRuleService.getProgramRule( program ) )
-        {
-            programRuleService.deleteProgramRule( programRule );
-        }
+        return getCriteria( Restrictions.eq( "programRules", programRule ) ).list();
     }
 }

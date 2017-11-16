@@ -28,8 +28,14 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
+import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -37,9 +43,20 @@ import org.hisp.dhis.system.deletion.DeletionHandler;
 public class ProgramNotificationTemplateDeletionHandler
     extends DeletionHandler
 {
+    @Autowired
+    private ProgramNotificationTemplateStore programNotificationTemplateStore;
+
     @Override
     protected String getClassName()
     {
         return ProgramNotificationTemplate.class.getSimpleName();
+    }
+
+    @Override
+    public void deleteProgramRule( ProgramRule programRule )
+    {
+        List<ProgramNotificationTemplate> programNotificationTemplates = programNotificationTemplateStore.getProgramNotificationTemplate( programRule );
+        
+        programNotificationTemplates.stream().forEach( template -> programNotificationTemplateStore.delete( template ) );
     }
 }

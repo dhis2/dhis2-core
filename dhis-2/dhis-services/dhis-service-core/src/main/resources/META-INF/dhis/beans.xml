@@ -1505,6 +1505,13 @@
     <property name="cacheable" value="true" />
   </bean>
 
+  <bean id="org.hisp.dhis.program.notification.ProgramNotificationTemplateStore"
+        class="org.hisp.dhis.program.notification.DefaultProgramNotificationTemplateStore">
+    <property name="clazz" value="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
   <bean id="org.hisp.dhis.eventreport.EventReportService" class="org.hisp.dhis.eventreport.DefaultEventReportService">
     <property name="eventReportStore" ref="org.hisp.dhis.eventreport.EventReportStore" />
   </bean>
