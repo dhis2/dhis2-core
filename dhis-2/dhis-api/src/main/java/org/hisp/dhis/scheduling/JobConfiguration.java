@@ -114,7 +114,7 @@ public class JobConfiguration
             this.nextExecutionTime = nextExecutionTime;
         else
         {
-            if ( !isContinuousExecution() && cronExpression != null && !cronExpression.equals( "" ) )
+            if ( !isContinuousExecution() )
             {
                 this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext() );
             }
