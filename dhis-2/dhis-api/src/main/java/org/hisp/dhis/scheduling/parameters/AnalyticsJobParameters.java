@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Henning Håkonsen
@@ -56,36 +58,35 @@ public class AnalyticsJobParameters
     public JobParameters mapParameters( JsonNode parameters )
         throws IOException
     {
-        for ( Field field : AnalyticsJobParameters.class.getDeclaredFields() )
+        List<Field> fieldList = Arrays.stream( AnalyticsJobParameters.class.getDeclaredFields() )
+            .filter( field -> field.getType().getSimpleName().equals( "Property" ) ).collect( Collectors.toList() );
+
+        for ( Field field : fieldList )
         {
-            if ( Arrays.stream( field.getAnnotations() )
-                .anyMatch( f -> f.annotationType().getSimpleName().equals( "Property" ) ) )
+            String fieldName = field.getName();
+            if ( parameters.get( fieldName ) != null )
             {
-                String fieldName = field.getName();
-                if ( parameters.get( fieldName ) != null )
+                switch ( fieldName )
                 {
-                    switch ( fieldName )
+                case "lastYears":
+                    this.lastYears = parameters.get( "lastYears" ).asInt();
+                    break;
+                case "skipTableTypes":
+                    for ( final JsonNode tableType : parameters.get( "skipTableTypes" ) )
                     {
-                    case "lastYears":
-                        this.lastYears = parameters.get( "lastYears" ).asInt();
-                        break;
-                    case "skipTableTypes":
-                        for ( final JsonNode tableType : parameters.get( "skipTableTypes" ) )
-                        {
-                            this.skipTableTypes.add( tableType.textValue() );
-                        }
-                        break;
-                    case "skipResourceTables":
-                        this.skipResourceTables = parameters.get( "skipResourceTables" ).asBoolean();
-                        break;
-                    default:
-                        throw new IOException( "Unknown error validating job parameter." );
+                        this.skipTableTypes.add( tableType.textValue() );
                     }
+                    break;
+                case "skipResourceTables":
+                    this.skipResourceTables = parameters.get( "skipResourceTables" ).asBoolean();
+                    break;
+                default:
+                    throw new IOException( "Unknown parameter '" + field.getName() + "'." );
                 }
-                else
-                {
-                    throw new IOException( "Property '" + fieldName + "' not present" );
-                }
+            }
+            else
+            {
+                throw new IOException( "Property '" + fieldName + "' not present" );
             }
         }
 
