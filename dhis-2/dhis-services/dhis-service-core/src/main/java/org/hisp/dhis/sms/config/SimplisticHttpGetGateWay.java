@@ -28,6 +28,7 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -128,8 +129,7 @@ public class SimplisticHttpGetGateWay
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
         uriBuilder = getUrlParameters( config.getParameters(), uriBuilder );
         uriBuilder.queryParam( config.getMessageParameter(), text );
-        uriBuilder.queryParam( config.getRecipientParameter(),
-            !recipients.isEmpty() ? recipients.iterator().next() : "" );
+        uriBuilder.queryParam( config.getRecipientParameter(), StringUtils.join( recipients, "," ) );
 
         return uriBuilder;
     }
