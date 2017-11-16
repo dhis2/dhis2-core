@@ -55,7 +55,7 @@
         </set>
 
         <set name="programRules">
-            <key column="programruleid" />
+            <key column="datasetnotificationtemplateid" />
             <one-to-many class="org.hisp.dhis.programrule.ProgramRule" />
         </set>
 
