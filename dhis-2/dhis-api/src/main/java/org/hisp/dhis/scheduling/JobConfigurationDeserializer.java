@@ -8,8 +8,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.IOException;
 
-import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
-
 /**
  * Custom deserializer for {@link JobConfiguration} objects. This is due to different objects
  * being stored in the parameter variable.
@@ -19,6 +17,14 @@ import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 public class JobConfigurationDeserializer
     extends JsonDeserializer<JobConfiguration>
 {
+    private final String NAME = "name";
+    private final String JOB_TYPE = "jobType";
+    private final String ENABLED = "enabled";
+    private final String CONTINUOUS_EXECUTION = "continuousExecution";
+    private final String JOB_PARAMETERS = "jobParameters";
+    private final String CRON_EXPRESSION = "cronExpression";
+
+
     @Override
     public JobConfiguration deserialize( JsonParser jsonParser,
         DeserializationContext deserializationContext )
@@ -27,43 +33,31 @@ public class JobConfigurationDeserializer
         ObjectMapper mapper = (ObjectMapper) jsonParser.getCodec();
         ObjectNode root = mapper.readTree( jsonParser );
 
-        JobType jobType = JobType.valueOf( root.get( "jobType" ).textValue() );
-        assertNotNull( jobType, "jobType must not be null." );
+        if ( !root.has( NAME ) )
+        {
+            throw new IOException( "name must not be null" );
+        }
+
+        if ( !root.has( JOB_TYPE ) )
+        {
+            throw new IOException( "jobType must not be null" );
+        }
+
+        JobType jobType = JobType.valueOf( root.get( JOB_TYPE ).textValue() );
 
         JobParameters jobParameters = null;
-        if ( root.get( "jobParameters" ) != null && jobType.getClazz() != null )
+        if ( root.get( JOB_PARAMETERS ) != null && jobType.getClazz() != null )
         {
-            Class<JobParameters> validate = jobType.getClazz();
-            try
-            {
-                jobParameters = validate.newInstance().mapParameters( root.get( "jobParameters" ) );
-                if ( jobParameters == null )
-                {
-                    jobParameters = mapper.convertValue( root.get( "jobParameters" ), jobType.getClazz() );
-                }
-            }
-            catch ( InstantiationException | IllegalAccessException e )
-            {
-                throw new IOException( e );
-            }
+            jobParameters = mapper.convertValue( root.get( JOB_PARAMETERS ), jobType.getClazz() );
         }
 
-        boolean enabled = root.get( "enabled" ) == null || root.get( "enabled" ).booleanValue();
+        boolean enabled = !root.has( ENABLED ) || root.get( ENABLED ).asBoolean();
 
-        boolean continuousExecution =
-            root.get( "continuousExecution" ) != null && root.get( "continuousExecution" ).asBoolean();
+        boolean continuousExecution = root.has( CONTINUOUS_EXECUTION ) && root.get( CONTINUOUS_EXECUTION ).asBoolean();
 
-        String cronExpression = mapper.convertValue( root.get( "cronExpression" ), String.class );
-        if ( !continuousExecution )
-        {
-            assertNotNull( cronExpression, "cronExpression must not be null." );
-        }
-        else
-        {
-            cronExpression = "0 * * ? * *";
-        }
+        String cronExpression = root.has( CRON_EXPRESSION ) ? root.get( CRON_EXPRESSION ).textValue() : "";
 
-        return new JobConfiguration( root.get( "name" ).textValue(), jobType,
+        return new JobConfiguration( root.get( NAME ).textValue(), jobType,
             cronExpression, jobParameters,
             continuousExecution, enabled );
     }

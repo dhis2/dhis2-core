@@ -13,7 +13,7 @@ import java.util.Optional;
  */
 public enum JobType
 {
-    DATA_STATISTICS( "dataStatisticsJob", true, null, null ),
+    DATA_STATISTICS( "dataStatisticsJob", false, null, null ),
     DATA_INTEGRITY( "dataIntegrity", true, null, null ),
     RESOURCE_TABLE( "resourceTableJob", true, null, null ),
     ANALYTICS_TABLE( "analyticsTableJob", true, AnalyticsJobParameters.class, new HashMap<String, String>()
@@ -21,13 +21,13 @@ public enum JobType
         put( "skipTableTypes", "/api/analytics/tableTypes" );
     }} ),
     DATA_SYNC( "dataSyncJob", true, null, null ),
-    FILE_RESOURCE_CLEANUP( "fileResourceCleanUp", true, null, null ),
+    FILE_RESOURCE_CLEANUP( "fileResourceCleanUp", false, null, null ),
     META_DATA_SYNC( "metaDataSyncJob", true, null, null ),
-    SMS_SEND( "smsSendJob", true, SmsJobParameters.class, null ),
+    SMS_SEND( "smsSendJob", false, SmsJobParameters.class, null ),
     SEND_SCHEDULED_MESSAGE( "sendScheduledMessageJob", true, null, null ),
-    PROGRAM_NOTIFICATIONS( "programNotificationsJob",true,  null, null ),
-    VALIDATION_RESULTS_NOTIFICATION( "validationResultNotificationJob", true, null, null ),
-    CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob", true, null, null ),
+    PROGRAM_NOTIFICATIONS( "programNotificationsJob", true, null, null ),
+    VALIDATION_RESULTS_NOTIFICATION( "validationResultNotificationJob", false, null, null ),
+    CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob", false, null, null ),
     MONITORING( "monitoringJob", true, MonitoringJobParameters.class, new HashMap<String, String>()
     {{
         put( "organisationUnits", "/api/organisationUnits" );
@@ -43,7 +43,7 @@ public enum JobType
     {{
         put( "predictors", "/api/predictors" );
     }} ),
-    DATASET_NOTIFICATION( "dataSetNotification", true, null, null ),
+    DATA_SET_NOTIFICATION( "dataSetNotification", false, null, null ),
 
     // For tests
     TEST( "test", false, TestJobParameters.class, null ),

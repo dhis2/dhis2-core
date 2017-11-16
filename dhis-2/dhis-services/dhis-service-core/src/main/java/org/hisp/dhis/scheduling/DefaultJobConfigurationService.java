@@ -67,7 +67,7 @@ public class DefaultJobConfigurationService
                 updateJobConfiguration( jobConfig );
 
                 if ( jobConfig.getLastExecutedStatus() == FAILED ||
-                    !jobConfig.isContinuousExecution() && jobConfig.getNextExecutionTime().compareTo( now ) < 0 )
+                    ( !jobConfig.isContinuousExecution() && jobConfig.getNextExecutionTime().compareTo( now ) < 0 ) )
                 {
                     schedulingManager.scheduleJob( new Date( now.getTime() + STARTUP_DELAY ), jobConfig );
                 }

@@ -46,6 +46,12 @@ public class SchedulerUpgrade
         return jobConfigurations.stream().noneMatch( jobConfiguration -> jobConfiguration.getName().equals( name ) );
     }
 
+    void addAndScheduleJob ( JobConfiguration jobConfiguration )
+    {
+        jobConfigurationService.addJobConfiguration( jobConfiguration );
+        schedulingManager.scheduleJob( jobConfiguration );
+    }
+
     /**
      * Method which ports the jobs in the system from the old scheduler to the new.
      * Collects all old jobs and adds them. Also adds default jobs.
@@ -57,57 +63,58 @@ public class SchedulerUpgrade
         String CRON_DAILY_2AM = "0 0 2 * * ?";
         String CRON_DAILY_7AM = "0 0 7 * * ?";
 
+        String DEFAULT_FILE_RESOURCE_CLEANUP = "File resource clean up";
+        String DEFAULT_DATA_STATISTICS = "Data statistics";
+        String DEFAULT_VALIDATION_RESULTS_NOTIFICATION = "Validation result notification";
+        String DEFAULT_CREDENTIALS_EXPIRY_ALERT = "Credentials expiry alert";
+        String DEFAULT_DATA_SET_NOTIFICATION = "Dataset notification";
+
         log.info( "Setting up default jobs." );
-        if ( addDefaultJob( "File resource clean up", jobConfigurations ) )
+        if ( addDefaultJob( DEFAULT_FILE_RESOURCE_CLEANUP, jobConfigurations ) )
         {
-            JobConfiguration fileResourceCleanUp = new JobConfiguration( "File resource clean up",
+            JobConfiguration fileResourceCleanUp = new JobConfiguration( DEFAULT_FILE_RESOURCE_CLEANUP,
                 FILE_RESOURCE_CLEANUP, CRON_DAILY_2AM, null,
                 false, true );
             fileResourceCleanUp.setConfigurable( false );
-            jobConfigurationService.addJobConfiguration( fileResourceCleanUp );
-            schedulingManager.scheduleJob( fileResourceCleanUp );
+            addAndScheduleJob( fileResourceCleanUp );
         }
 
-        if ( addDefaultJob( "Data statistics", jobConfigurations ) )
+        if ( addDefaultJob( DEFAULT_DATA_STATISTICS, jobConfigurations ) )
         {
-            JobConfiguration dataStatistics = new JobConfiguration( "Data statistics", DATA_STATISTICS, CRON_DAILY_2AM,
+            JobConfiguration dataStatistics = new JobConfiguration( DEFAULT_DATA_STATISTICS, DATA_STATISTICS, CRON_DAILY_2AM,
                 null,
                 false, true );
             dataStatistics
                 .setLastExecuted( (Date) systemSettingManager.getSystemSetting( "lastSuccessfulDataStatistics" ) );
             dataStatistics.setConfigurable( false );
-            jobConfigurationService.addJobConfiguration( dataStatistics );
-            schedulingManager.scheduleJob( dataStatistics );
+            addAndScheduleJob( dataStatistics );
         }
 
-        if ( addDefaultJob( "Validation result notification", jobConfigurations ) )
+        if ( addDefaultJob( DEFAULT_VALIDATION_RESULTS_NOTIFICATION, jobConfigurations ) )
         {
-            JobConfiguration validationResultNotification = new JobConfiguration( "Validation result notification",
+            JobConfiguration validationResultNotification = new JobConfiguration( DEFAULT_VALIDATION_RESULTS_NOTIFICATION,
                 VALIDATION_RESULTS_NOTIFICATION, CRON_DAILY_7AM, null,
                 false, true );
             validationResultNotification.setConfigurable( false );
-            jobConfigurationService.addJobConfiguration( validationResultNotification );
-            schedulingManager.scheduleJob( validationResultNotification );
+            addAndScheduleJob( validationResultNotification );
         }
 
-        if ( addDefaultJob( "Credentials expiry alert", jobConfigurations ) )
+        if ( addDefaultJob( DEFAULT_CREDENTIALS_EXPIRY_ALERT, jobConfigurations ) )
         {
-            JobConfiguration credentialsExpiryAlert = new JobConfiguration( "Credentials expiry alert",
+            JobConfiguration credentialsExpiryAlert = new JobConfiguration( DEFAULT_CREDENTIALS_EXPIRY_ALERT,
                 CREDENTIALS_EXPIRY_ALERT, CRON_DAILY_2AM, null,
                 false, true );
             credentialsExpiryAlert.setConfigurable( false );
-            jobConfigurationService.addJobConfiguration( credentialsExpiryAlert );
-            schedulingManager.scheduleJob( credentialsExpiryAlert );
+            addAndScheduleJob( credentialsExpiryAlert );
         }
 
-        if ( addDefaultJob( "Dataset notification", jobConfigurations ) )
+        if ( addDefaultJob( DEFAULT_DATA_SET_NOTIFICATION, jobConfigurations ) )
         {
-            JobConfiguration dataSetNotification = new JobConfiguration( "Dataset notification",
-                DATASET_NOTIFICATION, CRON_DAILY_2AM, null,
+            JobConfiguration dataSetNotification = new JobConfiguration( DEFAULT_DATA_SET_NOTIFICATION,
+                DATA_SET_NOTIFICATION, CRON_DAILY_2AM, null,
                 false, true );
             dataSetNotification.setConfigurable( false );
-            jobConfigurationService.addJobConfiguration( dataSetNotification );
-            schedulingManager.scheduleJob( dataSetNotification );
+            addAndScheduleJob( dataSetNotification );
         }
 
         ListMap<String, String> scheduledSystemSettings = (ListMap<String, String>) systemSettingManager.getSystemSetting( "keySchedTasks" );

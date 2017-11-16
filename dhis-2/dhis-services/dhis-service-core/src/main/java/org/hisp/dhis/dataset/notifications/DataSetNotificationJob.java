@@ -39,7 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
 
-import static org.hisp.dhis.scheduling.JobType.DATASET_NOTIFICATION;
+import static org.hisp.dhis.scheduling.JobType.DATA_SET_NOTIFICATION;
 
 /**
  * Created by zubair@dhis2.org on 21.07.17.
@@ -63,7 +63,7 @@ public class DataSetNotificationJob
     @Override
     public JobType getJobType()
     {
-        return DATASET_NOTIFICATION;
+        return DATA_SET_NOTIFICATION;
     }
 
     @Override

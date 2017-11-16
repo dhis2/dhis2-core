@@ -50,7 +50,7 @@ public class JobConfiguration
 
     private JobParameters jobParameters;
 
-    private boolean continuousExecution;
+    private boolean continuousExecution = false;
 
     private boolean configurable = true;
 
@@ -70,7 +70,6 @@ public class JobConfiguration
         this.continuousExecution = continuousExecution;
         this.enabled = enabled;
         setJobStatus( enabled ? SCHEDULED : DISABLED );
-        setNextExecutionTime( null );
     }
 
     public void setCronExpression( String cronExpression )

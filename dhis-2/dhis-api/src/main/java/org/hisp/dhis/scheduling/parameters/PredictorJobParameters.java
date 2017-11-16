@@ -1,10 +1,9 @@
 package org.hisp.dhis.scheduling.parameters;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.schema.annotation.Property;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
@@ -67,8 +66,7 @@ public class PredictorJobParameters
     }
 
     @Override
-    public JobParameters mapParameters( JsonNode parameters )
-        throws IOException
+    public ErrorReport validate()
     {
         return null;
     }

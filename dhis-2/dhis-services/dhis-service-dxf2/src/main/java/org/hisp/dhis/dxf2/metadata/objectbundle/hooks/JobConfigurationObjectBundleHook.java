@@ -12,7 +12,6 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.*;
-import org.hisp.dhis.system.scheduling.SpringScheduler;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
@@ -36,7 +35,7 @@ public class JobConfigurationObjectBundleHook
         this.schedulingManager = schedulingManager;
     }
 
-    private static final Log log = LogFactory.getLog( SpringScheduler.class );
+    private static final Log log = LogFactory.getLog( JobConfigurationObjectBundleHook.class );
 
     private List<ErrorReport> validateCronForJobType( JobConfiguration jobConfiguration )
     {
@@ -89,6 +88,46 @@ public class JobConfigurationObjectBundleHook
         return errorReports;
     }
 
+    private List<ErrorReport> validateInternal( JobConfiguration jobConfiguration )
+    {
+        List<ErrorReport> errorReports = new ArrayList<>();
+        if ( !jobConfiguration.isConfigurable() )
+        {
+            errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7003, jobConfiguration.getJobType() ) );
+        }
+
+        if ( jobConfiguration.getCronExpression() == null )
+        {
+            errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7004 ) );
+            return errorReports;
+        }
+
+        // Validate the cron expression
+        CronDefinition cronDefinition = CronDefinitionBuilder.instanceDefinitionFor( QUARTZ );
+        CronParser parser = new CronParser( cronDefinition );
+        Cron quartzCron;
+        try {
+            quartzCron = parser.parse( jobConfiguration.getCronExpression() );
+            quartzCron.validate();
+        } catch ( IllegalArgumentException e )
+        {
+            errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7005, e ) );
+            return errorReports;
+        }
+
+        // Validate cron expression with relation to all other jobs
+        errorReports.addAll( validateCronForJobType( jobConfiguration ) );
+
+        // Validate parameters
+        ErrorReport parameterValidation = jobConfiguration.getJobParameters().validate();
+        if ( parameterValidation != null )
+        {
+            errorReports.add( parameterValidation );
+        }
+
+        return errorReports;
+    }
+
     @Override
     public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
     {
@@ -99,22 +138,16 @@ public class JobConfigurationObjectBundleHook
 
         List<ErrorReport> errorReports = new ArrayList<>();
         JobConfiguration jobConfiguration = (JobConfiguration) object;
+        errorReports.addAll( validateInternal( jobConfiguration ) );
 
-        // validate the cron expression
-        CronDefinition cronDefinition = CronDefinitionBuilder.instanceDefinitionFor( QUARTZ );
-        CronParser parser = new CronParser( cronDefinition );
-        Cron quartzCron = parser.parse( jobConfiguration.getCronExpression() );
-
-        quartzCron.validate();
-
-        CronDescriptor cronDescriptor = CronDescriptor.instance( Locale.UK );
-
-        // Validate cron expression with relation to all other jobs
-        errorReports.addAll( validateCronForJobType( jobConfiguration ) );
         if ( errorReports.size() == 0 )
         {
-            log.info( "Validation of '" + jobConfiguration.getName() + "' succeeded with cron description '" +
-                cronDescriptor.describe( quartzCron ) + "'" );
+            jobConfiguration.setNextExecutionTime( null );
+            if ( jobConfiguration.isContinuousExecution() )
+            {
+                jobConfiguration.setCronExpression( "* * * * * ?" );
+            }
+            log.info( "Validation of '" + jobConfiguration.getName() + "' succeeded" );
         }
         else
         {
