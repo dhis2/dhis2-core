@@ -33,6 +33,7 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.utils.AnalyticsTestUtils;
@@ -182,7 +183,7 @@ public class EventAnalyticsServiceTest
 
         // Generate analytics tables
         // --------------------------------------------------------------------
-        analyticsTableGenerator.generateTables( null, null, null, false );
+        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build() );
 
         // Set parameters
         // --------------------------------------------------------------------

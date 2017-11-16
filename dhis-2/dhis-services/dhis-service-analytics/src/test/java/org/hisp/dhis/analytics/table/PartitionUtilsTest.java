@@ -38,12 +38,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.hisp.dhis.analytics.AnalyticsTable;
+import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
 import org.joda.time.DateTime;
 import org.junit.Test;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -178,5 +183,22 @@ public class PartitionUtilsTest
         assertTrue( map.keySet().contains( new Partitions().add( TBL + "_2000" ) ) );
         assertTrue( map.keySet().contains( new Partitions().add( TBL + "_2002" ) ) );
         assertTrue( map.keySet().contains( new Partitions().add( TBL + "_2002" ).add( TBL + "_2003" ) ) );
+    }
+    
+    @Test
+    public void testGetTablePartitions()
+    {        
+        List<AnalyticsTableColumn> dimensions = Lists.newArrayList( new AnalyticsTableColumn( "dx", "text", "dx" ) );
+        List<AnalyticsTableColumn> values = Lists.newArrayList( new AnalyticsTableColumn( "value", "double precision", "value" ) );
+        
+        AnalyticsTable tA = new AnalyticsTable( "analytics", dimensions, values );
+        tA.addPartitionTable( 2010, new DateTime( 2010, 1, 1, 0, 0 ).toDate(), new DateTime( 2010, 12, 31, 0, 0 ).toDate() );
+        tA.addPartitionTable( 2011, new DateTime( 2011, 1, 1, 0, 0 ).toDate(), new DateTime( 2011, 12, 31, 0, 0 ).toDate() );
+        
+        AnalyticsTable tB = new AnalyticsTable( "analytics_orgunittarget", dimensions, values );
+        
+        List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions( Lists.newArrayList( tA, tB ) );
+        
+        assertEquals( 3, partitions.size() );
     }
 }

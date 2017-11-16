@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,36 +28,55 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.table.AnalyticsTableType;
+import java.util.HashMap;
 
 /**
- * Service for analytics table generation and analysis.
- * 
- * @author Lars Helge Overland
+ * @author Jim Grace
  */
-public interface AnalyticsTableService
+public class Map4<R, S, T, U, V>
+    extends HashMap<R, MapMapMap<S, T, U, V>>
 {
-    /**
-     * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
-     * 
-     * @return the type of analytics table.
-     */
-    AnalyticsTableType getAnalyticsTableType();
-    
-    /**
-     * Rebuilds the analytics tables.
-     * 
-     * @param params the {@link AnalyticsTableUpdateParams}.
-     */
-    void update( AnalyticsTableUpdateParams params );
-    
-    /**
-     * Drops main and temporary analytics tables.
-     */
-    void dropTables();
+    private static final long serialVersionUID = -2806972962597162013L;
 
-    /**
-     * Performs an SQL analyze operation on all analytics tables.
-     */
-    void analyzeAnalyticsTables();
+    public MapMapMap<S, T, U, V> putEntry( R key1, S key2, T key3, U key4, V value )
+    {
+        MapMapMap<S, T, U, V> map = this.get( key1 );
+        map = map == null ? new MapMapMap<>() : map;
+        map.putEntry( key2, key3, key4, value );
+        return this.put( key1, map );
+    }
+
+    public void putEntries( R key1, MapMapMap<S, T, U, V> m )
+    {
+        MapMapMap<S, T, U, V> map = this.get( key1 );
+        map = map == null ? new MapMapMap<>() : map;
+        map.putAll( m );
+        this.put( key1, map );
+    }
+
+    public void putMap( Map4<R, S, T, U, V> map )
+    {
+        for ( Entry<R, MapMapMap<S, T, U, V>> entry : map.entrySet() )
+        {
+            this.putEntries( entry.getKey(), entry.getValue() );
+        }
+    }
+
+    public V getValue( R key1, S key2, T key3, U key4 )
+    {
+        return this.get( key1 ) == null ? null : this.get( key1 ).getValue( key2, key3, key4 );
+    }
+
+    @SafeVarargs
+    public static <R, S, T, U, V> Map4<R, S, T, U, V> asMap4( final SimpleEntry<R, MapMapMap<S, T, U, V>>... entries )
+    {
+        Map4<R, S, T, U, V> map = new Map4<>();
+
+        for ( SimpleEntry<R, MapMapMap<S, T, U, V>> entry : entries )
+        {
+            map.put( entry.getKey(), entry.getValue() );
+        }
+
+        return map;
+    }
 }

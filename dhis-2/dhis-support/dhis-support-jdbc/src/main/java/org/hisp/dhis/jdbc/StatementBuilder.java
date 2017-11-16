@@ -28,6 +28,8 @@ package org.hisp.dhis.jdbc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collection;
+
 /**
  * @author Lars Helge Overland
  * @version $Id: StatementBuilder.java 5715 2008-09-17 14:05:28Z larshelg $
@@ -214,4 +216,14 @@ public interface StatementBuilder
     String getAddPrimaryKeyToExistingTable( String table, String column );
     
     String getDropNotNullConstraint( String table, String column, String type );
+
+    /**
+     * Generates a derived table containing one column of literal strings.
+     *
+     * @param values (non-empty) String values for the derived table
+     * @param table the desired table name alias
+     * @param column the desired column name
+     * @return the derived literal table
+     */
+    String literalStringTable( Collection<String> values, String table, String column );
 }
