@@ -28,22 +28,27 @@ package org.hisp.dhis.validation.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.api.client.util.Lists;
 import com.google.api.client.util.Sets;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.SetUtils;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.validation.ValidationAnalysisParams;
-import org.hisp.dhis.validation.ValidationRule;
-import org.hisp.dhis.validation.ValidationRuleService;
-import org.hisp.dhis.validation.ValidationService;
+import org.hisp.dhis.validation.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
@@ -52,6 +57,7 @@ import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
  * @author Lars Helge Overland
  * @author Jim Grace
  */
+@Transactional
 public class MonitoringJob
     implements Job
 {
@@ -84,25 +90,61 @@ public class MonitoringJob
     public void execute( JobConfiguration jobConfiguration )
     {
         notifier.clear( jobConfiguration.getJobId() ).notify( jobConfiguration.getJobId(), "Monitoring data" );
-        
+
+        MonitoringJobParameters jobParams = (MonitoringJobParameters) jobConfiguration.getJobParameters();
+
         try
         {
-            Collection<ValidationRule> validationRules = validationRuleService.getValidationRulesWithNotificationTemplates();
+
+            Collection<Period> periods;
             Collection<OrganisationUnit> organisationUnits = organisationUnitService.getAllOrganisationUnits();
-            Collection<Period> periods = Sets.newHashSet();
+            Collection<ValidationRule> validationRules;
+            List<String> groupUIDs = jobParams.getValidationRuleGroups();
 
-            validationRules.stream().map( ValidationRule::getPeriodType ).distinct().forEach( (pt) -> {
-                periods.add( pt.createPeriod() );
-                periods.add( pt.getPreviousPeriod( pt.createPeriod() ));
-            } );
+            if ( groupUIDs.isEmpty() )
+            {
+                validationRules = validationRuleService
+                    .getValidationRulesWithNotificationTemplates();
+            }
+            else
+            {
+                validationRules = groupUIDs.stream()
+                    .map( ( uid ) -> validationRuleService.getValidationRuleGroup( uid ) )
+                    .filter( ( group ) -> group != null )
+                    .map( ValidationRuleGroup::getMembers )
+                    .filter( ( vr ) -> vr != null )
+                    .reduce( Sets.newHashSet(), SetUtils::union );
+            }
 
-            ValidationAnalysisParams parameters = validationService.newParamsBuilder( validationRules, organisationUnits, periods )
+            if ( jobParams.getRelativePeriods() != null && !jobParams.getRelativePeriods().isEmpty() )
+            {
+                periods = jobParams.getRelativePeriods().stream()
+                    .map( RelativePeriods::getRelativePeriods )
+                    .reduce( Lists.newArrayList(), ListUtils::union );
+            }
+            else
+            {
+                periods = validationRules.stream()
+                    .map( ValidationRule::getPeriodType )
+                    .distinct()
+                    .map( ( vr ) -> Arrays.asList( vr.createPeriod(), vr.getPreviousPeriod( vr.createPeriod() ) ) )
+                    .reduce( Lists.newArrayList(), ListUtils::union );
+            }
+
+            ValidationAnalysisParams parameters = validationService
+                .newParamsBuilder( validationRules, organisationUnits, periods )
                 .withMaxResults( ValidationService.MAX_SCHEDULED_ALERTS )
-                .withSendNotifications( false )
-                .withPersistResults( true )
+                .withSendNotifications( jobParams.isSendNotifications() )
+                .withPersistResults( jobParams.isPersistResults() )
                 .build();
 
-            validationService.validationAnalysis( parameters );
+//            validationService.validationAnalysis( parameters );
+
+            System.out.println( "Periods: " );
+            periods.forEach( ( p ) -> System.out.println( p.getUid() ) );
+
+            System.out.println( "validationRules: " );
+            validationRules.forEach( ( vr ) -> System.out.println( vr.getDisplayName() ) );
 
             notifier.notify( jobConfiguration.getJobId(), INFO, "Monitoring process done", true );
         }

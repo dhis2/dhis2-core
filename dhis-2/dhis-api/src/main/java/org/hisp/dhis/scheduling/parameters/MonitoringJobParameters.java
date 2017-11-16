@@ -1,10 +1,8 @@
 package org.hisp.dhis.scheduling.parameters;
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.validation.ValidationRuleGroup;
 
 import java.util.List;
 
@@ -12,6 +10,7 @@ import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 
 /**
  * @author Henning Håkonsen
+ * @author Stian Sandvold
  */
 public class MonitoringJobParameters
     implements JobParameters
@@ -19,61 +18,48 @@ public class MonitoringJobParameters
     private static final long serialVersionUID = -1683853240301569669L;
 
     @Property
-    private List<Period> periods;
+    private List<RelativePeriods> relativePeriods;
 
     @Property
-    private List<OrganisationUnit> organisationUnits;
-
-    @Property
-    private List<ValidationRuleGroup> validationRuleGroups;
+    private List<String> validationRuleGroups;
 
     // Optional parameters
-    @Property ( required = FALSE)
+
+    @Property( required = FALSE )
     private boolean sendNotifications;
 
-    @Property ( required = FALSE)
+    @Property( required = FALSE )
     private boolean persistResults;
 
     public MonitoringJobParameters()
     {
     }
 
-    public MonitoringJobParameters( List<Period> periods, List<OrganisationUnit> organisationUnits,
-        List<ValidationRuleGroup> validationRuleGroups, boolean sendNotifications, boolean persistResults )
+    public MonitoringJobParameters( List<RelativePeriods> relativePeriods, List<String> validationRuleGroups,
+        boolean sendNotifications, boolean persistResults )
     {
-        this.periods = periods;
-        this.organisationUnits = organisationUnits;
+        this.relativePeriods = relativePeriods;
         this.validationRuleGroups = validationRuleGroups;
         this.sendNotifications = sendNotifications;
         this.persistResults = persistResults;
     }
 
-    public List<Period> getPeriods()
+    public List<RelativePeriods> getRelativePeriods()
     {
-        return periods;
+        return relativePeriods;
     }
 
-    public void setPeriods( List<Period> periods )
+    public void setRelativePeriods( List<RelativePeriods> relativePeriods )
     {
-        this.periods = periods;
+        this.relativePeriods = relativePeriods;
     }
 
-    public List<OrganisationUnit> getOrganisationUnits()
-    {
-        return organisationUnits;
-    }
-
-    public void setOrganisationUnits( List<OrganisationUnit> organisationUnits )
-    {
-        this.organisationUnits = organisationUnits;
-    }
-
-    public List<ValidationRuleGroup> getValidationRuleGroups()
+    public List<String> getValidationRuleGroups()
     {
         return validationRuleGroups;
     }
 
-    public void setValidationRuleGroups( List<ValidationRuleGroup> validationRuleGroups )
+    public void setValidationRuleGroups( List<String> validationRuleGroups )
     {
         this.validationRuleGroups = validationRuleGroups;
     }
@@ -97,4 +83,5 @@ public class MonitoringJobParameters
     {
         this.persistResults = persistResults;
     }
+
 }
