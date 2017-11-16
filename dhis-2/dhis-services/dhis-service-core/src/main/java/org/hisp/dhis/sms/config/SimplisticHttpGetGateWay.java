@@ -30,6 +30,7 @@ package org.hisp.dhis.sms.config;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.h2.util.IOUtils;
@@ -172,8 +173,7 @@ public class SimplisticHttpGetGateWay
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
         uriBuilder = getUrlParameters( config.getParameters(), uriBuilder );
         uriBuilder.queryParam( config.getMessageParameter(), text );
-        uriBuilder.queryParam( config.getRecipientParameter(),
-            !recipients.isEmpty() ? recipients.iterator().next() : "" );
+        uriBuilder.queryParam( config.getRecipientParameter(), StringUtils.join( recipients, "," ) );
 
         return uriBuilder;
     }
