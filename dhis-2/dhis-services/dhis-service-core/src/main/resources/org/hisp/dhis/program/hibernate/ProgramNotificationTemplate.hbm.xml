@@ -26,9 +26,10 @@
     <many-to-one name="recipientDataElement" class="org.hisp.dhis.dataelement.DataElement"
                  column="dataelementid" foreign-key="fk_programstagenotification_dataelementid" not-null="false" />
 
-    <set name="programRules">
-      <key column="programnotificationtemplateid" />
-      <one-to-many class="org.hisp.dhis.programrule.ProgramRule" />
+    <set name="programRules" table="programnotification_programrules">
+      <key column="programnotificationtemplateid"
+           foreign-key="fk_programrule_programnotificationtemplateid" />
+      <many-to-many class="org.hisp.dhis.programrule.ProgramRule" column="programruleid" />
     </set>
 
     <!-- TODO Should we allow null-templates? -->
