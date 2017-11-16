@@ -48,6 +48,11 @@ import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
+import org.hisp.dhis.rules.models.RuleAction;
+import org.hisp.dhis.rules.models.RuleActionAssign;
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -56,9 +61,7 @@ import org.hisp.dhis.user.User;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -122,6 +125,13 @@ public class DefaultProgramNotificationService
         this.programStageNotificationRenderer = programStageNotificationRenderer;
     }
 
+    private ProgramRuleEngine programRuleEngine;
+
+    public void setProgramRuleEngine( ProgramRuleEngine programRuleEngine )
+    {
+        this.programRuleEngine = programRuleEngine;
+    }
+
     // -------------------------------------------------------------------------
     // ProgramStageNotificationService implementation
     // -------------------------------------------------------------------------
@@ -180,7 +190,7 @@ public class DefaultProgramNotificationService
     @Override
     public void sendProgramRuleTriggeredNotifications( ProgramStageInstance programStageInstance )
     {
-        Set<ProgramNotificationTemplate> programStageNotifications = resolveTemplates( programStageInstance, NotificationTrigger.PROGRAM_RULE );
+        sendProgramStageInstanceNotifications( programStageInstance, NotificationTrigger.PROGRAM_RULE );
     }
 
     // -------------------------------------------------------------------------
@@ -219,6 +229,26 @@ public class DefaultProgramNotificationService
 
         for ( ProgramNotificationTemplate template : templates )
         {
+            if ( NotificationTrigger.PROGRAM_RULE.equals( template.getNotificationTrigger() ) )
+            {
+                ProgramRule programRule = template.getProgramRule();
+
+                List<RuleEffect> ruleEffects = programRuleEngine.evaluateEvent( programStageInstance, programRule );
+
+                List<RuleAction> ruleActions = ruleEffects.stream().map( r -> r.ruleAction() ).collect( Collectors.toList() );
+
+                List<RuleAction> actions = ruleActions.stream().filter( a -> a instanceof RuleActionAssign ).collect( Collectors.toList() );
+
+                if ( !actions.isEmpty() )
+                {
+                    //TODO for RuleActionSendMessage
+                    MessageBatch batch = createProgramStageInstanceMessageBatch(template, Lists.newArrayList(programStageInstance));
+                    sendAll(batch);
+                }
+
+                continue;
+            }
+
             MessageBatch batch = createProgramStageInstanceMessageBatch( template, Lists.newArrayList( programStageInstance ) );
             sendAll( batch );
         }

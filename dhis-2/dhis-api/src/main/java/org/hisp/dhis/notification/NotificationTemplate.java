@@ -45,5 +45,5 @@ public interface NotificationTemplate
 
     Set<DeliveryChannel> getDeliveryChannels();
 
-    Set<ProgramRule> getProgramRules();
+    ProgramRule getProgramRule();
 }

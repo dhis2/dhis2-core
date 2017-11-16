@@ -154,16 +154,8 @@
         }
 
         function getProgramRule() {
-            var fld = programRuleList;
-            var values = [];
-           for (var i = 0; i < fld.options.length; i++) {
-                   if (fld.options[i].selected) {
-
-                               values.push( { 'id' : fld.options[i].value } );
-                        }
-                }
-
-               return values;
+            var uid = qs( '#programrule' ).value || undefined;
+            return ( uid === undefined ) ? undefined : { 'id' : uid };
         }
         
         function getDataElement() {
@@ -179,7 +171,7 @@
             return {
                 name : qs( '#name' ).value || '',
                 notificationTrigger : qs( '#notificationTrigger' ).value,
-                programRules:getProgramRule(),
+                programRule:getProgramRule(),
                 relativeScheduledDays : getScheduledDays(),
                 notificationRecipient : qs( '#notificationRecipient' ).value,
                 recipientUserGroup : getUserGroup(),

@@ -63,12 +63,14 @@ public class ProgramRuleEngine
     @Autowired
     private ProgramRuleVariableService programRuleVariableService;
 
-    public List<RuleEffect> evaluateEnrollment( ProgramInstance enrollment ) throws Exception
+    public List<RuleEffect> evaluateEnrollment( ProgramInstance enrollment )
     {
         if ( enrollment == null )
         {
             return new ArrayList<>();
         }
+
+        List<RuleEffect> ruleEffects = new ArrayList<>();
 
         List<ProgramRule> programRules = programRuleService.getProgramRule( enrollment.getProgram() );
 
@@ -80,12 +82,23 @@ public class ProgramRuleEngine
 
         RuleEngine ruleEngine = ruleEngineBuilder( programRules, programRuleVariables ).events( ruleEvents ).build();
 
-        List<RuleEffect> ruleEffects = ruleEngine.evaluate( ruleEnrollment  ).call();
+        try
+        {
+            ruleEffects = ruleEngine.evaluate( ruleEnrollment  ).call();
+        }
+        catch ( IllegalStateException e )
+        {
+            log.error( e.getMessage() );
+        }
+        catch (Exception e)
+        {
+            log.error( e.getMessage() );
+        }
 
         return ruleEffects;
     }
 
-    public List<RuleEffect> evaluateEvent( ProgramStageInstance programStageInstance ) throws Exception
+    public List<RuleEffect> evaluateEvent( ProgramStageInstance programStageInstance )
     {
         if ( programStageInstance == null )
         {
@@ -96,6 +109,25 @@ public class ProgramRuleEngine
 
         List<ProgramRule> programRules = programRuleService.getProgramRule( enrollment.getProgram() );
 
+        return evaluateProgramRules( programStageInstance, enrollment, programRules );
+    }
+
+    public List<RuleEffect> evaluateEvent( ProgramStageInstance programStageInstance, ProgramRule programRule )
+    {
+        if ( programStageInstance == null )
+        {
+            return new ArrayList<>();
+        }
+
+        ProgramInstance enrollment = programStageInstance.getProgramInstance();
+
+        return evaluateProgramRules( programStageInstance, enrollment, Arrays.asList( programRule ) );
+    }
+
+    private List<RuleEffect> evaluateProgramRules( ProgramStageInstance programStageInstance, ProgramInstance enrollment, List<ProgramRule> programRules )
+    {
+        List<RuleEffect> ruleEffects = new ArrayList<>();
+
         List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( enrollment.getProgram() );
 
         RuleEnrollment ruleEnrollment = programRuleEntityMapperService.toMappedRuleEnrollment( enrollment );
@@ -104,7 +136,18 @@ public class ProgramRuleEngine
 
         RuleEngine ruleEngine = ruleEngineBuilder( programRules, programRuleVariables ).enrollment( ruleEnrollment ).events( ruleEvents ).build();
 
-        List<RuleEffect> ruleEffects = ruleEngine.evaluate( programRuleEntityMapperService.toMappedRuleEvent( programStageInstance )  ).call();
+        try
+        {
+            ruleEffects = ruleEngine.evaluate( programRuleEntityMapperService.toMappedRuleEvent( programStageInstance )  ).call();
+        }
+        catch ( IllegalStateException e )
+        {
+            log.error( e.getMessage() );
+        }
+        catch (Exception e)
+        {
+            log.error( e.getMessage() );
+        }
 
         return ruleEffects;
     }

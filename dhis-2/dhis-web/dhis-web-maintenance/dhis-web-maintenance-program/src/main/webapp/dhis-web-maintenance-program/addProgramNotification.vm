@@ -60,7 +60,7 @@
                     <label for="programrule">$i18n.getString( "program_rule" )</label>
                 </td>
                 <td>
-                    <select type="text" id="programrule" name="programrule" class="programrule" multiple="multiple">
+                    <select type="text" id="programrule" name="programrule" class="programrule">
                         #foreach( $pr in $!programRules )
                             <option value="$pr.uid">$i18n.getString( $pr.displayName )</option>
                         #end

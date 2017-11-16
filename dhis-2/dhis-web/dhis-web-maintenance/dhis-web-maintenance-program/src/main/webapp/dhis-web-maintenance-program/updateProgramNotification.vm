@@ -46,10 +46,10 @@
                 <label for="programrule">$i18n.getString( "program_rule" )</label>
             </td>
             <td>
-                #set( $prs = $template.programRules )
-                <select type="text" id="programrule" name="programrule" class="programrule" multiple>
+                #set( $prt = $template.programRule )
+                <select type="text" id="programrule" name="programrule" class="programrule">
                     #foreach( $pr in $!programRules )
-                        <option value="$pr.uid" #if ( $prs && $prs.contains( $pr ) ) selected #end>$pr.displayName</option>
+                        <option value="$pr.uid" #if ( $prt && $prt.uid.equals( $pr.uid ) ) selected #end>$pr.displayName</option>
                     #end
                 </select>
             </td>

@@ -80,7 +80,7 @@ public class ProgramNotificationTemplate
 
     private DataElement recipientDataElement = null;
 
-    private Set<ProgramRule> programRules = new HashSet<>();
+    private ProgramRule programRule = null;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -134,18 +134,16 @@ public class ProgramNotificationTemplate
         this.messageTemplate = messageTemplate;
     }
 
-    @JsonProperty( "programRules" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "programRules", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "programRule", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ProgramRule> getProgramRules()
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramRule getProgramRule()
     {
-        return programRules;
+        return programRule;
     }
 
-    public void setProgramRules( Set<ProgramRule> programRules )
+    public void setProgramRule( ProgramRule programRule )
     {
-        this.programRules = programRules;
+        this.programRule = programRule;
     }
 
     @JsonProperty

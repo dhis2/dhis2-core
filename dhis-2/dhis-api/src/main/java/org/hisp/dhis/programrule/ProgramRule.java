@@ -36,8 +36,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -68,6 +70,11 @@ public class ProgramRule
      * The collection of actions that will be triggered if the the rule is triggered.
      */
     private Set<ProgramRuleAction> programRuleActions = new HashSet<>();
+
+    /**
+     * The collection of notifications that will be triggered if the the rule is evaluated true.
+     */
+    private Set<ProgramNotificationTemplate> programNotificationTemplates = new HashSet<>();
 
     /**
      * The condition expression, if this expression is evaluated to true, the actions is triggered.
@@ -154,6 +161,20 @@ public class ProgramRule
     public void setProgramRuleActions( Set<ProgramRuleAction> programRuleActions )
     {
         this.programRuleActions = programRuleActions;
+    }
+
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "programNotificationTemplates", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "programNotificationTemplate", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<ProgramNotificationTemplate> getProgramNotificationTemplates()
+    {
+        return programNotificationTemplates;
+    }
+
+    public void setProgramNotificationTemplates( Set<ProgramNotificationTemplate> programNotificationTemplates )
+    {
+        this.programNotificationTemplates = programNotificationTemplates;
     }
 
     @JsonProperty

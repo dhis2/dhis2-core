@@ -43,6 +43,6 @@ public class DefaultProgramNotificationTemplateStore extends HibernateIdentifiab
     @Override
     public List<ProgramNotificationTemplate> getProgramNotificationTemplate( ProgramRule programRule )
     {
-        return getCriteria( Restrictions.eq( "programRules", programRule ) ).list();
+        return getCriteria( Restrictions.eq( "programRule", programRule ) ).list();
     }
 }

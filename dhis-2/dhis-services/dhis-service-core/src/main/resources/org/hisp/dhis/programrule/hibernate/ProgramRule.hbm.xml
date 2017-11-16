@@ -30,6 +30,11 @@
       <one-to-many class="org.hisp.dhis.programrule.ProgramRuleAction" />
     </set>
 
+    <set name="programNotificationTemplates" order-by="sortOrder">
+      <key column="programid" />
+      <one-to-many class="org.hisp.dhis.program.ProgramStage" />
+    </set>
+
     <property name="condition" column="rulecondition" type="text" not-null="false" />
 
     <property name="priority" />
