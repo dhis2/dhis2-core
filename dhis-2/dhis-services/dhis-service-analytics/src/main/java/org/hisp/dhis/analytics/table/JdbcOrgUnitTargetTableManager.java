@@ -77,14 +77,14 @@ public class JdbcOrgUnitTargetTableManager
     public String validState()
     {
         return null;
-    }    
-    
-    @Override
-    protected void createMasterTable( AnalyticsTable table )
-    {
-        createTempTable( table );
     }
 
+    @Override
+    protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
+    {
+        return Lists.newArrayList();
+    }
+        
     @Override
     protected void populateTable( AnalyticsTablePartition partition )
     {
