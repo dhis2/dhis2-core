@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling.parameters;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.hisp.dhis.period.RelativePeriods;
+import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.schema.annotation.Property;
 
@@ -20,7 +20,7 @@ public class MonitoringJobParameters
     private static final long serialVersionUID = -1683853240301569669L;
 
     @Property
-    private List<RelativePeriods> relativePeriods;
+    private List<RelativePeriodEnum> relativePeriods;
 
     @Property
     private List<String> validationRuleGroups;
@@ -37,7 +37,7 @@ public class MonitoringJobParameters
     {
     }
 
-    public MonitoringJobParameters( List<RelativePeriods> relativePeriods, List<String> validationRuleGroups,
+    public MonitoringJobParameters( List<RelativePeriodEnum> relativePeriods, List<String> validationRuleGroups,
         boolean sendNotifications, boolean persistResults )
     {
         this.relativePeriods = relativePeriods;
@@ -46,12 +46,12 @@ public class MonitoringJobParameters
         this.persistResults = persistResults;
     }
 
-    public List<RelativePeriods> getRelativePeriods()
+    public List<RelativePeriodEnum> getRelativePeriods()
     {
         return relativePeriods;
     }
 
-    public void setRelativePeriods( List<RelativePeriods> relativePeriods )
+    public void setRelativePeriods( List<RelativePeriodEnum> relativePeriods )
     {
         this.relativePeriods = relativePeriods;
     }
@@ -90,7 +90,6 @@ public class MonitoringJobParameters
     public JobParameters mapParameters( JsonNode parameters )
         throws IOException
     {
-        parameters.get( "relativePeriods" ).forEach( ( node ) -> System.out.println( node.textValue() ) );
-        return this;
+        return null;
     }
 }

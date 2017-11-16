@@ -36,6 +36,7 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -66,6 +67,9 @@ public class MonitoringJob
 
     @Autowired
     private ValidationRuleService validationRuleService;
+
+    @Autowired
+    private PeriodService periodService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -118,9 +122,10 @@ public class MonitoringJob
 
             if ( jobParams.getRelativePeriods() != null && !jobParams.getRelativePeriods().isEmpty() )
             {
-                periods = jobParams.getRelativePeriods().stream()
-                    .map( RelativePeriods::getRelativePeriods )
-                    .reduce( Lists.newArrayList(), ListUtils::union );
+                periods = new RelativePeriods().setRelativePeriodsFromEnums( jobParams.getRelativePeriods() )
+                    .getRelativePeriods();
+
+                periods = ListUtils.union( (List)periods, periodService.getIntersectionPeriods( periods ) );
             }
             else
             {
@@ -138,13 +143,7 @@ public class MonitoringJob
                 .withPersistResults( jobParams.isPersistResults() )
                 .build();
 
-//            validationService.validationAnalysis( parameters );
-
-            System.out.println( "Periods: " );
-            periods.forEach( ( p ) -> System.out.println( p.getUid() ) );
-
-            System.out.println( "validationRules: " );
-            validationRules.forEach( ( vr ) -> System.out.println( vr.getDisplayName() ) );
+            validationService.validationAnalysis( parameters );
 
             notifier.notify( jobConfiguration.getJobId(), INFO, "Monitoring process done", true );
         }
