@@ -71,7 +71,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -530,18 +529,6 @@ public abstract class AbstractEventService
     }
 
     @Override
-    public Events getEvents( Collection<String> uids )
-    {
-        Events events = new Events();
-
-        List<ProgramStageInstance> programStageInstances = manager.getByUid( ProgramStageInstance.class, uids );
-        programStageInstances.forEach(
-            programStageInstance -> events.getEvents().add( convertProgramStageInstance( programStageInstance ) ) );
-
-        return events;
-    }
-
-    @Override
     public Grid getEventsGrid( EventSearchParams params )
     {
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
@@ -663,6 +650,141 @@ public abstract class AbstractEventService
     }
 
     @Override
+    public Event getEvent( ProgramStageInstance programStageInstance )
+    {
+        if ( programStageInstance == null )
+        {
+            return null;
+        }
+
+        Event event = new Event();
+
+        event.setEvent( programStageInstance.getUid() );
+
+        if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
+        {
+            event.setTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance().getUid() );
+        }
+
+        event.setFollowup( programStageInstance.getProgramInstance().getFollowup() );
+        event.setEnrollmentStatus(
+            EnrollmentStatus.fromProgramStatus( programStageInstance.getProgramInstance().getStatus() ) );
+        event.setStatus( programStageInstance.getStatus() );
+        event.setEventDate( DateUtils.getIso8601NoTz( programStageInstance.getExecutionDate() ) );
+        event.setDueDate( DateUtils.getIso8601NoTz( programStageInstance.getDueDate() ) );
+        event.setStoredBy( programStageInstance.getStoredBy() );
+        event.setCompletedBy( programStageInstance.getCompletedBy() );
+        event.setCompletedDate( DateUtils.getIso8601NoTz( programStageInstance.getCompletedDate() ) );
+        event.setCreated( DateUtils.getIso8601NoTz( programStageInstance.getCreated() ) );
+        event.setCreatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getCreatedAtClient() ) );
+        event.setLastUpdated( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdated() ) );
+        event.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdatedAtClient() ) );
+
+        UserCredentials userCredentials = currentUserService.getCurrentUser().getUserCredentials();
+
+        OrganisationUnit ou = programStageInstance.getOrganisationUnit();
+
+        if ( ou != null )
+        {
+            if ( !organisationUnitService.isInUserHierarchy( ou ) )
+            {
+                if ( !userCredentials.isSuper()
+                    && !userCredentials.isAuthorized( "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS" ) )
+                {
+                    throw new IllegalQueryException( "User has no access to organisation unit: " + ou.getUid() );
+                }
+            }
+
+            event.setOrgUnit( ou.getUid() );
+            event.setOrgUnitName( ou.getName() );
+        }
+
+        Program program = programStageInstance.getProgramInstance().getProgram();
+
+        if ( !userCredentials.isSuper() && !userCredentials.getAllPrograms().contains( program ) )
+        {
+            throw new IllegalQueryException( "User has no access to program: " + program.getUid() );
+        }
+
+        event.setProgram( program.getUid() );
+        event.setEnrollment( programStageInstance.getProgramInstance().getUid() );
+        event.setProgramStage( programStageInstance.getProgramStage().getUid() );
+        event.setAttributeOptionCombo( programStageInstance.getAttributeOptionCombo().getUid() );
+        event.setAttributeCategoryOptions(
+            String.join( ";", programStageInstance.getAttributeOptionCombo().getCategoryOptions().stream()
+                .map( DataElementCategoryOption::getUid ).collect( Collectors.toList() ) ) );
+
+        if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
+        {
+            event.setTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance().getUid() );
+        }
+
+        if ( programStageInstance.getProgramStage().getCaptureCoordinates() )
+        {
+            Coordinate coordinate = null;
+
+            if ( programStageInstance.getLongitude() != null && programStageInstance.getLatitude() != null )
+            {
+                coordinate = new Coordinate( programStageInstance.getLongitude(), programStageInstance.getLatitude() );
+
+                try
+                {
+                    List<Double> list = OBJECT_MAPPER.readValue( coordinate.getCoordinateString(),
+                        new TypeReference<List<Double>>()
+                        {
+                        } );
+
+                    coordinate.setLongitude( list.get( 0 ) );
+                    coordinate.setLatitude( list.get( 1 ) );
+                }
+                catch ( IOException ignored )
+                {
+                }
+            }
+
+            if ( coordinate != null && coordinate.isValid() )
+            {
+                event.setCoordinate( coordinate );
+            }
+        }
+
+        Collection<TrackedEntityDataValue> dataValues = dataValueService
+            .getTrackedEntityDataValues( programStageInstance );
+
+        for ( TrackedEntityDataValue dataValue : dataValues )
+        {
+            DataValue value = new DataValue();
+            value.setCreated( DateUtils.getIso8601NoTz( dataValue.getCreated() ) );
+            value.setLastUpdated( DateUtils.getIso8601NoTz( dataValue.getLastUpdated() ) );
+            value.setDataElement( dataValue.getDataElement().getUid() );
+            value.setValue( dataValue.getValue() );
+            value.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
+            value.setStoredBy( dataValue.getStoredBy() );
+
+            event.getDataValues().add( value );
+        }
+
+        List<TrackedEntityComment> comments = programStageInstance.getComments();
+
+        for ( TrackedEntityComment comment : comments )
+        {
+            Note note = new Note();
+
+            note.setValue( comment.getCommentText() );
+            note.setStoredBy( comment.getCreator() );
+
+            if ( comment.getCreatedDate() != null )
+            {
+                note.setStoredDate( DateUtils.getIso8601NoTz( comment.getCreatedDate() ) );
+            }
+
+            event.getNotes().add( note );
+        }
+
+        return event;
+    }
+
+    @Override
     public EventSearchParams getFromUrl( String program, String programStage, ProgramStatus programStatus,
         Boolean followUp, String orgUnit, OrganisationUnitSelectionMode orgUnitSelectionMode,
         String trackedEntityInstance, Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd,
@@ -779,21 +901,6 @@ public abstract class AbstractEventService
         params.setIncludeDeleted( includeDeleted );
 
         return params;
-    }
-
-    @Override
-    public Event getEvent( String uid )
-    {
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( uid );
-        psi.getAttributeOptionCombo().getCategoryOptions();
-        return psi != null ? convertProgramStageInstance( psi ) : null;
-    }
-
-    @Override
-    public Event getEvent( ProgramStageInstance programStageInstance )
-    {
-        programStageInstance.getAttributeOptionCombo().getCategoryOptions();
-        return convertProgramStageInstance( programStageInstance );
     }
 
     // -------------------------------------------------------------------------
@@ -1140,140 +1247,6 @@ public abstract class AbstractEventService
         }
 
         return organisationUnits;
-    }
-
-    private Event convertProgramStageInstance( ProgramStageInstance programStageInstance )
-    {
-        if ( programStageInstance == null )
-        {
-            return null;
-        }
-
-        Event event = new Event();
-
-        event.setEvent( programStageInstance.getUid() );
-
-        if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
-        {
-            event.setTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance().getUid() );
-        }
-
-        event.setFollowup( programStageInstance.getProgramInstance().getFollowup() );
-        event.setEnrollmentStatus(
-            EnrollmentStatus.fromProgramStatus( programStageInstance.getProgramInstance().getStatus() ) );
-        event.setStatus( programStageInstance.getStatus() );
-        event.setEventDate( DateUtils.getIso8601NoTz( programStageInstance.getExecutionDate() ) );
-        event.setDueDate( DateUtils.getIso8601NoTz( programStageInstance.getDueDate() ) );
-        event.setStoredBy( programStageInstance.getStoredBy() );
-        event.setCompletedBy( programStageInstance.getCompletedBy() );
-        event.setCompletedDate( DateUtils.getIso8601NoTz( programStageInstance.getCompletedDate() ) );
-        event.setCreated( DateUtils.getIso8601NoTz( programStageInstance.getCreated() ) );
-        event.setCreatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getCreatedAtClient() ) );
-        event.setLastUpdated( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdated() ) );
-        event.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdatedAtClient() ) );
-
-        UserCredentials userCredentials = currentUserService.getCurrentUser().getUserCredentials();
-
-        OrganisationUnit ou = programStageInstance.getOrganisationUnit();
-
-        if ( ou != null )
-        {
-            if ( !organisationUnitService.isInUserHierarchy( ou ) )
-            {
-                if ( !userCredentials.isSuper()
-                    && !userCredentials.isAuthorized( "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS" ) )
-                {
-                    throw new IllegalQueryException( "User has no access to organisation unit: " + ou.getUid() );
-                }
-            }
-
-            event.setOrgUnit( ou.getUid() );
-            event.setOrgUnitName( ou.getName() );
-        }
-
-        Program program = programStageInstance.getProgramInstance().getProgram();
-
-        if ( !userCredentials.isSuper() && !userCredentials.getAllPrograms().contains( program ) )
-        {
-            throw new IllegalQueryException( "User has no access to program: " + program.getUid() );
-        }
-
-        event.setProgram( program.getUid() );
-        event.setEnrollment( programStageInstance.getProgramInstance().getUid() );
-        event.setProgramStage( programStageInstance.getProgramStage().getUid() );
-        event.setAttributeOptionCombo( programStageInstance.getAttributeOptionCombo().getUid() );
-        event.setAttributeCategoryOptions(
-            String.join( ";", programStageInstance.getAttributeOptionCombo().getCategoryOptions().stream()
-                .map( DataElementCategoryOption::getUid ).collect( Collectors.toList() ) ) );
-
-        if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
-        {
-            event.setTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance().getUid() );
-        }
-
-        if ( programStageInstance.getProgramStage().getCaptureCoordinates() )
-        {
-            Coordinate coordinate = null;
-
-            if ( programStageInstance.getLongitude() != null && programStageInstance.getLatitude() != null )
-            {
-                coordinate = new Coordinate( programStageInstance.getLongitude(), programStageInstance.getLatitude() );
-
-                try
-                {
-                    List<Double> list = OBJECT_MAPPER.readValue( coordinate.getCoordinateString(),
-                        new TypeReference<List<Double>>()
-                        {
-                        } );
-
-                    coordinate.setLongitude( list.get( 0 ) );
-                    coordinate.setLatitude( list.get( 1 ) );
-                }
-                catch ( IOException ignored )
-                {
-                }
-            }
-
-            if ( coordinate != null && coordinate.isValid() )
-            {
-                event.setCoordinate( coordinate );
-            }
-        }
-
-        Collection<TrackedEntityDataValue> dataValues = dataValueService
-            .getTrackedEntityDataValues( programStageInstance );
-
-        for ( TrackedEntityDataValue dataValue : dataValues )
-        {
-            DataValue value = new DataValue();
-            value.setCreated( DateUtils.getIso8601NoTz( dataValue.getCreated() ) );
-            value.setLastUpdated( DateUtils.getIso8601NoTz( dataValue.getLastUpdated() ) );
-            value.setDataElement( dataValue.getDataElement().getUid() );
-            value.setValue( dataValue.getValue() );
-            value.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
-            value.setStoredBy( dataValue.getStoredBy() );
-
-            event.getDataValues().add( value );
-        }
-
-        List<TrackedEntityComment> comments = programStageInstance.getComments();
-
-        for ( TrackedEntityComment comment : comments )
-        {
-            Note note = new Note();
-
-            note.setValue( comment.getCommentText() );
-            note.setStoredBy( comment.getCreator() );
-
-            if ( comment.getCreatedDate() != null )
-            {
-                note.setStoredDate( DateUtils.getIso8601NoTz( comment.getCreatedDate() ) );
-            }
-
-            event.getNotes().add( note );
-        }
-
-        return event;
     }
 
     private boolean canAccess( Program program, User user )
