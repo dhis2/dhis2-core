@@ -98,6 +98,8 @@ public class MonitoringJob
 
         MonitoringJobParameters jobParams = (MonitoringJobParameters) jobConfiguration.getJobParameters();
 
+        //TODO improve collection usage
+        
         try
         {
 
