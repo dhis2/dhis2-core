@@ -77,6 +77,7 @@
       <input type="hidden" id="value-${count}-pe" value="$value.periodId">
       <input type="hidden" id="value-${count}-ou" value="$value.sourceId">
       <input type="hidden" id="value-${count}-coc" value="$value.categoryOptionComboId">
+      <input type="hidden" id="value-${count}-aoc" value="$value.attributeOptionComboId">
       <input type="hidden" id="value-${count}-min" value="$value.min">
       <input type="hidden" id="value-${count}-max" value="$value.max">
     </td>

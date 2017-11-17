@@ -95,12 +95,13 @@ function markFollowup( valueId )
 {
     var dataElementId = $( '#value-' + valueId + '-de' ).val();
     var categoryOptionComboId = $( '#value-' + valueId + '-coc' ).val();
+    var attributeOptionComboId = $( '#value-' + valueId + '-aoc' ).val();
     var periodId = $( '#value-' + valueId + '-pe' ).val();
     var sourceId = $( '#value-' + valueId + '-ou' ).val();
     
     $.ajax( {
       url: 'markForFollowup.action',
-      data: { dataElementId:dataElementId, periodId:periodId, sourceId:sourceId, categoryOptionComboId:categoryOptionComboId },
+      data: { dataElementId:dataElementId, periodId:periodId, sourceId:sourceId, categoryOptionComboId:categoryOptionComboId, attributeOptionComboId:attributeOptionComboId },
       type: 'POST',
       dataType: 'json',
       success: function( json )
