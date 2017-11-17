@@ -315,4 +315,11 @@ public interface GenericIdentifiableObjectStore<T>
      * @param target new owner of all objects
      */
     void updateObjectsOwner( User source, User target );
+
+    /**
+     * Update lastUpdatedBy user with target user
+     * @param source User need to be replace
+     * @param target User to be updated
+     */
+    void updateLastUpdatedBy( User source, User target );
 }

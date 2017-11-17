@@ -100,6 +100,9 @@ public class DefaultIdentifiableObjectManager
 
     private Map<Class<? extends IdentifiableObject>, GenericIdentifiableObjectStore<? extends IdentifiableObject>> mapClassHasUserProperty;
 
+    private Map<Class<? extends IdentifiableObject>, GenericIdentifiableObjectStore<? extends IdentifiableObject>> mapClassHasLastUpdatedBy;
+
+
     //--------------------------------------------------------------------------
     // IdentifiableObjectManager implementation
     //--------------------------------------------------------------------------
@@ -1260,14 +1263,20 @@ public class DefaultIdentifiableObjectManager
 
         identifiableObjectStoreMap = new HashMap<>();
         mapClassHasUserProperty = new HashMap<>();
+        mapClassHasLastUpdatedBy = new HashMap<>();
 
         for ( GenericIdentifiableObjectStore<? extends IdentifiableObject> store : identifiableObjectStores )
         {
             identifiableObjectStoreMap.put( store.getClazz(), store );
 
-            if (  hasProperty( store.getClazz(), "user" )  )
+            if ( hasProperty( store.getClazz(), "user" )  )
             {
                 mapClassHasUserProperty.put( store.getClazz(), store );
+            }
+
+            if ( hasProperty( store.getClazz(), "lastUpdatedBy" ) )
+            {
+                mapClassHasLastUpdatedBy.put( store.getClazz(), store );
             }
         }
 
@@ -1328,9 +1337,9 @@ public class DefaultIdentifiableObjectManager
             store.updateObjectsOwner( source, target );
         } );
 
-        Session session = sessionFactory.getCurrentSession();
-        session.clear();
-        session.flush();
+        mapClassHasLastUpdatedBy.forEach( ( clazz, store ) -> store.updateLastUpdatedBy( source, target ) );
+
+        flush();
     }
 
     @Override

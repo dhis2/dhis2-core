@@ -553,8 +553,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public long countByUser( User user)
     {
-        CriteriaBuilder builder = getSession().getCriteriaBuilder();
-        CriteriaQuery query = getSession().getCriteriaBuilder().createQuery();
+        CriteriaQuery query = getCriteriaQuery();
 
         Root root = query.from( clazz );
         query.select( builder.count( root ) );
@@ -575,10 +574,20 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public void updateObjectsOwner( User source, User target )
     {
-        String jpql = "Update " + clazz.getName() + " set user.id = :targetId"  + " where user.id= :sourceId";
-        TypedQuery jpaQuery = getJpaQuery( jpql );
-        jpaQuery.setParameter( "targetId", target.getId() );
-        jpaQuery.setParameter( "sourceId", source.getId() );
-        jpaQuery.executeUpdate();
+        String sql = "Update " + clazz.getName() + " set user.id = :targetId" + " where user.id= :sourceId";
+        TypedQuery query = getJpaQuery( sql );
+        query.setParameter( "targetId", target.getId() );
+        query.setParameter( "sourceId", source.getId() );
+        query.executeUpdate();
+    }
+
+    @Override
+    public void updateLastUpdatedBy( User source, User target )
+    {
+        String sql = "Update " + clazz.getName() + " set lastUpdatedBy.id = :targetId " + "where lastUpdatedBy.id = :sourceId";
+        TypedQuery query = getJpaQuery( sql );
+        query.setParameter( "targetId", target.getId() );
+        query.setParameter( "sourceId", source.getId() );
+        query.executeUpdate();
     }
 }

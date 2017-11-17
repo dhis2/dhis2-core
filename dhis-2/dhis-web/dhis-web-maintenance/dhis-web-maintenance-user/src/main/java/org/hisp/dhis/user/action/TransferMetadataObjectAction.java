@@ -31,12 +31,14 @@ package org.hisp.dhis.user.action;
  */
 
 import com.opensymphony.xwork2.Action;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -56,11 +58,23 @@ public class TransferMetadataObjectAction implements Action
         return this.users;
     }
 
+    private String sourceUserId;
+
+    public void setSourceUserId( String sourceUserId )
+    {
+        this.sourceUserId = sourceUserId;
+    }
+
     @Override
     public String execute() throws Exception
     {
         User currentUser = currentUserService.getCurrentUser();
         users = userService.getManagedUsers( currentUser );
+
+        if ( StringUtils.isNotEmpty( sourceUserId ) )
+        {
+           users =  users.stream().filter( u -> !u.getUid().equals( sourceUserId ) ).collect( Collectors.toList());
+        }
 
         return SUCCESS;
     }

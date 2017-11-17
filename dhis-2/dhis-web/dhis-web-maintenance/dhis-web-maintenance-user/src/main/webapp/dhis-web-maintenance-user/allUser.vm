@@ -133,15 +133,14 @@
 </table>
 
 <div id="transferMetadataForm" class="inputForm" style="display: none;">
+  <input type="hidden" id="fromUserId" val=""/> </td>
   <table>
     <tr>
-      <td><label>$i18n.getString("transfer_from_user"):<span id="fromUser"></span></label>
-      <input type="hidden" id="fromUserId" val=""/></td>
+      <td>$i18n.getString("transfer_from_user")</td>
+      <td><b><span id="fromUser"></span></b></td>
     </tr>
     <tr>
-      <td><label>$i18n.getString("select_target_user")</label></td>
-    </tr>
-    <tr>
+      <td style="vertical-align: top;"><label>$i18n.getString("select_target_user")</label></td>
       <td><div id="userListContainer"></div></td>
     </tr>
   </table>

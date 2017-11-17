@@ -238,6 +238,7 @@ function showTransferMetadataDialog( context )
     $.ajax({
         url:"getUserForTransferMetadata.action",
         type:"get",
+        data: { sourceUserId : context.uid },
         success: function(data){
             $("#userListContainer").html(data);
 
