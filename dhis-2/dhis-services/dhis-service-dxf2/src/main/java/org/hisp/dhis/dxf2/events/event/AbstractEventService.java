@@ -1649,7 +1649,7 @@ public abstract class AbstractEventService
     private DataElementCategoryOptionCombo getAttributeOptionCombo( String key, DataElementCategoryCombo categoryCombo,
         Set<DataElementCategoryOption> categoryOptions )
     {
-        return categoryOptionComboCache.get( key, () -> categoryService.getDataElementCategoryOptionCombo( categoryCombo, categoryOptions ) );
+        return attributeOptionComboCache.get( key, () -> categoryService.getDataElementCategoryOptionCombo( categoryCombo, categoryOptions ) );
     }
 
     private List<ProgramInstance> getActiveProgramInstances( String key, Program program )
