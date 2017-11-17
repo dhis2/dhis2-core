@@ -1,0 +1,29 @@
+{
+  "jobs": [
+    {
+      "name": "jobA",
+      "type": "analyticsJob",
+      "cron": "0 0 0 * * ?",
+      "jobConfiguration": {
+        "lastYears": 2,
+        "taskId": ""
+      }
+    },
+    {
+      "name": "jobB",
+      "type": "pushAnalysis",
+      "cron": "0 0 7 * * ?",
+      "jobConfiguration": {
+        "taskId": ""
+      }
+    },
+    {
+      "name": "jobB",
+      "type": "metadataSyncJob",
+      "cron": "0 0 8 * * ?",
+      "jobConfiguration": {
+        "taskId": ""
+      }
+    }
+  ]
+}

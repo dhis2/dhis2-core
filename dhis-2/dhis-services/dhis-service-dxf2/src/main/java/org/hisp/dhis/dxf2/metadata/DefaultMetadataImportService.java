@@ -39,11 +39,7 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
+import org.hisp.dhis.dxf2.metadata.objectbundle.*;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.Status;
@@ -51,8 +47,8 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
@@ -107,9 +103,9 @@ public class DefaultMetadataImportService implements MetadataImportService
         String message = "(" + params.getUsername() + ") Import:Start";
         log.info( message );
 
-        if ( params.hasTaskId() )
+        if ( params.hasJobId() )
         {
-            notifier.notify( params.getTaskId(), message );
+            notifier.notify( params.getJobId(), message );
         }
 
         ObjectBundleParams bundleParams = params.toObjectBundleParams();
@@ -146,10 +142,10 @@ public class DefaultMetadataImportService implements MetadataImportService
 
         log.info( message );
 
-        if ( bundle.hasTaskId() )
+        if ( bundle.hasJobId() )
         {
-            notifier.notify( bundle.getTaskId(), NotificationLevel.INFO, message, true )
-                .addTaskSummary( bundle.getTaskId(), importReport );
+            notifier.notify( bundle.getJobId(), NotificationLevel.INFO, message, true )
+                .addTaskSummary( bundle.getJobId(), importReport );
         }
 
         if ( ObjectBundleMode.VALIDATE == params.getImportMode() )
@@ -210,9 +206,9 @@ public class DefaultMetadataImportService implements MetadataImportService
 
         if ( getBooleanWithDefault( parameters, "async", false ) )
         {
-            TaskId taskId = new TaskId( TaskCategory.METADATA_IMPORT, params.getUser() );
-            notifier.clear( taskId );
-            params.setTaskId( taskId );
+            JobId jobId = new JobId( JobType.METADATA_IMPORT, params.getUser().getUid() );
+            notifier.clear( jobId );
+            params.setJobId( jobId );
         }
 
         return params;
