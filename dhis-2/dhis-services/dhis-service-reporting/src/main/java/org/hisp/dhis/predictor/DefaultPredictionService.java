@@ -78,10 +78,13 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * @author Ken Haase
  * @author Jim Grace
  */
-
-public class DefaultPredictionService implements PredictionService
+public class DefaultPredictionService
+    implements PredictionService
 {
     private static final Log log = LogFactory.getLog( DefaultPredictionService.class );
+
+    @Autowired
+    private PredictorService predictorService;
 
     @Autowired
     private ConstantService constantService;
@@ -115,6 +118,29 @@ public class DefaultPredictionService implements PredictionService
     // -------------------------------------------------------------------------
     // Prediction business logic
     // -------------------------------------------------------------------------
+
+    public int predictPredictors( List<String> predictors, Date startDate, Date endDate )
+    {
+        int totalCount = 0;
+
+        try
+        {
+            for ( String uid : predictors) {
+                Predictor predictor = predictorService.getPredictor( uid );
+
+                int count = predict( predictor, startDate, endDate );
+
+                log.info( "Generated " + count + " predictions" );
+                totalCount += count;
+            }
+        }
+        catch ( Exception ex )
+        {
+            log.error( "Unable to predict.", ex);
+        }
+
+        return totalCount;
+    }
 
     @Override
     public int predict( Predictor predictor, Date startDate, Date endDate )

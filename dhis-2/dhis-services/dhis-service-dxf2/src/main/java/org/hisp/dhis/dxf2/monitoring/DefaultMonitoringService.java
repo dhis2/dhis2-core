@@ -48,9 +48,8 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Date;
-
 import javax.annotation.PostConstruct;
+import java.util.Date;
 
 /**
  * @author Lars Helge Overland
@@ -78,6 +77,7 @@ public class DefaultMonitoringService
     @PostConstruct
     public void init()
     {
+        // HH schedule to the new scheduler
         Date date = new DateTime().plus( PUSH_INITIAL_DELAY ).toDate();
         
         scheduler.scheduleWithFixedDelay( () -> pushMonitoringInfo(), date, PUSH_INTERVAL );

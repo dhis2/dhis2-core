@@ -41,11 +41,10 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.query.Order;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -89,15 +88,15 @@ public interface EventService
 
     ImportSummaries addEvents( List<Event> events, ImportOptions importOptions );
 
-    ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, TaskId taskId );
+    ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, JobId jobId );
 
     ImportSummaries addEventsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
-    ImportSummaries addEventsXml( InputStream inputStream, TaskId taskId, ImportOptions importOptions ) throws IOException;
+    ImportSummaries addEventsXml( InputStream inputStream, JobId jobId, ImportOptions importOptions ) throws IOException;
 
     ImportSummaries addEventsJson( InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
-    ImportSummaries addEventsJson( InputStream inputStream, TaskId taskId, ImportOptions importOptions ) throws IOException;
+    ImportSummaries addEventsJson( InputStream inputStream, JobId jobId, ImportOptions importOptions ) throws IOException;
 
     // -------------------------------------------------------------------------
     // UPDATE

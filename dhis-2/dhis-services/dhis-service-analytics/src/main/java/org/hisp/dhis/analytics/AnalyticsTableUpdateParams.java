@@ -28,12 +28,11 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
-import org.hisp.dhis.analytics.table.AnalyticsTableType;
-import org.hisp.dhis.scheduling.TaskId;
-
 import com.google.common.base.MoreObjects;
+import org.hisp.dhis.analytics.table.AnalyticsTableType;
+import org.hisp.dhis.scheduling.JobId;
+
+import java.util.Set;
 
 /**
  * Class representing parameters for the analytics table generation process.
@@ -50,7 +49,7 @@ public class AnalyticsTableUpdateParams
     
     private Set<AnalyticsTableType> skipTableTypes;
     
-    private TaskId taskId;
+    private JobId jobId;
     
     // -------------------------------------------------------------------------
     // Get methods
@@ -76,9 +75,9 @@ public class AnalyticsTableUpdateParams
         return skipTableTypes;
     }
 
-    public TaskId getTaskId()
+    public JobId getJobId()
     {
-        return taskId;
+        return jobId;
     }
 
     // -------------------------------------------------------------------------
@@ -141,9 +140,9 @@ public class AnalyticsTableUpdateParams
             return this;
         }
         
-        public Builder withTaskId( TaskId taskId )
+        public Builder withTaskId( JobId taskId )
         {
-            this.params.taskId = taskId;
+            this.params.jobId = taskId;
             return this;
         }
         
