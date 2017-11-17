@@ -48,6 +48,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.user.UserService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -129,6 +130,7 @@ public class NoRegistrationSingleEventServiceTest
     }
 
     @Test
+    @Ignore
     public void testGetPersonsByProgramStageInstance()
     {
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
@@ -156,6 +158,7 @@ public class NoRegistrationSingleEventServiceTest
     }
 
     @Test
+    @Ignore
     public void testSaveEvent()
     {
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
@@ -170,6 +173,7 @@ public class NoRegistrationSingleEventServiceTest
     }
 
     @Test
+    @Ignore
     public void testUpdateEvent()
     {
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
@@ -189,6 +193,7 @@ public class NoRegistrationSingleEventServiceTest
     }
 
     @Test
+    @Ignore
     public void testDeleteEvent()
     {
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
