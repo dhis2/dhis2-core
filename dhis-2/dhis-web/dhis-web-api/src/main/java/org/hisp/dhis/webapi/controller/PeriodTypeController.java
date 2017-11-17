@@ -37,12 +37,11 @@ import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.PeriodTypeDTO;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -82,5 +81,11 @@ public class PeriodTypeController
         rootNode.addChild( fieldFilterService.toCollectionNode( PeriodTypeDTO.class, new FieldFilterParams( periodTypes, fields ) ) );
 
         return rootNode;
+    }
+
+    @RequestMapping( value = "/relativePeriodTypes", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
+    public @ResponseBody RelativePeriodEnum[] getRelativePeriodTypes()
+    {
+        return RelativePeriodEnum.values();
     }
 }

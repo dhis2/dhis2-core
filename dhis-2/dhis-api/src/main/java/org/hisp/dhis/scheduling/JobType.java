@@ -1,9 +1,7 @@
 package org.hisp.dhis.scheduling;
 
+import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.scheduling.parameters.*;
-
-import java.util.HashMap;
-import java.util.Optional;
 
 /**
  * Enum describing the different jobs in the system.
@@ -16,10 +14,9 @@ public enum JobType
     DATA_STATISTICS( "dataStatisticsJob", false, null, null ),
     DATA_INTEGRITY( "dataIntegrity", true, null, null ),
     RESOURCE_TABLE( "resourceTableJob", true, null, null ),
-    ANALYTICS_TABLE( "analyticsTableJob", true, AnalyticsJobParameters.class, new HashMap<String, String>()
-    {{
-        put( "skipTableTypes", "/api/analytics/tableTypes" );
-    }} ),
+    ANALYTICS_TABLE( "analyticsTableJob", true, AnalyticsJobParameters.class, ImmutableMap.of(
+        "skipTableTypes", "/api/analytics/tableTypes"
+    ) ),
     DATA_SYNC( "dataSyncJob", true, null, null ),
     FILE_RESOURCE_CLEANUP( "fileResourceCleanUp", false, null, null ),
     META_DATA_SYNC( "metaDataSyncJob", true, null, null ),
@@ -28,19 +25,16 @@ public enum JobType
     PROGRAM_NOTIFICATIONS( "programNotificationsJob", true, null, null ),
     VALIDATION_RESULTS_NOTIFICATION( "validationResultNotificationJob", false, null, null ),
     CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob", false, null, null ),
-    MONITORING( "monitoringJob", true, MonitoringJobParameters.class, new HashMap<String, String>()
-    {{
-        put( "relativePeriods", "/api/relativePeriods" );
-        put( "validationRuleGroups", "/api/validationRuleGroups" );
-    }} ),
-    PUSH_ANALYSIS( "pushAnalysis", true, PushAnalysisJobParameters.class, new HashMap<String, String>()
-    {{
-        put( "pushAnalysis", "/api/pushAnalysis" );
-    }} ),
-    PREDICTOR( "predictor", true, PredictorJobParameters.class, new HashMap<String, String>()
-    {{
-        put( "predictors", "/api/predictors" );
-    }} ),
+    MONITORING( "monitoringJob", true, MonitoringJobParameters.class, ImmutableMap.of(
+        "relativePeriods", "/api/periodTypes/relativePeriodTypes",
+        "validationRuleGroups", "/api/validationRuleGroups"
+    ) ),
+    PUSH_ANALYSIS( "pushAnalysis", true, PushAnalysisJobParameters.class, ImmutableMap.of(
+        "pushAnalysis", "/api/pushAnalysis"
+    ) ),
+    PREDICTOR( "predictor", true, PredictorJobParameters.class, ImmutableMap.of(
+        "predictors", "/api/predictors"
+    ) ),
     DATA_SET_NOTIFICATION( "dataSetNotification", false, null, null ),
 
     // For tests
@@ -60,9 +54,9 @@ public enum JobType
 
     private final boolean configurable;
 
-    HashMap<String, String> relativeApiElements;
+    ImmutableMap<String, String> relativeApiElements;
 
-    JobType( String key, boolean configurable, Class<?> clazz, HashMap<String, String> relativeApiElements )
+    JobType( String key, boolean configurable, Class<?> clazz, ImmutableMap<String, String> relativeApiElements )
     {
         this.key = key;
         this.clazz = clazz;
@@ -80,32 +74,12 @@ public enum JobType
         return (Class<JobParameters>) clazz;
     }
 
-    public static Optional<JobType> getByJobType( String jobType )
-    {
-        for ( JobType jobType1 : JobType.values() )
-        {
-            if ( jobType1.getKey().equals( jobType ) )
-            {
-                return Optional.of( jobType1 );
-            }
-        }
-
-        return Optional.empty();
-    }
-
     public boolean isConfigurable()
     {
         return configurable;
     }
 
-    public static Class<JobParameters> getClazz( String jobType )
-    {
-        Optional<JobType> getJobType = getByJobType( jobType );
-
-        return getJobType.get().getClazz();
-    }
-
-    public HashMap<String, String> getRelativeApiElements()
+    public ImmutableMap<String, String> getRelativeApiElements()
     {
         return relativeApiElements;
     }
