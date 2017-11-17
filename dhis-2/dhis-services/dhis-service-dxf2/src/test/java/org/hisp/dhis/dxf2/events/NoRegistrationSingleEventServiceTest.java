@@ -86,7 +86,7 @@ public class NoRegistrationSingleEventServiceTest
     private ProgramStage programStageA;
 
     @Override
-    protected void setUpTest() 
+    protected void setUpTest()
         throws Exception
     {
         userService = _userService;
@@ -152,7 +152,7 @@ public class NoRegistrationSingleEventServiceTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertNotNull( importSummary.getReference() );
 
-        assertNotNull( eventService.getEvent( importSummary.getReference() ) );
+        assertNotNull( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
     }
 
     @Test
@@ -164,7 +164,7 @@ public class NoRegistrationSingleEventServiceTest
         assertEquals( 0, importSummary.getConflicts().size() );
         assertNotNull( importSummary.getReference() );
 
-        event = eventService.getEvent( importSummary.getReference() );
+        event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
         assertNotNull( event );
         assertEquals( "10", event.getDataValues().get( 0 ).getValue() );
     }
@@ -180,11 +180,11 @@ public class NoRegistrationSingleEventServiceTest
         assertNotNull( importSummary.getReference() );
         assertEquals( "10", event.getDataValues().get( 0 ).getValue() );
 
-        event = eventService.getEvent( importSummary.getReference() );
+        event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
         event.getDataValues().get( 0 ).setValue( "254" );
         eventService.updateEvent( event, false );
 
-        event = eventService.getEvent( importSummary.getReference() );
+        event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
         assertEquals( "254", event.getDataValues().get( 0 ).getValue() );
     }
 
@@ -197,11 +197,9 @@ public class NoRegistrationSingleEventServiceTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertNotNull( importSummary.getReference() );
 
-        event = eventService.getEvent( importSummary.getReference() );
-        assertNotNull( event );
+        assertNotNull( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
         eventService.deleteEvent( event.getEvent() );
-        event = eventService.getEvent( importSummary.getReference() );
-        assertNull( event );
+        assertNull( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
     }
 
     private Event createEvent( String program, String orgUnit )
