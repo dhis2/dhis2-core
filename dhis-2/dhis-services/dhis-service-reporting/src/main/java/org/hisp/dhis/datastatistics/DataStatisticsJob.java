@@ -33,11 +33,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Date;
 
 /**
  * @author Yrjan A. F. Fraschetti
@@ -50,9 +46,6 @@ public class DataStatisticsJob
     
     @Autowired
     private DataStatisticsService dataStatisticsService;
-
-    @Autowired
-    private SystemSettingManager systemSettingManager;
 
     // -------------------------------------------------------------------------
     // Implementation

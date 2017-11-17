@@ -125,7 +125,7 @@ public class MonitoringJob
                 periods = new RelativePeriods().setRelativePeriodsFromEnums( jobParams.getRelativePeriods() )
                     .getRelativePeriods();
 
-                periods = ListUtils.union( (List)periods, periodService.getIntersectionPeriods( periods ) );
+                periods = ListUtils.union( (List) periods, periodService.getIntersectionPeriods( periods ) );
             }
             else
             {

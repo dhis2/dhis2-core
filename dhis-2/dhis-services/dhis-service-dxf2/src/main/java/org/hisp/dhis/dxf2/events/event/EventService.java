@@ -45,7 +45,6 @@ import org.hisp.dhis.scheduling.JobId;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;

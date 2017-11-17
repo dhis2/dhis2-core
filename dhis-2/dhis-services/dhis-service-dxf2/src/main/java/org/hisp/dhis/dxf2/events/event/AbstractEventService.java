@@ -246,7 +246,6 @@ public abstract class AbstractEventService
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions )
     {
         ImportSummaries importSummaries = new ImportSummaries();
