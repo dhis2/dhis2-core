@@ -47,6 +47,7 @@ import org.hisp.dhis.validation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -100,7 +101,7 @@ public class MonitoringJob
         try
         {
 
-            Collection<Period> periods;
+            List<Period> periods = new ArrayList<>();
             List<OrganisationUnit> organisationUnits = organisationUnitService.getAllOrganisationUnits();
             Collection<ValidationRule> validationRules;
             List<String> groupUIDs = jobParams.getValidationRuleGroups();
