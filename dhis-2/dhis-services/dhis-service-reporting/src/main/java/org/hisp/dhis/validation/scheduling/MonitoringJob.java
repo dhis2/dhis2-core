@@ -101,7 +101,7 @@ public class MonitoringJob
         {
 
             Collection<Period> periods;
-            Collection<OrganisationUnit> organisationUnits = organisationUnitService.getAllOrganisationUnits();
+            List<OrganisationUnit> organisationUnits = organisationUnitService.getAllOrganisationUnits();
             Collection<ValidationRule> validationRules;
             List<String> groupUIDs = jobParams.getValidationRuleGroups();
 
@@ -122,7 +122,8 @@ public class MonitoringJob
 
             if ( jobParams.getRelativePeriods() != null && !jobParams.getRelativePeriods().isEmpty() )
             {
-                periods = new RelativePeriods().setRelativePeriodsFromEnums( jobParams.getRelativePeriods() )
+                periods = new RelativePeriods()
+                    .setRelativePeriodsFromEnums( jobParams.getRelativePeriods() )
                     .getRelativePeriods();
 
                 periods = ListUtils.union( (List) periods, periodService.getIntersectionPeriods( periods ) );
