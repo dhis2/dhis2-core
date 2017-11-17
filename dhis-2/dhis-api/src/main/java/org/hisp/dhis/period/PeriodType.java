@@ -31,6 +31,7 @@ package org.hisp.dhis.period;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.calendar.DateInterval;
 import org.hisp.dhis.calendar.DateTimeUnit;
@@ -41,6 +42,7 @@ import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.common.DxfNamespaces;
 
 import java.io.Serializable;
+import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -132,6 +134,14 @@ public abstract class PeriodType
             add( new FinancialOctoberPeriodType() );
         }
     };
+
+    public static final Map<String, DayOfWeek> MAP_WEEK_TYPE = ImmutableMap.of(
+        WeeklySundayPeriodType.NAME, DayOfWeek.SUNDAY,
+        WeeklyWednesdayPeriodType.NAME, DayOfWeek.WEDNESDAY,
+        WeeklyThursdayPeriodType.NAME, DayOfWeek.THURSDAY,
+        WeeklySaturdayPeriodType.NAME, DayOfWeek.SATURDAY,
+        WeeklyPeriodType.NAME, DayOfWeek.MONDAY );
+
 
     private static final Map<String, PeriodType> PERIOD_TYPE_MAP = new HashMap<String, PeriodType>()
     {
