@@ -71,6 +71,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -535,7 +536,7 @@ public abstract class AbstractEventService
 
         List<ProgramStageInstance> programStageInstances = manager.getByUid( ProgramStageInstance.class, uids );
         programStageInstances.forEach(
-            programStageInstance -> events.getEvents().add( getEvent( programStageInstance ) ) );
+            programStageInstance -> events.getEvents().add( convertProgramStageInstance( programStageInstance ) ) );
 
         return events;
     }
@@ -784,7 +785,15 @@ public abstract class AbstractEventService
     public Event getEvent( String uid )
     {
         ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( uid );
-        return psi != null ? getEvent( psi ) : null;
+        psi.getAttributeOptionCombo().getCategoryOptions();
+        return psi != null ? convertProgramStageInstance( psi ) : null;
+    }
+
+    @Override
+    public Event getEvent( ProgramStageInstance programStageInstance )
+    {
+        programStageInstance.getAttributeOptionCombo().getCategoryOptions();
+        return convertProgramStageInstance( programStageInstance );
     }
 
     // -------------------------------------------------------------------------
@@ -1133,8 +1142,7 @@ public abstract class AbstractEventService
         return organisationUnits;
     }
 
-    @Override
-    public Event getEvent( ProgramStageInstance programStageInstance )
+    private Event convertProgramStageInstance( ProgramStageInstance programStageInstance )
     {
         if ( programStageInstance == null )
         {
