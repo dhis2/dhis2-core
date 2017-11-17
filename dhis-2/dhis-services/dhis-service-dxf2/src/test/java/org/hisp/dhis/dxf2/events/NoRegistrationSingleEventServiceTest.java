@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -79,6 +80,9 @@ public class NoRegistrationSingleEventServiceTest
 
     @Autowired
     private UserService _userService;
+
+    @Autowired
+    private SessionFactory sessionFactory;
 
     private OrganisationUnit organisationUnitA;
     private DataElement dataElementA;
@@ -199,6 +203,8 @@ public class NoRegistrationSingleEventServiceTest
 
         assertNotNull( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
         eventService.deleteEvent( event.getEvent() );
+        sessionFactory.getCurrentSession().flush();
+        sessionFactory.getCurrentSession().flush();
         assertNull( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
     }
 
