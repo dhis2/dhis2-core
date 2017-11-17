@@ -535,7 +535,7 @@ public abstract class AbstractEventService
 
         List<ProgramStageInstance> programStageInstances = manager.getByUid( ProgramStageInstance.class, uids );
         programStageInstances.forEach(
-            programStageInstance -> events.getEvents().add( convertProgramStageInstance( programStageInstance ) ) );
+            programStageInstance -> events.getEvents().add( getEvent( programStageInstance ) ) );
 
         return events;
     }
@@ -784,14 +784,7 @@ public abstract class AbstractEventService
     public Event getEvent( String uid )
     {
         ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( uid );
-
-        return psi != null ? convertProgramStageInstance( psi ) : null;
-    }
-
-    @Override
-    public Event getEvent( ProgramStageInstance programStageInstance )
-    {
-        return convertProgramStageInstance( programStageInstance );
+        return psi != null ? getEvent( psi ) : null;
     }
 
     // -------------------------------------------------------------------------
@@ -1140,7 +1133,8 @@ public abstract class AbstractEventService
         return organisationUnits;
     }
 
-    private Event convertProgramStageInstance( ProgramStageInstance programStageInstance )
+    @Override
+    public Event getEvent( ProgramStageInstance programStageInstance )
     {
         if ( programStageInstance == null )
         {
