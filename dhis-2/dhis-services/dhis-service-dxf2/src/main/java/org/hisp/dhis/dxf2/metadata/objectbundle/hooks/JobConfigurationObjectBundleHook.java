@@ -119,7 +119,7 @@ public class JobConfigurationObjectBundleHook
         errorReports.addAll( validateCronForJobType( jobConfiguration ) );
 
         // Validate parameters
-        ErrorReport parameterValidation = jobConfiguration.getJobParameters().validate();
+        ErrorReport parameterValidation = jobConfiguration.getJobParameters() != null ? jobConfiguration.getJobParameters().validate() : null;
         if ( parameterValidation != null )
         {
             errorReports.add( parameterValidation );
@@ -152,6 +152,7 @@ public class JobConfigurationObjectBundleHook
         else
         {
             log.info( "Validation of '" + jobConfiguration.getName() + "' failed." );
+            log.info( errorReports );
         }
 
         return errorReports;

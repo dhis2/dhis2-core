@@ -30,14 +30,12 @@ public enum JobType
     CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob", false, null, null ),
     MONITORING( "monitoringJob", true, MonitoringJobParameters.class, new HashMap<String, String>()
     {{
-        put( "organisationUnits", "/api/organisationUnits" );
+        put( "relativePeriods", "/api/relativePeriods" );
         put( "validationRuleGroups", "/api/validationRuleGroups" );
-        put( "validationRuleGroupUids", "/api/validationRuleGroups" );
-        put( "parentOrgUnitUid", "/api/organisationUnits" );
     }} ),
     PUSH_ANALYSIS( "pushAnalysis", true, PushAnalysisJobParameters.class, new HashMap<String, String>()
     {{
-        put( "pushAnalysisId", "/api/pushAnalysis" );
+        put( "pushAnalysis", "/api/pushAnalysis" );
     }} ),
     PREDICTOR( "predictor", true, PredictorJobParameters.class, new HashMap<String, String>()
     {{
