@@ -467,7 +467,7 @@ public class EventController
     public @ResponseBody Event getEvent( @PathVariable( "uid" ) String uid, @RequestParam Map<String, String> parameters,
         Model model, HttpServletRequest request ) throws Exception
     {
-        Event event = eventService.getEvent( uid );
+        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ) );
 
         if ( event == null )
         {
@@ -484,7 +484,7 @@ public class EventController
     public void getEventDataValueFile( @RequestParam String eventUid, @RequestParam String dataElementUid,
         HttpServletResponse response, HttpServletRequest request ) throws Exception
     {
-        Event event = eventService.getEvent( eventUid );
+        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( eventUid ) );
 
         if ( event == null )
         {
