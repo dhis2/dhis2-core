@@ -208,7 +208,7 @@ function markValueForFollowup()
     
     $.ajax( { url: '../api/dataValues',
     	data: dataValue,
-    	dataType: 'json',
+    	dataType: 'text',
         type: 'post',
     	success: function( json )
 	    {
