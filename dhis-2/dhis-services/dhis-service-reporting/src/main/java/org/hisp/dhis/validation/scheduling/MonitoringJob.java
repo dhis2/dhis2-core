@@ -47,10 +47,7 @@ import org.hisp.dhis.validation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
@@ -117,9 +114,9 @@ public class MonitoringJob
             {
                 validationRules = groupUIDs.stream()
                     .map( ( uid ) -> validationRuleService.getValidationRuleGroup( uid ) )
-                    .filter( ( group ) -> group != null )
+                    .filter( Objects::nonNull )
                     .map( ValidationRuleGroup::getMembers )
-                    .filter( ( vr ) -> vr != null )
+                    .filter( Objects::nonNull )
                     .reduce( Sets.newHashSet(), SetUtils::union );
             }
 
@@ -129,7 +126,7 @@ public class MonitoringJob
                     .setRelativePeriodsFromEnums( jobParams.getRelativePeriods() )
                     .getRelativePeriods();
 
-                periods = ListUtils.union( (List) periods, periodService.getIntersectionPeriods( periods ) );
+                periods = ListUtils.union( periods, periodService.getIntersectionPeriods( periods ) );
             }
             else
             {
