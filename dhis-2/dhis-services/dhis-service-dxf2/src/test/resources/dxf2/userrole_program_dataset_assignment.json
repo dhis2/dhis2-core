@@ -335,7 +335,6 @@
       "name": "TrackedEntityAttributeA",
       "orgunitScope": false,
       "unique": false,
-      "searchScope": "SEARCH_ORG_UNITS",
       "code": "TrackedEntityAttributeCodeA",
       "userGroupAccesses": [ ],
       "id": "DmvXbwPCYgm",

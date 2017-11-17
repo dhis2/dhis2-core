@@ -24,35 +24,6 @@
     <property name="documentService" ref="org.hisp.dhis.document.DocumentService" />
   </bean>
 
-  <!-- TableCreator -->
-
-  <bean id="org.hisp.dhis.reporting.tablecreator.action.GetReportParamsAction" class="org.hisp.dhis.reporting.tablecreator.action.GetReportParamsAction"
-    scope="prototype">
-    <property name="reportService" ref="org.hisp.dhis.report.ReportService" />
-    <property name="reportTableService" ref="org.hisp.dhis.reporttable.ReportTableService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.reporting.tablecreator.action.GetAllTablesAction" class="org.hisp.dhis.reporting.tablecreator.action.GetAllTablesAction"
-    scope="prototype">
-    <property name="reportTableService" ref="org.hisp.dhis.reporttable.ReportTableService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.reporting.tablecreator.action.RemoveTableAction" class="org.hisp.dhis.reporting.tablecreator.action.RemoveTableAction"
-    scope="prototype">
-    <property name="reportTableService" ref="org.hisp.dhis.reporttable.ReportTableService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.reporting.tablecreator.action.GetTableAction" class="org.hisp.dhis.reporting.tablecreator.action.GetTableAction"
-    scope="prototype">
-    <property name="reportTableService" ref="org.hisp.dhis.reporttable.ReportTableService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.reporting.tablecreator.action.ExportTableAction" class="org.hisp.dhis.reporting.tablecreator.action.ExportTableAction"
-    scope="prototype">
-    <property name="reportTableService" ref="org.hisp.dhis.reporttable.ReportTableService" />
-	<property name="constantService" ref="org.hisp.dhis.constant.ConstantService" />
-  </bean>
-
   <!-- Report -->
 
   <bean id="org.hisp.dhis.reporting.reportviewer.action.AddReportAction" class="org.hisp.dhis.reporting.reportviewer.action.AddReportAction"

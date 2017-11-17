@@ -131,9 +131,11 @@ public class JdbcAnalyticsTableManager
     }
 
     @Override
-    protected void createMasterTable( AnalyticsTable table )
+    protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
-        createTempTable( new AnalyticsTable( table.getBaseName(), getDimensionColumns( null ), getValueColumns() ) );
+        return Lists.newArrayList(
+            "yearly = '" + partition.getYear() + "'",
+            "pestartdate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'" );
     }
     
     @Override

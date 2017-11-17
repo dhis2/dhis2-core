@@ -125,7 +125,7 @@ public abstract class AbstractJdbcTableManager
     {
         if ( !skipMasterTable )
         {
-            createMasterTable( table );
+            createTempTable( table );
         }
         
         createTempTablePartitions( table );
@@ -220,12 +220,17 @@ public abstract class AbstractJdbcTableManager
         return null;
     }
 
+    // -------------------------------------------------------------------------
+    // Abstract methods
+    // -------------------------------------------------------------------------
+  
     /**
-     * Creates the master analytics table.
+     * Returns a list of table checks (constraints) for the given analytics table 
+     * partition.
      * 
-     * @param table the analytics table to create.
+     * @param partition the {@link AnalyticsTablePartition}.
      */
-    protected abstract void createMasterTable( AnalyticsTable table );
+    protected abstract List<String> getPartitionChecks( AnalyticsTablePartition partition );
     
     /**
      * Populates the given analytics table.
@@ -364,8 +369,18 @@ public abstract class AbstractJdbcTableManager
         for ( AnalyticsTablePartition partition : table.getPartitionTables() )
         {         
             final String tableName = partition.getTempTableName();
-   
-            String sqlCreate = "create table " + tableName + " (check (yearly = '" + partition.getYear() + "')) inherits (" + table.getTempTableName() + ")";
+            final List<String> checks = getPartitionChecks( partition );
+            
+            String sqlCreate = "create table " + tableName + " ";
+            
+            if ( !checks.isEmpty() )
+            {
+                StringBuilder sqlCheck = new StringBuilder( "(" );
+                checks.stream().forEach( check -> sqlCheck.append( "check (" + check + "), " ) );
+                sqlCreate += TextUtils.removeLastComma( sqlCheck.toString() ) + ") ";
+            }
+            
+            sqlCreate += "inherits (" + table.getTempTableName() + ")";
             
             log.info( String.format( "Creating partition table: %s", tableName ) );
 

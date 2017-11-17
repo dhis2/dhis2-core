@@ -61,8 +61,6 @@ public interface EventService
 
     Events getEvents( EventSearchParams params );
 
-    Events getEvents( Collection<String> uids );
-
     EventRows getEventRows( EventSearchParams params );
 
     EventSearchParams getFromUrl( String program, String programStage, ProgramStatus programStatus, Boolean followUp, String orgUnit,
@@ -70,8 +68,6 @@ public interface EventService
         Date lastUpdatedStartDate, Date lastUpdatedEndDate, EventStatus status, DataElementCategoryOptionCombo attributeCoc, IdSchemes idSchemes, Integer page,
         Integer pageSize, boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes, Set<String> events,
         Set<String> filters, Set<String> dataElements, boolean includeDeleted );
-
-    Event getEvent( String uid );
 
     Event getEvent( ProgramStageInstance programStageInstance );
 
