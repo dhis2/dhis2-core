@@ -38,11 +38,7 @@ import org.hisp.dhis.rules.RuleEngineContext;
 import org.hisp.dhis.rules.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.*;
 
 /**
  * Created by zubair@dhis2.org on 11.10.17.
@@ -86,11 +82,7 @@ public class ProgramRuleEngine
         {
             ruleEffects = ruleEngine.evaluate( ruleEnrollment  ).call();
         }
-        catch ( IllegalStateException e )
-        {
-            log.error( e.getMessage() );
-        }
-        catch (Exception e)
+        catch ( Exception e)
         {
             log.error( e.getMessage() );
         }
@@ -121,7 +113,7 @@ public class ProgramRuleEngine
 
         ProgramInstance enrollment = programStageInstance.getProgramInstance();
 
-        return evaluateProgramRules( programStageInstance, enrollment, Arrays.asList( programRule ) );
+        return evaluateProgramRules( programStageInstance, enrollment, Collections.singletonList( programRule ) );
     }
 
     private List<RuleEffect> evaluateProgramRules( ProgramStageInstance programStageInstance, ProgramInstance enrollment, List<ProgramRule> programRules )
@@ -140,11 +132,7 @@ public class ProgramRuleEngine
         {
             ruleEffects = ruleEngine.evaluate( programRuleEntityMapperService.toMappedRuleEvent( programStageInstance )  ).call();
         }
-        catch ( IllegalStateException e )
-        {
-            log.error( e.getMessage() );
-        }
-        catch (Exception e)
+        catch ( Exception e )
         {
             log.error( e.getMessage() );
         }
@@ -154,12 +142,10 @@ public class ProgramRuleEngine
 
     private RuleEngine.Builder ruleEngineBuilder( List<ProgramRule> programRules, List<ProgramRuleVariable> programRuleVariables )
     {
-        RuleEngine.Builder builder = RuleEngineContext
+        return RuleEngineContext
             .builder( programRuleExpressionEvaluator )
             .rules( programRuleEntityMapperService.toMappedProgramRules( programRules ) )
             .ruleVariables( programRuleEntityMapperService.toMappedProgramRuleVariables( programRuleVariables ) )
             .build().toEngineBuilder();
-
-        return builder;
     }
 }

@@ -44,6 +44,4 @@ public interface NotificationTemplate
     String getMessageTemplate();
 
     Set<DeliveryChannel> getDeliveryChannels();
-
-    ProgramRule getProgramRule();
 }
