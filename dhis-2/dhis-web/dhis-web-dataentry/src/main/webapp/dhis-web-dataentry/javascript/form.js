@@ -1794,7 +1794,7 @@ function insertDataValues( json )
         {
             if ( $( fieldId ).attr( 'name' ) == 'entrytrueonly' && 'true' == value.val ) 
             {
-                $( fieldId ).attr( 'checked', true );
+                $( fieldId ).prop( 'checked', true );
             }
             else if ( $( fieldId ).attr( 'name' ) == 'entryoptionset' || $( fieldId ).hasClass( "entryoptionset" ) )
             {
