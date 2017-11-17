@@ -310,7 +310,7 @@ public class DefaultValidationService
                 expressionService.getDimensionalItemIdsInExpression( rule.getRightSide().getExpression() ) );
 
             Set<String> ruleIds = dimensionItemIdentifiers.values().stream()
-                .reduce( new HashSet<>(), ( x, y ) -> Sets.union( x, y ) );
+                .reduce( new HashSet<>(), Sets::union );
 
             ruleItemIds.putValues( rule, ruleIds );
 
@@ -335,7 +335,7 @@ public class DefaultValidationService
             ValidationRuleExtended ruleX = new ValidationRuleExtended( rule );
 
             Set<DimensionalItemObject> ruleDimensionItemObjects = ruleItemIds.get( rule ).stream()
-                .map( id -> dimensionItemMap.get( id ) )
+                .map( dimensionItemMap::get )
                 .collect( Collectors.toSet() );
 
             if ( ruleDimensionItemObjects != null )
@@ -352,7 +352,7 @@ public class DefaultValidationService
                     ruleX.setDataElementOperands( ruleDataElementOperands );
 
                     Set<DataElement> ruleDataElements = ruleDataElementOperands.stream()
-                        .map( o -> o.getDataElement() )
+                        .map( DataElementOperand::getDataElement )
                         .collect( Collectors.toSet() );
 
                     ruleX.setDataElements( ruleDataElements );
@@ -402,7 +402,7 @@ public class DefaultValidationService
         for ( Map.Entry<Class<? extends IdentifiableObject>, Set<String>> e : idsToGet.entrySet() )
         {
             idMap.putEntries( e.getKey(), idObjectManager.get( e.getKey(), e.getValue() ).stream()
-                .collect( Collectors.toMap( o -> o.getUid(), o -> o ) ) );
+                .collect( Collectors.toMap( IdentifiableObject::getUid, o -> o ) ) );
         }
 
         // 3. Build the map of DimensionalItemObjects:

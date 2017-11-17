@@ -43,19 +43,20 @@ import org.hisp.dhis.datavalue.DeflatedDataValue;
  * <li>2: periodid - int</li>
  * <li>3: sourceid - int</li>
  * <li>4: categoryoptioncomboid - int</li>
- * <li>5: value - String</li>
- * <li>6: storedby - String</li>
- * <li>7: lastupdated - date</li>
- * <li>8: comment - String</li>
- * <li>9: followup - Boolean</li>
- * <li>10: minimumvalue - int</li>
- * <li>11: maximumvalue - int</li>
- * <li>12: dataelementname - String</li>
- * <li>13: periodtypename - String</li>
- * <li>14: startdate - String</li>
- * <li>15: enddate - String</li>
- * <li>16: sourcename - String</li>
- * <li>17: categoryoptioncomboname - String</li>
+ * <li>5: categoryoptioncomboid - int</li>
+ * <li>6: value - String</li>
+ * <li>7: storedby - String</li>
+ * <li>8: lastupdated - date</li>
+ * <li>9<: comment - String</li>
+ * <li>10: followup - Boolean</li>
+ * <li>11: minimumvalue - int</li>
+ * <li>12: maximumvalue - int</li>
+ * <li>13: dataelementname - String</li>
+ * <li>14: periodtypename - String</li>
+ * <li>15: startdate - String</li>
+ * <li>16: enddate - String</li>
+ * <li>17: sourcename - String</li>
+ * <li>18: categoryoptioncomboname - String</li>
  * </ul>
  * 
  * @author Lars Helge Overland
@@ -86,6 +87,7 @@ public class DeflatedDataValueNameMinMaxRowMapper
         value.setPeriodId( resultSet.getInt( "periodid" ) );
         value.setSourceId( resultSet.getInt( "sourceid" ) );
         value.setCategoryOptionComboId( resultSet.getInt( "categoryoptioncomboid" ) );
+        value.setAttributeOptionComboId( resultSet.getInt( "attributeoptioncomboid" ) );
         value.setValue( resultSet.getString( "value" ) );
         value.setStoredBy( resultSet.getString( "storedby" ) );
         value.setCreated( resultSet.getDate( "created" ) );

@@ -897,7 +897,7 @@
       <dependency>
         <groupId>org.jfree</groupId>
         <artifactId>jfreechart</artifactId>
-        <version>1.0.17</version>
+        <version>1.0.19</version>
         <exclusions>
           <exclusion>
             <groupId>gnujaxp</groupId>
@@ -908,7 +908,7 @@
       <dependency>
         <groupId>org.jfree</groupId>
         <artifactId>jcommon</artifactId>
-        <version>1.0.17</version>
+        <version>1.0.23</version>
         <exclusions>
           <exclusion>
             <groupId>gnujaxp</groupId>
@@ -1146,7 +1146,7 @@
     <powermock.version>1.6.6</powermock.version>
     <jackson.version>2.7.4</jackson.version>
     <slf4j.version>1.7.5</slf4j.version>
-    <geotools.version>14.3</geotools.version>
+    <geotools.version>18.0</geotools.version>
     <jasperreports.version>6.3.1</jasperreports.version>
     <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
   </properties>
