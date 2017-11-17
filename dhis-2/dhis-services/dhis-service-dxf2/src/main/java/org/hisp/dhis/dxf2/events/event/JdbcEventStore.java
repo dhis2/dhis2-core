@@ -525,6 +525,8 @@ public class JdbcEventStore
 
         sql += getEventSelectQuery( params, organisationUnits );
 
+        sql += getOrderQuery( params.getOrders() );
+
         sql += getEventPagingQuery( params );
 
         sql += ") as event left join (";
