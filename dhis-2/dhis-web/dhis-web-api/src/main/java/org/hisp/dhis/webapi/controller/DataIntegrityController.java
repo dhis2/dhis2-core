@@ -28,15 +28,11 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataintegrity.DataIntegrityService;
-import org.hisp.dhis.dataintegrity.tasks.DataIntegrityTask;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.scheduling.*;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -59,10 +55,7 @@ public class DataIntegrityController
     private CurrentUserService currentUserService;
 
     @Autowired
-    private Scheduler scheduler;
-
-    @Autowired
-    private DataIntegrityService dataIntegrityService;
+    private SchedulingManager schedulingManager;
 
     @Autowired
     private Notifier notifier;
@@ -77,12 +70,14 @@ public class DataIntegrityController
     @RequestMapping( value = DataIntegrityController.RESOURCE_PATH, method = RequestMethod.POST )
     public void runAsyncDataIntegrity( HttpServletResponse response, HttpServletRequest request )
     {
-        TaskId taskId = new TaskId( TaskCategory.DATAINTEGRITY, currentUserService.getCurrentUser() );
-        notifier.clear( taskId );
+        JobId jobId = new JobId( JobType.DATA_INTEGRITY, currentUserService.getCurrentUser().getUid() );
+        notifier.clear( jobId );
 
-        scheduler.executeTask( new DataIntegrityTask( taskId, dataIntegrityService, notifier ) );
+        JobConfiguration jobConfiguration = new JobConfiguration( "runAsyncDataIntegrity", JobType.DATA_INTEGRITY, null, null,
+            false, true );
+        schedulingManager.executeJob( jobConfiguration );
 
-        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TaskCategory.DATAINTEGRITY );
+        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.DATA_INTEGRITY );
         response.setStatus( HttpServletResponse.SC_ACCEPTED );
     }
 }

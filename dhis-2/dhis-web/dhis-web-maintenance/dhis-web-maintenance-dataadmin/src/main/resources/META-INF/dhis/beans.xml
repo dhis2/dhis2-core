@@ -175,11 +175,4 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
     <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
   </bean>
-
-  <!-- Scheduling -->
-
-  <bean id="org.hisp.dhis.dataadmin.action.scheduling.ScheduleTasksAction"
-    class="org.hisp.dhis.dataadmin.action.scheduling.ScheduleTasksAction"
-    scope="prototype" />
-
 </beans>
