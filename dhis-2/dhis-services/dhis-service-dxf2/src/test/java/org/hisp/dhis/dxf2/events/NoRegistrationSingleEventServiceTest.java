@@ -81,9 +81,6 @@ public class NoRegistrationSingleEventServiceTest
     @Autowired
     private UserService _userService;
 
-    @Autowired
-    private SessionFactory sessionFactory;
-
     private OrganisationUnit organisationUnitA;
     private DataElement dataElementA;
     private Program programA;
@@ -203,8 +200,6 @@ public class NoRegistrationSingleEventServiceTest
 
         assertNotNull( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
         eventService.deleteEvent( event.getEvent() );
-        sessionFactory.getCurrentSession().flush();
-        sessionFactory.getCurrentSession().flush();
         assertNull( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
     }
 

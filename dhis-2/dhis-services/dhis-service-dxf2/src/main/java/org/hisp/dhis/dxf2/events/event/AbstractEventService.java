@@ -657,6 +657,8 @@ public abstract class AbstractEventService
             return null;
         }
 
+        programStageInstance = programStageInstanceService.getProgramStageInstance( programStageInstance.getUid() );
+
         Event event = new Event();
 
         event.setEvent( programStageInstance.getUid() );
