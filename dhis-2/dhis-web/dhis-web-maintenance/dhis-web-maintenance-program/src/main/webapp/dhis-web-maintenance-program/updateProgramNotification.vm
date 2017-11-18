@@ -41,21 +41,6 @@
             </td>
         </tr>
 
-        <tr id="programrulecontainer" #if ( $trigger != "PROGRAM_RULE" ) style="display: none;" #end>
-            <td>
-                <label for="programrule">$i18n.getString( "program_rule" )</label>
-            </td>
-            <td>
-                #set( $prt = $template.programRule )
-                <select type="text" id="programrule" name="programrule" class="programrule">
-                    #foreach( $pr in $!programRules )
-                        <option value="$pr.uid" #if ( $prt && $prt.uid.equals( $pr.uid ) ) selected #end>$pr.displayName</option>
-                    #end
-                </select>
-            </td>
-        </tr>
-
-
         <tr id="daysContainer" #if ( $template.notificationTrigger.isImmediate() ) style="display: none;" #end>
             <td>
                 <label for="relativeScheduledDays">$i18n.getString( "send_notification" )</label>

@@ -72,11 +72,6 @@ public class ProgramRule
     private Set<ProgramRuleAction> programRuleActions = new HashSet<>();
 
     /**
-     * The collection of notifications that will be triggered if the the rule is evaluated true.
-     */
-    private Set<ProgramNotificationTemplate> programNotificationTemplates = new HashSet<>();
-
-    /**
      * The condition expression, if this expression is evaluated to true, the actions is triggered.
      */
     private String condition;
@@ -161,20 +156,6 @@ public class ProgramRule
     public void setProgramRuleActions( Set<ProgramRuleAction> programRuleActions )
     {
         this.programRuleActions = programRuleActions;
-    }
-
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "programNotificationTemplates", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "programNotificationTemplate", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ProgramNotificationTemplate> getProgramNotificationTemplates()
-    {
-        return programNotificationTemplates;
-    }
-
-    public void setProgramNotificationTemplates( Set<ProgramNotificationTemplate> programNotificationTemplates )
-    {
-        this.programNotificationTemplates = programNotificationTemplates;
     }
 
     @JsonProperty

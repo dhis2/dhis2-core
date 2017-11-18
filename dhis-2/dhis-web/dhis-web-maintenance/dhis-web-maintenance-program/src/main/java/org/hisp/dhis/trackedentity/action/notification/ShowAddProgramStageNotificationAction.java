@@ -65,13 +65,6 @@ public class ShowAddProgramStageNotificationAction
         this.userGroupService = userGroupService;
     }
 
-    private ProgramRuleService programRuleService;
-
-    public void setProgramRuleService( ProgramRuleService programRuleService )
-    {
-        this.programRuleService = programRuleService;
-    }
-
     // -------------------------------------------------------------------------
     // Input/Output
     // -------------------------------------------------------------------------
@@ -139,13 +132,6 @@ public class ShowAddProgramStageNotificationAction
         return emailDataElements;
     }
 
-    private Set<ProgramRule> programRules;
-
-    public Set<ProgramRule> getProgramRules()
-    {
-        return programRules;
-    }
-
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -154,7 +140,6 @@ public class ShowAddProgramStageNotificationAction
     public String execute() throws Exception
     {
         programStage = programStageService.getProgramStage( id );
-        programRules = Sets.newHashSet( programRuleService.getProgramRule( programStage.getProgram() ) );
         userGroups = userGroupService.getAllUserGroups();
         attributes = programStage.getProgram().getTrackedEntityAttributes();
         dataElements = programStage.getProgramStageDataElements().stream()

@@ -65,13 +65,6 @@ public class ShowUpdateProgramNotificationAction
         this.userGroupService = userGroupService;
     }
 
-    private ProgramRuleService programRuleService;
-
-    public void setProgramRuleService( ProgramRuleService programRuleService )
-    {
-        this.programRuleService = programRuleService;
-    }
-
     // -------------------------------------------------------------------------
     // Input/Output
     // -------------------------------------------------------------------------
@@ -132,13 +125,6 @@ public class ShowUpdateProgramNotificationAction
         return emails;
     }
 
-    private Set<ProgramRule> programRules;
-
-    public Set<ProgramRule> getProgramRules()
-    {
-        return programRules;
-    }
-
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -150,7 +136,6 @@ public class ShowUpdateProgramNotificationAction
         userGroups = userGroupService.getAllUserGroups();
 
         program = manager.get( Program.class, programUid );
-        programRules = Sets.newHashSet( programRuleService.getProgramRule( program ) );
 
         if ( program != null )
         {

@@ -359,11 +359,5 @@ public class BaseNotificationMessageRendererTest
         {
             return Sets.newHashSet( DeliveryChannel.values() );
         }
-
-        @Override
-        public ProgramRule getProgramRule()
-        {
-            return null;
-        }
     }
 }

@@ -55,19 +55,6 @@
                 </td>
             </tr>
 
-            <tr id="programrulecontainer" style="display: none;">
-                <td>
-                    <label for="programrule">$i18n.getString( "program_rule" )</label>
-                </td>
-                <td>
-                    <select type="text" id="programrule" name="programrule" class="programrule">
-                        #foreach( $pr in $!programRules )
-                            <option value="$pr.uid">$i18n.getString( $pr.displayName )</option>
-                        #end
-                    </select>
-                </td>
-            </tr>
-
             <tr>
                 <td>
                     <label for="notificationRecipient">$i18n.getString( "recipients" )</label>

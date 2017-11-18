@@ -28,19 +28,15 @@ package org.hisp.dhis.trackedentity.action.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -61,13 +57,6 @@ public class ShowAddProgramNotificationAction
     public void setUserGroupService( UserGroupService userGroupService )
     {
         this.userGroupService = userGroupService;
-    }
-
-    private ProgramRuleService programRuleService;
-
-    public void setProgramRuleService( ProgramRuleService programRuleService )
-    {
-        this.programRuleService = programRuleService;
     }
 
     // -------------------------------------------------------------------------
@@ -116,13 +105,6 @@ public class ShowAddProgramNotificationAction
         return emails;
     }
 
-    private Set<ProgramRule> programRules;
-
-    public Set<ProgramRule> getProgramRules()
-    {
-        return programRules;
-    }
-
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -131,7 +113,6 @@ public class ShowAddProgramNotificationAction
     public String execute() throws Exception
     {
         program = programService.getProgram( id );
-        programRules = Sets.newHashSet( programRuleService.getProgramRule( program ) );
         userGroups = userGroupService.getAllUserGroups();
         attributes = program.getTrackedEntityAttributes();
         phoneNumbers = getAttributeBasedOnValueType( attributes, ValueType.PHONE_NUMBER );

@@ -17,8 +17,6 @@
 
         var notificationTrigger = qs( '#notificationTrigger' );
         var daysContainer = qs( '#daysContainer' );
-        var programrulecontainer = qs('#programrulecontainer');
-        var programRuleList = qs( '#programrule' );
 
         var days = qs( '#days' );
         var deliveryChannelsContainer = qs( '#deliveryChannelsContainer' );
@@ -88,16 +86,12 @@
         notificationTrigger.addEventListener( "change", function( e ) {
             if ( notificationTrigger.value === 'ENROLLMENT' || notificationTrigger.value == 'COMPLETION' ) {
                 daysContainer.style.display = 'none';
-                programrulecontainer.style.display = 'none';
-
             }
             else if ( notificationTrigger.value === 'PROGRAM_RULE' )
             {
                 daysContainer.style.display = 'none';
-                programrulecontainer.style.display = 'table-row';
             }
             else {
-                programrulecontainer.style.display = 'none';
                 daysContainer.style.display = 'table-row';
                 days.value = undefined;
             }
@@ -152,11 +146,6 @@
             var uid = qs( '#programAttribute' ).value || undefined;
             return ( uid === undefined ) ? undefined : { 'id' : uid };
         }
-
-        function getProgramRule() {
-            var uid = qs( '#programrule' ).value || undefined;
-            return ( uid === undefined ) ? undefined : { 'id' : uid };
-        }
         
         function getDataElement() {
             var uid = qs( '#dataElement' ).value || undefined;
@@ -171,7 +160,6 @@
             return {
                 name : qs( '#name' ).value || '',
                 notificationTrigger : qs( '#notificationTrigger' ).value,
-                programRule:getProgramRule(),
                 relativeScheduledDays : getScheduledDays(),
                 notificationRecipient : qs( '#notificationRecipient' ).value,
                 recipientUserGroup : getUserGroup(),

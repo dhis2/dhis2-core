@@ -80,8 +80,6 @@ public class ProgramNotificationTemplate
 
     private DataElement recipientDataElement = null;
 
-    private ProgramRule programRule = null;
-
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -132,18 +130,6 @@ public class ProgramNotificationTemplate
     public void setMessageTemplate( String messageTemplate )
     {
         this.messageTemplate = messageTemplate;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramRule getProgramRule()
-    {
-        return programRule;
-    }
-
-    public void setProgramRule( ProgramRule programRule )
-    {
-        this.programRule = programRule;
     }
 
     @JsonProperty

@@ -442,7 +442,6 @@
     scope="prototype">
     <property name="programService" ref="org.hisp.dhis.program.ProgramService" />
     <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
-    <property name="programRuleService" ref="org.hisp.dhis.programrule.ProgramRuleService" />
   </bean>
 
   <bean id="org.hisp.dhis.trackedentity.action.notification.ShowUpdateProgramNotificationAction"
@@ -450,7 +449,6 @@
     scope="prototype">
     <property name="manager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
     <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
-    <property name="programRuleService" ref="org.hisp.dhis.programrule.ProgramRuleService" />
   </bean>
 
   <bean id="org.hisp.dhis.trackedentity.action.notification.ShowAddProgramStageNotificationAction"
@@ -458,7 +456,6 @@
     scope="prototype">
     <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
     <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
-    <property name="programRuleService" ref="org.hisp.dhis.programrule.ProgramRuleService" />
   </bean>
 
   <bean id="org.hisp.dhis.trackedentity.action.notification.ShowUpdateProgramStageNotificationAction"
@@ -466,7 +463,6 @@
     scope="prototype">
     <property name="manager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
     <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
-    <property name="programRuleService" ref="org.hisp.dhis.programrule.ProgramRuleService" />
   </bean>
 
 </beans>

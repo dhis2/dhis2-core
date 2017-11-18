@@ -41,5 +41,5 @@ public interface ProgramNotificationTemplateStore
 {
     String ID = ProgramNotificationTemplate.class.getName();
 
-    List<ProgramNotificationTemplate> getProgramNotificationTemplate( ProgramRule programRule );
+    List<ProgramNotificationTemplate> getProgramNotificationByTriggerType( NotificationTrigger triggers );
 }

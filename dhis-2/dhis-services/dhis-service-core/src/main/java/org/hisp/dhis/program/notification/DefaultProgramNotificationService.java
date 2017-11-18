@@ -39,6 +39,7 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
+import org.hisp.dhis.notification.SendStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
@@ -183,7 +184,7 @@ public class DefaultProgramNotificationService
     @Override
     public void sendProgramRuleTriggeredNotifications( ProgramInstance programInstance )
     {
-
+        sendProgramInstanceNotifications( programInstance, NotificationTrigger.PROGRAM_RULE );
     }
 
     @Transactional
@@ -227,41 +228,86 @@ public class DefaultProgramNotificationService
             return;
         }
 
-        for ( ProgramNotificationTemplate template : templates )
+        Map<NotificationTrigger, Set<ProgramNotificationTemplate>> segregatedMap = segregateTemplates( templates );
+
+        // send event complete notifications
+        for ( ProgramNotificationTemplate t : segregatedMap.get( NotificationTrigger.COMPLETION ) )
         {
-            if ( NotificationTrigger.PROGRAM_RULE.equals( template.getNotificationTrigger() ) )
-            {
-                ProgramRule programRule = template.getProgramRule();
-
-                List<RuleEffect> ruleEffects = programRuleEngine.evaluateEvent( programStageInstance, programRule );
-
-                List<RuleAction> ruleActions = ruleEffects.stream().map( r -> r.ruleAction() ).collect( Collectors.toList() );
-
-                List<RuleAction> actions = ruleActions.stream().filter( a -> a instanceof RuleActionAssign ).collect( Collectors.toList() );
-
-                if ( !actions.isEmpty() )
-                {
-                    //TODO for RuleActionSendMessage
-                    MessageBatch batch = createProgramStageInstanceMessageBatch(template, Lists.newArrayList(programStageInstance));
-                    sendAll(batch);
-                }
-
-                continue;
-            }
-
-            MessageBatch batch = createProgramStageInstanceMessageBatch( template, Lists.newArrayList( programStageInstance ) );
+            MessageBatch batch = createProgramStageInstanceMessageBatch( t, Lists.newArrayList( programStageInstance ) );
             sendAll( batch );
         }
+
+        Set<ProgramNotificationTemplate> pnts = segregatedMap.get( NotificationTrigger.PROGRAM_RULE );
+
+        if ( pnts != null && !pnts.isEmpty() )
+        {
+            triggerRuleEngineForEvent( programStageInstance );
+        }
+    }
+
+    private void triggerRuleEngineForEvent( ProgramStageInstance programStageInstance )
+    {
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluateEvent( programStageInstance );
+
+        List<RuleAction> ruleActions = ruleEffects.stream().map( RuleEffect::ruleAction ).collect( Collectors.toList() );
+
+        //TODO look for RuleActionSendMessage and send PNT
+    }
+
+    private void triggerRuleEngineForEnrollment( ProgramInstance programInstance )
+    {
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluateEnrollment( programInstance );
+
+        List<RuleAction> ruleActions = ruleEffects.stream().map( RuleEffect::ruleAction ).collect( Collectors.toList() );
+
+        //TODO look for RuleActionSendMessage and send PNT
+    }
+
+    private Map<NotificationTrigger, Set<ProgramNotificationTemplate>> segregateTemplates( Set<ProgramNotificationTemplate> programNotificationTemplates )
+    {
+        Map<NotificationTrigger, Set<ProgramNotificationTemplate>> segregatedMap = new HashMap<>();
+
+        for ( ProgramNotificationTemplate pnt : programNotificationTemplates )
+        {
+            if ( NotificationTrigger.COMPLETION.equals( pnt.getNotificationTrigger() ) )
+            {
+                segregatedMap.computeIfAbsent( NotificationTrigger.COMPLETION, k -> Sets.newHashSet() )
+                        .add( pnt );
+            }
+
+            if ( NotificationTrigger.PROGRAM_RULE.equals( pnt.getNotificationTrigger() ) )
+            {
+                segregatedMap.computeIfAbsent( NotificationTrigger.PROGRAM_RULE, k -> Sets.newHashSet() )
+                        .add( pnt );
+            }
+        }
+
+        return segregatedMap;
     }
 
     private void sendProgramInstanceNotifications( ProgramInstance programInstance, NotificationTrigger trigger )
     {
         Set<ProgramNotificationTemplate> templates = resolveTemplates( programInstance, trigger );
 
-        for ( ProgramNotificationTemplate template : templates )
+        if ( templates.isEmpty() )
         {
-            MessageBatch batch = createProgramInstanceMessageBatch( template, Lists.newArrayList( programInstance ) );
+            return;
+        }
+
+        Map<NotificationTrigger, Set<ProgramNotificationTemplate>> segregatedMap = segregateTemplates( templates );
+
+        // send event complete notifications
+        for ( ProgramNotificationTemplate t : segregatedMap.get( NotificationTrigger.COMPLETION ) )
+        {
+            MessageBatch batch = createProgramInstanceMessageBatch( t, Lists.newArrayList( programInstance ) );
             sendAll( batch );
+        }
+
+        Set<ProgramNotificationTemplate> pnts = segregatedMap.get( NotificationTrigger.PROGRAM_RULE );
+
+        if ( pnts != null && !pnts.isEmpty() )
+        {
+            triggerRuleEngineForEnrollment( programInstance );
         }
     }
 

@@ -92,33 +92,16 @@ public class ProgramRuleEngine
 
     public List<RuleEffect> evaluateEvent( ProgramStageInstance programStageInstance )
     {
+        List<RuleEffect> ruleEffects = new ArrayList<>();
+
         if ( programStageInstance == null )
         {
-            return new ArrayList<>();
+            return ruleEffects;
         }
 
         ProgramInstance enrollment = programStageInstance.getProgramInstance();
 
         List<ProgramRule> programRules = programRuleService.getProgramRule( enrollment.getProgram() );
-
-        return evaluateProgramRules( programStageInstance, enrollment, programRules );
-    }
-
-    public List<RuleEffect> evaluateEvent( ProgramStageInstance programStageInstance, ProgramRule programRule )
-    {
-        if ( programStageInstance == null )
-        {
-            return new ArrayList<>();
-        }
-
-        ProgramInstance enrollment = programStageInstance.getProgramInstance();
-
-        return evaluateProgramRules( programStageInstance, enrollment, Collections.singletonList( programRule ) );
-    }
-
-    private List<RuleEffect> evaluateProgramRules( ProgramStageInstance programStageInstance, ProgramInstance enrollment, List<ProgramRule> programRules )
-    {
-        List<RuleEffect> ruleEffects = new ArrayList<>();
 
         List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( enrollment.getProgram() );
 
