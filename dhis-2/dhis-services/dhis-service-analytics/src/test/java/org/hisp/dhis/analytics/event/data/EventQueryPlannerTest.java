@@ -46,7 +46,6 @@ import org.hisp.dhis.analytics.table.AnalyticsTableType;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -340,38 +339,5 @@ public class EventQueryPlannerTest
             assertTrue( query.hasValueDimension() );
             assertTrue( query.isCollapseDataDimensions() );
         }
-    }    
-
-    @Test
-    public void validateSuccesA()
-    {
-        EventQueryParams params = new EventQueryParams.Builder()
-            .withProgram( prA )
-            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
-            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouA ) ).build();
-        
-        queryPlanner.validate( params );
-    }
-
-    @Test( expected = IllegalQueryException.class )
-    public void validateFailureNoStartEndDatePeriods()
-    {
-        EventQueryParams params = new EventQueryParams.Builder()
-            .withProgram( prA )
-            .withOrganisationUnits( Lists.newArrayList( ouB ) ).build();
-        
-        queryPlanner.validate( params );
-    }
-
-    @Test( expected = IllegalQueryException.class )
-    public void validateInvalidQueryItem()
-    {
-        EventQueryParams params = new EventQueryParams.Builder()
-            .withProgram( prA )
-            .withOrganisationUnits( Lists.newArrayList( ouB ) )
-            .addItem( new QueryItem( deA, lsA, ValueType.TEXT, AggregationType.NONE, osA ) ).build();
-        
-        queryPlanner.validate( params );
     }
 }
