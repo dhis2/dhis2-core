@@ -38,7 +38,7 @@ public enum JobType
     DATA_SET_NOTIFICATION( "dataSetNotification", false, null, null ),
 
     // For tests
-    TEST( "test", false, TestJobParameters.class, null ),
+    MOCK( "mockJob", false, MockJobParameters.class, null ),
 
     // To satifisfy code that used the old enum TaskCategory
     DATAVALUE_IMPORT( null, false, null, null ),

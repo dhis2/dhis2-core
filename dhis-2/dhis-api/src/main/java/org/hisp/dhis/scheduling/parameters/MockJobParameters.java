@@ -37,7 +37,7 @@ import org.hisp.dhis.schema.annotation.Property;
 /**
  * @author Henning Håkonsen
  */
-public class TestJobParameters
+public class MockJobParameters
     implements JobParameters
 {
     private static final long serialVersionUID = 3600315605964091689L;
@@ -45,11 +45,11 @@ public class TestJobParameters
     @Property
     private String message;
 
-    public TestJobParameters()
+    public MockJobParameters()
     {
     }
 
-    public TestJobParameters( String message )
+    public MockJobParameters(String message )
     {
         this.message = message;
     }

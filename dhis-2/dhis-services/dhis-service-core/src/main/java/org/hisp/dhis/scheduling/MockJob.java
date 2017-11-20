@@ -1,23 +1,23 @@
 package org.hisp.dhis.scheduling;
 
-import org.hisp.dhis.scheduling.parameters.TestJobParameters;
+import org.hisp.dhis.scheduling.parameters.MockJobParameters;
 
 /**
  * @author Henning Håkonsen
  */
-public class TestJob
+public class MockJob
     implements Job
 {
     @Override
     public JobType getJobType()
     {
-        return JobType.TEST;
+        return JobType.MOCK;
     }
 
     @Override
     public void execute( JobConfiguration jobConfiguration )
     {
-        TestJobParameters parameters = (TestJobParameters) jobConfiguration.getJobParameters();
+        MockJobParameters parameters = (MockJobParameters) jobConfiguration.getJobParameters();
 
         System.out.println( "job configuration message: " + parameters.getMessage() + ", sleep for 10 seconds" );
         try
