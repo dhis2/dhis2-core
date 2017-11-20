@@ -498,7 +498,7 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query contains two period types and two aggregation types. Splits in 2 queries for 
+     * Query spans two period types and two aggregation types. Splits in 2 queries for 
      * each period type, then splits in 4 queries on data elements to satisfy optimal of 
      * 4 queries per query group.
      */
@@ -543,7 +543,7 @@ public class QueryPlannerTest
             withOptimalQueries( 6 ).withTableName( ANALYTICS_TABLE_NAME ).build();
         
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
-
+        
         assertEquals( 6, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
         assertEquals( 6, queryGroups.getLargestGroupSize() );
@@ -599,7 +599,7 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query spans 1 partition. Splits on 2 aggregation types, then splits one
+     * Query spans 2 aggregation types. Splits on 2 aggregation types, then splits one
      * query on 3 days in period to satisfy optimal for a total of 4 queries.
      */
     @Test
@@ -628,7 +628,7 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query spans 1 partition. Splits on 2 aggregation types, then splits one
+     * Query spans 2 aggregation types. Splits on 2 aggregation types, then splits one
      * query on 3 days in period to satisfy optimal for a total of 4 queries. No
      * organisation units specified.
      */
@@ -701,9 +701,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query filters span 2 partitions. Splits in 2 queries on data elements,
-     * then 2 queries on organisation units to satisfy optimal for a total of 8
-     * queries.
+     * Splits in 4 queries on data elements, then 2 queries on organisation units 
+     * to satisfy optimal for a total of 8 queries.
      */
     @Test
     public void planQueryH()
@@ -775,8 +774,7 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query spans 2 partitions. Splits in 2 queries for each partition, then
-     * splits in 2 queries on data sets to satisfy optimal for a total
+     * Splits in 4 queries on data sets to satisfy optimal for a total
      * of 4 queries.
      */
     @Test
@@ -790,8 +788,10 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
         
-        List<DataQueryParams> queries = queryPlanner.planQuery( params, plannerParams ).getAllQueries();
+        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
+        List<DataQueryParams> queries = queryGroups.getAllQueries();
+        
         assertEquals( 4, queries.size() );
 
         for ( DataQueryParams query : queries )
@@ -831,8 +831,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query spans 1 partition. Splits on 2 queries for data types, then splits
-     * on 2 queries for data elements to satisfy optimal for a total of 4 queries.
+     * Splits in 4 queries for data elements to satisfy optimal for a total of 
+     * 4 queries.
      */
     @Test
     public void planQueryM()
