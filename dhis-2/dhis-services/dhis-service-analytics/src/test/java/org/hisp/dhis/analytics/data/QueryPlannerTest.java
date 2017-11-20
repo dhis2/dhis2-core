@@ -68,7 +68,6 @@ import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
-import org.joda.time.DateTime;
 import org.junit.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -523,7 +522,6 @@ public class QueryPlannerTest
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
-            assertTrue( samePartition( query.getPeriods() ) );
             assertDimensionNameNotNull( query );
         }
     }
@@ -553,7 +551,6 @@ public class QueryPlannerTest
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
-            assertTrue( samePartition( query.getPeriods() ) );
             assertDimensionNameNotNull( query );
         }
     }
@@ -597,7 +594,6 @@ public class QueryPlannerTest
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
-            assertTrue( samePartition( query.getPeriods() ) );
             assertDimensionNameNotNull( query );
         }
     }
@@ -627,7 +623,6 @@ public class QueryPlannerTest
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
-            assertTrue( samePartition( query.getPeriods() ) );
             assertDimensionNameNotNull( query );
         }
     }
@@ -657,7 +652,6 @@ public class QueryPlannerTest
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
-            assertTrue( samePartition( query.getPeriods() ) );
             assertDimensionNameNotNull( query );
         }
     }
@@ -686,7 +680,6 @@ public class QueryPlannerTest
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
-            assertTrue( samePartition( query.getPeriods() ) );
             assertDimensionNameNotNull( query );
         }
     }
@@ -761,7 +754,6 @@ public class QueryPlannerTest
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
-            assertTrue( samePartition( query.getPeriods() ) );
             assertDimensionNameNotNull( query );
         }
     }
@@ -805,7 +797,6 @@ public class QueryPlannerTest
         for ( DataQueryParams query : queries )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
-            assertTrue( samePartition( query.getPeriods() ) );
             assertDimensionNameNotNull( query );
         }
     }
@@ -863,7 +854,6 @@ public class QueryPlannerTest
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
-            assertTrue( samePartition( query.getPeriods() ) );
             assertDimensionNameNotNull( query );
         }
     }
@@ -1162,25 +1152,6 @@ public class QueryPlannerTest
             PeriodType next = ((Period) periods.next()).getPeriodType();
 
             if ( !first.equals( next ) )
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static boolean samePartition( List<DimensionalItemObject> isoPeriods )
-    {
-        Iterator<DimensionalItemObject> periods = new ArrayList<>( isoPeriods ).iterator();
-
-        int year = new DateTime( ((Period) periods.next()).getStartDate() ).getYear();
-
-        while ( periods.hasNext() )
-        {
-            int next = new DateTime( ((Period) periods.next()).getStartDate() ).getYear();
-
-            if ( year != next )
             {
                 return false;
             }

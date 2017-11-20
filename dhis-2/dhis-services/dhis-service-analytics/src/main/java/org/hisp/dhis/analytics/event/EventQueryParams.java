@@ -234,6 +234,7 @@ public class EventQueryParams
         params.apiVersion = this.apiVersion;
 
         params.partitions = new Partitions( this.partitions );
+        params.tableName = this.tableName;
         params.periodType = this.periodType;
 
         params.program = this.program;

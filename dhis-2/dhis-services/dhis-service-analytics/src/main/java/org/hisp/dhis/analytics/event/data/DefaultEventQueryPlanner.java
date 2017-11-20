@@ -171,8 +171,6 @@ public class DefaultEventQueryPlanner
     @Override
     public List<EventQueryParams> planAggregateQuery( EventQueryParams params )
     {
-        params = withTableNameAndPartitions( params );
-
         List<EventQueryParams> queries = new ArrayList<>();
         
         List<EventQueryParams> groupedByQueryItems = groupByQueryItems( params );
@@ -187,22 +185,15 @@ public class DefaultEventQueryPlanner
             }
         }
         
+        queries = withTableNameAndPartitions( queries );
+        
         return queries;
     }
 
     @Override
     public EventQueryParams planEventQuery( EventQueryParams params )
     {
-        Partitions partitions = params.hasStartEndDate() ?
-            PartitionUtils.getPartitions( params.getStartDate(), params.getEndDate() ) :
-            PartitionUtils.getPartitions( params.getAllPeriods() );
-        
-        //TODO periods, convert to start/end dates?
-            
-        return new EventQueryParams.Builder( params )
-            .withTableName( AnalyticsTableType.EVENT.getTableName() )
-            .withPartitions( partitions )
-            .build();
+        return withTableNameAndPartitions( params );
     }
     
     public void validateMaintenanceMode()
@@ -222,7 +213,7 @@ public class DefaultEventQueryPlanner
     // -------------------------------------------------------------------------
 
     /**
-     * Set table name and partitions.
+     * Sets table name and partitions on the given query.
      * 
      * @param params the event query parameters.
      * @return a {@link EventQueryParams}.
@@ -246,8 +237,21 @@ public class DefaultEventQueryPlanner
     }
     
     /**
+     * Sets table name and partition on each query in the given list.
+     * 
+     * @param queries the list of queries.
+     * @return a list of {@link EventQueryParams}.
+     */
+    private List<EventQueryParams> withTableNameAndPartitions( List<EventQueryParams> queries )
+    {
+        final List<EventQueryParams> list = new ArrayList<>();
+        queries.forEach( query -> list.add( withTableNameAndPartitions( query ) ) );
+        return list;
+    }
+    
+    /**
      * Group by items if query items are to be collapsed in order to aggregate
-     * each item individually.
+     * each item individually. Sets program on the given parameters.
      * 
      * @param params the event query parameters.
      * @return a list of {@link EventQueryParams}.
