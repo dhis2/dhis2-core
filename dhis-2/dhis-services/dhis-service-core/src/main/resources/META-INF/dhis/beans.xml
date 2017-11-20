@@ -1100,12 +1100,7 @@
     <property name="schedulingManager" ref="org.hisp.dhis.scheduling.SchedulingManager" />
   </bean>
 
-  <bean id="schedulerUpgrade" class="org.hisp.dhis.scheduling.SchedulerUpgrade">
-    <property name="jobConfigurationService" ref="jobConfigurationService" />
-    <property name="schedulingManager" ref="org.hisp.dhis.scheduling.SchedulingManager" />
-  </bean>
-
-  <bean id="testJob" class="org.hisp.dhis.scheduling.TestJob" />
+  <bean id="mockJob" class="org.hisp.dhis.scheduling.MockJob" />
 
   <bean id="org.hisp.dhis.deletedobject.DeletedObjectService" class="org.hisp.dhis.deletedobject.DefaultDeletedObjectService" />
 
@@ -1620,6 +1615,13 @@
     <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
     <property name="name" value="PeriodTypePopulator" />
     <property name="runlevel" value="2" />
+  </bean>
+
+  <bean id="schedulerUpgrade" class="org.hisp.dhis.startup.SchedulerUpgrade">
+    <property name="jobConfigurationService" ref="jobConfigurationService" />
+    <property name="schedulingManager" ref="org.hisp.dhis.scheduling.SchedulingManager" />
+    <property name="runlevel" value="5" />
+    <property name="skipInTests" value="true" />
   </bean>
 
   <bean id="org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator"
