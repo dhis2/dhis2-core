@@ -247,7 +247,7 @@ public class DefaultQueryPlanner
         // ---------------------------------------------------------------------
 
         params = withTableNameAndPartitions( params, plannerParams );
-        
+                
         final List<DataQueryParams> queries = Lists.newArrayList( params );
         
         List<Function<DataQueryParams, List<DataQueryParams>>> groupers = new ImmutableList.Builder<Function<DataQueryParams, List<DataQueryParams>>>()

@@ -749,7 +749,7 @@ public class JdbcEventAnalyticsManager
         // Partitions restriction to allow constraint exclusion
         // ---------------------------------------------------------------------
         
-        if ( params.hasPartitions() )
+        if ( !params.isSkipPartitioning() && params.hasPartitions() )
         {
             sql += "and yearly in (" + TextUtils.getQuotedCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
         }

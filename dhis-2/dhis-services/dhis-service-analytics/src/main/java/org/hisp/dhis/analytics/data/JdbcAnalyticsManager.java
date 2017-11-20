@@ -273,7 +273,7 @@ public class JdbcAnalyticsManager
     private String getFromWhereClause( DataQueryParams params )
     {
         SqlHelper sqlHelper = new SqlHelper();
-
+        
         String sql = "from " + getPartitionSql( params ) + " ";
 
         // ---------------------------------------------------------------------
@@ -370,7 +370,7 @@ public class JdbcAnalyticsManager
         // Partitions restriction to allow constraint exclusion
         // ---------------------------------------------------------------------
         
-        if ( params.hasPartitions() )
+        if ( !params.isSkipPartitioning() && params.hasPartitions() )
         {
             sql += sqlHelper.whereAnd() + " yearly in (" + TextUtils.getQuotedCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
         }

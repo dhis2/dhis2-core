@@ -396,6 +396,7 @@ public class DataQueryParams
         
         params.currentUser = this.currentUser;
         params.partitions = new Partitions( this.partitions );
+        params.tableName = this.tableName;
         params.dataType = this.dataType;
         params.periodType = this.periodType;
         params.dataPeriodType = this.dataPeriodType;
