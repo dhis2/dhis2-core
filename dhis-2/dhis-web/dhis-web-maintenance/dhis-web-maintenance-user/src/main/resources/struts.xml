@@ -91,7 +91,8 @@
     </action>
 
     <action name="getUserForTransferMetadata" class="org.hisp.dhis.user.action.TransferMetadataObjectAction">
-      <result name="success" type="velocity">/dhis-web-maintenance-user/transferMetadataObject.vm</result>
+      <result name="success" type="velocity">/dhis-web-maintenance-user/transferMetadataUsers.vm</result>
+      <param name="requiredAuthorities">F_TRANSFER_METADATA</param>
     </action>
 
     <!-- Role -->
