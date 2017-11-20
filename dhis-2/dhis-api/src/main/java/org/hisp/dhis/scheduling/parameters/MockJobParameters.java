@@ -49,7 +49,7 @@ public class MockJobParameters
     {
     }
 
-    public MockJobParameters(String message )
+    public MockJobParameters( String message )
     {
         this.message = message;
     }
