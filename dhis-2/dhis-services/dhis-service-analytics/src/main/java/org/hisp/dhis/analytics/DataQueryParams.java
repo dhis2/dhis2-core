@@ -1581,18 +1581,6 @@ public class DataQueryParams
             .toString();
     }
     
-    public String toNameString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "Dimensions", dimensions )
-            .add( "Filters", filters )
-            .add( "Aggregation type", aggregationType )
-            .add( "Measure criteria", measureCriteria )
-            .add( "Output format", outputFormat )
-            .add( "API version", apiVersion )
-            .toString();
-    }
-    
     // -------------------------------------------------------------------------
     // Get and set methods for serialized properties
     // -------------------------------------------------------------------------
