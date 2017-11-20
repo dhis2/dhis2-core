@@ -1037,20 +1037,10 @@ public class TableAlteror
 
         // Scheduler fixes for 2.29
         executeSql( "delete from systemsetting where name='keyScheduledTasks'" );
-        //executeSql( "delete from systemsetting where name='keyLastSuccessfulResourceTablesUpdate'" );
-        executeSql( "delete from systemsetting where name='keyLastSuccessfulAnalyticsTablesRuntime'" );
-        executeSql( "delete from systemsetting where name='keyLastSuccessfulAnalyticsTablesUpdate'" );
-        executeSql( "delete from systemsetting where name='keyLastSuccessfulScheduledProgramNotifications'" );
-        executeSql( "delete from systemsetting where name='keyLastSuccessfulMonitoring'" );
-        executeSql( "delete from systemsetting where name='lastSuccessfulDataStatistics'" );
-        //executeSql( "delete from systemsetting where name='keyLastSuccessfulDataSynch'" );
-        //executeSql( "delete from systemsetting where name='keyLastSuccessfulEventsDataSynch'" );
-        executeSql( "delete from systemsetting where name='keyLastMetaDataSyncSuccess'" );
         executeSql( "delete from systemsetting where name='keyDataMartTask'" );
 
         executeSql( "delete from systemsetting where name='dataSyncCron'" );
         executeSql( "delete from systemsetting where name='metaDataSyncCron'" );
-
 
         log.info( "Tables updated" );
     }

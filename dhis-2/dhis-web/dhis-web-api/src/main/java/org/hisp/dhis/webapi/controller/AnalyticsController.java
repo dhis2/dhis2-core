@@ -526,7 +526,7 @@ public class AnalyticsController
     }
 
     @RequestMapping( value = RESOURCE_PATH + "/tableTypes", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
-    public @ResponseBody AnalyticsTableType[] getJobTypes()
+    public @ResponseBody AnalyticsTableType[] getTableTypes()
     {
         return AnalyticsTableType.values();
     }

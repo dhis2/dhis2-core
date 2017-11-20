@@ -29,7 +29,7 @@ package org.hisp.dhis.scheduling;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.scheduling.parameters.TestJobParameters;
+import org.hisp.dhis.scheduling.parameters.MockJobParameters;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,15 +63,15 @@ public class SchedulingManagerTest
 
     private void createAndSchedule()
     {
-        TestJobParameters jobConfigurationParametersA = new TestJobParameters();
+        MockJobParameters jobConfigurationParametersA = new MockJobParameters();
         jobConfigurationParametersA.setMessage( "parameters A" );
 
-        jobA = new JobConfiguration( "jobA", JobType.TEST, CRON_EVERY_MIN, jobConfigurationParametersA, false, true );
+        jobA = new JobConfiguration( "jobA", JobType.MOCK, CRON_EVERY_MIN, jobConfigurationParametersA, false, true );
 
-        TestJobParameters jobConfigurationParametersB = new TestJobParameters();
+        MockJobParameters jobConfigurationParametersB = new MockJobParameters();
         jobConfigurationParametersB.setMessage( "parameters B" );
 
-        jobB = new JobConfiguration( "jobB", JobType.TEST, CRON_EVERY_SEC, jobConfigurationParametersB, false, true );
+        jobB = new JobConfiguration( "jobB", JobType.MOCK, CRON_EVERY_SEC, jobConfigurationParametersB, false, true );
 
         jobConfigurationService.addJobConfiguration( jobA );
         jobConfigurationService.addJobConfiguration( jobB );
@@ -151,7 +151,7 @@ public class SchedulingManagerTest
             e.printStackTrace();
         }
 
-        JobConfiguration jobC = new JobConfiguration( "jobC", JobType.TEST, "", new TestJobParameters(), false, true );
+        JobConfiguration jobC = new JobConfiguration( "jobC", JobType.MOCK, "", new MockJobParameters(), false, true );
         schedulingManager.executeJob( jobC );
 
         verifyScheduledJobs( 2 );

@@ -1,6 +1,5 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import com.cronutils.descriptor.CronDescriptor;
 import com.cronutils.model.Cron;
 import com.cronutils.model.definition.CronDefinition;
 import com.cronutils.model.definition.CronDefinitionBuilder;
@@ -11,7 +10,10 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.*;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
@@ -93,33 +95,40 @@ public class JobConfigurationObjectBundleHook
         List<ErrorReport> errorReports = new ArrayList<>();
         if ( !jobConfiguration.isConfigurable() )
         {
-            errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7003, jobConfiguration.getJobType() ) );
+            errorReports
+                .add( new ErrorReport( JobConfiguration.class, ErrorCode.E7003, jobConfiguration.getJobType() ) );
         }
 
-        if ( jobConfiguration.getCronExpression() == null )
+        if ( !jobConfiguration.isContinuousExecution() )
         {
-            errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7004 ) );
-            return errorReports;
-        }
+            if ( jobConfiguration.getCronExpression() == null )
+            {
+                errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7004 ) );
+                return errorReports;
+            }
 
-        // Validate the cron expression
-        CronDefinition cronDefinition = CronDefinitionBuilder.instanceDefinitionFor( QUARTZ );
-        CronParser parser = new CronParser( cronDefinition );
-        Cron quartzCron;
-        try {
-            quartzCron = parser.parse( jobConfiguration.getCronExpression() );
-            quartzCron.validate();
-        } catch ( IllegalArgumentException e )
-        {
-            errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7005, e ) );
-            return errorReports;
+            // Validate the cron expression
+            CronDefinition cronDefinition = CronDefinitionBuilder.instanceDefinitionFor( QUARTZ );
+            CronParser parser = new CronParser( cronDefinition );
+            Cron quartzCron;
+            try
+            {
+                quartzCron = parser.parse( jobConfiguration.getCronExpression() );
+                quartzCron.validate();
+            }
+            catch ( IllegalArgumentException e )
+            {
+                errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7005, e ) );
+                return errorReports;
+            }
         }
 
         // Validate cron expression with relation to all other jobs
         errorReports.addAll( validateCronForJobType( jobConfiguration ) );
 
         // Validate parameters
-        ErrorReport parameterValidation = jobConfiguration.getJobParameters() != null ? jobConfiguration.getJobParameters().validate() : null;
+        ErrorReport parameterValidation =
+            jobConfiguration.getJobParameters() != null ? jobConfiguration.getJobParameters().validate() : null;
         if ( parameterValidation != null )
         {
             errorReports.add( parameterValidation );
