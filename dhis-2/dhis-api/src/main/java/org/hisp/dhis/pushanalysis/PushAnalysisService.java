@@ -28,19 +28,18 @@ package org.hisp.dhis.pushanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.user.User;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
+
+import java.io.IOException;
 
 /**
  * @author Stian Sandvold
  */
 public interface PushAnalysisService
 {
-
     /**
      * Handles populating the scheduler with Push Analysis when ContextRefreshedEvent is broadcast
      * @param event
@@ -60,20 +59,20 @@ public interface PushAnalysisService
      * This report is generated based on the associated Dashboard, as well as the user supplied
      * @param pushAnalysis PushAnalysis to generate report from
      * @param user User to base data on
-     * @param taskId TaskId to track process
+     * @param jobId JobId to track process
      * @return String containing a HTML report
      * @throws IOException if the upload of report content failed.
      */
-    String generateHtmlReport( PushAnalysis pushAnalysis, User user, TaskId taskId )
+    String generateHtmlReport( PushAnalysis pushAnalysis, User user, JobId jobId )
         throws IOException;
 
     /**
      * Used to Generate and send reports to all UserGroups assigned to the PushAnalysis,
      * using generateHtmlReport to generate the reports for each individual user in the UserGroups.
-     * @param id of the PushAnalysis
-     * @param taskId to track process
+     * @param uid of the PushAnalysis
+     * @param jobId to track process
      */
-    void runPushAnalysis( int id, TaskId taskId );
+    void runPushAnalysis( String uid, JobId jobId );
 
     /**
      * Refreshes the scheduling of pushAnalysis if pushAnalysis is eligible to be scheduled

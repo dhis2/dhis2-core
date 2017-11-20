@@ -172,30 +172,6 @@ public class TextUtils
     }
     
     /**
-     * Removes the last given number of characters from the given string. Returns
-     * null if the string is null. Returns an empty string if characters is less
-     * than zero or greater than the length of the string.
-     * 
-     * @param string the string.
-     * @param characters number of characters to remove.
-     * @return the substring.
-     */
-    public static String removeLast( String string, int characters )
-    {
-        if ( string == null )
-        {
-            return null;
-        }
-        
-        if ( characters < 0 || characters > string.length() )
-        {
-            return EMPTY;
-        }
-        
-        return string.substring( 0, string.length() - characters );
-    }
-    
-    /**
      * Removes the last occurrence of the word "or" from the given string,
      * including potential trailing spaces, case-insensitive.
      * 

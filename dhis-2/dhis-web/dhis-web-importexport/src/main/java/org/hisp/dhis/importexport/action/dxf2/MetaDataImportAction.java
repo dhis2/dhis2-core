@@ -41,8 +41,8 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.importexport.action.util.ImportMetaDataCsvTask;
 import org.hisp.dhis.importexport.action.util.ImportMetaDataGmlTask;
 import org.hisp.dhis.importexport.action.util.ImportMetaDataTask;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.scheduling.Scheduler;
@@ -149,39 +149,39 @@ public class MetaDataImportAction
 
         User user = currentUserService.getCurrentUser();
 
-        TaskId taskId = new TaskId( TaskCategory.METADATA_IMPORT, user );
+        JobId jobId = new JobId( JobType.METADATA_IMPORT, user.getUid() );
 
-        notifier.clear( taskId );
+        notifier.clear( jobId );
 
         InputStream in = StreamUtils.wrapAndCheckCompressionFormat( new FileInputStream( upload ) );
 
-        MetadataImportParams importParams = createMetadataImportParams( taskId, strategy, atomicMode, dryRun )
+        MetadataImportParams importParams = createMetadataImportParams( jobId, strategy, atomicMode, dryRun )
             .setFilename( uploadFileName );
 
         if ( "csv".equals( importFormat ) )
         {
             if ( classKey != null && CsvImportClass.classExists( classKey ) )
             {
-                scheduler.executeTask( new ImportMetaDataCsvTask( importService, csvImportService, schemaService,
+                scheduler.executeJob( new ImportMetaDataCsvTask( importService, csvImportService, schemaService,
                     importParams, in, CsvImportClass.valueOf( classKey ) ) );
             }
         }
         else if ( "gml".equals( importFormat ) )
         {
-            scheduler.executeTask( new ImportMetaDataGmlTask( gmlImportService, importParams, in ) );
+            scheduler.executeJob( new ImportMetaDataGmlTask( gmlImportService, importParams, in ) );
         }
         else if ( "json".equals( importFormat ) || "xml".equals( importFormat ) )
         {
-            scheduler.executeTask( new ImportMetaDataTask( importService, schemaService, importParams, in, importFormat ) );
+            scheduler.executeJob( new ImportMetaDataTask( importService, schemaService, importParams, in, importFormat ) );
         }
 
         return SUCCESS;
     }
 
-    private MetadataImportParams createMetadataImportParams( TaskId taskId, ImportStrategy strategy, AtomicMode atomicMode, boolean dryRun )
+    private MetadataImportParams createMetadataImportParams( JobId jobId, ImportStrategy strategy, AtomicMode atomicMode, boolean dryRun )
     {
         MetadataImportParams importParams = new MetadataImportParams();
-        importParams.setTaskId( taskId );
+        importParams.setJobId( jobId );
         importParams.setImportMode( dryRun ? ObjectBundleMode.VALIDATE : ObjectBundleMode.COMMIT );
         importParams.setAtomicMode( atomicMode );
         importParams.setImportStrategy( strategy );

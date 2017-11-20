@@ -33,7 +33,6 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang3.LocaleUtils;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.common.DigitGroupSeparator;
-import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.cache.Cacheability;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.i18n.locale.LocaleManager;
@@ -79,7 +78,6 @@ public enum SettingKey
     MIN_PASSWORD_LENGTH( "minPasswordLength", 8, Integer.class ),
     MAX_PASSWORD_LENGTH( "maxPasswordLength", 40, Integer.class ),
     INSTANCE_BASE_URL( "keyInstanceBaseUrl" ),
-    SCHEDULED_TASKS( "keySchedTasks", ListMap.class ),
     SMS_CONFIG( "keySmsSetting", SmsConfiguration.class ),
     CACHE_STRATEGY( "keyCacheStrategy", "CACHE_6AM_TOMORROW", String.class ),
     CACHEABILITY( "keyCacheability", Cacheability.PUBLIC, Cacheability.class ),
@@ -111,8 +109,6 @@ public enum SettingKey
     LAST_SUCCESSFUL_EVENT_DATA_SYNC( "keyLastSuccessfulEventsDataSynch", Date.class ),
     LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE( "keyLastSuccessfulAnalyticsTablesUpdate", Date.class ),
     LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE( "keyLastSuccessfulResourceTablesUpdate", Date.class ),
-    LAST_SUCCESSFUL_MONITORING( "keyLastSuccessfulMonitoring", Date.class ),
-    LAST_SUCCESSFUL_DATA_STATISTIC( "lastSuccessfulDataStatistics", Date.class ),
     HELP_PAGE_LINK( "helpPageLink", "https://dhis2.github.io/dhis2-docs/master/en/user/html/dhis2_user_manual_en.html", String.class ),
     ACCEPTANCE_REQUIRED_FOR_APPROVAL( "keyAcceptanceRequiredForApproval", Boolean.FALSE, Boolean.class ),
     SYSTEM_NOTIFICATIONS_EMAIL( "keySystemNotificationsEmail" ),
