@@ -123,20 +123,14 @@ public class DefaultPredictionService
     {
         int totalCount = 0;
 
-        try
-        {
-            for ( String uid : predictors) {
-                Predictor predictor = predictorService.getPredictor( uid );
+        for ( String uid : predictors) {
+            System.out.println("uid: " + uid);
+            Predictor predictor = predictorService.getPredictor( uid );
 
-                int count = predict( predictor, startDate, endDate );
+            int count = predict( predictor, startDate, endDate );
 
-                log.info( "Generated " + count + " predictions" );
-                totalCount += count;
-            }
-        }
-        catch ( Exception ex )
-        {
-            log.error( "Unable to predict.", ex);
+            log.info( "Generated " + count + " predictions" );
+            totalCount += count;
         }
 
         return totalCount;
