@@ -69,7 +69,7 @@ public class JobConfigurationServiceTest
     public void testGetJob()
     {
         List<JobConfiguration> jobConfigurationList = jobConfigurationService.getAllJobConfigurations();
-        assertEquals( "The number of job configurations does not match", 7, jobConfigurationList.size() );
+        assertEquals( "The number of job configurations does not match", 2, jobConfigurationList.size() );
 
         assertEquals( JobType.MOCK, jobConfigurationService.getJobConfigurationByUid( jobA.getUid() ).getJobType() );
         MockJobParameters jobParameters = (MockJobParameters) jobConfigurationService
