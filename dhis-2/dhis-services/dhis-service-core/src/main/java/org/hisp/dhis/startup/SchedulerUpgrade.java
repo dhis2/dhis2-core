@@ -1,11 +1,16 @@
-package org.hisp.dhis.scheduling;
+package org.hisp.dhis.startup;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.scheduling.DefaultJobConfigurationService;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
@@ -21,6 +26,7 @@ import static org.hisp.dhis.scheduling.JobType.*;
  * @author Henning Håkonsen
  */
 public class SchedulerUpgrade
+    extends AbstractStartupRoutine
 {
     private static final Log log = LogFactory.getLog( DefaultJobConfigurationService.class );
 
@@ -41,12 +47,12 @@ public class SchedulerUpgrade
     @Autowired
     private SystemSettingManager systemSettingManager;
 
-    boolean addDefaultJob ( String name, List<JobConfiguration> jobConfigurations )
+    boolean addDefaultJob( String name, List<JobConfiguration> jobConfigurations )
     {
         return jobConfigurations.stream().noneMatch( jobConfiguration -> jobConfiguration.getName().equals( name ) );
     }
 
-    void addAndScheduleJob ( JobConfiguration jobConfiguration )
+    void addAndScheduleJob( JobConfiguration jobConfiguration )
     {
         jobConfigurationService.addJobConfiguration( jobConfiguration );
         schedulingManager.scheduleJob( jobConfiguration );
@@ -56,7 +62,9 @@ public class SchedulerUpgrade
      * Method which ports the jobs in the system from the old scheduler to the new.
      * Collects all old jobs and adds them. Also adds default jobs.
      */
-    void handleServerUpgrade()
+    @Override
+    public void execute()
+        throws Exception
     {
         List<JobConfiguration> jobConfigurations = jobConfigurationService.getAllJobConfigurations();
 
@@ -81,7 +89,8 @@ public class SchedulerUpgrade
 
         if ( addDefaultJob( DEFAULT_DATA_STATISTICS, jobConfigurations ) )
         {
-            JobConfiguration dataStatistics = new JobConfiguration( DEFAULT_DATA_STATISTICS, DATA_STATISTICS, CRON_DAILY_2AM,
+            JobConfiguration dataStatistics = new JobConfiguration( DEFAULT_DATA_STATISTICS, DATA_STATISTICS,
+                CRON_DAILY_2AM,
                 null,
                 false, true );
             dataStatistics
@@ -92,7 +101,8 @@ public class SchedulerUpgrade
 
         if ( addDefaultJob( DEFAULT_VALIDATION_RESULTS_NOTIFICATION, jobConfigurations ) )
         {
-            JobConfiguration validationResultNotification = new JobConfiguration( DEFAULT_VALIDATION_RESULTS_NOTIFICATION,
+            JobConfiguration validationResultNotification = new JobConfiguration(
+                DEFAULT_VALIDATION_RESULTS_NOTIFICATION,
                 VALIDATION_RESULTS_NOTIFICATION, CRON_DAILY_7AM, null,
                 false, true );
             validationResultNotification.setConfigurable( false );
@@ -117,40 +127,49 @@ public class SchedulerUpgrade
             addAndScheduleJob( dataSetNotification );
         }
 
-        ListMap<String, String> scheduledSystemSettings = (ListMap<String, String>) systemSettingManager.getSystemSetting( "keySchedTasks" );
+        ListMap<String, String> scheduledSystemSettings = (ListMap<String, String>) systemSettingManager
+            .getSystemSetting( "keySchedTasks" );
         if ( scheduledSystemSettings != null && scheduledSystemSettings.containsKey( "ported" ) )
         {
             log.info( "Scheduler ported" );
             return;
         }
 
-        if (scheduledSystemSettings != null) {
+        if ( scheduledSystemSettings != null )
+        {
             log.info( "Porting old jobs" );
-            JobConfiguration resourceTable = new JobConfiguration("Resource table", RESOURCE_TABLE, null, null, false,
+            JobConfiguration resourceTable = new JobConfiguration( "Resource table", RESOURCE_TABLE, null, null, false,
                 true );
-            resourceTable.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulResourceTablesUpdate" ) );
+            resourceTable.setLastExecuted(
+                (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulResourceTablesUpdate" ) );
 
-            JobConfiguration analytics = new JobConfiguration("Analytics", ANALYTICS_TABLE, null, new AnalyticsJobParameters(null, Sets
-                .newHashSet(), false), false, true );
-            analytics.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulAnalyticsTablesUpdate" ) );
+            JobConfiguration analytics = new JobConfiguration( "Analytics", ANALYTICS_TABLE, null,
+                new AnalyticsJobParameters( null, Sets
+                    .newHashSet(), false ), false, true );
+            analytics.setLastExecuted(
+                (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulAnalyticsTablesUpdate" ) );
 
-            JobConfiguration monitoring = new JobConfiguration("Monitoring", MONITORING, null, null, false, true );
+            JobConfiguration monitoring = new JobConfiguration( "Monitoring", MONITORING, null, null, false, true );
             monitoring.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulMonitoring" ) );
 
-            JobConfiguration dataSync = new JobConfiguration("Data synchronization", DATA_SYNC, null, null, false,
+            JobConfiguration dataSync = new JobConfiguration( "Data synchronization", DATA_SYNC, null, null, false,
                 true );
             dataSync.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulDataSynch" ) );
 
-            JobConfiguration metadataSync = new JobConfiguration("Metadata sync", META_DATA_SYNC, null, null, false,
+            JobConfiguration metadataSync = new JobConfiguration( "Metadata sync", META_DATA_SYNC, null, null, false,
                 true );
-            metadataSync.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastMetaDataSyncSuccess" ) );
+            metadataSync
+                .setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastMetaDataSyncSuccess" ) );
 
-            JobConfiguration sendScheduledMessage = new JobConfiguration("Send scheduled messages", SEND_SCHEDULED_MESSAGE, null, null,
+            JobConfiguration sendScheduledMessage = new JobConfiguration( "Send scheduled messages",
+                SEND_SCHEDULED_MESSAGE, null, null,
                 false, true );
 
-            JobConfiguration scheduledProgramNotifications = new JobConfiguration("Scheduled program notifications", PROGRAM_NOTIFICATIONS, null, null,
+            JobConfiguration scheduledProgramNotifications = new JobConfiguration( "Scheduled program notifications",
+                PROGRAM_NOTIFICATIONS, null, null,
                 false, true );
-            scheduledProgramNotifications.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulScheduledProgramNotifications" ) );
+            scheduledProgramNotifications.setLastExecuted(
+                (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulScheduledProgramNotifications" ) );
 
             HashMap<String, JobConfiguration> standardJobs = new HashMap<String, JobConfiguration>()
             {{
@@ -187,9 +206,9 @@ public class SchedulerUpgrade
         }
 
         ListMap<String, String> emptySystemSetting = new ListMap<>();
-        emptySystemSetting.putValue("ported", "");
+        emptySystemSetting.putValue( "ported", "" );
 
-        log.info( "Porting to new scheduler finished. Setting system settings key 'keySchedTasks' to 'ported'.");
-        systemSettingManager.saveSystemSetting( "keySchedTasks", emptySystemSetting);
+        log.info( "Porting to new scheduler finished. Setting system settings key 'keySchedTasks' to 'ported'." );
+        systemSettingManager.saveSystemSetting( "keySchedTasks", emptySystemSetting );
     }
 }
