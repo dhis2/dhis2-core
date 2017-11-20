@@ -71,7 +71,6 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableMap;
 
 /**
  * Class representing query parameters for retrieving event data from the
