@@ -61,8 +61,6 @@ import org.springframework.util.Assert;
 import javax.annotation.Resource;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
@@ -460,42 +458,6 @@ public class JdbcEventAnalyticsManager
             }
         }
     }
-
-    /**
-     * Returns columns based on value dimension and output type.
-     * 
-     * @param params the {@link EventQueryParams}.
-     */
-    private List<String> getAggregateColumns( EventQueryParams params )
-    {
-        EventOutputType outputType = params.getOutputType();
-        
-        if ( params.hasValueDimension() )
-        {
-            return Lists.newArrayList( params.getValue().getUid() );
-        }
-        else if ( params.hasProgramIndicatorDimension() )
-        {
-            Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( params.getProgramIndicator().getExpression(),  params.getProgramIndicator().getAnalyticsType() );
-            
-            Set<String> variableColumnNames = ProgramIndicator.getVariableColumnNames( params.getProgramIndicator().getExpression(),  params.getProgramIndicator().getAnalyticsType() );
-            
-            return Lists.newArrayList( Sets.union( uids, variableColumnNames ) );
-        }
-        else
-        {
-            if ( EventOutputType.TRACKED_ENTITY_INSTANCE.equals( outputType ) && params.isProgramRegistration() )
-            {
-                return Lists.newArrayList( "tei" );
-            }
-            else if ( EventOutputType.ENROLLMENT.equals( outputType ) )
-            {
-                return Lists.newArrayList( "pi" );
-            }
-        }
-        
-        return Lists.newArrayList();
-    }
     
     /**
      * Returns the dynamic select columns. Dimensions come first and query items
@@ -539,53 +501,6 @@ public class JdbcEventAnalyticsManager
         }
         
         return columns;
-    }
-
-    /**
-     * Returns the dynamic select columns. Dimensions come first and query items
-     * second. Program indicator expressions are exploded into attributes and
-     * data element identifiers.
-     * 
-     * @param params the {@link EventQueryParams}.
-     */
-    private List<String> getPartitionSelectColumns( EventQueryParams params )
-    {
-        List<String> columns = Lists.newArrayList();
-        
-        for ( DimensionalObject dimension : params.getDimensions() )
-        {
-            columns.add( dimension.getDimensionName() );
-        }
-        
-        for ( QueryItem queryItem : params.getItems() )
-        {
-            if ( queryItem.isProgramIndicator() )
-            {
-                ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
-                
-                Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( in.getExpression(), in.getAnalyticsType() );
-
-                columns.addAll( uids );
-            }
-            else
-            {
-                columns.add( queryItem.getItemName() );
-            }
-        }
-        
-        return columns;
-    }
-    
-    /**
-     * Returns a list of ascending or descending keywords for sorting.
-     * 
-     * @param params the {@link EventQueryParams}.
-     */
-    private List<String> getSortColumns( EventQueryParams params )
-    {
-       return ListUtils.distinctUnion( params.getAsc(), params.getDesc() ).stream().filter(
-                dimItObject -> DimensionItemType.PROGRAM_INDICATOR !=
-                    dimItObject.getDimensionItemType() ).map( IdentifiableObject::getUid ).collect( Collectors.toList());
     }
 
     /**
@@ -751,7 +666,8 @@ public class JdbcEventAnalyticsManager
         
         if ( !params.isSkipPartitioning() && params.hasPartitions() )
         {
-            sql += "and yearly in (" + TextUtils.getQuotedCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
+            sql += "and " + statementBuilder.columnQuote( "yearly" ) + " in (" + 
+                TextUtils.getQuotedCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
         }
         
         return sql;
