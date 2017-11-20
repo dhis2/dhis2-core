@@ -417,7 +417,7 @@ public class AnalyticsServiceTest
 
         // Generate analytics tables
         // --------------------------------------------------------------------
-        analyticsTableGenerator.generateTables( null, null, null, false );
+        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build() );
 
         // Set parameters
         // --------------------------------------------------------------------

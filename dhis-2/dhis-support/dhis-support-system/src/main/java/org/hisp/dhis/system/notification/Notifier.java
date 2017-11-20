@@ -30,32 +30,32 @@ package org.hisp.dhis.system.notification;
 
 import java.util.List;
 
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 
 /**
  * @author Lars Helge Overland
  */
 public interface Notifier
 {
-    Notifier notify( TaskId id, String message );
+    Notifier notify( JobId id, String message );
     
-    Notifier notify( TaskId id, NotificationLevel level, String message );
+    Notifier notify( JobId id, NotificationLevel level, String message );
     
-    Notifier notify( TaskId id, NotificationLevel level, String message, boolean completed );
+    Notifier notify( JobId id, NotificationLevel level, String message, boolean completed );
 
-    Notifier update( TaskId id, String message );
+    Notifier update( JobId id, String message );
 
-    Notifier update( TaskId id, NotificationLevel level, String message );
+    Notifier update( JobId id, NotificationLevel level, String message );
 
-    Notifier update( TaskId id, NotificationLevel level, String message, boolean completed );
+    Notifier update( JobId id, NotificationLevel level, String message, boolean completed );
 
-    List<Notification> getNotifications( TaskId id, String lastUid );
+    List<Notification> getNotifications( JobId id, String lastUid );
     
-    Notifier clear( TaskId id );
+    Notifier clear( JobId id );
     
-    Notifier addTaskSummary( TaskId id, Object taskSummary );
+    Notifier addTaskSummary( JobId id, Object taskSummary );
     
-    Notifier addTaskSummary( TaskId id, NotificationLevel level, Object taskSummary );
+    Notifier addTaskSummary( JobId id, NotificationLevel level, Object taskSummary );
     
-    Object getTaskSummary( TaskId id );
+    Object getTaskSummary( JobId id );
 }

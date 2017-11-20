@@ -28,46 +28,42 @@ package org.hisp.dhis.dxf2.adx;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.commons.collection.CachingMap;
-import org.hisp.dhis.dxf2.importsummary.ImportCount;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
-import org.hisp.staxwax.factory.XMLFactory;
-import org.hisp.staxwax.reader.XMLReader;
-import org.hisp.staxwax.writer.XMLWriter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xerces.util.XMLChar;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
-import org.hisp.dhis.dataelement.CategoryComboMap;
+import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataelement.CategoryComboMap.CategoryComboMapException;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
+import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.util.ObjectUtils;
+import org.hisp.staxwax.factory.XMLFactory;
+import org.hisp.staxwax.reader.XMLReader;
+import org.hisp.staxwax.writer.XMLWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -78,20 +74,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedOutputStream;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.period.PeriodService;
+import java.util.*;
+import java.util.concurrent.*;
 
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
@@ -244,7 +228,7 @@ public class DefaultAdxDataService
 
     @Override
     @Transactional
-    public ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, TaskId id )
+    public ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, JobId id )
     {
         try
         {
@@ -258,7 +242,7 @@ public class DefaultAdxDataService
         }
     }
 
-    private ImportSummary saveDataValueSetInternal( InputStream in, ImportOptions importOptions, TaskId id )
+    private ImportSummary saveDataValueSetInternal( InputStream in, ImportOptions importOptions, JobId id )
     {
         notifier.clear( id ).notify( id, "ADX parsing process started" );
 
@@ -295,14 +279,14 @@ public class DefaultAdxDataService
         ExecutorService executor = Executors.newSingleThreadExecutor();
 
         // For Async runs, give the DXF import a different notification task ID so it doesn't conflict with notifications from this level.
-        TaskId dxfTaskId = ( id == null ) ? null : new TaskId( TaskCategory.DATAVALUE_IMPORT_INTERNAL, id.getUser() );
+        JobId dxfJobId = ( id == null ) ? null : new JobId( JobType.DATAVALUE_IMPORT_INTERNAL, id.getUser() );
 
         int groupCount = 0;
 
         try ( PipedOutputStream pipeOut = new PipedOutputStream() )
         {
             Future<ImportSummary> futureImportSummary = executor.submit( new AdxPipedImporter(
-                dataValueSetService, adxImportOptions, dxfTaskId, pipeOut, sessionFactory ) );
+                dataValueSetService, adxImportOptions, dxfJobId, pipeOut, sessionFactory ) );
             XMLOutputFactory factory = XMLOutputFactory.newInstance();
             XMLStreamWriter dxfWriter = factory.createXMLStreamWriter( pipeOut );
 

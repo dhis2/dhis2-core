@@ -144,7 +144,7 @@ public class SendMessageAction
             }
         }
         
-        messageService.sendPrivateMessage( subject, text, metaData, users );
+        messageService.sendMessage( messageService.createPrivateMessage( users, subject, text, metaData ).build() );
 
         return SUCCESS;
     }
