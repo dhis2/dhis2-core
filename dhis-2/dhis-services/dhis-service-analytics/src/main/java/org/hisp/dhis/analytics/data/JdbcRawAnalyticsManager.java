@@ -79,7 +79,7 @@ public class JdbcRawAnalyticsManager
     // -------------------------------------------------------------------------
 
     @Override
-    public void getRawDataValues( DataQueryParams params, Grid grid )
+    public Grid getRawDataValues( DataQueryParams params, Grid grid )
     {        
         List<DimensionalObject> dimensions = params.getDimensions();
         
@@ -100,6 +100,8 @@ public class JdbcRawAnalyticsManager
             
             grid.addValue( rowSet.getDouble( "value" ) );
         }
+        
+        return grid;
     }
 
     // -------------------------------------------------------------------------
