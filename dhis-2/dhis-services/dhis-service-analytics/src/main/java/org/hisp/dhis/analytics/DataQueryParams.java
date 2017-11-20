@@ -1,5 +1,7 @@
 package org.hisp.dhis.analytics;
 
+import com.google.common.base.MoreObjects;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -1568,14 +1570,26 @@ public class DataQueryParams
     @Override
     public String toString()
     {
-        return ImmutableMap.<String, Object>builder()
-            .put( "Dimensions", dimensions )
-            .put( "Filters", filters )
-            .put( "Aggregation type", aggregationType )
-            .put( "Measure criteria", measureCriteria )
-            .put( "Output format", outputFormat )
-            .put( "API version", apiVersion )
-            .build().toString();
+        return MoreObjects.toStringHelper( this )
+            .add( "Dimensions", dimensions )
+            .add( "Filters", filters )
+            .add( "Aggregation type", aggregationType )
+            .add( "Measure criteria", measureCriteria )
+            .add( "Output format", outputFormat )
+            .add( "API version", apiVersion )
+            .toString();
+    }
+    
+    public String toNameString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "Dimensions", dimensions )
+            .add( "Filters", filters )
+            .add( "Aggregation type", aggregationType )
+            .add( "Measure criteria", measureCriteria )
+            .add( "Output format", outputFormat )
+            .add( "API version", apiVersion )
+            .toString();
     }
     
     // -------------------------------------------------------------------------
