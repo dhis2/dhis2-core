@@ -30,22 +30,19 @@ package org.hisp.dhis.analytics.event.data;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
-import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.data.QueryPlannerUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
-import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.AnalyticsTableType;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -66,9 +63,6 @@ public class DefaultEventQueryPlanner
     @Autowired
     private SystemSettingManager systemSettingManager;
     
-    @Autowired
-    private PartitionManager partitionManager;
-
     // -------------------------------------------------------------------------
     // EventQueryPlanner implementation
     // -------------------------------------------------------------------------
@@ -177,26 +171,21 @@ public class DefaultEventQueryPlanner
     @Override
     public List<EventQueryParams> planAggregateQuery( EventQueryParams params )
     {
-        Set<String> validPartitions = partitionManager.getEventAnalyticsPartitions();
-
         List<EventQueryParams> queries = new ArrayList<>();
         
         List<EventQueryParams> groupedByQueryItems = groupByQueryItems( params );
         
         for ( EventQueryParams byQueryItem : groupedByQueryItems )
-        {        
-            List<EventQueryParams> groupedByPartition = groupByPartition( byQueryItem, validPartitions );
+        {      
+            List<EventQueryParams> groupedByOrgUnitLevel = QueryPlannerUtils.convert( queryPlanner.groupByOrgUnitLevel( byQueryItem ) );
             
-            for ( EventQueryParams byPartition : groupedByPartition )
+            for ( EventQueryParams byOrgUnitLevel : groupedByOrgUnitLevel )
             {
-                List<EventQueryParams> groupedByOrgUnitLevel = QueryPlannerUtils.convert( queryPlanner.groupByOrgUnitLevel( byPartition ) );
-                
-                for ( EventQueryParams byOrgUnitLevel : groupedByOrgUnitLevel )
-                {
-                    queries.addAll( QueryPlannerUtils.convert( queryPlanner.groupByPeriodType( byOrgUnitLevel ) ) );
-                }
+                queries.addAll( QueryPlannerUtils.convert( queryPlanner.groupByPeriodType( byOrgUnitLevel ) ) );
             }
         }
+        
+        queries = withTableNameAndPartitions( queries );
         
         return queries;
     }
@@ -204,21 +193,7 @@ public class DefaultEventQueryPlanner
     @Override
     public EventQueryParams planEventQuery( EventQueryParams params )
     {
-        Set<String> validPartitions = partitionManager.getEventAnalyticsPartitions();
-
-        String tableSuffix = PartitionUtils.SEP + params.getProgram().getUid();
-        
-        if ( params.hasStartEndDate() )
-        {
-            Period queryPeriod = new Period();
-            queryPeriod.setStartDate( params.getStartDate() );
-            queryPeriod.setEndDate( params.getEndDate() );
-            params.setPartitions( PartitionUtils.getPartitions( queryPeriod, AnalyticsTableType.EVENT.getTableName(), tableSuffix, validPartitions ) );
-        }
-                
-        //TODO periods, convert to start/end dates
-        
-        return params;
+        return withTableNameAndPartitions( params );
     }
     
     public void validateMaintenanceMode()
@@ -238,63 +213,45 @@ public class DefaultEventQueryPlanner
     // -------------------------------------------------------------------------
 
     /**
-     * Group by partition.
+     * Sets table name and partitions on the given query.
      * 
      * @param params the event query parameters.
-     * @param validPartitions the set of valid partitions.
+     * @return a {@link EventQueryParams}.
+     */
+    private EventQueryParams withTableNameAndPartitions( EventQueryParams params )
+    {
+        Partitions partitions = params.hasStartEndDate() ?
+            PartitionUtils.getPartitions( params.getStartDate(), params.getEndDate() ) :
+            PartitionUtils.getPartitions( params.getAllPeriods() );
+        
+        String baseName = params.hasEnrollmentProgramIndicatorDimension() ?
+            AnalyticsTableType.ENROLLMENT.getTableName() :
+            AnalyticsTableType.EVENT.getTableName();
+        
+        String tableName = PartitionUtils.getTableName( baseName, params.getProgram() );
+        
+        return new EventQueryParams.Builder( params )
+            .withTableName( tableName )
+            .withPartitions( partitions )
+            .build();
+    }
+    
+    /**
+     * Sets table name and partition on each query in the given list.
+     * 
+     * @param queries the list of queries.
      * @return a list of {@link EventQueryParams}.
      */
-    private List<EventQueryParams> groupByPartition( EventQueryParams params, Set<String> validPartitions )
+    private List<EventQueryParams> withTableNameAndPartitions( List<EventQueryParams> queries )
     {
-        String tableSuffix = PartitionUtils.SEP + params.getProgram().getUid();
-        
-        if ( params.hasEnrollmentProgramIndicatorDimension() ) 
-        {
-            List<EventQueryParams> indicatorQueries = new ArrayList<>();
-            
-            EventQueryParams query = new EventQueryParams.Builder( params )
-                .withPartitions( PartitionUtils.getPartitions( AnalyticsTableType.ENROLLMENT.getTableName(), tableSuffix, validPartitions ) )
-                .build();
-        
-            if ( query.getPartitions().hasAny() )
-            {
-                indicatorQueries.add( query );
-            }
-            
-            return indicatorQueries;
-        }
-        else if ( params.hasStartEndDate() )
-        {
-            List<EventQueryParams> queries = new ArrayList<>();
-            
-            Period queryPeriod = new Period();
-            queryPeriod.setStartDate( params.getStartDate() );
-            queryPeriod.setEndDate( params.getEndDate() );
-            
-            EventQueryParams query = new EventQueryParams.Builder( params )
-                .withPartitions( PartitionUtils.getPartitions( queryPeriod, AnalyticsTableType.EVENT.getTableName(), tableSuffix, validPartitions ) )
-                .build();
-            
-            if ( query.getPartitions().hasAny() )
-            {
-                queries.add( query );
-            }
-            
-            return queries;
-        }
-        else // Aggregate only
-        {
-            QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-                withTableName( AnalyticsTableType.EVENT.getTableName() ).
-                withTableSuffix( tableSuffix ).build();
-
-            return QueryPlannerUtils.convert( queryPlanner.groupByPartition( params, plannerParams ) );
-        }
+        final List<EventQueryParams> list = new ArrayList<>();
+        queries.forEach( query -> list.add( withTableNameAndPartitions( query ) ) );
+        return list;
     }
     
     /**
      * Group by items if query items are to be collapsed in order to aggregate
-     * each item individually.
+     * each item individually. Sets program on the given parameters.
      * 
      * @param params the event query parameters.
      * @return a list of {@link EventQueryParams}.

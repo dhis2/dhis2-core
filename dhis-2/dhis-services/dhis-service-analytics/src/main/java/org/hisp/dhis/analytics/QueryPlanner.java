@@ -97,6 +97,15 @@ public interface QueryPlanner
         throws IllegalQueryException;
 
     /**
+     * Sets the table name and partitions on the query.
+     * 
+     * @param params the data query parameters.
+     * @param plannerParams the query planner parameters.
+     * @return a data query parameters.
+     */
+    DataQueryParams withTableNameAndPartitions( DataQueryParams params, QueryPlannerParams plannerParams );
+    
+    /**
      * If organisation units appear as dimensions; groups the given query into 
      * sub queries based on the level of the organisation units. Sets the organisation 
      * unit level on each query. If organisation units appear as filter; replaces
@@ -107,18 +116,6 @@ public interface QueryPlanner
      * @return a list of data query parameters.
      */
     List<DataQueryParams> groupByOrgUnitLevel( DataQueryParams params );
-    
-    /**
-     * Groups the given query into sub queries based on its periods and which 
-     * partition it should be executed against. Sets the partition table name on
-     * each query. Queries are grouped based on periods if appearing as a 
-     * dimension.
-     * 
-     * @param params the data query parameters.
-     * @param plannerParams the query planner parameters.
-     * @return a list of data query parameters.
-     */
-    List<DataQueryParams> groupByPartition( DataQueryParams params, QueryPlannerParams plannerParams );
     
     /**
      * If periods appear as dimensions in the given query; groups the query into 

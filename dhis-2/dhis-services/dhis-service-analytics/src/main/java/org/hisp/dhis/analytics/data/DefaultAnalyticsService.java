@@ -1141,9 +1141,9 @@ public class DefaultAnalyticsService
             QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
                 .withTableName( AnalyticsTableType.DATA_VALUE.getTableName() ).build();
             
-            List<DataQueryParams> queries = queryPlanner.groupByPartition( params, plannerParams );
+            params = queryPlanner.withTableNameAndPartitions( params, plannerParams );
             
-            queries.forEach( query -> rawAnalyticsManager.getRawDataValues( query, grid ) );
+            rawAnalyticsManager.getRawDataValues( params, grid );
         }
     }
 

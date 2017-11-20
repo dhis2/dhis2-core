@@ -34,6 +34,7 @@ import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DimensionItem;
 import org.hisp.dhis.analytics.OutputFormat;
+import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.table.AnalyticsTableType;
@@ -67,12 +68,12 @@ import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
-import org.joda.time.DateTime;
 import org.junit.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -497,9 +498,9 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query spans 2 partitions. Splits in 2 queries for each partition, then
-     * splits in 4 queries on data elements to satisfy optimal for a total
-     * of 8 queries, because query has 2 different aggregation types.
+     * Query spans two period types and two aggregation types. Splits in 2 queries for 
+     * each period type, then splits in 4 queries on data elements to satisfy optimal of 
+     * 4 queries per query group.
      */
     @Test
     public void planQueryA()
@@ -513,7 +514,7 @@ public class QueryPlannerTest
             withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
         
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
-
+                
         assertEquals( 8, queryGroups.getAllQueries().size() );
         assertEquals( 2, queryGroups.getSequentialQueries().size() );
         assertEquals( 4, queryGroups.getLargestGroupSize() );
@@ -521,7 +522,6 @@ public class QueryPlannerTest
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
-            assertTrue( samePartition( query.getPeriods() ) );
             assertDimensionNameNotNull( query );
         }
     }
@@ -543,7 +543,7 @@ public class QueryPlannerTest
             withOptimalQueries( 6 ).withTableName( ANALYTICS_TABLE_NAME ).build();
         
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
-
+        
         assertEquals( 6, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
         assertEquals( 6, queryGroups.getLargestGroupSize() );
@@ -551,7 +551,6 @@ public class QueryPlannerTest
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
-            assertTrue( samePartition( query.getPeriods() ) );
             assertDimensionNameNotNull( query );
         }
     }
@@ -595,13 +594,12 @@ public class QueryPlannerTest
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
-            assertTrue( samePartition( query.getPeriods() ) );
             assertDimensionNameNotNull( query );
         }
     }
 
     /**
-     * Query spans 1 partition. Splits on 2 aggregation types, then splits one
+     * Query spans 2 aggregation types. Splits on 2 aggregation types, then splits one
      * query on 3 days in period to satisfy optimal for a total of 4 queries.
      */
     @Test
@@ -625,13 +623,12 @@ public class QueryPlannerTest
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
-            assertTrue( samePartition( query.getPeriods() ) );
             assertDimensionNameNotNull( query );
         }
     }
 
     /**
-     * Query spans 1 partition. Splits on 2 aggregation types, then splits one
+     * Query spans 2 aggregation types. Splits on 2 aggregation types, then splits one
      * query on 3 days in period to satisfy optimal for a total of 4 queries. No
      * organisation units specified.
      */
@@ -655,7 +652,6 @@ public class QueryPlannerTest
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
-            assertTrue( samePartition( query.getPeriods() ) );
             assertDimensionNameNotNull( query );
         }
     }
@@ -684,7 +680,6 @@ public class QueryPlannerTest
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
-            assertTrue( samePartition( query.getPeriods() ) );
             assertDimensionNameNotNull( query );
         }
     }
@@ -706,9 +701,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query filters span 2 partitions. Splits in 2 queries on data elements,
-     * then 2 queries on organisation units to satisfy optimal for a total of 8
-     * queries.
+     * Splits in 4 queries on data elements, then 2 queries on organisation units 
+     * to satisfy optimal for a total of 8 queries.
      */
     @Test
     public void planQueryH()
@@ -730,8 +724,6 @@ public class QueryPlannerTest
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertDimensionNameNotNull( query );
-
-            assertTrue( query.spansMultiplePartitions() );
         }
     }
 
@@ -761,7 +753,6 @@ public class QueryPlannerTest
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
-            assertTrue( samePartition( query.getPeriods() ) );
             assertDimensionNameNotNull( query );
         }
     }
@@ -783,8 +774,7 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query spans 2 partitions. Splits in 2 queries for each partition, then
-     * splits in 2 queries on data sets to satisfy optimal for a total
+     * Splits in 4 queries on data sets to satisfy optimal for a total
      * of 4 queries.
      */
     @Test
@@ -798,14 +788,15 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
         
-        List<DataQueryParams> queries = queryPlanner.planQuery( params, plannerParams ).getAllQueries();
+        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
+        List<DataQueryParams> queries = queryGroups.getAllQueries();
+        
         assertEquals( 4, queries.size() );
 
         for ( DataQueryParams query : queries )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
-            assertTrue( samePartition( query.getPeriods() ) );
             assertDimensionNameNotNull( query );
         }
     }
@@ -840,8 +831,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query spans 1 partition. Splits on 2 queries for data types, then splits
-     * on 2 queries for data elements to satisfy optimal for a total of 4 queries.
+     * Splits in 4 queries for data elements to satisfy optimal for a total of 
+     * 4 queries.
      */
     @Test
     public void planQueryM()
@@ -863,7 +854,6 @@ public class QueryPlannerTest
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
-            assertTrue( samePartition( query.getPeriods() ) );
             assertDimensionNameNotNull( query );
         }
     }
@@ -1124,7 +1114,7 @@ public class QueryPlannerTest
     }
     
     @Test
-    public void testGroupByPartition()
+    public void testWithTableNameAndPartition()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .withStartDate( getDate( 2014, 4, 1 ) )
@@ -1135,19 +1125,16 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
             .withTableName( ANALYTICS_TABLE_NAME ).build();
         
-        List<DataQueryParams> queries = queryPlanner.groupByPartition( params, plannerParams );
+        DataQueryParams query = queryPlanner.withTableNameAndPartitions( params, plannerParams );
         
-        assertEquals( 1, queries.size() );
+        Partitions partitions = query.getPartitions();
         
-        DataQueryParams query = queries.get( 0 );
-        
-        List<String> partitions = query.getPartitions().getPartitions();
+        Partitions expected = new Partitions( Sets.newHashSet( 2014, 2015, 2016 ) );
         
         assertNotNull( partitions );
-        assertEquals( 3, partitions.size() );
-        assertEquals( ANALYTICS_TABLE_NAME + "_2014", partitions.get( 0 ) );
-        assertEquals( ANALYTICS_TABLE_NAME + "_2015", partitions.get( 1 ) );
-        assertEquals( ANALYTICS_TABLE_NAME + "_2016", partitions.get( 2 ) );
+        assertEquals( 3, partitions.getPartitions().size() );
+        assertEquals( expected, partitions );
+        assertEquals( ANALYTICS_TABLE_NAME, query.getTableName() );        
     }
         
     // -------------------------------------------------------------------------
@@ -1165,25 +1152,6 @@ public class QueryPlannerTest
             PeriodType next = ((Period) periods.next()).getPeriodType();
 
             if ( !first.equals( next ) )
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static boolean samePartition( List<DimensionalItemObject> isoPeriods )
-    {
-        Iterator<DimensionalItemObject> periods = new ArrayList<>( isoPeriods ).iterator();
-
-        int year = new DateTime( ((Period) periods.next()).getStartDate() ).getYear();
-
-        while ( periods.hasNext() )
-        {
-            int next = new DateTime( ((Period) periods.next()).getStartDate() ).getYear();
-
-            if ( year != next )
             {
                 return false;
             }
