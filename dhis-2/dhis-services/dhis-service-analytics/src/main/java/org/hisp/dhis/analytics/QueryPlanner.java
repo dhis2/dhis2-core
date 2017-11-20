@@ -31,7 +31,6 @@ package org.hisp.dhis.analytics;
 import java.util.List;
 
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.MaintenanceModeException;
 
 /**
  * Service interface which provides methods for validating and planning 
@@ -41,38 +40,6 @@ import org.hisp.dhis.common.MaintenanceModeException;
  */
 public interface QueryPlanner
 {
-    /**
-     * Validates the given query. Throws an IllegalQueryException if the query
-     * is not valid with a descriptive message. Returns normally if the query is
-     * valid.
-     * 
-     * @param params the data query parameters.
-     * @throws IllegalQueryException if the query is invalid.
-     */
-    void validate( DataQueryParams params )
-        throws IllegalQueryException;
-    
-    /**
-     * Validates whether the given table layout is valid for the given query. 
-     * Throws an IllegalQueryException if the query is not valid with a 
-     * descriptive message. Returns normally if the query is valid.
-     * 
-     * @param params the data query parameters.
-     * @param columns the column dimension identifiers.
-     * @param rows the row dimension identifiers.
-     * @throws IllegalQueryException if the query is invalid.
-     */
-    void validateTableLayout( DataQueryParams params, List<String> columns, List<String> rows )
-        throws IllegalQueryException;
-    
-    /**
-     * Checks whether the analytics engine is in maintenance mode.
-     * 
-     * @throws MaintenanceModeException if analytics engine is in maintenance mode.
-     */
-    void validateMaintenanceMode()
-        throws MaintenanceModeException;
-    
     /**
      * Creates a DataQueryGroups object. It is mandatory to group the queries by
      * the following criteria: 1) partition / year 2) organisation unit level
