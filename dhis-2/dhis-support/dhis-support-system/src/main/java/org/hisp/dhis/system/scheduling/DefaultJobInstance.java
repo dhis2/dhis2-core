@@ -71,8 +71,6 @@ public class DefaultJobInstance implements JobInstance
                     "' is already running [" + clock.time() + "]",
                 new Exception( "Job '" + jobConfiguration.getName() + "' failed" ) );
             jobConfiguration.setLastExecutedStatus( JobStatus.FAILED );
-
-            schedulingManager.executeJob( jobConfiguration );
         }
 
         setFinishingStatus( clock, schedulingManager, jobConfiguration );
