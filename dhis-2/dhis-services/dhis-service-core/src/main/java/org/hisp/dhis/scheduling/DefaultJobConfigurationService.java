@@ -42,9 +42,6 @@ public class DefaultJobConfigurationService
     @Autowired
     private CurrentUserService currentUserService;
 
-    @Autowired
-    private SchedulerUpgrade schedulerUpgrade;
-
     private boolean scheduledBoot = true;
 
     private int STARTUP_DELAY = 120 * 1000;
@@ -73,8 +70,6 @@ public class DefaultJobConfigurationService
                 }
                 schedulingManager.scheduleJob( jobConfig );
             }) );
-
-            schedulerUpgrade.handleServerUpgrade( );
 
             scheduledBoot = false;
         }
