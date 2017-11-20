@@ -29,7 +29,7 @@ package org.hisp.dhis.scheduling;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.scheduling.parameters.TestJobParameters;
+import org.hisp.dhis.scheduling.parameters.MockJobParameters;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -57,7 +57,7 @@ public class JobConfigurationServiceTest
         throws Exception
     {
         String CRON_EVERY_MIN = "0 * * ? * *";
-        jobA = new JobConfiguration( "jobA", JobType.TEST, CRON_EVERY_MIN, new TestJobParameters( "test" ), false,
+        jobA = new JobConfiguration( "jobA", JobType.MOCK, CRON_EVERY_MIN, new MockJobParameters( "test" ), false,
             true );
         jobB = new JobConfiguration( "jobB", JobType.DATA_INTEGRITY, CRON_EVERY_MIN, null, false, true );
 
@@ -69,10 +69,10 @@ public class JobConfigurationServiceTest
     public void testGetJob()
     {
         List<JobConfiguration> jobConfigurationList = jobConfigurationService.getAllJobConfigurations();
-        assertEquals( "The number of job configurations does not match", 7, jobConfigurationList.size() );
+        assertEquals( "The number of job configurations does not match", 2, jobConfigurationList.size() );
 
-        assertEquals( JobType.TEST, jobConfigurationService.getJobConfigurationByUid( jobA.getUid() ).getJobType() );
-        TestJobParameters jobParameters = (TestJobParameters) jobConfigurationService
+        assertEquals( JobType.MOCK, jobConfigurationService.getJobConfigurationByUid( jobA.getUid() ).getJobType() );
+        MockJobParameters jobParameters = (MockJobParameters) jobConfigurationService
             .getJobConfigurationByUid( jobA.getUid() ).getJobParameters();
 
         assertNotNull( jobParameters );

@@ -70,6 +70,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -234,6 +235,7 @@ public class EventQueryParams
         params.apiVersion = this.apiVersion;
 
         params.partitions = new Partitions( this.partitions );
+        params.tableName = this.tableName;
         params.periodType = this.periodType;
 
         params.program = this.program;
@@ -612,20 +614,20 @@ public class EventQueryParams
     @Override
     public String toString()
     {
-        return ImmutableMap.<String, Object>builder()
-            .put( "Program", program )
-            .put( "Stage", programStage )
-            .put( "Start date", startDate )
-            .put( "End date", endDate )
-            .put( "Items", items )
-            .put( "Item filters", itemFilters )
-            .put( "Value", value )
-            .put( "Item program indicators", itemProgramIndicators )
-            .put( "Program indicator", programIndicator )
-            .put( "Aggregation type", aggregationType )
-            .put( "Dimensions", dimensions )
-            .put( "Filters", filters )
-            .build().toString();
+        return MoreObjects.toStringHelper( this )
+            .add( "Program", program )
+            .add( "Stage", programStage )
+            .add( "Start date", startDate )
+            .add( "End date", endDate )
+            .add( "Items", items )
+            .add( "Item filters", itemFilters )
+            .add( "Value", value )
+            .add( "Item program indicators", itemProgramIndicators )
+            .add( "Program indicator", programIndicator )
+            .add( "Aggregation type", aggregationType )
+            .add( "Dimensions", dimensions )
+            .add( "Filters", filters )
+            .toString();
     }
 
     // -------------------------------------------------------------------------
@@ -929,6 +931,12 @@ public class EventQueryParams
         public Builder withPartitions( Partitions partitions )
         {
             this.params.partitions = partitions;
+            return this;
+        }
+
+        public Builder withTableName( String tableName )
+        {
+            this.params.tableName = tableName;
             return this;
         }
         
