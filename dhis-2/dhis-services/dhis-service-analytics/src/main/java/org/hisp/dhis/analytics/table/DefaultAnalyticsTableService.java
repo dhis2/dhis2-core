@@ -30,8 +30,13 @@ package org.hisp.dhis.analytics.table;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.analytics.*;
-import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.AnalyticsIndex;
+import org.hisp.dhis.analytics.AnalyticsTable;
+import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.AnalyticsTableManager;
+import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.AnalyticsTableService;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -45,7 +50,11 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
@@ -72,9 +81,6 @@ public class DefaultAnalyticsTableService
     
     @Autowired
     private ResourceTableService resourceTableService;
-    
-    @Autowired
-    private PartitionManager partitionManager;
     
     @Autowired
     private Notifier notifier;
@@ -158,11 +164,6 @@ public class DefaultAnalyticsTableService
         
         swapTables( tables, params.isSkipMasterTable() );
         
-        clock.logTime( "Swapped tables" );
-        notifier.notify( jobId, "Clearing caches" );
-
-        partitionManager.clearCaches();
-
         clock.logTime( "Table update done: " + tableType );
         notifier.notify( jobId, "Table update done" );
     }
