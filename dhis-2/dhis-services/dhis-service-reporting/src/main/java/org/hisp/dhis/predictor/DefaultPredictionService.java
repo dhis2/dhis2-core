@@ -124,7 +124,6 @@ public class DefaultPredictionService
         int totalCount = 0;
 
         for ( String uid : predictors) {
-            System.out.println("uid: " + uid);
             Predictor predictor = predictorService.getPredictor( uid );
 
             int count = predict( predictor, startDate, endDate );
