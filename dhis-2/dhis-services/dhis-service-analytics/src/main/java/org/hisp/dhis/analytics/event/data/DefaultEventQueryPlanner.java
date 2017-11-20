@@ -35,6 +35,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
+import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.data.QueryPlannerUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
@@ -59,6 +60,9 @@ public class DefaultEventQueryPlanner
     
     @Autowired
     private QueryPlanner queryPlanner;
+    
+    @Autowired
+    private QueryValidator queryValidator;
 
     @Autowired
     private SystemSettingManager systemSettingManager;
@@ -78,7 +82,7 @@ public class DefaultEventQueryPlanner
             throw new IllegalQueryException( "Params cannot be null" );
         }
         
-        queryPlanner.validateMaintenanceMode();
+        queryValidator.validateMaintenanceMode();
         
         if ( !params.hasOrganisationUnits() )
         {
@@ -199,7 +203,7 @@ public class DefaultEventQueryPlanner
     public void validateMaintenanceMode()
         throws MaintenanceModeException
     {
-        queryPlanner.validateMaintenanceMode();
+        queryValidator.validateMaintenanceMode();
     }
     
     @Override
