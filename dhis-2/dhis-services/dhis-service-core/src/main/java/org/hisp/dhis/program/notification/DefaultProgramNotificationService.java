@@ -251,6 +251,8 @@ public class DefaultProgramNotificationService
 
         List<RuleAction> ruleActions = ruleEffects.stream().map( RuleEffect::ruleAction ).collect( Collectors.toList() );
 
+        ruleActions.stream().forEach( a -> System.out.println( " action is : " + a ) );
+
         //TODO look for RuleActionSendMessage and send PNT
     }
 
