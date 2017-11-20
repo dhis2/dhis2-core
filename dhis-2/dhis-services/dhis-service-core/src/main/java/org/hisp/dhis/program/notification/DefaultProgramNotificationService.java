@@ -272,13 +272,13 @@ public class DefaultProgramNotificationService
             if ( NotificationTrigger.COMPLETION.equals( pnt.getNotificationTrigger() ) )
             {
                 segregatedMap.computeIfAbsent( NotificationTrigger.COMPLETION, k -> Sets.newHashSet() )
-                        .add( pnt );
+                    .add( pnt );
             }
 
             if ( NotificationTrigger.PROGRAM_RULE.equals( pnt.getNotificationTrigger() ) )
             {
                 segregatedMap.computeIfAbsent( NotificationTrigger.PROGRAM_RULE, k -> Sets.newHashSet() )
-                        .add( pnt );
+                    .add( pnt );
             }
         }
 
