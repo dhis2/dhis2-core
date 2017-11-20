@@ -38,7 +38,6 @@ import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
-import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -66,7 +65,6 @@ import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 
 import static org.hisp.dhis.analytics.AggregationType.SUM;
@@ -83,9 +81,6 @@ public class DefaultQueryPlanner
     implements QueryPlanner
 {
     private static final Log log = LogFactory.getLog( DefaultQueryPlanner.class );
-
-    @Autowired
-    private PartitionManager partitionManager;
 
     @Autowired
     private SystemSettingManager systemSettingManager;
@@ -251,7 +246,9 @@ public class DefaultQueryPlanner
         // Group queries which can be executed together
         // ---------------------------------------------------------------------
 
-        final List<DataQueryParams> queries = new ArrayList<>( groupByPartition( params, plannerParams ) );
+        params = withTableNameAndPartitions( params, plannerParams );
+        
+        final List<DataQueryParams> queries = Lists.newArrayList( params );
         
         List<Function<DataQueryParams, List<DataQueryParams>>> groupers = new ImmutableList.Builder<Function<DataQueryParams, List<DataQueryParams>>>()
             .add( q -> groupByOrgUnitLevel( q ) )
@@ -349,74 +346,16 @@ public class DefaultQueryPlanner
     // -------------------------------------------------------------------------
 
     @Override
-    public List<DataQueryParams> groupByPartition( DataQueryParams params, QueryPlannerParams plannerParams )
+    public DataQueryParams withTableNameAndPartitions( DataQueryParams params, QueryPlannerParams plannerParams )
     {
-        Set<String> validPartitions = partitionManager.getDataValueAnalyticsPartitions();
-        
-        String tableName = plannerParams.getTableName();
-        String tableSuffix = plannerParams.getTableSuffix();
+        Partitions partitions = params.hasStartEndDate() ?
+            PartitionUtils.getPartitions( params.getStartDate(), params.getEndDate() ) :
+            PartitionUtils.getPartitions( params.getAllPeriods() );
 
-        List<DataQueryParams> queries = new ArrayList<>();
-
-        if ( params.isSkipPartitioning() )
-        {
-            DataQueryParams query = DataQueryParams.newBuilder( params )
-                .withPartitions( new Partitions().add( tableName ) ).build();
-            
-            queries.add( query );
-        }
-        else if ( !params.getPeriods().isEmpty() )
-        {
-            ListMap<Partitions, DimensionalItemObject> partitionPeriodMap = 
-                PartitionUtils.getPartitionPeriodMap( params.getPeriods(), tableName, tableSuffix, validPartitions );
-
-            for ( Partitions partitions : partitionPeriodMap.keySet() )
-            {
-                if ( partitions.hasAny() )
-                {
-                    DataQueryParams query = DataQueryParams.newBuilder( params )
-                        .withPeriods( partitionPeriodMap.get( partitions ) )
-                        .withPartitions( partitions ).build();
-                    
-                    queries.add( query );
-                }
-            }
-        }
-        else if ( !params.getFilterPeriods().isEmpty() )
-        {
-            Partitions partitions = PartitionUtils.getPartitions( params.getFilterPeriods(), tableName, tableSuffix, validPartitions );
-
-            if ( partitions.hasAny() )
-            {
-                DataQueryParams query = DataQueryParams.newBuilder( params )
-                    .withPartitions( partitions ).build();
-                
-                queries.add( query );
-            }
-        }
-        else if ( params.hasStartEndDate() )
-        {
-            Partitions partitions = PartitionUtils.getPartitions( params.getStartDate(), params.getEndDate(), tableName, tableSuffix, validPartitions );
-            
-            if ( partitions.hasAny() )
-            {
-                DataQueryParams query = DataQueryParams.newBuilder( params )
-                    .withPartitions( partitions ).build();
-                
-                queries.add( query );
-            }
-        }
-        else
-        {
-            throw new IllegalQueryException( "Query does not contain any period dimension items" );
-        }
-
-        if ( queries.size() > 1 )
-        {
-            log.debug( String.format( "Split on partition: %d", queries.size() ) );
-        }
-
-        return queries;
+        return DataQueryParams.newBuilder( params )
+            .withTableName( plannerParams.getTableName() )
+            .withPartitions( partitions )
+            .build();
     }
     
     /**

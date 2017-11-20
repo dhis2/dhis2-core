@@ -931,6 +931,12 @@ public class EventQueryParams
             this.params.partitions = partitions;
             return this;
         }
+
+        public Builder withTableName( String tableName )
+        {
+            this.params.tableName = tableName;
+            return this;
+        }
         
         public Builder addAscSortItem( DimensionalItemObject sortItem )
         {

@@ -113,14 +113,7 @@ public class JdbcAnalyticsManager
 
             String sql = getSelectClause( params );
 
-            if ( params.spansMultiplePartitions() )
-            {
-                sql += getFromWhereClauseMultiplePartitionFilters( params );
-            }
-            else
-            {
-                sql += getFromWhereClause( params, params.getPartitions().getSinglePartition() );
-            }
+            sql += getFromWhereClause( params );
 
             sql += getGroupByClause( params );
 
@@ -275,53 +268,13 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Generates the from clause of the SQL query. This method should be used for
-     * queries where the period filter spans multiple partitions. This query
-     * will return a result set which will be aggregated by the outer query.
-     */
-    private String getFromWhereClauseMultiplePartitionFilters( DataQueryParams params )
-    {
-        String sql = "from (";
-
-        for ( String partition : params.getPartitions().getPartitions() )
-        {
-            sql += "select " + getCommaDelimitedQuotedColumns( params.getDimensions() ) + ", ";
-
-            if ( params.isDataType( TEXT ) )
-            {
-                sql += "textvalue";
-            }
-            else if ( params.isAggregationType( AVERAGE_SUM_INT ) )
-            {
-                sql += "daysxvalue";
-            }
-            else if ( params.isAggregationType( AVERAGE_BOOL ) )
-            {
-                sql += "daysxvalue, daysno";
-            }
-            else
-            {
-                sql += "value";
-            }
-
-            sql += " " + getFromWhereClause( params, partition );
-
-            sql += "union all ";
-        }
-
-        sql = trimEnd( sql, "union all ".length() ) + ") as data ";
-
-        return sql;
-    }
-
-    /**
      * Generates the from clause of the query SQL.
      */
-    private String getFromWhereClause( DataQueryParams params, String partition )
+    private String getFromWhereClause( DataQueryParams params )
     {
         SqlHelper sqlHelper = new SqlHelper();
 
-        String sql = "from " + getPartitionSql( params, partition ) + " ";
+        String sql = "from " + getPartitionSql( params ) + " ";
 
         // ---------------------------------------------------------------------
         // Dimensions
@@ -413,6 +366,15 @@ public class JdbcAnalyticsManager
             sql += sqlHelper.whereAnd() + " timely is true ";
         }
 
+        // ---------------------------------------------------------------------
+        // Partitions restriction to allow constraint exclusion
+        // ---------------------------------------------------------------------
+        
+        if ( params.hasPartitions() )
+        {
+            sql += sqlHelper.whereAnd() + " yearly in (" + TextUtils.getQuotedCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
+        }
+        
         return sql;
     }
 
@@ -421,15 +383,13 @@ public class JdbcAnalyticsManager
      * provides a filtered view of the data according to the criteria .If not, 
      * returns the full view of the partition.
      */
-    private String getPartitionSql( DataQueryParams params, String partition )
+    private String getPartitionSql( DataQueryParams params )
     {
         if ( params.isDataType( DataType.NUMERIC ) && !params.getPreAggregateMeasureCriteria().isEmpty() )
         {
             SqlHelper sqlHelper = new SqlHelper();
 
-            String sql = "";
-
-            sql += "(select * from " + partition + " ";
+            String sql = "(select * from " + params.getTableName() + " ";
 
             for ( MeasureFilter filter : params.getPreAggregateMeasureCriteria().keySet() )
             {
@@ -439,13 +399,13 @@ public class JdbcAnalyticsManager
 
             }
 
-            sql += ") as " + partition;
+            sql += ") as " + params.getTableName();
 
             return sql;
         }
         else
         {
-            return partition;
+            return params.getTableName();
         }
     }
 

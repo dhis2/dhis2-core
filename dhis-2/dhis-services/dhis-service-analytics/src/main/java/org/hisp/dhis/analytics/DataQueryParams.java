@@ -265,6 +265,11 @@ public class DataQueryParams
      * The partitions containing data relevant to this query.
      */
     protected transient Partitions partitions;
+    
+    /**
+     * The name of the analytics table to use for this query.
+     */
+    protected transient String tableName;
 
     /**
      * The data type for this query.
@@ -415,17 +420,7 @@ public class DataQueryParams
     {
         return aggregationType != null ? aggregationType.toString() : null;
     }
-    
-    /**
-     * Indicates whether the filters of this query spans more than one partition.
-     * If true it means that a period filter exists and that the periods span
-     * multiple years.
-     */
-    public boolean spansMultiplePartitions()
-    {
-        return partitions != null && partitions.isMultiple();
-    }
-        
+            
     /**
      * Creates a mapping between filter dimension identifiers and filter dimensions. 
      * Filters are guaranteed not to be null.
@@ -1043,6 +1038,14 @@ public class DataQueryParams
         }
         
         return items;
+    }
+    
+    /**
+     * Indicates whether this query has any partitions.
+     */
+    public boolean hasPartitions()
+    {
+        return partitions != null && partitions.hasAny();
     }
     
     /**
@@ -1732,6 +1735,11 @@ public class DataQueryParams
     {
         this.partitions = partitions;
     }
+    
+    public String getTableName()
+    {
+        return tableName;
+    }
 
     public DataType getDataType()
     {
@@ -1793,7 +1801,7 @@ public class DataQueryParams
     /**
      * Returns all indicators part of a dimension or filter.
      */
-    public List<DimensionalItemObject> getAllIndicators()
+    public List<DimensionalItemObject> getAllIndicatfors()
     {
         return ImmutableList.copyOf( ListUtils.union( getIndicators(), getFilterIndicators() ) );
     }
@@ -1844,6 +1852,14 @@ public class DataQueryParams
     public List<DimensionalItemObject> getAllValidationResults()
     {
         return ImmutableList.copyOf( ListUtils.union( getValidationResults(), getFilterValidationResults() ) );
+    }
+    
+    /**
+     * Returns all periods part of a dimension or filter.
+     */
+    public List<DimensionalItemObject> getAllPeriods()
+    {
+        return ImmutableList.copyOf( ListUtils.union( getPeriods(), getFilterPeriods() ) );
     }
 
     // -------------------------------------------------------------------------
@@ -2399,6 +2415,12 @@ public class DataQueryParams
         public Builder withPartitions( Partitions partitions )
         {
             this.params.partitions = partitions;
+            return this;
+        }
+        
+        public Builder withTableName( String tableName )
+        {
+            this.params.tableName = tableName;
             return this;
         }
         

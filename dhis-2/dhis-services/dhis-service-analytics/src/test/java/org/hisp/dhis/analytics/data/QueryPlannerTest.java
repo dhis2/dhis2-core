@@ -34,6 +34,7 @@ import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DimensionItem;
 import org.hisp.dhis.analytics.OutputFormat;
+import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.table.AnalyticsTableType;
@@ -73,6 +74,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -730,8 +732,6 @@ public class QueryPlannerTest
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertDimensionNameNotNull( query );
-
-            assertTrue( query.spansMultiplePartitions() );
         }
     }
 
@@ -1124,7 +1124,7 @@ public class QueryPlannerTest
     }
     
     @Test
-    public void testGroupByPartition()
+    public void testWithTableNameAndPartition()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .withStartDate( getDate( 2014, 4, 1 ) )
@@ -1135,19 +1135,16 @@ public class QueryPlannerTest
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
             .withTableName( ANALYTICS_TABLE_NAME ).build();
         
-        List<DataQueryParams> queries = queryPlanner.groupByPartition( params, plannerParams );
+        DataQueryParams query = queryPlanner.withTableNameAndPartitions( params, plannerParams );
         
-        assertEquals( 1, queries.size() );
+        Partitions partitions = query.getPartitions();
         
-        DataQueryParams query = queries.get( 0 );
-        
-        List<String> partitions = query.getPartitions().getPartitions();
+        Partitions expected = new Partitions( Sets.newHashSet( 2014, 2015, 2016 ) );
         
         assertNotNull( partitions );
-        assertEquals( 3, partitions.size() );
-        assertEquals( ANALYTICS_TABLE_NAME + "_2014", partitions.get( 0 ) );
-        assertEquals( ANALYTICS_TABLE_NAME + "_2015", partitions.get( 1 ) );
-        assertEquals( ANALYTICS_TABLE_NAME + "_2016", partitions.get( 2 ) );
+        assertEquals( 3, partitions.getPartitions().size() );
+        assertEquals( expected, partitions );
+        assertEquals( ANALYTICS_TABLE_NAME, query.getTableName() );        
     }
         
     // -------------------------------------------------------------------------
