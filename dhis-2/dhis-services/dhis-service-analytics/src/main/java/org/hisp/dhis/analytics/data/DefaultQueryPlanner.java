@@ -34,10 +34,10 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
-import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
+import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -45,17 +45,10 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.commons.collection.PaginatedList;
-import org.hisp.dhis.commons.filter.FilterUtils;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.filter.AggregatableDataElementFilter;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,10 +62,9 @@ import java.util.function.Function;
 
 import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
-import static org.hisp.dhis.analytics.DataQueryParams.COMPLETENESS_DIMENSION_TYPES;
-import static org.hisp.dhis.common.DimensionalObject.*;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 
 /**
  * @author Lars Helge Overland
@@ -81,166 +73,18 @@ public class DefaultQueryPlanner
     implements QueryPlanner
 {
     private static final Log log = LogFactory.getLog( DefaultQueryPlanner.class );
-
+    
     @Autowired
-    private SystemSettingManager systemSettingManager;
+    private QueryValidator queryValidator;
 
     // -------------------------------------------------------------------------
-    // DefaultQueryPlanner implementation
+    // QueryPlanner implementation
     // -------------------------------------------------------------------------
-
-    @Override
-    public void validate( DataQueryParams params )
-        throws IllegalQueryException
-    {
-        String violation = null;
-
-        if ( params == null )
-        {
-            throw new IllegalQueryException( "Params cannot be null" );
-        }
-
-        final List<DimensionalItemObject> dataElements = Lists.newArrayList( params.getDataElements() );
-        params.getProgramDataElements().stream().forEach( pde -> dataElements.add( ((ProgramDataElementDimensionItem) pde).getDataElement() ) );        
-        final List<DataElement> nonAggDataElements = FilterUtils.inverseFilter( asTypedList( dataElements ), AggregatableDataElementFilter.INSTANCE );
-
-        if ( params.getDimensions().isEmpty() )
-        {
-            violation = "At least one dimension must be specified";
-        }
-
-        if ( !params.getDimensionsAsFilters().isEmpty() )
-        {
-            violation = "Dimensions cannot be specified as dimension and filter simultaneously: " + params.getDimensionsAsFilters();
-        }
-
-        if ( !params.hasPeriods() && !params.isSkipPartitioning() && !params.hasStartEndDate() )
-        {
-            violation = "At least one period must be specified as dimension or filter";
-        }
-        
-        if ( params.hasPeriods() && params.hasStartEndDate() )
-        {
-            violation = "Periods and start and end dates cannot be specified simultaneously";
-        }
-
-        if ( !params.getFilterIndicators().isEmpty() && params.getFilterOptions( DATA_X_DIM_ID ).size() > 1 )
-        {
-            violation = "Only a single indicator can be specified as filter";
-        }
-
-        if ( !params.getFilterReportingRates().isEmpty() && params.getFilterOptions( DATA_X_DIM_ID ).size() > 1 )
-        {
-            violation = "Only a single reporting rate can be specified as filter";
-        }
-
-        if ( params.getFilters().contains( new BaseDimensionalObject( CATEGORYOPTIONCOMBO_DIM_ID ) ) )
-        {
-            violation = "Category option combos cannot be specified as filter";
-        }
-
-        if ( !params.getDuplicateDimensions().isEmpty() )
-        {
-            violation = "Dimensions cannot be specified more than once: " + params.getDuplicateDimensions();
-        }
-        
-        if ( !params.getAllReportingRates().isEmpty() && !params.containsOnlyDimensionsAndFilters( COMPLETENESS_DIMENSION_TYPES ) )
-        {
-            violation = "Reporting rates can only be specified together with dimensions of type: " + COMPLETENESS_DIMENSION_TYPES;
-        }
-
-        if ( params.hasDimensionOrFilter( CATEGORYOPTIONCOMBO_DIM_ID ) && params.getAllDataElements().isEmpty() )
-        {
-            violation = "Assigned categories cannot be specified when data elements are not specified";
-        }
-
-        if ( params.hasDimensionOrFilter( CATEGORYOPTIONCOMBO_DIM_ID ) && ( params.getAllDataElements().size() != params.getAllDataDimensionItems().size() ) )
-        {
-            violation = "Assigned categories can only be specified together with data elements, not indicators or reporting rates";
-        }
-        
-        if ( !nonAggDataElements.isEmpty() )
-        {
-            violation = "Data elements must be of a value and aggregation type that allow aggregation: " + getUids( nonAggDataElements );
-        }
-        
-        if ( params.isOutputFormat( OutputFormat.DATA_VALUE_SET ) )
-        {
-            if ( !params.hasDimension( DATA_X_DIM_ID ) )
-            {
-                violation = "A data dimension 'dx' must be specified when output format is DATA_VALUE_SET";
-            }
-            
-            if ( !params.hasDimension( PERIOD_DIM_ID ) )
-            {
-                violation = "A period dimension 'pe' must be specified when output format is DATA_VALUE_SET";
-            }
-                        
-            if ( !params.hasDimension( ORGUNIT_DIM_ID ) )
-            {
-                violation = "An organisation unit dimension 'ou' must be specified when output format is DATA_VALUE_SET";
-            }
-        }
-
-        if ( violation != null )
-        {
-            log.warn( String.format( "Analytics validation failed: %s", violation ) );
-
-            throw new IllegalQueryException( violation );
-        }
-    }
-
-    @Override
-    public void validateTableLayout( DataQueryParams params, List<String> columns, List<String> rows )
-    {
-        String violation = null;
-
-        if ( columns != null )
-        {
-            for ( String column : columns )
-            {
-                if ( !params.hasDimension( column ) )
-                {
-                    violation = "Column must be present as dimension in query: " + column;
-                }
-            }
-        }
-
-        if ( rows != null )
-        {
-            for ( String row : rows )
-            {
-                if ( !params.hasDimension( row ) )
-                {
-                    violation = "Row must be present as dimension in query: " + row;
-                }
-            }
-        }
-
-        if ( violation != null )
-        {
-            log.warn( String.format( "Validation failed: %s", violation ) );
-
-            throw new IllegalQueryException( violation );
-        }
-    }
-
-    @Override
-    public void validateMaintenanceMode()
-        throws MaintenanceModeException
-    {
-        boolean maintenance = (Boolean) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_MAINTENANCE_MODE );
-
-        if ( maintenance )
-        {
-            throw new MaintenanceModeException( "Analytics engine is in maintenance mode, try again later" );
-        }
-    }
 
     @Override
     public DataQueryGroups planQuery( DataQueryParams params, QueryPlannerParams plannerParams )
     {
-        validate( params );
+        queryValidator.validate( params );
 
         // ---------------------------------------------------------------------
         // Group queries which can be executed together

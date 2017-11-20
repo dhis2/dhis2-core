@@ -33,14 +33,11 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DimensionItem;
-import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.table.AnalyticsTableType;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -67,9 +64,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.junit.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
@@ -82,10 +77,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import static org.hisp.dhis.common.DimensionalObject.*;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
-import static org.junit.Assert.*;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Lars Helge Overland
@@ -132,17 +132,11 @@ public class QueryPlannerTest
     private DataElement deG;
     private DataElement deH;
     
-    private ProgramDataElementDimensionItem pdeA;
-    private ProgramDataElementDimensionItem pdeB;
-
     private ReportingRate rrA;
     private ReportingRate rrB;
     private ReportingRate rrC;
     private ReportingRate rrD;
 
-    private Period peA;
-    private Period peB;
-    
     private DataElementCategoryOptionCombo coc;
 
     private OrganisationUnit ouA;
@@ -192,9 +186,6 @@ public class QueryPlannerTest
         dataElementService.addDataElement( deG );
         dataElementService.addDataElement( deH );
 
-        pdeA = new ProgramDataElementDimensionItem( prA, deA );
-        pdeB = new ProgramDataElementDimensionItem( prA, deB );
-
         DataSet dsA = createDataSet( 'A', pt );
         DataSet dsB = createDataSet( 'B', pt );
         DataSet dsC = createDataSet( 'C', pt );
@@ -209,9 +200,6 @@ public class QueryPlannerTest
         rrB = new ReportingRate( dsB );
         rrC = new ReportingRate( dsC );
         rrD = new ReportingRate( dsD );
-
-        peA = PeriodType.getPeriodFromIsoString( "201501" );
-        peB = PeriodType.getPeriodFromIsoString( "201502" );
 
         coc = categoryService.getDefaultDataElementCategoryOptionCombo();
 
@@ -997,120 +985,6 @@ public class QueryPlannerTest
             assertNotNull( query.getAggregationType() );
             assertEquals( AggregationType.AVERAGE_BOOL, query.getAggregationType() );
         }
-    }
-    
-    @Test
-    public void validateSuccesA()
-    {
-        DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
-            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deB ) ) ).build();
-        
-        queryPlanner.validate( params );
-    }
-
-    @Test
-    public void validateSuccesB()
-    {
-        DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deB, pdeA, pdeB ) ) )
-            .addFilter( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) ).build();
-        
-        queryPlanner.validate( params );
-    }
-
-    @Test
-    public void validateSuccesSingleIndicatorFilter()
-    {
-        DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
-            .addFilter( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( inA ) ) ).build();
-        
-        queryPlanner.validate( params );
-    }
-    
-    @Test( expected = IllegalQueryException.class )
-    public void validateFailureSingleIndicatorAsFilter()
-    {
-        DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
-            .addFilter( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, inA ) ) ).build();
-        
-        queryPlanner.validate( params );
-    }
-
-    @Test( expected = IllegalQueryException.class )
-    public void validateFailureMultipleIndicatorsFilter()
-    {
-        DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
-            .addFilter( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( inA, inB ) ) ).build();
-        
-        queryPlanner.validate( params );
-    }
-
-    @Test( expected = IllegalQueryException.class )
-    public void validateFailureReportingRatesAndDataElementGroupSetAsDimensions()
-    {
-        DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
-            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( rrA, inA ) ) )
-            .addDimension( new BaseDimensionalObject( dgsA.getDimension(), DimensionType.DATA_ELEMENT_GROUP_SET, getList( deA ) ) ).build();
-        
-        queryPlanner.validate( params );
-    }
-
-    @Test( expected = IllegalQueryException.class )
-    public void validateFailureValueType()
-    {
-        deB.setValueType( ValueType.FILE_RESOURCE );
-        
-        DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deB ) ) )
-            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) ).build();
-        
-        queryPlanner.validate( params );
-    }
-
-    @Test( expected = IllegalQueryException.class )
-    public void validateFailureAggregationType()
-    {
-        deB.setAggregationType( AggregationType.CUSTOM );
-        
-        DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deB ) ) )
-            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) ).build();
-        
-        queryPlanner.validate( params );
-    }
-
-    @Test( expected = IllegalQueryException.class )
-    public void validateFailureOptionCombosWithIndicators()
-    {
-        DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, inA ) ) )
-            .addDimension( new BaseDimensionalObject( CATEGORYOPTIONCOMBO_DIM_ID, DimensionType.DATA_X, getList() ) )
-            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) ).build();
-        
-        queryPlanner.validate( params );
-    }
-
-    @Test( expected = IllegalQueryException.class )
-    public void validateMissingOrgUnitDimensionOutputFormatDataValueSet()
-    {
-        DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deB ) ) )
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
-            .withOutputFormat( OutputFormat.DATA_VALUE_SET ).build();
-        
-        queryPlanner.validate( params );
     }
     
     @Test
