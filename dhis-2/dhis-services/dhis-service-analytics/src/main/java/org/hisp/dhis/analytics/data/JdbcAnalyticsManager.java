@@ -381,7 +381,7 @@ public class JdbcAnalyticsManager
 
     /**
      * If preAggregationMeasureCriteria is specified, generates a query which
-     * provides a filtered view of the data according to the criteria .If not, 
+     * provides a filtered view of the data according to the criteria. If not, 
      * returns the full view of the partition.
      */
     private String getPartitionSql( DataQueryParams params )

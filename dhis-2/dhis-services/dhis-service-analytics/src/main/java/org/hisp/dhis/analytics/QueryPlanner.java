@@ -75,7 +75,7 @@ public interface QueryPlanner
     
     /**
      * Creates a DataQueryGroups object. It is mandatory to group the queries by
-     * the following criteria: 1) partition / year 2) organisation  unit level
+     * the following criteria: 1) partition / year 2) organisation unit level
      * 3) period type 4) aggregation type. The DataQueryGroups contains groups of 
      * queries. The query groups should be run in sequence while the queries within
      * each group should be run in parallel for optimal performance.
@@ -97,7 +97,7 @@ public interface QueryPlanner
         throws IllegalQueryException;
 
     /**
-     * Sets the table name and partitions on the query.
+     * Sets the table name and partitions on the given query.
      * 
      * @param params the data query parameters.
      * @param plannerParams the query planner parameters.

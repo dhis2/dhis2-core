@@ -42,7 +42,7 @@ public interface RawAnalyticsManager
      * 
      * @param params the query.
      * @param grid the grid.
-     * @return
+     * @return a grid with data.
      */
-    void getRawDataValues( DataQueryParams params, Grid grid );    
+    Grid getRawDataValues( DataQueryParams params, Grid grid );    
 }
