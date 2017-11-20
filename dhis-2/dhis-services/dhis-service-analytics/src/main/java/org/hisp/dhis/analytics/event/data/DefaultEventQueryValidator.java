@@ -23,7 +23,11 @@ public class DefaultEventQueryValidator
     
     @Autowired
     private SystemSettingManager systemSettingManager;
-    
+
+    // -------------------------------------------------------------------------
+    // EventQueryValidator implementation
+    // -------------------------------------------------------------------------
+
     @Override
     public void validate( EventQueryParams params )
         throws IllegalQueryException, MaintenanceModeException
