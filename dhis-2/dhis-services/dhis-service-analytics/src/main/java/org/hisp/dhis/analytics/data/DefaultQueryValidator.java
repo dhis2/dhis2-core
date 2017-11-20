@@ -67,7 +67,11 @@ public class DefaultQueryValidator
 
     @Autowired
     private SystemSettingManager systemSettingManager;
-    
+
+    // -------------------------------------------------------------------------
+    // QueryValidator implementation
+    // -------------------------------------------------------------------------
+
     @Override
     public void validate( DataQueryParams params )
         throws IllegalQueryException

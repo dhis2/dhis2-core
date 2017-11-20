@@ -71,6 +71,8 @@ public class DefaultEventQueryPlanner
     // EventQueryPlanner implementation
     // -------------------------------------------------------------------------
 
+    //TODO split out validation
+    
     @Override
     public void validate( EventQueryParams params )
         throws IllegalQueryException, MaintenanceModeException

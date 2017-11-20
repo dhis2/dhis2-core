@@ -78,7 +78,7 @@ public class DefaultQueryPlanner
     private QueryValidator queryValidator;
 
     // -------------------------------------------------------------------------
-    // DefaultQueryPlanner implementation
+    // QueryPlanner implementation
     // -------------------------------------------------------------------------
 
     @Override
