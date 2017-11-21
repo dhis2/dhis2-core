@@ -283,12 +283,14 @@ public abstract class AbstractTrackedEntityInstanceService
             importOptions = new ImportOptions();
         }
 
+        User user = currentUserService.getCurrentUser();
+
         ImportSummaries importSummaries = new ImportSummaries();
         int counter = 0;
 
         for ( TrackedEntityInstance trackedEntityInstance : trackedEntityInstances )
         {
-            importSummaries.addImportSummary( addTrackedEntityInstance( trackedEntityInstance, importOptions ) );
+            importSummaries.addImportSummary( addTrackedEntityInstance( trackedEntityInstance, user, importOptions ) );
 
             if ( counter % FLUSH_FREQUENCY == 0 )
             {
@@ -303,6 +305,11 @@ public abstract class AbstractTrackedEntityInstanceService
 
     @Override
     public ImportSummary addTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions )
+    {
+        return addTrackedEntityInstance( trackedEntityInstance, currentUserService.getCurrentUser(), importOptions );
+    }
+
+    private ImportSummary addTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, User user, ImportOptions importOptions )
     {
         if ( importOptions == null )
         {
@@ -336,7 +343,7 @@ public abstract class AbstractTrackedEntityInstanceService
         teiService.addTrackedEntityInstance( entityInstance );
 
         updateRelationships( trackedEntityInstance, entityInstance );
-        updateAttributeValues( trackedEntityInstance, entityInstance );
+        updateAttributeValues( trackedEntityInstance, entityInstance, user );
         updateDateFields( trackedEntityInstance, entityInstance );
 
         teiService.updateTrackedEntityInstance( entityInstance );
@@ -362,12 +369,14 @@ public abstract class AbstractTrackedEntityInstanceService
             importOptions = new ImportOptions();
         }
 
+        User user = currentUserService.getCurrentUser();
+
         ImportSummaries importSummaries = new ImportSummaries();
         int counter = 0;
 
         for ( TrackedEntityInstance trackedEntityInstance : trackedEntityInstances )
         {
-            importSummaries.addImportSummary( updateTrackedEntityInstance( trackedEntityInstance, importOptions ) );
+            importSummaries.addImportSummary( updateTrackedEntityInstance( trackedEntityInstance, user, importOptions ) );
 
             if ( counter % FLUSH_FREQUENCY == 0 )
             {
@@ -382,6 +391,11 @@ public abstract class AbstractTrackedEntityInstanceService
 
     @Override
     public ImportSummary updateTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions )
+    {
+        return updateTrackedEntityInstance( trackedEntityInstance, currentUserService.getCurrentUser(), importOptions );
+    }
+
+    private ImportSummary updateTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, User user, ImportOptions importOptions )
     {
         if ( importOptions == null )
         {
@@ -434,7 +448,7 @@ public abstract class AbstractTrackedEntityInstanceService
         teiService.updateTrackedEntityInstance( entityInstance );
 
         updateRelationships( trackedEntityInstance, entityInstance );
-        updateAttributeValues( trackedEntityInstance, entityInstance );
+        updateAttributeValues( trackedEntityInstance, entityInstance, user );
         updateDateFields( trackedEntityInstance, entityInstance );
 
         teiService.updateTrackedEntityInstance( entityInstance );
@@ -520,10 +534,8 @@ public abstract class AbstractTrackedEntityInstanceService
     }
 
     private void updateAttributeValues( TrackedEntityInstance trackedEntityInstance,
-        org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance )
+        org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance, User user )
     {
-        User user = currentUserService.getCurrentUser();
-
         for ( Attribute attribute : trackedEntityInstance.getAttributes() )
         {
             TrackedEntityAttribute entityAttribute = manager.get( TrackedEntityAttribute.class,
