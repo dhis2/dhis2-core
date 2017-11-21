@@ -10,10 +10,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.scheduling.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
@@ -132,6 +129,13 @@ public class JobConfigurationObjectBundleHook
         if ( parameterValidation != null )
         {
             errorReports.add( parameterValidation );
+        }
+
+        Job job = schedulingManager.getJob( jobConfiguration.getJobType() );
+        ErrorReport jobValidation = job.validate();
+        if ( jobValidation != null )
+        {
+            errorReports.add( jobValidation );
         }
 
         return errorReports;

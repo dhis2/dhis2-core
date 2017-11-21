@@ -34,8 +34,12 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.sync.*;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
+import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
+import org.hisp.dhis.dxf2.synch.SynchronizationManager;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.metadata.version.MetadataVersion;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
@@ -54,7 +58,7 @@ import java.util.List;
  * @author anilkumk
  */
 public class MetadataSyncJob
-    implements Job
+    extends AbstractJob
 {
     public static String VERSION_KEY = "version";
     public static String DATA_PUSH_SUMMARY = "dataPushSummary";
@@ -72,6 +76,9 @@ public class MetadataSyncJob
 
     @Autowired
     private RetryTemplate retryTemplate;
+
+    @Autowired
+    private SynchronizationManager synchronizationManager;
 
     @Autowired
     private MetadataSyncPreProcessor metadataSyncPreProcessor;
@@ -121,6 +128,19 @@ public class MetadataSyncJob
         {
             log.error( "Exception occurred while executing metadata sync task." + e.getMessage(), e );
         }
+    }
+
+    @Override
+    public ErrorReport validate()
+    {
+        AvailabilityStatus isRemoteServerAvailable = synchronizationManager.isRemoteServerAvailable();
+
+        if ( !isRemoteServerAvailable.isAvailable() )
+        {
+            return new ErrorReport( MetadataSyncJob.class, ErrorCode.E7010, isRemoteServerAvailable.getMessage() );
+        }
+
+        return super.validate();
     }
 
     public synchronized void runSyncTask( MetadataRetryContext context ) throws MetadataSyncServiceException, DhisVersionMismatchException

@@ -29,7 +29,7 @@ package org.hisp.dhis.program.notification;
  */
 
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -43,7 +43,7 @@ import java.util.Calendar;
  * @author Halvdan Hoem Grelland
  */
 public class ProgramNotificationJob
-    implements Job
+    extends AbstractJob
 {
     @Autowired
     private ProgramNotificationService programNotificationService;
