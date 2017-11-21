@@ -28,34 +28,29 @@ package org.hisp.dhis.mobile.action.incoming;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
-import org.hisp.dhis.sms.outbound.OutboundSms;
-import org.hisp.dhis.sms.task.SendSmsTask;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.opensymphony.xwork2.Action;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ProcessingSendQuickSMSAction
     implements Action
@@ -77,13 +72,10 @@ public class ProcessingSendQuickSMSAction
     private GatewayAdministrationService gatewayAdminService;
 
     @Autowired
-    private Scheduler scheduler;
+    private SchedulingManager schedulingManager;
 
     @Autowired
     private Notifier notifier;
-
-    @Autowired
-    private SendSmsTask sendSmsTask;
 
     // -------------------------------------------------------------------------
     // Input & Output
@@ -151,7 +143,6 @@ public class ProcessingSendQuickSMSAction
     public String execute()
         throws Exception
     {
-
         gatewayId = gatewayAdminService.getDefaultGateway().getName();
 
         if ( gatewayId == null || gatewayId.trim().length() == 0 )
@@ -257,19 +248,15 @@ public class ProcessingSendQuickSMSAction
             }
         }
 
-        TaskId taskId = new TaskId( TaskCategory.SENDING_SMS, currentUser );
-        notifier.clear( taskId );
+        JobId jobId = new JobId( JobType.SMS_SEND, currentUser.getUid() );
+        notifier.clear( jobId );
 
-        OutboundSms sms = new OutboundSms();
-        sms.setMessage( text );
-        sms.setRecipients( recipientsList.stream().map( item -> item.getPhoneNumber() ).collect( Collectors.toSet() ) );
-        sms.setSender( OutboundSms.DHIS_SYSTEM_SENDER );
+        SmsJobParameters jobParameters = new SmsJobParameters( "", text, recipientsList.stream().map( User::getPhoneNumber ).collect( Collectors.toList() ) );
 
-        sendSmsTask.setTaskId( taskId );
-        sendSmsTask.setCurrentUser( currentUser );
-        sendSmsTask.setSms( sms );
+        JobConfiguration processingSendSmsJobConfiguration = new JobConfiguration( "processingSendQuickSmsAction", JobType.SMS_SEND, null, jobParameters,
+            false, true );
 
-        scheduler.executeTask( sendSmsTask );
+        schedulingManager.executeJob( processingSendSmsJobConfiguration );
 
         if ( message != null && !message.equals( "success" ) )
         {

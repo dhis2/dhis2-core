@@ -52,7 +52,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 
-import static org.apache.commons.lang3.StringEscapeUtils.escapeHtml3;
+import static org.apache.commons.text.StringEscapeUtils.escapeHtml3;
 
 /**
  * @author Bharath Kumar

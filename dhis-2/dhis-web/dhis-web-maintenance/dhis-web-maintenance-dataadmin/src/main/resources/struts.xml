@@ -299,8 +299,6 @@
       <param name="requiredAuthorities">F_DATASET_DELETE</param>
     </action>
 
-    <!-- Scheduling -->
-
     <action name="viewScheduledTasks" class="org.hisp.dhis.dataadmin.action.scheduling.ScheduleTasksAction">
       <result name="success" type="velocity">/main.vm</result>
       <param name="page">/dhis-web-maintenance-dataadmin/viewScheduledTasks.vm</param>
@@ -327,8 +325,8 @@
       <param name="schedule">true</param>
       <param name="requiredAuthorities">F_SCHEDULING_ADMIN</param>
     </action>
-    
-     <action name="executeTask" class="org.hisp.dhis.dataadmin.action.scheduling.ScheduleTasksAction">
+
+    <action name="executeTask" class="org.hisp.dhis.dataadmin.action.scheduling.ScheduleTasksAction">
       <result name="success" type="redirect">viewScheduledTasks.action</result>
       <param name="page">/dhis-web-maintenance-dataadmin/viewScheduledTasks.vm</param>
       <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
@@ -336,6 +334,5 @@
       <param name="executeNow">true</param>
       <param name="requiredAuthorities">F_SCHEDULING_ADMIN</param>
     </action>
-
   </package>
 </struts>

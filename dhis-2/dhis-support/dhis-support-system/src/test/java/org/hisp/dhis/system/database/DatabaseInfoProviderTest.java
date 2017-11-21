@@ -28,11 +28,11 @@ package org.hisp.dhis.system.database;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertNotNull;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Lars Helge Overland
