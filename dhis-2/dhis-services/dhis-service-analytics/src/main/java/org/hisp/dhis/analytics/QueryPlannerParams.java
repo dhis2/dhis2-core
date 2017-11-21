@@ -53,9 +53,7 @@ public class QueryPlannerParams
     private int optimalQueries;
     
     private String tableName;
-    
-    private String tableSuffix;
-    
+        
     private List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers = new ArrayList<>();
 
     // -------------------------------------------------------------------------
@@ -97,16 +95,6 @@ public class QueryPlannerParams
     }
 
     /**
-     * Returns the suffix of the analytics table name.
-     * 
-     * @return the suffix of the analytics table name.
-     */
-    public String getTableSuffix()
-    {
-        return tableSuffix;
-    }
-
-    /**
      * Returns additional query groupers to apply in planning.
      * 
      * @return additional query groupers to apply in planning.
@@ -141,12 +129,6 @@ public class QueryPlannerParams
         public Builder withTableName( String tableName )
         {
             this.params.tableName = tableName;
-            return this;
-        }
-        
-        public Builder withTableSuffix( String tableSuffix )
-        {
-            this.params.tableSuffix = tableSuffix;
             return this;
         }
         

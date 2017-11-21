@@ -28,8 +28,6 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.DataSet;
@@ -63,8 +61,6 @@ import static org.hisp.dhis.expression.Operator.*;
 public class ValidationServiceTest
     extends DhisTest
 {
-    private static final Log log = LogFactory.getLog( ValidationServiceTest.class );
-
     @Autowired
     private ValidationService validationService;
 
@@ -509,8 +505,10 @@ public class ValidationServiceTest
         // insures that if they are the same as the reference results, they will
         // appear in the same order.
 
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( getDate( 2000, 2, 1 ),
-            getDate( 2000, 6, 1 ), sourcesA, false, null, null, false, null );
+        ValidationAnalysisParams parameters = validationService.newParamsBuilder(null, sourcesA, getDate( 2000, 2, 1 ), getDate( 2000, 6, 1 ) )
+            .build();
+
+        Collection<ValidationResult> results = validationService.validationAnalysis( parameters );
 
         Collection<ValidationResult> reference = new HashSet<>();
 
@@ -560,9 +558,10 @@ public class ValidationServiceTest
 
         validationRuleService.addValidationRuleGroup( group );
 
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( getDate( 2000, 2, 1 ),
-            getDate( 2000, 6, 1 ), sourcesA, false, null, group, false, null );
+        ValidationAnalysisParams params = validationService.newParamsBuilder(group, sourcesA, getDate( 2000, 2, 1 ), getDate( 2000, 6, 1 ) )
+            .build();
 
+        Collection<ValidationResult> results = validationService.validationAnalysis( params );
         Collection<ValidationResult> reference = new HashSet<>();
 
         reference.add( new ValidationResult( validationRuleA, periodA, sourceA, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
@@ -586,8 +585,8 @@ public class ValidationServiceTest
         validationRuleService.saveValidationRule( validationRuleC );
         validationRuleService.saveValidationRule( validationRuleD );
 
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
-
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .build() );
         Collection<ValidationResult> reference = new HashSet<>();
 
         reference.add( new ValidationResult( validationRuleA, periodA, sourceA, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
@@ -609,7 +608,8 @@ public class ValidationServiceTest
         validationRuleService.saveValidationRule( validationRuleA );
         validationRuleService.saveValidationRule( validationRuleB );
 
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .build() );
 
         Collection<ValidationResult> reference = new HashSet<>();
 
@@ -627,7 +627,8 @@ public class ValidationServiceTest
         validationRuleService.saveValidationRule( validationRuleP );
         validationRuleService.saveValidationRule( validationRuleQ );
 
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .build() );
 
         Collection<ValidationResult> reference = new HashSet<>();
 
@@ -635,7 +636,8 @@ public class ValidationServiceTest
 
         assertResultsEquals( reference, results );
 
-        results = validationService.startInteractiveValidationAnalysis( dataSetYearly, periodY, sourceB, null );
+        results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetYearly, sourceB, periodY )
+            .build() );
 
         reference = new HashSet<>();
 
@@ -649,7 +651,8 @@ public class ValidationServiceTest
     {
         validationRuleService.saveValidationRule( validationRuleG );
 
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .build() );
 
         assertResultsEmpty( results );
     }
@@ -663,7 +666,8 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .build() );
 
         reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 0.0, 1.0, dayInPeriodA ) );
 
@@ -679,7 +683,8 @@ public class ValidationServiceTest
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .build() );
 
         reference.add( new ValidationResult( validationRuleG, periodA, sourceA, defaultCombo, 1.0, 0.0, dayInPeriodA ) );
 
@@ -692,7 +697,8 @@ public class ValidationServiceTest
         useDataValue( dataElementC, periodA, sourceA, "1" );
         useDataValue( dataElementD, periodA, sourceA, "1" );
 
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .build() );
 
         assertResultsEmpty( results );
     }
@@ -702,7 +708,8 @@ public class ValidationServiceTest
     {
         validationRuleService.saveValidationRule( validationRuleE );
 
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .build() );
 
         assertResultsEmpty( results );
     }
@@ -714,7 +721,8 @@ public class ValidationServiceTest
 
         validationRuleService.saveValidationRule( validationRuleE );
 
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .build() );
 
         Collection<ValidationResult> reference = new HashSet<>();
 
@@ -730,7 +738,8 @@ public class ValidationServiceTest
 
         validationRuleService.saveValidationRule( validationRuleE );
 
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .build() );
 
         Collection<ValidationResult> reference = new HashSet<>();
 
@@ -747,7 +756,8 @@ public class ValidationServiceTest
 
         validationRuleService.saveValidationRule( validationRuleE );
 
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .build() );
 
         assertResultsEmpty( results );
     }
@@ -760,7 +770,8 @@ public class ValidationServiceTest
 
         validationRuleService.saveValidationRule( validationRuleF );
 
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .build() );
 
         Collection<ValidationResult> reference = new HashSet<>();
 
@@ -779,7 +790,8 @@ public class ValidationServiceTest
 
         validationRuleService.saveValidationRule( validationRuleF );
 
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .build() );
 
         Collection<ValidationResult> reference = new HashSet<>();
 
@@ -798,7 +810,8 @@ public class ValidationServiceTest
 
         validationRuleService.saveValidationRule( validationRuleF );
 
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .build() );
 
         Collection<ValidationResult> reference = new HashSet<>();
 
@@ -818,7 +831,8 @@ public class ValidationServiceTest
 
         validationRuleService.saveValidationRule( validationRuleF );
 
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .build() );
 
         Collection<ValidationResult> reference = new HashSet<>();
 
@@ -833,7 +847,8 @@ public class ValidationServiceTest
     {
         validationRuleService.saveValidationRule( validationRuleF );
 
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .build() );
 
         assertResultsEmpty( results );
     }
@@ -845,7 +860,8 @@ public class ValidationServiceTest
 
         validationRuleService.saveValidationRule( validationRuleF );
 
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .build() );
 
         assertResultsEmpty( results );
     }
@@ -857,7 +873,8 @@ public class ValidationServiceTest
 
         validationRuleService.saveValidationRule( validationRuleF );
 
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .build() );
 
         assertResultsEmpty( results );
     }
@@ -870,7 +887,8 @@ public class ValidationServiceTest
 
         validationRuleService.saveValidationRule( validationRuleF );
 
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .build() );
 
         Collection<ValidationResult> reference = new HashSet<>();
 
@@ -922,8 +940,9 @@ public class ValidationServiceTest
         //
         // optionComboAC
         //
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA,
-            optionComboAC );
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .withAttributeOptionCombo( optionComboAC )
+            .build() );
 
         Collection<ValidationResult> reference = new HashSet<>();
 
@@ -935,7 +954,8 @@ public class ValidationServiceTest
         //
         // All optionCombos
         //
-        results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
+        results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .build() );
 
         reference = new HashSet<>();
 
@@ -949,7 +969,9 @@ public class ValidationServiceTest
         //
         // Default optionCombo
         //
-        results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, optionCombo );
+        results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .withAttributeOptionCombo( optionCombo )
+            .build() );
 
         assertResultsEmpty( results );
     }

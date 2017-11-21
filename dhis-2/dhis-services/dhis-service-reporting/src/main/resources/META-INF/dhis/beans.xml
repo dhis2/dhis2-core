@@ -25,10 +25,6 @@
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
-  <bean id="dataStatisticsTask" class="org.hisp.dhis.datastatistics.DataStatisticsTask" scope="prototype" />
-
-  <bean id="credentialsExpiryAlertTask" class="org.hisp.dhis.credentials.CredentialsExpiryAlertTask" scope="prototype"/>
-
   <!-- ReportTable -->
 
   <bean id="org.hisp.dhis.reporttable.ReportTableService" class="org.hisp.dhis.reporttable.impl.DefaultReportTableService">
@@ -168,32 +164,14 @@
 
   <bean id="org.hisp.dhis.validation.ValidationRunContext" class="org.hisp.dhis.validation.ValidationRunContext" scope="prototype" />
 
-  <bean id="validationTask" class="org.hisp.dhis.validation.DataValidationTask" scope="prototype" />
-
-  <bean id="monitoringLastDayTask" class="org.hisp.dhis.validation.scheduling.MonitoringTask" scope="prototype" />
-
   <!-- Scheduling -->
 
-  <bean id="org.hisp.dhis.scheduling.SchedulingManager" class="org.hisp.dhis.scheduling.DefaultSchedulingManager">
-    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
-    <property name="scheduler" ref="scheduler" />
-    <property name="tasks">
-      <map>
-        <entry key="dataStatisticsTask" value-ref="dataStatisticsTask" />
-        <entry key="resourceTableTask" value-ref="resourceTableTask" />
-        <entry key="resourceTable15MinTask" value-ref="resourceTable15MinTask" />
-        <entry key="analyticsAllTask" value-ref="analyticsAllTask" />
-        <entry key="analyticsLast3YearsTask" value-ref="analyticsLast3YearsTask" />
-        <entry key="monitoringLastDayTask" value-ref="monitoringLastDayTask" />
-        <entry key="dataSynchTask" value-ref="dataSynchTask" />
-        <entry key="metadataSyncTask" value-ref="metadataSyncTask" />
-        <entry key="sendScheduledMessageTaskNow" value-ref="sendScheduledMessageTaskNow" />
-        <entry key="scheduledProgramNotificationsTask" value-ref="scheduledProgramNotificationsTask" />
-        <entry key="validationResultNotificationTask" value-ref="validationResultNotificationTask" />
-        <entry key="credentialsExpiryAlertTask" value-ref="credentialsExpiryAlertTask" />
-      </map>
-    </property>
-  </bean>
+  <bean id="validationTask" class="org.hisp.dhis.validation.DataValidationTask" scope="prototype" name="dataValidationTask" />
+  <bean id="dataStatisticsJob" class="org.hisp.dhis.datastatistics.DataStatisticsJob" />
+  <bean id="credentialsExpiryAlertJob" class="org.hisp.dhis.credentials.CredentialsExpiryAlertJob" />
+  <bean id="monitoringJob" class="org.hisp.dhis.validation.scheduling.MonitoringJob" />
+  <bean id="pushAnalysis" class="org.hisp.dhis.pushanalysis.scheduling.PushAnalysisJob" />
+  <bean id="predicatorJob" class="org.hisp.dhis.predictor.PredictorJob" />
 
   <!-- Startup routine definitions -->
 

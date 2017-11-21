@@ -28,23 +28,26 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.AnalyticsTable;
+import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
+import org.hisp.dhis.program.Program;
 import org.joda.time.DateTime;
+
+import com.google.common.collect.Lists;
 
 /**
  * Utilities for analytics table partition handling.
@@ -64,7 +67,7 @@ public class PartitionUtils
 
         return PERIODTYPE.createPeriod( time.toDate(), calendar );
     }
-
+    
     public static Date getEarliestDate( Integer lastYears )
     {
         Date earliest = null;
@@ -82,75 +85,54 @@ public class PartitionUtils
 
         return earliest;
     }
+    
+    public static String getTableName( String baseName, Program program )
+    {
+        return baseName + SEP + program.getUid().toLowerCase();
+    }
 
-    public static Partitions getPartitions( Date startDate, Date endDate, String tablePrefix, String tableSuffix, Set<String> validPartitions )
+    public static Partitions getPartitions( List<DimensionalItemObject> periods )
+    {
+        final Set<Integer> years = new HashSet<>();
+        
+        periods.forEach( p -> {
+            Period period = (Period) p;
+            years.addAll( getYears( period ) );
+        } );
+        
+        return new Partitions( years );
+    }
+
+    public static Partitions getPartitions( Period period )
+    {
+        return new Partitions( getYears( period ) );
+    }
+    
+    public static Partitions getPartitions( Date startDate, Date endDate )
     {
         Period period = new Period();
         period.setStartDate( startDate );
         period.setEndDate( endDate );
         
-        return getPartitions( period, tablePrefix, tableSuffix, validPartitions );        
+        return getPartitions( period );        
     }
-    
-    public static Partitions getPartitions( Period period, String tablePrefix, String tableSuffix, Set<String> validPartitions )
-    {
-        tablePrefix = StringUtils.trimToEmpty( tablePrefix );
-        tableSuffix = StringUtils.trimToEmpty( tableSuffix );
 
-        Partitions partitions = new Partitions();
+    private static Set<Integer> getYears( Period period )
+    {
+        Set<Integer> years = new HashSet<>();
 
         int startYear = PeriodType.getCalendar().fromIso( period.getStartDate() ).getYear();
         int endYear = PeriodType.getCalendar().fromIso( period.getEndDate() ).getYear();
 
         while ( startYear <= endYear )
         {
-            String name = tablePrefix + SEP + startYear + tableSuffix;
-            partitions.add( name.toLowerCase() );
+            years.add( startYear );
             startYear++;
         }
 
-        return partitions.prunePartitions( validPartitions );
+        return years;
     }
     
-    public static Partitions getPartitions( String tablePrefix, String tableSuffix, Set<String> validPartitions )
-    {
-        tablePrefix = StringUtils.trimToEmpty( tablePrefix );
-        tableSuffix = StringUtils.trimToEmpty( tableSuffix );
-
-        Partitions partitions = new Partitions();
-
-        String name = tablePrefix + tableSuffix;
-        partitions.add( name.toLowerCase() );
-
-        return partitions.prunePartitions( validPartitions );
-    }
-
-    public static Partitions getPartitions( List<DimensionalItemObject> periods, 
-        String tablePrefix, String tableSuffix, Set<String> validPartitions )
-    {
-        UniqueArrayList<String> partitions = new UniqueArrayList<>();
-
-        for ( DimensionalItemObject period : periods )
-        {
-            partitions.addAll( getPartitions( (Period) period, tablePrefix, tableSuffix, validPartitions ).getPartitions() );
-        }
-
-        return new Partitions( new ArrayList<>( partitions ) ).prunePartitions( validPartitions );
-    }
-
-    public static ListMap<Partitions, DimensionalItemObject> getPartitionPeriodMap( 
-        List<DimensionalItemObject> periods, String tablePrefix, String tableSuffix, Set<String> validPartitions )
-    {
-        ListMap<Partitions, DimensionalItemObject> map = new ListMap<>();
-
-        for ( DimensionalItemObject period : periods )
-        {
-            map.putValue( getPartitions( (Period) period, tablePrefix, tableSuffix, validPartitions ).prunePartitions( validPartitions ), period );
-        }
-
-        return map;
-    }
-
     /**
      * Creates a mapping between period type name and period for the given periods.
      */
@@ -166,5 +148,34 @@ public class PartitionUtils
         }
 
         return map;
+    }
+
+    /**
+     * Returns a list of table partitions based on the given analytics tables. For
+     * master tables with no partitions, a fake partition representing the master
+     * table is used.
+     * 
+     * @param tables the list of {@link AnalyticsTable}.
+     * @return a list of {@link AnalyticsTablePartition}.
+     */
+    public static List<AnalyticsTablePartition> getTablePartitions( List<AnalyticsTable> tables )
+    {
+        final List<AnalyticsTablePartition> partitions = Lists.newArrayList();
+        
+        for ( AnalyticsTable table : tables )
+        {
+            if ( table.hasPartitionTables() )
+            {
+                partitions.addAll( table.getPartitionTables() );
+            }
+            else
+            {
+                // Fake partition representing the master table
+                
+                partitions.add( new AnalyticsTablePartition( table, null, null, null, false ) );
+            }
+        }
+        
+        return partitions;
     }
 }

@@ -1,5 +1,7 @@
 package org.hisp.dhis.analytics;
 
+import com.google.common.base.MoreObjects;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -190,11 +192,6 @@ public class DataQueryParams
      * org unit names on rows.
      */
     protected boolean showHierarchy;
-
-    /**
-     * Indicates whether the org unit names included in the result should be in the result.
-     */
-    protected boolean includeOrgUnitNames;
     
     /**
      * Indicates whether to include the numerator, denominator and factor of 
@@ -270,6 +267,16 @@ public class DataQueryParams
      * The partitions containing data relevant to this query.
      */
     protected transient Partitions partitions;
+    
+    /**
+     * The name of the analytics table to use for this query.
+     */
+    protected transient String tableName;
+
+    /**
+     * Include organisation unit names in request.
+     */
+    protected boolean includeOrgUnitNames;
 
     /**
      * The data type for this query.
@@ -320,7 +327,7 @@ public class DataQueryParams
      * Hints for the aggregation process.
      */
     protected transient Set<ProcessingHint> processingHints = new HashSet<>();
-    
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -382,8 +389,8 @@ public class DataQueryParams
         params.ignoreLimit = this.ignoreLimit;
         params.hideEmptyRows = this.hideEmptyRows;
         params.showHierarchy = this.showHierarchy;
-        params.includeOrgUnitNames = this.includeOrgUnitNames;
         params.includeNumDen = this.includeNumDen;
+        params.includeOrgUnitNames = this.includeOrgUnitNames;
         params.displayProperty = this.displayProperty;
         params.outputIdScheme = this.outputIdScheme;
         params.outputFormat = this.outputFormat;
@@ -395,6 +402,7 @@ public class DataQueryParams
         
         params.currentUser = this.currentUser;
         params.partitions = new Partitions( this.partitions );
+        params.tableName = this.tableName;
         params.dataType = this.dataType;
         params.periodType = this.periodType;
         params.dataPeriodType = this.dataPeriodType;
@@ -421,17 +429,7 @@ public class DataQueryParams
     {
         return aggregationType != null ? aggregationType.toString() : null;
     }
-    
-    /**
-     * Indicates whether the filters of this query spans more than one partition.
-     * If true it means that a period filter exists and that the periods span
-     * multiple years.
-     */
-    public boolean spansMultiplePartitions()
-    {
-        return partitions != null && partitions.isMultiple();
-    }
-        
+            
     /**
      * Creates a mapping between filter dimension identifiers and filter dimensions. 
      * Filters are guaranteed not to be null.
@@ -1052,6 +1050,14 @@ public class DataQueryParams
     }
     
     /**
+     * Indicates whether this query has any partitions.
+     */
+    public boolean hasPartitions()
+    {
+        return partitions != null && partitions.hasAny();
+    }
+    
+    /**
      * Indicates whether this query has a data period type.
      */
     public boolean hasDataPeriodType()
@@ -1572,14 +1578,14 @@ public class DataQueryParams
     @Override
     public String toString()
     {
-        return ImmutableMap.<String, Object>builder()
-            .put( "Dimensions", dimensions )
-            .put( "Filters", filters )
-            .put( "Aggregation type", aggregationType )
-            .put( "Measure criteria", measureCriteria )
-            .put( "Output format", outputFormat )
-            .put( "API version", apiVersion )
-            .build().toString();
+        return MoreObjects.toStringHelper( this )
+            .add( "Dimensions", dimensions )
+            .add( "Filters", filters )
+            .add( "Aggregation type", aggregationType )
+            .add( "Measure criteria", measureCriteria )
+            .add( "Output format", outputFormat )
+            .add( "API version", apiVersion )
+            .toString();
     }
     
     // -------------------------------------------------------------------------
@@ -1665,7 +1671,7 @@ public class DataQueryParams
     {
         return includeOrgUnitNames;
     }
-    
+
     public boolean isIncludeNumDen()
     {
         return includeNumDen;
@@ -1744,6 +1750,11 @@ public class DataQueryParams
     {
         this.partitions = partitions;
     }
+    
+    public String getTableName()
+    {
+        return tableName;
+    }
 
     public DataType getDataType()
     {
@@ -1805,7 +1816,7 @@ public class DataQueryParams
     /**
      * Returns all indicators part of a dimension or filter.
      */
-    public List<DimensionalItemObject> getAllIndicators()
+    public List<DimensionalItemObject> getAllIndicatfors()
     {
         return ImmutableList.copyOf( ListUtils.union( getIndicators(), getFilterIndicators() ) );
     }
@@ -1856,6 +1867,14 @@ public class DataQueryParams
     public List<DimensionalItemObject> getAllValidationResults()
     {
         return ImmutableList.copyOf( ListUtils.union( getValidationResults(), getFilterValidationResults() ) );
+    }
+    
+    /**
+     * Returns all periods part of a dimension or filter.
+     */
+    public List<DimensionalItemObject> getAllPeriods()
+    {
+        return ImmutableList.copyOf( ListUtils.union( getPeriods(), getFilterPeriods() ) );
     }
 
     // -------------------------------------------------------------------------
@@ -2317,7 +2336,7 @@ public class DataQueryParams
             this.params.includeOrgUnitNames = includeOrgUnitNames;
             return this;
         }
-        
+
         public Builder withIncludeNumDen( boolean includeNumDen )
         {
             this.params.includeNumDen = includeNumDen;
@@ -2417,6 +2436,12 @@ public class DataQueryParams
         public Builder withPartitions( Partitions partitions )
         {
             this.params.partitions = partitions;
+            return this;
+        }
+        
+        public Builder withTableName( String tableName )
+        {
+            this.params.tableName = tableName;
             return this;
         }
         

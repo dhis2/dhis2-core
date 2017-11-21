@@ -47,7 +47,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -154,21 +153,6 @@ public class DefaultTrackedEntityAttributeService
         boolean displayOnVisitSchedule )
     {
         return attributeStore.getByDisplayOnVisitSchedule( displayOnVisitSchedule );
-    }
-
-    @Override
-    public List<TrackedEntityAttribute> getTrackedEntityAttributesWithoutProgram()
-    {
-        List<TrackedEntityAttribute> result = new ArrayList<>( attributeStore.getAll() );
-
-        List<Program> programs = programService.getAllPrograms();
-
-        for ( Program program : programs )
-        {
-            result.removeAll( program.getProgramAttributes() );
-        }
-
-        return result;
     }
 
     @Override

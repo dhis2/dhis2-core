@@ -46,6 +46,7 @@ import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.ProcessingHint;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
+import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -132,6 +133,9 @@ public class DefaultAnalyticsService
 
     @Autowired
     private QueryPlanner queryPlanner;
+    
+    @Autowired
+    private QueryValidator queryValidator;
 
     @Autowired
     private ExpressionService expressionService;
@@ -164,7 +168,7 @@ public class DefaultAnalyticsService
         params = securityManager.withDataApprovalConstraints( params );
         params = securityManager.withDimensionConstraints( params );
 
-        queryPlanner.validate( params );
+        queryValidator.validate( params );
 
         return getAggregatedDataValueGridInternal( params );
     }
@@ -187,7 +191,7 @@ public class DefaultAnalyticsService
         params = securityManager.withDataApprovalConstraints( params );
         params = securityManager.withDimensionConstraints( params );
 
-        queryPlanner.validate( params );
+        queryValidator.validate( params );
         
         return getRawDataGrid( params );
     }
@@ -862,7 +866,7 @@ public class DefaultAnalyticsService
         ListUtils.removeEmptys( columns );
         ListUtils.removeEmptys( rows );
 
-        queryPlanner.validateTableLayout( params, columns, rows );
+        queryValidator.validateTableLayout( params, columns, rows );
 
         ReportTable reportTable = new ReportTable();
 
@@ -1053,7 +1057,7 @@ public class DefaultAnalyticsService
      */
     private Map<String, Object> getAggregatedValueMap( DataQueryParams params, String tableName, List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers )
     {
-        queryPlanner.validateMaintenanceMode();
+        queryValidator.validateMaintenanceMode();
 
         int optimalQueries = MathUtils.getWithin( getProcessNo(), 1, MAX_QUERIES );
 
@@ -1141,9 +1145,9 @@ public class DefaultAnalyticsService
             QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
                 .withTableName( AnalyticsTableType.DATA_VALUE.getTableName() ).build();
             
-            List<DataQueryParams> queries = queryPlanner.groupByPartition( params, plannerParams );
-            
-            queries.forEach( query -> rawAnalyticsManager.getRawDataValues( query, grid ) );
+            params = queryPlanner.withTableNameAndPartitions( params, plannerParams );
+
+            rawAnalyticsManager.getRawDataValues( params, grid );
         }
     }
 

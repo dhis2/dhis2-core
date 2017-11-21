@@ -31,12 +31,9 @@ package org.hisp.dhis.security;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.intercept.LoginInterceptor;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTimeConstants;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.util.Assert;
@@ -64,15 +61,6 @@ public class DefaultAuthenticationSuccessHandler
     private static final int SESSION_DEFAULT = Integer.parseInt( ConfigurationKey.SYSTEM_SESSION_TIMEOUT.getDefaultValue() ); // 3600 s
     private static final String SESSION_MIN_MSG = "Session timeout must be greater than %d seconds";
     private static final String SESSION_INFO_MSG = "Session timeout set to %d seconds";
-    
-    @Autowired
-    private UserService userService;
-    
-    @Autowired
-    private SecurityService securityService;
-
-    @Autowired
-    private DhisConfigurationProvider config;
     
     private int systemSessionTimeout;
     

@@ -29,8 +29,6 @@ package org.hisp.dhis.sms.listener;
  */
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
@@ -59,8 +57,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class TrackedEntityRegistrationSMSListener
     extends BaseSMSListener
 {
-    private static final String defaultPattern = "([a-zA-Z]+)\\s*(\\d+)";
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -104,7 +100,7 @@ public class TrackedEntityRegistrationSMSListener
         SMSCommand smsCommand = smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
             ParserType.TRACKED_ENTITY_REGISTRATION_PARSER );
 
-        Map<String, String> parsedMessage = this.parse( message, smsCommand );
+        Map<String, String> parsedMessage = parseMessageInput( sms, smsCommand );
 
         Date date = SmsUtils.lookForDate( message );
         String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
@@ -112,21 +108,16 @@ public class TrackedEntityRegistrationSMSListener
 
         if ( orgUnits == null || orgUnits.size() == 0 )
         {
-            if ( StringUtils.isEmpty( smsCommand.getNoUserMessage() ) )
-            {
-                throw new SMSParserException( SMSCommand.NO_USER_MESSAGE );
-            }
-            else
-            {
-                throw new SMSParserException( smsCommand.getNoUserMessage() );
-            }
+            smsSender.sendMessage( null, StringUtils.defaultIfEmpty( smsCommand.getNoUserMessage(), SMSCommand.NO_USER_MESSAGE ), sms.getOriginator() );
+
+            throw new SMSParserException( StringUtils.defaultIfEmpty( smsCommand.getNoUserMessage(), SMSCommand.NO_USER_MESSAGE ) );
         }
 
         OrganisationUnit orgUnit = SmsUtils.selectOrganisationUnit( orgUnits, parsedMessage, smsCommand );
 
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
         trackedEntityInstance.setOrganisationUnit( orgUnit );
-        trackedEntityInstance.setTrackedEntity( trackedEntityService.getTrackedEntityByName( "Person" ) );
+        trackedEntityInstance.setTrackedEntity( trackedEntityService.getTrackedEntityByName( smsCommand.getProgram().getTrackedEntity().getName() ) );
         Set<TrackedEntityAttributeValue> patientAttributeValues = new HashSet<>();
 
         for ( SMSCode code : smsCommand.getCodes() )
@@ -150,7 +141,7 @@ public class TrackedEntityRegistrationSMSListener
             trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceId ), smsCommand.getProgram(),
             new Date(), date, orgUnit );
         
-        smsSender.sendMessage( null, "Entity Registered Successfully ", senderPhoneNumber );
+        smsSender.sendMessage( null, "Tracked Entity Registered Successfully", senderPhoneNumber );
         
         sms.setStatus( SmsMessageStatus.PROCESSED );
         sms.setParsed( true );
@@ -182,33 +173,5 @@ public class TrackedEntityRegistrationSMSListener
         trackedEntityAttributeValue.setEntityInstance( trackedEntityInstance );
         trackedEntityAttributeValue.setValue( value );
         return trackedEntityAttributeValue;
-    }
-
-    private Map<String, String> parse( String message, SMSCommand smsCommand )
-    {
-        HashMap<String, String> output = new HashMap<>();
-        Pattern pattern = Pattern.compile( defaultPattern );
-
-        if ( !StringUtils.isBlank( smsCommand.getSeparator() ) )
-        {
-            String x = "(\\w+)\\s*\\" + smsCommand.getSeparator().trim() + "\\s*([\\w ]+)\\s*(\\"
-                + smsCommand.getSeparator().trim() + "|$)*\\s*";
-            pattern = Pattern.compile( x );
-        }
-
-        Matcher matcher = pattern.matcher( message );
-
-        while ( matcher.find() )
-        {
-            String key = matcher.group( 1 );
-            String value = matcher.group( 2 );
-
-            if ( !StringUtils.isEmpty( key ) && !StringUtils.isEmpty( value ) )
-            {
-                output.put( key.toUpperCase(), value );
-            }
-        }
-
-        return output;
     }
 }

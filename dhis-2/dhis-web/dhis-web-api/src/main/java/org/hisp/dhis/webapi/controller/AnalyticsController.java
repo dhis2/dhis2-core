@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.table.AnalyticsTableType;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
@@ -411,12 +412,15 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryParams param = dataQueryService.getFromUrl( dimension, null, null, null, null, startDate, endDate, skipMeta, skipData, false, false, hierarchyMeta,
-            false, false, false, showHierarchy, false, displayProperty, outputIdScheme, inputIdScheme, false, null, null, userOrgUnit, true, apiVersion );
+        DataQueryParams param = dataQueryService
+            .getFromUrl( dimension, null, null, null, null, startDate, endDate, skipMeta, skipData, false, false, hierarchyMeta,
+                false, false, false, showHierarchy, false, displayProperty, outputIdScheme, inputIdScheme, false, null, null, userOrgUnit, true, apiVersion );
 
-        DataQueryParams params = DataQueryParams.newBuilder(param).withIncludeOrgUnitNames( includeOrgUnitNames ).build();
+        DataQueryParams params = DataQueryParams.newBuilder( param ).withIncludeOrgUnitNames( includeOrgUnitNames ).build();
 
-        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING,
+                null, false, params.getLatestEndDate() );
+
         return analyticsService.getRawDataValues( params );
     }
 
@@ -436,14 +440,16 @@ public class AnalyticsController
         @RequestParam( required = false ) String userOrgUnit,
         DhisApiVersion apiVersion,
         Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         DataQueryParams param = dataQueryService.getFromUrl( dimension, null, null, null, null, startDate, endDate, skipMeta, skipData, false, false, hierarchyMeta,
-            false, false, false, showHierarchy, false, displayProperty, outputIdScheme, inputIdScheme, false, null, null, userOrgUnit, true, apiVersion );
+                false, false, false, showHierarchy, false, displayProperty, outputIdScheme, inputIdScheme, false, null, null, userOrgUnit, true, apiVersion );
 
         DataQueryParams params = DataQueryParams.newBuilder( param ).withIncludeOrgUnitNames( includeOrgUnitNames ).build();
 
-        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING,
+                null, false, params.getLatestEndDate() );
         Grid grid = analyticsService.getRawDataValues( params );
         GridUtils.toCsv( grid, response.getWriter() );
     }
@@ -528,5 +534,11 @@ public class AnalyticsController
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getAggregatedDataValueSet( params );
+    }
+
+    @RequestMapping( value = RESOURCE_PATH + "/tableTypes", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
+    public @ResponseBody AnalyticsTableType[] getTableTypes()
+    {
+        return AnalyticsTableType.values();
     }
 }

@@ -42,9 +42,10 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
+import org.hisp.dhis.analytics.table.AnalyticsTableType;
+import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -62,6 +63,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -171,11 +173,11 @@ public class EventQueryPlannerTest
         assertEquals( new DateTime( 2012, 3, 20, 0, 0 ).toDate(), query.getEndDate() );
         
         Partitions partitions = query.getPartitions();
+        Partitions expected = new Partitions( Sets.newHashSet( 2010, 2011, 2012 ) );
         
         assertEquals( 3, partitions.getPartitions().size() );
-        assertEquals( "analytics_event_2010_programuida", partitions.getPartitions().get( 0 ) );
-        assertEquals( "analytics_event_2011_programuida", partitions.getPartitions().get( 1 ) );
-        assertEquals( "analytics_event_2012_programuida", partitions.getPartitions().get( 2 ) );
+        assertEquals( expected, partitions );
+        assertEquals( PartitionUtils.getTableName( AnalyticsTableType.EVENT.getTableName(), prA ), query.getTableName() );
     }
 
     @Test
@@ -197,9 +199,11 @@ public class EventQueryPlannerTest
         assertEquals( new DateTime( 2010, 9, 20, 0, 0 ).toDate(), query.getEndDate() );
 
         Partitions partitions = query.getPartitions();
+        Partitions expected = new Partitions( Sets.newHashSet( 2010 ) );
 
         assertEquals( 1, partitions.getPartitions().size() );
-        assertEquals( "analytics_event_2010_programuida", partitions.getSinglePartition() );
+        assertEquals( expected, partitions );
+        assertEquals( PartitionUtils.getTableName( AnalyticsTableType.EVENT.getTableName(), prA ), query.getTableName() );
     }
 
     @Test
@@ -216,6 +220,15 @@ public class EventQueryPlannerTest
         assertEquals( 2, queries.size() );
         assertEquals( ouA, queries.get( 0 ).getOrganisationUnits().get( 0 ) );
         assertEquals( ouB, queries.get( 1 ).getOrganisationUnits().get( 0 ) );
+
+        EventQueryParams query = queries.get( 0 );
+
+        Partitions partitions = query.getPartitions();
+        Partitions expected = new Partitions( Sets.newHashSet( 2010, 2011, 2012 ) );
+
+        assertEquals( 3, partitions.getPartitions().size() );
+        assertEquals( expected, partitions );
+        assertEquals( PartitionUtils.getTableName( AnalyticsTableType.EVENT.getTableName(), prA ), query.getTableName() );
     }
 
     @Test
@@ -233,11 +246,11 @@ public class EventQueryPlannerTest
         assertEquals( new DateTime( 2012, 3, 20, 0, 0 ).toDate(), params.getEndDate() );
         
         Partitions partitions = params.getPartitions();
-        
+        Partitions expected = new Partitions( Sets.newHashSet( 2010, 2011, 2012 ) );
+
         assertEquals( 3, partitions.getPartitions().size() );
-        assertEquals( "analytics_event_2010_programuida", partitions.getPartitions().get( 0 ) );
-        assertEquals( "analytics_event_2011_programuida", partitions.getPartitions().get( 1 ) );
-        assertEquals( "analytics_event_2012_programuida", partitions.getPartitions().get( 2 ) );
+        assertEquals( expected, partitions );
+        assertEquals( PartitionUtils.getTableName( AnalyticsTableType.EVENT.getTableName(), prA ), params.getTableName() );
     }
 
     @Test
@@ -255,9 +268,11 @@ public class EventQueryPlannerTest
         assertEquals( new DateTime( 2010, 9, 20, 0, 0 ).toDate(), params.getEndDate() );
 
         Partitions partitions = params.getPartitions();
+        Partitions expected = new Partitions( Sets.newHashSet( 2010 ) );
 
         assertEquals( 1, partitions.getPartitions().size() );
-        assertEquals( "analytics_event_2010_programuida", partitions.getSinglePartition() );
+        assertEquals( expected, partitions );
+        assertEquals( PartitionUtils.getTableName( AnalyticsTableType.EVENT.getTableName(), prA ), params.getTableName() );
     }
 
     @Test
@@ -324,38 +339,5 @@ public class EventQueryPlannerTest
             assertTrue( query.hasValueDimension() );
             assertTrue( query.isCollapseDataDimensions() );
         }
-    }    
-
-    @Test
-    public void validateSuccesA()
-    {
-        EventQueryParams params = new EventQueryParams.Builder()
-            .withProgram( prA )
-            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
-            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouA ) ).build();
-        
-        queryPlanner.validate( params );
-    }
-
-    @Test( expected = IllegalQueryException.class )
-    public void validateFailureNoStartEndDatePeriods()
-    {
-        EventQueryParams params = new EventQueryParams.Builder()
-            .withProgram( prA )
-            .withOrganisationUnits( Lists.newArrayList( ouB ) ).build();
-        
-        queryPlanner.validate( params );
-    }
-
-    @Test( expected = IllegalQueryException.class )
-    public void validateInvalidQueryItem()
-    {
-        EventQueryParams params = new EventQueryParams.Builder()
-            .withProgram( prA )
-            .withOrganisationUnits( Lists.newArrayList( ouB ) )
-            .addItem( new QueryItem( deA, lsA, ValueType.TEXT, AggregationType.NONE, osA ) ).build();
-        
-        queryPlanner.validate( params );
     }
 }
