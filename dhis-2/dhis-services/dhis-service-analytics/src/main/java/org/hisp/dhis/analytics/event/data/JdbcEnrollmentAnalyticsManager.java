@@ -50,6 +50,8 @@ import org.hisp.dhis.program.DefaultProgramIndicatorService;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -57,6 +59,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import javax.annotation.Resource;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
@@ -223,6 +226,24 @@ public class JdbcEnrollmentAnalyticsManager
     // -------------------------------------------------------------------------
 
     /**
+     * Get individual program stages for a list of programStageDataElements
+     */
+    
+    private List<ProgramStage> getProgramStages( List<ProgramStageDataElement> prStDes )
+    {
+        List<ProgramStage> programStages = new ArrayList<ProgramStage>(1);
+        for ( ProgramStageDataElement prStDe : prStDes )
+        {
+            if ( !programStages.contains( prStDe.getProgramStage() ) )
+            {
+                programStages.add( prStDe.getProgramStage() );
+            }
+        }
+        
+        return programStages;
+    }
+    
+    /**
      * Returns the count clause based on value dimension and output type.
      * 
      * TODO include output type if aggregation type is count
@@ -315,7 +336,22 @@ public class JdbcEnrollmentAnalyticsManager
         String sql = "from " + partition + " ";
 
         //Join the program stages (used in this expression).
-        
+        if( params.hasProgramIndicatorDimension() ) 
+        {
+            List<ProgramStageDataElement> prStDes = programIndicatorService.getProgramStageDateElementsInExpression( params.getProgramIndicator().getExpression(), params.getProgramIndicator().getFilter() );
+            List<ProgramStage> programStages = getProgramStages( prStDes );
+            for ( ProgramStage ps : programStages )
+            {
+                //TODO: Remove 2017 when table inheritance is set up for program event data.
+                sql += "left join analytics_event_2017_" + ps.getProgram().getUid() +
+                    " on analytics_event_2017_" + ps.getProgram().getUid() + ".psi = " +
+                    "(select psi from analytics_event_2017_" + ps.getProgram().getUid() + 
+                    "where analytics_event_2017_" + ps.getProgram().getUid() + ".pi = analytics_enrollment_wsgab5xwj3y.pi " +
+                    "and analytics_event_2017_" + ps.getProgram().getUid() + ".ps = '" + ps.getUid() + "' " +
+                    //"and executiondate < '2017-04-30' " +  TODO: Include this and other date boundaries
+                    "order by executiondate desc limit 1) ";
+            }
+        }
        
         // ---------------------------------------------------------------------
         // Periods

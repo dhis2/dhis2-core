@@ -529,7 +529,7 @@ public class ProgramIndicatorServiceTest
         String expression =
             "d2:condition('#{" + psA.getUid() + "." + deA.getUid() + "} < 30',20,100)";
         List<ProgramStageDataElement> prStDes =
-            programIndicatorService.getProgramStageDateElementsInExpression( expression );
+            programIndicatorService.getProgramStageDateElementsInExpression( expression, null );
         
         boolean psA_deA_found = false;
         

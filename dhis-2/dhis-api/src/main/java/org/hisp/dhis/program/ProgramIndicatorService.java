@@ -145,9 +145,7 @@ public interface ProgramIndicatorService
      */
     String filterIsValid( String filter );
     
-    List<ProgramStageDataElement> getProgramStageDateElementsInExpression( String expression );
-    
-    List<ProgramStageDataElement> getProgramStageDateElementsInExpression( String expression, ProgramStage currentStage );
+    List<ProgramStageDataElement> getProgramStageDateElementsInExpression( String expression, String filter );
     
     // -------------------------------------------------------------------------
     // ProgramIndicatorGroup

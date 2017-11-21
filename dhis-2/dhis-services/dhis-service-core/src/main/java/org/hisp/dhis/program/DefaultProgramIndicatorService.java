@@ -306,14 +306,17 @@ public class DefaultProgramIndicatorService
         return expression;
     }
     
-    public List<ProgramStageDataElement> getProgramStageDateElementsInExpression( String expression )
+    public List<ProgramStageDataElement> getProgramStageDateElementsInExpression( String expression, String filter )
     {
-        return getProgramStageDateElementsInExpression( expression, null );
+        return getProgramStageDateElementsInExpression( expression, filter, null );
     }
     
-    public List<ProgramStageDataElement> getProgramStageDateElementsInExpression( String expression, ProgramStage currentStage )
+    public List<ProgramStageDataElement> getProgramStageDateElementsInExpression( String expression, String filter, ProgramStage currentStage )
     {   
         ArrayList<ProgramStageDataElement> prStDesInExpression = new ArrayList<ProgramStageDataElement>();
+        
+        //We will look for data elements in both the expression and the filter in the same matching.
+        expression += " " + filter; 
         
         Matcher matcher = ProgramIndicator.EXPRESSION_PATTERN.matcher( expression );
 
