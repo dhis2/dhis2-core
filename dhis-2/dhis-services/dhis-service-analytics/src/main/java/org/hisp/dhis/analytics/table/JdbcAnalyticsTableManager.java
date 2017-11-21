@@ -139,7 +139,8 @@ public class JdbcAnalyticsTableManager
     {
         return Lists.newArrayList(
             "yearly = '" + partition.getYear() + "'",
-            "pestartdate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'" );
+            "pestartdate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'",
+            "pestartdate <= '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
     }
     
     @Override
@@ -342,7 +343,7 @@ public class JdbcAnalyticsTableManager
         for ( PeriodType periodType : periodTypes )
         {
             String column = quote( periodType.getName().toLowerCase() );
-            columns.add( new AnalyticsTableColumn( column, "character varying(15)", "ps." + column ) );
+            columns.add( new AnalyticsTableColumn( column, "text", "ps." + column ) );
         }
 
         String approvalCol = isApprovalEnabled( year ) ?
@@ -354,7 +355,7 @@ public class JdbcAnalyticsTableManager
         columns.add( new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "pestartdate" ), "timestamp", "pe.startdate" ) );
         columns.add( new AnalyticsTableColumn( quote( "peenddate" ),"timestamp", "pe.enddate" ) );
-        columns.add( new AnalyticsTableColumn( quote( "pe" ), "character varying(15) not null", "ps.iso" ) );
+        columns.add( new AnalyticsTableColumn( quote( "pe" ), "text not null", "ps.iso" ) );
         columns.add( new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "level" ), "integer", "ous.level" ) );
         columns.add( new AnalyticsTableColumn( quote( "approvallevel" ), "integer", approvalCol ) );
