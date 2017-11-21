@@ -51,12 +51,4 @@ public class ProgramNotificationTemplateDeletionHandler
     {
         return ProgramNotificationTemplate.class.getSimpleName();
     }
-
-    @Override
-    public void deleteProgramRule( ProgramRule programRule )
-    {
-        List<ProgramNotificationTemplate> programNotificationTemplates = programNotificationTemplateStore.getProgramNotificationTemplate( programRule );
-        
-        programNotificationTemplates.stream().forEach( template -> programNotificationTemplateStore.delete( template ) );
-    }
 }

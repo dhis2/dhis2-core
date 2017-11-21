@@ -231,13 +231,13 @@ public class DefaultProgramNotificationService
         Map<NotificationTrigger, Set<ProgramNotificationTemplate>> segregatedMap = segregateTemplates( templates );
 
         // send event complete notifications
-        for ( ProgramNotificationTemplate t : segregatedMap.get( NotificationTrigger.COMPLETION ) )
+        for ( ProgramNotificationTemplate t : segregatedMap.computeIfAbsent( NotificationTrigger.COMPLETION, k -> Sets.newHashSet() ) )
         {
             MessageBatch batch = createProgramStageInstanceMessageBatch( t, Lists.newArrayList( programStageInstance ) );
             sendAll( batch );
         }
 
-        Set<ProgramNotificationTemplate> pnts = segregatedMap.get( NotificationTrigger.PROGRAM_RULE );
+        Set<ProgramNotificationTemplate> pnts = segregatedMap.computeIfAbsent( NotificationTrigger.PROGRAM_RULE, k -> Sets.newHashSet() );
 
         if ( pnts != null && !pnts.isEmpty() )
         {
@@ -250,8 +250,6 @@ public class DefaultProgramNotificationService
         List<RuleEffect> ruleEffects = programRuleEngine.evaluateEvent( programStageInstance );
 
         List<RuleAction> ruleActions = ruleEffects.stream().map( RuleEffect::ruleAction ).collect( Collectors.toList() );
-
-        ruleActions.stream().forEach( a -> System.out.println( " action is : " + a ) );
 
         //TODO look for RuleActionSendMessage and send PNT
     }
@@ -299,13 +297,13 @@ public class DefaultProgramNotificationService
         Map<NotificationTrigger, Set<ProgramNotificationTemplate>> segregatedMap = segregateTemplates( templates );
 
         // send event complete notifications
-        for ( ProgramNotificationTemplate t : segregatedMap.get( NotificationTrigger.COMPLETION ) )
+        for ( ProgramNotificationTemplate t : segregatedMap.computeIfAbsent( NotificationTrigger.COMPLETION, k -> Sets.newHashSet() ) )
         {
             MessageBatch batch = createProgramInstanceMessageBatch( t, Lists.newArrayList( programInstance ) );
             sendAll( batch );
         }
 
-        Set<ProgramNotificationTemplate> pnts = segregatedMap.get( NotificationTrigger.PROGRAM_RULE );
+        Set<ProgramNotificationTemplate> pnts = segregatedMap.computeIfAbsent( NotificationTrigger.PROGRAM_RULE, k -> Sets.newHashSet() );
 
         if ( pnts != null && !pnts.isEmpty() )
         {
