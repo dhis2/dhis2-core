@@ -31,6 +31,7 @@ package org.hisp.dhis.program;
 import com.google.common.collect.ImmutableMap;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.NotImplementedException;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.commons.sqlfunc.ConditionalSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.DaysBetweenSqlFunction;
@@ -55,9 +56,12 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.jfree.util.Log;
+import org.omg.CORBA.portable.ApplicationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -118,6 +122,13 @@ public class DefaultProgramIndicatorService
     {
         this.programStageService = programStageService;
     }
+    
+    private ProgramStageDataElementService programStageDataElementService;
+
+    public void setProgramStageDataElementService( ProgramStageDataElementService programStageDataElementService )
+    {
+        this.programStageDataElementService = programStageDataElementService;
+    }
 
     private DataElementService dataElementService;
 
@@ -161,7 +172,6 @@ public class DefaultProgramIndicatorService
     // ProgramIndicatorService implementation
     // -------------------------------------------------------------------------
 
-    @Override
     @Transactional
     public int addProgramIndicator( ProgramIndicator programIndicator )
     {
@@ -169,49 +179,42 @@ public class DefaultProgramIndicatorService
         return programIndicator.getId();
     }
 
-    @Override
     @Transactional
     public void updateProgramIndicator( ProgramIndicator programIndicator )
     {
         programIndicatorStore.update( programIndicator );
     }
 
-    @Override
     @Transactional
     public void deleteProgramIndicator( ProgramIndicator programIndicator )
     {
         programIndicatorStore.delete( programIndicator );
     }
 
-    @Override
     @Transactional
     public ProgramIndicator getProgramIndicator( int id )
     {
         return programIndicatorStore.get( id );
     }
 
-    @Override
     @Transactional
     public ProgramIndicator getProgramIndicator( String name )
     {
         return programIndicatorStore.getByName( name );
     }
 
-    @Override
     @Transactional
     public ProgramIndicator getProgramIndicatorByUid( String uid )
     {
         return programIndicatorStore.getByUid( uid );
     }
 
-    @Override
     @Transactional
     public List<ProgramIndicator> getAllProgramIndicators()
     {
         return programIndicatorStore.getAll();
     }
 
-    @Override
     @Transactional
     public String getExpressionDescription( String expression )
     {
@@ -280,13 +283,11 @@ public class DefaultProgramIndicatorService
         return description.toString();
     }
 
-    @Override
     public String getAnalyticsSQl( String expression, AnalyticsType analyticsType, Date startDate, Date endDate )
     {
         return getAnalyticsSQl( expression, analyticsType, true, startDate, endDate );
     }
 
-    @Override
     public String getAnalyticsSQl( String expression, AnalyticsType analyticsType, boolean ignoreMissingValues, Date startDate, Date endDate )
     {
         if ( expression == null )
@@ -303,6 +304,52 @@ public class DefaultProgramIndicatorService
         expression = getSubstitutedElementsAnalyticsSql( expression, ignoreMissingValues, analyticsType );
 
         return expression;
+    }
+    
+    public List<ProgramStageDataElement> getProgramStageDateElementsInExpression( String expression )
+    {
+        return getProgramStageDateElementsInExpression( expression, null );
+    }
+    
+    public List<ProgramStageDataElement> getProgramStageDateElementsInExpression( String expression, ProgramStage currentStage )
+    {   
+        ArrayList<ProgramStageDataElement> prStDesInExpression = new ArrayList<ProgramStageDataElement>();
+        
+        Matcher matcher = ProgramIndicator.EXPRESSION_PATTERN.matcher( expression );
+
+        while ( matcher.find() )
+        {
+            String key = matcher.group( 1 );
+            String uid = matcher.group( 2 );
+
+            if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
+            {
+                String de = matcher.group( 3 );
+                
+                ProgramStage programStage = programStageService.getProgramStage( uid );
+                DataElement dataElement = dataElementService.getDataElement( de );
+
+                if ( programStage != null && dataElement != null )
+                {
+                    ProgramStageDataElement prStDe = programStageDataElementService.get( programStage, dataElement );
+                    
+                    if ( prStDe != null )
+                    {
+                        prStDesInExpression.add( prStDe );
+                    }
+                    else
+                    {
+                        Log.error( "Program indicator defined unknown programStageDataElement combination for key:" + key + " uid:" + uid + " de:" + de );
+                    }
+                }
+                else
+                {
+                    throw new NotImplementedException( "No dataelement is found for key:" + key + " uid:" + uid + " de:" + de + " . Was the funtion called by an event program indicator?" );
+                }
+            }
+        }
+        
+        return prStDesInExpression;
     }
 
     private String getSubstitutedFunctionsAnalyticsSql( String expression, boolean ignoreMissingValues, 
@@ -436,7 +483,6 @@ public class DefaultProgramIndicatorService
         return TextUtils.appendTail( matcher, buffer );
     }
 
-    @Override
     public String getAnyValueExistsClauseAnalyticsSql( String expression, AnalyticsType analyticsType )
     {
         Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, analyticsType );
@@ -456,7 +502,6 @@ public class DefaultProgramIndicatorService
         return TextUtils.removeLastOr( sql ).trim();
     }
 
-    @Override
     @Transactional
     public String expressionIsValid( String expression )
     {
@@ -476,7 +521,6 @@ public class DefaultProgramIndicatorService
         return ProgramIndicator.VALID;
     }
 
-    @Override
     @Transactional
     public String filterIsValid( String filter )
     {

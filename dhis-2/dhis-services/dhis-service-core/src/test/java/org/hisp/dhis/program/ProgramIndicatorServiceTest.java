@@ -38,6 +38,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
@@ -519,6 +520,29 @@ public class ProgramIndicatorServiceTest
             "d2:condition('#{OXXcwl6aPCQ.HihhUWBeg7I} < 30',20,100)";
         
         assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, AnalyticsType.EVENT, new Date(), new Date() ) );
+    }
+    
+    @Test
+    public void testGetProgramStageDataElementsInExpression()
+    {
+        
+        String expression =
+            "d2:condition('#{" + psA.getUid() + "." + deA.getUid() + "} < 30',20,100)";
+        List<ProgramStageDataElement> prStDes =
+            programIndicatorService.getProgramStageDateElementsInExpression( expression );
+        
+        boolean psA_deA_found = false;
+        
+        for ( ProgramStageDataElement prStDe : prStDes )
+        {
+           if( prStDe.getProgramStage().getUid() == psA.getUid()
+               && prStDe.getDataElement().getUid() == deA.getUid() )
+           {
+               psA_deA_found = true;
+           }
+        }
+        
+        assertTrue( psA_deA_found );
     }
     
     @Test( expected = IllegalStateException.class )

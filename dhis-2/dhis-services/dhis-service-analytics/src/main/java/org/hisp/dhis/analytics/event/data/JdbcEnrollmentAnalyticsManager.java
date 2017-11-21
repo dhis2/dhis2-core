@@ -46,8 +46,10 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.DefaultProgramIndicatorService;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.program.ProgramService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -85,6 +87,9 @@ public class JdbcEnrollmentAnalyticsManager
     
     @Autowired
     private ProgramIndicatorService programIndicatorService;
+    
+    @Autowired
+    private ProgramService programService;
     
     // -------------------------------------------------------------------------
     // EnrollmentAnalyticsManager implementation
@@ -309,6 +314,9 @@ public class JdbcEnrollmentAnalyticsManager
         
         String sql = "from " + partition + " ";
 
+        //Join the program stages (used in this expression).
+        
+       
         // ---------------------------------------------------------------------
         // Periods
         // ---------------------------------------------------------------------

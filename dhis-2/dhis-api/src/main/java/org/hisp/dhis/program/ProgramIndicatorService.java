@@ -144,7 +144,11 @@ public interface ProgramIndicatorService
      *         {@link ProgramIndicator.INVALID_VARIABLES_IN_EXPRESSION}.
      */
     String filterIsValid( String filter );
-
+    
+    List<ProgramStageDataElement> getProgramStageDateElementsInExpression( String expression );
+    
+    List<ProgramStageDataElement> getProgramStageDateElementsInExpression( String expression, ProgramStage currentStage );
+    
     // -------------------------------------------------------------------------
     // ProgramIndicatorGroup
     // -------------------------------------------------------------------------
