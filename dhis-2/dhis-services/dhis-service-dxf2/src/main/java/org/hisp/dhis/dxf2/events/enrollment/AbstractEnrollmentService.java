@@ -151,6 +151,7 @@ public abstract class AbstractEnrollmentService
             }
 
             Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+            
             enrollments.setPager( pager );
         }
 
