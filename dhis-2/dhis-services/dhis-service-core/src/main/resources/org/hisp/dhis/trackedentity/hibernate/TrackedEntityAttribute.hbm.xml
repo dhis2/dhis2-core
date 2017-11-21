@@ -73,15 +73,7 @@
     <property name="orgunitScope" />
 
     <property name="programScope" />
-
-    <property name="searchScope" length="40" column="searchscope">
-      <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.trackedentity.TrackedEntityAttributeSearchScope</param>
-        <param name="useNamed">true</param>
-        <param name="type">12</param>
-      </type>
-    </property>
-
+    
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User"
       column="userid" foreign-key="fk_trackedentityattribute_userid" />

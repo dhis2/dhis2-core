@@ -30,8 +30,8 @@ package org.hisp.dhis.dataadmin.action.dataintegrity;
 
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.dataintegrity.DataIntegrityReport;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,9 +52,9 @@ public class GetDataIntegrityReportAction
     // Input
     // -------------------------------------------------------------------------
 
-    private TaskCategory category;
+    private JobType category;
 
-    public void setCategory( TaskCategory category )
+    public void setCategory( JobType category )
     {
         this.category = category;
     }
@@ -73,7 +73,7 @@ public class GetDataIntegrityReportAction
     @Override
     public String execute()
     {
-        TaskId taskId = new TaskId( category, currentUserService.getCurrentUser() );
+        JobId taskId = new JobId( category, currentUserService.getCurrentUser().getUid() );
 
         dataIntegrityReport = (DataIntegrityReport) notifier.getTaskSummary( taskId );
 

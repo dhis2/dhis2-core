@@ -17,6 +17,8 @@ The software is open source and released under the [BSD license](https://opensou
 
 For general info please visit the [project web page](https://www.dhis2.org/).
 
+For software development guides please visit the [project wiki](http://dhis2.github.io/).
+
 ## Build process
 
 This repository contains the source code for the server-side component of DHIS 2, which is developed in [Java](https://www.java.com/en/) and built with [Maven](https://maven.apache.org/). 

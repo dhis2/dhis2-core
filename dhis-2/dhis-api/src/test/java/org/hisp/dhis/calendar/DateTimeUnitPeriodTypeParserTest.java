@@ -53,7 +53,8 @@ public class DateTimeUnitPeriodTypeParserTest
         assertEquals( new DateInterval( new DateTimeUnit( 2014, 2, 4, true ), new DateTimeUnit( 2014, 2, 4, true ) ), format.parse( "20140204" ) );
 
         // weekly
-        assertEquals( new DateInterval( new DateTimeUnit( 2013, 12, 30, true ), new DateTimeUnit( 2014, 1, 5, true ) ), format.parse( "2014W1" ) );
+        assertEquals( new DateInterval( new DateTimeUnit( 2013, 12, 30, 1, true ),
+            new DateTimeUnit( 2014, 1, 5, 7, true ) ), format.parse( "2014W1" ) );
         assertEquals( new DateInterval( new DateTimeUnit( 2014, 1, 6, true ), new DateTimeUnit( 2014, 1, 12, true ) ), format.parse( "2014W2" ) );
 
         // monthly

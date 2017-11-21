@@ -30,7 +30,6 @@ package org.hisp.dhis.document;
  *
  */
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,9 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class DocumentDeletionHandler extends DeletionHandler
 {
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
-
     @Autowired
     private DocumentService documentService;
 

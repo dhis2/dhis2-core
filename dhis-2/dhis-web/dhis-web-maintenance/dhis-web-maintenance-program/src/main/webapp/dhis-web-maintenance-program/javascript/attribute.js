@@ -159,12 +159,5 @@ function generatedOnChange() {
   }
 }
 
-function applyConfidentialEffect() {
-	if( $('#confidential').prop('checked') == "checked" ) {
-		$('#searchScope').find('option[value="NOT_SEARCHABLE"]').prop('selected', true);
-		$('#searchScope').prop('disabled', true);
-	}
-	else {
-		$('#searchScope').prop('disabled', false);
-	}
+function applyConfidentialEffect() {	
 }
