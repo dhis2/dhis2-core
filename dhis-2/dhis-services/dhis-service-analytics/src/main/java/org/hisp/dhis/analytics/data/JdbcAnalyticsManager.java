@@ -113,7 +113,9 @@ public class JdbcAnalyticsManager
 
             String sql = getSelectClause( params );
 
-            sql += getFromWhereClause( params );
+            sql += getFromClause( params );
+            
+            sql += getWhereClause( params );
 
             sql += getGroupByClause( params );
 
@@ -270,11 +272,30 @@ public class JdbcAnalyticsManager
     /**
      * Generates the from clause of the query SQL.
      */
-    private String getFromWhereClause( DataQueryParams params )
+    private String getFromClause( DataQueryParams params )
+    {
+        String sql = "from ";
+        
+        if ( params.isDataType( DataType.NUMERIC ) && !params.getPreAggregateMeasureCriteria().isEmpty() )
+        {
+            sql += getPreMeasureCriteriaSql( params );
+        }
+        else
+        {
+            sql += params.getTableName();
+        }
+        
+        return sql + " ";
+    }
+
+    /**
+     * Generates the where clause of the query SQL.
+     */
+    private String getWhereClause( DataQueryParams params )
     {
         SqlHelper sqlHelper = new SqlHelper();
         
-        String sql = "from " + getPartitionSql( params ) + " ";
+        String sql = "";
 
         // ---------------------------------------------------------------------
         // Dimensions
@@ -380,37 +401,6 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * If preAggregationMeasureCriteria is specified, generates a query which
-     * provides a filtered view of the data according to the criteria. If not, 
-     * returns the full view of the partition.
-     */
-    private String getPartitionSql( DataQueryParams params )
-    {
-        if ( params.isDataType( DataType.NUMERIC ) && !params.getPreAggregateMeasureCriteria().isEmpty() )
-        {
-            SqlHelper sqlHelper = new SqlHelper();
-
-            String sql = "(select * from " + params.getTableName() + " ";
-
-            for ( MeasureFilter filter : params.getPreAggregateMeasureCriteria().keySet() )
-            {
-                Double criterion = params.getPreAggregateMeasureCriteria().get( filter );
-
-                sql += sqlHelper.whereAnd() + " value " + OPERATOR_SQL_MAP.get( filter ) + " " + criterion + " ";
-
-            }
-
-            sql += ") as " + params.getTableName();
-
-            return sql;
-        }
-        else
-        {
-            return params.getTableName();
-        }
-    }
-
-    /**
      * Generates the group by clause of the query SQL.
      */
     private String getGroupByClause( DataQueryParams params )
@@ -421,6 +411,29 @@ public class JdbcAnalyticsManager
         {
             sql = "group by " + getCommaDelimitedQuotedColumns( params.getDimensions() );
         }
+
+        return sql;
+    }
+
+    /**
+     * Generates a query which provides a filtered view of the data according 
+     * to the criteria. If not, returns the full view of the partition.
+     */
+    private String getPreMeasureCriteriaSql( DataQueryParams params )
+    {
+        SqlHelper sqlHelper = new SqlHelper();
+
+        String sql = "(select * from " + params.getTableName() + " ";
+
+        for ( MeasureFilter filter : params.getPreAggregateMeasureCriteria().keySet() )
+        {
+            Double criterion = params.getPreAggregateMeasureCriteria().get( filter );
+
+            sql += sqlHelper.whereAnd() + " value " + OPERATOR_SQL_MAP.get( filter ) + " " + criterion + " ";
+
+        }
+
+        sql += ") as " + params.getTableName();
 
         return sql;
     }
