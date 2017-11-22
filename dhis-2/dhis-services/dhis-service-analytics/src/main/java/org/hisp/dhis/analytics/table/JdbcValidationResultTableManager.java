@@ -186,7 +186,7 @@ public class JdbcValidationResultTableManager
         for ( PeriodType periodType : PeriodType.getAvailablePeriodTypes() )
         {
             String column = quote( periodType.getName().toLowerCase() );
-            columns.add( new AnalyticsTableColumn( column, "character varying(15)", "ps." + column ) );
+            columns.add( new AnalyticsTableColumn( column, "text", "ps." + column ) );
         }
 
         columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "vr.uid" ) );

@@ -33,21 +33,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 
 /**
  * @author Lars Helge Overland
  */
 public class TaskLocalList<T>
 {
-    private final Map<TaskId, List<T>> internalMap;
+    private final Map<JobId, List<T>> internalMap;
     
     public TaskLocalList()
     {
         this.internalMap = new HashMap<>();
     }
     
-    public List<T> get( TaskId id )
+    public List<T> get( JobId id )
     {
         List<T> list = internalMap.get( id );
         
@@ -60,7 +60,7 @@ public class TaskLocalList<T>
         return list;
     }
     
-    public boolean clear( TaskId id )
+    public boolean clear( JobId id )
     {
         return internalMap.remove( id ) != null;
     }

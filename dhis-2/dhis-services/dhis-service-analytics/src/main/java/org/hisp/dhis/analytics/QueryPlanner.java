@@ -31,7 +31,6 @@ package org.hisp.dhis.analytics;
 import java.util.List;
 
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.MaintenanceModeException;
 
 /**
  * Service interface which provides methods for validating and planning 
@@ -42,40 +41,8 @@ import org.hisp.dhis.common.MaintenanceModeException;
 public interface QueryPlanner
 {
     /**
-     * Validates the given query. Throws an IllegalQueryException if the query
-     * is not valid with a descriptive message. Returns normally if the query is
-     * valid.
-     * 
-     * @param params the data query parameters.
-     * @throws IllegalQueryException if the query is invalid.
-     */
-    void validate( DataQueryParams params )
-        throws IllegalQueryException;
-    
-    /**
-     * Validates whether the given table layout is valid for the given query. 
-     * Throws an IllegalQueryException if the query is not valid with a 
-     * descriptive message. Returns normally if the query is valid.
-     * 
-     * @param params the data query parameters.
-     * @param columns the column dimension identifiers.
-     * @param rows the row dimension identifiers.
-     * @throws IllegalQueryException if the query is invalid.
-     */
-    void validateTableLayout( DataQueryParams params, List<String> columns, List<String> rows )
-        throws IllegalQueryException;
-    
-    /**
-     * Checks whether the analytics engine is in maintenance mode.
-     * 
-     * @throws MaintenanceModeException if analytics engine is in maintenance mode.
-     */
-    void validateMaintenanceMode()
-        throws MaintenanceModeException;
-    
-    /**
      * Creates a DataQueryGroups object. It is mandatory to group the queries by
-     * the following criteria: 1) partition / year 2) organisation  unit level
+     * the following criteria: 1) partition / year 2) organisation unit level
      * 3) period type 4) aggregation type. The DataQueryGroups contains groups of 
      * queries. The query groups should be run in sequence while the queries within
      * each group should be run in parallel for optimal performance.
@@ -97,6 +64,15 @@ public interface QueryPlanner
         throws IllegalQueryException;
 
     /**
+     * Sets the table name and partitions on the given query.
+     * 
+     * @param params the data query parameters.
+     * @param plannerParams the query planner parameters.
+     * @return a data query parameters.
+     */
+    DataQueryParams withTableNameAndPartitions( DataQueryParams params, QueryPlannerParams plannerParams );
+    
+    /**
      * If organisation units appear as dimensions; groups the given query into 
      * sub queries based on the level of the organisation units. Sets the organisation 
      * unit level on each query. If organisation units appear as filter; replaces
@@ -107,18 +83,6 @@ public interface QueryPlanner
      * @return a list of data query parameters.
      */
     List<DataQueryParams> groupByOrgUnitLevel( DataQueryParams params );
-    
-    /**
-     * Groups the given query into sub queries based on its periods and which 
-     * partition it should be executed against. Sets the partition table name on
-     * each query. Queries are grouped based on periods if appearing as a 
-     * dimension.
-     * 
-     * @param params the data query parameters.
-     * @param plannerParams the query planner parameters.
-     * @return a list of data query parameters.
-     */
-    List<DataQueryParams> groupByPartition( DataQueryParams params, QueryPlannerParams plannerParams );
     
     /**
      * If periods appear as dimensions in the given query; groups the query into 

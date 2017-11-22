@@ -166,7 +166,7 @@ public class JdbcEnrollmentAnalyticsTableManager
         for ( PeriodType periodType : PeriodType.getAvailablePeriodTypes() )
         {
             String column = quote( periodType.getName().toLowerCase() );
-            columns.add( new AnalyticsTableColumn( column, "character varying(15)", "dps." + column ) );
+            columns.add( new AnalyticsTableColumn( column, "text", "dps." + column ) );
         }
 
         for ( ProgramStage programStage : program.getProgramStages() )
@@ -235,8 +235,8 @@ public class JdbcEnrollmentAnalyticsTableManager
         columns.add( new AnalyticsTableColumn( quote( "longitude" ), dbl, "pi.longitude" ) );
         columns.add( new AnalyticsTableColumn( quote( "latitude" ), dbl, "pi.latitude" ) );
         columns.add( new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "ouname" ), "character varying(230) not null", "ou.name" ) );
-        columns.add( new AnalyticsTableColumn( quote( "oucode" ), "character varying(50)", "ou.code" ) );
+        columns.add( new AnalyticsTableColumn( quote( "ouname" ), "text not null", "ou.name" ) );
+        columns.add( new AnalyticsTableColumn( quote( "oucode" ), "text", "ou.code" ) );
 
         if ( databaseInfo.isSpatialSupport() )
         {

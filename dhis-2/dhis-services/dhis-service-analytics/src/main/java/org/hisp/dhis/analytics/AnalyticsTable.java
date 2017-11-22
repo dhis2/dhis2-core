@@ -43,16 +43,29 @@ import org.springframework.util.Assert;
  */
 public class AnalyticsTable
 {
+    /**
+     * Name of the base analytics table.
+     */
     private String baseName;
 
+    /**
+     * Columns representing dimensions.
+     */
     private List<AnalyticsTableColumn> dimensionColumns;
     
+    /**
+     * Columns representing values.
+     */
     private List<AnalyticsTableColumn> valueColumns;
 
+    /**
+     * Program for analytics tables, applies to events and enrollments.
+     */
     private Program program;
     
-    private Date created;
-    
+    /**
+     * Analytics partition tables for this base analytics table.
+     */
     private List<AnalyticsTablePartition> partitionTables = new UniqueArrayList<>();
 
     // -------------------------------------------------------------------------
@@ -61,12 +74,10 @@ public class AnalyticsTable
 
     protected AnalyticsTable()
     {
-        this.created = new Date();
     }
 
     public AnalyticsTable( String baseName, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
     {
-        this.created = new Date();
         this.baseName = baseName;
         this.dimensionColumns = dimensionColumns;
         this.valueColumns = valueColumns;
@@ -157,24 +168,9 @@ public class AnalyticsTable
         return program;
     }
 
-    public Date getCreated()
-    {
-        return created;
-    }
-
     public List<AnalyticsTablePartition> getPartitionTables()
     {
         return partitionTables;
-    }
-
-    // -------------------------------------------------------------------------
-    // Setters
-    // -------------------------------------------------------------------------
-
-    @Deprecated
-    public void setDimensionColumns( List<AnalyticsTableColumn> dimensionColumns )
-    {
-        this.dimensionColumns = dimensionColumns;
     }
 
     // -------------------------------------------------------------------------

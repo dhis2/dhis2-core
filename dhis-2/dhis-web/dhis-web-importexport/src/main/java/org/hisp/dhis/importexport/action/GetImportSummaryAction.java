@@ -28,14 +28,13 @@ package org.hisp.dhis.importexport.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.opensymphony.xwork2.Action;
 
 /**
  * @author Lars Helge Overland
@@ -53,9 +52,9 @@ public class GetImportSummaryAction
     // Input
     // -------------------------------------------------------------------------
     
-    private TaskCategory category;
+    private JobType category;
     
-    public void setCategory( TaskCategory category )
+    public void setCategory( JobType category )
     {
         this.category = category;
     }
@@ -78,7 +77,7 @@ public class GetImportSummaryAction
     @Override
     public String execute()
     {
-        TaskId taskId = new TaskId( category, currentUserService.getCurrentUser() );        
+        JobId taskId = new JobId( category, currentUserService.getCurrentUser().getUid() );
         
         summary = (ImportSummary) notifier.getTaskSummary( taskId );
         
