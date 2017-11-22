@@ -108,7 +108,7 @@ public class DefaultAnalyticsTableService
         
         String tableType = tableManager.getAnalyticsTableType().getTableName();
 
-        Date earliest = PartitionUtils.getEarliestDate( params.getLastYears() );
+        Date earliest = PartitionUtils.getStartDate( params.getLastYears() );
         
         Clock clock = new Clock( log )
             .startClock()
