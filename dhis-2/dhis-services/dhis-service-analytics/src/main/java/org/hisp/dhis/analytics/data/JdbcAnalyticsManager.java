@@ -1,5 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
+import com.google.api.client.util.Maps;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -135,7 +137,7 @@ public class JdbcAnalyticsManager
             catch ( BadSqlGrammarException ex )
             {
                 log.info( "Query failed, likely because the requested analytics table does not exist", ex );
-                return new AsyncResult<>( new HashMap<String, Object>() );
+                return new AsyncResult<>( Maps.newHashMap() );
             }
 
             replaceDataPeriodsWithAggregationPeriods( map, params, dataPeriodAggregationPeriodMap );
