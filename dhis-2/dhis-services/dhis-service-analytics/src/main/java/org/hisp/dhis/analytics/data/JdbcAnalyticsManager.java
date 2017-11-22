@@ -147,7 +147,6 @@ public class JdbcAnalyticsManager
         catch ( RuntimeException ex )
         {
             log.error( DebugUtils.getStackTrace( ex ) );
-
             throw ex;
         }
     }
