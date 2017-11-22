@@ -119,8 +119,6 @@ public class JdbcAnalyticsManager
 
             sql += getGroupByClause( params );
 
-            // Needs to use "having" to utilize aggregate functions, and needs to come after group by
-
             if ( params.isDataType( DataType.NUMERIC ) && !params.getMeasureCriteria().isEmpty() )
             {
                 sql += getMeasureCriteriaSql( params );
@@ -439,7 +437,7 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Returns a HAVING clause restricting the result based on the measure criteria
+     * Returns a HAVING clause restricting the result based on the measure criteria.
      */
     private String getMeasureCriteriaSql( DataQueryParams params )
     {
