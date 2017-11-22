@@ -303,6 +303,13 @@ public interface GenericIdentifiableObjectStore<T>
     long countByUser( User user);
 
     /**
+     * Count all objects last updated by given User
+     * @param user
+     * @return number of objects last updated by given User
+     */
+    long countByLastUpdatedBy( User user);
+
+    /**
      * Get all objects created by given User
      * @param user
      * @return all objects created by given User
@@ -314,12 +321,12 @@ public interface GenericIdentifiableObjectStore<T>
      * @param source User to be updated
      * @param target new owner of all objects
      */
-    void updateObjectsOwner( User source, User target );
+    void changeObjectsOwner( User source, User target );
 
     /**
      * Update lastUpdatedBy user with target user
      * @param source User need to be replace
      * @param target User to be updated
      */
-    void updateLastUpdatedBy( User source, User target );
+    void changeLastUpdatedBy( User source, User target );
 }

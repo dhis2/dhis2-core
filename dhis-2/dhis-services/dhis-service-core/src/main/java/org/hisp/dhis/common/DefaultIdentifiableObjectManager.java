@@ -1306,7 +1306,7 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
-    public Set<Class<? extends IdentifiableObject>> listObjectCreatedByUser( User user )
+    public Set<Class<? extends IdentifiableObject>> listClazzCreatedByUser( User user )
     {
         initMaps();
 
@@ -1323,21 +1323,35 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
-    public void updateObjectsOwner( User source, User target )
+    public Set<Class<? extends IdentifiableObject>> listClazzLastUpdatedBy( User user )
     {
-        Set<Class<? extends IdentifiableObject>> classes = listObjectCreatedByUser( source );
+        Set<Class<? extends IdentifiableObject>> returnList = new HashSet<>();
 
-        if ( classes.isEmpty() )
+        mapClassHasLastUpdatedBy.forEach( ( clazz, store ) -> {
+            if ( store.countByLastUpdatedBy( user ) > 0 )
+            {
+                returnList.add( clazz );
+            }
+        }) ;
+
+        return returnList;
+    }
+
+    @Override
+    public void changeObjectsOwner( User source, User target )
+    {
+        mapClassHasLastUpdatedBy.forEach( ( clazz, store ) -> store.changeLastUpdatedBy( source, target ) );
+
+        Set<Class<? extends IdentifiableObject>> classes = listClazzCreatedByUser( source );
+
+        if ( !classes.isEmpty() )
         {
-            return;
+            classes.forEach( clazz ->
+            {
+                GenericIdentifiableObjectStore<? extends IdentifiableObject> store = mapClassHasUserProperty.get( clazz );
+                store.changeObjectsOwner( source, target );
+            } );
         }
-
-        classes.forEach( clazz -> {
-            GenericIdentifiableObjectStore<? extends IdentifiableObject> store = mapClassHasUserProperty.get( clazz );
-            store.updateObjectsOwner( source, target );
-        } );
-
-        mapClassHasLastUpdatedBy.forEach( ( clazz, store ) -> store.updateLastUpdatedBy( source, target ) );
 
         flush();
     }
@@ -1359,11 +1373,6 @@ public class DefaultIdentifiableObjectManager
     {
         Schema schema = schemaService.getDynamicSchema( clazz );
 
-        if ( schema.havePersistedProperty( property ) )
-        {
-            return true;
-        }
-
-        return false;
+        return schema.havePersistedProperty( property );
     }
 }

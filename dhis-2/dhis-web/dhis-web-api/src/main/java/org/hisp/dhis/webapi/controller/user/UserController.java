@@ -428,7 +428,7 @@ public class UserController
             throw new WebMessageException( WebMessageUtils.conflict( "Invalid source or target user" ) );
         }
 
-        manager.updateObjectsOwner( sourceUser, targetUser );
+        manager.changeObjectsOwner( sourceUser, targetUser );
 
         webMessageService.send( WebMessageUtils.ok( "All objects are updated" ), response, request );
     }

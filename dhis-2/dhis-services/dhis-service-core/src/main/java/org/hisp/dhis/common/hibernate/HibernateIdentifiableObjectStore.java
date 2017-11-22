@@ -46,9 +46,7 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.user.User;
 
-import javax.persistence.FlushModeType;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import java.util.ArrayList;
@@ -564,6 +562,19 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
+    public long countByLastUpdatedBy( User user)
+    {
+        CriteriaQuery query = getCriteriaQuery();
+
+        Root root = query.from( clazz );
+        query.select( builder.count( root ) );
+
+        query.where( builder.equal( root.get( "lastUpdatedBy" ), user ) );
+
+        return (long) getSession().createQuery( query ).getSingleResult();
+    }
+
+    @Override
     public List<T> getAllByUser( User user )
     {
         return getSharingCriteria()
@@ -572,22 +583,24 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    public void updateObjectsOwner( User source, User target )
+    public void changeObjectsOwner( User source, User target )
     {
-        String sql = "Update " + clazz.getName() + " set user.id = :targetId" + " where user.id= :sourceId";
+        String sql = "Update " + clazz.getName() + " set user.id = :targetId" + " where user.id = :sourceId";
         TypedQuery query = getJpaQuery( sql );
         query.setParameter( "targetId", target.getId() );
         query.setParameter( "sourceId", source.getId() );
+
         query.executeUpdate();
     }
 
     @Override
-    public void updateLastUpdatedBy( User source, User target )
+    public void changeLastUpdatedBy( User source, User target )
     {
         String sql = "Update " + clazz.getName() + " set lastUpdatedBy.id = :targetId " + "where lastUpdatedBy.id = :sourceId";
         TypedQuery query = getJpaQuery( sql );
         query.setParameter( "targetId", target.getId() );
         query.setParameter( "sourceId", source.getId() );
+
         query.executeUpdate();
     }
 }

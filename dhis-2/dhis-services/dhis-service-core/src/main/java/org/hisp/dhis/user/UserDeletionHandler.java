@@ -107,17 +107,24 @@ public class UserDeletionHandler
     @Override
     public String allowDeleteUser( User user )
     {
-        Set<Class<? extends IdentifiableObject>> classes = idObjectManager.listObjectCreatedByUser( user );
+        Set<Class<? extends IdentifiableObject>> classes = idObjectManager.listClazzCreatedByUser( user );
 
-        List<String> classNames = classes.stream().map( clazz -> clazz.getSimpleName() ).collect( Collectors.toList() );
-
-        if ( !classNames.isEmpty() )
+        if ( !classes.isEmpty() )
         {
+            List<String> classNames = classes.stream().map( clazz -> clazz.getSimpleName() ).collect( Collectors.toList() );
+
             return "User is referenced by other objects: " + String.join( ",", classNames );
         }
-        else
+
+        classes = idObjectManager.listClazzLastUpdatedBy( user );
+
+        if ( !classes.isEmpty() )
         {
-            return null;
+            List<String> classNames = classes.stream().map( clazz -> clazz.getSimpleName() ).collect( Collectors.toList() );
+
+            return "User is referenced by other objects: " + String.join( ",", classNames );
         }
+
+        return null;
     }
 }
