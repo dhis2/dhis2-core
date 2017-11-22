@@ -285,7 +285,7 @@ public class JdbcAnalyticsManager
             sql += params.getTableName();
         }
         
-        return sql;
+        return sql + " ";
     }
 
     /**
