@@ -140,7 +140,7 @@ public class JdbcAnalyticsTableManager
         return Lists.newArrayList(
             "yearly = '" + partition.getYear() + "'",
             "pestartdate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'",
-            "pestartdate <= '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
+            "pestartdate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
     }
     
     @Override
@@ -227,7 +227,7 @@ public class JdbcAnalyticsTableManager
             "where de.valuetype in (" + valTypes + ") " +
             "and de.domaintype = 'AGGREGATE' " +
             "and pe.startdate >= '" + start + "' " +
-            "and pe.startdate <= '" + end + "' " +
+            "and pe.startdate < '" + end + "' " +
             "and dv.value is not null " +
             "and dv.deleted is false ";
 

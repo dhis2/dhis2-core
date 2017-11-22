@@ -43,9 +43,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
-import org.joda.time.DateTime;
 
 import com.google.common.collect.Lists;
 
@@ -56,19 +54,43 @@ import com.google.common.collect.Lists;
  */
 public class PartitionUtils
 {
-    private static final YearlyPeriodType PERIODTYPE = new YearlyPeriodType();
-
     public static final String SEP = "_";
 
-    public static Period getPeriod( Calendar calendar, Integer year )
+    /**
+     * Returns the start date for the given year, inclusive.
+     * 
+     * @param calendar the calendar to base the date on.
+     * @param year the year.
+     * @return the start date.
+     */
+    public static Date getStartDate( Calendar calendar, Integer year )
     {
-        DateTimeUnit startOfYear = calendar.isoStartOfYear( year );
-        DateTime time = new DateTime( year, startOfYear.getMonth(), startOfYear.getDay(), 1, 1 );
+        return calendar.isoStartOfYear( year ).toJdkDate();
+    }
 
-        return PERIODTYPE.createPeriod( time.toDate(), calendar );
+    /**
+     * Returns the end date for the given year, exclusive, i.e.
+     * the start date of the year after the given year.
+     * 
+     * @param calendar the calendar to base the date on.
+     * @param year the year.
+     * @return the start date.
+     */
+    public static Date getEndDate( Calendar calendar, Integer year )
+    {
+        Integer nextYear = year + 1;
+        return getStartDate( calendar, nextYear );
     }
     
-    public static Date getEarliestDate( Integer lastYears )
+    /**
+     * Returns the start date of the year which occurred 
+     * {@code lastYears} ago.
+     * 
+     * @param lastYears the number of years ago to base the 
+     *         returned date.
+     * @return the start date of the given year.
+     */
+    public static Date getStartDate( Integer lastYears )
     {
         Date earliest = null;
 
@@ -86,11 +108,24 @@ public class PartitionUtils
         return earliest;
     }
     
+    /**
+     * Returns the table name of the table with the given base name and program.
+     * 
+     * @param baseName the table base name.
+     * @param program the program.
+     * @return the table name.
+     */
     public static String getTableName( String baseName, Program program )
     {
         return baseName + SEP + program.getUid().toLowerCase();
     }
 
+    /**
+     * Returns partitions for the given list of periods.
+     * 
+     * @param period the period.
+     * @return partitions for the given list of periods.
+     */
     public static Partitions getPartitions( List<DimensionalItemObject> periods )
     {
         final Set<Integer> years = new HashSet<>();
@@ -103,11 +138,24 @@ public class PartitionUtils
         return new Partitions( years );
     }
 
+    /**
+     * Returns partitions for the given period.
+     * 
+     * @param period the period.
+     * @return partitions for the given period.
+     */
     public static Partitions getPartitions( Period period )
     {
         return new Partitions( getYears( period ) );
     }
     
+    /**
+     * Returns partitions for the given start and end date.
+     * 
+     * @param startDate the start date.
+     * @param endDate the end date.
+     * @return partitions for the given start and end date.
+     */
     public static Partitions getPartitions( Date startDate, Date endDate )
     {
         Period period = new Period();
@@ -117,6 +165,12 @@ public class PartitionUtils
         return getPartitions( period );        
     }
 
+    /**
+     * Returns the years which the given period spans.
+     * 
+     * @param period the period.
+     * @return a set of years.
+     */
     private static Set<Integer> getYears( Period period )
     {
         Set<Integer> years = new HashSet<>();
