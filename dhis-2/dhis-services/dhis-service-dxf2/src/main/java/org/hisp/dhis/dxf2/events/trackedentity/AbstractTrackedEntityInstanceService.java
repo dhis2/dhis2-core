@@ -47,9 +47,13 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.query.Query;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -68,6 +72,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -111,6 +116,12 @@ public abstract class AbstractTrackedEntityInstanceService
 
     @Autowired
     protected CurrentUserService currentUserService;
+
+    @Autowired
+    protected SchemaService schemaService;
+
+    @Autowired
+    protected QueryService queryService;
 
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
@@ -284,20 +295,29 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         User user = currentUserService.getCurrentUser();
+        List<List<TrackedEntityInstance>> partitions = Lists.partition( trackedEntityInstances, FLUSH_FREQUENCY );
 
         ImportSummaries importSummaries = new ImportSummaries();
-        int counter = 0;
 
-        for ( TrackedEntityInstance trackedEntityInstance : trackedEntityInstances )
+        for ( List<TrackedEntityInstance> _trackedEntityInstances : partitions )
         {
-            importSummaries.addImportSummary( addTrackedEntityInstance( trackedEntityInstance, user, importOptions ) );
+            // prepare caches
+            Collection<String> orgUnits = _trackedEntityInstances.stream().map( TrackedEntityInstance::getOrgUnit ).collect( Collectors.toSet() );
 
-            if ( counter % FLUSH_FREQUENCY == 0 )
+            if ( !orgUnits.isEmpty() )
             {
-                clearSession();
+                Query query = Query.from( schemaService.getDynamicSchema( OrganisationUnit.class ) );
+                query.setUser( user );
+                query.add( Restrictions.in( "id", orgUnits ) );
+                queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
             }
 
-            counter++;
+            for ( TrackedEntityInstance trackedEntityInstance : _trackedEntityInstances )
+            {
+                importSummaries.addImportSummary( addTrackedEntityInstance( trackedEntityInstance, user, importOptions ) );
+            }
+
+            clearSession();
         }
 
         return importSummaries;
@@ -370,20 +390,29 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         User user = currentUserService.getCurrentUser();
+        List<List<TrackedEntityInstance>> partitions = Lists.partition( trackedEntityInstances, FLUSH_FREQUENCY );
 
         ImportSummaries importSummaries = new ImportSummaries();
-        int counter = 0;
 
-        for ( TrackedEntityInstance trackedEntityInstance : trackedEntityInstances )
+        for ( List<TrackedEntityInstance> _trackedEntityInstances : partitions )
         {
-            importSummaries.addImportSummary( updateTrackedEntityInstance( trackedEntityInstance, user, importOptions ) );
+            // prepare caches
+            Collection<String> orgUnits = _trackedEntityInstances.stream().map( TrackedEntityInstance::getOrgUnit ).collect( Collectors.toSet() );
 
-            if ( counter % FLUSH_FREQUENCY == 0 )
+            if ( !orgUnits.isEmpty() )
             {
-                clearSession();
+                Query query = Query.from( schemaService.getDynamicSchema( OrganisationUnit.class ) );
+                query.setUser( user );
+                query.add( Restrictions.in( "id", orgUnits ) );
+                queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
             }
 
-            counter++;
+            for ( TrackedEntityInstance trackedEntityInstance : _trackedEntityInstances )
+            {
+                importSummaries.addImportSummary( updateTrackedEntityInstance( trackedEntityInstance, user, importOptions ) );
+            }
+
+            clearSession();
         }
 
         return importSummaries;
