@@ -36,6 +36,8 @@ public enum AggregationType
     SUM( "sum", false, true ),
     AVERAGE( "avg", false, true ),
     AVERAGE_SUM_ORG_UNIT( "avg_sum_org_unit", false, true ),
+    LAST_SUM_ORG_UNIT( "last_sum_org_unit", false, true ),
+    LAST_AVERAGE_ORG_UNIT( "last_avg_org_unit", false, true ),
     COUNT( "count", false, true ),
     STDDEV( "stddev", false, true ),
     VARIANCE( "variance", false, true ),
@@ -76,6 +78,11 @@ public enum AggregationType
     public boolean isAverage()
     {
         return this == AVERAGE_SUM_ORG_UNIT || this == AVERAGE;
+    }
+    
+    public boolean isLast()
+    {
+        return this == LAST_SUM_ORG_UNIT || this == LAST_AVERAGE_ORG_UNIT;
     }
 
     public boolean isInternal()
