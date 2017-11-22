@@ -65,10 +65,8 @@ public class QueryPlannerUtils
         for ( DimensionalItemObject orgUnit : orgUnits )
         {
             OrganisationUnit ou = (OrganisationUnit) orgUnit;
-
-            int level = ou.getLevel();
-
-            map.putValue( level, orgUnit );
+            
+            map.putValue( ou.getLevel(), orgUnit );
         }
 
         return map;
@@ -141,10 +139,8 @@ public class QueryPlannerUtils
         for ( DimensionalItemObject period : periods )
         {
             Period pe = (Period) period;
-
-            int days = pe.getDaysInPeriod();
-
-            map.putValue( days, pe );
+            
+            map.putValue( pe.getDaysInPeriod(), pe );
         }
 
         return map;
@@ -238,7 +234,7 @@ public class QueryPlannerUtils
         for ( DimensionalItemObject element : dataElements )
         {
             DataElement dataElement = (DataElement) element;
-
+            
             map.putValue( dataElement.getPeriodType(), element );
         }
 
@@ -253,12 +249,7 @@ public class QueryPlannerUtils
     public static List<EventQueryParams> convert( List<DataQueryParams> params )
     {
         List<EventQueryParams> eventParams = new ArrayList<>();
-        
-        for ( DataQueryParams param : params )
-        {
-            eventParams.add( (EventQueryParams) param );
-        }
-        
+        params.forEach( p -> eventParams.add( (EventQueryParams) p ) );
         return eventParams;
     }
 }
