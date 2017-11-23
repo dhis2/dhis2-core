@@ -535,13 +535,6 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-
-
-
-
-
-
-
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, startDate, endDate, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
             ignoreLimit, hideEmptyRows, hideEmptyColumns, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, duplicatesOnly, approvalLevel, relativePeriodDate, userOrgUnit, false, apiVersion,
             false );
