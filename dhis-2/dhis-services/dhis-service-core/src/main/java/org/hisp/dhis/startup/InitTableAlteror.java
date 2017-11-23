@@ -129,6 +129,11 @@ public class InitTableAlteror
         executeSql( "UPDATE expression SET slidingWindow = FALSE WHERE slidingWindow IS NULL" );
         executeSql( "UPDATE validationResult set notificationsent = false WHERE notificationsent is null" );
 
+        // Remove deprecated columns enabled, frequency and day in frequency for push analysis
+        executeSql( "ALTER TABLE pushanalysis drop column schedulingFrequency" );
+        executeSql( "ALTER TABLE pushanalysis drop column schedulingDayOfFrequency" );
+        executeSql( "ALTER TABLE pushanalysis drop column enabled" );
+
     }
 
     private void updateMessageConversationMessageTypes()

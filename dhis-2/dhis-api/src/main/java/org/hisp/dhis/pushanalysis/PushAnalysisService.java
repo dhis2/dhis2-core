@@ -41,13 +41,6 @@ import java.io.IOException;
 public interface PushAnalysisService
 {
     /**
-     * Handles populating the scheduler with Push Analysis when ContextRefreshedEvent is broadcast
-     * @param event
-     */
-    @EventListener
-    void handleContextRefresh( ContextRefreshedEvent event);
-
-    /**
      * Returns a PushAnalysis with the given UID
      * @param uid uid of the PushAnalysis
      * @return PushAnalysis
@@ -73,10 +66,4 @@ public interface PushAnalysisService
      * @param jobId to track process
      */
     void runPushAnalysis( String uid, JobId jobId );
-
-    /**
-     * Refreshes the scheduling of pushAnalysis if pushAnalysis is eligible to be scheduled
-     * @param pushAnalysis
-     */
-    boolean refreshPushAnalysisScheduling( PushAnalysis pushAnalysis );
 }

@@ -135,43 +135,6 @@ public class DefaultPushAnalysisService
     }
 
     //----------------------------------------------------------------------
-    // Scheduling methods
-    //----------------------------------------------------------------------
-
-    @EventListener
-    public void handleContextRefresh( ContextRefreshedEvent event )
-    {
-        List<PushAnalysis> pushAnalyses = pushAnalysisStore.getAll();
-
-        for ( PushAnalysis pushAnalysis : pushAnalyses )
-        {
-            if ( pushAnalysis.canSchedule() )
-                refreshPushAnalysisScheduling( pushAnalysis );
-        }
-    }
-
-    public boolean refreshPushAnalysisScheduling( PushAnalysis pushAnalysis )
-    {
-        if ( !pushAnalysis.canSchedule() )
-        {
-            return false;
-        }
-
-        /*HH verify with stian return scheduler.refreshJob(
-            pushAnalysis.getSchedulingKey(),
-            new PushAnalysisJob(
-                new TaskId(
-                    TaskCategory.PUSH_ANALYSIS,
-                    currentUserService.getSender()
-                ),  pushAnalysis.getId()
-            ),
-            getPushAnalysisCronExpression( pushAnalysis )
-        );*/
-
-        return true;
-    }
-
-    //----------------------------------------------------------------------
     // PushAnalysisService implementation
     //----------------------------------------------------------------------
 

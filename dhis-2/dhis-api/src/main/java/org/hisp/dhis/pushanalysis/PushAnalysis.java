@@ -166,11 +166,6 @@ public class PushAnalysis
         this.enabled = enabled;
     }
 
-    public String getSchedulingKey()
-    {
-        return "PushAnalysis:" + getUid();
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public SchedulingFrequency getSchedulingFrequency()

@@ -3,20 +3,19 @@ package org.hisp.dhis.startup;
 import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.scheduling.DefaultJobConfigurationService;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.commons.util.CronUtils;
+import org.hisp.dhis.pushanalysis.PushAnalysis;
+import org.hisp.dhis.pushanalysis.scheduling.PushAnalysisJob;
+import org.hisp.dhis.scheduling.*;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.hisp.dhis.scheduling.JobType.*;
 
@@ -29,6 +28,13 @@ public class SchedulerUpgrade
     extends AbstractStartupRoutine
 {
     private static final Log log = LogFactory.getLog( DefaultJobConfigurationService.class );
+
+    private GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
+
+    public void setPushAnalysisStore( GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore )
+    {
+        this.pushAnalysisStore = pushAnalysisStore;
+    }
 
     private JobConfigurationService jobConfigurationService;
 
@@ -170,6 +176,17 @@ public class SchedulerUpgrade
             scheduledProgramNotifications.setLastExecuted(
                 (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulScheduledProgramNotifications" ) );
 
+            Collection<PushAnalysis> cl = pushAnalysisStore.getAll();
+            cl.stream()
+                .map( ( pa ) -> new JobConfiguration( pa.getName(), JobType.PUSH_ANALYSIS,
+                    getPushAnalysisCronExpression( pa ), new PushAnalysisJobParameters( pa.getUid() ),
+                    false, pa.getEnabled() ) )
+                .forEach( ( jobConfiguration ) -> {
+                    jobConfiguration.setNextExecutionTime( null );
+                    jobConfigurationService.addJobConfiguration( jobConfiguration );
+                    schedulingManager.scheduleJob( jobConfiguration );
+                } );
+
             HashMap<String, JobConfiguration> standardJobs = new HashMap<String, JobConfiguration>()
             {{
                 put( "resourceTable", resourceTable );
@@ -209,5 +226,26 @@ public class SchedulerUpgrade
 
         log.info( "Porting to new scheduler finished. Setting system settings key 'keySchedTasks' to 'ported'." );
         systemSettingManager.saveSystemSetting( "keySchedTasks", emptySystemSetting );
+    }
+
+    /**
+     * Returns the correct cronExpression for the pushAnalysis
+     *
+     * @param pushAnalysis
+     * @return
+     */
+    private String getPushAnalysisCronExpression( PushAnalysis pushAnalysis )
+    {
+        switch ( pushAnalysis.getSchedulingFrequency() )
+        {
+        case DAILY:
+            return CronUtils.getDailyCronExpression( 0, 4 );
+        case WEEKLY:
+            return CronUtils.getWeeklyCronExpression( 0, 4, pushAnalysis.getSchedulingDayOfFrequency() );
+        case MONTHLY:
+            return CronUtils.getMonthlyCronExpression( 0, 4, pushAnalysis.getSchedulingDayOfFrequency() );
+        default:
+            return null;
+        }
     }
 }

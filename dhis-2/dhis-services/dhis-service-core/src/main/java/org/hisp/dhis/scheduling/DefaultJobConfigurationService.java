@@ -133,6 +133,12 @@ public class DefaultJobConfigurationService
         return propertyMap;
     }
 
+    @Override
+    public JobConfiguration getJobConfigurationByName( String name )
+    {
+        return jobConfigurationStore.getByName( name );
+    }
+
     private String prettyPrint( String field )
     {
         List<String> fieldStrings = Arrays.stream( field.split( "(?=[A-Z])" ) ).map( String::toLowerCase )

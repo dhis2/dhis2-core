@@ -28,6 +28,8 @@ package org.hisp.dhis.scheduling.parameters;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.schema.annotation.Property;
@@ -60,6 +62,12 @@ public class PushAnalysisJobParameters
     @Override
     public ErrorReport validate()
     {
+
+        if ( !CodeGenerator.isValidUid( pushAnalysis ) )
+        {
+            return new ErrorReport( this.getClass(), ErrorCode.E4014, pushAnalysis, "pushAnalysis" );
+        }
+
         return null;
     }
 }
