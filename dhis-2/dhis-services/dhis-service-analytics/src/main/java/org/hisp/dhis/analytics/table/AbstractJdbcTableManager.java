@@ -48,7 +48,6 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SettingKey;
@@ -97,10 +96,10 @@ public abstract class AbstractJdbcTableManager
     protected ResourceTableService resourceTableService;
     
     @Autowired
-    protected PartitionManager partitionManager;
-   
-    @Autowired
     protected StatementBuilder statementBuilder;
+    
+    @Autowired
+    protected PartitionManager partitionManager;
     
     @Autowired
     protected DatabaseInfo databaseInfo;
@@ -408,10 +407,8 @@ public abstract class AbstractJdbcTableManager
         AnalyticsTable table = new AnalyticsTable( baseName, dimensionColumns, valueColumns );
         
         for ( Integer year : dataYears )
-        {
-            Period period = PartitionUtils.getPeriod( calendar, year );
-            
-            table.addPartitionTable( year, period.getStartDate(), period.getEndDate() );
+        {            
+            table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ), PartitionUtils.getEndDate( calendar, year ) );
         }
 
         return table;

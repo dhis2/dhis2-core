@@ -356,18 +356,18 @@ public class TextUtils
 
     /**
      * Transforms a collection of strings into a comma delimited string, where
-     * each component get single-quoted.
+     * each component is single-quoted.
      * 
      * @param elements the collection of Integers
      * @return a comma delimited String.
      */
-    public static String getQuotedCommaDelimitedString( Collection<String> elements )
+    public static String getQuotedCommaDelimitedString( Collection<? extends Object> elements )
     {
         if ( elements != null && elements.size() > 0 )
         {
             final StringBuffer buffer = new StringBuffer();        
         
-            for ( String element : elements )
+            for ( Object element : elements )
             {
                 buffer.append( "'" ).append( element.toString() ).append( "', " );
             }

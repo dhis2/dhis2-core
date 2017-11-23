@@ -132,7 +132,7 @@ public class J2MEDataValueSMSListener
 
         for ( SMSCode code : smsCommand.getCodes() )
         {
-            if ( parsedMessage.containsKey( code.getCode().toUpperCase() ) )
+            if ( parsedMessage.containsKey( code.getCode() ) )
             {
                 storeDataValue( sms, orgUnit, parsedMessage, code, smsCommand, period,
                     smsCommand.getDataset() );

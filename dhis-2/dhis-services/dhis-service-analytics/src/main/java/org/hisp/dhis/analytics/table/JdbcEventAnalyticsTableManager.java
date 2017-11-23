@@ -48,7 +48,6 @@ import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.util.DateUtils;
@@ -95,10 +94,8 @@ public class JdbcEventAnalyticsTableManager
             AnalyticsTable table = new AnalyticsTable( baseName, getDimensionColumns( program ), Lists.newArrayList(), program );
             
             for ( Integer year : dataYears )
-            {
-                Period period = PartitionUtils.getPeriod( calendar, year );
-                
-                table.addPartitionTable( year, period.getStartDate(), period.getEndDate() );
+            {                
+                table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ), PartitionUtils.getEndDate( calendar, year ) );
             }
             
             tables.add( table );
@@ -118,7 +115,8 @@ public class JdbcEventAnalyticsTableManager
     {
         return Lists.newArrayList(
             "yearly = '" + partition.getYear() + "'",
-            "executiondate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'" ); ///TODO end date + 1 day
+            "executiondate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'",
+            "executiondate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
     }
     
     @Override
@@ -162,7 +160,7 @@ public class JdbcEventAnalyticsTableManager
             "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "left join _dateperiodstructure dps on " + psiExecutionDate + "=dps.dateperiod " +
             "where psi.executiondate >= '" + start + "' " + 
-            "and psi.executiondate <= '" + end + "' " +
+            "and psi.executiondate < '" + end + "' " +
             "and pr.programid=" + program.getId() + " " + 
             "and psi.organisationunitid is not null " +
             "and psi.executiondate is not null " +
@@ -222,7 +220,7 @@ public class JdbcEventAnalyticsTableManager
         for ( PeriodType periodType : PeriodType.getAvailablePeriodTypes() )
         {
             String column = quote( periodType.getName().toLowerCase() );
-            columns.add( new AnalyticsTableColumn( column, "character varying(15)", "dps." + column ) );
+            columns.add( new AnalyticsTableColumn( column, "text", "dps." + column ) );
         }
 
         for ( DataElement dataElement : program.getDataElements() )
@@ -304,8 +302,8 @@ public class JdbcEventAnalyticsTableManager
         columns.add( new AnalyticsTableColumn( quote( "longitude" ), dbl, "psi.longitude" ) );
         columns.add( new AnalyticsTableColumn( quote( "latitude" ), dbl, "psi.latitude" ) );
         columns.add(  new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "ouname" ), "character varying(230) not null", "ou.name" ) );
-        columns.add( new AnalyticsTableColumn( quote( "oucode" ), "character varying(50)", "ou.code" ) );
+        columns.add( new AnalyticsTableColumn( quote( "ouname" ), "text not null", "ou.name" ) );
+        columns.add( new AnalyticsTableColumn( quote( "oucode" ), "text", "ou.code" ) );
 
         if ( databaseInfo.isSpatialSupport() )
         {

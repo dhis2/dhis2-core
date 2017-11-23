@@ -110,18 +110,6 @@ public class JdbcRawAnalyticsManager
     
     private String getStatement( DataQueryParams params )
     {
-        String sql = StringUtils.EMPTY;
-        
-        for ( String partition : params.getPartitions().getPartitions() )
-        {
-            sql += getStatement( params, partition ) + "union all ";
-        }
-        
-        return TextUtils.removeLast( sql, "union all" );        
-    }
-    
-    private String getStatement( DataQueryParams params, String partition )
-    {
         List<String> dimensionColumns = params.getDimensions()            
             .stream().map( d -> statementBuilder.columnQuote( d.getDimensionName() ) )
             .collect( Collectors.toList() );
@@ -132,7 +120,7 @@ public class JdbcRawAnalyticsManager
         
         String sql = 
             "select " + StringUtils.join( dimensionColumns, ", " ) + ", " + DIM_NAME_OU + ", value " +
-            "from " + partition + " ax " +
+            "from " + params.getTableName() + " ax " +
             "inner join organisationunit ou on ax.ou = ou.uid " +
             "inner join _periodstructure ps on ax.pe = ps.iso ";
         

@@ -688,7 +688,7 @@ public class AnalyticsUtils
      * 
      * @param dimensions the dimensions.
      * @param hierarchyMeta indicates whether to include meta data about the
-     *        organisation unit hierarchy.
+     *         organisation unit hierarchy.
      * @return a mapping between identifiers and display properties.
      */
     public static Map<String, String> getUidDisplayPropertyMap( List<DimensionalObject> dimensions, boolean hierarchyMeta, DisplayProperty displayProperty )

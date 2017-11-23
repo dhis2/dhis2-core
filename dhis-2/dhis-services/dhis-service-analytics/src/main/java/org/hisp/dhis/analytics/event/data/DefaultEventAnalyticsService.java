@@ -86,6 +86,9 @@ public class DefaultEventAnalyticsService
     
     @Autowired
     private EventQueryPlanner queryPlanner;
+    
+    @Autowired
+    private EventQueryValidator queryValidator;
 
     @Autowired
     private DatabaseInfo databaseInfo;
@@ -103,13 +106,13 @@ public class DefaultEventAnalyticsService
     {
         securityManager.decideAccess( params );
         
-        queryPlanner.validate( params );
+        queryValidator.validate( params );
         
         params.removeProgramIndicatorItems(); // Not supported as items for aggregate
         
         Grid grid = new ListGrid();
 
-        int maxLimit = queryPlanner.getMaxLimit();
+        int maxLimit = queryValidator.getMaxLimit();
         
         // ---------------------------------------------------------------------
         // Headers and data
@@ -215,7 +218,7 @@ public class DefaultEventAnalyticsService
     {
         securityManager.decideAccessEventQuery( params );
         
-        queryPlanner.validate( params );
+        queryValidator.validate( params );
         
         params = new EventQueryParams.Builder( params )
             .withStartEndDatesForPeriods()
@@ -264,7 +267,7 @@ public class DefaultEventAnalyticsService
                 count += eventAnalyticsManager.getEventCount( params );
             }
     
-            eventAnalyticsManager.getEvents( params, grid, queryPlanner.getMaxLimit() );
+            eventAnalyticsManager.getEvents( params, grid, queryValidator.getMaxLimit() );
     
             timer.getTime( "Got events " + grid.getHeight() );
         }
@@ -304,7 +307,7 @@ public class DefaultEventAnalyticsService
         
         securityManager.decideAccess( params );
         
-        queryPlanner.validate( params );
+        queryValidator.validate( params );
         
         Grid grid = new ListGrid();
         
@@ -323,7 +326,7 @@ public class DefaultEventAnalyticsService
 
         params = queryPlanner.planEventQuery( params );
 
-        eventAnalyticsManager.getEventClusters( params, grid, queryPlanner.getMaxLimit() );
+        eventAnalyticsManager.getEventClusters( params, grid, queryValidator.getMaxLimit() );
         
         return grid;
     }
@@ -343,7 +346,7 @@ public class DefaultEventAnalyticsService
         
         securityManager.decideAccess( params );
         
-        queryPlanner.validate( params );
+        queryValidator.validate( params );
 
         params = queryPlanner.planEventQuery( params );
 

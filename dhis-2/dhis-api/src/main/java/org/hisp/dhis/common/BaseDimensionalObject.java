@@ -14,6 +14,7 @@ import org.hisp.dhis.legend.LegendSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -344,16 +345,17 @@ public class BaseDimensionalObject
     @Override
     public String toString()
     {
+        List<String> itemStr = items.stream().map( item -> MoreObjects.toStringHelper( DimensionalItemObject.class )
+            .add( "uid", item.getUid() )
+            .add( "name", item.getName() )
+            .toString() )
+            .collect( Collectors.toList() );
+        
         return MoreObjects.toStringHelper( this )
             .add( "Dimension", uid )
             .add( "type", dimensionType )
-            .add( "dimension name", dimensionName )
             .add( "display name", displayName )
-            .add( "object name", name )
-            .add( "items", items )
-            .add( "all items", allItems )
-            .add( "legend set", legendSet )
-            .add( "aggregation type", aggregationType )
-            .add( "filter", filter ).toString();
+            .add( "items", itemStr )
+            .toString();
     }
 }

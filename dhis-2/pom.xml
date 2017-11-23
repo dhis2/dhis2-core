@@ -15,7 +15,7 @@
   </prerequisites>
 
   <description>
-    The District Health Information System 2 deals with registering,
+    The District Health Information System 2 deals with 
     aggregating and reporting statistical health data. The goal is to allow users to analyze
     and use this data to guide local action. The system is based around an goals of empowering
     users, by allowing them to decide what to register and report data for.
@@ -685,6 +685,11 @@
         <groupId>joda-time</groupId>
         <artifactId>joda-time</artifactId>
         <version>2.9.7</version>
+      </dependency>      
+      <dependency>
+        <groupId>com.cronutils</groupId>
+        <artifactId>cron-utils</artifactId>
+        <version>6.0.3-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>javax.servlet</groupId>
