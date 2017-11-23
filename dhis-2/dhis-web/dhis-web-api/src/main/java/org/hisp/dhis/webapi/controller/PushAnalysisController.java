@@ -116,7 +116,7 @@ public class PushAnalysisController
             throw new WebMessageException(
                 WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found" ) );
         }
-
+        
         scheduler.executeJob( new JobConfiguration( pushAnalysis.getName(), JobType.PUSH_ANALYSIS, null,
             new PushAnalysisJobParameters( pushAnalysis.getUid() ), false, false ) );
     }
