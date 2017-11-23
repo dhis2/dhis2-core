@@ -13,7 +13,6 @@ import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.SimpleTriggerContext;
 
 import java.util.Date;
-import java.util.Objects;
 
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
@@ -108,16 +107,21 @@ public class JobConfiguration
         this.jobParameters = jobParameters;
     }
 
+    /**
+     * Only set next execution time if the job is not continuous.
+     */
     public void setNextExecutionTime( Date nextExecutionTime )
     {
+        if ( cronExpression == null || cronExpression.equals( "" ) || cronExpression.equals( "* * * * * ?" ) )
+        {
+            return;
+        }
+
         if ( nextExecutionTime != null )
             this.nextExecutionTime = nextExecutionTime;
         else
         {
-            if ( !Objects.equals( cronExpression, "" ) )
-            {
-                this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext() );
-            }
+            this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext() );
         }
     }
 

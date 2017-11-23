@@ -5,17 +5,12 @@ import com.google.common.primitives.Primitives;
 import org.hisp.dhis.common.GenericNameableObjectStore;
 import org.hisp.dhis.schema.NodePropertyIntrospectorService;
 import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.scheduling.JobStatus.FAILED;
 import static org.hisp.dhis.scheduling.JobType.values;
 
 /**
@@ -25,54 +20,11 @@ import static org.hisp.dhis.scheduling.JobType.values;
 public class DefaultJobConfigurationService
     implements JobConfigurationService
 {
-    private SchedulingManager schedulingManager;
-
-    public void setSchedulingManager( SchedulingManager schedulingManager )
-    {
-        this.schedulingManager = schedulingManager;
-    }
-
     private GenericNameableObjectStore<JobConfiguration> jobConfigurationStore;
 
     public void setJobConfigurationStore( GenericNameableObjectStore<JobConfiguration> jobConfigurationStore )
     {
         this.jobConfigurationStore = jobConfigurationStore;
-    }
-
-    @Autowired
-    private CurrentUserService currentUserService;
-
-    private boolean scheduledBoot = true;
-
-    private int STARTUP_DELAY = 120 * 1000;
-
-    /**
-     * Reschedule old jobs.
-     *
-     * Port jobs from the old scheduler if the startup involves server upgrade
-     *
-     * @param contextRefreshedEvent context event
-     */
-    @EventListener
-    public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )
-    {
-        if ( scheduledBoot && currentUserService != null )
-        {
-            Date now = new Date();
-            getAllJobConfigurations().forEach( (jobConfig -> {
-                jobConfig.setNextExecutionTime( null );
-                updateJobConfiguration( jobConfig );
-
-                if ( jobConfig.getLastExecutedStatus() == FAILED ||
-                    ( !jobConfig.isContinuousExecution() && jobConfig.getNextExecutionTime().compareTo( now ) < 0 ) )
-                {
-                    schedulingManager.scheduleJob( new Date( now.getTime() + STARTUP_DELAY ), jobConfig );
-                }
-                schedulingManager.scheduleJob( jobConfig );
-            }) );
-
-            scheduledBoot = false;
-        }
     }
 
     @Override

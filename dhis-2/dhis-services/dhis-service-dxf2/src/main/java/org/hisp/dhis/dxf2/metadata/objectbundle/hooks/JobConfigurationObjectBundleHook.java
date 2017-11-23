@@ -24,6 +24,8 @@ import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 public class JobConfigurationObjectBundleHook
     extends AbstractObjectBundleHook
 {
+    private static final Log log = LogFactory.getLog( JobConfigurationObjectBundleHook.class );
+
     @Autowired
     private JobConfigurationService jobConfigurationService;
 
@@ -33,8 +35,6 @@ public class JobConfigurationObjectBundleHook
     {
         this.schedulingManager = schedulingManager;
     }
-
-    private static final Log log = LogFactory.getLog( JobConfigurationObjectBundleHook.class );
 
     private List<ErrorReport> validateCronForJobType( JobConfiguration jobConfiguration )
     {

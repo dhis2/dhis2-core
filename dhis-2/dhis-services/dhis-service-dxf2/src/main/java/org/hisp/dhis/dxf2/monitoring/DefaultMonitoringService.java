@@ -77,10 +77,9 @@ public class DefaultMonitoringService
     @PostConstruct
     public void init()
     {
-        // HH schedule to the new scheduler
         Date date = new DateTime().plus( PUSH_INITIAL_DELAY ).toDate();
         
-        scheduler.scheduleWithFixedDelay( () -> pushMonitoringInfo(), date, PUSH_INTERVAL );
+        scheduler.scheduleWithFixedDelay( this::pushMonitoringInfo, date, PUSH_INTERVAL );
         
         log.info( "Scheduled monitoring push service" );
     }

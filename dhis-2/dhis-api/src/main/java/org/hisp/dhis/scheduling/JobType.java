@@ -36,6 +36,7 @@ public enum JobType
         "predictors", "/api/predictors"
     ) ),
     DATA_SET_NOTIFICATION( "dataSetNotification", false, null, null ),
+    STARTUP( "startup", false, null, null ),
 
     // For tests
     MOCK( "mockJob", false, MockJobParameters.class, null ),

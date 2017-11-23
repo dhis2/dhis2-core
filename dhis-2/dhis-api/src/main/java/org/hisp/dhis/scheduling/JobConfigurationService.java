@@ -1,7 +1,6 @@
 package org.hisp.dhis.scheduling;
 
 import org.hisp.dhis.schema.Property;
-import org.springframework.context.event.ContextRefreshedEvent;
 
 import java.util.List;
 import java.util.Map;
@@ -14,14 +13,6 @@ import java.util.Map;
 public interface JobConfigurationService
 {
     String ID = JobConfiguration.class.getName();
-
-    /**
-     * This method is called when the context is ready or updated. Since this can be called several times, the schedulingManager checks if the job is already scheduled.
-     * The method also checks if there are jobs which should have been run while the system was down. If the server crashed or something unexpected happened, we want to rerun these jobs.
-     *
-     * @param event the new context
-     */
-    void handleContextRefresh( ContextRefreshedEvent event );
 
     /**
      * Add a job configuration
