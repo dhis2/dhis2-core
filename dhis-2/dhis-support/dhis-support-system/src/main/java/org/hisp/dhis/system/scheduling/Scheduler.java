@@ -62,7 +62,6 @@ public interface Scheduler
      */
     void executeJob( String jobKey, Runnable job );
 
-
     void executeJob( JobConfiguration jobConfiguration );
 
     /**

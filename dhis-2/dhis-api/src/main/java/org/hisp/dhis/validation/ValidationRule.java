@@ -49,7 +49,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * HH extends OK?
  * @author Kristian Nordal
  */
 @JacksonXmlRootElement( localName = "validationRule", namespace = DxfNamespaces.DXF_2_0 )
