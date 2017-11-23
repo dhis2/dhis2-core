@@ -153,9 +153,12 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
 
     private DetachedCriteria buildCriteria( DetachedCriteria detachedCriteria, Query query )
     {
+        org.hibernate.criterion.Junction junction = getHibernateJunction( query.getRootJunction() );
+        detachedCriteria.add( junction );
+
         for ( org.hisp.dhis.query.Criterion criterion : query.getCriterions() )
         {
-            addCriterion( detachedCriteria, criterion );
+            addCriterion( junction, criterion );
         }
 
         query.getAliases().forEach( alias -> detachedCriteria.createAlias( alias, alias ) );
@@ -165,7 +168,7 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
         );
     }
 
-    private void addCriterion( DetachedCriteria criteria, org.hisp.dhis.query.Criterion criterion )
+    private void addCriterion( org.hibernate.criterion.Junction criteria, org.hisp.dhis.query.Criterion criterion )
     {
         if ( Restriction.class.isInstance( criterion ) )
         {
@@ -231,6 +234,19 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
                 addJunction( junction, c );
             }
         }
+    }
+
+    private org.hibernate.criterion.Junction getHibernateJunction( Junction junction )
+    {
+        switch ( junction.type )
+        {
+            case AND:
+                return Restrictions.conjunction();
+            case OR:
+                return Restrictions.disjunction();
+        }
+
+        return Restrictions.conjunction();
     }
 
     private Criterion getHibernateCriterion( Restriction restriction )
