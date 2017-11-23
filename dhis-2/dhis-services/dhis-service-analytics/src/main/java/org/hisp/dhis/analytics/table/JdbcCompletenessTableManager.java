@@ -32,6 +32,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -59,11 +62,9 @@ public class JdbcCompletenessTableManager
 
     @Override
     @Transactional
-    public List<AnalyticsTable> getTables( Date earliest )
+    public List<AnalyticsTable> getAnalyticsTables( Date earliest )
     {
-        log.info( "Get tables using earliest: " + earliest );
-
-        return getTables( getDataYears( earliest ) );
+        return Lists.newArrayList( getAnalyticsTable( getDataYears( earliest ), getDimensionColumns(), getValueColumns() ) );
     }
     
     @Override
@@ -84,55 +85,33 @@ public class JdbcCompletenessTableManager
         
         return null;
     }
-        
+
     @Override
-    public void createTable( AnalyticsTable table )
+    protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
-        final String tableName = table.getTempTableName();
-        
-        final String sqlDrop = "drop table " + tableName;
-        
-        executeSilently( sqlDrop );
-
-        String sqlCreate = "create table " + tableName + " (";
-
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
-        
-        validateDimensionColumns( columns );
-
-        for ( AnalyticsTableColumn col : columns )
-        {
-            sqlCreate += col.getName() + " " + col.getDataType() + ",";
-        }
-        
-        sqlCreate += "value date)";
-        
-        log.info( "Creating table: " + tableName + ", columns: " + columns.size() );
-        
-        log.debug( "Create SQL: " + sqlCreate );
-        
-        jdbcTemplate.execute( sqlCreate );
+        return Lists.newArrayList( "yearly = '" + partition.getYear() + "'" );
     }
     
     @Override
-    protected void populateTable( AnalyticsTable table )
+    protected void populateTable( AnalyticsTablePartition partition )
     {
-        final String start = DateUtils.getMediumDateString( table.getPeriod().getStartDate() );
-        final String end = DateUtils.getMediumDateString( table.getPeriod().getEndDate() );
-        final String tableName = table.getTempTableName();
+        final String start = DateUtils.getMediumDateString( partition.getStartDate() );
+        final String end = DateUtils.getMediumDateString( partition.getEndDate() );
+        final String tableName = partition.getTempTableName();
 
-        String insert = "insert into " + table.getTempTableName() + " (";
+        String insert = "insert into " + partition.getTempTableName() + " (";
 
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
+        List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
+        List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
         
         validateDimensionColumns( columns );
         
-        for ( AnalyticsTableColumn col : columns )
+        for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
         {
             insert += col.getName() + ",";
         }
         
-        insert += "value) ";
+        insert = TextUtils.removeLastComma( insert ) + ") ";
 
         String select = "select ";
         
@@ -153,7 +132,7 @@ public class JdbcCompletenessTableManager
             "inner join period pe on cdr.periodid=pe.periodid " +
             "inner join _periodstructure ps on cdr.periodid=ps.periodid " +
             "where pe.startdate >= '" + start + "' " +
-            "and pe.startdate <= '" + end + "' " +
+            "and pe.startdate < '" + end + "' " +
             "and cdr.date is not null";
 
         final String sql = insert + select;
@@ -161,8 +140,7 @@ public class JdbcCompletenessTableManager
         populateAndLog( sql, tableName );
     }
     
-    @Override
-    public List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTable table )
+    private List<AnalyticsTableColumn> getDimensionColumns()
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
@@ -202,19 +180,21 @@ public class JdbcCompletenessTableManager
         for ( PeriodType periodType : PeriodType.getAvailablePeriodTypes() )
         {
             String column = quote( periodType.getName().toLowerCase() );
-            columns.add( new AnalyticsTableColumn( column, "character varying(15)", "ps." + column ) );
+            columns.add( new AnalyticsTableColumn( column, "text", "ps." + column ) );
         }
         
         String timelyDateDiff = statementBuilder.getDaysBetweenDates( "pe.enddate", statementBuilder.getCastToDate( "cdr.date" ) );        
         String timelyAlias = "(select (" + timelyDateDiff + ") <= ds.timelydays) as timely";
         
-        AnalyticsTableColumn tm = new AnalyticsTableColumn( quote( "timely" ), "boolean", timelyAlias );
-
-        AnalyticsTableColumn ds = new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "ds.uid" );
-        
-        columns.addAll( Lists.newArrayList( ds, tm ) );
+        columns.add( new AnalyticsTableColumn( quote( "timely" ), "boolean", timelyAlias ) );
+        columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "ds.uid" ) );
         
         return filterDimensionColumns( columns );
+    }
+    
+    private List<AnalyticsTableColumn> getValueColumns()
+    {
+        return Lists.newArrayList( new AnalyticsTableColumn( quote( "value" ), "date", "value" ) );
     }
 
     private List<Integer> getDataYears( Date earliest )
@@ -235,14 +215,14 @@ public class JdbcCompletenessTableManager
     
     @Override
     @Async
-    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTable> tables, Collection<String> dataElements, int aggregationLevel )
+    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions, Collection<String> dataElements, int aggregationLevel )
     {
         return null; // Not relevant
     }
 
     @Override
     @Async
-    public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
+    public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions )
     {
         return null; // Not needed
     }

@@ -54,7 +54,7 @@ public class CachingMapTest
         assertEquals( "horse", cache.get( 1, FN ).getName() );
         assertEquals( "dog", cache.get( 2, FN ).getName() );
         assertEquals( "cat", cache.get( 3, FN ).getName() );        
-        assertFalse( cache.containsKey( "deer" ) );
+        assertFalse( cache.containsKey( 5 ) );
     }
         
     @Test

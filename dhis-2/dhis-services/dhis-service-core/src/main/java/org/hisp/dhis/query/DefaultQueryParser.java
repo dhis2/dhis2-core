@@ -241,6 +241,10 @@ public class DefaultQueryParser implements QueryParser
             {
                 return Restrictions.isNotNull( path );
             }
+            case "empty":
+            {
+                return Restrictions.isEmpty( path );
+            }
             default:
             {
                 throw new QueryParserException( "`" + operator + "` is not a valid operator." );

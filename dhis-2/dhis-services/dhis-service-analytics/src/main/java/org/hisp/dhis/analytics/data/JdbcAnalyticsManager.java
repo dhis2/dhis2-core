@@ -113,14 +113,9 @@ public class JdbcAnalyticsManager
 
             String sql = getSelectClause( params );
 
-            if ( params.spansMultiplePartitions() )
-            {
-                sql += getFromWhereClauseMultiplePartitionFilters( params );
-            }
-            else
-            {
-                sql += getFromWhereClause( params, params.getPartitions().getSinglePartition() );
-            }
+            sql += getFromClause( params );
+            
+            sql += getWhereClause( params );
 
             sql += getGroupByClause( params );
 
@@ -275,53 +270,32 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Generates the from clause of the SQL query. This method should be used for
-     * queries where the period filter spans multiple partitions. This query
-     * will return a result set which will be aggregated by the outer query.
+     * Generates the from clause of the query SQL.
      */
-    private String getFromWhereClauseMultiplePartitionFilters( DataQueryParams params )
+    private String getFromClause( DataQueryParams params )
     {
-        String sql = "from (";
-
-        for ( String partition : params.getPartitions().getPartitions() )
+        String sql = "from ";
+        
+        if ( params.isDataType( DataType.NUMERIC ) && !params.getPreAggregateMeasureCriteria().isEmpty() )
         {
-            sql += "select " + getCommaDelimitedQuotedColumns( params.getDimensions() ) + ", ";
-
-            if ( params.isDataType( TEXT ) )
-            {
-                sql += "textvalue";
-            }
-            else if ( params.isAggregationType( AVERAGE_SUM_INT ) )
-            {
-                sql += "daysxvalue";
-            }
-            else if ( params.isAggregationType( AVERAGE_BOOL ) )
-            {
-                sql += "daysxvalue, daysno";
-            }
-            else
-            {
-                sql += "value";
-            }
-
-            sql += " " + getFromWhereClause( params, partition );
-
-            sql += "union all ";
+            sql += getPreMeasureCriteriaSql( params );
         }
-
-        sql = trimEnd( sql, "union all ".length() ) + ") as data ";
-
-        return sql;
+        else
+        {
+            sql += params.getTableName();
+        }
+        
+        return sql + " ";
     }
 
     /**
-     * Generates the from clause of the query SQL.
+     * Generates the where clause of the query SQL.
      */
-    private String getFromWhereClause( DataQueryParams params, String partition )
+    private String getWhereClause( DataQueryParams params )
     {
         SqlHelper sqlHelper = new SqlHelper();
-
-        String sql = "from " + getPartitionSql( params, partition ) + " ";
+        
+        String sql = "";
 
         // ---------------------------------------------------------------------
         // Dimensions
@@ -413,40 +387,17 @@ public class JdbcAnalyticsManager
             sql += sqlHelper.whereAnd() + " timely is true ";
         }
 
+        // ---------------------------------------------------------------------
+        // Partitions restriction to allow constraint exclusion
+        // ---------------------------------------------------------------------
+        
+        if ( !params.isSkipPartitioning() && params.hasPartitions() )
+        {            
+            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "yearly" ) + " in (" + 
+                TextUtils.getQuotedCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
+        }
+        
         return sql;
-    }
-
-    /**
-     * If preAggregationMeasureCriteria is specified, generates a query which
-     * provides a filtered view of the data according to the criteria .If not, 
-     * returns the full view of the partition.
-     */
-    private String getPartitionSql( DataQueryParams params, String partition )
-    {
-        if ( params.isDataType( DataType.NUMERIC ) && !params.getPreAggregateMeasureCriteria().isEmpty() )
-        {
-            SqlHelper sqlHelper = new SqlHelper();
-
-            String sql = "";
-
-            sql += "(select * from " + partition + " ";
-
-            for ( MeasureFilter filter : params.getPreAggregateMeasureCriteria().keySet() )
-            {
-                Double criterion = params.getPreAggregateMeasureCriteria().get( filter );
-
-                sql += sqlHelper.whereAnd() + " value " + OPERATOR_SQL_MAP.get( filter ) + " " + criterion + " ";
-
-            }
-
-            sql += ") as " + partition;
-
-            return sql;
-        }
-        else
-        {
-            return partition;
-        }
     }
 
     /**
@@ -460,6 +411,29 @@ public class JdbcAnalyticsManager
         {
             sql = "group by " + getCommaDelimitedQuotedColumns( params.getDimensions() );
         }
+
+        return sql;
+    }
+
+    /**
+     * Generates a query which provides a filtered view of the data according 
+     * to the criteria. If not, returns the full view of the partition.
+     */
+    private String getPreMeasureCriteriaSql( DataQueryParams params )
+    {
+        SqlHelper sqlHelper = new SqlHelper();
+
+        String sql = "(select * from " + params.getTableName() + " ";
+
+        for ( MeasureFilter filter : params.getPreAggregateMeasureCriteria().keySet() )
+        {
+            Double criterion = params.getPreAggregateMeasureCriteria().get( filter );
+
+            sql += sqlHelper.whereAnd() + " value " + OPERATOR_SQL_MAP.get( filter ) + " " + criterion + " ";
+
+        }
+
+        sql += ") as " + params.getTableName();
 
         return sql;
     }

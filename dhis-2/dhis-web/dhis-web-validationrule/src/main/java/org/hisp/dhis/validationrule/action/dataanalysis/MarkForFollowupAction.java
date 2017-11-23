@@ -121,6 +121,13 @@ public class MarkForFollowupAction
     {
         this.categoryOptionComboId = categoryOptionComboId;
     }
+    
+    private Integer attributeOptionComboId;
+
+    public void setAttributeOptionComboId( Integer attributeOptionComboId )
+    {
+        this.attributeOptionComboId = attributeOptionComboId;
+    }
 
     // -------------------------------------------------------------------------
     // Output
@@ -144,9 +151,10 @@ public class MarkForFollowupAction
         Period period = periodService.getPeriod( periodId );
         OrganisationUnit source = organisationUnitService.getOrganisationUnit( sourceId );
         DataElementCategoryOptionCombo categoryOptionCombo = categoryService.getDataElementCategoryOptionCombo( categoryOptionComboId );
+        DataElementCategoryOptionCombo attributeOptionCombo = categoryService.getDataElementCategoryOptionCombo( attributeOptionComboId );        
         
-        DataValue dataValue = dataValueService.getDataValue( dataElement, period, source, categoryOptionCombo ); 
-
+        DataValue dataValue = dataValueService.getDataValue( dataElement, period, source, categoryOptionCombo, attributeOptionCombo ); 
+        
         if ( dataValue != null )
         {
             boolean isMarked = dataValue.isFollowup();

@@ -1,4 +1,5 @@
 package org.hisp.dhis.validation;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -293,9 +294,10 @@ public class ValidationRunContext
                 List<ValidationResult> res = context.initialValidationResults
                     .getValue( validationResult.getOrganisationUnit(), validationResult.getValidationRule(),
                         validationResult.getPeriod() );
+                
                 if ( res == null )
                 {
-                    res = new ArrayList();
+                    res = new ArrayList<ValidationResult>();
                 }
 
                 res.add( validationResult );

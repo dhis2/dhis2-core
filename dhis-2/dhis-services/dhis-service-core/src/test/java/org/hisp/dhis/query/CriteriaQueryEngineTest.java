@@ -470,18 +470,46 @@ public class CriteriaQueryEngineTest
     }
 
     @Test
-    @Ignore
-    public void testIdentifiableSearch()
+    public void testIdentifiableSearch1()
     {
-        Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ) );
+        Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ), Junction.Type.OR );
+        query.add( Restrictions.eq( "name", "DataElementGroupA" ) );
+        query.add( Restrictions.eq( "name", "DataElementGroupA" ) );
+
+        List<? extends IdentifiableObject> objects = queryEngine.query( query );
+
+        assertEquals( 2, objects.size() );
+    }
+
+    @Test
+    public void testIdentifiableSearch2()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ), Junction.Type.OR );
 
         Junction junction = query.getRootJunction();
 
-        Restriction displayNameRestriction = Restrictions.eq( "name", "de" );
-        Restriction uidRestriction = Restrictions.eq( "id", "de" );
-        Restriction codeRestriction = Restrictions.eq( "code", "de" );
+        Junction disjunction = new Disjunction( schemaService.getDynamicSchema( DataElementGroup.class ) );
+        disjunction.add( Restrictions.eq( "name", "DataElementGroupA" ) );
+        disjunction.add( Restrictions.eq( "name", "DataElementGroupB" ) );
+        junction.add( disjunction );
 
-        Junction identifiableJunction = new Disjunction( schemaService.getDynamicSchema( DataElementGroup.class ) );
+        List<? extends IdentifiableObject> objects = queryEngine.query( query );
+
+        assertEquals( 2, objects.size() );
+    }
+
+    @Test
+    public void testIdentifiableSearch3()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ), Junction.Type.OR );
+
+        Junction junction = query.getRootJunction();
+
+        Restriction displayNameRestriction = Restrictions.eq( "name", "deF" );
+        Restriction uidRestriction = Restrictions.eq( "id", "deF" );
+        Restriction codeRestriction = Restrictions.eq( "code", "deF" );
+
+        Junction identifiableJunction = new Disjunction( schemaService.getDynamicSchema( DataElement.class ) );
         identifiableJunction.add( displayNameRestriction );
         identifiableJunction.add( uidRestriction );
         identifiableJunction.add( codeRestriction );
@@ -489,7 +517,6 @@ public class CriteriaQueryEngineTest
         junction.add( identifiableJunction );
 
         List<? extends IdentifiableObject> objects = queryEngine.query( query );
-        assertEquals( 6, objects.size() );
+        assertEquals( 1, objects.size() );
     }
-
 }

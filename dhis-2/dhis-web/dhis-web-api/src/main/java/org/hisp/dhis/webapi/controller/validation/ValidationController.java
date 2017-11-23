@@ -39,14 +39,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.scheduling.Scheduler;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.validation.ValidationAnalysisParams;
 import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.ValidationSummary;
-import org.hisp.dhis.validation.notification.ValidationResultNotificationTask;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,13 +78,7 @@ public class ValidationController
     private DataElementCategoryService categoryService;
 
     @Autowired
-    private ValidationResultNotificationTask validationResultNotificationTask;
-
-    @Autowired
     private Scheduler scheduler;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     @Autowired
     private WebMessageService webMessageService;
@@ -142,8 +134,11 @@ public class ValidationController
     @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     public void runValidationNotificationsTask( HttpServletResponse response, HttpServletRequest request )
     {
-        validationResultNotificationTask.setTaskId( new TaskId( TaskCategory.SENDING_VALIDATION_RESULT, currentUserService.getCurrentUser() ) );
-        scheduler.executeTask( validationResultNotificationTask );
+        // HH validate
+        JobConfiguration validationResultNotification = new JobConfiguration("validation result notification from validation controller", JobType.VALIDATION_RESULTS_NOTIFICATION, "", null,
+            false, true );
+
+        scheduler.executeJob( validationResultNotification );
 
         webMessageService.send( WebMessageUtils.ok( "Initiated validation result notification" ), response, request );
     }

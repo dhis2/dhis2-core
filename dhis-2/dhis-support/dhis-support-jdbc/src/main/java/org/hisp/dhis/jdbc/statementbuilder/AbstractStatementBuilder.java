@@ -31,6 +31,8 @@ package org.hisp.dhis.jdbc.statementbuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
 
+import java.util.Collection;
+
 /**
  * @author Lars Helge Overland
  */
@@ -161,5 +163,40 @@ public abstract class AbstractStatementBuilder
     public String getDropNotNullConstraint( String table, String column, String type )
     {
         return "alter table " + table + " modify column " + column + " " + type + " null;";
+    }
+
+    /**
+     * Generates a derived table containing one column of literal strings.
+     *
+     * The generic implementation, which works in all supported database
+     * types, returns a subquery in the following form:
+     * <code>
+     *     (select 's1' as column
+     *      union select 's2'
+     *      union select 's3') table
+     * </code>
+     *
+     * @param values (non-empty) String values for the derived table
+     * @param table the desired table name alias
+     * @param column the desired column name
+     * @return the derived literal table
+     */
+    @Override
+    public String literalStringTable( Collection<String> values, String table, String column )
+    {
+        StringBuilder sb = new StringBuilder();
+
+        String before = "(select '";
+        String after = "' as " + column;
+
+        for ( String value : values )
+        {
+            sb.append( before ).append( value ).append( after );
+
+            before = " union select '";
+            after = "'";
+        }
+
+        return sb.append(") ").append( table ).toString();
     }
 }

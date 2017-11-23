@@ -2066,7 +2066,7 @@ public class ActivityReportingServiceImpl
         String text = message.getText();
         String metaData = MessageService.META_USER_AGENT;
 
-        messageService.sendTicketMessage( subject, text, metaData );
+        messageService.sendMessage( messageService.createTicketMessage( subject, text, metaData ).build() );
 
         return FEEDBACK_SENT;
     }
@@ -2232,7 +2232,7 @@ public class ActivityReportingServiceImpl
 
         }
 
-        messageService.sendPrivateMessage( subject, text, metaData, users );
+        messageService.sendMessage( messageService.createPrivateMessage( users, subject, text, metaData ).build() );
 
         return MESSAGE_SENT;
     }
